@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.Universal
         ReorderableList m_rendererFeaturesList;
         Editor ownerEditor;
 
-        internal ScriptableRendererFeatureEditor(ScriptableRendererDataEditor editor)
+        internal ScriptableRendererFeatureEditor(Editor editor)
         {
             ownerEditor = editor;
             m_rendererFeatures = ownerEditor.serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatures));
@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.Universal
             m_rendererFeaturesList = new ReorderableList(ownerEditor.serializedObject, m_rendererFeatures, true, true, true, true)
             {
                 drawElementCallback = OnDrawElement,
-                drawHeaderCallback = (Rect rect) => { EditorGUI.indentLevel++; EditorGUI.LabelField(rect, Styles.RendererFeatureOrder); EditorGUI.indentLevel--; },
+                drawHeaderCallback = (Rect rect) => { EditorGUI.LabelField(rect, Styles.RendererFeatureOrder); },
                 onAddDropdownCallback = OnAddDropdownCallback,
                 onRemoveCallback = OnRemoveElement,
                 elementHeightCallback = ElementHeightCallback,

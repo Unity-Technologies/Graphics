@@ -5,6 +5,8 @@ using UnityEditor.ProjectWindowCallback;
 using System;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Assertions;
+using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -102,6 +104,53 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] TileSize m_TileSize = k_DefaultTileSize;
         [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Auto;
 
+
+        public static readonly int AdditionalLightsDefaultShadowResolutionTierLow = 256;
+        public static readonly int AdditionalLightsDefaultShadowResolutionTierMedium = 512;
+        public static readonly int AdditionalLightsDefaultShadowResolutionTierHigh = 1024;
+
+        internal const int k_ShadowCascadeMinCount = 1;
+        internal const int k_ShadowCascadeMaxCount = 4;
+
+        // Main directional light Settings
+        [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
+        [SerializeField] bool m_MainLightShadowsSupported = true;
+        [SerializeField] ShadowResolution m_MainLightShadowmapResolution = ShadowResolution._2048;
+
+        // Additional lights settings
+        [SerializeField] LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
+        [SerializeField] int m_AdditionalLightsPerObjectLimit = 4;
+        [SerializeField] bool m_AdditionalLightShadowsSupported = false;
+        [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._2048;
+
+        [SerializeField] int m_AdditionalLightsShadowResolutionTierLow = AdditionalLightsDefaultShadowResolutionTierLow;
+        [SerializeField] int m_AdditionalLightsShadowResolutionTierMedium = AdditionalLightsDefaultShadowResolutionTierMedium;
+        [SerializeField] int m_AdditionalLightsShadowResolutionTierHigh = AdditionalLightsDefaultShadowResolutionTierHigh;
+        // Shadows Settings
+        [SerializeField] float m_ShadowDistance = 50.0f;
+        [SerializeField] int m_ShadowCascadeCount = 1;
+        [SerializeField] float m_Cascade2Split = 0.25f;
+        [SerializeField] Vector2 m_Cascade3Split = new Vector2(0.1f, 0.3f);
+        [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
+        [SerializeField] float m_CascadeBorder = 0.2f;
+        [SerializeField] float m_ShadowDepthBias = 1.0f;
+        [SerializeField] float m_ShadowNormalBias = 1.0f;
+        [SerializeField] bool m_SoftShadowsSupported = false;
+        [SerializeField] bool m_ConservativeEnclosingSphere = true;
+        [SerializeField] int m_NumIterationsEnclosingSphere = 64;
+
+        [SerializeField] bool m_MixedLightingSupported = true;
+        [SerializeField] bool m_SupportsLightLayers = false;
+
+        // Reflection Probes
+        [SerializeField] bool m_ReflectionProbeBlending = false;
+        [SerializeField] bool m_ReflectionProbeBoxProjection = false;
+
+        // Light Cookie Settings
+        [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
+        [SerializeField] LightCookieFormat m_AdditionalLightsCookieFormat = LightCookieFormat.ColorHigh;
+
+
         protected override ScriptableRenderer Create()
         {
             if (!Application.isPlaying)
@@ -109,6 +158,274 @@ namespace UnityEngine.Rendering.Universal
                 ReloadAllNullProperties();
             }
             return new UniversalRenderer(this);
+        }
+
+        public LightRenderingMode mainLightRenderingMode
+        {
+            get { return m_MainLightRenderingMode; }
+            internal set { m_MainLightRenderingMode = value; }
+        }
+
+        public bool supportsMainLightShadows
+        {
+            get { return m_MainLightShadowsSupported; }
+            internal set { m_MainLightShadowsSupported = value; }
+        }
+
+        public int mainLightShadowmapResolution
+        {
+            get { return (int)m_MainLightShadowmapResolution; }
+            internal set { m_MainLightShadowmapResolution = (ShadowResolution)value; }
+        }
+
+        public LightRenderingMode additionalLightsRenderingMode
+        {
+            get { return m_AdditionalLightsRenderingMode; }
+            internal set { m_AdditionalLightsRenderingMode = value; }
+        }
+
+        public int maxAdditionalLightsCount
+        {
+            get { return m_AdditionalLightsPerObjectLimit; }
+            set { m_AdditionalLightsPerObjectLimit = ValidatePerObjectLights(value); }
+        }
+
+        public bool supportsAdditionalLightShadows
+        {
+            get { return m_AdditionalLightShadowsSupported; }
+            internal set { m_AdditionalLightShadowsSupported = value; }
+        }
+
+        public int additionalLightsShadowmapResolution
+        {
+            get { return (int)m_AdditionalLightsShadowmapResolution; }
+            internal set { m_AdditionalLightsShadowmapResolution = (ShadowResolution)value; }
+        }
+
+        /// <summary>
+        /// Returns the additional light shadow resolution defined for tier "Low" in the UniversalRenderPipeline asset.
+        /// </summary>
+        public int additionalLightsShadowResolutionTierLow
+        {
+            get { return (int)m_AdditionalLightsShadowResolutionTierLow; }
+            internal set { additionalLightsShadowResolutionTierLow = value; }
+        }
+
+        /// <summary>
+        /// Returns the additional light shadow resolution defined for tier "Medium" in the UniversalRenderPipeline asset.
+        /// </summary>
+        public int additionalLightsShadowResolutionTierMedium
+        {
+            get { return (int)m_AdditionalLightsShadowResolutionTierMedium; }
+            internal set { m_AdditionalLightsShadowResolutionTierMedium = value; }
+        }
+
+        /// <summary>
+        /// Returns the additional light shadow resolution defined for tier "High" in the UniversalRenderPipeline asset.
+        /// </summary>
+        public int additionalLightsShadowResolutionTierHigh
+        {
+            get { return (int)m_AdditionalLightsShadowResolutionTierHigh; }
+            internal set { additionalLightsShadowResolutionTierHigh = value; }
+        }
+
+        /// <summary>
+        /// Controls the maximum distance at which shadows are visible.
+        /// </summary>
+        public float shadowDistance
+        {
+            get { return m_ShadowDistance; }
+            set { m_ShadowDistance = Mathf.Max(0.0f, value); }
+        }
+
+        /// <summary>
+        /// Returns the number of shadow cascades.
+        /// </summary>
+        public int shadowCascadeCount
+        {
+            get { return m_ShadowCascadeCount; }
+            set
+            {
+                if (value < k_ShadowCascadeMinCount || value > k_ShadowCascadeMaxCount)
+                {
+                    throw new ArgumentException($"Value ({value}) needs to be between {k_ShadowCascadeMinCount} and {k_ShadowCascadeMaxCount}.");
+                }
+                m_ShadowCascadeCount = value;
+            }
+        }
+
+        /// <summary>
+        /// Returns the split value.
+        /// </summary>
+        /// <returns>Returns a Float with the split value.</returns>
+        public float cascade2Split
+        {
+            get { return m_Cascade2Split; }
+            internal set { m_Cascade2Split = value; }
+        }
+
+        /// <summary>
+        /// Returns the split values.
+        /// </summary>
+        /// <returns>Returns a Vector2 with the split values.</returns>
+        public Vector2 cascade3Split
+        {
+            get { return m_Cascade3Split; }
+            internal set { m_Cascade3Split = value; }
+        }
+
+        /// <summary>
+        /// Returns the split values.
+        /// </summary>
+        /// <returns>Returns a Vector3 with the split values.</returns>
+        public Vector3 cascade4Split
+        {
+            get { return m_Cascade4Split; }
+            internal set { m_Cascade4Split = value; }
+        }
+
+        /// <summary>
+        /// Last cascade fade distance in percentage.
+        /// </summary>
+        public float cascadeBorder
+        {
+            get { return m_CascadeBorder; }
+            set { cascadeBorder = value; }
+        }
+
+        /// <summary>
+        /// The Shadow Depth Bias, controls the offset of the lit pixels.
+        /// </summary>
+        public float shadowDepthBias
+        {
+            get { return m_ShadowDepthBias; }
+            set { m_ShadowDepthBias = ValidateShadowBias(value); }
+        }
+
+        /// <summary>
+        /// Controls the distance at which the shadow casting surfaces are shrunk along the surface normal.
+        /// </summary>
+        public float shadowNormalBias
+        {
+            get { return m_ShadowNormalBias; }
+            set { m_ShadowNormalBias = ValidateShadowBias(value); }
+        }
+
+        /// <summary>
+        /// Supports Soft Shadows controls the Soft Shadows.
+        /// </summary>
+        public bool supportsSoftShadows
+        {
+            get { return m_SoftShadowsSupported; }
+            internal set { m_SoftShadowsSupported = value; }
+        }
+
+
+        public bool supportsMixedLighting
+        {
+            get { return m_MixedLightingSupported; }
+        }
+
+        /// <summary>
+        /// Returns true if the Render Pipeline Asset supports light layers, false otherwise.
+        /// </summary>
+        public bool supportsLightLayers
+        {
+            get { return m_SupportsLightLayers; }
+        }
+
+        /// <summary>
+        /// Set to true to enable a conservative method for calculating the size and position of the minimal enclosing sphere around the frustum cascade corner points for shadow culling.
+        /// </summary>
+        public bool conservativeEnclosingSphere
+        {
+            get { return m_ConservativeEnclosingSphere; }
+            set { m_ConservativeEnclosingSphere = value; }
+        }
+
+        /// <summary>
+        /// Set the number of iterations to reduce the cascade culling enlcosing sphere to be closer to the absolute minimun enclosing sphere, but will also require more CPU computation for increasing values.
+        /// This parameter is used only when conservativeEnclosingSphere is set to true. Default value is 64.
+        /// </summary>
+        public int numIterationsEnclosingSphere
+        {
+            get { return m_NumIterationsEnclosingSphere; }
+            set { m_NumIterationsEnclosingSphere = value; }
+        }
+
+        public bool reflectionProbeBlending
+        {
+            get { return m_ReflectionProbeBlending; }
+            internal set { m_ReflectionProbeBlending = value; }
+        }
+
+        public bool reflectionProbeBoxProjection
+        {
+            get { return m_ReflectionProbeBoxProjection; }
+            internal set { m_ReflectionProbeBoxProjection = value; }
+        }
+
+        private static GraphicsFormat[][] s_LightCookieFormatList = new GraphicsFormat[][]
+        {
+            /* Grayscale Low */ new GraphicsFormat[] {GraphicsFormat.R8_UNorm},
+            /* Grayscale High*/ new GraphicsFormat[] {GraphicsFormat.R16_UNorm},
+            /* Color Low     */ new GraphicsFormat[] {GraphicsFormat.R5G6B5_UNormPack16, GraphicsFormat.B5G6R5_UNormPack16, GraphicsFormat.R5G5B5A1_UNormPack16, GraphicsFormat.B5G5R5A1_UNormPack16},
+            /* Color High    */ new GraphicsFormat[] {GraphicsFormat.A2B10G10R10_UNormPack32, GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.B8G8R8A8_SRGB},
+            /* Color HDR     */ new GraphicsFormat[] {GraphicsFormat.B10G11R11_UFloatPack32},
+        };
+
+        internal int GetAdditionalLightsShadowResolution(int additionalLightsShadowResolutionTier)
+        {
+            if (additionalLightsShadowResolutionTier <= UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierLow /* 0 */)
+                return additionalLightsShadowResolutionTierLow;
+
+            if (additionalLightsShadowResolutionTier == UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierMedium /* 1 */)
+                return additionalLightsShadowResolutionTierMedium;
+
+            if (additionalLightsShadowResolutionTier >= UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierHigh /* 2 */)
+                return additionalLightsShadowResolutionTierHigh;
+
+            return additionalLightsShadowResolutionTierMedium;
+        }
+
+        internal Vector2Int additionalLightsCookieResolution => new Vector2Int((int)m_AdditionalLightsCookieResolution, (int)m_AdditionalLightsCookieResolution);
+
+
+        float ValidateShadowBias(float value)
+        {
+            return Mathf.Max(0.0f, Mathf.Min(value, UniversalRenderPipeline.maxShadowBias));
+        }
+
+        int ValidatePerObjectLights(int value)
+        {
+            return System.Math.Max(0, System.Math.Min(value, UniversalRenderPipeline.maxPerObjectLights));
+        }
+        internal GraphicsFormat additionalLightsCookieFormat
+        {
+            get
+            {
+                GraphicsFormat result = GraphicsFormat.None;
+                foreach (var format in s_LightCookieFormatList[(int)m_AdditionalLightsCookieFormat])
+                {
+                    if (SystemInfo.IsFormatSupported(format, FormatUsage.Render))
+                    {
+                        result = format;
+                        break;
+                    }
+                }
+
+                if (QualitySettings.activeColorSpace == ColorSpace.Gamma)
+                    result = GraphicsFormatUtility.GetLinearFormat(result);
+
+                // Fallback
+                if (result == GraphicsFormat.None)
+                {
+                    result = GraphicsFormat.R8G8B8A8_UNorm;
+                    Debug.LogWarning($"Additional Lights Cookie Format ({ m_AdditionalLightsCookieFormat.ToString() }) is not supported by the platform. Falling back to {GraphicsFormatUtility.GetBlockSize(result) * 8}-bit format ({GraphicsFormatUtility.GetFormatString(result)})");
+                }
+
+                return result;
+            }
         }
 
         /// <summary>

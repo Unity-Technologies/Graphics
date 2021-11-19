@@ -883,8 +883,8 @@ namespace UnityEngine.Rendering.Universal
             var renderer = cameraData.renderer as UniversalRenderer;
             if (renderer != null)
             {
-                bool anyShadowsEnabled = renderer.supportsMainLightShadows || renderer.supportsAdditionalLightShadows;
-                cameraData.maxShadowDistance = Mathf.Min(renderer.shadowDistance, camera.farClipPlane);
+                bool anyShadowsEnabled = renderer.rendererData.supportsMainLightShadows || renderer.rendererData.supportsAdditionalLightShadows;
+                cameraData.maxShadowDistance = Mathf.Min(renderer.rendererData.shadowDistance, camera.farClipPlane);
                 cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ? cameraData.maxShadowDistance : 0.0f;
             }
 

@@ -981,40 +981,40 @@ namespace UnityEditor.Rendering.Universal
             {
                 var urpRenderer = renderer as UniversalRenderer;
 
-                if (urpRenderer.supportsMainLightShadows)
+                if (urpRenderer.rendererData.supportsMainLightShadows)
                 {
                     // User can change cascade count at runtime, so we have to include both of them for now
                     shaderFeatures |= ShaderFeatures.MainLightShadows;
                     shaderFeatures |= ShaderFeatures.MainLightShadowsCascade;
                 }
 
-                if (urpRenderer.additionalLightsRenderingMode == LightRenderingMode.PerVertex)
+                if (urpRenderer.rendererData.additionalLightsRenderingMode == LightRenderingMode.PerVertex)
                 {
                     shaderFeatures |= ShaderFeatures.VertexLighting;
                 }
-                else if (urpRenderer.additionalLightsRenderingMode == LightRenderingMode.PerPixel)
+                else if (urpRenderer.rendererData.additionalLightsRenderingMode == LightRenderingMode.PerPixel)
                 {
                     shaderFeatures |= ShaderFeatures.AdditionalLights;
                 }
-                if (urpRenderer.supportsMixedLighting)
+                if (urpRenderer.rendererData.supportsMixedLighting)
                     shaderFeatures |= ShaderFeatures.MixedLighting;
 
-                bool anyShadows = urpRenderer.supportsMainLightShadows ||
+                bool anyShadows = urpRenderer.rendererData.supportsMainLightShadows ||
                     (shaderFeatures & ShaderFeatures.AdditionalLightShadows) != 0;
-                if (urpRenderer.supportsSoftShadows && anyShadows)
+                if (urpRenderer.rendererData.supportsSoftShadows && anyShadows)
                     shaderFeatures |= ShaderFeatures.SoftShadows;
 
-                if (urpRenderer.supportsLightLayers)
+                if (urpRenderer.rendererData.supportsLightLayers)
                     shaderFeatures |= ShaderFeatures.LightLayers;
 
-                if (urpRenderer.reflectionProbeBlending)
+                if (urpRenderer.rendererData.reflectionProbeBlending)
                     shaderFeatures |= ShaderFeatures.ReflectionProbeBlending;
 
-                if (urpRenderer.reflectionProbeBoxProjection)
+                if (urpRenderer.rendererData.reflectionProbeBoxProjection)
                     shaderFeatures |= ShaderFeatures.ReflectionProbeBoxProjection;
-                if (urpRenderer.additionalLightsRenderingMode == LightRenderingMode.PerPixel || clusteredRendering)
+                if (urpRenderer.rendererData.additionalLightsRenderingMode == LightRenderingMode.PerPixel || clusteredRendering)
                 {
-                    if (urpRenderer.supportsAdditionalLightShadows)
+                    if (urpRenderer.rendererData.supportsAdditionalLightShadows)
                     {
                         shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
                     }

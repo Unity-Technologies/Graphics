@@ -73,8 +73,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 InitParams p;
                 {
                     var settings = LightCookieManager.Settings.GetDefault();
-                    settings.atlas.format = renderer.additionalLightsCookieFormat;
-                    settings.atlas.resolution = renderer.additionalLightsCookieResolution;
+                    settings.atlas.format = renderer.rendererData.additionalLightsCookieFormat;
+                    settings.atlas.resolution = renderer.rendererData.additionalLightsCookieResolution;
 
                     p.lightCookieManager = new LightCookieManager(ref settings);
                     p.clusteredRendering = false;

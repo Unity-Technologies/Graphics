@@ -51,8 +51,8 @@ namespace UnityEditor.Rendering.Universal
                     var urpRenderer = renderer as UniversalRenderer;
                     if (urpRenderer != null)
                     {
-                        mainLightMode.Add(urpRenderer.mainLightRenderingMode.ToString());
-                        additionalLightMode.Add(urpRenderer.additionalLightsRenderingMode.ToString());
+                        mainLightMode.Add(urpRenderer.rendererData.mainLightRenderingMode.ToString());
+                        additionalLightMode.Add(urpRenderer.rendererData.additionalLightsRenderingMode.ToString());
                     }
                 }
 
