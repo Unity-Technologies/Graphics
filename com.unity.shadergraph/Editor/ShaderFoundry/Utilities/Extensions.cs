@@ -66,6 +66,13 @@ namespace UnityEditor.ShaderFoundry
             builder.Add(str);
         }
 
+        internal static void AppendScopeName(this ShaderBuilder builder, Block block)
+        {
+            const string blockSuffix = "Block";
+            builder.Append(block.Name);
+            builder.Append(blockSuffix);
+        }
+
         internal static void AddVariableDeclarationString(this ShaderBuilder builder, ShaderType type, string name, string defaultValue = null)
         {
             builder.DeclareVariable(type, name, defaultValue);
