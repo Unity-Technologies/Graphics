@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderFoundry
         {
             var builder = new BlockVariable.Builder(container);
             builder.Type = type;
-            builder.ReferenceName = builder.DisplayName = name;
+            builder.ReferenceName = name;
             return builder.Build();
         }
 

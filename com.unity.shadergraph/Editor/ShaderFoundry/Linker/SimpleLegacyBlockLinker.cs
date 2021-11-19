@@ -141,7 +141,7 @@ namespace UnityEditor.ShaderFoundry
             foreach(var varying in customVaryings)
             {
                 var builder = new BlockVariable.Builder(Container);
-                builder.ReferenceName = builder.DisplayName = varying.Name;
+                builder.ReferenceName = varying.Name;
                 builder.Type = varying.Type;
                 varyingBlockVariables.Add(builder.Build());
             }
