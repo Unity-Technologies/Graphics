@@ -3,6 +3,98 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
+    using CED = CoreEditorDrawer<SerializedRenderer2DData>;
+
+    struct LightBlendStyleProps
+    {
+        public SerializedProperty name;
+        public SerializedProperty maskTextureChannel;
+        public SerializedProperty blendMode;
+        public SerializedProperty blendFactorMultiplicative;
+        public SerializedProperty blendFactorAdditive;
+    }
+
+    enum ShowUIRenderer2DData
+    {
+        General = 1 << 0,
+        LightingRenderTexture = 1 << 1,
+        LightingBlendStyles = 1 << 2,
+        CameraSortingLayerTexture = 1 << 3,
+        RendererFeatures = 1 << 4,
+
+    }
+
+    class SerializedRenderer2DData
+    {
+        public SerializedProperty HDREmulationScale;
+        public SerializedProperty lightRenderTextureScale;
+        public SerializedProperty lightBlendStyles;
+        public LightBlendStyleProps[] lightBlendStylePropsArray;
+        public SerializedProperty useDepthStencilBuffer;
+        public SerializedProperty maxLightRenderTextureCount;
+        public SerializedProperty maxShadowRenderTextureCount;
+
+        public SerializedProperty useCameraSortingLayersTexture;
+        public SerializedProperty cameraSortingLayersTextureBound;
+        public SerializedProperty cameraSortingLayerDownsamplingMethod;
+
+        public ScriptableRendererFeatureEditor rendererFeatureEditor;
+
+        public Analytics.Renderer2DAnalytics m_Analytics = Analytics.Renderer2DAnalytics.instance;
+        public Renderer2DData asset;
+        public bool m_WasModified;
+
+        public SerializedObject serializedObject;
+        public Editor ownerEditor;
+
+        public ExpandedState<ShowUIRenderer2DData, Renderer2DData> k_showUI { get; }
+
+        public SerializedRenderer2DData(Editor ownerEditor, int index)
+        {
+            this.ownerEditor = ownerEditor;
+            serializedObject = ownerEditor.serializedObject;
+
+            m_WasModified = false;
+            asset = (Renderer2DData)serializedObject.targetObject;
+
+            HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
+            lightRenderTextureScale = serializedObject.FindProperty("m_LightRenderTextureScale");
+            lightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
+            maxLightRenderTextureCount = serializedObject.FindProperty("m_MaxLightRenderTextureCount");
+            maxShadowRenderTextureCount = serializedObject.FindProperty("m_MaxShadowRenderTextureCount");
+
+            useCameraSortingLayersTexture = serializedObject.FindProperty("m_UseCameraSortingLayersTexture");
+            cameraSortingLayersTextureBound = serializedObject.FindProperty("m_CameraSortingLayersTextureBound");
+            cameraSortingLayerDownsamplingMethod = serializedObject.FindProperty("m_CameraSortingLayerDownsamplingMethod");
+
+            int numBlendStyles = lightBlendStyles.arraySize;
+            lightBlendStylePropsArray = new LightBlendStyleProps[numBlendStyles];
+
+            for (int i = 0; i < numBlendStyles; ++i)
+            {
+                SerializedProperty blendStyleProp = lightBlendStyles.GetArrayElementAtIndex(i);
+                ref LightBlendStyleProps props = ref lightBlendStylePropsArray[i];
+
+                props.name = blendStyleProp.FindPropertyRelative("name");
+                props.maskTextureChannel = blendStyleProp.FindPropertyRelative("maskTextureChannel");
+                props.blendMode = blendStyleProp.FindPropertyRelative("blendMode");
+                props.blendFactorMultiplicative = blendStyleProp.FindPropertyRelative("customBlendFactors.multiplicative");
+                props.blendFactorAdditive = blendStyleProp.FindPropertyRelative("customBlendFactors.additive");
+
+                if (props.blendFactorMultiplicative == null)
+                    props.blendFactorMultiplicative = blendStyleProp.FindPropertyRelative("customBlendFactors.modulate");
+                if (props.blendFactorAdditive == null)
+                    props.blendFactorAdditive = blendStyleProp.FindPropertyRelative("customBlendFactors.additve");
+            }
+
+            useDepthStencilBuffer = serializedObject.FindProperty("m_UseDepthStencilBuffer");
+
+            rendererFeatureEditor = new ScriptableRendererFeatureEditor(ownerEditor);
+
+            k_showUI = new(ShowUIRenderer2DData.General, $"{index}_URP");
+        }
+    }
+
     [CustomEditor(typeof(Renderer2DData), true)]
     internal class Renderer2DDataEditor : ScriptableRendererDataEditor
     {
@@ -31,46 +123,14 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent cameraSortingLayerDownsampling = EditorGUIUtility.TrTextContent("Downsampling Method", "Method used to copy _CameraSortingLayersTexture");
         }
 
-        struct LightBlendStyleProps
-        {
-            public SerializedProperty name;
-            public SerializedProperty maskTextureChannel;
-            public SerializedProperty blendMode;
-            public SerializedProperty blendFactorMultiplicative;
-            public SerializedProperty blendFactorAdditive;
-        }
-
-        SerializedProperty m_HDREmulationScale;
-        SerializedProperty m_LightRenderTextureScale;
-        SerializedProperty m_LightBlendStyles;
-        LightBlendStyleProps[] m_LightBlendStylePropsArray;
-        SerializedProperty m_UseDepthStencilBuffer;
-        SerializedProperty m_MaxLightRenderTextureCount;
-        SerializedProperty m_MaxShadowRenderTextureCount;
-
-        SerializedProperty m_UseCameraSortingLayersTexture;
-        SerializedProperty m_CameraSortingLayersTextureBound;
-        SerializedProperty m_CameraSortingLayerDownsamplingMethod;
-
-        ScriptableRendererFeatureEditor rendererFeatureEditor;
-
-        SavedBool m_GeneralFoldout;
-        SavedBool m_LightRenderTexturesFoldout;
-        SavedBool m_LightBlendStylesFoldout;
-        SavedBool m_CameraSortingLayerTextureFoldout;
-        SavedBool m_PostProcessingFoldout;
-        SavedBool m_RendererFeaturesFoldout;
-
-        Analytics.Renderer2DAnalytics m_Analytics = Analytics.Renderer2DAnalytics.instance;
-        Renderer2DData m_Renderer2DData;
-        bool m_WasModified;
+        SerializedRenderer2DData serialized;
 
         void SendModifiedAnalytics(Analytics.IAnalytics analytics)
         {
-            if (m_WasModified)
+            if (serialized.m_WasModified)
             {
                 Analytics.RendererAssetData modifiedData = new Analytics.RendererAssetData();
-                modifiedData.instance_id = m_Renderer2DData.GetInstanceID();
+                modifiedData.instance_id = serialized.asset.GetInstanceID();
                 modifiedData.was_create_event = false;
                 modifiedData.blending_layers_count = 0;
                 modifiedData.blending_modes_used = 0;
@@ -80,153 +140,73 @@ namespace UnityEditor.Rendering.Universal
 
         private new void OnEnable()
         {
-            m_WasModified = false;
-            m_Renderer2DData = (Renderer2DData)serializedObject.targetObject;
-
-            m_HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
-            m_LightRenderTextureScale = serializedObject.FindProperty("m_LightRenderTextureScale");
-            m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
-            m_MaxLightRenderTextureCount = serializedObject.FindProperty("m_MaxLightRenderTextureCount");
-            m_MaxShadowRenderTextureCount = serializedObject.FindProperty("m_MaxShadowRenderTextureCount");
-
-            m_CameraSortingLayersTextureBound = serializedObject.FindProperty("m_CameraSortingLayersTextureBound");
-            m_UseCameraSortingLayersTexture = serializedObject.FindProperty("m_UseCameraSortingLayersTexture");
-            m_CameraSortingLayerDownsamplingMethod = serializedObject.FindProperty("m_CameraSortingLayerDownsamplingMethod");
-
-            int numBlendStyles = m_LightBlendStyles.arraySize;
-            m_LightBlendStylePropsArray = new LightBlendStyleProps[numBlendStyles];
-
-            for (int i = 0; i < numBlendStyles; ++i)
-            {
-                SerializedProperty blendStyleProp = m_LightBlendStyles.GetArrayElementAtIndex(i);
-                ref LightBlendStyleProps props = ref m_LightBlendStylePropsArray[i];
-
-                props.name = blendStyleProp.FindPropertyRelative("name");
-                props.maskTextureChannel = blendStyleProp.FindPropertyRelative("maskTextureChannel");
-                props.blendMode = blendStyleProp.FindPropertyRelative("blendMode");
-                props.blendFactorMultiplicative = blendStyleProp.FindPropertyRelative("customBlendFactors.multiplicative");
-                props.blendFactorAdditive = blendStyleProp.FindPropertyRelative("customBlendFactors.additive");
-
-                if (props.blendFactorMultiplicative == null)
-                    props.blendFactorMultiplicative = blendStyleProp.FindPropertyRelative("customBlendFactors.modulate");
-                if (props.blendFactorAdditive == null)
-                    props.blendFactorAdditive = blendStyleProp.FindPropertyRelative("customBlendFactors.additve");
-            }
-
-            m_UseDepthStencilBuffer = serializedObject.FindProperty("m_UseDepthStencilBuffer");
-
-            m_GeneralFoldout = new SavedBool($"{target.GetType()}.GeneralFoldout", true);
-            m_LightRenderTexturesFoldout = new SavedBool($"{target.GetType()}.LightRenderTexturesFoldout", true);
-            m_LightBlendStylesFoldout = new SavedBool($"{target.GetType()}.LightBlendStylesFoldout", true);
-            m_CameraSortingLayerTextureFoldout = new SavedBool($"{target.GetType()}.CameraSortingLayerTextureFoldout", true);
-            m_PostProcessingFoldout = new SavedBool($"{target.GetType()}.PostProcessingFoldout", true);
-            m_RendererFeaturesFoldout = new SavedBool($"{target.GetType()}.RendererFeaturesFoldout", true);
-
-            rendererFeatureEditor = new ScriptableRendererFeatureEditor(this);
+            serialized = new SerializedRenderer2DData(this, 0);
         }
 
         private void OnDestroy()
         {
-            SendModifiedAnalytics(m_Analytics);
+            SendModifiedAnalytics(serialized.m_Analytics);
         }
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+            CED.Group(
+                CED.FoldoutGroup(Styles.generalHeader,
+                    ShowUIRenderer2DData.General, serialized.k_showUI,
+                    FoldoutOption.SubFoldout, DrawGeneral),
+                CED.FoldoutGroup(Styles.lightRenderTexturesHeader,
+                    ShowUIRenderer2DData.LightingRenderTexture, serialized.k_showUI,
+                    FoldoutOption.SubFoldout, DrawLightRenderTextures),
+                CED.FoldoutGroup(Styles.lightBlendStylesHeader,
+                    ShowUIRenderer2DData.LightingBlendStyles, serialized.k_showUI,
+                    FoldoutOption.SubFoldout, DrawLightBlendStyles),
+                CED.FoldoutGroup(Styles.cameraSortingLayerDownsampling,
+                    ShowUIRenderer2DData.CameraSortingLayerTexture, serialized.k_showUI,
+                    FoldoutOption.SubFoldout, DrawCameraSortingLayerTexture),
+                CED.FoldoutGroup(Styles.rendererFeaturesHeader,
+                    ShowUIRenderer2DData.RendererFeatures, serialized.k_showUI,
+                    FoldoutOption.SubFoldout, DrawRendererFeatures)
+            ).Draw(serialized, this);
 
-            DrawGeneral();
-            DrawLightRenderTextures();
-            DrawLightBlendStyles();
-            DrawCameraSortingLayerTexture();
-            DrawRendererFeatures();
-
-            m_WasModified |= serializedObject.hasModifiedProperties;
+            serialized.m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
         }
 
-        public void DrawCameraSortingLayerTexture()
+
+
+        private static void DrawGeneral(SerializedRenderer2DData serialized, Editor ownerEditor)
         {
-            CoreEditorUtils.DrawSplitter();
-            m_CameraSortingLayerTextureFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.cameraSortingLayerTextureHeader, m_CameraSortingLayerTextureFoldout.value);
-            if (!m_CameraSortingLayerTextureFoldout.value)
-                return;
-
             EditorGUI.indentLevel += 2;
-            SortingLayer[] sortingLayers = SortingLayer.layers;
-            string[] optionNames = new string[sortingLayers.Length + 1];
-            int[] optionIds = new int[sortingLayers.Length + 1];
-            optionNames[0] = "Disabled";
-            optionIds[0] = -1;
-
-            int currentOptionIndex = 0;
-            for (int i = 0; i < sortingLayers.Length; i++)
-            {
-                optionNames[i + 1] = sortingLayers[i].name;
-                optionIds[i + 1] = sortingLayers[i].id;
-                if (sortingLayers[i].id == m_CameraSortingLayersTextureBound.intValue)
-                    currentOptionIndex = i + 1;
-            }
-
-
-            int selectedOptionIndex = !m_UseCameraSortingLayersTexture.boolValue ? 0 : currentOptionIndex;
-            selectedOptionIndex = EditorGUILayout.Popup(Styles.cameraSortingLayerTextureBound, selectedOptionIndex, optionNames);
-
-            m_UseCameraSortingLayersTexture.boolValue = selectedOptionIndex != 0;
-            m_CameraSortingLayersTextureBound.intValue = optionIds[selectedOptionIndex];
-
-            EditorGUI.BeginDisabledGroup(!m_UseCameraSortingLayersTexture.boolValue);
-            EditorGUILayout.PropertyField(m_CameraSortingLayerDownsamplingMethod, Styles.cameraSortingLayerDownsampling);
-            EditorGUI.EndDisabledGroup();
-            EditorGUI.indentLevel -= 2;
-        }
-
-        private void DrawGeneral()
-        {
-            CoreEditorUtils.DrawSplitter();
-            m_GeneralFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.generalHeader, m_GeneralFoldout.value);
-            if (!m_GeneralFoldout.value)
-                return;
-
-            EditorGUI.indentLevel += 2;
-            EditorGUILayout.PropertyField(m_UseDepthStencilBuffer, Styles.useDepthStencilBuffer);
+            EditorGUILayout.PropertyField(serialized.useDepthStencilBuffer, Styles.useDepthStencilBuffer);
 
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_HDREmulationScale, Styles.hdrEmulationScale);
-            if (EditorGUI.EndChangeCheck() && m_HDREmulationScale.floatValue < 1.0f)
-                m_HDREmulationScale.floatValue = 1.0f;
+            EditorGUILayout.PropertyField(serialized.HDREmulationScale, Styles.hdrEmulationScale);
+            if (EditorGUI.EndChangeCheck() && serialized.HDREmulationScale.floatValue < 1.0f)
+                serialized.HDREmulationScale.floatValue = 1.0f;
 
             EditorGUILayout.Space();
             EditorGUI.indentLevel -= 2;
         }
 
-        private void DrawLightRenderTextures()
+        private static void DrawLightRenderTextures(SerializedRenderer2DData serialized, Editor ownerEditor)
         {
-            CoreEditorUtils.DrawSplitter();
-            m_LightRenderTexturesFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.lightRenderTexturesHeader, m_LightRenderTexturesFoldout.value);
-            if (!m_LightRenderTexturesFoldout.value)
-                return;
-
             EditorGUI.indentLevel += 2;
-            EditorGUILayout.PropertyField(m_LightRenderTextureScale, Styles.lightRTScale);
-            EditorGUILayout.PropertyField(m_MaxLightRenderTextureCount, Styles.maxLightRTCount);
-            EditorGUILayout.PropertyField(m_MaxShadowRenderTextureCount, Styles.maxShadowRTCount);
+            EditorGUILayout.PropertyField(serialized.lightRenderTextureScale, Styles.lightRTScale);
+            EditorGUILayout.PropertyField(serialized.maxLightRenderTextureCount, Styles.maxLightRTCount);
+            EditorGUILayout.PropertyField(serialized.maxShadowRenderTextureCount, Styles.maxShadowRTCount);
 
             EditorGUILayout.Space();
             EditorGUI.indentLevel -= 2;
         }
 
-        private void DrawLightBlendStyles()
+        private static void DrawLightBlendStyles(SerializedRenderer2DData serialized, Editor ownerEditor)
         {
-            CoreEditorUtils.DrawSplitter();
-            m_LightBlendStylesFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.lightBlendStylesHeader, m_LightBlendStylesFoldout.value);
-            if (!m_LightBlendStylesFoldout.value)
-                return;
-
             EditorGUI.indentLevel += 2;
-            int numBlendStyles = m_LightBlendStyles.arraySize;
+            int numBlendStyles = serialized.lightBlendStyles.arraySize;
             for (int i = 0; i < numBlendStyles; ++i)
             {
-                ref LightBlendStyleProps props = ref m_LightBlendStylePropsArray[i];
+                ref LightBlendStyleProps props = ref serialized.lightBlendStylePropsArray[i];
 
                 EditorGUILayout.PropertyField(props.name, Styles.name);
                 EditorGUILayout.PropertyField(props.maskTextureChannel, Styles.maskTextureChannel);
@@ -240,15 +220,41 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel -= 2;
         }
 
-        private void DrawRendererFeatures()
+        public static void DrawCameraSortingLayerTexture(SerializedRenderer2DData serialized, Editor ownerEditor)
         {
-            CoreEditorUtils.DrawSplitter();
-            m_RendererFeaturesFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.rendererFeaturesHeader, m_RendererFeaturesFoldout.value);
-            if (!m_RendererFeaturesFoldout.value)
-                return;
+            EditorGUI.indentLevel += 2;
+            SortingLayer[] sortingLayers = SortingLayer.layers;
+            string[] optionNames = new string[sortingLayers.Length + 1];
+            int[] optionIds = new int[sortingLayers.Length + 1];
+            optionNames[0] = "Disabled";
+            optionIds[0] = -1;
 
+            int currentOptionIndex = 0;
+            for (int i = 0; i < sortingLayers.Length; i++)
+            {
+                optionNames[i + 1] = sortingLayers[i].name;
+                optionIds[i + 1] = sortingLayers[i].id;
+                if (sortingLayers[i].id == serialized.cameraSortingLayersTextureBound.intValue)
+                    currentOptionIndex = i + 1;
+            }
+
+
+            int selectedOptionIndex = !serialized.useCameraSortingLayersTexture.boolValue ? 0 : currentOptionIndex;
+            selectedOptionIndex = EditorGUILayout.Popup(Styles.cameraSortingLayerTextureBound, selectedOptionIndex, optionNames);
+
+            serialized.useCameraSortingLayersTexture.boolValue = selectedOptionIndex != 0;
+            serialized.cameraSortingLayersTextureBound.intValue = optionIds[selectedOptionIndex];
+
+            EditorGUI.BeginDisabledGroup(!serialized.useCameraSortingLayersTexture.boolValue);
+            EditorGUILayout.PropertyField(serialized.cameraSortingLayerDownsamplingMethod, Styles.cameraSortingLayerDownsampling);
+            EditorGUI.EndDisabledGroup();
+            EditorGUI.indentLevel -= 2;
+        }
+
+        private static void DrawRendererFeatures(SerializedRenderer2DData serialized, Editor ownerEditor)
+        {
             EditorGUILayout.Space();
-            rendererFeatureEditor.DrawRendererFeatures();
+            serialized.rendererFeatureEditor.DrawRendererFeatures();
 
         }
     }
