@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent lightRenderTexturesHeader = EditorGUIUtility.TrTextContent("Light Render Textures");
             public static readonly GUIContent lightBlendStylesHeader = EditorGUIUtility.TrTextContent("Light Blend Styles", "A Light Blend Style is a collection of properties that describe a particular way of applying lighting.");
             public static readonly GUIContent postProcessHeader = EditorGUIUtility.TrTextContent("Post-processing");
+            public static readonly GUIContent rendererFeaturesHeader = EditorGUIUtility.TrTextContent("Renderer Features");
 
             public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR");
             public static readonly GUIContent lightRTScale = EditorGUIUtility.TrTextContent("Render Scale", "The resolution of intermediate light render textures, in relation to the screen resolution. 1.0 means full-screen size.");
@@ -51,11 +52,14 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_CameraSortingLayersTextureBound;
         SerializedProperty m_CameraSortingLayerDownsamplingMethod;
 
+        ScriptableRendererFeatureEditor rendererFeatureEditor;
+
         SavedBool m_GeneralFoldout;
         SavedBool m_LightRenderTexturesFoldout;
         SavedBool m_LightBlendStylesFoldout;
         SavedBool m_CameraSortingLayerTextureFoldout;
         SavedBool m_PostProcessingFoldout;
+        SavedBool m_RendererFeaturesFoldout;
 
         Analytics.Renderer2DAnalytics m_Analytics = Analytics.Renderer2DAnalytics.instance;
         Renderer2DData m_Renderer2DData;
@@ -116,8 +120,9 @@ namespace UnityEditor.Rendering.Universal
             m_LightBlendStylesFoldout = new SavedBool($"{target.GetType()}.LightBlendStylesFoldout", true);
             m_CameraSortingLayerTextureFoldout = new SavedBool($"{target.GetType()}.CameraSortingLayerTextureFoldout", true);
             m_PostProcessingFoldout = new SavedBool($"{target.GetType()}.PostProcessingFoldout", true);
+            m_RendererFeaturesFoldout = new SavedBool($"{target.GetType()}.RendererFeaturesFoldout", true);
 
-            base.OnEnable();
+            rendererFeatureEditor = new ScriptableRendererFeatureEditor(this);
         }
 
         private void OnDestroy()
@@ -133,12 +138,10 @@ namespace UnityEditor.Rendering.Universal
             DrawLightRenderTextures();
             DrawLightBlendStyles();
             DrawCameraSortingLayerTexture();
+            DrawRendererFeatures();
 
             m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
-
-            EditorGUILayout.Space();
-            base.OnInspectorGUI(); // Draw the base UI, contains ScriptableRenderFeatures list
         }
 
         public void DrawCameraSortingLayerTexture()
@@ -225,6 +228,18 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
+
+            EditorGUILayout.Space();
+        }
+
+        private void DrawRendererFeatures()
+        {
+            CoreEditorUtils.DrawSplitter();
+            m_RendererFeaturesFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.rendererFeaturesHeader, m_RendererFeaturesFoldout.value);
+            if (!m_RendererFeaturesFoldout.value)
+                return;
+
+            rendererFeatureEditor.DrawRendererFeatures();
 
             EditorGUILayout.Space();
         }
