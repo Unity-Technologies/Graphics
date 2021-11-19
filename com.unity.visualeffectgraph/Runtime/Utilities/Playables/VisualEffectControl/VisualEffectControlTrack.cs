@@ -52,10 +52,6 @@ namespace UnityEngine.VFX
             }
         }
 
-#if UNITY_EDITOR
-        public VisualEffectControlTrackMixerBehaviour lastCreatedMixer { get; private set; }
-#endif
-
         public override Playable CreateTrackMixer(PlayableGraph graph, GameObject go, int inputCount)
         {
             foreach (var clip in GetClips())
@@ -97,11 +93,7 @@ namespace UnityEngine.VFX
                     reinitUnbinding = true;
                     break;
             }
-            behaviour.Init(reinitBinding, reinitUnbinding);
-
-#if UNITY_EDITOR
-            lastCreatedMixer = behaviour;
-#endif
+            behaviour.Init(this, reinitBinding, reinitUnbinding);
             return mixer;
         }
 

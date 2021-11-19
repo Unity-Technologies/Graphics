@@ -1,6 +1,7 @@
 #if VFX_HAS_TIMELINE
 using System;
 using System.Linq;
+using System.Text;
 using System.Collections.Generic;
 using UnityEditor.Timeline;
 using UnityEngine;
@@ -9,6 +10,56 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
+    [CustomTimelineEditor(typeof(VisualEffectControlTrack))]
+    class VisualEffectControlTrackEditor : TrackEditor
+    {
+        public override TrackDrawOptions GetTrackOptions(TrackAsset track, UnityEngine.Object binding)
+        {
+            var options = base.GetTrackOptions(track, binding);
+            if (VisualEffectControlErrorHelper.instance.AnyError())
+            {
+                var conflicts = VisualEffectControlErrorHelper.instance.GetConflictingControlTrack()
+                    .SelectMany(o => o)
+                    .Any(o =>
+                    {
+                        return o.GetTrack() == track;
+                    });
+
+                var scrubbing = VisualEffectControlErrorHelper.instance.GetMaxScrubbingWarnings()
+                    .Any(o =>
+                    {
+                        return o.controller.GetTrack() == track;
+                    });
+
+                if (conflicts || scrubbing)
+                {
+                    var baseMessage = new StringBuilder("This track is generating a warning about ");
+
+                    if (conflicts && scrubbing)
+                    {
+                        baseMessage.Append("a conflict and maximum scrubbing time reached ");
+                    }
+
+                    if (conflicts)
+                        baseMessage.Append("conflict(s)");
+
+                    if (scrubbing)
+                    {
+                        if (conflicts)
+                            baseMessage.Append(" and ");
+                        baseMessage.Append("maximum scrubbing time reached");
+                    }
+
+                    baseMessage.Append(".");
+                    baseMessage.AppendLine();
+                    baseMessage.Append("More information in overlay in scene view.");
+                    options.errorText = L10n.Tr(baseMessage.ToString());
+                }
+            }
+            return options;
+        }
+    }
+
     [CustomTimelineEditor(typeof(VisualEffectControlClip))]
     class VisualEffectControlClipEditor : ClipEditor
     {
@@ -38,14 +89,12 @@ namespace UnityEditor.VFX
             return base.GetClipOptions(clip);
         }
 
-
         private GUIStyle fontStyle = GUIStyle.none;
 
         private static double InverseLerp(double a, double b, double value)
         {
             return (value - a) / (b - a);
         }
-
         public override void DrawBackground(TimelineClip clip, ClipBackgroundRegion region)
         {
             base.DrawBackground(clip, region);
