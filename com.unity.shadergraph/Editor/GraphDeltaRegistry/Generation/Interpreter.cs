@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderFoundry;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Registry;
+using UnityEditor.ShaderGraph.Registry.Defs;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Generation
@@ -10,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Generation
     public static class Interpreter
     {
 
-        public static Shader GetShaderForNode(INodeReader node, IGraphHandler graph, Registry.Registry registry)
+        public static string GetShaderForNode(INodeReader node, IGraphHandler graph, Registry.Registry registry)
         {
             void GetBlock(ShaderContainer container, CustomizationPoint vertexCP, CustomizationPoint surfaceCP, out CustomizationPointInstance vertexCPDesc, out CustomizationPointInstance surfaceCPDesc)
             {
@@ -26,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Generation
 
             var builder = new ShaderBuilder();
             SimpleSampleBuilder.Build(new ShaderContainer(), SimpleSampleBuilder.GetTarget(), "Test", GetBlock, builder);
-            return ShaderUtil.CreateShaderAsset(builder.ToString());
+            return builder.ToString();
         }
 
         internal static Block EvaluateGraphAndPopulateDescriptors(INodeReader rootNode, IGraphHandler shaderGraph, ShaderContainer container, Registry.Registry registry)
@@ -37,41 +39,81 @@ namespace UnityEditor.ShaderGraph.Generation
             var inputVariables = new List<BlockVariable>();
             var outputVariables = new List<BlockVariable>();
 
-            var colorOutBuilder = new BlockVariable.Builder(container);
-            colorOutBuilder.ReferenceName = "BaseColor";
-            colorOutBuilder.Type = container._float3;
-            var colorOut = colorOutBuilder.Build();
-            outputVariables.Add(colorOut);
+            bool isContext = rootNode.GetField("_contextDescriptor", out RegistryKey contextKey);
+
+            if (isContext)
+            {
+                foreach (var port in rootNode.GetPorts())
+                {
+                    if (port.IsHorizontal() && port.IsInput())
+                    {
+                        port.GetField(ShaderGraph.Registry.Types.GraphType.kEntry, out Registry.Defs.IContextDescriptor.ContextEntry entry);
+                        var varOutBuilder = new BlockVariable.Builder(container);
+                        varOutBuilder.ReferenceName = entry.fieldName;
+                        varOutBuilder.Type = EvaluateShaderType(entry, container);
+                        var varOut = varOutBuilder.Build();
+                        outputVariables.Add(varOut);
+                    }
+                }
+
+            }
+            else
+            {
+                var colorOutBuilder = new BlockVariable.Builder(container);
+                colorOutBuilder.ReferenceName = "BaseColor";
+                colorOutBuilder.Type = container._float3;
+                var colorOut = colorOutBuilder.Build();
+                outputVariables.Add(colorOut);
+            }
+
 
             var outputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Output", outputVariables);
             var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{rootNode.GetName()}Main", outputType);
 
+            var shaderFunctions = new List<ShaderFunction>();
             foreach(var node in GatherTreeLeafFirst(rootNode))
             {
-                ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref blockBuilder, ref mainBodyFunctionBuilder, registry);
+                ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, registry);
             }
 
-
-
-
-            //if(rootNode.IsContextNode())
-            //{
-            //    //iterate through inputs and do passthrough to outputs, adding the output variables
-
-            //}
-            //else
-            //{
-            //    //add BaseColor output and cast first output of root node to float3 and assign
-            //}
+            foreach(var func in shaderFunctions)
+            {
+                blockBuilder.AddFunction(func);
+            }
 
 
             var inputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Input", inputVariables);
 
 
             mainBodyFunctionBuilder.AddLine($"{outputType.Name} output;");
-            mainBodyFunctionBuilder.AddLine($"output.{colorOut.ReferenceName} = SYNTAX_{rootNode.GetName()}_{rootNode.GetOutputPorts().First().GetName()};");
-            mainBodyFunctionBuilder.AddLine("return output;");
+            if(isContext)
+            {
+                int varIndex = 0;
+                foreach(IPortReader port in rootNode.GetPorts())
+                {
+                    if(port.IsHorizontal() && port.IsInput())
+                    {
+                        port.GetField(ShaderGraph.Registry.Types.GraphType.kEntry, out Registry.Defs.IContextDescriptor.ContextEntry entry);
+                        var connectedPort = port.GetConnectedPorts().FirstOrDefault();
+                        if (connectedPort != null) // connected input port-
+                        {
+                            var connectedNode = connectedPort.GetNode();
+                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].ReferenceName} = SYNTAX_{connectedNode.GetName()}_{connectedPort.GetName()}");
+                        }
+                        else // not connected.
+                        {
+                            // get the inlined port value as an initializer from the definition-- since there was no connection).
+                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++]} = {registry.GetTypeBuilder(port.GetRegistryKey()).GetInitializerList((GraphDelta.IFieldReader)port, registry)}");
+                        }
+                    }
+                }
 
+            }
+            else
+            {
+                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[0].ReferenceName} = SYNTAX_{rootNode.GetName()}_{rootNode.GetOutputPorts().First().GetName()};");
+            }
+            mainBodyFunctionBuilder.AddLine("return output;");
 
             // Setup the block from the inputs, outputs, types, functions
             foreach (var variable in inputVariables)
@@ -85,10 +127,80 @@ namespace UnityEditor.ShaderGraph.Generation
             return blockBuilder.Build();
         }
 
-        private static void ProcessNode(INodeReader node, ref ShaderContainer container, ref List<BlockVariable> inputVariables, ref List<BlockVariable> outputVariables, ref Block.Builder blockBuilder, ref ShaderFunction.Builder mainBodyFunctionBuilder, Registry.Registry registry)
+        private static ShaderType EvaluateShaderType(IContextDescriptor.ContextEntry entry, ShaderContainer container)
+        {
+            //length by height
+            string lxh = "";
+            if(entry.length > 1 || entry.height > 1)
+            {
+                lxh += entry.length;
+            }
+            if(entry.height > 1)
+            {
+                lxh += "x" + entry.height;
+            }
+            switch (entry.primitive)
+            {
+                case Registry.Types.GraphType.Primitive.Bool:
+                    return container.GetType($"bool{lxh}");
+                case Registry.Types.GraphType.Primitive.Int:
+                    return container.GetType($"int{lxh}");
+                case Registry.Types.GraphType.Primitive.Float:
+                    if (entry.precision == Registry.Types.GraphType.Precision.Full)
+                    {
+                        return container.GetType($"double{lxh}");
+                    }
+                    else
+                    {
+                        return container.GetType($"float{lxh}");
+                    }
+                default:
+                    throw new ArgumentException("unsupported type");
+            }
+        }
+
+        private static bool FunctionsAreEqual(ShaderFunction a, ShaderFunction b)
+        {
+            if(a.Name.CompareTo(b.Name) != 0)
+            {
+                return false;
+            }
+
+            var aParams = a.Parameters.ToList();
+            var bParams = b.Parameters.ToList();
+
+            if(aParams.Count != bParams.Count)
+            {
+                return false;
+            }
+
+            for(int i = 0; i < aParams.Count(); ++i)
+            {
+                if(aParams[i].IsInput != bParams[i].IsInput
+                || aParams[i].Type    != bParams[i].Type
+                || aParams[i].IsValid != bParams[i].IsValid)//does this one need to be checked?
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private static void ProcessNode(INodeReader node, ref ShaderContainer container, ref List<BlockVariable> inputVariables, ref List<BlockVariable> outputVariables, ref Block.Builder blockBuilder, ref ShaderFunction.Builder mainBodyFunctionBuilder, ref List<ShaderFunction> shaderFuncitons, Registry.Registry registry)
         {
             var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, container, registry);
-            blockBuilder.AddFunction(func);
+            bool shouldAdd = true;
+            foreach(var existing in shaderFuncitons)
+            {
+                if(FunctionsAreEqual(existing, func))
+                {
+                    shouldAdd = false;
+                }
+            }
+            if(shouldAdd)
+            {
+                shaderFuncitons.Add(func);
+            }
             string arguments = "";
             foreach (var param in func.Parameters)
             {
