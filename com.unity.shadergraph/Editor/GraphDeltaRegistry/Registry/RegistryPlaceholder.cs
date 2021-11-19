@@ -182,7 +182,7 @@ namespace UnityEditor.ShaderGraph.Registry
 
                 // ensure that enough subfield values exist to represent userdata's current data.
                 for (int i = 0; i < length * height; ++i)
-                    typeWriter.SetField<float>($"c{i}.0f", 0);
+                    typeWriter.SetField<float>($"c{i}", 0);
             }
 
             string Defs.ITypeDefinitionBuilder.GetInitializerList(IFieldReader data, Registry registry)

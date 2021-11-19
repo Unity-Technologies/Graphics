@@ -103,9 +103,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// <summary>
         /// Map from node names to associated preview data object
         /// </summary>
-        Dictionary<string, PreviewData> m_CachedPreviewData;
+        Dictionary<string, PreviewData> m_CachedPreviewData = new();
 
-        Dictionary<string, ShaderMessage[]> m_ShaderMessagesMap;
+        Dictionary<string, ShaderMessage[]> m_ShaderMessagesMap = new();
 
         /// <summary>
         /// Handle to the graph object we are currently generating preview data for
@@ -201,7 +201,37 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// <remarks> Dirties the preview compile & render state of all nodes downstream of the changed node </remarks>
         public List<string> NotifyNodeFlowChanged(string nodeName)
         {
-            return null;
+            var impactedNodes = new List<string>();
+
+            if (m_CachedPreviewData.ContainsKey(nodeName))
+            {
+                var sourceNode = m_GraphHandle.GetNodeReader(nodeName);
+                if (sourceNode == null)
+                {
+                    // Node was deleted, get rid of the preview data associated with it
+                    m_CachedPreviewData.Remove(nodeName);
+
+                    // TODO: How to get downstream nodes when the source node has been deleted? probably wont have the nodeReader hanging around after the nodes deleted right?
+                }
+                else
+                {
+                    var previewData = m_CachedPreviewData[nodeName];
+                    previewData.isRenderOutOfDate = true;
+                    previewData.isShaderOutOfDate = true;
+
+                    foreach (var downStreamNode in m_GraphHandle.GetDownstreamNodes(sourceNode))
+                    {
+                        if (m_CachedPreviewData.TryGetValue(downStreamNode.GetName(), out var downStreamNodeData))
+                        {
+                            downStreamNodeData.isShaderOutOfDate = true;
+                            downStreamNodeData.isRenderOutOfDate = true;
+                        }
+
+                        impactedNodes.Add(downStreamNode.GetName());
+                    }
+                }
+            }
+            return impactedNodes;
         }
 
         /// <summary>
@@ -424,6 +454,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 isShaderOutOfDate = true,
                 isRenderOutOfDate = true
             };
+
+            m_CachedPreviewData.Add(k_MasterPreviewName, m_MasterPreviewData);
         }
 
         Shader GetNodeShaderObject(INodeReader nodeReader)
@@ -461,16 +493,54 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return renderData;
         }
 
-        public void Tick()
+        public void Update()
         {
             UpdateShaders();
+
+            UpdateRenders();
+        }
+
+        private static readonly ProfilerMarker UpdateShadersMarker = new ProfilerMarker("UpdateShaders");
+        void UpdateShaders()
+        {
+            using (UpdateShadersMarker.Auto())
+            {
+                foreach (var previewData in m_CachedPreviewData.Values)
+                {
+                    if(!previewData.isShaderOutOfDate)
+                        continue;
+
+                    // If master preview
+                    if (m_MasterPreviewData == previewData)
+                    {
+                        previewData.shader = GetMasterPreviewShaderObject();
+                    }
+                    else // if node preview
+                    {
+                        var nodeReader = m_GraphHandle.GetNodeReader(previewData.nodeName);
+                        previewData.shader = GetNodeShaderObject(nodeReader);
+                    }
+
+                    Assert.IsNotNull(previewData.shader);
+
+                    previewData.material = new Material(previewData.shader) { hideFlags = HideFlags.HideAndDontSave };
+
+                    if (CheckForErrors(previewData))
+                        previewData.hasShaderError = true;
+
+                    previewData.isShaderOutOfDate = false;
+                }
+            }
+        }
+
+        void UpdateRenders()
+        {
             int drawPreviewCount = 0;
             bool renderMasterPreview = false;
 
             using (var renderList2D = PooledList<PreviewData>.Get())
             using (var renderList3D = PooledList<PreviewData>.Get())
             {
-
                 foreach (var previewData in m_CachedPreviewData.Values)
                 {
                     Assert.IsNotNull(previewData);
@@ -607,37 +677,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 renderData.texture = renderData.renderTexture;
 
                 ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
-            }
-        }
-
-        private static readonly ProfilerMarker UpdateShadersMarker = new ProfilerMarker("UpdateShaders");
-        void UpdateShaders()
-        {
-            using (UpdateShadersMarker.Auto())
-            {
-                foreach (var previewData in m_CachedPreviewData.Values)
-                {
-                    if(!previewData.isShaderOutOfDate)
-                        continue;
-
-                    // If master preview
-                    if (m_MasterPreviewData == previewData)
-                    {
-                        previewData.shader = GetMasterPreviewShaderObject();
-                    }
-                    else // if node preview
-                    {
-                        var nodeReader = m_GraphHandle.GetNodeReader(previewData.nodeName);
-                        previewData.shader = GetNodeShaderObject(nodeReader);
-                    }
-
-                    previewData.material = new Material(previewData.shader) { hideFlags = HideFlags.HideAndDontSave };
-
-                    if (CheckForErrors(previewData))
-                        previewData.hasShaderError = true;
-
-                    previewData.isShaderOutOfDate = false;
-                }
             }
         }
 
