@@ -423,8 +423,6 @@ platforms:
     commands:
       [Metal]:
         setup_utr:
-          - git clone git@github.cds.internal.unity3d.com:unity/com.unity.testframework.graphics.git TestProjects/<PROJECT_FOLDER>/Packages/com.unity.testframework.graphics
-          - git -C TestProjects/<PROJECT_FOLDER>/Packages/com.unity.testframework.graphics checkout add-apple-silicon-support-2
           - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
           - chmod +x ./utr
           - rsync -az $YAMATO_SOURCE_DIR/ bokken@$BOKKEN_DEVICE_IP:~/Graphics
