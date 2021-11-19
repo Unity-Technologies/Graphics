@@ -1132,7 +1132,7 @@ namespace UnityEngine.Rendering.Universal
 
             // copying depth on GLES3 is giving invalid results. Needs investigation (Fogbugz issue 1339401)
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
-                msaaDepthResolve = false;
+                return false;
 
             return supportsDepthCopy || msaaDepthResolve;
         }
