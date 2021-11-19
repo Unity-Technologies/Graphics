@@ -132,10 +132,12 @@ namespace UnityEditor.Rendering
             var sliderRect = new Rect(floatFieldLeft.xMax + kSeparatorWidth - indentOffset, lineRect.y, lineRect.width - labelRect.width - kFloatFieldWidth * 2 - kSeparatorWidth * 2, lineRect.height);
             var floatFieldRight = new Rect(sliderRect.xMax + kSeparatorWidth - indentOffset, lineRect.y, kFloatFieldWidth + indentOffset, lineRect.height);
 
+            EditorGUI.BeginProperty(lineRect, title, value);
             EditorGUI.PrefixLabel(labelRect, title);
             v.x = EditorGUI.FloatField(floatFieldLeft, v.x);
             EditorGUI.MinMaxSlider(sliderRect, ref v.x, ref v.y, o.min, o.max);
             v.y = EditorGUI.FloatField(floatFieldRight, v.y);
+            EditorGUI.EndProperty();
 
             value.vector2Value = v;
             return true;

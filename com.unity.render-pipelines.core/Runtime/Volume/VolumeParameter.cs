@@ -46,11 +46,6 @@ namespace UnityEngine.Rendering
             set => m_OverrideState = value;
         }
 
-        /// <summary>
-        /// Name of the parameter
-        /// </summary>
-        internal string name { get; set; }
-
         internal abstract void Interp(VolumeParameter from, VolumeParameter to, float t);
 
         /// <summary>
