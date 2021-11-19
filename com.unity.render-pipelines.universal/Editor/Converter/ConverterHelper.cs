@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.Rendering.Universal.Converters
@@ -23,7 +24,6 @@ namespace UnityEditor.Rendering.Universal.Converters
                 RenderPipelineConverter conv = (RenderPipelineConverter)Activator.CreateInstance(converterList[i]);
                 if (conv.container == container.GetType())
                 {
-                    //Debug.Log($"Found converter {conv.name} in {container.name}");
                     listOfConverters.Add(conv);
                 }
             }
@@ -103,9 +103,11 @@ namespace UnityEditor.Rendering.Universal.Converters
 
         private static void BatchConverters(List<RenderPipelineConverter> converters)
         {
+            // This need to be sorted by Priority property
+            converters = converters.OrderBy(o => o.priority).ToList();
+
             foreach (RenderPipelineConverter converter in converters)
             {
-                Debug.Log($"Batching {converter.name}");
                 List<ConverterItemDescriptor> converterItemInfos = new List<ConverterItemDescriptor>();
                 var initCtx = new InitializeConverterContext { items = converterItemInfos };
                 initCtx.isBatchMode = true;
