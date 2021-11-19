@@ -987,18 +987,6 @@ namespace UnityEngine.Rendering.Universal
 
                 rendererFeatures[i].SetupRenderPasses(this, in renderingData);
             }
-
-            // Remove any null render pass that might have been added by user by mistake
-            int count = activeRenderPassQueue.Count;
-            for (int i = count - 1; i >= 0; i--)
-            {
-                if (activeRenderPassQueue[i] == null)
-                    activeRenderPassQueue.RemoveAt(i);
-            }
-
-            // if any pass was injected, the "automatic" store optimization policy will disable the optimized load actions
-            if (count > 0 && m_StoreActionsOptimizationSetting == StoreActionsOptimization.Auto)
-                m_UseOptimizedStoreActions = false;
         }
 
         void ClearRenderingState(CommandBuffer cmd)
