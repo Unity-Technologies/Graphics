@@ -264,8 +264,7 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawGeneral(SerializedUniversalRendererData serialized, Editor ownerEditor)
         {
-            EditorGUILayout.Space();
-
+            EditorGUI.indentLevel += 2;
             EditorGUILayout.LabelField(Styles.FilteringSectionLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(serialized.opaqueLayerMask, Styles.OpaqueMask);
@@ -335,9 +334,11 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(serialized.intermediateTextureMode, Styles.intermediateTextureMode);
             }
             EditorGUI.indentLevel--;
+            EditorGUI.indentLevel -= 2;
         }
         static void DrawLighting(SerializedUniversalRendererData serialized, Editor ownerEditor)
         {
+            EditorGUI.indentLevel += 2;
             // Main Light
             bool disableGroup = false;
             EditorGUI.BeginDisabledGroup(disableGroup);
@@ -399,15 +400,18 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.reflectionProbeBlendingProp, Styles.reflectionProbeBlendingText);
             EditorGUILayout.PropertyField(serialized.reflectionProbeBoxProjectionProp, Styles.reflectionProbeBoxProjectionText);
             EditorGUI.indentLevel--;
+            EditorGUI.indentLevel -= 2;
         }
 
         static void DrawLightingAdditional(SerializedUniversalRendererData serialized, Editor ownerEditor)
         {
+            EditorGUI.indentLevel += 2;
             EditorGUILayout.PropertyField(serialized.mixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
             EditorGUILayout.PropertyField(serialized.supportsLightLayers, Styles.supportsLightLayers);
 
             if (serialized.supportsLightLayers.boolValue && !ValidateRendererGraphicsAPIsForLightLayers(out var unsupportedGraphicsApisMessage))
                 EditorGUILayout.HelpBox(Styles.lightlayersUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
+            EditorGUI.indentLevel -= 2;
         }
 
         static void DrawShadowResolutionTierSettings(SerializedUniversalRendererData serialized, Editor ownerEditor)
@@ -450,6 +454,7 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawShadows(SerializedUniversalRendererData serialized, Editor ownerEditor)
         {
+            EditorGUI.indentLevel += 2;
             EditorGUILayout.PropertyField(serialized.shadowTransparentReceiveProp, Styles.shadowTransparentReceiveLabel);
             serialized.shadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, serialized.shadowDistanceProp.floatValue));
             EditorUtils.Unit unit = EditorUtils.Unit.Metric;
@@ -483,11 +488,14 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.softShadowsSupportedProp, Styles.supportsSoftShadows);
 
             EditorGUI.indentLevel--;
+            EditorGUI.indentLevel -= 2;
         }
 
         static void DrawShadowsAdditional(SerializedUniversalRendererData serialized, Editor ownerEditor)
         {
+            EditorGUI.indentLevel += 2;
             EditorGUILayout.PropertyField(serialized.conservativeEnclosingSphereProp, Styles.conservativeEnclosingSphere);
+            EditorGUI.indentLevel -= 2;
         }
 
 

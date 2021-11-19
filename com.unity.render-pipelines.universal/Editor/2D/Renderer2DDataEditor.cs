@@ -151,6 +151,7 @@ namespace UnityEditor.Rendering.Universal
             if (!m_CameraSortingLayerTextureFoldout.value)
                 return;
 
+            EditorGUI.indentLevel += 2;
             SortingLayer[] sortingLayers = SortingLayer.layers;
             string[] optionNames = new string[sortingLayers.Length + 1];
             int[] optionIds = new int[sortingLayers.Length + 1];
@@ -176,6 +177,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginDisabledGroup(!m_UseCameraSortingLayersTexture.boolValue);
             EditorGUILayout.PropertyField(m_CameraSortingLayerDownsamplingMethod, Styles.cameraSortingLayerDownsampling);
             EditorGUI.EndDisabledGroup();
+            EditorGUI.indentLevel -= 2;
         }
 
         private void DrawGeneral()
@@ -185,6 +187,7 @@ namespace UnityEditor.Rendering.Universal
             if (!m_GeneralFoldout.value)
                 return;
 
+            EditorGUI.indentLevel += 2;
             EditorGUILayout.PropertyField(m_UseDepthStencilBuffer, Styles.useDepthStencilBuffer);
 
             EditorGUI.BeginChangeCheck();
@@ -193,6 +196,7 @@ namespace UnityEditor.Rendering.Universal
                 m_HDREmulationScale.floatValue = 1.0f;
 
             EditorGUILayout.Space();
+            EditorGUI.indentLevel -= 2;
         }
 
         private void DrawLightRenderTextures()
@@ -202,11 +206,13 @@ namespace UnityEditor.Rendering.Universal
             if (!m_LightRenderTexturesFoldout.value)
                 return;
 
+            EditorGUI.indentLevel += 2;
             EditorGUILayout.PropertyField(m_LightRenderTextureScale, Styles.lightRTScale);
             EditorGUILayout.PropertyField(m_MaxLightRenderTextureCount, Styles.maxLightRTCount);
             EditorGUILayout.PropertyField(m_MaxShadowRenderTextureCount, Styles.maxShadowRTCount);
 
             EditorGUILayout.Space();
+            EditorGUI.indentLevel -= 2;
         }
 
         private void DrawLightBlendStyles()
@@ -216,6 +222,7 @@ namespace UnityEditor.Rendering.Universal
             if (!m_LightBlendStylesFoldout.value)
                 return;
 
+            EditorGUI.indentLevel += 2;
             int numBlendStyles = m_LightBlendStyles.arraySize;
             for (int i = 0; i < numBlendStyles; ++i)
             {
@@ -230,6 +237,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             EditorGUILayout.Space();
+            EditorGUI.indentLevel -= 2;
         }
 
         private void DrawRendererFeatures()
@@ -239,9 +247,9 @@ namespace UnityEditor.Rendering.Universal
             if (!m_RendererFeaturesFoldout.value)
                 return;
 
+            EditorGUILayout.Space();
             rendererFeatureEditor.DrawRendererFeatures();
 
-            EditorGUILayout.Space();
         }
     }
 }
