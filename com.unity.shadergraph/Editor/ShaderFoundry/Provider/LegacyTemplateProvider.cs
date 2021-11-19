@@ -153,6 +153,15 @@ namespace UnityEditor.ShaderFoundry
             return builder.Build();
         }
 
+        ShaderFunction BuildDummyFunction(string name, ShaderType inputType, ShaderType outputType)
+        {
+            var builder = new ShaderFunction.Builder(Container, name, outputType);
+            builder.AddInput(inputType, "input");
+            builder.AddLine($"{outputType.Name} output;");
+            builder.AddLine($"return output;");
+            return builder.Build();
+        }
+
         Block BuildVertexPreBlock()
         {
             var blockName = $"Pre{LegacyCustomizationPoints.VertexDescriptionCPName}";
@@ -161,7 +170,9 @@ namespace UnityEditor.ShaderFoundry
 
             var builder = new Block.Builder(Container, blockName);
             var outputType = BuildType(blockName + "Outputs", ExtractFields(fields));
-            builder.BuildInterface(Container, ShaderType.Invalid, outputType);
+            var entryPointFn = BuildDummyFunction("dummy", ShaderType.Invalid, outputType);
+            builder.SetEntryPointFunction(entryPointFn);
+            builder.BuildInterface(Container, entryPointFn);
             return builder.Build();
         }
 
@@ -170,7 +181,9 @@ namespace UnityEditor.ShaderFoundry
             var blockName = $"Post{LegacyCustomizationPoints.VertexDescriptionCPName}";
             var builder = new Block.Builder(Container, blockName);
             var inputType = BuildType(blockName + "Inputs", ExtractFields(fields));
-            builder.BuildInterface(Container, inputType, ShaderType.Invalid);
+            var entryPointFn = BuildDummyFunction("dummy", inputType, ShaderType.Invalid);
+            builder.SetEntryPointFunction(entryPointFn);
+            builder.BuildInterface(Container, entryPointFn);
             return builder.Build();
         }
 
@@ -180,7 +193,9 @@ namespace UnityEditor.ShaderFoundry
             var builder = new Block.Builder(Container, blockName);
             var outputFields = ExtractFields(UnityEditor.ShaderGraph.Structs.SurfaceDescriptionInputs.fields);
             var outputType = BuildType(blockName + "Outputs", outputFields);
-            builder.BuildInterface(Container, ShaderType.Invalid, outputType);
+            var entryPointFn = BuildDummyFunction("dummy", ShaderType.Invalid, outputType);
+            builder.SetEntryPointFunction(entryPointFn);
+            builder.BuildInterface(Container, entryPointFn);
             return builder.Build();
         }
 
@@ -189,16 +204,28 @@ namespace UnityEditor.ShaderFoundry
             var blockName = $"Post{LegacyCustomizationPoints.SurfaceDescriptionCPName}";
             var builder = new Block.Builder(Container, blockName);
             var inputType = BuildType(blockName + "Inputs", ExtractFields(fields));
-            builder.BuildInterface(Container, inputType, ShaderType.Invalid);
+            var entryPointFn = BuildDummyFunction("dummy", inputType, ShaderType.Invalid);
+            builder.SetEntryPointFunction(entryPointFn);
+            builder.BuildInterface(Container, entryPointFn);
+            return builder.Build();
+        }
+
+        BlockVariable CloneVariable(BlockVariable variable)
+        {
+            var builder = new BlockVariable.Builder(Container);
+            builder.Type = variable.Type;
+            builder.ReferenceName = variable.ReferenceName;
+            foreach (var attribute in variable.Attributes)
+                builder.AddAttribute(attribute);
             return builder.Build();
         }
 
         CustomizationPoint BuildCustomizationPoint(CustomizationPoint.Builder builder, Block preBlock, Block postBlock)
         {
             foreach (var output in preBlock.Outputs)
-                builder.AddInput(output.Clone(Container));
+                builder.AddInput(CloneVariable(output));
             foreach (var input in postBlock.Inputs)
-                builder.AddOutput(input.Clone(Container));
+                builder.AddOutput(CloneVariable(input));
             return builder.Build();
         }
 
@@ -212,91 +239,84 @@ namespace UnityEditor.ShaderFoundry
         {
             var mainBlockBuilder = new Block.Builder(Container, blockName);
 
-            if (nameMappings == null)
-            {
-                mainBlockBuilder.SetEntryPointFunction(ShaderFunction.Invalid);
-            }
-            else
-            {
-                // Collect some values for quick lookups by name
-                var availableInputs = new Dictionary<string, BlockOutput>();
-                foreach (var prop in preBlock.Outputs)
-                    availableInputs[prop.ReferenceName] = prop;
-                var fieldDescriptorsByName = new Dictionary<string, FieldDescriptor>();
-                foreach (var fieldDescriptor in fieldDescriptors)
-                    fieldDescriptorsByName[fieldDescriptor.name] = fieldDescriptor;
-                var nameMappingsByOutputName = new Dictionary<string, NameOverride>();
-                foreach(var mapping in nameMappings)
-                    nameMappingsByOutputName[mapping.Destination] = mapping;
-                
-                // Build the input/output type from the matching fields
-                var inputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultIn");
-                var outputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultOut");
+            // Collect some values for quick lookups by name
+            var availableInputs = new Dictionary<string, BlockOutput>();
+            foreach (var prop in preBlock.Outputs)
+                availableInputs[prop.ReferenceName] = prop;
+            var fieldDescriptorsByName = new Dictionary<string, FieldDescriptor>();
+            foreach (var fieldDescriptor in fieldDescriptors)
+                fieldDescriptorsByName[fieldDescriptor.name] = fieldDescriptor;
+            var nameMappingsByOutputName = new Dictionary<string, NameOverride>();
+            foreach(var mapping in nameMappings)
+                nameMappingsByOutputName[mapping.Destination] = mapping;
+            
+            // Build the input/output type from the matching fields
+            var inputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultIn");
+            var outputBuilder = new ShaderType.StructBuilder(mainBlockBuilder, $"{blockName}DefaultOut");
 
-                HashSet<string> declaredInputs = new HashSet<string>();
-                var variableExpressions = new Dictionary<string, string>();
-                // For every potential output, find out if it exists, and if so what its default expression is
-                foreach (var output in postBlock.Inputs)
+            HashSet<string> declaredInputs = new HashSet<string>();
+            var variableExpressions = new Dictionary<string, string>();
+            // For every potential output, find out if it exists, and if so what its default expression is
+            foreach (var output in postBlock.Inputs)
+            {
+                // First check if this is a variable remapping (i.e. one input name is getting remapped to a different output name)
+                if(nameMappingsByOutputName.TryGetValue(output.ReferenceName, out var mapping))
                 {
-                    // First check if this is a variable remapping (i.e. one input name is getting remapped to a different output name)
-                    if(nameMappingsByOutputName.TryGetValue(output.ReferenceName, out var mapping))
+                    BlockOutput inputProp;
+                    availableInputs.TryGetValue(mapping.Source, out inputProp);
+                    if (inputProp.IsValid)
                     {
-                        BlockOutput inputProp;
-                        availableInputs.TryGetValue(mapping.Source, out inputProp);
-                        if (inputProp.IsValid)
+                        outputBuilder.AddField(output.Type, output.ReferenceName);
+                        // Add the input if we haven't already declared it
+                        if(!declaredInputs.Contains(inputProp.ReferenceName))
                         {
-                            outputBuilder.AddField(output.Type, output.ReferenceName);
-                            // Add the input if we haven't already declared it
-                            if(!declaredInputs.Contains(inputProp.ReferenceName))
-                            {
-                                inputBuilder.AddField(inputProp.Type, inputProp.ReferenceName);
-                                declaredInputs.Add(inputProp.ReferenceName);
-                            }
-                            variableExpressions[output.ReferenceName] = $"input.{mapping.Source};";
+                            inputBuilder.AddField(inputProp.Type, inputProp.ReferenceName);
+                            declaredInputs.Add(inputProp.ReferenceName);
                         }
+                        variableExpressions[output.ReferenceName] = $"input.{mapping.Source};";
                     }
-                    // Next see if this is a manually set default value
-                    else if(defaultVariableValues.TryGetValue(output.ReferenceName, out var defaultValue))
+                }
+                // Next see if this is a manually set default value
+                else if(defaultVariableValues.TryGetValue(output.ReferenceName, out var defaultValue))
+                {
+                    variableExpressions[output.ReferenceName] = defaultValue;
+                    outputBuilder.AddField(output.Type, output.ReferenceName);
+                }
+                // Finally, check if this has a default value we can extract from a field descriptor
+                else if (fieldDescriptorsByName.TryGetValue(output.ReferenceName, out var fieldDescriptor))
+                {
+                    var defaultValueStr = GetDefaultValueString(output.Type, fieldDescriptor);
+                    if (defaultValueStr != null)
                     {
-                        variableExpressions[output.ReferenceName] = defaultValue;
+                        variableExpressions[output.ReferenceName] = defaultValueStr;
                         outputBuilder.AddField(output.Type, output.ReferenceName);
                     }
-                    // Finally, check if this has a default value we can extract from a field descriptor
-                    else if (fieldDescriptorsByName.TryGetValue(output.ReferenceName, out var fieldDescriptor))
-                    {
-                        var defaultValueStr = GetDefaultValueString(output.Type, fieldDescriptor);
-                        if (defaultValueStr != null)
-                        {
-                            variableExpressions[output.ReferenceName] = defaultValueStr;
-                            outputBuilder.AddField(output.Type, output.ReferenceName);
-                        }
-                    }
                 }
-
-                var inType = inputBuilder.Build();
-                var outType = outputBuilder.Build();
-                mainBlockBuilder.AddType(inType);
-                mainBlockBuilder.AddType(outType);
-
-                // Build the actual function
-                var fnBuilder = new UnityEditor.ShaderFoundry.ShaderFunction.Builder(mainBlockBuilder, $"{blockName}Default", outType);
-                fnBuilder.AddInput(inType, "input");
-
-                fnBuilder.AddLine($"{outType.Name} output;");
-
-                // Declare the expression for every output field
-                foreach(var field in outType.StructFields)
-                {
-                    if(variableExpressions.TryGetValue(field.Name, out var expression))
-                        fnBuilder.AddLine($"output.{field.Name} = {expression};");
-                }
-
-                fnBuilder.AddLine($"return output;");
-                var entryPointFunction = fnBuilder.Build();
-                mainBlockBuilder.AddFunction(entryPointFunction);
-                mainBlockBuilder.SetEntryPointFunction(entryPointFunction);
-                mainBlockBuilder.BuildInterface(Container, entryPointFunction);
             }
+
+            var inType = inputBuilder.Build();
+            var outType = outputBuilder.Build();
+            mainBlockBuilder.AddType(inType);
+            mainBlockBuilder.AddType(outType);
+
+            // Build the actual function
+            var fnBuilder = new UnityEditor.ShaderFoundry.ShaderFunction.Builder(mainBlockBuilder, $"{blockName}Default", outType);
+            fnBuilder.AddInput(inType, "input");
+
+            fnBuilder.AddLine($"{outType.Name} output;");
+
+            // Declare the expression for every output field
+            foreach(var field in outType.StructFields)
+            {
+                if(variableExpressions.TryGetValue(field.Name, out var expression))
+                    fnBuilder.AddLine($"output.{field.Name} = {expression};");
+            }
+
+            fnBuilder.AddLine($"return output;");
+            var entryPointFunction = fnBuilder.Build();
+            mainBlockBuilder.AddFunction(entryPointFunction);
+            mainBlockBuilder.SetEntryPointFunction(entryPointFunction);
+            mainBlockBuilder.BuildInterface(Container, entryPointFunction);
 
             return mainBlockBuilder.Build();
         }
