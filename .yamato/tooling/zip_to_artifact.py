@@ -1,5 +1,6 @@
 import os
 from zipfile import ZipFile
+import json
 import argparse
 from os import path, getcwd, listdir
 
@@ -24,10 +25,6 @@ if __name__ == "__main__":
         print("No update file found, exiting zip script")
         exit(0)
 
-    if extra_logs:
-        with open(update_tests_file_path) as f:
-            for line in f.readline():
-                print(f)
     with ZipFile(path.join(args.artifacts, "UpdatedTestData.zip"), 'w') as z:
         z.write(update_tests_file_path)
         with open(update_tests_file_path) as f:
@@ -39,9 +36,16 @@ if __name__ == "__main__":
                     break
 
                 # Strip curly braces for serialized write from player
-                line.replace('{', '')
-                line.replace('}', '')
-                test_name, asset_path, should_update_image = line.split(",")
+                if line[0] == '{':  # json path
+                    # line.replace('{', '')
+                    # line.replace('}', '')
+                    line_data = json.loads(line)
+                    test_name = line_data["testName"]
+                    asset_path = line_data["m_filePath"]
+                    should_update_image = "True"
+                else:
+                    test_name, asset_path, should_update_image = line.split(",")
+
                 _, _, colorspace, editor, test_platform, vr, _, test_asset = asset_path.split("/")
 
                 if should_update_image == "True":
