@@ -221,20 +221,16 @@ namespace UnityEngine.Rendering.HighDefinition
             if (GetMaterialDirtiness(hdCamera))
             {
                 ResetMaterialDirtiness(hdCamera);
-                return ResetPathTracing(camID, camData);
+                ResetPathTracing();
+                return camData;
             }
 
             // Check light or geometry transforms dirtiness
             if (GetTransformDirtiness(hdCamera))
             {
                 ResetTransformDirtiness(hdCamera);
-                return ResetPathTracing(camID, camData);
-            }
-
-            // Check camera matrix dirtiness
-            if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
-            {
-                return ResetPathTracing(camID, camData);
+                ResetPathTracing();
+                return camData;
             }
 
             // Check lights dirtiness
@@ -243,6 +239,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CacheLightCount = (uint)m_RayTracingLights.lightCount;
                 ResetPathTracing();
                 return camData;
+            }
+
+            // Check camera matrix dirtiness
+            if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
+            {
+                return ResetPathTracing(camID, camData);
             }
 
             // If nothing but the camera has changed, re-render the sky texture
@@ -424,7 +426,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_HDRP_DXR_TESTS_DEFINE
             if (Application.isPlaying)
+            {
+                camData.ResetIteration();
                 m_SubFrameManager.subFrameCount = 1;
+            }
 #endif
 
             if (camData.currentIteration < m_SubFrameManager.subFrameCount)
