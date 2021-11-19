@@ -38,23 +38,23 @@ namespace UnityEngine.Rendering.HighDefinition
         public WaterGeometryType geometryType = WaterGeometryType.Quad;
 
         /// <summary>
-        /// Sets the geometry to use when rendering in finite and custom geometry type mode.
+        /// Sets the geometry to use when rendering in finite and custom geometry type mode. The vertical position of the vertices will be overriden to keep the surface of water leveled.
         /// </summary>
-        [Tooltip("Sets the geometry to use when rendering in finite and custom geometry type mode.")]
+        [Tooltip("Sets the geometry to use when rendering in finite and custom geometry type mode. The vertical position of the vertices will be overriden to keep the surface of water leveled.")]
         public Mesh geometry = null;
         #endregion
 
         #region Water Simulation
         /// <summary>
-        /// Sets the maximum patch size that is used to run the water simulation.
+        /// Sets the maximum patch size that is used to run the water simulation. The wind speed is adjusted to remain coherent with the patch size.
         /// </summary>
-        [Tooltip("Sets the maximum patch size that is used to run the water simulation.")]
+        [Tooltip("Sets the maximum patch size that is used to run the water simulation. The wind speed is adjusted to remain coherent with the patch size.")]
         public float waterMaxPatchSize = 500.0f;
 
         /// <summary>
-        /// When enabled, the water system and rendering evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.
+        /// When enabled, the water system evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.
         /// </summary>
-        [Tooltip("When enabled, the water system and rendering evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.")]
+        [Tooltip("When enabled, the water system evaluates 4 simulations bands instead of 2. This may increase the amount of detail depending on the water max patch size, but will increase the cost of the water surface.")]
         public bool highBandCount = true;
 
         /// <summary>
@@ -94,18 +94,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Sets the color that is used to simulate the under-water refraction.
         /// </summary>
         [Tooltip("Sets the color that is used to simulate the under-water refraction.")]
+        [ColorUsage(false)]
         public Color refractionColor = new Color(0.00f, 0.45f, 0.65f);
 
         /// <summary>
-        /// Sets the maximum distance used to clamp the under water refraction depth.
+        /// Controls the maximum distance in meters used to clamp the under water refraction depth. Higher value increases the distortion amount.
         /// </summary>
-        [Tooltip("Sets the maximum distance used to clamp the under water refraction depth.")]
+        [Tooltip("Controls the maximum distance in meters used to clamp the under water refraction depth. Higher value increases the distortion amount.")]
         public float maxRefractionDistance = 1.0f;
 
         /// <summary>
-        /// Sets the maximum distance that the camera can perceive under the water surface.
+        /// Controls the maximum distance in meters that the camera can perceive under the water surface.
         /// </summary>
-        [Tooltip("Sets the maximum distance that the camera can perceive under the water surface.")]
+        [Tooltip("Controls the maximum distance in meters that the camera can perceive under the water surface.")]
         public float maxAbsorptionDistance = 5.0f;
         #endregion
 
@@ -114,152 +115,155 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Sets the color that is used to simulate the under-water scattering.
         /// </summary>
         [Tooltip("Sets the color that is used to simulate the under-water scattering.")]
+        [ColorUsage(false)]
         public Color scatteringColor = new Color(0.0f, 0.12f, 0.25f);
 
         /// <summary>
-        /// Sets the multiplier applied to the scattering factor to attenuate the scattering term.
+        /// Controls the multiplier applied to the scattering factor to attenuate the scattering term.
         /// </summary>
-        [Tooltip("Sets the color that is used to simulate the under-water scattering.")]
+        [Tooltip("Controls the multiplier that is used to simulate the under-water scattering globally.")]
         public float scatteringFactor = 0.5f;
 
         /// <summary>
-        /// Sets the intensity of the height based scattering.
+        /// Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.
         /// </summary>
-        [Tooltip("Sets the intensity of the height based scattering.")]
+        [Tooltip("Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.")]
         public float heightScattering = 0.5f;
 
         /// <summary>
-        /// Sets the intensity of the displacement based scattering.
+        /// Controls the intensity of the displacement based scattering. The bigger horizontal displacement, the more the water receives scattering. This can be adjusted for artistic purposes.
         /// </summary>
-        [Tooltip("Sets the intensity of the displacement based scattering.")]
+        [Tooltip("Controls the intensity of the displacement based scattering. The bigger horizontal displacement, the more the water receives scattering. This can be adjusted for artistic purposes.")]
         public float displacementScattering = 0.5f;
 
         /// <summary>
-        /// Sets the intensity of the direct light scattering on the tip of the waves.
+        /// Controls the intensity of the direct light scattering on the tip of the waves. The effect is more perceivable at grazing angles.
         /// </summary>
-        [Tooltip("Sets the intensity of the direct light scattering on the tip of the waves.")]
+        [Tooltip("Controls the intensity of the direct light scattering on the tip of the waves. The effect is more perceivable at grazing angles.")]
         public float directLightTipScattering = 0.5f;
 
         /// <summary>
-        /// Sets the intensity of the direct light scattering on the tip of the waves.
+        /// Controls the intensity of the direct light scattering on the body of the waves. The effect is more perceivable at grazing angles.
         /// </summary>
-        [Tooltip("Sets the intensity of the direct light scattering on the body of the waves.")]
+        [Tooltip("Controls the intensity of the direct light scattering on the body of the waves. The effect is more perceivable at grazing angles.")]
         public float directLightBodyScattering = 0.5f;
         #endregion
 
         #region Water Caustics
         /// <summary>
-        /// Set the intensity of the under-water caustics.
+        /// Sets the intensity of the under-water caustics.
         /// </summary>
-        [Tooltip("Set the intensity of the under-water caustics.")]
+        [Tooltip("Sets the intensity of the under-water caustics.")]
         public float causticsIntensity = 0.5f;
 
         /// <summary>
-        /// Controls the amount of dispersion of the caustics.
+        /// Controls the amount of dispersion of the caustics. A higher value induces more shift in the lower frequencies (red tinted) of the visible spectrum.
         /// </summary>
-        [Tooltip("Controls the amount of dispersion of the caustics.")]
+        [Tooltip("Controls the amount of dispersion of the caustics. A higher value induces more shift in the lower frequencies (red tinted) of the visible spectrum.")]
         public float causticsDispersionAmount = 0.5f;
 
         /// <summary>
-        /// Set the tiling factor of the under-water caustics.
+        /// Sets the tiling factor of the under-water caustics.
         /// </summary>
-        [Tooltip("Set the tiling factor of the under-water caustics.")]
+        [Tooltip("Sets the tiling factor of the under-water caustics.")]
         public float causticsTiling = 1.5f;
 
         /// <summary>
-        /// Set the scrolling speed of the under-water caustics.
+        /// Sets the scrolling speed of the under-water caustics.
         /// </summary>
-        [Tooltip("Set the scrolling speed of the under-water caustics.")]
+        [Tooltip("Sets the scrolling speed of the under-water caustics.")]
         public float causticsSpeed = 0.0f;
 
         /// <summary>
-        /// Set the vertical plane offset at which the caustics start.
+        /// Sets the vertical plane offset in meters at which the caustics start.
         /// </summary>
-        [Tooltip("Set the vertical plane offset at which the caustics start.")]
+        [Tooltip("Sets the vertical plane offset in meters at which the caustics start.")]
         public float causticsPlaneOffset = 0.0f;
         #endregion
 
         #region Water Foam
         /// <summary>
-        /// Controls the foam smoothness.
+        /// Controls the surface foam smoothness.
         /// </summary>
-        [Tooltip("Controls the foam smoothness.")]
+        [Tooltip("Controls the surface foam smoothness.")]
         public float surfaceFoamSmoothness = 0.3f;
 
         /// <summary>
-        /// Controls the foam intensity.
+        /// Controls the surface foam brightness.
         /// </summary>
-        [Tooltip("Controls the foam intensity.")]
+        [Tooltip("Controls the surface foam brightness.")]
         public float surfaceFoamIntensity = 0.5f;
 
         /// <summary>
-        /// Controls the foam amount.
+        /// Controls the surface foam amount. Higher values generates larger foam patches.
         /// </summary>
-        [Tooltip("Controls the foam amount.")]
+        [Tooltip("Controls the surface foam amount. Higher values generates larger foam patches.")]
         public float surfaceFoamAmount = 0.5f;
 
         /// <summary>
-        /// Controls the foam tiling.
+        /// Controls the surface foam tiling.
         /// </summary>
-        [Tooltip("Controls the foam tiling.")]
+        [Tooltip("Controls the surface foam tiling.")]
         public float surfaceFoamTiling = 1.0f;
 
         /// <summary>
-        /// Sets the deep foam amount.
+        /// Sets the deep foam brightness.
         /// </summary>
-        [Tooltip("Sets the deep foam amount.")]
+        /// TODO: Rename to deepFoamIntensity.
+        [Tooltip("Sets the deep foam brightness.")]
         public float deepFoam = 0.3f;
 
         /// <summary>
         /// Sets the deep foam color.
         /// </summary>
         [Tooltip("Sets the deep foam color.")]
+        [ColorUsage(false)]
         public Color deepFoamColor = new Color(1.0f, 1.0f, 1.0f);
 
         /// <summary>
         /// Set the texture used to attenuate or supress the deep (red channel) or surface (green channel) foam.
         /// </summary>
-        [Tooltip("Set the texture used to attenuate or supress the deep (red channel) or surface (green channel) foam.")]
+        [Tooltip("Sets the texture used to attenuate or supress the deep (red channel) or surface (green channel) foam.")]
         public Texture2D foamMask = null;
 
         /// <summary>
-        /// Set the extent of the foam mask in meters.
+        /// Sets the extent of the foam mask in meters.
         /// </summary>
-        [Tooltip("Set the extent of the foam mask in meters.")]
+        [Tooltip("Sets the extent of the foam mask in meters.")]
         public Vector2 foamMaskExtent = new Vector2(100.0f, 100.0f);
 
         /// <summary>
-        /// Set the offset of the foam mask in meters.
+        /// Sets the offset of the foam mask in meters.
         /// </summary>
-        [Tooltip("Set the offset of the foam mask in meters.")]
+        [Tooltip("Sets the offset of the foam mask in meters.")]
         public Vector2 foamMaskOffset = new Vector2(0.0f, 0.0f);
         #endregion
 
         #region Water Masking
         /// <summary>
-        /// Set the texture used to attenuate or supress the lower (red channel) or higher (green channel) water frequencies.
+        /// Sets the texture used to attenuate or supress the lower, band X and Y, (red channel) or higher, band Z and W, (green channel) water frequencies.
         /// </summary>
-        [Tooltip("Set the texture used to attenuate or supress the lower (red channel) or higher (green channel) water frequencies.")]
+        [Tooltip("Sets the texture used to attenuate or supress the lower, band X and Y, (red channel) or higher, band Z and W, (green channel) water frequencies.")]
         public Texture2D waterMask = null;
 
         /// <summary>
-        /// Set the extent of the water mask in meters.
+        /// Sets the extent of the water mask in meters.
         /// </summary>
-        [Tooltip("Set the extent of the water mask in meters.")]
+        [Tooltip("Sets the extent of the water mask in meters.")]
         public Vector2 waterMaskExtent = new Vector2(100.0f, 100.0f);
 
         /// <summary>
-        /// Set the offset of the water mask in meters.
+        /// Sets the offset of the water mask in meters.
         /// </summary>
-        [Tooltip("Set the offset of the water mask in meters.")]
+        [Tooltip("Sets the offset of the water mask in meters.")]
         public Vector2 waterMaskOffset = new Vector2(0.0f, 0.0f);
         #endregion
 
         #region Water Masking
         /// <summary>
-        /// Set the wind orientation in degrees.
+        /// Sets the wind orientation in degrees. Zero means north (-x). Wind speed is clamped to be coherent with the patch size.
         /// </summary>
-        [Tooltip("Set the wind orientation in degrees.")]
+        [Tooltip("Sets the wind orientation in degrees. Zero means north (-x). Wind speed is clamped to be coherent with the patch size.")]
         public float windOrientation = 0.0f;
 
         /// <summary>
