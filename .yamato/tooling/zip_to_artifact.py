@@ -1,5 +1,6 @@
 import os
 from zipfile import ZipFile
+import re
 import json
 import argparse
 from os import path, getcwd, listdir
@@ -26,7 +27,7 @@ if __name__ == "__main__":
         exit(0)
 
     with ZipFile(path.join(args.artifacts, "UpdatedTestData.zip"), 'w') as z:
-        z.write(update_tests_file_path)
+        # z.write(update_tests_file_path)
         with open(update_tests_file_path) as f:
             while True:
                 line = f.readline().strip()
@@ -37,14 +38,14 @@ if __name__ == "__main__":
 
                 # Strip curly braces for serialized write from player
                 if line[0] == '{':  # json path
-                    # line.replace('{', '')
-                    # line.replace('}', '')
                     line_data = json.loads(line)
                     test_name = line_data["testName"]
                     asset_path = line_data["m_filePath"]
                     should_update_image = "True"
                 else:
                     test_name, asset_path, should_update_image = line.split(",")
+
+                test_name = re.search(f'(?<={test_name}_).*(?=_)', asset_path).group(0)
 
                 _, _, colorspace, editor, test_platform, vr, _, test_asset = asset_path.split("/")
 
@@ -58,7 +59,12 @@ if __name__ == "__main__":
                     if extra_logs:
                         print("Adding " + test_name)
                     z.write(actual_img_path, reference_img_path)  # Write ActualImage to zip
-                    if path.exists(actual_img_path + ".meta"):
+                    if path.exists(actual_img_path + ".meta"):  # Meta file doesn't always exist, check
                         z.write(actual_img_path + ".meta", reference_img_path + ".meta")
+                    if path.exists(test_asset_path):
+                        z.write(test_asset_path)
+                    elif extra_logs:
+                        print("Could not find test asset to copy")
+                        # TODO: Flip updated bit on test asset
                 elif extra_logs:
                     print(test_name + " doesn't need to be updated")
