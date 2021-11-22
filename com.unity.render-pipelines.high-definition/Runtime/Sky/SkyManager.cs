@@ -192,13 +192,14 @@ namespace UnityEngine.Rendering.HighDefinition
         Matrix4x4[] m_CameraRelativeViewMatrices = new Matrix4x4[6];
         BuiltinSkyParameters m_BuiltinParameters = new BuiltinSkyParameters();
         ComputeShader m_ComputeAmbientProbeCS;
-        readonly int m_AmbientProbeOutputBufferParam = Shader.PropertyToID("_AmbientProbeOutputBuffer");
-        readonly int m_VolumetricAmbientProbeOutputBufferParam = Shader.PropertyToID("_VolumetricAmbientProbeOutputBuffer");
-        readonly int m_DiffuseAmbientProbeOutputBufferParam = Shader.PropertyToID("_DiffuseAmbientProbeOutputBuffer");
-        readonly int m_AmbientProbeInputCubemap = Shader.PropertyToID("_AmbientProbeInputCubemap");
-        readonly int m_FogParameters = Shader.PropertyToID("_FogParameters");
+        static readonly int s_AmbientProbeOutputBufferParam = Shader.PropertyToID("_AmbientProbeOutputBuffer");
+        static readonly int s_VolumetricAmbientProbeOutputBufferParam = Shader.PropertyToID("_VolumetricAmbientProbeOutputBuffer");
+        static readonly int s_DiffuseAmbientProbeOutputBufferParam = Shader.PropertyToID("_DiffuseAmbientProbeOutputBuffer");
+        static readonly int s_AmbientProbeInputCubemap = Shader.PropertyToID("_AmbientProbeInputCubemap");
+        static readonly int s_FogParameters = Shader.PropertyToID("_FogParameters");
         int m_ComputeAmbientProbeKernel;
         int m_ComputeAmbientProbeVolumetricKernel;
+        int m_ComputeAmbientProbeCloudsKernel;
 
         CubemapArray m_BlackCubemapArray;
         ComputeBuffer m_BlackAmbientProbeBuffer;
@@ -384,6 +385,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ComputeAmbientProbeCS = HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.ambientProbeConvolutionCS;
             m_ComputeAmbientProbeKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionDiffuse");
             m_ComputeAmbientProbeVolumetricKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionDiffuseVolumetric");
+            m_ComputeAmbientProbeCloudsKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionClouds");
 
             lightingOverrideVolumeStack = VolumeManager.instance.CreateStack();
             lightingOverrideLayerMask = hdAsset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask;
@@ -732,24 +734,41 @@ namespace UnityEngine.Rendering.HighDefinition
             public int computeAmbientProbeKernel;
             public TextureHandle skyCubemap;
             public ComputeBuffer ambientProbeResult;
+            public ComputeBuffer diffuseAmbientProbeResult;
+            public ComputeBuffer volumetricAmbientProbeResult;
+            public Vector4 fogParameters;
             public Action<AsyncGPUReadbackRequest> callback;
         }
 
-        internal void UpdateAmbientProbe(RenderGraph renderGraph, TextureHandle skyCubemap, ComputeBuffer ambientProbeResult, Action<AsyncGPUReadbackRequest> callback)
+        internal void UpdateAmbientProbe(RenderGraph renderGraph, TextureHandle skyCubemap, bool outputForClouds, ComputeBuffer ambientProbeResult, ComputeBuffer diffuseAmbientProbeResult, ComputeBuffer volumetricAmbientProbeResult, Fog fog, Action<AsyncGPUReadbackRequest> callback)
         {
             using (var builder = renderGraph.AddRenderPass<UpdateAmbientProbePassData>("UpdateAmbientProbe", out var passData, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
             {
                 passData.computeAmbientProbeCS = m_ComputeAmbientProbeCS;
-                passData.computeAmbientProbeKernel = m_ComputeAmbientProbeKernel;
+                if (outputForClouds)
+                    passData.computeAmbientProbeKernel = m_ComputeAmbientProbeCloudsKernel;
+                else
+                    passData.computeAmbientProbeKernel = volumetricAmbientProbeResult != null ? m_ComputeAmbientProbeVolumetricKernel : m_ComputeAmbientProbeKernel;
+
                 passData.skyCubemap = builder.ReadTexture(skyCubemap);
                 passData.ambientProbeResult = ambientProbeResult;
+                passData.diffuseAmbientProbeResult = diffuseAmbientProbeResult;
+                passData.volumetricAmbientProbeResult = volumetricAmbientProbeResult;
+                passData.fogParameters = fog != null ? new Vector4(fog.globalLightProbeDimmer.value, fog.anisotropy.value, 0.0f, 0.0f) : Vector4.zero;
                 passData.callback = callback;
 
                 builder.SetRenderFunc(
                 (UpdateAmbientProbePassData data, RenderGraphContext ctx) =>
                 {
-                    ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, m_AmbientProbeOutputBufferParam, data.ambientProbeResult);
-                    ctx.cmd.SetComputeTextureParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, m_AmbientProbeInputCubemap, data.skyCubemap);
+                    ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_AmbientProbeOutputBufferParam, data.ambientProbeResult);
+                    ctx.cmd.SetComputeTextureParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_AmbientProbeInputCubemap, data.skyCubemap);
+                    if (data.diffuseAmbientProbeResult != null)
+                        ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_DiffuseAmbientProbeOutputBufferParam, data.diffuseAmbientProbeResult);
+                    if (data.volumetricAmbientProbeResult != null)
+                    {
+                        ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_VolumetricAmbientProbeOutputBufferParam, data.volumetricAmbientProbeResult);
+                        ctx.cmd.SetComputeVectorParam(data.computeAmbientProbeCS, s_FogParameters, data.fogParameters);
+                    }
                     ctx.cmd.DispatchCompute(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, 1, 1, 1);
                     ctx.cmd.RequestAsyncReadback(data.ambientProbeResult, data.callback);
                 });
@@ -1071,7 +1090,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         var skyCubemap = GenerateSkyCubemap(renderGraph, skyContext);
 
                         if (updateAmbientProbe && !renderingContext.computeAmbientProbeRequested)
-                            UpdateAmbientProbe(renderGraph, skyCubemap, renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
+                        {
+                            UpdateAmbientProbe(renderGraph, skyCubemap, outputForClouds: false,
+                                renderingContext.ambientProbeResult, renderingContext.diffuseAmbientProbeBuffer, renderingContext.volumetricAmbientProbeBuffer,
+                                hdCamera.volumeStack.GetComponent<Fog>(), renderingContext.OnComputeAmbientProbeDone);
+                            renderingContext.computeAmbientProbeRequested = true;
+                        }
 
                         if (renderingContext.supportsConvolution)
                             RenderCubemapGGXConvolution(renderGraph, skyCubemap, renderingContext.skyboxBSDFCubemapArray);
@@ -1130,7 +1154,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Keep global setter for now. We should probably remove it and set it explicitly where needed like any other resource. As is it breaks resource lifetime contract with render graph.
             HDRenderPipeline.SetGlobalTexture(renderGraph, HDShaderIDs._SkyTexture, GetReflectionTexture(hdCamera.lightingSky));
-            cmd.SetGlobalBuffer(HDShaderIDs._AmbientProbeData, GetDiffuseAmbientProbeBuffer(hdCamera));
+            HDRenderPipeline.SetGlobalBuffer(renderGraph, HDShaderIDs._AmbientProbeData, GetDiffuseAmbientProbeBuffer(hdCamera));
         }
 
         internal void UpdateBuiltinParameters(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, CommandBuffer cmd)

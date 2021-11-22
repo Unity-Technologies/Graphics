@@ -6,11 +6,14 @@
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-#pragma kernel AmbientProbeConvolution KERNEL_NAME=AmbientProbeConvolution
+// Regular ambient probe convolution
+// Always use mips and output separate diffuse buffer.
+// Volumetric output as an option
 #pragma kernel AmbientProbeConvolutionDiffuse KERNEL_NAME=AmbientProbeConvolutionDiffuse OUTPUT_DIFFUSE
-#pragma kernel AmbientProbeConvolutionVolumetric KERNEL_NAME=AmbientProbeConvolutionVolumetric OUTPUT_VOLUMETRIC
 #pragma kernel AmbientProbeConvolutionDiffuseVolumetric KERNEL_NAME=AmbientProbeConvolutionDiffuseVolumetric OUTPUT_VOLUMETRIC OUTPUT_DIFFUSE
-#pragma kernel AmbientProbeConvolutionNoMip KERNEL_NAME=AmbientProbeConvolutionNoMip NO_MIPS
+// Ambient probe convolution for clouds.
+// Does not output diffuse and volumetric buffer and does not use input texture mips.
+#pragma kernel AmbientProbeConvolutionClouds KERNEL_NAME=AmbientProbeConvolutionClouds NO_MIPS
 
 // Input Cubemap
 TEXTURECUBE(_AmbientProbeInputCubemap);

@@ -5,12 +5,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        // Resources required to evaluate the ambient probe for the clouds
-        ComputeShader m_ComputeAmbientProbeCS;
-        int m_AmbientProbeConvolutionNoMipKernel;
-        internal static readonly int m_AmbientProbeInputCubemap = Shader.PropertyToID("_AmbientProbeInputCubemap");
-        internal static readonly int m_AmbientProbeOutputBufferParam = Shader.PropertyToID("_AmbientProbeOutputBuffer");
-
         // Buffers required to evaluate the probe
         internal ComputeBuffer m_CloudsAmbientProbeBuffer = null;
 
@@ -20,8 +14,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializeVolumetricCloudsAmbientProbe()
         {
-            m_ComputeAmbientProbeCS = m_Asset.renderPipelineResources.shaders.ambientProbeConvolutionCS;
-            m_AmbientProbeConvolutionNoMipKernel = m_ComputeAmbientProbeCS.FindKernel("AmbientProbeConvolutionNoMip");
             m_CloudsAmbientProbeBuffer = new ComputeBuffer(9 * 3, sizeof(float));
         }
 
@@ -127,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true });
 
                     outputCubemap = m_SkyManager.RenderSkyToCubemap(renderGraph, hdCamera.lightingSky, includeSunInBaking: false, renderCloudLayers: false, outputCubemap);
-                    m_SkyManager.UpdateAmbientProbe(renderGraph, outputCubemap, m_CloudsAmbientProbeBuffer, OnComputeAmbientProbeDone);
+                    m_SkyManager.UpdateAmbientProbe(renderGraph, outputCubemap, outputForClouds: true, m_CloudsAmbientProbeBuffer, null, null, null, OnComputeAmbientProbeDone);
                 }
             }
             else
