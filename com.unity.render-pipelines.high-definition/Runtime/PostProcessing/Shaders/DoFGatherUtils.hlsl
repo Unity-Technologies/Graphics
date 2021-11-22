@@ -365,19 +365,18 @@ int GetTileClass(float2 sampleTC)
 
 void DebugTiles(float2 sampleTC, inout float3 output)
 {
-    // Debug the tile type
-    switch (GetTileClass(sampleTC))
+    int tileClass = GetTileClass(sampleTC);
+    if (tileClass == SLOW_INFOCUS_TILE)
     {
-    case SLOW_INFOCUS_TILE:
-        // in focus pixels, but also covered by out-of-focus stuff
         output.xyz = lerp(output.xyz, float3(1, 0, 0), 0.9);
-        break;
-    case FAST_DEFOCUS_TILE:
+    }
+    else if (tileClass == FAST_DEFOCUS_TILE)
+    {
         output.xyz = lerp(output.xyz, float3(0, 0, 1), 0.9);
-        break;
-    default: // FAST_INFOCUS_TILE
+    }
+    else
+    {
         output.xyz = lerp(output.xyz, float3(0, 1, 0), 0.9);
-        break;
     }
 }
 
