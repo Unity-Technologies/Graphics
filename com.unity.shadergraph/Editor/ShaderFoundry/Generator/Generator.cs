@@ -68,8 +68,6 @@ namespace UnityEditor.ShaderFoundry
         {
             var path = AssetDatabase.GUIDToAssetPath(generator.m_GraphData.assetGuid);
             var sharedDirectory = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path) + "Shared");
-            if (!Directory.Exists(sharedDirectory))
-                Directory.CreateDirectory(sharedDirectory);
             var sharedFileName = $"Pass_({passDesc.PassIdentifier.m_SubShaderIndex}_{passDesc.PassIdentifier.m_PassIndex})" + "Shared.hlsl";
             var sharedPath = Path.Combine(sharedDirectory, sharedFileName);
 
@@ -181,10 +179,16 @@ namespace UnityEditor.ShaderFoundry
                 pass.virtualTextureFeedback);
 
             fragmentBlockBuilder.SetEntryPointFunction(surfaceDescriptionFunction);
-            var sharedIncludeDesc = new IncludeDescriptor.Builder(container, $"\"{sharedPath}\"");
-            fragmentBlockBuilder.AddInclude(sharedIncludeDesc.Build());
             foreach (var include in graphIncludes)
                 fragmentBlockBuilder.AddInclude(new IncludeDescriptor.Builder(container, $"\"{include.path}\"").Build());
+
+            var sharedCode = functionBuilder.ToString();
+            bool createSharedFile = !string.IsNullOrEmpty(sharedCode);
+            if (createSharedFile)
+            {
+                var sharedIncludeDesc = new IncludeDescriptor.Builder(container, $"\"{sharedPath}\"");
+                fragmentBlockBuilder.AddInclude(sharedIncludeDesc.Build());
+            }
 
             // Depth Texture
             if (graphRequirements.baseInstance.requirements.requiresDepthTexture)
@@ -199,14 +203,17 @@ namespace UnityEditor.ShaderFoundry
             templateInstBuilder.AddCustomizationPointInstance(vertexCPInst.Build());
             templateInstBuilder.AddCustomizationPointInstance(fragmentCPInst.Build());
 
-            string existingShared = null;
-            if (File.Exists(sharedPath))
-                existingShared = File.ReadAllText(sharedPath);
-            var sharedCode = functionBuilder.ToString();
-            if(existingShared != sharedCode)
-                File.WriteAllText(sharedPath, sharedCode);
-            //if(generator.m_assetCollection != null)
-            //    generator.m_assetCollection.AddAssetDependency(AssetDatabase.GUIDFromAssetPath(sharedPath), AssetCollection.Flags.IncludeInExportPackage);
+            if(createSharedFile)
+            {
+                if (!Directory.Exists(sharedDirectory))
+                    Directory.CreateDirectory(sharedDirectory);
+
+                string existingShared = null;
+                if (File.Exists(sharedPath))
+                    existingShared = File.ReadAllText(sharedPath);
+                if (existingShared != sharedCode)
+                    File.WriteAllText(sharedPath, sharedCode);
+            }
         }
 
         private static ShaderValueType ShaderValueTypeFrom(int width)
