@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Xbox Series X compilation issue with DoF shader
 - Fixed references to reflection probes that wouldn't be cleared when unloading a scene. (case 1357459)
 - Fixed issue with Stacklit raytrace reflection
+- Fixed various issues with using SSR lighting with IBL fallback for Lit shader with clear coat(case 1380351)
 
 ### Changed
 - Optimizations for the physically based depth of field.
