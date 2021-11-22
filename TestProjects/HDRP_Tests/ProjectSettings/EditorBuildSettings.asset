@@ -824,4 +824,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9910_GlobalMipBias.unity
     guid: 3f9d18568d46df044847954b624b6152
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9920_WaterSurface.unity
+    guid: fa0d54c5ccbc8b143a8db100374e0f5e
   m_configObjects: {}

@@ -28,6 +28,8 @@ namespace UnityEditor.Rendering.HighDefinition
         [FormerlySerializedAs("supportVolumetric")]
         public SerializedProperty supportVolumetrics;
         public SerializedProperty supportVolumetricClouds;
+        public SerializedProperty supportWater;
+        public SerializedProperty waterSimulationResolution;
         public SerializedProperty supportLightLayers;
         public SerializedProperty supportedLitShaderMode;
         public SerializedProperty colorBufferFormat;
@@ -87,6 +89,8 @@ namespace UnityEditor.Rendering.HighDefinition
             sssSampleBudget = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.sssSampleBudget));
             supportVolumetrics = root.Find((RenderPipelineSettings s) => s.supportVolumetrics);
             supportVolumetricClouds = root.Find((RenderPipelineSettings s) => s.supportVolumetricClouds);
+            supportWater = root.Find((RenderPipelineSettings s) => s.supportWater);
+            waterSimulationResolution = root.Find((RenderPipelineSettings s) => s.waterSimulationResolution);
             supportLightLayers = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
             colorBufferFormat = root.Find((RenderPipelineSettings s) => s.colorBufferFormat);
             customBufferFormat = root.Find((RenderPipelineSettings s) => s.customBufferFormat);
