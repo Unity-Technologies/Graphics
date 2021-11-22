@@ -547,7 +547,7 @@ float2 MorphingNoise(float2 position)
 {
     float n = sin(dot(position, float2(41, 289)));
     position = frac(float2(262144, 32768)*n);
-    return sin(TWO_PI * position + _TimeParameters.x) * 0.45 + 0.5;
+    return sin(TWO_PI * position + _SimulationTime) * 0.45 + 0.5;
 }
 
 float VoronoiNoise(float2 coordinate)
@@ -662,7 +662,7 @@ void EvaluateScatteringData(float3 waterPosRWS, float3 waterNormal, float3 lowFr
     // Evaluate the refracted camera color
     float3 cameraColor = LoadCameraColor(distortedWaterNDC * _ScreenSize.xy, 0);
 
-    float3 causticPosAWS = GetAbsolutePositionWS(waterPosRWS + refractedView * underWaterDistance);
+    float3 causticPosAWS = GetAbsolutePositionWS(refractedWaterPosRWS);
     float3 causticsIntensity = EvaluateCaustics(causticPosAWS);
 
     // Evaluate the refraction color (we need to account for the initial absoption (light to underwater))
