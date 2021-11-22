@@ -109,7 +109,9 @@ float Vignette(float2 uv)
 float3 GetViewSpacePosition(float2 uv)
 {
     float depth = _CameraDepthTexture.SampleLevel(sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(uv), 0).r;
-    float4 result = mul(_InverseProjectionMatrix, float4(2.0 * uv - 1.0, depth, 1.0));
+    float4 result = float4(float2(2.0 * uv - 1.0) * float2(unity_CameraInvProjection[0][0], unity_CameraInvProjection[1][1]),
+                           depth * unity_CameraInvProjection[2][2] + unity_CameraInvProjection[2][3],
+                           _ZBufferParams . z * depth + _ZBufferParams . w); // Use _ZBufferParams as it accounts for 0...1 depth value range   
     return result.xyz / result.w;
 }
 
