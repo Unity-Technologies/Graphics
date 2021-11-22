@@ -314,9 +314,7 @@ float3 ModifyUVWForLeak(APVResources apvRes, float3 uvw, float3 samplePos, float
 
     newFrac /= totalWeight;
 
-
-    float3 texelLocFloat = uvw * _PoolDim;
-    texelLocFloat = texCoordInt + newFrac;
+     float3 texelLocFloat = texCoordInt + newFrac;
     return (texelLocFloat +0.5f) * rcp(_PoolDim);
 
     return uvw;
