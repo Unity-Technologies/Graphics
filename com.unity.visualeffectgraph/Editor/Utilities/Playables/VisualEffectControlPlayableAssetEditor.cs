@@ -89,12 +89,36 @@ namespace UnityEditor.VFX
             return base.GetClipOptions(clip);
         }
 
-        private GUIStyle fontStyle = GUIStyle.none;
-
         private static double InverseLerp(double a, double b, double value)
         {
             return (value - a) / (b - a);
         }
+
+        static class Content
+        {
+            public static GUIContent scrubbingEnabled = new GUIContent("Scrubbing Enabled");
+        }
+
+        static class Style
+        {
+            public static readonly GUIStyle noneStyle = GUIStyle.none; //Remove in the end
+            public static GUIStyle centeredStyle = GUI.skin.GetStyle("Label");
+            public static GUIStyle scrubbingEnable = GUI.skin.GetStyle("Label");
+            public static readonly Color kGlobalBackground = new Color32(81, 86, 94, 255);
+            public static readonly float kScrubbingBarHeight = 14.0f;
+            public static readonly Color kScrubbingBackgroundColor = new Color32(64, 68, 74, 255);
+
+            static Style()
+            {
+                centeredStyle.alignment = TextAnchor.UpperCenter;
+
+                scrubbingEnable.alignment = TextAnchor.UpperCenter;
+                scrubbingEnable.fontStyle = FontStyle.Bold;
+                scrubbingEnable.fontSize = 12;
+            }
+        }
+
+
         public override void DrawBackground(TimelineClip clip, ClipBackgroundRegion region)
         {
             base.DrawBackground(clip, region);
@@ -104,14 +128,19 @@ namespace UnityEditor.VFX
 
             var iconSize = new Vector2(8, 8);
 
+            //Draw custom background
+            EditorGUI.DrawRect(region.position, Style.kGlobalBackground);
+
             if (playable.scrubbing)
             {
                 var scrubbingRect = new Rect(
-                    region.position.x + region.position.width * 0.5f,
-                    region.position.y,
-                    iconSize.x,
-                    iconSize.y);
-                EditorGUI.DrawRect(scrubbingRect, Color.red);
+                    region.position.x,
+                    region.position.height - Style.kScrubbingBarHeight,
+                    region.position.width,
+                    Style.kScrubbingBarHeight);
+                EditorGUI.DrawRect(scrubbingRect, Style.kScrubbingBackgroundColor);
+
+                GUI.Label(scrubbingRect, Content.scrubbingEnabled, Style.scrubbingEnable);
             }
 
             var clipEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart, playable, true);
@@ -159,7 +188,7 @@ namespace UnityEditor.VFX
                 var textRect = new Rect(center + new Vector2(2.0f, 0), iconSize);
                 ShadowLabel(textRect,
                     new GUIContent((string)itEvent.name),
-                    fontStyle,
+                    Style.noneStyle,
                     Color.HSVToRGB(color, 1.0f, 1.0f),
                     Color.HSVToRGB(color, 1.0f, 0.1f));
 
