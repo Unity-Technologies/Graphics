@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Water surface component.
     /// </summary>
+    [DisallowMultipleComponent]
     public class WaterSurface : MonoBehaviour
     {
         /// <summary>

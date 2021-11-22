@@ -27,6 +27,11 @@ namespace UnityEditor.Rendering
             waterSurface.surfaceFoamTiling = 3.0f;
             waterSurface.surfaceFoamIntensity = 0.0f;
             waterSurface.deepFoam = 0.1f;
+
+            // Assign the default material if available
+            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
+            if (currentAsset?.renderPipelineResources != null)
+                waterSurface.material = currentAsset?.renderPipelineResources?.materials.defaultWaterMaterial;
         }
 
         [MenuItem("GameObject/Water Surface/River", priority = CoreUtils.Priorities.gameObjectMenuPriority)]
@@ -58,6 +63,11 @@ namespace UnityEditor.Rendering
             waterSurface.causticsIntensity = 0.1f;
             waterSurface.causticsTiling = 0.8f;
             waterSurface.windAffectCurrent = 1.0f;
+
+            // Assign the default material if available
+            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
+            if (currentAsset?.renderPipelineResources != null)
+                waterSurface.material = currentAsset?.renderPipelineResources?.materials.defaultWaterMaterial;
         }
 
         [MenuItem("GameObject/Water Surface/Pool", priority = CoreUtils.Priorities.gameObjectMenuPriority)]
@@ -106,6 +116,11 @@ namespace UnityEditor.Rendering
             waterSurface.causticsTiling = 1.5f;
             waterSurface.causticsSpeed = 0.0f;
             waterSurface.causticsPlaneOffset = 0.5f;
+
+            // Assign the default material if available
+            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
+            if (currentAsset?.renderPipelineResources != null)
+                waterSurface.material = currentAsset?.renderPipelineResources?.materials.defaultWaterMaterial;
         }
     }
 }

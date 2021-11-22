@@ -484,6 +484,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.AlphaToMask,
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.VolumetricClouds,
+                (uint)FrameSettingsField.Water,
                 // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,
@@ -545,6 +546,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.DirectSpecularLighting,
                 // (uint)FrameSettingsField.VolumetricClouds,
+                // (uint)FrameSettingsField.Water,
                 // (uint)FullResolutionCloudsForSky
             }),
             lodBias = 1,
