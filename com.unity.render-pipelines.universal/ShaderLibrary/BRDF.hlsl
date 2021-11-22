@@ -66,10 +66,14 @@ inline void InitializeBRDFDataDirect(half3 albedo, half3 diffuse, half3 specular
     outBRDFData.normalizationTerm   = outBRDFData.roughness * half(4.0) + half(2.0);
     outBRDFData.roughness2MinusOne  = outBRDFData.roughness2 - half(1.0);
 
-#ifdef _ALPHAPREMULTIPLY_ON
-    outBRDFData.diffuse *= alpha;
-    alpha = alpha * oneMinusReflectivity + reflectivity; // NOTE: alpha modified and propagated up.
-#endif
+    // Input is expected to be non-alpha-premultiplied while ROP is set to pre-multiplied blend.
+    // We use input color for specular, but (pre-)multiply the diffuse with alpha to complete the standard alpha blend equation.
+    // In shader: Cs' = Cs * As, in ROP: Cs' + Cd(1-As);
+    // i.e. we only alpha blend the diffuse part to background (transmittance).
+    #if defined(_ALPHAPREMULTIPLY_ON)
+        // TODO: would be clearer to multiply this once to accumulated diffuse lighting at end instead of the surface property.
+        outBRDFData.diffuse *= alpha;
+    #endif
 }
 
 // Legacy: do not call, will not correctly initialize albedo property.
@@ -215,7 +219,7 @@ half DirectBRDFSpecular(BRDFData brdfData, half3 normalWS, half3 lightDirectionW
     specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
 #endif
 
-return specularTerm;
+    return specularTerm;
 }
 
 // Based on Minimalist CookTorrance BRDF
