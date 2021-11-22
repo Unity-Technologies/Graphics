@@ -13,13 +13,14 @@ using Types = UnityEditor.ShaderGraph.Registry.Types;
 
 namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 {
-    class TestDescriptor : Registry.Defs.IContextDescriptor
+    // TODO: Move to preview manager and then rely on the name from the registry key for the context node/master preview data name
+    class TestDescriptor : IContextDescriptor
     {
         public IReadOnlyCollection<IContextDescriptor.ContextEntry> GetEntries()
         {
             return new List<IContextDescriptor.ContextEntry>()
             {
-                new IContextDescriptor.ContextEntry()
+                new ()
                 {
                     fieldName = "Output",
                     primitive = Registry.Types.GraphType.Primitive.Int,
@@ -33,7 +34,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
         public RegistryFlags GetRegistryFlags()
         {
-            throw new System.NotImplementedException();
+           return RegistryFlags.Base;
         }
 
         public RegistryKey GetRegistryKey()
@@ -78,95 +79,31 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             // And/or having a separate test fixture for the contiguous/standalone tests
         }
 
-        internal void RenderQuadPreview(Material renderMaterial, RenderTexture target, Vector3 scenePosition, Quaternion sceneRotation, SetupMaterialDelegate setupMaterial = null, Mode mode = Mode.DIFF, bool useSRP = false)
+        private static Texture2D DrawToTex(Shader shader)
         {
-            var camXform = previewScene.camera.transform;
-
-            // setup 2D quad render
-            camXform.position = -Vector3.forward * 2 + scenePosition;
-            camXform.rotation = sceneRotation;
-            previewScene.camera.orthographicSize = 0.5f;
-            previewScene.camera.orthographic = true;
-
-            var quadMatrix = Matrix4x4.TRS(camXform.position + camXform.forward * 2, camXform.rotation, Vector3.one);
-
-            // render with it
-            RenderMeshWithMaterial(previewScene.camera, previewScene.quad, quadMatrix, renderMaterial, target, useSRP);
+            var rt = RenderTexture.GetTemporary(4,4,0,RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+            var prevActive = RenderTexture.active;
+            RenderTexture.active = rt;
+            Graphics.Blit(null, rt, new Material(shader));
+            Texture2D output = new Texture2D(4, 4, TextureFormat.ARGB32, false);
+            output.ReadPixels(new Rect(0, 0, 4, 4), 0, 0);
+            RenderTexture.active = prevActive;
+            rt.Release();
+            return output;
         }
-
-        internal static void RenderMeshWithMaterial(Camera cam, Mesh mesh, Matrix4x4 transform, Material mat, RenderTexture target, bool useSRP = true)
+        bool DoesMaterialMatchColor(Material testMaterial, Color expectedColor)
         {
-            // Force async compile OFF
-            var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
-            ShaderUtil.allowAsyncCompilation = false;
-
-            var previousRenderTexture = RenderTexture.active;
-            RenderTexture.active = target;
-
-            GL.Clear(true, true, Color.black);
-
-            cam.targetTexture = target;
-            Graphics.DrawMesh(
-                mesh: mesh,
-                matrix: transform,
-                material: mat,
-                layer: 1,
-                camera: cam,
-                submeshIndex: 0,
-                properties: null,
-                castShadows: ShadowCastingMode.Off,
-                receiveShadows: false,
-                probeAnchor: null,
-                useLightProbes: false);
-
-            var previousUseSRP = Unsupported.useScriptableRenderPipeline;
-            Unsupported.useScriptableRenderPipeline = useSRP;
-            cam.Render();
-            Unsupported.useScriptableRenderPipeline = previousUseSRP;
-
-            RenderTexture.active = previousRenderTexture;
-            ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
-        }
-
-        internal static int CountPixelsNotEqual(RenderTexture target, Color32 value, bool compareAlpha, int errorThreshold = 0)
-        {
-            Texture2D temp = new Texture2D(target.width, target.height, TextureFormat.RGBA32, mipChain: false, linear: false);
-
-            var previousRenderTexture = RenderTexture.active;
-            RenderTexture.active = target;
-            temp.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0);
-            RenderTexture.active = previousRenderTexture;
-
-            int mismatchCount = 0;
-            var pixels = temp.GetPixels32(0);
-            foreach (var pixel in pixels)
+            var renderTarget = DrawToTex(testMaterial.shader);
+            try
             {
-                if ((Math.Abs(pixel.r - value.r) > errorThreshold) ||
-                    (Math.Abs(pixel.g - value.g) > errorThreshold) ||
-                    (Math.Abs(pixel.b - value.b) > errorThreshold) ||
-                    (compareAlpha && (Math.Abs(pixel.a - value.a) > errorThreshold)))
-                {
-                    mismatchCount++;
-                }
+                return renderTarget.GetPixel(0, 0) == expectedColor;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
             }
 
-            UnityEngine.Object.DestroyImmediate(temp);
-            return mismatchCount;
-        }
-
-
-        bool DoesMaterialMatchColor(Material testMaterial, Color expectedColor, int errorThreshold = 0, int expectedIncorrectPixels = 0)
-        {
-            RenderTextureDescriptor descriptor = new RenderTextureDescriptor(Mathf.RoundToInt(m_MasterPreviewSize.x), Mathf.RoundToInt(m_MasterPreviewSize.y), GraphicsFormat.R8G8B8A8_SRGB, depthBufferBits: 32);
-            var materialRenderTarget = RenderTexture.GetTemporary(descriptor);
-
-            // Render material output to a render texture
-            RenderQuadPreview(testMaterial, materialRenderTarget, testPosition, testRotation);
-
-            // Sample pixels from the render texture and check against expected color
-            int incorrectPixels = CountPixelsNotEqual(materialRenderTarget, expectedColor, false, errorThreshold);
-
-            return incorrectPixels != expectedIncorrectPixels;
         }
 
         bool DoesMaterialMatchImage(Material testMaterial, Texture expectedImage)
@@ -198,7 +135,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             // Seems weird we need to cast down for this...
             var graphDelta = graphHandler as GraphDelta.GraphDelta;
             // Throws an exception right now
-            graphDelta.SetupContextNodes(new List<Registry.Defs.IContextDescriptor>() { new TestDescriptor() }, m_RegistryInstance);
+            graphDelta.SetupContextNodes(new List<IContextDescriptor>() { new TestDescriptor() }, m_RegistryInstance);
 
             // Verify context node is not null
             var contextNode = graphHandler.GetNodeReader("TestContextDescriptor");
@@ -210,7 +147,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             m_PreviewManager.Update();
 
             // Request master preview material once the graph has been setup correctly
-            m_PreviewManager.RequestMasterPreviewMaterial(m_MasterPreviewSize, out var masterPreviewMaterial, out var shaderMessages);
+            var masterPreviewMaterial = m_PreviewManager.RequestNodePreviewMaterial("TestContextDescriptor");
 
             Assert.IsTrue(DoesMaterialMatchColor(masterPreviewMaterial, Color.red));
         }

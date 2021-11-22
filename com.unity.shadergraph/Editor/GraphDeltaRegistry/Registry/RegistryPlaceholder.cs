@@ -165,6 +165,7 @@ namespace UnityEditor.ShaderGraph.Registry
             public const string kPrecision = "Precision";
             public const string kLength = "Length";
             public const string kHeight = "Height";
+            public const string kEntry = "_Entry";
 
             public void BuildType(IFieldReader userData, IFieldWriter typeWriter, Registry registry)
             {

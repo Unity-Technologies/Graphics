@@ -93,6 +93,7 @@ namespace UnityEditor.ShaderGraph.Registry.Defs
                 port.SetField(Types.GraphType.kLength, entry.length);
                 port.SetField(Types.GraphType.kPrecision, entry.precision);
                 port.SetField(Types.GraphType.kPrimitive, entry.primitive);
+                port.SetField(Types.GraphType.kEntry, entry);
                 for (int i = 0; i < entry.length * entry.height; ++i)
                     port.SetField($"c{i}", entry.initialValue[i]);
                 if (entry.interpolationSemantic == null || entry.interpolationSemantic == "")

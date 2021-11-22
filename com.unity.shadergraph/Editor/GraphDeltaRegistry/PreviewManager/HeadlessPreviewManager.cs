@@ -458,14 +458,26 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             m_CachedPreviewData.Add(k_MasterPreviewName, m_MasterPreviewData);
         }
 
+        private static Shader MakeShader(string input)
+        {
+            bool tmp = ShaderUtil.allowAsyncCompilation;
+            ShaderUtil.allowAsyncCompilation = false;
+            Shader output = ShaderUtil.CreateShaderAsset(input, true);
+            ShaderUtil.allowAsyncCompilation = tmp;
+            return output;
+        }
+
         Shader GetNodeShaderObject(INodeReader nodeReader)
         {
-            return Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance);
+            string shaderOutput = Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance);
+            return MakeShader(shaderOutput);
         }
 
         Shader GetMasterPreviewShaderObject()
         {
-            return Interpreter.GetShaderForGraph(m_GraphHandle, m_RegistryInstance);
+            // TODO: Change it so that we are using the context node as the source of output and calling GetShaderForNode() on it
+            string shaderOutput = Interpreter.GetShaderForGraph(m_GraphHandle, m_RegistryInstance);
+            return MakeShader(shaderOutput);
         }
 
         PreviewData AddNodePreviewData(string nodeName)
