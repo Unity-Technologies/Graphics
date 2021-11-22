@@ -2,6 +2,8 @@ Shader "HDRP/MaterialLoading"
 {
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
+
         Pass
         {
             HLSLPROGRAM
