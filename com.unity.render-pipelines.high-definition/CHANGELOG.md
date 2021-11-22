@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
 - Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
 - Fixed Lens Flare visible when being behind a camera with Panini Projection on (case 1370214);
+- Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
+- Fixed Xbox Series X compilation issue with DoF shader
 - Fixed references to reflection probes that wouldn't be cleared when unloading a scene. (case 1357459)
 
 ### Changed
