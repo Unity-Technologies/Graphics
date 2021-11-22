@@ -42,6 +42,10 @@ namespace UnityEditor.VFX.Block
                 }
 
                 var finalTransform = transform;
+
+                var isZeroScaled = VFXOperatorUtility.IsTRSMatrixZeroScaled(finalTransform);
+                yield return new VFXNamedExpression(isZeroScaled, "isZeroScaled");
+
                 yield return new VFXNamedExpression(finalTransform, "fieldTransform");
                 yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(finalTransform), "invFieldTransform");
                 if (radiusMode != RadiusMode.None)
@@ -61,6 +65,9 @@ namespace UnityEditor.VFX.Block
             get
             {
                 string Source = @"
+if (isZeroScaled)
+    return;
+
 float3 nextPos = position + velocity * deltaTime;
 float3 tNextPos = mul(invFieldTransform, float4(nextPos, 1.0f)).xyz;
 float cone_radius = lerp(cone_baseRadius, cone_topRadius, saturate(tNextPos.y/cone_height));
