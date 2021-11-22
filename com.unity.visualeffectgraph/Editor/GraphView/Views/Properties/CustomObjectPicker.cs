@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.UI
             Search.SearchService.ShowPicker(state);
         }
 
-        private static SearchViewState GetShaderGraphPickerView(Action<Object,bool> selectHandler)
+        private static SearchViewState GetShaderGraphPickerView(Action<Object, bool> selectHandler)
         {
             return new SearchViewState
             {
@@ -72,7 +72,7 @@ namespace UnityEditor.VFX.UI
                         {
                             var gid = GlobalObjectId.GetGlobalObjectIdSlow(vfxShader);
                             path = AssetDatabase.GetAssetPath(vfxShader);
-                            var item = Search.Providers.AssetProvider.CreateItem("vfxshader", context, assetProvider, gid.ToString(), path, r.score - 900, SearchDocumentFlags.Asset|SearchDocumentFlags.Nested);
+                            var item = Search.Providers.AssetProvider.CreateItem("vfxshader", context, assetProvider, gid.ToString(), path, r.score - 900, SearchDocumentFlags.Asset | SearchDocumentFlags.Nested);
                             item.label = vfxShader.name;
                             item.description = path;
                             yield return item;
