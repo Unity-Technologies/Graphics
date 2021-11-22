@@ -29,6 +29,11 @@ namespace UnityEngine.Rendering.Universal
         };
         AttachmentDescriptor m_ActiveDepthAttachmentDescriptor;
 
+        bool[] m_IsActiveColorAttachmentTransient = new bool[]
+        {
+            false, false, false, false, false, false, false, false
+        };
+
         internal RenderBufferStoreAction[] m_FinalColorStoreAction = new RenderBufferStoreAction[]
         {
             RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store,
@@ -200,6 +205,7 @@ namespace UnityEngine.Rendering.Universal
                 UpdateFinalStoreActions(currentMergeablePasses, cameraData);
 
                 int currentAttachmentIdx = 0;
+                bool hasInput = false;
                 foreach (var passIdx in currentMergeablePasses)
                 {
                     if (passIdx == -1)
@@ -248,7 +254,10 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     if (PassHasInputAttachments(pass))
+                    {
+                        hasInput = true;
                         SetupInputAttachmentIndices(pass);
+                    }
 
                     // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil));
@@ -260,6 +269,8 @@ namespace UnityEngine.Rendering.Universal
                     if (m_UseOptimizedStoreActions)
                         m_ActiveDepthAttachmentDescriptor.storeAction = m_FinalDepthStoreAction;
                 }
+                if (hasInput)
+                    SetupTransientInputAttachments(m_RenderPassesAttachmentCount[currentPassHash]);
             }
         }
 
@@ -504,6 +515,7 @@ namespace UnityEngine.Rendering.Universal
                 for (int i = 0; i < m_ActiveColorAttachmentDescriptors.Length; ++i)
                 {
                     m_ActiveColorAttachmentDescriptors[i] = RenderingUtils.emptyAttachment;
+                    m_IsActiveColorAttachmentTransient[i] = false;
                 }
 
                 m_ActiveDepthAttachmentDescriptor = RenderingUtils.emptyAttachment;
@@ -523,11 +535,23 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
 
-                // Assume input attachment has to be transient as ScriptableRenderPass currently has only setters for StoreAction
-                // We also change the target of the descriptor for it to be initialized engine-side as a transient resource.
-                m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].loadAction = RenderBufferLoadAction.DontCare;
-                m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].storeAction = RenderBufferStoreAction.DontCare;
-                m_ActiveColorAttachmentDescriptors[pass.m_InputAttachmentIndices[i]].loadStoreTarget = BuiltinRenderTextureType.None;
+                // Only update it as long as it has default value - if it was changed once, we assume it'll be memoryless in the whole RenderPass
+                if (!m_IsActiveColorAttachmentTransient[pass.m_InputAttachmentIndices[i]])
+                    m_IsActiveColorAttachmentTransient[pass.m_InputAttachmentIndices[i]] = pass.IsInputAttachmentTransient(i);
+            }
+        }
+
+        internal void SetupTransientInputAttachments(int attachmentCount)
+        {
+            for (int i = 0; i < attachmentCount; ++i)
+            {
+                if (!m_IsActiveColorAttachmentTransient[i])
+                    continue;
+
+                m_ActiveColorAttachmentDescriptors[i].loadAction = RenderBufferLoadAction.DontCare;
+                m_ActiveColorAttachmentDescriptors[i].storeAction = RenderBufferStoreAction.DontCare;
+                // We change the target of the descriptor for it to be initialized engine-side as a transient resource.
+                m_ActiveColorAttachmentDescriptors[i].loadStoreTarget = BuiltinRenderTextureType.None;
             }
         }
 

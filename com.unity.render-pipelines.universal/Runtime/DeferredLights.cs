@@ -367,6 +367,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Output lighting result.
         internal RenderTargetHandle[] GbufferAttachments { get; set; }
         internal RenderTargetIdentifier[] DeferredInputAttachments { get; set; }
+        internal bool[] DeferredInputIsTransient { get; set; }
         // Input depth texture, also bound as read-only RT
         internal RenderTargetHandle DepthAttachment { get; set; }
         //
@@ -823,6 +824,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     this.GbufferAttachmentIdentifiers[0], this.GbufferAttachmentIdentifiers[1],
                     this.GbufferAttachmentIdentifiers[2], this.GbufferAttachmentIdentifiers[4]
+                };
+                this.DeferredInputIsTransient = new bool[4]
+                {
+                    true, true, true, false
                 };
             }
             this.DepthAttachmentIdentifier = depthAttachment.Identifier();

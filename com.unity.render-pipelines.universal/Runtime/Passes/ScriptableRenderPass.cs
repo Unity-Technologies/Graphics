@@ -227,6 +227,7 @@ namespace UnityEngine.Rendering.Universal
         internal GraphicsFormat[] renderTargetFormat { get; set; }
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] { BuiltinRenderTextureType.CameraTarget };
         internal RenderTargetIdentifier[] m_InputAttachments = new RenderTargetIdentifier[8];
+        internal bool[] m_InputAttachmentIsTransient = new bool[8];
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
         ClearFlag m_ClearFlag = ClearFlag.None;
@@ -245,6 +246,7 @@ namespace UnityEngine.Rendering.Universal
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
             m_ColorAttachments = new RenderTargetIdentifier[] { BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0 };
             m_InputAttachments = new RenderTargetIdentifier[] { -1, -1, -1, -1, -1, -1, -1, -1 };
+            m_InputAttachmentIsTransient = new bool[] { false, false, false, false, false, false, false, false };
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ColorStoreActions = new RenderBufferStoreAction[] { RenderBufferStoreAction.Store, 0, 0, 0, 0, 0, 0, 0 };
             m_DepthStoreAction = RenderBufferStoreAction.Store;
@@ -314,9 +316,10 @@ namespace UnityEngine.Rendering.Universal
             m_OverriddenDepthStoreAction = true;
         }
 
-        internal void ConfigureInputAttachments(RenderTargetIdentifier input)
+        internal void ConfigureInputAttachments(RenderTargetIdentifier input, bool isTransient = false)
         {
             m_InputAttachments[0] = input;
+            m_InputAttachmentIsTransient[0] = isTransient;
         }
 
         internal void ConfigureInputAttachments(RenderTargetIdentifier[] inputs)
@@ -324,6 +327,21 @@ namespace UnityEngine.Rendering.Universal
             m_InputAttachments = inputs;
         }
 
+        internal void ConfigureInputAttachments(RenderTargetIdentifier[] inputs, bool[] isTransient)
+        {
+            ConfigureInputAttachments(inputs);
+            m_InputAttachmentIsTransient = isTransient;
+        }
+
+        internal void SetInputAttachmentTransient(int idx, bool isTransient)
+        {
+            m_InputAttachmentIsTransient[idx] = isTransient;
+        }
+
+        internal bool IsInputAttachmentTransient(int idx)
+        {
+            return m_InputAttachmentIsTransient[idx];
+        }
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
