@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // If contact shadows are not enabled or we already reached the manimal number of contact shadows
             // or this is not rasterization
             if ((!hdAdditionalLightData.useContactShadow.Value(contactShadowEnabled))
-                || m_ContactShadowIndex >= LightDefinitions.s_LightListMaxPrunedEntries)
+                || m_ContactShadowIndex >= LightDefinitions.s_ContactShadowMaskMask)
                 return;
 
             // Evaluate the contact shadow index of this light
@@ -323,7 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.positionRWS = cookieParams.position;
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
-                lightData.positionRWS -= hdCamera.camera.transform.position;
+                lightData.positionRWS -= hdCamera.mainViewConstants.worldSpaceCameraPos;
             }
 
             if (additionalLightData.surfaceTexture == null)

@@ -328,7 +328,7 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     for(int category=0; category<CATEGORY_LIST_SIZE; category++)
     {
         int nrLightsFinal = ldsCategoryListCount[category];
-        int nrLightsFinalClamped = nrLightsFinal<LIGHT_LIST_MAX_PRUNED_ENTRIES ? nrLightsFinal : LIGHT_LIST_MAX_PRUNED_ENTRIES;
+        int nrLightsFinalClamped = nrLightsFinal<SHADEROPTIONS_FPTLMAX_LIGHT_COUNT ? nrLightsFinal : SHADEROPTIONS_FPTLMAX_LIGHT_COUNT;
 
         const int nrDWords = ((nrLightsFinalClamped+1)+1)>>1;
         for(int l=(int) t; l<(int) nrDWords; l += NR_THREADS)
@@ -337,7 +337,7 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
             uint uLow = l==0 ? nrLightsFinalClamped : prunedList[max(0,2 * l - 1 + localOffs)] - shiftIndex[category];
             uint uHigh = prunedList[2 * l + 0 + localOffs] - shiftIndex[category];
 
-            g_vLightList[16*offs + l] = (uLow&0xffff) | (uHigh<<16);
+            g_vLightList[LIGHT_DWORD_PER_FPTL_TILE*offs + l] = (uLow&0xffff) | (uHigh<<16);
         }
 
         localOffs += nrLightsFinal;
@@ -404,14 +404,14 @@ void StoreLightVolumeCache(int lightIndex, int coarseIndex, uint volumeType)
 {
     // 3 bits for the volume type, in case we have a corrupted one we can early out of the switch statement.
     // 29 bits for a coarse light index.
-    s_lightVolumesCache[lightIndex] = (volumeType & 0x7) | (coarseIndex << 3);
+    s_lightVolumesCache[lightIndex] = (volumeType & 0x7) | (uint)(coarseIndex << 3);
 }
 
-void LoadLightVolumeCache(int lightIndex, out int coarseIndex, out int volumeType)
+void LoadLightVolumeCache(int lightIndex, out int coarseIndex, out uint volumeType)
 {
     int data = s_lightVolumesCache[lightIndex];
     coarseIndex = data >> 3;
-    volumeType = data & 0x7;
+    volumeType = (uint)(data & 0x7);
 }
 
 // initializes ldsNrLightsFinal with the number of accepted lights.
@@ -433,7 +433,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
 
     if (threadID < (uint)iNrCoarseLights)
     {
-        int idxCoarse = GetCoarseLightIndex(threadID, iNrCoarseLights);
+        int idxCoarse = GetCoarseLightIndex((int)threadID, iNrCoarseLights);
         uint uLightVolume = _LightVolumeData[idxCoarse].lightVolume;
         StoreLightVolumeCache(threadID, idxCoarse, uLightVolume);
     }
