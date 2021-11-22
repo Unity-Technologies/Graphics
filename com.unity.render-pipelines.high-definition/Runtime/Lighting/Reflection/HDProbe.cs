@@ -686,6 +686,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDProbeSystem.UnregisterProbe(this);
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.hierarchyChanged -= UpdateProbeName;
+            UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
 #endif
         }
 
@@ -703,6 +704,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 QueueSHBaking();
 #endif
             }
+        }
+
+        void OnDestroy()
+        {
+            m_RealtimeTexture?.Release();
+            m_RealtimeDepthBuffer?.Release();
         }
     }
 }
