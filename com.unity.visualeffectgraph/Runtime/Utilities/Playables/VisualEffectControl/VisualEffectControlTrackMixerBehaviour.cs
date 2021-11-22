@@ -162,8 +162,27 @@ namespace UnityEngine.VFX
         uint m_BackupStartSeed;
         Chunk[] m_Chunks;
 
-        //TODOPAUL if right thing todo => store it in VFXManager & use reflection in VFXSettings UX
-        public static float s_MaximumScrubbingTime = 30.0f;
+        static readonly Func<float> s_fnGetMaximumScrubbingTime = GetMaximumScrubbingTimeFunction();
+        private static Func<float> GetMaximumScrubbingTimeFunction()
+        {
+            var property = typeof(VFXManager).GetProperty("maxScrubTime", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            if (property != null)
+            {
+                return () =>
+                {
+                    return (float)property.GetValue(null);
+                };
+            }
+            return null;
+        }
+
+        public float GetMaximumScrubbingTime()
+        {
+            if (s_fnGetMaximumScrubbingTime != null)
+                return s_fnGetMaximumScrubbingTime();
+
+            return 30.0f;
+        }
 
         private void OnEnterChunk(int currentChunk)
         {
@@ -313,12 +332,13 @@ namespace UnityEngine.VFX
                         var eventCount = eventList.Count();
                         var nextEvent = 0;
 
+                        var maxScrubTime = GetMaximumScrubbingTime();
                         var fixedStep = VFXManager.maxDeltaTime;
                         if (actualCurrentTime < expectedCurrentTime
-                            && expectedCurrentTime - actualCurrentTime > s_MaximumScrubbingTime)
+                                && expectedCurrentTime - actualCurrentTime > maxScrubTime)
                         {
                             //Choose a bigger time step to reach the actual expected time
-                            fixedStep = (float)((expectedCurrentTime - actualCurrentTime) * (double)VFXManager.maxDeltaTime / (double)s_MaximumScrubbingTime);
+                            fixedStep = (float)((expectedCurrentTime - actualCurrentTime) * (double)VFXManager.maxDeltaTime / (double)maxScrubTime);
 #if UNITY_EDITOR
                             VisualEffectControlErrorHelper.instance.RegisterScrubbingWarning(this, (float)(expectedCurrentTime - actualCurrentTime), fixedStep);
                             m_HasScrubbingWarnings = true;

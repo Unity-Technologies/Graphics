@@ -17,8 +17,6 @@ namespace UnityEditor.VFX
     {
         SerializedProperty reinitProperty;
 
-        bool showDebugInformation;
-
         private void OnEnable()
         {
             reinitProperty = serializedObject.FindProperty(nameof(VisualEffectControlTrack.reinit));
@@ -40,14 +38,6 @@ namespace UnityEditor.VFX
                 {
                     director.RebuildGraph();
                 }
-            }
-
-            {
-                EditorGUILayout.LabelField("Everything below is debug/temporary");
-                VisualEffectControlTrackController.s_MaximumScrubbingTime
-                    = EditorGUILayout.FloatField("Maximum Scrubbing Time", VisualEffectControlTrackController.s_MaximumScrubbingTime);
-                if (VisualEffectControlTrackController.s_MaximumScrubbingTime < 0.05f * 10)
-                    VisualEffectControlTrackController.s_MaximumScrubbingTime = 0.05f * 10;
             }
         }
     }
@@ -456,6 +446,7 @@ namespace UnityEditor.VFX
                 serializedObject.ApplyModifiedProperties();
 
 #if FIX_DUPLICATE
+                //See case 1381005
                 //Special detection of duplicated referenced element due to manual duplicate in reordable list
                 //TODOPAUL, it doesn't work because we are missing this modification: https://unity.slack.com/archives/C06TQ9LFP/p1636737000313000
                 var playable = serializedObject.targetObject as VisualEffectControlClip;
