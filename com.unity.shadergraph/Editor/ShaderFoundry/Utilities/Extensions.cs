@@ -88,17 +88,10 @@ namespace UnityEditor.ShaderFoundry
             builder.DeclareVariable(type, name, defaultValue);
         }
 
-        internal static void AddTypeDeclarationString(this ShaderBuilder builder, ShaderType type)
+        internal static void AddTypeDeclarationString(this ShaderBuilder builder, ShaderType structType)
         {
-            builder.AddLine(m_StructKeyword, m_SpaceToken, type.Name);
-
-            using (builder.BlockSemicolonScope())
-            {
-                foreach (var field in type.StructFields)
-                {
-                    builder.AddVariableDeclarationStatement(field.Type, field.Name);
-                }
-            }
+            if (structType.IsStruct)
+                builder.DeclareStruct(structType);
         }
 
         // declare function
