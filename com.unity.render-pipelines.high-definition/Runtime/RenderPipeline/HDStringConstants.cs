@@ -232,7 +232,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SrcBlend = Shader.PropertyToID("_SrcBlend");
         public static readonly int _DstBlend = Shader.PropertyToID("_DstBlend");
 
-        public static readonly int _ColorMaskTransparentVel = Shader.PropertyToID("_ColorMaskTransparentVel");
+        public static readonly int _ColorMaskTransparentVelOne = Shader.PropertyToID("_ColorMaskTransparentVelOne");
+        public static readonly int _ColorMaskTransparentVelTwo = Shader.PropertyToID("_ColorMaskTransparentVelTwo");
         public static readonly int _DecalColorMask0 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask0);
         public static readonly int _DecalColorMask1 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask1);
         public static readonly int _DecalColorMask2 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask2);
@@ -580,6 +581,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SpaceEmissionMultiplier = Shader.PropertyToID("_SpaceEmissionMultiplier");
 
         public static readonly int _RenderSunDisk = Shader.PropertyToID("_RenderSunDisk");
+        public static readonly int _SunDiskCosines = Shader.PropertyToID("_SunDiskCosines");
 
         public static readonly int _ColorSaturation = Shader.PropertyToID("_ColorSaturation");
         public static readonly int _AlphaSaturation = Shader.PropertyToID("_AlphaSaturation");
