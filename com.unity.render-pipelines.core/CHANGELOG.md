@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added function to allocate RTHandles using `RenderTextureDescriptor`.
 - Added `vrUsage` support for RTHandles allocation.
+- Hidding Volume Components not available for the current pipeline on the Volume Profile Inspector.
 
 ### Fixed
 - Fixed issue when changing volume profiles at runtime with a script (case 1364256).
