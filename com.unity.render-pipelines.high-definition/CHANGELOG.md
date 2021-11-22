@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Lens Flare visible when being behind a camera with Panini Projection on (case 1370214);
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
 - Fixed Xbox Series X compilation issue with DoF shader
+- Fixed references to reflection probes that wouldn't be cleared when unloading a scene. (case 1357459)
 
 ### Changed
 - Optimizations for the physically based depth of field.
