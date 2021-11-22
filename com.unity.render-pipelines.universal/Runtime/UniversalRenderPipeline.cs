@@ -154,6 +154,12 @@ namespace UnityEngine.Rendering.Universal
 #endif
             SetSupportedRenderingFeatures();
 
+            // Initial state of the RTHandle system.
+            // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
+            RTHandles.Initialize(Screen.width, Screen.height);
+
+            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
+
             // In QualitySettings.antiAliasing disabled state uses value 0, where in URP 1
             int qualitySettingsMsaaSampleCount = QualitySettings.antiAliasing > 0 ? QualitySettings.antiAliasing : 1;
             bool msaaSampleCountNeedsUpdate = qualitySettingsMsaaSampleCount != asset.msaaSampleCount;
@@ -237,7 +243,6 @@ namespace UnityEngine.Rendering.Universal
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.lightsUseColorTemperature = true;
-            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             GraphicsSettings.defaultRenderingLayerMask = k_DefaultRenderingLayerMask;
             SetupPerFrameShaderConstants();
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -253,6 +258,11 @@ namespace UnityEngine.Rendering.Universal
                 m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
                 if(m_GlobalSettings == null) return;
             }
+#endif
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (DebugManager.instance.isAnyDebugUIActive)
+                UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateFrameTiming();
 #endif
 
             SortCameras(cameras);
@@ -396,10 +406,11 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
                 // Emit scene view UI
                 if (isSceneViewCamera)
-                {
                     ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
-                }
+                else
 #endif
+                if (cameraData.camera.targetTexture != null && cameraData.cameraType != CameraType.Preview)
+                    ScriptableRenderContext.EmitGeometryForCamera(camera);
 
                 var cullResults = context.Cull(ref cullingParameters);
                 InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, out var renderingData);
@@ -409,10 +420,12 @@ namespace UnityEngine.Rendering.Universal
                     ApplyAdaptivePerformance(ref renderingData);
 #endif
 
+                RTHandles.SetReferenceSize(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
+
+                renderer.AddRenderPasses(ref renderingData);
+
                 using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setup))
-                {
                     renderer.Setup(context, ref renderingData);
-                }
 
                 // Timing scope inside
                 renderer.Execute(context, ref renderingData);
@@ -603,6 +616,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
                         UpdateVolumeFramework(currCamera, currCameraData);
                         InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
+                        overlayCameraData.baseCamera = baseCamera;
 #if ENABLE_VR && ENABLE_XR_MODULE
                         if (baseCameraData.xr.enabled)
                             m_XRSystem.UpdateFromCamera(ref overlayCameraData.xr, overlayCameraData);
@@ -1234,7 +1248,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (debugDisplaySettings.AreAnySettingsActive && !cameraData.isPreviewCamera)
             {
-                DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.RenderingSettings;
+                DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.renderingSettings;
                 int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
 
                 if (!renderingSettings.enableMsaa)

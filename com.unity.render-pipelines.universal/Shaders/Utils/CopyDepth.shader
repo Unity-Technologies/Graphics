@@ -7,7 +7,7 @@ Shader "Hidden/Universal Render Pipeline/CopyDepth"
         Pass
         {
             Name "CopyDepth"
-            ZTest Always ZWrite On ColorMask 0
+            ZTest Always ZWrite On ColorMask R
             Cull Off
 
             HLSLPROGRAM
@@ -16,6 +16,7 @@ Shader "Hidden/Universal Render Pipeline/CopyDepth"
 
             #pragma multi_compile _ _DEPTH_MSAA_2 _DEPTH_MSAA_4 _DEPTH_MSAA_8
             #pragma multi_compile _ _USE_DRAW_PROCEDURAL
+            #pragma multi_compile _ _OUTPUT_DEPTH
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/CopyDepthPass.hlsl"
 

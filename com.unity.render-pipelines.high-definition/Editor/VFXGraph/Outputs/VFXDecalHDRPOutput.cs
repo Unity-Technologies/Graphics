@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.HDRP
         {
             base.OnEnable();
             blendMode = BlendMode.Opaque;
-            sort = SortMode.Off;
+            sort = SortActivationMode.Off;
         }
 
         public override IEnumerable<VFXAttributeInfo> attributes
