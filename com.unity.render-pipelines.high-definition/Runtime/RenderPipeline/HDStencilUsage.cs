@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DistortionVectors = (1 << 2),    // Distortion pass - reset after distortion pass, shared with SMAA
         SMAA = (1 << 2),    // Subpixel Morphological Antialiasing
         // Reserved TraceReflectionRay = (1 << 3) for transparent SSR or RTR
+        WaterSurface = (1 << 4), // Reserved for water surface usage
         AfterOpaqueReservedBits = 0x38,        // Reserved for future usage
 
         // --- Following are user bits, we don't touch them inside HDRP and is up to the user to handle them ---

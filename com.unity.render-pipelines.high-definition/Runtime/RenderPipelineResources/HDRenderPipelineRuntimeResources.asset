@@ -85,6 +85,7 @@ MonoBehaviour:
     volumetricCloudsCombinePS: {fileID: 4800000, guid: 12f1a69ddf916f042ae6ce8a994506f3, type: 3}
     waterSimulationCS: {fileID: 7200000, guid: f4c121c930cdb97459188eeb2166f0ad, type: 3}
     fourierTransformCS: {fileID: 7200000, guid: 006aabe8be599854c9abea76f890d60b, type: 3}
+    waterLightingCS: {fileID: 7200000, guid: e5b0b4cc9ce1d4b49a0ea48e10b2304c, type: 3}
     preIntegratedFGD_GGXDisneyDiffusePS: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad, type: 3}
     preIntegratedFGD_CharlieFabricLambertPS: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0, type: 3}
     preIntegratedFGD_WardPS: {fileID: 4800000, guid: d279c46a545b0af4f9f0c4fa82cd489e, type: 3}

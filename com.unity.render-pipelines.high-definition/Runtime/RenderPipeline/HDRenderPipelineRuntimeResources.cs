@@ -174,6 +174,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader waterSimulationCS;
             [Reload("Runtime/Water/FourierTransform.compute")]
             public ComputeShader fourierTransformCS;
+            [Reload("Runtime/Water/WaterLighting.compute")]
+            public ComputeShader waterLightingCS;
+
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;

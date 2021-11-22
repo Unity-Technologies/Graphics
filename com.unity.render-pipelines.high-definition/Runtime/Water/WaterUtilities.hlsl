@@ -595,9 +595,9 @@ float3 EvaluateCaustics(float3 bedPositionAWS)
     float2 causticsUV = EvaluateCausticsUV(bedPositionAWS);
     float colorShiftItensity = normalizedDepth * _DispersionAmount;
 
-    float voronoiR = VoronoiNoise(causticsUV + float2(pow(colorShiftItensity, 0.9) * _CausticsTiling, 0.0));
-    float voronoiG = VoronoiNoise(causticsUV + float2(pow(colorShiftItensity, 1.6) * _CausticsTiling, 0.0));
-    float voronoiB = VoronoiNoise(causticsUV + float2(pow(colorShiftItensity, 2.0) * _CausticsTiling, 0.0));
+    float voronoiR = VoronoiNoise(causticsUV + float2(PositivePow(colorShiftItensity, 0.9) * _CausticsTiling, 0.0));
+    float voronoiG = VoronoiNoise(causticsUV + float2(PositivePow(colorShiftItensity, 1.6) * _CausticsTiling, 0.0));
+    float voronoiB = VoronoiNoise(causticsUV + float2(PositivePow(colorShiftItensity, 2.0) * _CausticsTiling, 0.0));
 
     return float3(voronoiR, voronoiG, voronoiB) * normalizedDepth * _CausticsIntensity;
 }

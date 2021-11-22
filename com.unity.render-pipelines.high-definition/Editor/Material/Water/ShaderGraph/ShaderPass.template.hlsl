@@ -9,17 +9,10 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.LowFrequencyNormalWS:       surfaceData.lowFrequencyNormalWS =      surfaceDescription.LowFrequencyNormalWS;
 
     $SurfaceDescription.Smoothness:                 surfaceData.perceptualSmoothness =      surfaceDescription.Smoothness;
-    $SurfaceDescription.FoamColor:                  surfaceData.foamColor =                 surfaceDescription.FoamColor;
-    $SurfaceDescription.SpecularSelfOcclusion:      surfaceData.specularSelfOcclusion =     surfaceDescription.SpecularSelfOcclusion;
+    $SurfaceDescription.Foam:                       surfaceData.foam =                      surfaceDescription.Foam;
 
     $SurfaceDescription.TipThickness:               surfaceData.tipThickness =              surfaceDescription.TipThickness;
     $SurfaceDescription.RefractionColor:            surfaceData.refractionColor =           surfaceDescription.RefractionColor;
-
-    // These static material feature allow compile time optimization
-    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_WATER_STANDARD;
-    #ifdef _MATERIAL_FEATURE_WATER_CINEMATIC
-        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_WATER_CINEMATIC;
-    #endif
 
     bentNormalWS = float3(0, 1, 0);
 }
