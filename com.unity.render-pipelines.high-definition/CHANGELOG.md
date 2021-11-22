@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Stacklit raytrace reflection
 - Fixed various issues with using SSR lighting with IBL fallback for Lit shader with clear coat(case 1380351)
 - Fixed stackLit coat screen space reflection and raytrace reflection light hierarchy and IBL fallback
+- Fixed compilation errors from Path Tracing on the PS5 build.
 
 ### Changed
 - Optimizations for the physically based depth of field.
