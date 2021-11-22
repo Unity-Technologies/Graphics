@@ -379,7 +379,7 @@ public unsafe class RenderBRG : MonoBehaviour
         m_ErrorMaterial = LoadMaterialWithHideAndDontSave("Hidden/HDRP/MaterialError");
         m_BatchRendererGroup.SetErrorMaterial(m_ErrorMaterial);
 
-        m_LoadingMaterial = LoadMaterialWithHideAndDontSave("HDRP/MaterialLoading");
+        m_LoadingMaterial = LoadMaterialWithHideAndDontSave("Hidden/HDRP/MaterialLoading");
         m_BatchRendererGroup.SetLoadingMaterial(m_LoadingMaterial);
 #endif
 
