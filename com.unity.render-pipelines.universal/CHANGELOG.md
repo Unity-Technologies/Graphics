@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with MSAA falling back to the incorrect value when sample count 2 is not supported on some Android GPUs
 - Fixed decals to work with native render pass [case 1353141](https://issuetracker.unity3d.com/issues/urp-decals-are-not-visible-in-game-view-after-modifying-urp-asset-properties)
 - Fixed decals to work with render scale [1353885](https://issuetracker.unity3d.com/issues/urp-builtin-to-urp-render-pipeline-converter-freezes-the-editor-when-converting-rendering-settings)
+- VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
 
 ## [13.1.1] - 2021-10-04
 
@@ -59,7 +60,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed disabled debug lighting modes on Vulkan and OpenGL following a shader compiler fix. [case 1334240]
 - Fixed an issue in where the Convert Renderering Settings would cause a freeze. [case 1353885](https://issuetracker.unity3d.com/issues/urp-builtin-to-urp-render-pipeline-converter-freezes-the-editor-when-converting-rendering-settings)
 - Fixed incorrect behavior of Reflections with Smoothness lighting debug mode. [case 1374181]
-- VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
 
 ## [13.1.0] - 2021-09-24
 ### Added
