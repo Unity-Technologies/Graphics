@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000004, guid: c209c560bf4d244fc9debd731193dd53,
+  m_LightingDataAsset: {fileID: 112000004, guid: 51ef1af1640240b45b6fae2eb91df4e4,
     type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 5f8f9ac51abc38b4d9b7872d6dcaf90a,
     type: 2}
@@ -187,7 +187,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 8
@@ -202,7 +201,6 @@ GameObject:
   m_Component:
   - component: {fileID: 446924418}
   - component: {fileID: 446924417}
-  - component: {fileID: 446924419}
   m_Layer: 0
   m_Name: Spot Light right
   m_TagString: Untagged
@@ -282,31 +280,10 @@ Transform:
   m_LocalRotation: {x: 0.38842753, y: 0.33261812, z: 0.5589505, w: 0.65273553}
   m_LocalPosition: {x: 0.35, y: 2.59, z: -0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 172.227, y: -118.77701, z: -94.247986}
---- !u!114 &446924419
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 446924416}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Version: 1
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
-  m_LightLayerMask: 1
-  m_CustomShadowLayers: 0
-  m_ShadowLayerMask: 1
-  m_LightCookieSize: {x: 1, y: 1}
-  m_LightCookieOffset: {x: 0, y: 0}
 --- !u!1001 &473298562
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -446,7 +423,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 2.137, z: 0}
   m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 7
@@ -492,7 +468,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
-  m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 0
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
@@ -564,7 +539,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1.5, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
@@ -579,7 +553,6 @@ GameObject:
   m_Component:
   - component: {fileID: 828052020}
   - component: {fileID: 828052019}
-  - component: {fileID: 828052021}
   m_Layer: 0
   m_Name: Spot Light left
   m_TagString: Untagged
@@ -659,31 +632,10 @@ Transform:
   m_LocalRotation: {x: 0.45184675, y: -0.29756057, z: -0.46254906, w: 0.70238215}
   m_LocalPosition: {x: -0.26, y: 2.59, z: -0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 21.067, y: -63.623, z: -79.892}
---- !u!114 &828052021
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 828052018}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Version: 1
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
-  m_LightLayerMask: 1
-  m_CustomShadowLayers: 0
-  m_ShadowLayerMask: 1
-  m_LightCookieSize: {x: 1, y: 1}
-  m_LightCookieOffset: {x: 0, y: 0}
 --- !u!1 &971756569
 GameObject:
   m_ObjectHideFlags: 0
@@ -733,7 +685,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
-  m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 0
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
@@ -797,7 +748,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1.5, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
@@ -830,7 +780,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1669358118}
   m_RootOrder: 0
@@ -918,7 +867,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
-  m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 0
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
@@ -990,7 +938,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1669358118}
   m_Father: {fileID: 0}
@@ -1023,7 +970,6 @@ MonoBehaviour:
     ActivePixelTests: 7
   WaitFrames: 60
   XRCompatible: 1
-  CheckMemoryAllocation: 1
 --- !u!114 &1336152808
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1133,7 +1079,6 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 6
@@ -1167,7 +1112,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0, y: 0, z: 0}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1279506066}
   m_Father: {fileID: 1336152806}

@@ -17,7 +17,7 @@ MonoBehaviour:
       type: 3}
   m_RendererFeatures: []
   m_RendererFeatureMap: 
-  m_UseNativeRenderPass: 1
+  m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   shaders:
@@ -36,7 +36,6 @@ MonoBehaviour:
       type: 3}
     objectMotionVector: {fileID: 4800000, guid: 7b3ede40266cd49a395def176e1bc486,
       type: 3}
-  m_AssetVersion: 1
   m_OpaqueLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -56,4 +55,3 @@ MonoBehaviour:
   m_AccurateGbufferNormals: 0
   m_ClusteredRendering: 0
   m_TileSize: 32
-  m_IntermediateTextureMode: 0
