@@ -71,7 +71,6 @@ float4 _Test_TexelSize;
 
 float4x4 _ViewMatrix;
 float4x4 _InverseViewMatrix;
-float4x4 _InverseProjectionMatrix;
 float4x4 _ScreenSpaceProjectionMatrix;
 
 float4 _Params; // x: vignette intensity, y: distance fade, z: maximum march distance, w: blur pyramid lod count
