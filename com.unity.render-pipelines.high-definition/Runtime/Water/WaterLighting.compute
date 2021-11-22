@@ -1,9 +1,5 @@
 #pragma kernel WaterDeferredLighting
 
-#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal
-
-#pragma enable_d3d11_debug_symbols
-
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
 #define HAS_LIGHTLOOP
 #define HAS_REFRACTION 1
@@ -14,6 +10,10 @@
 // Include and define the shader pass
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_DEFERRED_LIGHTING
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal
+
+// #pragma enable_d3d11_debug_symbols
 
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
