@@ -1,4 +1,4 @@
-Shader "HDRP/MaterialLoading"
+Shader "Hidden/HDRP/MaterialLoading"
 {
     SubShader
     {
