@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed references to reflection probes that wouldn't be cleared when unloading a scene. (case 1357459)
 - Fixed broken debug views when dynamic resolution was enabled (case 1365368).
 - Fixed issue with Stacklit raytrace reflection
+- Fixed various issues with using SSR lighting with IBL fallback for Lit shader with clear coat(case 1380351)
 
 ## [12.1.2] - 2021-10-22
 
