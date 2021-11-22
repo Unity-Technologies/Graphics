@@ -50,6 +50,11 @@ namespace UnityEditor.Rendering
         /// </summary>
         public VolumeProfile asset { get; private set; }
 
+        /// <summary>
+        /// Obtains if all the volume components are visible
+        /// </summary>
+        internal bool hasHiddenVolumeComponents => m_Editors.Count != asset.components.Count;
+
         Editor m_BaseEditor;
 
         SerializedObject m_SerializedObject;
@@ -97,15 +102,7 @@ namespace UnityEditor.Rendering
             m_EditorTypes = new Dictionary<Type, Type>();
             m_Editors = new List<VolumeComponentEditor>();
 
-            // Gets the list of all available component editors
-            var editorTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponentEditor>()
-                .Where(
-                    t => t.IsDefined(typeof(VolumeComponentEditorAttribute), false)
-                    && !t.IsAbstract
-                );
-
-            // Map them to their corresponding component type
-            foreach (var editorType in editorTypes)
+            foreach (var editorType in TypeCache.GetTypesWithAttribute<VolumeComponentEditorAttribute>())
             {
                 var attribute = (VolumeComponentEditorAttribute)editorType.GetCustomAttributes(typeof(VolumeComponentEditorAttribute), false)[0];
                 m_EditorTypes.Add(attribute.componentType, editorType);
@@ -144,9 +141,18 @@ namespace UnityEditor.Rendering
         void CreateEditor(VolumeComponent component, SerializedProperty property, int index = -1, bool forceOpen = false)
         {
             var componentType = component.GetType();
-            Type editorType;
 
-            if (!m_EditorTypes.TryGetValue(componentType, out editorType))
+            if (RenderPipelineManager.currentPipeline != null)
+            {
+                if (componentType.GetCustomAttributes(typeof(VolumeComponentMenuForRenderPipeline), true)
+                    .FirstOrDefault() is VolumeComponentMenuForRenderPipeline volumeComponentMenuForRenderPipeline
+                             && !volumeComponentMenuForRenderPipeline.pipelineTypes.Contains(RenderPipelineManager.currentPipeline.GetType()))
+                {
+                    return;
+                }
+            }
+
+            if (!m_EditorTypes.TryGetValue(componentType, out Type editorType))
                 editorType = typeof(VolumeComponentEditor);
 
             var editor = (VolumeComponentEditor)Activator.CreateInstance(editorType);
