@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Xbox Series X compilation issue with DoF shader
 - Fixed references to reflection probes that wouldn't be cleared when unloading a scene. (case 1357459)
 - Fixed broken debug views when dynamic resolution was enabled (case 1365368).
+- Fixed issue with Stacklit raytrace reflection
 
 ## [12.1.2] - 2021-10-22
 
