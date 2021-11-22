@@ -66,7 +66,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         float2 uv = ClampAndScaleUVPostProcessTextureForPoint((posInputs.positionSS + 0.5) * _PostProcessScreenSize.zw);
         output = SAMPLE_TEXTURE2D_X_LOD(_InputNearTexture, s_linear_clamp_sampler, uv, 0.0).CTYPE_SWIZZLE;
     }
-    else if (tileClass = FAST_INFOCUS_TILE)
+    else
     {
         output = GetColorSample(posInputs.positionSS, 0);
     }
