@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed ShaderGraph needing updated normals for ShadowCaster in URP.
 - Fixed memory leak with XR combined occlusion meshes. [case 1366173]
+- Fixed depth of field pass usage on unsupported devices. [case 1327076]
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials now batches the asset database changes to improve performance.
