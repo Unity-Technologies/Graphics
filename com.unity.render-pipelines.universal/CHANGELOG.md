@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [13.1.1] - 2021-10-04
 
 ### Added
+- Added a warning when using Pixel Perfect Camera in SRP without a 2D Renderer and exposed RenderPipelineConverter for 2D Pixel Perfect to URP converter.
 - Added Depth Texture setting for Overlay Camera.
 - Added Depth Priming support for Vulkan with MSAA.
 - Added Shadows and Additional Lights off variants stripping.

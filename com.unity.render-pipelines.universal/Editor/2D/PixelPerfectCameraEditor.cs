@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.Universal
             public GUIContent runInEditMode = new GUIContent("Run In Edit Mode", "Enable this to preview Camera setting changes in Edit Mode. This will cause constant changes to the Scene while active.");
             public const string cameraStackingWarning = "Pixel Perfect Camera won't function properly if stacked with another camera.";
             public const string nonRenderer2DWarning = "URP Pixel Perfect Camera requires a camera using a 2D Renderer. Some features, such as Upscale Render Texture, are not supported with other Renderers.";
-            public static GUIContent overrideUsage = EditorGUIUtility.TrTextContent("Override and Use");
+            public const string nonRenderer2DError = "URP Pixel Perfect Camera requires a camera using a 2D Renderer.";
 
             public GUIStyle centeredLabel;
 
@@ -48,7 +48,6 @@ namespace UnityEditor.Rendering.Universal
         private Vector2 m_GameViewSize = Vector2.zero;
         private GUIContent m_CurrentPixelRatioValue;
         bool m_CameraStacking;
-        static bool m_OverrideUsage = false;
 
         private void LazyInit()
         {
@@ -92,6 +91,7 @@ namespace UnityEditor.Rendering.Universal
             m_CameraStacking = false;
 
             var cameraData = GetCameraData();
+
             if (cameraData == null || cameraData.scriptableRenderer == null)
                 return;
 
@@ -135,20 +135,15 @@ namespace UnityEditor.Rendering.Universal
         {
             LazyInit();
 
-            if (!UsingRenderer2D() && !m_OverrideUsage)
+            if(!UsingSRP())
+            {
+                EditorGUILayout.HelpBox(Style.nonRenderer2DError, MessageType.Error);
+                return;
+            }
+            else if (!UsingRenderer2D())
             {
                 EditorGUILayout.HelpBox(Style.nonRenderer2DWarning, MessageType.Warning);
-
-                // Allow to override usage if using SRP
-                if (UsingSRP())
-                {
-                    EditorGUILayout.Space();
-                    if (GUILayout.Button(Style.overrideUsage))
-                        m_OverrideUsage = true;
-
-                }
-
-                return;
+                EditorGUILayout.Space();
             }
 
             float originalLabelWidth = EditorGUIUtility.labelWidth;
