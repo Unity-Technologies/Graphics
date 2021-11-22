@@ -575,7 +575,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.waterRenderingCB._CausticsIntensity = currentWater.causticsIntensity;
             parameters.waterRenderingCB._CausticsTiling = currentWater.causticsTiling;
             parameters.waterRenderingCB._CausticsPlaneOffset = currentWater.causticsPlaneOffset;
-            parameters.waterRenderingCB._EarthRadius = currentWater.infinite ? currentWater.earthRadius: 6371000.0f;
+            parameters.waterRenderingCB._EarthRadius = currentWater.infinite ? currentWater.earthRadius : 6371000.0f;
 
             // Compute the caustics offsets
             float causticsOffset = currentWater.simulation.simulationTime * currentWater.causticsSpeed * k_KilometerPerHourToMeterPerSecond;
