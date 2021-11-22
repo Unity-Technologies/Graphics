@@ -116,7 +116,7 @@ test_platforms:
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
       - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
       - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
-      - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
+      - [iPhone_Metal, OSX_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
 
       - [Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: --architecture=ARM64
     commands:
@@ -125,12 +125,32 @@ test_platforms:
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     commands_build:
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
       - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
     after_build:
@@ -165,6 +185,16 @@ test_platforms:
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
       - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
 
@@ -196,17 +226,28 @@ test_platforms:
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
       - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
+      - [OSX_Metal]: --extra-editor-arg="-force-metal"
 
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
       - [Win_Vulkan, Linux_Vulkan, Android_Vulkan, XRQuest_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
       - [Android_OpenGLES3, XRQuest_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
-      - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
+      - [iPhone_Metal, OSX_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
     commands:
       - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [all]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
       - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
 
@@ -292,6 +333,19 @@ platforms:
     editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
     commands:
       [Metal]:
+        setup_remote_ssh_keys_for_github_cds:
+          - command: sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
+          - command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/*"
+          - command: |
+                     ssh bokken@$BOKKEN_DEVICE_IP "echo \"
+                     host github.cds.internal.unity3d.com
+                       HostName github.cds.internal.unity3d.com
+                       IdentityFile /Users/bokken/.ssh/id_rsa_cds_github
+                       StrictHostKeyChecking no
+                       User git\" >> ~/.ssh/config"
+          - command: echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
+          - command: scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github && rm id_rsa_cds_github
+          - command: ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
         setup_utr:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 2
@@ -300,15 +354,16 @@ platforms:
             retries: 2
           - command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
             retries: 2
-        call_utr: # TODO add git commands when needed
+        call_utr:
           - command: |5-
-                    ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  <UTR_FLAGS> "
+                    export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                    ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; <env_vars> ~/Graphics/utr  <UTR_FLAGS> "
                     UTR_RESULT=$?
                     scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results/ TestProjects/<PROJECT_FOLDER>
                     exit $UTR_RESULT
         call_utr_without_git:
           - command: |5-
-                    ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; ~/Graphics/utr  <UTR_FLAGS> "
+                    ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; <env_vars> ~/Graphics/utr  <UTR_FLAGS> "
                     UTR_RESULT=$?
                     scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results/ TestProjects/<PROJECT_FOLDER>
                     exit $UTR_RESULT
@@ -325,8 +380,10 @@ platforms:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 2
           - chmod +x utr
-        call_utr: # TODO add git commands when needed
-          - command: ./utr <UTR_FLAGS>
+        call_utr:
+          - command: |5-
+                    export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                    ./utr <UTR_FLAGS>
             retries: 2
         call_utr_without_git:
           - command: ./utr <UTR_FLAGS>
@@ -367,8 +424,16 @@ platforms:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
             retries: 2
           - command: chmod +x utr
+        set_screen_resolution:
+          - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/Linux/2560x1440.bin --output 2560x1440.bin
+            retries: 2
+          - command: sudo rm /etc/edid.txt
+          - command: sudo mv 2560x1440.bin /etc/edid.txt
+          - command: sudo pkill Xorg && sudo systemctl restart gdm3
         call_utr:
-          - command: DISPLAY=:0.0 ./utr <UTR_FLAGS> # TODO include git commands when needed
+          - command: |5-
+                    export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                    DISPLAY=:0.0 ./utr <UTR_FLAGS>
         call_utr_without_git:
           - command: DISPLAY=:0.0 ./utr <UTR_FLAGS>
         unity_downloader_cli:

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
+    [VFXInfo(category = "Attribute/position/Composition/Set", variantProvider = typeof(PositionBaseProvider))]
     class PositionCone : PositionBase
     {
         [VFXSetting, Tooltip("Controls whether particles are spawned on the base of the cone, or throughout the entire volume.")]

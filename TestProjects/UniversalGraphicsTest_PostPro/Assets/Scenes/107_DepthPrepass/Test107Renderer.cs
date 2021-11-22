@@ -13,8 +13,8 @@ namespace UnityEngine.Rendering.Universal
         DrawObjectsPass m_RenderOpaqueForwardPass;
         FinalBlitPass m_FinalBlitPass;
 
-        RenderTargetHandle m_CameraColor;
-        RenderTargetHandle m_CameraDepth;
+        RTHandle m_CameraColor;
+        RTHandle m_CameraDepth;
 
         Material m_BlitMaterial;
 
@@ -30,8 +30,8 @@ namespace UnityEngine.Rendering.Universal
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);
 
-            m_CameraColor.Init("_CameraColor");
-            m_CameraDepth.Init("_CameraDepth");
+            m_CameraColor = RTHandles.Alloc("_CameraColor", "_CameraColor");
+            m_CameraDepth = RTHandles.Alloc("_CameraDepth", "_CameraDepth");
         }
 
         /// <inheritdoc />
@@ -39,13 +39,13 @@ namespace UnityEngine.Rendering.Universal
         {
             CommandBuffer cmd = CommandBufferPool.Get(m_profilerTag);
 
-            cmd.GetTemporaryRT(m_CameraColor.id, 1280, 720);
-            cmd.GetTemporaryRT(m_CameraDepth.id, 1280, 720, 16);
+            cmd.GetTemporaryRT(Shader.PropertyToID(m_CameraColor.name), 1280, 720);
+            cmd.GetTemporaryRT(Shader.PropertyToID(m_CameraDepth.name), 1280, 720, 16);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
-            ConfigureCameraTarget(m_CameraColor.Identifier(), m_CameraDepth.Identifier());
+            ConfigureCameraTarget(m_CameraColor, m_CameraDepth);
 
             // 1) Depth pre-pass
             m_DepthPrepass.Setup(renderingData.cameraData.cameraTargetDescriptor, m_CameraDepth);
@@ -62,8 +62,8 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void FinishRendering(CommandBuffer cmd)
         {
-            cmd.ReleaseTemporaryRT(m_CameraColor.id);
-            cmd.ReleaseTemporaryRT(m_CameraDepth.id);
+            cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_CameraColor.name));
+            cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_CameraDepth.name));
         }
 
         protected override void Dispose(bool disposing)

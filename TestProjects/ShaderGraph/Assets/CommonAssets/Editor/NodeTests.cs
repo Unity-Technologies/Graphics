@@ -103,7 +103,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                         inv.conversionType = conversionType;
                         inv.normalize = false;
 
-                        RunNodeTest(graph, $"TransformInverse_{source}_to_{dest}_{conversionType}");
+                        RunNodeTest(graph, $"TransformInverse_{source}_to_{dest}_{conversionType}", errorThreshold: 1);
                     }
 
                     // have to yield to let a frame pass or it will break
@@ -149,7 +149,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                             B_to_C.conversionType = conversionType;
                             B_to_C.normalize = false;
 
-                            RunNodeTest(graph, $"TransformABC_{A}_{B}_{C}_{conversionType}");
+                            RunNodeTest(graph, $"TransformABC_{A}_{B}_{C}_{conversionType}", errorThreshold: 1);
                         }
 
                         // have to yield to let a frame pass or it will break
@@ -199,6 +199,170 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 }
             }
             ReportTests();
+        }
+
+        [UnityTest]
+        public IEnumerator BoolConversion()
+        {
+            // Test that converting from bool => float gives the correct result
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/BoolConversion.shadergraph";
+            var graph = LoadGraph(graphPath);
+
+            var boolNode = graph.GetNodes<BooleanNode>().First();
+
+            ResetTestReporting();
+
+            boolNode.m_Value = false;
+            RunNodeTest(graph, $"BoolConversion_false",
+                setupMaterial: (mat) =>
+                {
+                    mat.SetFloat("_FloatVal", 0.0f);
+                });
+
+            boolNode.m_Value = true;
+            RunNodeTest(graph, $"BoolConversion_true",
+                setupMaterial: (mat) =>
+                {
+                    mat.SetFloat("_FloatVal", 1.0f);
+                });
+
+            ReportTests();
+            yield break;
+        }
+
+        [UnityTest]
+        public IEnumerator BoolConversionV2()
+        {
+            // Test that converting from bool => float2 gives the correct result
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/BoolConversionV2.shadergraph";
+            var graph = LoadGraph(graphPath);
+
+            var boolNode = graph.GetNodes<BooleanNode>().First();
+
+            ResetTestReporting();
+
+            boolNode.m_Value = false;
+            RunNodeTest(graph, $"BoolConversion_false",
+                setupMaterial: (mat) =>
+                {
+                    mat.SetVector("_V2Val", new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+                });
+
+            boolNode.m_Value = true;
+            RunNodeTest(graph, $"BoolConversion_true",
+                setupMaterial: (mat) =>
+                {
+                    mat.SetVector("_V2Val", new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+                });
+
+            ReportTests();
+            yield break;
+        }
+
+        [UnityTest]
+        public IEnumerator BoolConversionV3()
+        {
+            // Test that converting from bool => float3 gives the correct result
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/BoolConversionV3.shadergraph";
+            var graph = LoadGraph(graphPath);
+
+            var boolNode = graph.GetNodes<BooleanNode>().First();
+
+            ResetTestReporting();
+
+            boolNode.m_Value = false;
+            RunNodeTest(graph, $"BoolConversion_false",
+                setupMaterial: (mat) =>
+                {
+                    mat.SetVector("_V3Val", new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+                });
+
+            boolNode.m_Value = true;
+            RunNodeTest(graph, $"BoolConversion_true",
+                setupMaterial: (mat) =>
+                {
+                    mat.SetVector("_V3Val", new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+                });
+
+            ReportTests();
+            yield break;
+        }
+
+        [UnityTest]
+        public IEnumerator BoolConversionV4()
+        {
+            // Test that converting from bool => float4 gives the correct result
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/BoolConversionV4.shadergraph";
+            var graph = LoadGraph(graphPath);
+
+            var boolNode = graph.GetNodes<BooleanNode>().First();
+
+            ResetTestReporting();
+
+            boolNode.m_Value = false;
+            RunNodeTest(graph, $"BoolConversion_false",
+                setupMaterial: (mat) =>
+                {
+                    mat.SetVector("_V4Val", new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+                });
+
+            boolNode.m_Value = true;
+            RunNodeTest(graph, $"BoolConversion_true",
+                setupMaterial: (mat) =>
+                {
+                    mat.SetVector("_V4Val", new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+                });
+
+            ReportTests();
+            yield break;
+        }
+
+        [UnityTest]
+        public IEnumerator ScreenPositionDefault()
+        {
+            // Test that default screen space acts as expected relative to raw screen space
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/ScreenPositionDefault.shadergraph";
+            var graph = LoadGraph(graphPath);
+            ResetTestReporting();
+            RunNodeTest(graph, "ScreenPositionDefault");
+            ReportTests();
+            yield break;
+        }
+
+        [UnityTest]
+        public IEnumerator ScreenPositionVertex()
+        {
+            // Test that default screen space acts as expected relative to raw screen space
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/ScreenPositionVertex.shadergraph";
+            var graph = LoadGraph(graphPath);
+            ResetTestReporting();
+            RunNodeTest(graph, "ScreenPositionVertex");
+            ReportTests();
+            yield break;
+        }
+
+        [UnityTest]
+        public IEnumerator PixelPosition()
+        {
+            // Test that pixel position acts as expected relative to raw screen space
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/PixelPosition.shadergraph";
+            var graph = LoadGraph(graphPath);
+            ResetTestReporting();
+            RunNodeTest(graph, "PixelPosition");
+            ReportTests();
+            yield break;
+        }
+
+        [UnityTest]
+        public IEnumerator PixelPositionVertex()
+        {
+            // Test that pixel position acts as expected relative to raw screen space
+            string graphPath = "Assets/CommonAssets/Graphs/NodeTests/PixelPositionVertex.shadergraph";
+            var graph = LoadGraph(graphPath);
+            ResetTestReporting();
+            RunNodeTest(graph, "PixelPositionVertex");
+            ReportTests();
+            yield break;
         }
     }
 }
