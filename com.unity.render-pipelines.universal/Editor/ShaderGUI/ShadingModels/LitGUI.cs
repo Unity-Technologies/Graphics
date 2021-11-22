@@ -173,9 +173,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             EditorGUI.BeginDisabledGroup(!coatEnabled);
             {
-                materialEditor.TexturePropertySingleLine(Styles.clearCoatMaskText, properties.clearCoatMap, properties.clearCoatMask);
-
                 EditorGUI.indentLevel += 2;
+                materialEditor.TexturePropertySingleLine(Styles.clearCoatMaskText, properties.clearCoatMap, properties.clearCoatMask);
 
                 // Texture and HDR color controls
                 materialEditor.ShaderProperty(properties.clearCoatSmoothness, Styles.clearCoatSmoothnessText);
