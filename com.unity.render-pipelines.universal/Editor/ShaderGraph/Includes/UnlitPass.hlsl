@@ -9,7 +9,6 @@ void InitializeInputData(Varyings input, out InputData inputData)
     #if defined(DEBUG_DISPLAY)
     inputData.positionWS = input.positionWS;
     inputData.normalWS = input.normalWS;
-    inputData.viewDirectionWS = input.viewDirectionWS;
     #else
     inputData.positionWS = half3(0, 0, 0);
     inputData.normalWS = half3(0, 0, 1);
