@@ -295,6 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle output;
             public TextureHandle sky;
+            public TextureHandle env; // FIXME
 
 #if ENABLE_SENSOR_SDK
             public Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays;
@@ -336,6 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.output = builder.WriteTexture(pathTracingBuffer);
                 passData.sky = builder.ReadTexture(skyBuffer);
+                passData.env = builder.ReadTexture(m_EnvTexture); // FIXME
 
                 builder.SetRenderFunc(
                     (RenderPathTracingData data, RenderGraphContext ctx) =>
@@ -363,6 +365,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._SkyTexture, data.skyReflection);
 
                         // Additional data for path tracing
+
+
+                        // FIXME
+                        ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._PathTracingEnvDataTexture, data.env);
+
+
+
                         ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._FrameTexture, data.output);
                         ctx.cmd.SetRayTracingMatrixParam(data.shader, HDShaderIDs._PixelCoordToViewDirWS, data.pixelCoordToViewDirWS);
                         ctx.cmd.SetRayTracingVectorParam(data.shader, HDShaderIDs._PathTracingDoFParameters, data.dofParameters);
@@ -412,7 +421,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderEnv(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle envBuffer)
         {
-            return;
             if (!m_GlobalSettings.renderPipelineRayTracingResources.pathTracingEnvData)
                 return;
 
@@ -429,8 +437,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         ctx.cmd.SetComputeTextureParam(data.shader, data.kernel, HDShaderIDs._SkyTexture, data.skyReflection);
                         ctx.cmd.SetComputeTextureParam(data.shader, data.kernel, HDShaderIDs._PathTracingEnvDataTexture, data.output);
+                        ctx.cmd.SetComputeIntParams(data.shader, HDShaderIDs._Sizes, data.res * 2, data.res, 0, 0);
 
-                        ctx.cmd.DispatchCompute(data.shader, data.kernel, data.res, 2 * data.res, 1);
+                        ctx.cmd.DispatchCompute(data.shader, data.kernel, data.res * 2 / 8, data.res / 8, 1);
                     });
             }
         }

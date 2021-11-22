@@ -30,6 +30,9 @@ TEXTURE2D_X(_SkyCameraTexture);
 float4   _PathTracingDoFParameters;    // x: aperture radius, y: focus distance, zw: unused
 float4   _PathTracingTilingParameters; // xy: tile count, zw: current tile index
 
+// FIXME
+TEXTURE2D_X(_PathTracingEnvDataTexture);
+
 // Output(s)
 RW_TEXTURE2D_X(float4, _FrameTexture);
 
@@ -182,6 +185,13 @@ void RayGen()
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, ray, pathIntersection);
 
     _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathIntersection.value, pathIntersection.alpha);
+
+    // FIXME:
+    // uint2 pixelResolution = DispatchRaysDimensions().xy;
+    // float2 envConversion = float2(1024.0 / pixelResolution.x, 512.0 / pixelResolution.y);
+    // uint2 envCoord = envConversion * pixelCoord;
+    // float3 envColor = _PathTracingEnvDataTexture[COORD_TEXTURE2D_X(envCoord)];
+    // _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(envColor, 1.0);
 }
 
 // This should never be called, return magenta just in case
