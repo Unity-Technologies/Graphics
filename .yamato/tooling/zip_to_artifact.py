@@ -45,7 +45,7 @@ if __name__ == "__main__":
                 else:
                     test_name, asset_path, should_update_image = line.split(",")
 
-                test_name = re.search(f'(?<={test_name}_).*(?=_)', asset_path).group(0)
+                test_name = re.search(f'{test_name}_.*(?=_)', asset_path).group(0)
 
                 _, _, colorspace, editor, test_platform, vr, _, test_asset = asset_path.split("/")
 
@@ -58,11 +58,11 @@ if __name__ == "__main__":
                                                 "ShaderGraphTestAssets", test_name + ".asset")
                     if extra_logs:
                         print("Adding " + test_name)
-                    z.write(actual_img_path, reference_img_path)  # Write ActualImage to zip
-                    if path.exists(actual_img_path + ".meta"):  # Meta file doesn't always exist, check
-                        z.write(actual_img_path + ".meta", reference_img_path + ".meta")
-                    if path.exists(test_asset_path):
-                        z.write(test_asset_path)
+                    # z.write(actual_img_path, reference_img_path)  # Write ActualImage to zip
+                    # if path.exists(actual_img_path + ".meta"):  # Meta file doesn't always exist, check
+                    #     z.write(actual_img_path + ".meta", reference_img_path + ".meta")
+                    # if path.exists(test_asset_path):
+                    #     z.write(test_asset_path)
                     elif extra_logs:
                         print("Could not find test asset to copy")
                         # TODO: Flip updated bit on test asset
