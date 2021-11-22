@@ -34,7 +34,7 @@ namespace UnityEditor.VFX
             base.OnEnable();
         }
 
-        protected new void OnDisable()
+        protected void OnDisable()
         {
             foreach (VFXShaderGraphParticleOutput output in targets)
             {
@@ -43,7 +43,6 @@ namespace UnityEditor.VFX
             }
 
             DestroyImmediate(m_MaterialEditor);
-            base.OnDisable();
         }
 
         void UpdateMaterialEditor()
@@ -333,7 +332,7 @@ namespace UnityEditor.VFX
         {
             var materialBlendMode = GetMaterialBlendMode();
 
-            return base.HasSorting() || ((sort == SortMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied)) && !HasStrips(true));
+            return base.HasSorting() || ((sort == SortActivationMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied)) && !HasStrips(true));
         }
 
         public override bool isBlendModeOpaque
@@ -879,11 +878,23 @@ namespace UnityEditor.VFX
                         if (graphCode.requirements.requiresNDCPosition || graphCode.requirements.requiresPixelPosition)
                         {
                             callSG.builder.AppendLine("{");
-
-                            if (graphCode.requirements.requiresNDCPosition)
-                                callSG.builder.AppendLine("INSG.NDCPosition = i.VFX_VARYING_POSCS.xy / _ScreenParams.xy;");
+                            if (graphCode.requirements.requiresPixelPosition || graphCode.requirements.requiresNDCPosition)
+                            {
+                                callSG.builder.AppendLine("#if UNITY_UV_STARTS_AT_TOP");
+                                callSG.builder.AppendLine("    float2 PixelPosition = float2(i.VFX_VARYING_POSCS.x, (_ProjectionParams.x < 0) ? (_ScreenParams.y - i.VFX_VARYING_POSCS.y) : i.VFX_VARYING_POSCS.y);");
+                                callSG.builder.AppendLine("#else");
+                                callSG.builder.AppendLine("    float2 PixelPosition = float2(i.VFX_VARYING_POSCS.x, (_ProjectionParams.x > 0) ? (_ScreenParams.y - i.VFX_VARYING_POSCS.y) : i.VFX_VARYING_POSCS.y);");
+                                callSG.builder.AppendLine("#endif");
+                            }
                             if (graphCode.requirements.requiresPixelPosition)
-                                callSG.builder.AppendLine("INSG.PixelPosition = i.VFX_VARYING_POSCS.xy;");
+                            {
+                                callSG.builder.AppendLine("INSG.PixelPosition = PixelPosition;");
+                            }
+                            if (graphCode.requirements.requiresNDCPosition)
+                            {
+                                callSG.builder.AppendLine("INSG.NDCPosition = PixelPosition.xy / _ScreenParams.xy;");
+                                callSG.builder.AppendLine("INSG.NDCPosition.y = 1.0f - INSG.NDCPosition.y;");
+                            }
                             callSG.builder.AppendLine("}");
                         }
 

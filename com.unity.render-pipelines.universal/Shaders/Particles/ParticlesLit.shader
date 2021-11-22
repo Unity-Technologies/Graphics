@@ -38,7 +38,11 @@ Shader "Universal Render Pipeline/Particles/Lit"
         [HideInInspector] _BlendOp("__blendop", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
+        [HideInInspector] _SrcBlendAlpha("__srcA", Float) = 1.0
+        [HideInInspector] _DstBlendAlpha("__dstA", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
+        [HideInInspector] _BlendModePreserveSpecular("_BlendModePreserveSpecular", Float) = 1.0
+
 
         // Particle specific
         _ColorMode("_ColorMode", Float) = 0.0
@@ -94,7 +98,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             }
 
             BlendOp[_BlendOp]
-            Blend[_SrcBlend][_DstBlend]
+            Blend[_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
             ZWrite[_ZWrite]
             Cull[_Cull]
 
@@ -211,7 +215,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
-            ColorMask 0
+            ColorMask R
             Cull[_Cull]
 
             HLSLPROGRAM
