@@ -44,7 +44,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     int tileClass = GetTileClass(posInputs.positionSS);
 
-    if (tileClass = SLOW_INFOCUS_TILE)
+    if (tileClass == SLOW_INFOCUS_TILE)
     {
         SampleData centerSample;
         centerSample.color = GetColorSample(posInputs.positionSS, 0);
@@ -61,7 +61,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         ComposeAlpha(output, centerSample.color.xyz, outAlpha);
 #endif
     }
-    else if (tileClass = FAST_DEFOCUS_TILE)
+    else if (tileClass == FAST_DEFOCUS_TILE)
     {
         float2 uv = ClampAndScaleUVPostProcessTextureForPoint((posInputs.positionSS + 0.5) * _PostProcessScreenSize.zw);
         output = SAMPLE_TEXTURE2D_X_LOD(_InputNearTexture, s_linear_clamp_sampler, uv, 0.0).CTYPE_SWIZZLE;
