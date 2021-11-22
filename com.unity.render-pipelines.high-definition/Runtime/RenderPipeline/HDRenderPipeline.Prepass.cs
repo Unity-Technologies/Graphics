@@ -301,7 +301,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
-            if (!recursiveSettings.enable.value)
+            if (!(recursiveSettings.enable.value && GetRayTracingState() && GetRayTracingClusterState()))
                 return;
 
             // The goal of this pass is to fill the depth buffer with object flagged for recursive rendering.

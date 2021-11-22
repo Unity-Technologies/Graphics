@@ -97,7 +97,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_GraphView; }
         }
 
-        PreviewManager previewManager
+        internal PreviewManager previewManager
         {
             get { return m_PreviewManager; }
             set { m_PreviewManager = value; }

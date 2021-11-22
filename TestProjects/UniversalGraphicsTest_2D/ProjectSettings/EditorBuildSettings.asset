@@ -192,6 +192,9 @@ EditorBuildSettings:
     path: Assets/Scenes/013_Shadergraph_AlphaBlend.unity
     guid: a845098be7b438b40a7f4dee1b6aa5aa
   - enabled: 1
+    path: Assets/Scenes/014_Layer_Batching_GlobalLightWithShadows.unity
+    guid: 428ccbee9b0fb7c4ca5f4dd5579b62d3
+  - enabled: 1
     path: Assets/Scenes/072_Shadow_Prerendering.unity
     guid: 5c51bb3f8f127fd4cbfa0fbdb9221b0e
   - enabled: 1

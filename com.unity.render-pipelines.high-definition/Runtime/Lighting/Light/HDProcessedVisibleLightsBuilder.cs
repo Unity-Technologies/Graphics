@@ -59,6 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Build(
             HDCamera hdCamera,
             in CullingResults cullingResult,
+            bool rayTracingState,
             HDShadowManager shadowManager,
             in HDShadowInitParameters inShadowInitParameters,
             in AOVRequestData aovRequestData,
@@ -71,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             FilterVisibleLightsByAOV(aovRequestData);
-            StartProcessVisibleLightJob(hdCamera, cullingResult.visibleLights, lightLoopSettings, debugDisplaySettings);
+            StartProcessVisibleLightJob(hdCamera, rayTracingState, cullingResult.visibleLights, lightLoopSettings, debugDisplaySettings);
             CompleteProcessVisibleLightJob();
             SortLightKeys();
             ProcessShadows(hdCamera, shadowManager, inShadowInitParameters, cullingResult);
