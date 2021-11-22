@@ -436,6 +436,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_LOW  // Implicit _ or None == SHADER_QUALITY_HIGH
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -483,6 +484,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_LOW  // Implicit _ or None == SHADER_QUALITY_HIGH
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -532,6 +534,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_LOW  // Implicit _ or None == SHADER_QUALITY_HIGH
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -581,6 +584,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile_fragment _ _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_LOW  // Implicit _ or None == SHADER_QUALITY_HIGH
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading

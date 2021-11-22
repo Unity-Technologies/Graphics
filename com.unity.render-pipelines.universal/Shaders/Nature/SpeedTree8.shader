@@ -63,6 +63,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile _ _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_LOW  // Implicit _ or None == SHADER_QUALITY_HIGH
 
             #pragma multi_compile_fog
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
@@ -135,6 +136,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+            #pragma multi_compile _ _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_LOW  // Implicit _ or None == SHADER_QUALITY_HIGH
 
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50

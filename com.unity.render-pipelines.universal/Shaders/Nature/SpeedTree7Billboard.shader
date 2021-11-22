@@ -43,6 +43,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile_fog
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
+            #pragma multi_compile _ _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_LOW  // Implicit _ or None == SHADER_QUALITY_HIGH
 
             #pragma shader_feature_local EFFECT_BUMP
             #pragma shader_feature_local EFFECT_HUE_VARIATION
@@ -98,6 +99,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             #pragma multi_compile __ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+            #pragma multi_compile _ _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_LOW  // Implicit _ or None == SHADER_QUALITY_HIGH
 
             #pragma shader_feature_local EFFECT_BUMP
             #pragma shader_feature_local EFFECT_HUE_VARIATION

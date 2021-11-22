@@ -16,7 +16,7 @@ using UnityEditor.XR.Management;
 namespace UnityEditor.Rendering.Universal
 {
     [Flags]
-    enum ShaderFeatures
+    enum ShaderFeatures : ulong
     {
         None = 0,
         MainLight = (1 << 0),
@@ -50,6 +50,8 @@ namespace UnityEditor.Rendering.Universal
         ScreenSpaceOcclusionAfterOpaque = (1 << 28),
         AdditionalLightsKeepOffVariants = (1 << 29),
         ShadowsKeepOffVariants = (1 << 30),
+        ShaderQualityMedium = (1ul << 34),
+        ShaderQualityLow = (1ul << 35),
     }
 
     [Flags]
@@ -112,6 +114,8 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_DecalNormalBlendHigh;
         LocalKeyword m_ClusteredRendering;
         LocalKeyword m_EditorVisualization;
+        LocalKeyword m_ShaderQualityLow;
+        LocalKeyword m_ShaderQualityMedium;
 
         LocalKeyword m_LocalDetailMulx2;
         LocalKeyword m_LocalDetailScaled;
@@ -184,6 +188,8 @@ namespace UnityEditor.Rendering.Universal
             m_DecalNormalBlendHigh = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendHigh);
             m_ClusteredRendering = TryGetLocalKeyword(shader, ShaderKeywordStrings.ClusteredRendering);
             m_EditorVisualization = TryGetLocalKeyword(shader, ShaderKeywordStrings.EDITOR_VISUALIZATION);
+            m_ShaderQualityMedium = TryGetLocalKeyword(shader, ShaderKeywordStrings.ShaderQualityMedium);
+            m_ShaderQualityLow = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsLow);
 
             m_LocalDetailMulx2 = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_MULX2);
             m_LocalDetailScaled = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_SCALED);
@@ -379,6 +385,10 @@ namespace UnityEditor.Rendering.Universal
 
             // TODO: Strip off variants once we have global soft shadows option for forcing instead as support
             if (stripTool.StripMultiCompileKeepOffVariant(m_SoftShadows, ShaderFeatures.SoftShadows))
+                // _ variant is ShaderQualityHigh
+                if (stripTool.StripMultiCompileKeepOffVariant(m_ShaderQualityMedium, ShaderFeatures.ShaderQualityMedium))
+                    return true;
+            if (stripTool.StripMultiCompileKeepOffVariant(m_ShaderQualityLow, ShaderFeatures.ShaderQualityLow))
                 return true;
 
             // Left for backward compatibility

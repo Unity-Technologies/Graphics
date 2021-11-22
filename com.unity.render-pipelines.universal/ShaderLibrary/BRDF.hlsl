@@ -107,7 +107,7 @@ inline void InitializeBRDFData(inout SurfaceData surfaceData, out BRDFData brdfD
 
 half3 ConvertF0ForClearCoat15(half3 f0)
 {
-#if defined(SHADER_API_MOBILE)
+#if (_SHADER_QUALITY_MEDIUM || _SHADER_QUALITY_LOW)
     return ConvertF0ForAirInterfaceToF0ForClearCoat15Fast(f0);
 #else
     return ConvertF0ForAirInterfaceToF0ForClearCoat15(f0);
@@ -132,7 +132,7 @@ inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmooth
     outBRDFData.grazingTerm         = saturate(clearCoatSmoothness + kDielectricSpec.x);
 
 // Relatively small effect, cut it for lower quality
-#if !defined(SHADER_API_MOBILE)
+#if !_SHADER_QUALITY_LOW
     // Modify Roughness of base layer using coat IOR
     half ieta                        = lerp(1.0h, CLEAR_COAT_IETA, clearCoatMask);
     half coatRoughnessScale          = Sq(ieta);

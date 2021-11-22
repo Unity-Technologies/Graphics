@@ -371,6 +371,10 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string BillboardFaceCameraPos = "BILLBOARD_FACE_CAMERA_POS";
         public static readonly string LightCookies = "_LIGHT_COOKIES";
 
+        // _SHADER_QUALITY_HIGH is the implicit default, (MEDIUM, LOW) disabled
+        public static readonly string ShaderQualityMedium = "_SHADER_QUALITY_MEDIUM";
+        public static readonly string ShaderQualityLow = "_SHADER_QUALITY_LOW";
+
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
         public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";

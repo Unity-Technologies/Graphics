@@ -28,6 +28,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile _ _CLUSTERED_RENDERING
+            #pragma multi_compile _ _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_LOW  // Implicit _ or None == SHADER_QUALITY_HIGH
 
             // -------------------------------------
             // Unity defined keywords

@@ -554,6 +554,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool stripAdditionalLightOffVariants { get; set; } = false;
 
+        internal ShaderQuality shaderQuality { get; set; } = ShaderQuality.High;
+
         public ScriptableRenderer(ScriptableRendererData data)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -576,7 +578,10 @@ namespace UnityEngine.Rendering.Universal
             m_ActiveRenderPassQueue.Clear();
 
             if (UniversalRenderPipeline.asset)
+            {
                 m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;
+                shaderQuality = UniversalRenderPipeline.asset.shaderQuality;
+            }
 
             m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
         }
@@ -734,6 +739,24 @@ namespace UnityEngine.Rendering.Universal
                 ClearRenderingState(cmd);
                 SetPerCameraShaderVariables(cmd, ref cameraData);
                 SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
+                {
+                    switch (shaderQuality)
+                    {
+                        default:
+                        case ShaderQuality.High:
+                            cmd.DisableShaderKeyword(ShaderKeywordStrings.ShaderQualityMedium);
+                            cmd.DisableShaderKeyword(ShaderKeywordStrings.ShaderQualityLow);
+                            break;
+                        case ShaderQuality.Medium:
+                            cmd.EnableShaderKeyword(ShaderKeywordStrings.ShaderQualityMedium);
+                            cmd.DisableShaderKeyword(ShaderKeywordStrings.ShaderQualityLow);
+                            break;
+                        case ShaderQuality.Low:
+                            cmd.DisableShaderKeyword(ShaderKeywordStrings.ShaderQualityMedium);
+                            cmd.EnableShaderKeyword(ShaderKeywordStrings.ShaderQualityLow);
+                            break;
+                    }
+                }
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
                 using (new ProfilingScope(null, Profiling.sortRenderPasses))

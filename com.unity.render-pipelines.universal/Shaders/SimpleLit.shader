@@ -92,6 +92,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _CLUSTERED_RENDERING
+            #pragma multi_compile _ _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_LOW  // Implicit _ or None == SHADER_QUALITY_HIGH
 
             // -------------------------------------
             // Unity defined keywords
@@ -185,6 +186,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile _ _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_LOW  // Implicit _ or None == SHADER_QUALITY_HIGH
 
             // -------------------------------------
             // Unity defined keywords
@@ -362,6 +364,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _CLUSTERED_RENDERING
+            #pragma multi_compile _ _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_LOW  // Implicit _ or None == SHADER_QUALITY_HIGH
 
 
             // -------------------------------------

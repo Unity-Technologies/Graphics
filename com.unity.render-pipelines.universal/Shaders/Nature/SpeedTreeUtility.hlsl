@@ -6,7 +6,7 @@ uint2 ComputeFadeMaskSeed(float3 V, uint2 positionSS)
     uint2 fadeMaskSeed;
 
     // Is this a reasonable quality gate?
-#if defined(SHADER_QUALITY_HIGH)
+#if defined(_SHADER_QUALITY_HIGH)
     if (IsPerspectiveProjection())
     {
         // Start with the world-space direction V. It is independent from the orientation of the camera,

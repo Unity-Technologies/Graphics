@@ -9,11 +9,11 @@
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
-// TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
-    #if defined(SHADER_API_GLES) || !defined(_NORMALMAP)
+    // TODO: LOW == defined(SHADER_API_GLES) || !defined(_NORMALMAP)
+    #if _SHADER_QUALITY_LOW
         // Evaluates SH fully in vertex
         #define EVALUATE_SH_VERTEX
-    #elif !SHADER_HINT_NICE_QUALITY
+    #elif _SHADER_QUALITY_MEDIUM
         // Evaluates L2 SH in vertex and L0L1 in pixel
         #define EVALUATE_SH_MIXED
     #endif
