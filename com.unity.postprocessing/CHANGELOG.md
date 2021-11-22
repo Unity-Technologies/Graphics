@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.2.1] - 2021-11-15
 
+### Fixed
+- Rendering artifacts when depth buffer is used after screen space reflections pass on iOS and M1 (case 1341052)
 
 ## [3.2.0] - 2021-11-15
 
