@@ -7,11 +7,6 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
 #if PROCEDURAL_VT_IN_GRAPH
-    enum BindMethod
-    {
-        PerMaterial,
-        Globally
-    };
 
     [Title("Input", "Texture", "Procedural Virtual Texture")]
     class ProceduralVirtualTextureNode : AbstractMaterialNode
@@ -28,7 +23,7 @@ namespace UnityEditor.ShaderGraph
             vtProperty.displayName = "ProceduralVirtualTexture";
             vtProperty.overrideReferenceName = "MyPVT";
             vtProperty.value.procedural = true;
-            vtProperty.value.bindPerMaterial = true;
+            vtProperty.value.shaderDeclaration = HLSLDeclaration.UnityPerMaterial;
 
             UpdateName();
         }
@@ -91,16 +86,15 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        [EnumControl("Bind Method")]
-        public BindMethod bindMethod
+        internal HLSLDeclaration shaderDeclaration
         {
-            get { return vtProperty.value.bindPerMaterial ? BindMethod.PerMaterial : BindMethod.Globally; }
+            get { return vtProperty.value.shaderDeclaration; }
             set
             {
-                if (vtProperty.value.bindPerMaterial && (value == BindMethod.PerMaterial))
+                if (vtProperty.value.shaderDeclaration == value)
                     return;
 
-                vtProperty.value.bindPerMaterial = (value == BindMethod.PerMaterial);
+                vtProperty.value.shaderDeclaration = value;
                 Dirty(ModificationScope.Graph);
             }
         }

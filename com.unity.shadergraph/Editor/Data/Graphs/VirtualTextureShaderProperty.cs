@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                if(value.bindPerMaterial)
+                if(value.shaderDeclaration == HLSLDeclaration.UnityPerMaterial)
                 {
                     // adds properties in this format so: [ProceduralTextureStack.MyStack(0)] [NoScaleOffset] MyStack_0("Procedural Stack Placeholder", 2D) = "white" {}
                     for (int layer = 0; layer < value.layers.Count; layer++)
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph
             int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
-                HLSLDeclaration decl = (value.procedural && !value.bindPerMaterial) ? HLSLDeclaration.Global : HLSLDeclaration.UnityPerMaterial;
+                HLSLDeclaration decl = (value.procedural && (value.shaderDeclaration != HLSLDeclaration.UnityPerMaterial)) ? HLSLDeclaration.Global : HLSLDeclaration.UnityPerMaterial;
 
                 action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_CBDecl", decl, concretePrecision)
                 {

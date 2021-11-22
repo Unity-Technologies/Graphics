@@ -59,6 +59,6 @@ namespace UnityEditor.ShaderGraph.Internal
         public bool procedural;
 
         [SerializeField]
-        public bool bindPerMaterial;
+        public HLSLDeclaration shaderDeclaration;
     }
 }
