@@ -484,7 +484,7 @@ float4x4 VFXCreateMatrixFromColumns(float4 i, float4 j, float4 k, float4 o)
                     i.w, j.w, k.w, o.w);
 }
 
-float VFXGetColumnFromMatrix(float4x4 mat, int column)
+float4 VFXGetColumnFromMatrix(float4x4 mat, int column)
 {
     return transpose(mat)[column];
 }
