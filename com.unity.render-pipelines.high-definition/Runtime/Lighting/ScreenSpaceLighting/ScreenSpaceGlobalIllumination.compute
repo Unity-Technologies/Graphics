@@ -278,6 +278,7 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
                                     -normalData.normalWS, // Not used
                                     GetWorldSpaceNormalizeViewDir(posInput.positionWS),
                                     posInput.positionSS,
+                                    0, // TODO_FCC: Fix somehow...
                                     apvBuiltinData.bakeDiffuseLighting,
                                     apvBuiltinData.backBakeDiffuseLighting); // Not used
         color = apvBuiltinData.bakeDiffuseLighting;

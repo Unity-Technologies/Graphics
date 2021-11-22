@@ -477,6 +477,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                         R,
                         V,
                         posInput.positionSS,
+                        aggregateLighting.direct.diffuse,
                         tempBuiltinData.bakeDiffuseLighting,
                         tempBuiltinData.backBakeDiffuseLighting,
                         lightInReflDir);

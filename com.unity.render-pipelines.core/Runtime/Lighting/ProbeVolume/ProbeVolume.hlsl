@@ -263,15 +263,15 @@ void CombineWeightsWithTrilinear(float3 uvw, inout float weights[8])
     GetTrilinearWeights(uvw, trilinearWeights);
 
     float totalWeight = 0.0f;
-
-    for (uint i = 0; i < 8; ++i)
+    uint i = 0;
+    for (i = 0; i < 8; ++i)
     {
         weights[i] = max(0, lerp(trilinearWeights[i], trilinearWeights[i] * weights[i], _ProbeVolumeBilateralFilterWeight));
         totalWeight += weights[i];
     }
 
     totalWeight = max(totalWeight, 1e-3f);
-    for (uint i = 0; i < 8; ++i)
+    for (i = 0; i < 8; ++i)
     {
         weights[i] /= totalWeight;
     }
@@ -419,10 +419,27 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, float3 
     return TryToGetPoolUVWAndSubdiv(apvRes, posWS, normalWS, viewDir, uvw, unusedSubdiv);
 }
 
-float3 GetManuallyFilteredL0(APVResources apvRes, float3 uvw, float3 posWS, float3 normalWS)
+struct APVSamplingInput
+{
+    APVResources apvRes;
+    float3 uvw;
+    float3 posWS;
+    float3 normalWS;
+    float3 viewWS;
+    float3 oracle;
+};
+
+float GetOracleBasedWeight(float3 l0, float3 oracle)
+{
+    return 1;
+    float oracleThresh = _AntiLeakParams.z;
+    return abs(Luminance(l0) - Luminance(oracle)) / Luminance(oracle) < oracleThresh;
+}
+
+float3 GetManuallyFilteredL0(APVSamplingInput inputs)
 {
     float3 total = 0.0f;
-    float3 texCoordFloat = uvw * _PoolDim - .5f;
+    float3 texCoordFloat = inputs.uvw * _PoolDim - .5f;
     int3 texCoordInt = texCoordFloat;
     float3 texFrac = frac(texCoordFloat);
 
@@ -439,9 +456,10 @@ float3 GetManuallyFilteredL0(APVResources apvRes, float3 uvw, float3 posWS, floa
             ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
             ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
 
-        float vW = GetLeakWeight(apvRes, posWS, normalWS, texCoordInt + offset);
+        float vW = GetLeakWeight(inputs.apvRes, inputs.posWS, inputs.normalWS, texCoordInt + offset);
         float finalW = lerp(w, w * vW, _ProbeVolumeBilateralFilterWeight);
-        total += finalW * LOAD_TEXTURE3D(apvRes.L0_L1Rx, texCoordInt + offset).xyz;
+        float3 sampleL0 = LOAD_TEXTURE3D(inputs.apvRes.L0_L1Rx, texCoordInt + offset).xyz;
+        total += finalW * GetOracleBasedWeight(sampleL0, inputs.oracle) * sampleL0;
 
         totalWeight += finalW;
     }
@@ -451,15 +469,16 @@ float3 GetManuallyFilteredL0(APVResources apvRes, float3 uvw, float3 posWS, floa
     return total / totalWeight;
 }
 
-APVSample SampleAPV(APVResources apvRes, float3 uvw, float3 posWS, float3 normalWS, float unused)
+
+APVSample SampleAPVFromTextures(inout APVSamplingInput samplingInput)
 {
     APVSample apvSample;
-    float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_linear_clamp_sampler, uvw, 0).rgba;
-    float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_linear_clamp_sampler, uvw, 0).rgba;
+    float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(samplingInput.apvRes.L0_L1Rx, s_linear_clamp_sampler, samplingInput.uvw, 0).rgba;
+    float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(samplingInput.apvRes.L1G_L1Ry, s_linear_clamp_sampler, samplingInput.uvw, 0).rgba;
+    float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(samplingInput.apvRes.L1B_L1Rz, s_linear_clamp_sampler, samplingInput.uvw, 0).rgba;
 
 #if MANUAL_FILTERING == 1
-    apvSample.L0 = GetManuallyFilteredL0(apvRes, uvw, posWS, normalWS);
+    apvSample.L0 = GetManuallyFilteredL0(samplingInput);
 #else
     apvSample.L0 = L0_L1Rx.xyz;
 #endif
@@ -468,29 +487,29 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw, float3 posWS, float3 normal
     apvSample.L1_B = L1B_L1Rz.xyz;
 
 #ifdef PROBE_VOLUMES_L2
-    apvSample.L2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_linear_clamp_sampler, uvw, 0).rgba;
-    apvSample.L2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_linear_clamp_sampler, uvw, 0).rgba;
-    apvSample.L2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_linear_clamp_sampler, uvw, 0).rgba;
-    apvSample.L2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgb;
+    apvSample.L2_R = SAMPLE_TEXTURE3D_LOD(samplingInput.apvRes.L2_0, s_linear_clamp_sampler, samplingInput.uvw, 0).rgba;
+    apvSample.L2_G = SAMPLE_TEXTURE3D_LOD(samplingInput.apvRes.L2_1, s_linear_clamp_sampler, samplingInput.uvw, 0).rgba;
+    apvSample.L2_B = SAMPLE_TEXTURE3D_LOD(samplingInput.apvRes.L2_2, s_linear_clamp_sampler, samplingInput.uvw, 0).rgba;
+    apvSample.L2_C = SAMPLE_TEXTURE3D_LOD(samplingInput.apvRes.L2_3, s_linear_clamp_sampler, samplingInput.uvw, 0).rgb;
 #endif
 
     apvSample.status = APV_SAMPLE_STATUS_ENCODED;
 
 
     // TODO_FCC: TMP STUFF
-    float validity = SAMPLE_TEXTURE3D_LOD(apvRes.Validity, s_linear_clamp_sampler, uvw, 0).w;
+    float validity = SAMPLE_TEXTURE3D_LOD(samplingInput.apvRes.Validity, s_linear_clamp_sampler, samplingInput.uvw, 0).w;
     apvSample.L0 += validity * 0.0001f;
 
     if (_AntiLeakParamsDBG.w > 0)
     {
-        float3 texCoordFloat = uvw * _PoolDim - .5f;
+        float3 texCoordFloat = samplingInput.uvw * _PoolDim - .5f;
         int3 texCoordInt = texCoordFloat;
         int3 offset = GetSampleOffset(_AntiLeakParamsDBG.x);
 
-        float3 probePos = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt + offset).xyz;
+        float3 probePos = LOAD_TEXTURE3D(samplingInput.apvRes.Validity, texCoordInt + offset).xyz;
 
-        apvSample.L0 = (normalize(probePos -posWS) * 0.5f + 0.5f) * 50.0f;
-        apvSample.L0 = dot(normalize(probePos - posWS), normalWS) * 50;// (normalize(probePos - posWS) * 0.5f + 0.5f) * 50.0f;
+        apvSample.L0 = (normalize(probePos - samplingInput.posWS) * 0.5f + 0.5f) * 50.0f;
+        apvSample.L0 = dot(normalize(probePos - samplingInput.posWS), samplingInput.normalWS) * 50;// (normalize(probePos - posWS) * 0.5f + 0.5f) * 50.0f;
 
     }
 
@@ -498,14 +517,15 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw, float3 posWS, float3 normal
     return apvSample;
 }
 
-APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, float3 viewDir)
+
+APVSample SampleAPV(inout APVSamplingInput samplingInput)
 {
     APVSample outSample;
+    APVResources apvRes = FillAPVResources();
 
-    float3 pool_uvw;
-    if (TryToGetPoolUVW(apvRes, posWS, biasNormalWS, viewDir, pool_uvw))
+    if (TryToGetPoolUVW(samplingInput.apvRes, samplingInput.posWS, samplingInput.normalWS, samplingInput.viewWS, samplingInput.uvw))
     {
-        outSample = SampleAPV(apvRes, pool_uvw, posWS, biasNormalWS, 0);
+        outSample = SampleAPVFromTextures(samplingInput);
     }
     else
     {
@@ -513,14 +533,8 @@ APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, floa
         outSample.status = APV_SAMPLE_STATUS_INVALID;
     }
 
+
     return outSample;
-}
-
-
-APVSample SampleAPV(float3 posWS, float3 biasNormalWS, float3 viewDir)
-{
-    APVResources apvRes = FillAPVResources();
-    return SampleAPV(apvRes, posWS, biasNormalWS, viewDir);
 }
 
 ///////////////////////
@@ -585,7 +599,7 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, float3 ba
 }
 
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in float3 reflDir, in float3 viewDir,
-    in float2 positionSS, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting, out float3 lightingInReflDir)
+    in float2 positionSS, in float3 oracleLighting, out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting, out float3 lightingInReflDir)
 {
     APVResources apvRes = FillAPVResources();
 
@@ -594,8 +608,14 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
         posWS += noise1D_0;
     }
+    APVSamplingInput inputs;
+    inputs.posWS = posWS;
+    inputs.normalWS = normalWS;
+    inputs.viewWS = viewDir;
+    inputs.apvRes = FillAPVResources();
+    inputs.oracle = oracleLighting;
 
-    APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
+    APVSample apvSample = SampleAPV(inputs);
 
     if (apvSample.status != APV_SAMPLE_STATUS_INVALID)
     {
@@ -636,7 +656,13 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         posWS += noise1D_0;
     }
 
-    APVSample apvSample = SampleAPV(posWS, normalWS, viewDir);
+    APVSamplingInput inputs;
+    inputs.posWS = posWS;
+    inputs.normalWS = normalWS;
+    inputs.viewWS = viewDir;
+    inputs.apvRes = FillAPVResources();
+
+    APVSample apvSample = SampleAPV(inputs);
     EvaluateAdaptiveProbeVolume(apvSample, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
 }
 
