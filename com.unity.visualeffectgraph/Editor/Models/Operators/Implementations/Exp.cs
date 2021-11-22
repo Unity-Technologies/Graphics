@@ -7,16 +7,10 @@ namespace UnityEditor.VFX.Operator
 {
     class MathBaseVariantProvider : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
         {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "_base", Enum.GetValues(typeof(VFXOperatorUtility.Base)).Cast<object>().ToArray() }
-                };
-            }
-        }
+            {"_base", Enum.GetValues(typeof(VFXOperatorUtility.Base)).Cast<object>().ToArray()}
+        };
     }
 
     [VFXInfo(category = "Math/Exp", variantProvider = typeof(MathBaseVariantProvider))]
@@ -30,7 +24,7 @@ namespace UnityEditor.VFX.Operator
             public float x = 0.0f;
         }
 
-        protected override sealed string operatorName
+        protected sealed override string operatorName
         {
             get
             {
@@ -45,7 +39,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Exp(inputExpression[0], _base) };
         }
