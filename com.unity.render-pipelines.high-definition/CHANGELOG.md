@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the point distribution for the diffuse denoiser sometimes not being properly intialized.
 - Fixed the bad blending between the sun and the clouds (case 1373282).
 - Fixed and optimize distance shadowmask fade.
+- Fixed flickering / edge aliasing issue when DoF and TAAU or DLSS are enabled (case 1381858).
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
