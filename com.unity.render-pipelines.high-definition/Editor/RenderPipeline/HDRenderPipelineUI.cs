@@ -49,7 +49,6 @@ namespace UnityEditor.Rendering.HighDefinition
             RTRQuality = 1 << 32,
             RTGIQuality = 1 << 33,
             SSGIQuality = 1 << 34,
-            VolumetricClouds = 1 << 35,
         }
 
         enum ExpandableShadows
@@ -440,6 +439,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             using (new EditorGUI.IndentLevelScope())
             {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.allowDirectionalMixedCachedShadows, Styles.allowMixedCachedCascadeShadows);
                 EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.directionalShadowMapDepthBits, Styles.shadowBitDepthNames, Styles.shadowBitDepthValues, Styles.directionalShadowPrecisionContent);
                 serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional.ValueGUI<int>(Styles.shadowResolutionTiers);
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxDirectionalShadowMapResolution, Styles.maxShadowResolution);

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: BoxVolumeProfile
   m_EditorClassIdentifier: 
   components:
-  - {fileID: 1669951838852580981}
   - {fileID: 4049420037280651543}
+  - {fileID: 1669951838852580981}
 --- !u!114 &1669951838852580981
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -35,10 +35,10 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0
   colorFilter:
-    m_OverrideState: 0
-    m_Value: {r: 1, g: 1, b: 1, a: 1}
-  hueShift:
     m_OverrideState: 1
+    m_Value: {r: 0.035294294, g: 1, b: 0, a: 1}
+  hueShift:
+    m_OverrideState: 0
     m_Value: 90
   saturation:
     m_OverrideState: 0
@@ -58,16 +58,16 @@ MonoBehaviour:
   active: 1
   color:
     m_OverrideState: 0
-    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    m_Value: {r: 0, g: 0, b: 0, a: 1}
   center:
     m_OverrideState: 0
     m_Value: {x: 0.5, y: 0.5}
   intensity:
-    m_OverrideState: 0
-    m_Value: 0.727
+    m_OverrideState: 1
+    m_Value: 0.8
   smoothness:
     m_OverrideState: 1
     m_Value: 0.01
   rounded:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 1
