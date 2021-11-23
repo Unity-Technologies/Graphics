@@ -47,12 +47,13 @@ namespace UnityEngine.Rendering.Universal
 
         internal struct RenderPassDescriptor
         {
-            internal int w, h, samples, depthID;
+            internal int w, h, d, samples, depthID;
 
-            internal RenderPassDescriptor(int width, int height, int sampleCount, int rtID)
+            internal RenderPassDescriptor(int width, int height, int depth, int sampleCount, int rtID)
             {
                 w = width;
                 h = height;
+                d = depth;
                 samples = sampleCount;
                 depthID = rtID;
             }
@@ -474,7 +475,7 @@ namespace UnityEngine.Rendering.Universal
                     if (PassHasInputAttachments(renderPass))
                         Debug.LogWarning("First pass in a RenderPass should not have input attachments.");
 
-                    context.BeginRenderPass(rpDesc.w, rpDesc.h, Math.Max(rpDesc.samples, 1), attachments,
+                    context.BeginRenderPass(rpDesc.w, rpDesc.h, rpDesc.d, Math.Max(rpDesc.samples, 1), attachments,
                         useDepth ? (!depthOnly ? validColorBuffersCount : 0) : -1);
                     attachments.Dispose();
 
@@ -673,10 +674,11 @@ namespace UnityEngine.Rendering.Universal
         {
             var w = (renderPass.renderTargetWidth != -1) ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
             var h = (renderPass.renderTargetHeight != -1) ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
+            var d = cameraData.cameraTargetDescriptor.volumeDepth;
             var samples = (renderPass.renderTargetSampleCount != -1) ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
             var depthTarget = renderPass.overrideCameraTarget ? renderPass.depthAttachment : m_CameraDepthTarget;
             var depthID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : depthTarget.GetHashCode();
-            return new RenderPassDescriptor(w, h, samples, depthID);
+            return new RenderPassDescriptor(w, h, d, samples, depthID);
         }
 
         private static GraphicsFormat GetDefaultGraphicsFormat(CameraData cameraData)

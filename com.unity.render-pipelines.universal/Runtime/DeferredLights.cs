@@ -406,7 +406,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             for (int i = 0; i < this.GbufferAttachments.Length; ++i)
             {
-                this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].Identifier();
+                this.GbufferAttachmentIdentifiers[i] = new RenderTargetIdentifier(this.GbufferAttachments[i].Identifier(), 0, CubemapFace.Unknown, -1);
                 this.GbufferFormats[i] = this.GetGBufferFormat(i);
             }
             if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 5)
