@@ -31,6 +31,11 @@ namespace UnityEngine.Rendering
     /// </summary>
     class FrameTimeSampleHistory
     {
+        public FrameTimeSampleHistory(int initialCapacity)
+        {
+            m_Samples.Capacity = initialCapacity;
+        }
+
         List<FrameTimeSample> m_Samples = new();
 
         internal FrameTimeSample SampleAverage;
@@ -114,6 +119,8 @@ namespace UnityEngine.Rendering
         {
             while (m_Samples.Count >= sampleHistorySize)
                 m_Samples.RemoveAt(0);
+
+            m_Samples.Capacity = sampleHistorySize;
         }
 
         internal void Clear()
