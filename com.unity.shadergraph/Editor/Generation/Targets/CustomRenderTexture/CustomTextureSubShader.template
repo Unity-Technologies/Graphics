@@ -16,13 +16,12 @@ Pass
 	Blend One Zero
 
 	HLSLPROGRAM
-	#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl"
-	#undef SAMPLE_DEPTH_TEXTURE
-	#undef SAMPLE_DEPTH_TEXTURE_LOD
 	#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 	#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
 	#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/CustomRenderTexture/CustomTexture.hlsl"
 	#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/CustomRenderTexture/CustomTextureGraph.hlsl"
+	#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl"
+
 	#pragma vertex CustomRenderTextureVertexShader
 	#pragma fragment frag
 	#pragma target 3.0

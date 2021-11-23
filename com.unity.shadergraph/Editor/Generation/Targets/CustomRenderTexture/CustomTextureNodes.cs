@@ -51,9 +51,15 @@ namespace UnityEditor.Rendering.CustomRenderTexture.ShaderGraph
             // For preview only we declare CRT defines
             if (generationMode == GenerationMode.Preview)
             {
+                registry.builder.AppendLine("#ifndef _CustomRenderTextureHeight");
                 registry.builder.AppendLine("#define _CustomRenderTextureHeight 1.0");
+                registry.builder.AppendLine("#endif");
+                registry.builder.AppendLine("#ifndef _CustomRenderTextureWidth");
                 registry.builder.AppendLine("#define _CustomRenderTextureWidth 1.0");
+                registry.builder.AppendLine("#endif");
+                registry.builder.AppendLine("#ifndef _CustomRenderTextureDepth");
                 registry.builder.AppendLine("#define _CustomRenderTextureDepth 1.0");
+                registry.builder.AppendLine("#endif");
             }
         }
     }
