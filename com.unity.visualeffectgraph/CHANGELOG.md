@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Removed extra nodes in Ribbon template. [Case 1355602](https://issuetracker.unity3d.com/product/unity/issues/guid/1355602/)
+- Editing the values in the graph did not impact the system in real-time after saving [Case 1371089](https://issuetracker.unity3d.com/product/unity/issues/guid/1371089/)
 
 ## [13.1.1] - 2021-10-04
 ### Added
