@@ -365,6 +365,12 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseDenoiser.compute")]
             public ComputeShader diffuseDenoiserCS;
 
+            // Accumulation
+            [Reload("Runtime/RenderPipeline/ParticleSystem.compute")]
+            public ComputeShader particleSystemCS;
+            [Reload("Runtime/RenderPipeline/Raytracing/RayTracingParticle.shader")]
+            public Shader rayTracingParticlePS;
+
 #if UNITY_EDITOR
             // Furnace Testing (BSDF Energy Conservation)
             [Reload("Tests/Editor/Utilities/FurnaceTests.compute")]

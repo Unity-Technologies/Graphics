@@ -543,6 +543,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (rtSettings.buildMode.value == RTASBuildMode.Automatic)
 #endif
             {
+                if (m_ParticleSystemFrame != 0)
+                    m_RTASManager.rtas.AddInstance(m_AABBBuffer, (uint)m_MaxParticleCount, m_ParticleMaterial, false, true, false, 255, false);
+
                 // Cull the scene for the RTAS
                 RayTracingInstanceCullingResults cullingResults = m_RTASManager.Cull(hdCamera, effectParameters);
 

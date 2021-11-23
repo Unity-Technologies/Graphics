@@ -452,6 +452,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeRenderStateBlocks();
 
+            InitializeParticleSystem();
+
             if (m_RayTracingSupported)
             {
                 InitRayTracingManager();
@@ -726,6 +728,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugDisplaySettings.UnregisterDebug();
 
             CleanupLightLoop();
+
+            ReleaseParticleSystem();
 
             ReleaseVolumetricClouds();
             CleanupSubsurfaceScattering();
@@ -1834,6 +1838,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             RTHandles.SetReferenceSize(maxSize.x, maxSize.y);
                         }
 
+                        var cmd = CommandBufferPool.Get("");
+                        UpdateParticleSystem(cmd);
 
                         // Execute render request graph, in reverse order
                         for (int i = renderRequestIndicesToRender.Count - 1; i >= 0; --i)
@@ -1841,7 +1847,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             var renderRequestIndex = renderRequestIndicesToRender[i];
                             var renderRequest = renderRequests[renderRequestIndex];
 
-                            var cmd = CommandBufferPool.Get("");
 
                             // TODO: Avoid the intermediate target and render directly into final target
                             //  CommandBuffer.Blit does not work on Cubemap faces

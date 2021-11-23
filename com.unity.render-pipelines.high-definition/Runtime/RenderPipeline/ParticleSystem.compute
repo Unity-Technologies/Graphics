@@ -1,0 +1,86 @@
+#pragma kernel InitializeParticleSystem
+#pragma kernel UpdateParticleSystem
+#pragma kernel GenerateAABB
+
+#pragma only_renderers d3d11 ps5
+
+// #pragma enable_d3d11_debug_symbols
+
+// HDRP generic includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/HDRayTracingParticleSystem.cs.hlsl"
+
+float deltaTime;
+StructuredBuffer<ParticleDescriptor> _ParticleBufferIn;
+RWStructuredBuffer<ParticleDescriptor> _ParticleBufferOut;
+RWStructuredBuffer<ParticleAABB> _AABBBuffer;
+
+float3 rand3_iq(uint n)
+{
+    n = (n << 13U) ^ n;
+    n = n * (n * n * 15731U + 789221U) + 1376312589U;
+    uint3 k = uint3(n * n, n * n*16807U, n * n*48271U);
+    return float3((k.x & 0x7fffffffU) / (float)0x7fffffff, (k.y & 0x7fffffffU) / (float)0x7fffffff, (k.z & 0x7fffffffU) / (float)0x7fffffff);
+}
+
+float rand(float2 n)
+{ 
+    return frac(sin(dot(n, float2(12.9898, 4.1414))) * 43758.5453);
+}
+
+[numthreads(128, 1, 1)]
+void InitializeParticleSystem(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    int particleIdx = dispatchThreadId.x;
+    int randomVal = dispatchThreadId.x + 666;
+    ParticleDescriptor pDescriptor;
+    pDescriptor.position = (rand3_iq(randomVal) * 2.0 - 1.0) * 5 + float3(0, 5, 0);
+    pDescriptor.size = 0.1f;
+    pDescriptor.color = rand3_iq((randomVal * 7) / 3.0);
+    pDescriptor.velocity = rand3_iq((randomVal * 9) / 5.0) * 2.0 - 1;
+    pDescriptor.weight = 0.0f;
+    pDescriptor.padding = 0.0f;
+    _ParticleBufferOut[particleIdx] = pDescriptor;
+}
+
+[numthreads(128, 1, 1)]
+void UpdateParticleSystem(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    int particleIdx = dispatchThreadId.x;
+    ParticleDescriptor pDescriptor = _ParticleBufferIn[particleIdx];
+    pDescriptor.position = pDescriptor.position;
+
+    if (length(pDescriptor.position) > 10.0f)
+    {
+        pDescriptor.velocity = -pDescriptor.velocity;
+    }
+    _ParticleBufferOut[particleIdx] = pDescriptor;
+}
+
+[numthreads(128, 1, 1)]
+void GenerateAABB(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    int particleIdx = dispatchThreadId.x;
+    ParticleAABB aabb;
+    if (particleIdx % 10 == 0)
+    {
+        ParticleDescriptor pDescriptor = _ParticleBufferIn[particleIdx];
+        aabb.minV = pDescriptor.position - float3(pDescriptor.size, pDescriptor.size, pDescriptor.size);
+        aabb.maxV = pDescriptor.position + float3(pDescriptor.size, pDescriptor.size, pDescriptor.size);
+    }
+    else
+    {
+    #if 0
+        aabb.minV = float3(FLT_MAX, FLT_MAX, FLT_MAX);
+        aabb.maxV = float3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+    #else
+        float nanValue = 0.0/0.0;
+        aabb.minV = float3(nanValue, nanValue, nanValue);
+        aabb.maxV = float3(-nanValue, -nanValue, -nanValue);
+    #endif
+    }
+    _AABBBuffer[particleIdx] = aabb;
+}

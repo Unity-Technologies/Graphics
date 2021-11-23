@@ -110,6 +110,7 @@ void FetchIntersectionVertex(uint vertexIndex, out IntersectionVertex outVertex)
     #endif
 }
 
+#ifndef PROCEDURAL_RAY_TRACING
 void GetCurrentIntersectionVertex(AttributeData attributeData, out IntersectionVertex outVertex)
 {
     // Fetch the indices of the currentr triangle
@@ -183,5 +184,6 @@ void GetCurrentIntersectionGeometricNormal(AttributeData attributeData, out floa
 
     geomNormalWS = normalize(mul(cross(p1 - p0, p2 - p0), (float3x3)WorldToObject3x4()));
 }
+#endif
 
 #endif // UNITY_RAYTRACING_INTERSECTION_INCLUDED
