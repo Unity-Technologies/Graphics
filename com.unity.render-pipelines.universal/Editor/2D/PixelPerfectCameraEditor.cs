@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering.Universal
         {
             LazyInit();
 
-            if(!UsingSRP())
+            if (!UsingSRP())
             {
                 EditorGUILayout.HelpBox(Style.nonRenderer2DError, MessageType.Error);
                 return;
