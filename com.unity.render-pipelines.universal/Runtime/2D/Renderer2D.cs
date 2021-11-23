@@ -97,7 +97,8 @@ namespace UnityEngine.Rendering.Universal
                     || m_Renderer2DData.useCameraSortingLayerTexture
                     || !Mathf.Approximately(cameraData.renderScale, 1.0f);
 
-                m_CreateDepthTexture = !cameraData.resolveFinalTarget && m_UseDepthStencilBuffer;
+                //m_CreateDepthTexture = !cameraData.resolveFinalTarget && m_UseDepthStencilBuffer;
+                m_CreateDepthTexture = m_UseDepthStencilBuffer;
 
                 colorTargetHandle = m_CreateColorTexture ? k_ColorTextureHandle : RenderTargetHandle.CameraTarget;
                 depthTargetHandle = m_CreateDepthTexture ? k_DepthTextureHandle : colorTargetHandle;
