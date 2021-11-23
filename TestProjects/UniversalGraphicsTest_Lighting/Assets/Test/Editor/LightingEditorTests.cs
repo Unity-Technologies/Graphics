@@ -21,7 +21,7 @@ class LightingEditorTests
     }
 
     [Test]
-    public void EnsureOnlySingleQualityOption()
+    public void EnsureSingleQualityOption()
     {
         Assert.IsTrue(QualitySettings.names?.Length == 1, $"{kProjectName} project MUST have ONLY single quality setting to ensure test consistency!!!");
     }
