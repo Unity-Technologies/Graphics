@@ -101,6 +101,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var renderPass = m_ActiveRenderPassQueue[i];
 
+                    renderPass.Configure(null, cameraColorTargetHandle.rt.descriptor);
                     // Empty configure to setup dimensions/targets and whatever data is needed for merging
                     // We do not execute this at this time, so render targets are still invalid
                     var rpDesc = InitializeRenderPassDescriptor(cameraData, renderPass);
@@ -163,9 +164,7 @@ namespace UnityEngine.Rendering.Universal
 
                 ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
 
-                var samples = pass.renderTargetSampleCount != -1
-                    ? pass.renderTargetSampleCount
-                    : cameraData.cameraTargetDescriptor.msaaSamples;
+                var samples = pass.overrideCameraTarget ? GetFirstAllocedRTHandle(pass).rt.descriptor.msaaSamples : cameraColorTargetHandle.rt.descriptor.msaaSamples;
 
                 // only override existing non destructive actions
                 for (int i = 0; i < m_FinalColorStoreAction.Length; ++i)
@@ -339,6 +338,7 @@ namespace UnityEngine.Rendering.Universal
 
                     AttachmentDescriptor currentAttachmentDescriptor;
                     var usesTargetTexture = cameraData.targetTexture != null;
+                    var target = usesTargetTexture ? cameraData.targetTexture : (pass.overrideCameraTarget ? pass.colorAttachmentHandle.rt : cameraColorTargetHandle);
                     var depthOnly = renderPass.depthOnly || (usesTargetTexture && IsDepthOnlyRenderTexture(cameraData.targetTexture));
                     // Offscreen depth-only cameras need this set explicitly
                     if (depthOnly && usesTargetTexture)
@@ -354,26 +354,12 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore 0618
                     }
                     else
-                        currentAttachmentDescriptor =
-                            new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
+                        currentAttachmentDescriptor = new AttachmentDescriptor(target.graphicsFormat != GraphicsFormat.None || target.depthStencilFormat != GraphicsFormat.None?
+                            (pass.depthOnly ? target.depthStencilFormat : target.graphicsFormat)
+                            : GetDefaultGraphicsFormat(cameraData) );
 
-                    if (pass.overrideCameraTarget)
-                        currentAttachmentDescriptor = new AttachmentDescriptor(pass.renderTargetFormat[0] != GraphicsFormat.None ? pass.renderTargetFormat[0] : GetDefaultGraphicsFormat(cameraData));
-
-                    var samples = pass.renderTargetSampleCount != -1
-                        ? pass.renderTargetSampleCount
-                        : cameraData.cameraTargetDescriptor.msaaSamples;
-
-                    var colorAttachmentTarget =
-                        (depthOnly || passColorAttachment != BuiltinRenderTextureType.CameraTarget)
-                        ? passColorAttachment : (usesTargetTexture
-                            ? new RenderTargetIdentifier(cameraData.targetTexture.colorBuffer)
-                            : BuiltinRenderTextureType.CameraTarget);
-
-                    var depthAttachmentTarget = (passDepthAttachment != BuiltinRenderTextureType.CameraTarget) ?
-                        passDepthAttachment : (usesTargetTexture
-                            ? new RenderTargetIdentifier(cameraData.targetTexture.depthBuffer)
-                            : BuiltinRenderTextureType.Depth);
+                    var samples = target.descriptor.msaaSamples;
+                    var colorAttachmentTarget = new RenderTargetIdentifier(target);
 
                     currentAttachmentDescriptor.ConfigureTarget(colorAttachmentTarget, ((uint)finalClearFlag & (uint)ClearFlag.Color) == 0, true);
 
@@ -382,7 +368,7 @@ namespace UnityEngine.Rendering.Universal
 
                     // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil));
-                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(depthAttachmentTarget,
+                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(pass.overrideCameraTarget? pass.depthAttachmentHandle.nameID : cameraDepthTargetHandle.nameID,
                         ((uint)finalClearFlag & (uint)ClearFlag.Depth) == 0, true);
 
                     if (finalClearFlag != ClearFlag.None)
@@ -692,6 +678,15 @@ namespace UnityEngine.Rendering.Universal
             return array.Length - 1;
         }
 
+        internal static RTHandle GetFirstAllocedRTHandle(ScriptableRenderPass pass)
+        {
+            for (int i = 0; i < pass.colorAttachmentHandles.Length; ++i)
+                {
+                    if (pass.colorAttachmentHandles[i].rt != null)
+                        return pass.colorAttachmentHandles[i];
+                }
+            return pass.colorAttachmentHandles[0];
+        }
         internal static bool PassHasInputAttachments(ScriptableRenderPass renderPass)
         {
             return renderPass.m_InputAttachments.Length != 8 || renderPass.m_InputAttachments[0] != null;
@@ -709,14 +704,17 @@ namespace UnityEngine.Rendering.Universal
 
         private RenderPassDescriptor InitializeRenderPassDescriptor(CameraData cameraData, ScriptableRenderPass renderPass)
         {
-            var w = (renderPass.renderTargetWidth != -1) ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
-            var h = (renderPass.renderTargetHeight != -1) ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
-            var samples = (renderPass.renderTargetSampleCount != -1) ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
+            RenderTexture targetRT;
+            if (!renderPass.overrideCameraTarget)
+                targetRT = cameraColorTargetHandle.rt;
+            else
+                targetRT = renderPass.colorAttachmentHandle.rt != null ? renderPass.colorAttachmentHandle.rt : renderPass.depthAttachmentHandle.rt;
+
 #pragma warning disable 0618 // Obsolete usage: Deprecated depthAttachment used to ensure backwards compatibility with passes set with RenderTargetIdentifiers
             var depthTarget = renderPass.overrideCameraTarget ? renderPass.depthAttachment : m_CameraDepthTarget.nameID;
             var depthID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : depthTarget.GetHashCode();
 #pragma warning restore 0618
-            return new RenderPassDescriptor(w, h, samples, depthID);
+            return new RenderPassDescriptor(targetRT.width, targetRT.height, targetRT.descriptor.msaaSamples, depthID);
         }
 
         private static GraphicsFormat GetDefaultGraphicsFormat(CameraData cameraData)
