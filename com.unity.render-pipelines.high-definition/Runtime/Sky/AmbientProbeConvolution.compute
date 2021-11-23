@@ -116,13 +116,13 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
     for (int channel = 0; channel < 3; ++channel)
     {
         outputSHCoeffs[channel * 9 + 0] = value[channel];
-        outputSHCoeffs[channel * 9 + 1] = -n.y * value[channel];
+        outputSHCoeffs[channel * 9 + 1] = n.y * value[channel];
         outputSHCoeffs[channel * 9 + 2] = n.z * value[channel];
-        outputSHCoeffs[channel * 9 + 3] = -n.x * value[channel];
+        outputSHCoeffs[channel * 9 + 3] = n.x * value[channel];
         outputSHCoeffs[channel * 9 + 4] = n.x * n.y * value[channel];
-        outputSHCoeffs[channel * 9 + 5] = -n.y * n.z * value[channel];
+        outputSHCoeffs[channel * 9 + 5] = n.y * n.z * value[channel];
         outputSHCoeffs[channel * 9 + 6] = (3.0 * n.z * n.z - 1.0) * value[channel];
-        outputSHCoeffs[channel * 9 + 7] = -n.x * n.z * value[channel];
+        outputSHCoeffs[channel * 9 + 7] = n.x * n.z * value[channel];
         outputSHCoeffs[channel * 9 + 8] = (n.x * n.x - n.y * n.y) * value[channel];
     }
 
