@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderGraph
             int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
-                HLSLDeclaration decl = (value.procedural && (value.shaderDeclaration != HLSLDeclaration.UnityPerMaterial)) ? HLSLDeclaration.Global : HLSLDeclaration.UnityPerMaterial;
+                HLSLDeclaration decl = (value.procedural) ? value.shaderDeclaration : HLSLDeclaration.UnityPerMaterial;
 
                 action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_CBDecl", decl, concretePrecision)
                 {
