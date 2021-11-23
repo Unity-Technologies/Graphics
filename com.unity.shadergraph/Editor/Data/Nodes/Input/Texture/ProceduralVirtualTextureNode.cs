@@ -7,7 +7,6 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
 #if PROCEDURAL_VT_IN_GRAPH
-
     [Title("Input", "Texture", "Procedural Virtual Texture")]
     class ProceduralVirtualTextureNode : AbstractMaterialNode
     {
@@ -98,7 +97,6 @@ namespace UnityEditor.ShaderGraph
                 Dirty(ModificationScope.Graph);
             }
         }
-
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
