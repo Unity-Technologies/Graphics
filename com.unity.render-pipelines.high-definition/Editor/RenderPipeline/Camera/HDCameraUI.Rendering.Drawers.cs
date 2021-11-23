@@ -95,6 +95,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 Drawer_Draw_DLSS_Section(p, owner);
                 EditorGUI.indentLevel--;
 #endif
+
+                EditorGUI.indentLevel++;
+                Drawer_Draw_FSR_Section(p, owner);
+                EditorGUI.indentLevel--;
             }
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
@@ -150,9 +154,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         featureDetected ? MessageType.Info : MessageType.Warning);
                 }
             }
-
 #endif
+            static void Drawer_Draw_FSR_Section(SerializedHDCamera p, Editor owner)
+            {
+                if (!p.allowDynamicResolution.boolValue)
+                    return;
 
+                EditorGUILayout.PropertyField(p.fsrSharpness, HDRenderPipelineUI.Styles.fsrSharpnessText);
+            }
 
             static void Drawer_Rendering_Antialiasing(SerializedHDCamera p, Editor owner)
             {

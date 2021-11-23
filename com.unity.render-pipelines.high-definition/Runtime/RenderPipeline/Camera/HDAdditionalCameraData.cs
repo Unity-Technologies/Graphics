@@ -389,6 +389,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [ExcludeCopy]
         internal bool cameraCanRenderDLSS = false;
 
+        /// <summary>Sets this camera's sharpness value for AMD FidelityFX Super Resolution.</summary>
+        [Tooltip("Sets this camera's sharpness value for AMD FidelityFX Super Resolution 1.0 (FSR).")]
+        [Range(0, 1)]
+        public float fsrSharpness = FSRUtils.kDefaultSharpnessLinear;
+
         /// <summary>Event used to override HDRP rendering for this particular camera.</summary>
         public event Action<ScriptableRenderContext, HDCamera> customRender;
         /// <summary>True if any Custom Render event is registered for this camera.</summary>
@@ -617,6 +622,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.deepLearningSuperSamplingUseCustomAttributes = deepLearningSuperSamplingUseCustomAttributes;
             data.deepLearningSuperSamplingUseOptimalSettings = deepLearningSuperSamplingUseOptimalSettings;
             data.deepLearningSuperSamplingSharpening = deepLearningSuperSamplingSharpening;
+
+            data.fsrSharpness = fsrSharpness;
 
             data.materialMipBias = materialMipBias;
 

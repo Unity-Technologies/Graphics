@@ -4968,8 +4968,17 @@ namespace UnityEngine.Rendering.HighDefinition
                                         // The RCAS half of the FSR technique (EASU + RCAS) is merged into FinalPass instead of
                                         // running it inside a separate compute shader. This allows us to avoid an additional
                                         // round-trip through memory which improves performance.
-                                        finalPassMaterial.EnableKeyword("RCAS");
-                                        FSRUtils.SetRcasConstants(ctx.cmd);
+
+                                        // When the sharpness value is zero, we can skip the RCAS logic since it won't make a visible difference.
+                                        if (data.hdCamera.fsrSharpness > 0.0)
+                                        {
+                                            finalPassMaterial.EnableKeyword("RCAS");
+                                            FSRUtils.SetRcasConstantsLinear(ctx.cmd, data.hdCamera.fsrSharpness);
+                                        }
+                                        else
+                                        {
+                                            finalPassMaterial.EnableKeyword("BYPASS");
+                                        }
                                         break;
                                 }
                             }
