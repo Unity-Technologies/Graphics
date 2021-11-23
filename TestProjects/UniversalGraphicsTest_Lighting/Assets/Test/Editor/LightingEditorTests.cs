@@ -6,17 +6,23 @@ using UnityEngine.Rendering.Universal;
 
 class LightingEditorTests
 {
-    const string KProjectName = "Lighting";
+    const string kProjectName = "Lighting";
 
     [Test]
     public void AllRenderersPostProcessingDisabled()
     {
-        UniversalProjectAssert.AllRenderersPostProcessing(KProjectName, expectDisabled: true);
+        UniversalProjectAssert.AllRenderersPostProcessing(kProjectName, expectDisabled: true);
     }
 
     [Test]
     public void AllUrpAssetsHaveMixedLightingEnabled()
     {
-        UniversalProjectAssert.AllUrpAssetsHaveMixedLighting(KProjectName, expectDisabled: false);
+        UniversalProjectAssert.AllUrpAssetsHaveMixedLighting(kProjectName, expectDisabled: false);
+    }
+
+    [Test]
+    public void EnsureOnlySingleQualityOption()
+    {
+        Assert.IsTrue(QualitySettings.names?.Length == 1, $"{kProjectName} project MUST have ONLY single quality setting to ensure test consistency!!!");
     }
 }
