@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Bloom", typeof(UniversalRenderPipeline))]
-    public sealed class Bloom : VolumeComponent, IPostProcessComponent
+    public sealed partial class Bloom : VolumeComponent, IPostProcessComponent
     {
         [Header("Bloom")]
         [Tooltip("Filters out pixels under this level of brightness. Value is in gamma-space.")]
