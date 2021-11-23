@@ -1,6 +1,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SphericalHarmonics.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Hammersley.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 
@@ -23,36 +23,6 @@ uniform float4 _FogParameters;
 
 #define _FogDimmer _FogParameters.x
 #define _FogAnisotropy _FogParameters.y
-
-// Constants from SetSHEMapConstants function in the Stupid Spherical Harmonics Tricks paper:
-// http://www.ppsloan.org/publications/StupidSH36.pdf
-//  [SH basis coeff] * [clamped cosine convolution factor]
-#define fC0 (rsqrt(PI * 4.0) * rsqrt(PI * 4.0))  // Equivalent (0.282095 * (1.0 / (2.0 * sqrtPI)))
-#define fC1 (rsqrt(PI * 4.0 / 3.0) * rsqrt(PI * 3.0)) // Equivalent to (0.488603 * (sqrt ( 3.0) / ( 3.0 * sqrtPI)))
-#define fC2 (rsqrt(PI * 4.0 / 15.0) * rsqrt(PI * 64.0 / 15.0)) // Equivalent to (1.092548 * (sqrt (15.0) / ( 8.0 * sqrtPI)))
-#define fC3 (rsqrt(PI * 16.0 / 5.0) * rsqrt(PI * 256.0 / 5.0)) // Equivalent to (0.315392 * (sqrt ( 5.0) / (16.0 * sqrtPI)))
-#define fC4 (rsqrt(PI * 16.0 / 15.0) * rsqrt(PI * 256.0 / 15.0)) // Equivalent to  (0.546274 * 0.5 * (sqrt (15.0) / ( 8.0 * sqrtPI)))
-
-static const float ConvolveCosineLobeBandFactor[] = { fC0, -fC1, fC1, -fC1, fC2, -fC2, fC3, -fC2, fC4 };
-
-// Constants used to premultiply SH with coefficients to avoid ALUs when sampling.
-#define k0  0.28209479177387814347f // {0, 0} : 1/2 * sqrt(1/Pi)
-#define k1  0.48860251190291992159f // {1, 0} : 1/2 * sqrt(3/Pi)
-#define k2  1.09254843059207907054f // {2,-2} : 1/2 * sqrt(15/Pi)
-#define k3  0.31539156525252000603f // {2, 0} : 1/4 * sqrt(5/Pi)
-#define k4  0.54627421529603953527f // {2, 2} : 1/4 * sqrt(15/Pi)
-
-static const float ks[] = { k0, -k1, k1, -k1, k2, -k2, k3, -k2, k4 };
-
-// Compute the inverse of SphericalHarmonicsL2::kNormalizationConstants.
-// See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks".
-#define c0 0.28209479177387814347f // 1/2  * sqrt(1/Pi)
-#define c1 0.32573500793527994772f // 1/3  * sqrt(3/Pi)
-#define c2 0.27313710764801976764f // 1/8  * sqrt(15/Pi)
-#define c3 0.07884789131313000151f // 1/16 * sqrt(5/Pi)
-#define c4 0.13656855382400988382f // 1/16 * sqrt(15/Pi)
-
-static const float invNormConsts[] = { 1 / c0, -1 / c1, 1 / c1, -1 / c1, 1 / c2, -1 / c2, 1 / c3, -1 / c2, 1 / c4 };
 
 #define SAMPLE_COUNT 256
 #define SH_COEFF_COUNT 27
@@ -228,9 +198,16 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
     // Write to memory and convolution + weighing
     if (dispatchThreadId == 0)
     {
+        // SH Encoding
         for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
-            _AmbientProbeOutputBuffer[i] = outputSHCoeffs[i] * ConvolveCosineLobeBandFactor[i % 9] * weight;
+            outputSHCoeffs[i] = outputSHCoeffs[i] * kSHBasisCoef[i % 9] * weight;
+        }
+
+        for (i = 0; i < SH_COEFF_COUNT; ++i)
+        {
+            // ClampedCosine * SHDecode
+            _AmbientProbeOutputBuffer[i] = outputSHCoeffs[i] * kClampedCosineCoefs[i % 9] * kSHBasisCoef[i % 9];
         }
 
         float result[27];
@@ -241,6 +218,7 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
             result[i] = _AmbientProbeOutputBuffer[i];
         }
 
+        // Diffuse convolution packed to be ready for shader consumption
         PackSH(_DiffuseAmbientProbeOutputBuffer, result);
 #endif
 
@@ -249,17 +227,13 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
         // The whole thing can probably be simplified but for the sake of readability it is kept as is for now. Performance should not be an issue as this is executed usually only once.
         // (or very rarely)
 
-        // Undo cosine rescaling and apply fog dimmer.
-        // NOTE: In theory we should be able to do directly:
-        // result[i] = outputSHCoeffs[i] * weight *_FogDimmer;
-        // without cosine convolution
-        // But for some reason the inverse constants invNormConsts applied here are not equivalent to ConvolveCosineLobeBandFactor.
-        // These constant come from the first C# implementation that this code replace. We probably should investigate why.
+        // Apply FogDimmer
         for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
-            result[i] = _AmbientProbeOutputBuffer[i] * invNormConsts[i % 9] *_FogDimmer;
+            result[i] = outputSHCoeffs[i] *_FogDimmer;
         }
 
+        // Apply CornetteShank phase function
         float3 zh;
         GetCornetteShanksPhaseFunction(zh, _FogAnisotropy);
         ConvolveZonal(result, zh);
@@ -270,7 +244,7 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
         // (c_0 - c_6) + c_1 y + c_2 z + c_3 x + c_4 x y + c_5 y z + c_6 (3 z^2) + c_7 x z + c_8 (x^2 - y^2)
         for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
-            result[i] = result[i] * ks[i % 9];
+            result[i] = result[i] * kSHBasisCoef[i % 9];
         }
 
         PackSH(_VolumetricAmbientProbeOutputBuffer, result);

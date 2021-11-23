@@ -99,6 +99,7 @@ groupshared int gs_localLightList[GROUP_SIZE_1D*GROUP_SIZE_1D][MAX_SUPPORTED_LIG
 
 #endif
 
+// Ambient probe for volumetric contains a convolution with Cornette Shank phase function so it needs to sample a different buffer.
 real3 EvaluateVolumetricAmbientProbe(real3 normalWS)
 {
     real4 SHCoefficients[7];
