@@ -209,7 +209,17 @@ namespace UnityEngine.Rendering.Universal
                 // cone base bias (based on distance to center sample)
                 // or receiver place bias based on derivatives.
                 // For now we scale it by the PCF kernel size of non-mobile platforms (5x5)
-                const float kernelRadius = 2.5f;
+                float kernelRadius = 2.5f;
+
+                switch (shadowData.softShadowQuality)
+                {
+                    case SoftShadowQuality.High: kernelRadius = 3.5f; break; // 7x7
+                    case SoftShadowQuality.Medium: kernelRadius = 2.5f; break; // 5x5
+                    case SoftShadowQuality.Low: kernelRadius = 1.5f; break; // 3x3
+                    case SoftShadowQuality.Lowest: kernelRadius = 1.5f; break; // 3x3
+                    default: break;
+                }
+
                 depthBias *= kernelRadius;
                 normalBias *= kernelRadius;
             }

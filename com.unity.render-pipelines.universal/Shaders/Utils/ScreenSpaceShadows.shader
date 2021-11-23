@@ -77,7 +77,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
 
             HLSLPROGRAM
             #pragma multi_compile _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT_HIGH _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_LOW _SHADOWS_SOFT_LOWEST
 
             #pragma vertex   Vertex
             #pragma fragment Fragment

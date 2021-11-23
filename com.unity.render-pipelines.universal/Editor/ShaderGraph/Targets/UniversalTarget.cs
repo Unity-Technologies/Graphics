@@ -1657,10 +1657,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor ShadowsSoft = new KeywordDescriptor()
         {
             displayName = "Shadows Soft",
-            referenceName = "_SHADOWS_SOFT",
-            type = KeywordType.Boolean,
+            referenceName = "",
+            type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "Shadows High", referenceName = "_SHADOWS_SOFT_HIGH" },
+                new KeywordEntry() { displayName = "Shadows Medium", referenceName = "_SHADOWS_SOFT_MEDIUM" },
+                new KeywordEntry() { displayName = "Shadows Low", referenceName = "_SHADOWS_SOFT_LOW" },
+                new KeywordEntry() { displayName = "Shadows Lowest", referenceName = "_SHADOWS_SOFT_LOWEST" },
+            }
         };
 
         public static readonly KeywordDescriptor MixedLightingSubtractive = new KeywordDescriptor()

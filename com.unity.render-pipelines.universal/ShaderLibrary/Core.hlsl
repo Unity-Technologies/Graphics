@@ -25,6 +25,9 @@
     #define _SHADER_QUALITY_HIGH 1
 #endif
 
+// Backwards compatibility. _SHADOWS_SOFT is deprecated.
+#if defined(_SHADOWS_SOFT) && !defined(_SHADOWS_SOFT_HIGH)
+    #define _SHADOWS_SOFT_HIGH 1
 #endif
 
 #ifndef BUMP_SCALE_NOT_SUPPORTED

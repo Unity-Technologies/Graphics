@@ -7,6 +7,7 @@ using UnityEditorInternal;
 #endif
 using System.ComponentModel;
 using System.Linq;
+using UnityEditor.Rendering;
 using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering;
 
@@ -17,6 +18,16 @@ namespace UnityEngine.Rendering.Universal
         Disabled,
         HardShadows,
         SoftShadows,
+    }
+
+    public enum SoftShadowQuality
+    {
+        // Disabled, TODO: should we wrap the bool into this enum?
+        // TODO: or try reuse above enum?
+        Lowest, // TODO: temp for perf testing, remove before landing
+        Low,
+        Medium,
+        High,
     }
 
     public enum ShadowResolution
@@ -205,6 +216,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
+        [SerializeField] SoftShadowQuality m_SoftShadowQuality = SoftShadowQuality.Medium;
         [SerializeField] bool m_ConservativeEnclosingSphere = false;
         [SerializeField] int m_NumIterationsEnclosingSphere = 64;
 
@@ -870,6 +882,12 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_SoftShadowsSupported; }
             internal set { m_SoftShadowsSupported = value; }
+        }
+
+        public SoftShadowQuality softShadowQuality
+        {
+            get { return m_SoftShadowQuality; }
+            internal set { m_SoftShadowQuality = value; }
         }
 
         public bool supportsDynamicBatching

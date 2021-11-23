@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
-
+using UnityEngine.Assertions;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
@@ -251,6 +251,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool isKeywordAdditionalLightShadowsEnabled;
         internal bool isKeywordSoftShadowsEnabled;
+        internal SoftShadowQuality softShadowQuality;
     }
 
     // Precomputed tile data.
@@ -362,7 +363,10 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string ReflectionProbeBoxProjection = "_REFLECTION_PROBE_BOX_PROJECTION";
         public static readonly string ReflectionProbeBlending = "_REFLECTION_PROBE_BLENDING";
-        public static readonly string SoftShadows = "_SHADOWS_SOFT";
+        public static readonly string SoftShadowsHigh = "_SHADOWS_SOFT_HIGH";
+        public static readonly string SoftShadowsMedium = "_SHADOWS_SOFT_MEDIUM";
+        public static readonly string SoftShadowsLow = "_SHADOWS_SOFT_LOW";
+        public static readonly string SoftShadowsLowest = "_SHADOWS_SOFT_LOWEST";
         public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
         public static readonly string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
         public static readonly string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
@@ -829,6 +833,42 @@ namespace UnityEngine.Rendering.Universal
             {
                 lightOcclusionProbeChannel[light.bakingOutput.occlusionMaskChannel] = 1.0f;
             }
+        }
+
+        internal static void SetSoftShadowKeywords(CommandBuffer cmd, bool supportsSoftShadows, SoftShadowQuality softShadwQuality)
+        {
+            bool high = false;
+            bool medium = false;
+            bool low = false;
+            bool lowest = false;
+
+            if (supportsSoftShadows)
+            {
+                switch (softShadwQuality)
+                {
+                    case SoftShadowQuality.High: high = true; break;
+                    case SoftShadowQuality.Medium: medium = true; break;
+                    case SoftShadowQuality.Low: low = true; break;
+                    case SoftShadowQuality.Lowest: lowest = true; break;
+                    default:
+                        Assertions.Assert.IsTrue(false, $"Invalid soft shadow quality option ({softShadwQuality})!");
+                        medium = true;
+                        break;
+                }
+            }
+
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsHigh, high);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsMedium, medium);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLow, low);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLowest, lowest);
+        }
+
+        internal static void DisableSoftShadowKeywords(CommandBuffer cmd)
+        {
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsHigh, false);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsMedium, false);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLow, false);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadowsLowest, false);
         }
     }
 

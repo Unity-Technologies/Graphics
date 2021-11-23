@@ -19,8 +19,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _CascadeShadowSplitSphereRadii;
             public static int _ShadowOffset0;
             public static int _ShadowOffset1;
-            public static int _ShadowOffset2;
-            public static int _ShadowOffset3;
             public static int _ShadowmapSize;
         }
 
@@ -60,8 +58,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             MainLightShadowConstantBuffer._CascadeShadowSplitSphereRadii = Shader.PropertyToID("_CascadeShadowSplitSphereRadii");
             MainLightShadowConstantBuffer._ShadowOffset0 = Shader.PropertyToID("_MainLightShadowOffset0");
             MainLightShadowConstantBuffer._ShadowOffset1 = Shader.PropertyToID("_MainLightShadowOffset1");
-            MainLightShadowConstantBuffer._ShadowOffset2 = Shader.PropertyToID("_MainLightShadowOffset2");
-            MainLightShadowConstantBuffer._ShadowOffset3 = Shader.PropertyToID("_MainLightShadowOffset3");
             MainLightShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_MainLightShadowmapSize");
 
             m_MainLightShadowmapID = Shader.PropertyToID("_MainLightShadowmapTexture");
@@ -216,7 +212,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 shadowData.isKeywordSoftShadowsEnabled = shadowLight.light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, shadowData.mainLightShadowCascadesCount == 1);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, shadowData.mainLightShadowCascadesCount > 1);
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
+                UniversalRenderPipeline.SetSoftShadowKeywords(cmd, shadowData.isKeywordSoftShadowsEnabled, shadowData.softShadowQuality);
 
                 SetupMainLightShadowReceiverConstants(cmd, shadowLight, shadowData.supportsSoftShadows);
             }
@@ -279,16 +275,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (supportsSoftShadows)
             {
                 cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowOffset0,
-                    new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
+                    new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight,
+                        invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight));
                 cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowOffset1,
-                    new Vector4(invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
-                cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowOffset2,
-                    new Vector4(-invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
-                cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowOffset3,
-                    new Vector4(invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
+                    new Vector4(-invHalfShadowAtlasWidth, invHalfShadowAtlasHeight,
+                        invHalfShadowAtlasWidth, invHalfShadowAtlasHeight));
 
-                // Currently only used when !SHADER_API_MOBILE but risky to not set them as it's generic
-                // enough so custom shaders might use it.
                 cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowmapSize, new Vector4(invShadowAtlasWidth,
                     invShadowAtlasHeight,
                     renderTargetWidth, renderTargetHeight));
