@@ -118,6 +118,10 @@ namespace UnityEditor.ShaderGraph
         {
             return vtProperty;
         }
+
+        // to show Shader Declaration in the node settings, as if this node was itself a real AbstractShaderProperty
+        internal bool AllowHLSLDeclaration(HLSLDeclaration decl) =>
+            (decl == HLSLDeclaration.Global || decl == HLSLDeclaration.UnityPerMaterial);
     }
 #endif // PROCEDURAL_VT_IN_GRAPH
 }
