@@ -252,7 +252,7 @@ namespace UnityEditor.ShaderFoundry
             if (customInterpIsInput)
                 AddCustomInterpolantVariables(blockInputs);
 
-            // Have to collect properties somehow? This doesn't work but I don't care right now...
+            // Collect properties from all nodes and from the graph itself
             PropertyCollector propCollector = new PropertyCollector();
             foreach (var node in nodes)
             {
@@ -262,6 +262,7 @@ namespace UnityEditor.ShaderFoundry
                 }
                 node.CollectShaderProperties(propCollector, GenerationMode.ForReals);
             }
+            generator.m_GraphData.CollectShaderProperties(propCollector, GenerationMode.ForReals);
             propCollector.Sort();
             PropertyUtils.BuildProperties(container, blockBuilder, blockInputs, propCollector, generator.m_GraphData.graphDefaultConcretePrecision);
 
