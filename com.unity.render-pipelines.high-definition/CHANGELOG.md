@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed stackLit coat screen space reflection and raytrace reflection light hierarchy and IBL fallback
 - Fixed compilation errors from Path Tracing on the PS5 build.
 - Fixed custom shader GUI for material inspector.
+- Fixed SpeedTree graph compatibility by adding raytracing quality keyword to provide a safe path.
 
 ### Changed
 - Optimizations for the physically based depth of field.
