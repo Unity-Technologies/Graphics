@@ -20,9 +20,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField, Reload("Runtime/Materials/SpriteMask-Default.mat")]
         Material m_DefaultMaskMaterial = null;
 
-        [SerializeField, Reload("Runtime/Materials/Sprite-Unlit-Opaque-Default.mat")]
-        Material m_DefaultOpaqueMaterial = null;
-
         internal override Shader GetDefaultShader()
         {
             return Shader.Find("Universal Render Pipeline/2D/Sprite-Lit-Default");
@@ -42,11 +39,6 @@ namespace UnityEngine.Rendering.Universal
             if (materialType == DefaultMaterialType.SpriteMask)
             {
                 return m_DefaultMaskMaterial;
-            }
-
-            if (materialType == DefaultMaterialType.SpriteOpaque)
-            {
-                return m_DefaultOpaqueMaterial;
             }
 
             return null;

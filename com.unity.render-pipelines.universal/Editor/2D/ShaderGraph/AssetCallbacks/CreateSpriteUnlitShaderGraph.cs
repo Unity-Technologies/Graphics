@@ -23,23 +23,5 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             GraphUtil.CreateNewGraphWithOutputs(new[] {target}, blockDescriptors);
         }
-
-        [MenuItem("Assets/Create/Shader Graph/URP/Sprite Unlit Opaque Shader Graph", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.assetsCreateShaderMenuPriority)]
-        public static void CreateSpriteUnlitOpaqueGraph()
-        {
-            var target = (UniversalTarget)Activator.CreateInstance(typeof(UniversalTarget));
-            target.TrySetActiveSubTarget(typeof(UniversalSpriteUnlitOpaqueSubTarget));
-
-            var blockDescriptors = new[]
-            {
-                BlockFields.VertexDescription.Position,
-                BlockFields.VertexDescription.Normal,
-                BlockFields.VertexDescription.Tangent,
-                BlockFields.SurfaceDescription.BaseColor,
-                BlockFields.SurfaceDescription.Alpha,
-            };
-
-            GraphUtil.CreateNewGraphWithOutputs(new[] {target}, blockDescriptors);
-        }
     }
 }

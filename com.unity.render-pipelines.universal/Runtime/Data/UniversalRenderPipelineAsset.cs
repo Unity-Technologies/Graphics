@@ -70,8 +70,7 @@ namespace UnityEngine.Rendering.Universal
         Sprite,
         UnityBuiltinDefault,
         SpriteMask,
-        Decal,
-        SpriteOpaque
+        Decal
     }
 
     public enum LightRenderingMode
@@ -935,11 +934,6 @@ namespace UnityEngine.Rendering.Universal
         public override Material default2DMaterial
         {
             get { return GetMaterial(DefaultMaterialType.Sprite); }
-        }
-
-        public override Material default2DOpaqueMaterial
-        {
-            get { return GetMaterial(DefaultMaterialType.SpriteOpaque); }
         }
 
         /// <summary>
