@@ -90,17 +90,17 @@ float4      _CustomRenderTextureInfo; // x = width, y = height, z = depth, w = f
 
 float _CustomRenderTextureMipLevel;
 
-Texture2D _SelfTexture2D;
+TEXTURE2D(_SelfTexture2D);
 float4 _SelfTexture2D_TexelSize;
-sampler sampler_SelfTexture2D;
+SAMPLER(sampler_SelfTexture2D);
 
-TextureCube _SelfTextureCube;
+TEXTURECUBE(_SelfTextureCube);
 float4 _SelfTextureCube_TexelSize;
-sampler sampler_SelfTextureCube;
+SAMPLER(sampler_SelfTextureCube);
 
-Texture3D _SelfTexture3D;
+TEXTURE3D(_SelfTexture3D);
 float4 _SelfTexture3D_TexelSize;
-sampler sampler_SelfTexture3D;
+SAMPLER(sampler_SelfTexture3D);
 
 float3 ComputeCubemapDirectionFromUV(float2 uv, int cubeFace)
 {
