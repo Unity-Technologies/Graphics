@@ -46,6 +46,6 @@ class FoundationEditorTests
     [Test]
     public void EnsureSingleQualityOption()
     {
-        Assert.IsTrue(UnityEngine.QualitySettings.names?.Length == 1, "Terrain project MUST have ONLY single quality setting to ensure test consistency!!!");
+        Assert.IsTrue(UnityEngine.QualitySettings.names?.Length == 1, $"{kProjectName} project MUST have ONLY single quality setting to ensure test consistency!!!");
     }
 }
