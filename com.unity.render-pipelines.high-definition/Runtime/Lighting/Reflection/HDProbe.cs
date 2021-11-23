@@ -695,6 +695,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
             DequeueSHRequest();
             UnityEditor.EditorApplication.hierarchyChanged -= UpdateProbeName;
+            UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
 #endif
         }
 
@@ -713,6 +714,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 QueueSHBaking();
 #endif
             }
+        }
+
+        void OnDestroy()
+        {
+            m_RealtimeTexture?.Release();
+            m_RealtimeDepthBuffer?.Release();
         }
     }
 }
