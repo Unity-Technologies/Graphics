@@ -7,7 +7,7 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     // TODO: handle retina / EditorGUIUtility.pixelsPerPoint
-    [VolumeComponentEditor(typeof(Tonemapping))]
+    [CustomEditor(typeof(Tonemapping))]
     sealed class TonemappingEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Mode;

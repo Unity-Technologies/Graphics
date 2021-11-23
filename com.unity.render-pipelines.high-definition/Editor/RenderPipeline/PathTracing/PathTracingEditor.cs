@@ -8,7 +8,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Experimental.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(PathTracing))]
+    [CustomEditor(typeof(PathTracing))]
     class PathTracingEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Enable;

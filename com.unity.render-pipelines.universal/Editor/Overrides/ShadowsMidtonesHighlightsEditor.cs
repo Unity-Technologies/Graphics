@@ -5,7 +5,7 @@ using UnityEngine.Rendering.Universal;
 namespace UnityEditor.Rendering.Universal
 {
     // TODO: handle retina / EditorGUIUtility.pixelsPerPoint
-    [VolumeComponentEditor(typeof(ShadowsMidtonesHighlights))]
+    [CustomEditor(typeof(ShadowsMidtonesHighlights))]
     sealed class ShadowsMidtonesHighlightsEditor : VolumeComponentEditor
     {
         static class Styles

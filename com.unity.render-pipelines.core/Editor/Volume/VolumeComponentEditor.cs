@@ -10,36 +10,9 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering
 {
     /// <summary>
-    /// This attributes tells a <see cref="VolumeComponentEditor"/> class which type of
-    /// <see cref="VolumeComponent"/> it's an editor for.
-    /// When you make a custom editor for a component, you need put this attribute on the editor
-    /// class.
-    /// </summary>
-    /// <seealso cref="VolumeComponentEditor"/>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    //[Obsolete("VolumeComponentEditor property has been deprecated. Please use CustomEditor (UnityUpgradable) -> [UnityEditor] CustomEditor")]
-    public sealed class VolumeComponentEditorAttribute : CustomEditor
-    {
-        /// <summary>
-        /// A type derived from <see cref="VolumeComponent"/>.
-        /// </summary>
-        public readonly Type componentType;
-
-        /// <summary>
-        /// Creates a new <see cref="VolumeComponentEditorAttribute"/> instance.
-        /// </summary>
-        /// <param name="componentType">A type derived from <see cref="VolumeComponent"/></param>
-        public VolumeComponentEditorAttribute(Type componentType)
-            : base(componentType, true)
-        {
-            this.componentType = componentType;
-        }
-    }
-
-    /// <summary>
     /// A custom editor class that draws a <see cref="VolumeComponent"/> in the Inspector. If you do not
     /// provide a custom editor for a <see cref="VolumeComponent"/>, Unity uses the default one.
-    /// You must use a <see cref="VolumeComponentEditorAttribute"/> to let the editor know which
+    /// You must use a <see cref="CustomEditor"/> to let the editor know which
     /// component this drawer is for.
     /// </summary>
     /// <example>
@@ -75,7 +48,7 @@ namespace UnityEditor.Rendering
     /// }
     /// </code>
     /// </example>
-    /// <seealso cref="VolumeComponentEditorAttribute"/>
+    /// <seealso cref="CustomEditor"/>
     [CustomEditor(typeof(VolumeComponent), true)]
     public class VolumeComponentEditor : Editor
     {
@@ -184,6 +157,15 @@ namespace UnityEditor.Rendering
         /// </summary>
         protected Editor m_Inspector;
 
+        /// <summary>
+        /// A reference to the parent editor in the Inspector.
+        /// </summary>
+        internal Editor inspector
+        {
+            get => m_Inspector;
+            set => m_Inspector = value;
+        }
+
         List<(GUIContent displayName, int displayOrder, SerializedDataParameter param)> m_Parameters;
 
         static Dictionary<Type, VolumeParameterDrawer> s_ParameterDrawers;
@@ -222,12 +204,13 @@ namespace UnityEditor.Rendering
         /// </summary>
         public new void Repaint()
         {
-            base.Repaint();
-            //if (m_Inspector != null) // Can happen in tests.
-                //m_Inspector.Repaint();
+            inspector?.Repaint();
+
             // Volume Component Editors can be shown in the ProjectSettings window (default volume profile)
             // This will force a repaint of the whole window, otherwise, additional properties highlight animation does not work properly.
             SettingsService.RepaintAllSettingsWindow();
+
+            base.Repaint();
         }
 
         internal void InitAdditionalPropertiesPreference()
@@ -243,8 +226,6 @@ namespace UnityEditor.Rendering
 
         internal void Init()
         {
-            //this.target = target;
-            //m_Inspector = inspector;
             activeProperty = serializedObject.FindProperty("active");
 
             InitAdditionalPropertiesPreference();
@@ -256,7 +237,7 @@ namespace UnityEditor.Rendering
 
             InitParameters();
 
-            //OnEnable();
+            OnEnable();
         }
 
         void InitParameters()

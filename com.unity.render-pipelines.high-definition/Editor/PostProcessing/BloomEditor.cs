@@ -2,7 +2,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [VolumeComponentEditor(typeof(Bloom))]
+    [CustomEditor(typeof(Bloom))]
     sealed class BloomEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_Threshold;

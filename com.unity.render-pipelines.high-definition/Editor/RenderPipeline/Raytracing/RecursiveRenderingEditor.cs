@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Experimental.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(RecursiveRendering))]
+    [CustomEditor(typeof(RecursiveRendering))]
     class RecursiveRenderingEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Enable;

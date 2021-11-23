@@ -4,7 +4,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [VolumeComponentEditor(typeof(Bloom))]
+    [CustomEditor(typeof(Bloom))]
     sealed class BloomEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Threshold;

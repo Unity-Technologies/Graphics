@@ -3,7 +3,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [VolumeComponentEditor(typeof(MotionBlur))]
+    [CustomEditor(typeof(MotionBlur))]
     sealed class MotionBlurEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_Intensity;

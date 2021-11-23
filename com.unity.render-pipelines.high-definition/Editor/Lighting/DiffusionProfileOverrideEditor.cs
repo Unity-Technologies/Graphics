@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [VolumeComponentEditor(typeof(DiffusionProfileOverride))]
+    [CustomEditor(typeof(DiffusionProfileOverride))]
     sealed class DiffusionProfileOverrideEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_DiffusionProfiles;

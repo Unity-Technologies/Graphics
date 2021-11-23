@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(GlobalIllumination))]
+    [CustomEditor(typeof(GlobalIllumination))]
     class GlobalIlluminatorEditor : VolumeComponentWithQualityEditor
     {
         // Shared rasterization / ray tracing parameter

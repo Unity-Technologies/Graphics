@@ -3,7 +3,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [VolumeComponentEditor(typeof(LiftGammaGain))]
+    [CustomEditor(typeof(LiftGammaGain))]
     sealed class LiftGammaGainEditor : VolumeComponentEditor
     {
         static class Styles
