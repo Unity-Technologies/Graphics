@@ -6,8 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.1.3] - 2021-11-17
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
+- Fixed Xbox Series X compilation issue with DoF shader
 
 ## [12.1.2] - 2021-10-22
 
@@ -36,8 +37,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed light unit conversion after changing mid gray value.
 - Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
 - Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
-- Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
-- Fixed Xbox Series X compilation issue with DoF shader
 
 ### Changed
 - Maximum light count per fine prunned tile (opaque deferred) is now 63 instead of 23.
