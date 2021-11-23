@@ -65,9 +65,9 @@ namespace UnityEditor.ShaderGraph
                 // For procedural VT, we only need to expose a single property, indicating the referenceName and the number of layers
 
                 // Adds a property as:
-                //   [ProceduralTextureStack.MyStack(1)] [NoScaleOffset] MyStack("1-Layer Procedural Stack", 2D) = "white" {}
+                //   [ProceduralTextureStack.MyStack(1)] [NoScaleOffset] MyStack("Procedural Virtual Texture", 2D) = "white" {}
                 // or:
-                //   [GlobalProceduralTextureStack.MyStack(2)] [NoScaleOffset] MyStack("2-Layer Procedural Stack", 2D) = "white" {}
+                //   [GlobalProceduralTextureStack.MyStack(2)] [NoScaleOffset] MyStack("Procedural Virtual Texture", 2D) = "white" {}
                 string prefixString = value.shaderDeclaration == HLSLDeclaration.UnityPerMaterial
                     ? "ProceduralTextureStack"
                     : "GlobalProceduralTextureStack";
