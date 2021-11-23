@@ -778,7 +778,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.Cull(Cull.Front) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.ZTest(Uniforms.zTestTransparent) },
-            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelOne] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelTwo] 2") },
         };
 
 
@@ -810,7 +811,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.Cull(Uniforms.cullModeForward) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque) },
-            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelOne] 1") },
+            { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVelTwo] 2") },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMask,
@@ -863,39 +865,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         // Here are the Pragma Collection we can add on top of the Basic one
-        public static PragmaCollection DotsInstancedInV2Only = new PragmaCollection
+        public static PragmaCollection DotsInstanced = new PragmaCollection
         {
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            #if ENABLE_HYBRID_RENDERER_V2
             { Pragma.DOTSInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
-            #endif
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
         };
 
-        public static PragmaCollection DotsInstancedInV1AndV2 = new PragmaCollection
+        public static PragmaCollection DotsInstancedEditorSync = new PragmaCollection
         {
-            // Hybrid Renderer V2 requires a completely different set of pragmas from Hybrid V1
-            #if ENABLE_HYBRID_RENDERER_V2
             { Pragma.DOTSInstancing },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            #else
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLightProbe), new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsInstancing, true) },
-            { Pragma.InstancingOptions(InstancingOptions.NoLodFade),    new FieldCondition(HDFields.DotsProperties, true) },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer), new FieldCondition[]
-              {
-                  new FieldCondition(HDFields.DotsInstancing, false),
-                  new FieldCondition(HDFields.DotsProperties, false),
-              } },
-            #endif
-        };
-
-        public static PragmaCollection DotsInstancedInV1AndV2EditorSync = new PragmaCollection
-        {
-            { DotsInstancedInV1AndV2 },
             { Pragma.EditorSyncCompilation },
+            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
         };
     }
     #endregion
@@ -1047,6 +1027,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kLightLoopDef = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl";
         public const string kPunctualLightCommon = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl";
         public const string kHDShadowLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadowLoop.hlsl";
+        public const string kHDRaytracingShadowLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/HDRaytracingShadowLoop.hlsl";
         public const string kNormalSurfaceGradient = "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl";
         public const string kLighting = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl";
         public const string kLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl";

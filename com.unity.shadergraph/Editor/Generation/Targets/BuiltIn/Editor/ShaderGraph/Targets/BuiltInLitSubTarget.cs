@@ -483,7 +483,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,                        // needed for vertex lighting
-                StructFields.Varyings.viewDirectionWS,
                 BuiltInStructFields.Varyings.lightmapUV,
                 BuiltInStructFields.Varyings.sh,
                 BuiltInStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
@@ -496,7 +495,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,                        // needed for vertex lighting
-                StructFields.Varyings.viewDirectionWS,
                 BuiltInStructFields.Varyings.lightmapUV,
                 BuiltInStructFields.Varyings.sh,
                 BuiltInStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency

@@ -6,7 +6,7 @@ struct FragOutput
 {
     float4 color : SV_TARGET;
 #ifdef DEPTH_WRITE
-    float depth : SV_DEPTH;
+    float depth : DEPTH_OFFSET_SEMANTIC;
 #endif
 };
 
