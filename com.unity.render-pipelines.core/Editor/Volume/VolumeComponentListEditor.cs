@@ -155,8 +155,8 @@ namespace UnityEditor.Rendering
             if (!m_EditorTypes.TryGetValue(componentType, out Type editorType))
                 editorType = typeof(VolumeComponentEditor);
 
-            var editor = (VolumeComponentEditor)Activator.CreateInstance(editorType);
-            editor.Init(component, m_BaseEditor);
+            var editor = (VolumeComponentEditor)Editor.CreateEditor(component); //(VolumeComponentEditor)Activator.CreateInstance(editorType);
+            //editor.Init(component, m_BaseEditor);
             editor.baseProperty = property.Copy();
 
             if (forceOpen)
@@ -278,7 +278,7 @@ namespace UnityEditor.Rendering
 
         void OnContextClick(Vector2 position, VolumeComponentEditor targetEditor, int id)
         {
-            var targetComponent = targetEditor.target;
+            var targetComponent = targetEditor.volumeComponent;
             var menu = new GenericMenu();
 
             if (id == 0)
