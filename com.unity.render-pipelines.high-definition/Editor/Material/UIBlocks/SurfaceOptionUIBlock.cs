@@ -142,7 +142,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent opaqueCullModeText = new GUIContent("Cull Mode", "For opaque objects, change the cull mode of the object.");
 
-            public static string afterPostProcessZTestInfoBox = "After post-process material wont be ZTested. Enable the \"ZTest For After PostProcess\" checkbox in the Frame Settings to force the depth-test if the TAA is disabled.";
+            public static string afterPostProcessInfoBox = "If After post-process objects don't render, make sure to enable \"After Post-process\" in the frame settings.\nAfter post-process material wont be ZTested. Enable the \"ZTest For After PostProcess\" checkbox in the Frame Settings to force the depth-test if the TAA is disabled.";
 
             public static readonly GUIContent[] displacementModeLitNames = new GUIContent[] { new GUIContent("None"), new GUIContent("Vertex displacement"), new GUIContent("Pixel displacement") };
             public static readonly int[] displacementModeLitValues = new int[] { (int)DisplacementMode.None, (int)DisplacementMode.Vertex, (int)DisplacementMode.Pixel };
@@ -220,6 +220,8 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty transparentCullMode = null;
         MaterialProperty opaqueCullMode = null;
         MaterialProperty rayTracing = null;
+
+        SerializedProperty renderQueueProperty = null;
 
         SurfaceType defaultSurfaceType { get { return SurfaceType.Opaque; } }
 
@@ -364,6 +366,8 @@ namespace UnityEditor.Rendering.HighDefinition
             rayTracing = FindProperty(kRayTracing);
 
             refractionModel = FindProperty(kRefractionModel);
+
+            renderQueueProperty = materialEditor.serializedObject.FindProperty("m_CustomRenderQueue");
         }
 
         /// <summary>
@@ -590,7 +594,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void ShowAfterPostProcessZTestInfoBox()
         {
-            EditorGUILayout.HelpBox(Styles.afterPostProcessZTestInfoBox, MessageType.Info);
+            EditorGUILayout.HelpBox(Styles.afterPostProcessInfoBox, MessageType.Info);
         }
 
         void SurfaceTypePopup()
@@ -632,6 +636,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox(Styles.transparentSSSErrorMessage, MessageType.Error);
             }
 
+            MaterialEditor.BeginProperty(renderQueueProperty);
             switch (mode)
             {
                 case SurfaceType.Opaque:
@@ -667,6 +672,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 default:
                     throw new ArgumentException("Unknown SurfaceType");
             }
+            MaterialEditor.EndProperty();
+
             --EditorGUI.indentLevel;
             EditorGUI.showMixedValue = false;
 
@@ -837,6 +844,7 @@ namespace UnityEditor.Rendering.HighDefinition
             int mode = (int)GetFilteredDisplacementMode(prop);
             bool mixed = HasMixedDisplacementMode(prop);
 
+            MaterialEditor.BeginProperty(prop);
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = mixed;
             int newMode = EditorGUILayout.IntPopup(label, mode, displayedOptions, optionValues);
@@ -846,6 +854,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.RegisterPropertyChangeUndo(label.text);
                 prop.floatValue = newMode;
             }
+            MaterialEditor.EndProperty();
 
             return (DisplacementMode)newMode;
         }

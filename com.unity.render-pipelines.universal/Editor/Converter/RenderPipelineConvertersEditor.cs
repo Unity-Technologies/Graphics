@@ -660,7 +660,6 @@ namespace UnityEditor.Rendering.Universal.Converters
             int activeConvertersCount = activeConverterStates.Count;
             foreach (ConverterState activeConverterState in activeConverterStates)
             {
-                AssetDatabase.StartAssetEditing();
                 currentCount++;
                 var index = activeConverterState.index;
                 m_CoreConvertersList[index].OnPreRun();
@@ -680,7 +679,6 @@ namespace UnityEditor.Rendering.Universal.Converters
                 }
                 m_CoreConvertersList[index].OnPostRun();
                 AssetDatabase.SaveAssets();
-                AssetDatabase.StopAssetEditing();
                 EditorUtility.ClearProgressBar();
             }
 
