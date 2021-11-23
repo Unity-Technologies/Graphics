@@ -62,22 +62,18 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                if(value.shaderDeclaration == HLSLDeclaration.UnityPerMaterial)
-                {
-                    // adds properties in this format so: [ProceduralTextureStack.MyStack(0)] [NoScaleOffset] MyStack_0("Procedural Stack Placeholder", 2D) = "white" {}
-                    for (int layer = 0; layer < value.layers.Count; layer++)
-                    {
-                        builder.AppendLine($"{hideTagString}[ProceduralTextureStack.{referenceName}({layer})][NoScaleOffset]{referenceName}_{layer}(\"{"Procedural Stack Placeholder"}\", 2D) = \"white\" {{}}");
-                    }
-                }
-                else
-                {
-                    // adds properties in this format so: [GlobalProceduralTextureStack.MyStack(0)] [NoScaleOffset] MyStack_0("Global Procedural Stack Placeholder", 2D) = "white" {}
-                    for (int layer = 0; layer < value.layers.Count; layer++)
-                    {
-                        builder.AppendLine($"{hideTagString}[GlobalProceduralTextureStack.{referenceName}({layer})][NoScaleOffset]{referenceName}_{layer}(\"{"Global Procedural Stack Placeholder"}\", 2D) = \"white\" {{}}");
-                    }
-                }
+                // For procedural VT, we only need to expose a single property, indicating the referenceName and the number of layers
+
+                // Adds a property as:
+                //   [ProceduralTextureStack.MyStack(1)] [NoScaleOffset] MyStack("1-Layer Procedural Stack", 2D) = "white" {}
+                // or:
+                //   [GlobalProceduralTextureStack.MyStack(2)] [NoScaleOffset] MyStack("2-Layer Procedural Stack", 2D) = "white" {}
+                string prefixString = value.shaderDeclaration == HLSLDeclaration.UnityPerMaterial
+                    ? "ProceduralTextureStack"
+                    : "GlobalProceduralTextureStack";
+
+                int numLayers = value.layers.Count;
+                builder.AppendLine($"{hideTagString}[{prefixString}.{referenceName}({numLayers})][NoScaleOffset]{referenceName}(\"{"Procedural Virtual Texture"}\", 2D) = \"white\" {{}}");
             }
         }
 
