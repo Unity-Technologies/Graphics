@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when changing volume profiles at runtime with a script (case 1364256).
 
 ### Changed
-- Volume Component editor are now specified by `CustomEditorAttribute` instead of `VolumeComponentEditorAttribute`. 
+- Volume Component editor are now specified by `CustomEditorAttribute` instead of `VolumeComponentEditorAttribute`.
 
 ## [13.1.1] - 2021-10-04
 

@@ -241,7 +241,7 @@ namespace UnityEditor.Rendering
         }
 
         void InitParameters()
-        { 
+        {
             VolumeComponent.FindParameters(target, m_VolumeNotAdditionalParameters, field => field.GetCustomAttribute<AdditionalPropertyAttribute>() == null);
         }
 
