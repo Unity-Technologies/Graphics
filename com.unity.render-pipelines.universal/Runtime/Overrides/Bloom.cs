@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public enum Downscale
+    public enum BloomDownscaleMode
     {
         Half,
         Quarter,
@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
         public BoolParameter highQualityFiltering = new BoolParameter(false);
 
         [Tooltip("The starting resolution that this effect begins processing."), AdditionalProperty]
-        public DownscaleParameter downscale = new DownscaleParameter(Downscale.Half);
+        public DownscaleParameter downscale = new DownscaleParameter(BloomDownscaleMode.Half);
 
         [Tooltip("The maximum number of iterations in the effect processing sequence."), AdditionalProperty]
         public ClampedIntParameter maxIterations = new ClampedIntParameter(6, 2, 8);
@@ -49,5 +49,5 @@ namespace UnityEngine.Rendering.Universal
     }
 
     [Serializable]
-    public sealed class DownscaleParameter : VolumeParameter<Downscale> { public DownscaleParameter(Downscale value, bool overrideState = false) : base(value, overrideState) { } }
+    public sealed class DownscaleParameter : VolumeParameter<BloomDownscaleMode> { public DownscaleParameter(BloomDownscaleMode value, bool overrideState = false) : base(value, overrideState) { } }
 }

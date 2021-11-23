@@ -1098,10 +1098,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             int downres = 1;
             switch (m_Bloom.downscale.value)
             {
-                case Downscale.Half:
+                case BloomDownscaleMode.Half:
                     downres = 1;
                     break;
-                case Downscale.Quarter:
+                case BloomDownscaleMode.Quarter:
                     downres = 2;
                     break;
                 default:
