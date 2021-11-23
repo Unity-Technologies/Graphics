@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Multiply blend now keeps DstAlpha as it's RGB only.
 - Particle AlphaModulate() renamed to AlphaModulateAndPremultiply() as it does both. Moved separate AlphaModulate() and AlphaPremultiply() to URP shader library. Fix double alpha multiply for ParticleLit.
 - Improved blending modes trigger a material update which tries to keep the existing look intact. This is not always possible and manual blend mode changes might be required.
+- Changed "_USE_DRAW_PROCEDURAL" to be used only in vertex shader in Post Processing related shaders as they are not needed for fragment shaders. In result we now generate less shader variants.
 
 ### Fixed
 - Fixed incorrect premultiply blend mode. case 1260085, case 1357703, [case 1347301](https://issuetracker.unity3d.com/product/unity/issues/guid/1347301/)
@@ -64,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed disabled debug lighting modes on Vulkan and OpenGL following a shader compiler fix. [case 1334240]
 - Fixed an issue in where the Convert Renderering Settings would cause a freeze. [case 1353885](https://issuetracker.unity3d.com/issues/urp-builtin-to-urp-render-pipeline-converter-freezes-the-editor-when-converting-rendering-settings)
 - Fixed incorrect behavior of Reflections with Smoothness lighting debug mode. [case 1374181]
+- Fixed an issue in where the _ScreenParams is not setup correctly.
 - Fixed an issue where intermediate rendertextures were not scaled when a camera was rendering to a texture [case 1342895](https://issuetracker.unity3d.com/issues/camera-rendertocubemap-offsets-and-stretches-out-the-ambient-occlusionl-layer-when-the-render-scale-is-not-equal-to-1)
 
 ## [13.1.0] - 2021-09-24
