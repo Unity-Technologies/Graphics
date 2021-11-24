@@ -11,13 +11,15 @@
 
 #pragma multi_compile _ DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
 #pragma multi_compile _ SSR_APPROX
+#pragma multi_compile _ SSR_IMPORTANCE_SAMPLE_SKY
 
 // Tweak parameters.
 // #define DEBUG
 #define SSR_TRACE_BEHIND_OBJECTS
 #define SSR_TRACE_TOWARDS_EYE
 #ifndef SSR_APPROX
-    #define SAMPLES_VNDF
+    //#define SAMPLES_VNDF
+    #define SAMPLES_SKY
 #endif
 #define SSR_TRACE_EPS               0.000488281f // 2^-11, should be good up to 4K
 #define MIN_GGX_ROUGHNESS           0.00001f
@@ -49,6 +51,9 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/TemporalAntialiasing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.cs.hlsl"
+
+#define HORIZONTAL
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Core/CoreResources/ImportanceSampling2D.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
@@ -89,6 +94,11 @@ TEXTURE2D_X(_DepthTexture);
     StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
     StructuredBuffer<uint>  _CoarseStencilBuffer;
 
+float _SkyTextureImportanceSamplerReady;
+float4 _SkyTextureSizeInfos;
+TEXTURE2D_X(_SkyTextureIntegrals);
+TEXTURE2D_X(_SkyTextureMarginals);
+TEXTURE2D_X(_SkyTextureConditionalMarginals);
 //--------------------------------------------------------------------------------------------------
 // Helpers
 //--------------------------------------------------------------------------------------------------
@@ -139,6 +149,41 @@ bool SampleGGX_VNDF(float roughness_,
     return true;
 }
 
+float3 SphericalTexCoordinateToDirection(float2 sphTexCoord)
+{
+    float pi    = 3.1415926535897932384626433832795f;
+    float theta = (1.0f - sphTexCoord.x)*(2.0f*pi);
+    float phi   = (sphTexCoord.y - 0.5f)*pi;
+
+    float csTh, siTh, csPh, siPh;
+    sincos(theta, siTh, csTh);
+    sincos(phi, siPh, csPh);
+
+    // theta is 0 at negative Z (backwards). Coordinate frame is (-Z,X) meaning negative Z is primary axis and X is secondary axis.
+    return float3(siTh*csPh, siPh, -csTh*csPh);
+}
+
+bool ImportanceSampleSky(float3x3 localToWorld, float3 V, float2 inputSample, out float3 outgoingDir, out float weight)
+{
+    float2 latLongUV;
+
+    float2 infos = ImportanceSamplingLatLongArray(latLongUV, outgoingDir, inputSample, _SkyTextureSizeInfos.xyz, _SkyTextureMarginals, s_linear_clamp_sampler, _SkyTextureConditionalMarginals, s_linear_clamp_sampler);
+
+    float integral = SAMPLE_TEXTURE2D_ARRAY_LOD(_SkyTextureIntegrals, s_linear_clamp_sampler, float2(0.0f, 0.0f), 0, 0).x;
+
+    float3 dir = SphericalTexCoordinateToDirection(latLongUV);
+    float sin0 = sin(latLongUV.y * PI);
+
+    if (infos.x == 0.0f)
+        weight = 0.0f;
+    else
+        //weight = sin0 / infos.x;
+        weight = infos.x / integral;
+        //integral;// *sin0; *infos.x;
+
+    return true;
+}
+
 float PerceptualRoughnessFade(float perceptualRoughness, float fadeRcpLength, float fadeEndTimesRcpLength)
 {
     float t = Remap10(perceptualRoughness, fadeRcpLength, fadeEndTimesRcpLength);
@@ -152,8 +197,10 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
     hitPositionNDC = _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)].xy;
 
     float2 Xi;
+    float rnd;
     Xi.x = GetBNDSequenceSample(positionSS, _FrameCount, 0);
     Xi.y = GetBNDSequenceSample(positionSS, _FrameCount, 1);
+    rnd = GetBNDSequenceSample(positionSS, _FrameCount, 2);
 
     NormalData normalData;
     DecodeFromNormalBuffer(positionSS, normalData);
@@ -163,7 +210,9 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
     float3x3 localToWorld = GetLocalFrame(normalData.normalWS);
 
-    Xi.x = lerp(Xi.x, 0.0f, srcPerceptualRoughness * 0.7f); // 0.7 is an arbitrary bias to reduce noise for high roughness
+    //Xi.x = lerp(Xi.x, 0.0f, srcPerceptualRoughness * 0.7f); // 0.7 is an arbitrary bias to reduce noise for high roughness
+    float curCoefBias = 0.0f / srcPerceptualRoughness;
+    Xi.x = lerp(Xi.x, 0.0f, curCoefBias);
 
 #ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
     float  deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, positionSS).r;
@@ -178,14 +227,50 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
     N = normalData.normalWS;
 
 #ifdef SAMPLES_VNDF
-    float value;
-
     SampleGGX_VNDF(roughness,
         localToWorld,
         V,
         Xi,
         L,
         weight);
+
+    NdotV = dot(normalData.normalWS, V);
+    NdotL = dot(normalData.normalWS, L);
+    float3 H = normalize(V + L);
+    NdotH = dot(normalData.normalWS, H);
+    VdotH = dot(V, H);
+#elif defined(SAMPLES_SKY)
+#define SPEC_SKY 2
+#if SPEC_SKY == 0
+    SampleGGX_VNDF(roughness,
+        localToWorld,
+        V,
+        Xi,
+        L,
+        weight);
+#elif SPEC_SKY == 1
+    ImportanceSampleSky(localToWorld, V, Xi, L, weight);
+#else
+#if SSR_IMPORTANCE_SAMPLE_SKY
+    //if (rnd >= normalData.perceptualRoughness)
+    if (rnd >= roughness)
+        SampleGGX_VNDF(roughness,
+            localToWorld,
+            V,
+            Xi,
+            L,
+            weight);
+    else
+        ImportanceSampleSky(localToWorld, V, Xi, L, weight);
+#else
+    SampleGGX_VNDF(roughness,
+        localToWorld,
+        V,
+        Xi,
+        L,
+        weight);
+#endif
+#endif
 
     NdotV = dot(normalData.normalWS, V);
     NdotL = dot(normalData.normalWS, L);
