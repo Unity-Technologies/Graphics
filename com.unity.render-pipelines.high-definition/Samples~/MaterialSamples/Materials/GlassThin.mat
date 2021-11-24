@@ -98,7 +98,7 @@ Material:
         m_Scale: {x: 2, y: 2}
         m_Offset: {x: 0.5, y: 0}
     - _MaskMap:
-        m_Texture: {fileID: 2800000, guid: a6f7a16e2b2a05a43980982ef82f4895, type: 3}
+        m_Texture: {fileID: 2800000, guid: 92698d328efc440499637775b3035f4b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
@@ -239,7 +239,7 @@ Material:
     - _GlossyReflections: 1
     - _HdrpVersion: 2
     - _HeightAmplitude: 0.02
-    - _HeightCenter: 0.5
+    - _HeightCenter: 1
     - _HeightMapParametrization: 0
     - _HeightMax: 1
     - _HeightMin: -1
@@ -345,7 +345,7 @@ Material:
     - _SpecColor: {r: 0.23096885, g: 0.33779976, b: 0.35294116, a: 1}
     - _SpecularColor: {r: 0.8308824, g: 0.8308824, b: 0.8308824, a: 1}
     - _ThicknessRemap: {r: 0, g: 1, b: 0, a: 0}
-    - _TransmittanceColor: {r: 1, g: 1, b: 1, a: 1}
+    - _TransmittanceColor: {r: 0.98039216, g: 0.98039216, b: 0.98039216, a: 1}
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
@@ -363,3 +363,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   version: 12
+  hdPluginSubTargetMaterialVersions:
+    m_Keys: []
+    m_Values: 
