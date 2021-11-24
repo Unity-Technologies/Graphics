@@ -114,4 +114,46 @@ void GetCornetteShanksPhaseFunction(out float3 zh, float anisotropy)
     zh.z = (0.126157f + 1.44179f * (g * g) + 0.324403f * (g * g) * (g * g)) / (2.0f + (g * g));
 }
 
+void ConvolveZonal(inout float sh[27], float3 zh)
+{
+    for (int l = 0; l <= 2; l++)
+    {
+        float n = sqrt((4.0f * PI) / (2 * l + 1));
+        float k = zh[l];
+        float p = n * k;
+
+        for (int m = -l; m <= l; m++)
+        {
+            int i = l * (l + 1) + m;
+
+            for (int c = 0; c < 3; c++)
+            {
+                sh[c * 9 + i] = sh[c * 9 + i] * p;
+            }
+        }
+    }
+}
+
+// Packs coefficients so that we can use Peter-Pike Sloan's shader code.
+// Does not perform premultiplication with coefficients of SH basis functions.
+// See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks".
+// Constant + linear
+void PackSH(RWStructuredBuffer<float4> buffer, float sh[27])
+{
+    for (int c = 0; c < 3; c++)
+
+    {
+        buffer[c] = float4(sh[c * 9 + 3], sh[c * 9 + 1], sh[c * 9 + 2], sh[c * 9 + 0] - sh[c * 9 + 6]);
+    }
+
+    // Quadratic (4/5)
+    for (int c = 0; c < 3; c++)
+    {
+        buffer[3 + c] = float4(sh[c * 9 + 4], sh[c * 9 + 5], sh[c * 9 + 6] * 3.0f, sh[c * 9 + 7]);
+    }
+
+    // Quadratic (5)
+    buffer[6] = float4(sh[0 * 9 + 8], sh[1 * 9 + 8], sh[2 * 9 + 8], 1.0f);
+}
+
 #endif // UNITY_SPHERICAL_HARMONICS_INCLUDED
