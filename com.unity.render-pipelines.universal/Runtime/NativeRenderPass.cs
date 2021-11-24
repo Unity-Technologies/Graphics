@@ -338,7 +338,7 @@ namespace UnityEngine.Rendering.Universal
 
                     AttachmentDescriptor currentAttachmentDescriptor;
                     var usesTargetTexture = cameraData.targetTexture != null;
-                    var target = usesTargetTexture ? cameraData.targetTexture : (pass.overrideCameraTarget ? pass.colorAttachmentHandle.rt : cameraColorTargetHandle);
+                    var target = pass.overrideCameraTarget ? pass.colorAttachmentHandle.rt : cameraColorTargetHandle;
                     var depthOnly = renderPass.depthOnly || (usesTargetTexture && IsDepthOnlyRenderTexture(cameraData.targetTexture));
                     // Offscreen depth-only cameras need this set explicitly
                     if (depthOnly && usesTargetTexture)
