@@ -93,6 +93,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         // RTHandle alias for _TempTarget2
         RTHandle m_TempTarget2 = RTHandles.Alloc(ShaderConstants._TempTarget2);
 
+        // RTHandle used as a temporary target when operations need to be performed before upscaling
+        RTHandle m_UpscaleSetupTarget;
+
         Material m_BlitMaterial;
 
         public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
@@ -147,6 +150,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         public void Cleanup() => m_Materials.Cleanup();
+
+        public void Dispose()
+        {
+            m_UpscaleSetupTarget?.Release();
+        }
 
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, bool resolveToScreen, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
         {
@@ -1388,7 +1396,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
             bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
-            bool isUpscaleSetupTextureUsed = false;
 
             if (cameraData.imageScaling != ImageScaling.None)
             {
@@ -1405,13 +1412,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     m_Materials.upscaleSetup.EnableKeyword(ShaderKeywordStrings.Fxaa);
 
-                    isUpscaleSetupTextureUsed = true;
+                    RenderingUtils.ReAllocateIfNeeded(ref m_UpscaleSetupTarget, tempRtDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_UpscaleSetupTexture");
+                    Blit(cmd, m_Source, m_UpscaleSetupTarget, m_Materials.upscaleSetup);
 
-                    cmd.GetTemporaryRT(ShaderConstants._UpscaleSetupTexture, tempRtDesc, FilterMode.Point);
-                    var tempSetupRtId = new RenderTargetIdentifier(ShaderConstants._UpscaleSetupTexture);
-                    Blit(cmd, m_Source, tempSetupRtId, m_Materials.upscaleSetup);
-
-                    cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, tempSetupRtId);
+                    cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_UpscaleSetupTarget);
                 }
 
                 switch (cameraData.imageScaling)
@@ -1486,11 +1490,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 #pragma warning disable 0618 // Obsolete usage: RenderTargetIdentifiers required here because of use of RenderTexture cameraData.targetTexture which is not managed by RTHandles
                 cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
 #pragma warning restore 0618
-            }
-
-            if (isUpscaleSetupTextureUsed)
-            {
-                cmd.ReleaseTemporaryRT(ShaderConstants._UpscaleSetupTexture);
             }
         }
 
@@ -1614,8 +1613,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _FlareData5 = Shader.PropertyToID("_FlareData5");
 
             public static readonly int _FullscreenProjMat = Shader.PropertyToID("_FullscreenProjMat");
-
-            public static readonly int _UpscaleSetupTexture = Shader.PropertyToID("_UpscaleSetupTexture");
 
             public static int[] _BloomMipUp;
             public static int[] _BloomMipDown;
