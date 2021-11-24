@@ -24,6 +24,7 @@ The version number for this package has increased due to a version update of a r
 ### Fixed
 - Fixed a regression bug where XR camera postion can not be modified in beginCameraRendering [case 1365000]
 - Fix for rendering thumbnails. [case 1348209](https://issuetracker.unity3d.com/issues/preview-of-assets-do-not-show-in-the-project-window)
+- Fix shadow rendering correctly to work with shader stripping in WebGl. [case 1381881](https://issuetracker.unity3d.com/issues/webgl-urp-mesh-is-not-rendered-in-the-scene-on-webgl-build)
 
 ## [12.1.0] - 2021-09-23
 
