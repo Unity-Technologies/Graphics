@@ -228,7 +228,7 @@ namespace UnityEngine.Rendering.Universal
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));
-
+            Debug.Log("Testing URP Guardian");
 #if UNITY_2021_1_OR_NEWER
             using (new ProfilingScope(null, Profiling.Pipeline.beginContextRendering))
             {
