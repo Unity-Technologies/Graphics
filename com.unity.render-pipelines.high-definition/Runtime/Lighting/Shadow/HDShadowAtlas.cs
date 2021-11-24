@@ -184,6 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_UseSharedTexture)
             {
                 m_Output = TextureHandle.nullHandle;
+                m_ShadowMapOutput = TextureHandle.nullHandle;
             }
         }
 
@@ -233,6 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderGraph.ReleaseSharedTexture(m_Output);
                 m_UseSharedTexture = false;
                 m_Output = TextureHandle.nullHandle;
+                m_ShadowMapOutput = TextureHandle.nullHandle;
             }
         }
 
