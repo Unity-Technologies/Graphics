@@ -26,7 +26,10 @@ namespace UnityEngine.Rendering.Universal
             ConfigureCameraTarget(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget);
 
             foreach (var feature in rendererFeatures)
+            {
                 feature.AddRenderPasses(this, ref renderingData);
+                feature.SetupRenderPasses(this, in renderingData);
+            }
             EnqueuePass(m_RenderOpaqueForwardPass);
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
