@@ -484,7 +484,21 @@ namespace UnityEditor.VFX.UI
             {
                 VisualEffectAssetEditorUtility.CreateTemplateAsset(filePath);
 
-                VFXViewWindow.GetWindow(this).LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath), null);
+                var existingWindow = VFXViewWindow.GetAllWindows().SingleOrDefault(x =>
+                {
+                    var asset = x.displayedResource != null ? x.displayedResource.asset : null;
+                    return asset != null && AssetDatabase.GetAssetPath(asset) == filePath;
+                });
+                if (existingWindow != null)
+                {
+                    existingWindow.Show();
+                    existingWindow.Focus();
+                }
+                else
+                {
+                    VFXViewWindow.GetWindow(this).LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath), null);
+                }
+
             }
         }
 

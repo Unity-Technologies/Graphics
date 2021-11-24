@@ -110,6 +110,7 @@ namespace UnityEditor.VFX.UI
         public static ReadOnlyCollection<VFXViewWindow> GetAllWindows() => s_VFXWindows.AsReadOnly();
 
         public VFXView graphView { get; private set; }
+        public VisualEffectResource displayedResource => m_DisplayedResource;
 
         public void LoadAsset(VisualEffectAsset asset, VisualEffect effectToAttach)
         {
