@@ -330,7 +330,7 @@ namespace UnityEditor.Rendering
             {
                 index = w.currentIndex;
                 index = EditorGUI.IntPopup(rect, Mathf.Clamp(index, 0, w.enumNames.Length - 1), w.enumNames, w.indexes);
-                value = w.enumValues[Mathf.Clamp(index, 0, w.enumValues.Length -1)];
+                value = w.enumValues[Mathf.Clamp(index, 0, w.enumValues.Length - 1)];
             }
 
             if (EditorGUI.EndChangeCheck())
