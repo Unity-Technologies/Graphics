@@ -64,9 +64,6 @@ namespace UnityEditor.Rendering
                 saveChangeState = true;
             }
             GUI.changed = saveChangeState;
-
-            if (expanded)
-                ++EditorGUI.indentLevel;
         }
 
         /// <summary>
@@ -85,12 +82,8 @@ namespace UnityEditor.Rendering
         /// <summary>Disposes of the material scope header and cleans up any resources it used.</summary>
         void IDisposable.Dispose()
         {
-            if (expanded)
-            {
-                if (spaceAtEnd && (Event.current.type == EventType.Repaint || Event.current.type == EventType.Layout))
-                    EditorGUILayout.Space();
-                --EditorGUI.indentLevel;
-            }
+            if (expanded && spaceAtEnd && (Event.current.type == EventType.Repaint || Event.current.type == EventType.Layout))
+                EditorGUILayout.Space();
 
 #if !UNITY_2020_1_OR_NEWER
             EditorGUI.indentLevel = oldIndentLevel;
