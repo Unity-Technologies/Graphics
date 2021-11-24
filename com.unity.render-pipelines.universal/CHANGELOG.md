@@ -120,6 +120,7 @@ The version number for this package has increased due to a version update of a r
 - Refactored some of the array resizing code around decal projector rendering to use new APIs in render core
 - UniversalRendererData and ForwardRendererData GUIDs have been reversed so that users coming from 2019LTS, 2020LTS and 2021.1 have a smooth upgrade path, you may encounter issues coming from 2021.2 Alpha/Beta versions and are recommended to start with a fresh library if initial upgrade fails.
 - VFX: New shadergraph support directly on Universal target.
+- Changed `BaseShaderGUI.DrawAdditionalFoldouts`to `BaseShaderGUI.FillAdditionalFoldouts`.
 
 ### Fixed
 - Fixed an issue in PostProcessPass causing OnGUI draws to not show on screen. [case 1346650]
