@@ -153,14 +153,12 @@ namespace UnityEngine.Rendering.HighDefinition
         static string k_PanelDisplayStats = "Display Stats";
         static string k_PanelMaterials = "Material";
         static string k_PanelLighting = "Lighting";
-        static string k_PanelVolume = "Volume";
         static string k_PanelRendering = "Rendering";
         static string k_PanelDecals = "Decals";
 
         DebugUI.Widget[] m_DebugDisplayStatsItems;
         DebugUI.Widget[] m_DebugMaterialItems;
         DebugUI.Widget[] m_DebugLightingItems;
-        DebugUI.Widget[] m_DebugVolumeItems;
         DebugUI.Widget[] m_DebugRenderingItems;
         DebugUI.Widget[] m_DebugDecalsItems;
 
@@ -250,8 +248,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public DecalsDebugSettings decalsDebugSettings = new DecalsDebugSettings();
             /// <summary>Current transparency debug settings.</summary>
             public TransparencyDebugSettings transparencyDebugSettings = new TransparencyDebugSettings();
-            /// <summary>Current volume debug settings.</summary>
-            public IVolumeDebugSettings volumeDebugSettings = new HDVolumeDebugSettings();
             /// <summary>Index of screen space shadow to display.</summary>
             public uint screenSpaceShadowIndex = 0;
             /// <summary>Max quad cost for quad overdraw display.</summary>
@@ -294,8 +290,6 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int hdrDebugModeEnumIndex;
             internal int msaaSampleDebugModeEnumIndex;
             internal int debugCameraToFreezeEnumIndex;
-            internal int volumeComponentEnumIndex;
-            internal int volumeCameraEnumIndex;
 
             private float m_DebugGlobalMipBiasOverride = 0.0f;
 
@@ -822,6 +816,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_RecordedSamplersRT.Add(HDProfileId.RaytracingBuildCluster);
             m_RecordedSamplersRT.Add(HDProfileId.RaytracingCullLights);
+            m_RecordedSamplersRT.Add(HDProfileId.RaytracingBuildAccelerationStructure);
 
             // Ray Traced Reflections
             m_RecordedSamplersRT.Add(HDProfileId.RaytracingReflectionDirectionGeneration);
@@ -906,11 +901,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     displayName = sampler.name,
                     values = new[]
-                    {
+                {
                         CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.CPU),
                         CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.InlineCPU),
                         CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.GPU),
-                    }
+                }
                 });
             }
 
@@ -1147,12 +1142,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
             RegisterMaterialDebug();
-        }
-
-        void RefreshVolumeDebug<T>(DebugUI.Field<T> field, T value)
-        {
-            UnregisterDebugItems(k_PanelVolume, m_DebugVolumeItems);
-            RegisterVolumeDebug();
         }
 
         static class LightingStrings
@@ -1684,292 +1673,6 @@ namespace UnityEngine.Rendering.HighDefinition
             panel.children.Add(m_DebugLightingItems);
         }
 
-        void RegisterVolumeDebug()
-        {
-            var list = new List<DebugUI.Widget>();
-
-            int componentIndex = 0;
-            var componentNames = new List<GUIContent>() { new GUIContent("None") };
-            var componentValues = new List<int>() { componentIndex++ };
-
-            // TODO @alex.vazquez: Use the same method as VolumeComponentProvider
-            foreach (var type in HDVolumeDebugSettings.componentTypes)
-            {
-                componentNames.Add(new GUIContent() { text = HDVolumeDebugSettings.ComponentDisplayName(type) });
-                componentValues.Add(componentIndex++);
-            }
-
-            list.Add(new DebugUI.EnumField
-            {
-                displayName = "Component",
-                getter = () => data.volumeDebugSettings.selectedComponent,
-                setter = value => data.volumeDebugSettings.selectedComponent = value,
-                enumNames = componentNames.ToArray(),
-                enumValues = componentValues.ToArray(),
-                getIndex = () => data.volumeComponentEnumIndex,
-                setIndex = value => { data.volumeComponentEnumIndex = value; },
-                onValueChanged = RefreshVolumeDebug,
-            });
-
-            if (data.volumeDebugSettings.selectedComponent != 0)
-            {
-                componentIndex = 0;
-                componentNames = new List<GUIContent>() { new GUIContent("None") };
-                componentValues = new List<int>() { componentIndex++ };
-
-#if UNITY_EDITOR
-                componentNames.Add(new GUIContent() { text = "Editor Camera" });
-                componentValues.Add(componentIndex++);
-#endif
-
-                foreach (var camera in data.volumeDebugSettings.cameras)
-                {
-                    componentNames.Add(new GUIContent() { text = camera.name });
-                    componentValues.Add(componentIndex++);
-                }
-
-                list.Add(new DebugUI.EnumField
-                {
-                    displayName = "Camera",
-                    getter = () => data.volumeDebugSettings.selectedCameraIndex,
-                    setter = value => data.volumeDebugSettings.selectedCameraIndex = value,
-                    enumNames = componentNames.ToArray(),
-                    enumValues = componentValues.ToArray(),
-                    getIndex = () => data.volumeCameraEnumIndex,
-                    setIndex = value => { data.volumeCameraEnumIndex = value; },
-                    onValueChanged = RefreshVolumeDebug,
-                });
-
-                if (data.volumeDebugSettings.selectedCameraIndex != 0)
-                {
-                    DebugUI.Widget makeWidget(string name, VolumeParameter param)
-                    {
-                        if (param == null)
-                            return new DebugUI.Value() { displayName = name, getter = () => "-" };
-
-                        // Special overrides
-                        if (param.GetType() == typeof(ColorParameter))
-                        {
-                            var p = (ColorParameter)param;
-                            return new DebugUI.ColorField()
-                            {
-                                displayName = name,
-                                hdr = p.hdr,
-                                showAlpha = p.showAlpha,
-                                getter = () => p.value,
-                                setter = _ => { }
-                            };
-                        }
-
-                        if (param.GetType() == typeof(BoolParameter))
-                        {
-                            var p = (BoolParameter)param;
-                            return new DebugUI.BoolField()
-                            {
-                                displayName = name,
-                                getter = () => p.value,
-                                setter = _ => { }
-                            };
-                        }
-
-                        if (param.GetType() == typeof(DiffusionProfileSettingsParameter))
-                        {
-                            var p = (DiffusionProfileSettingsParameter)param;
-                            return new DebugUI.ObjectListField()
-                            {
-                                displayName = name,
-                                getter = () => p.value,
-                                type = typeof(DiffusionProfileSettings)
-                            };
-                        }
-
-                        // For parameters that do not override `ToString`
-                        var property = param.GetType().GetProperty("value");
-                        var toString = property.PropertyType.GetMethod("ToString", Type.EmptyTypes);
-                        if ((toString == null) || (toString.DeclaringType == typeof(object)) || (toString.DeclaringType == typeof(UnityEngine.Object)))
-                        {
-                            // Check if the parameter has a name
-                            var nameProp = property.PropertyType.GetProperty("name");
-                            if (nameProp == null)
-                                return new DebugUI.Value() { displayName = name, getter = () => "Debug view not supported" };
-
-                            // Return the parameter name
-                            return new DebugUI.Value()
-                            {
-                                displayName = name,
-                                getter = () =>
-                                {
-                                    var value = property.GetValue(param);
-                                    if (value == null || value.Equals(null))
-                                        return "None";
-                                    var valueString = nameProp.GetValue(value);
-                                    return valueString == null ? "None" : valueString;
-                                }
-                            };
-                        }
-
-                        // Call the ToString method
-                        return new DebugUI.Value()
-                        {
-                            displayName = name,
-                            getter = () =>
-                            {
-                                var value = property.GetValue(param);
-                                return value == null ? "None" : value.ToString();
-                            }
-                        };
-                    }
-
-                    Type selectedType = data.volumeDebugSettings.selectedComponentType;
-                    var stackComponent = data.volumeDebugSettings.selectedCameraVolumeStack.GetComponent(selectedType);
-
-                    var volumes = data.volumeDebugSettings.GetVolumes();
-                    var table = new DebugUI.Table() { displayName = "Parameter", isReadOnly = true };
-
-                    var inst = (VolumeComponent)ScriptableObject.CreateInstance(selectedType);
-
-                    // First row for volume info
-                    float timer = 0.0f, refreshRate = 0.2f;
-                    var row = new DebugUI.Table.Row()
-                    {
-                        displayName = "Volume Info",
-                        opened = true, // Open by default for the in-game view
-                        children =
-                        {
-                            new DebugUI.Value()
-                            {
-                                displayName = "Interpolated Value",
-                                getter = () =>
-                                {
-                                    // This getter is called first at each render
-                                    // It is used to update the volumes
-                                    if (Time.time - timer < refreshRate)
-                                        return "";
-                                    timer = Time.deltaTime;
-                                    if (data.volumeDebugSettings.selectedCameraIndex != 0)
-                                    {
-                                        var newVolumes = data.volumeDebugSettings.GetVolumes();
-                                        if (!data.volumeDebugSettings.RefreshVolumes(newVolumes))
-                                        {
-                                            for (int i = 0; i < newVolumes.Length; i++)
-                                            {
-                                                var visible = data.volumeDebugSettings.VolumeHasInfluence(newVolumes[i]);
-                                                table.SetColumnVisibility(i + 1, visible);
-                                            }
-
-                                            return "";
-                                        }
-                                    }
-
-                                    RefreshVolumeDebug(null, false);
-                                    return "";
-                                }
-                            }
-                        }
-                    };
-
-                    // Second row, links to volume gameobjects
-                    var row2 = new DebugUI.Table.Row()
-                    {
-                        displayName = "GameObject",
-                        children = { new DebugUI.Value() { getter = () => string.Empty } }
-                    };
-
-                    foreach (var volume in volumes)
-                    {
-                        var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
-                        row.children.Add(new DebugUI.Value()
-                        {
-                            displayName = profile.name,
-                            getter = () =>
-                            {
-                                var scope = volume.isGlobal ? "Global" : "Local";
-                                var weight = data.volumeDebugSettings.GetVolumeWeight(volume);
-                                return scope + " (" + (weight * 100f) + "%)";
-                            }
-                        });
-
-                        row2.children.Add(new DebugUI.ObjectField()
-                        {
-                            displayName = profile.name,
-                            getter = () => volume,
-                            type = typeof(DiffusionProfileSettings)
-                        });
-                    }
-
-                    row.children.Add(new DebugUI.Value() { displayName = "Default Value", getter = () => string.Empty });
-                    table.children.Add(row);
-
-                    row2.children.Add(new DebugUI.Value() { getter = () => string.Empty });
-                    table.children.Add(row2);
-
-                    // Build rows - recursively handles nested parameters
-                    var rows = new List<DebugUI.Table.Row>();
-                    void AddParameterRows(Type type, string baseName = null)
-                    {
-                        void AddRow(FieldInfo f, string prefix)
-                        {
-                            var fieldName = prefix + f.Name;
-                            var attr = (DisplayInfoAttribute[])f.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
-                            if (attr.Length != 0)
-                                fieldName = prefix + attr[0].name;
-#if UNITY_EDITOR
-                            // Would be nice to have the equivalent for the runtime debug.
-                            else
-                                fieldName = UnityEditor.ObjectNames.NicifyVariableName(fieldName);
-#endif
-
-                            int currentParam = rows.Count;
-                            row = new DebugUI.Table.Row()
-                            {
-                                displayName = fieldName,
-                                children = { makeWidget("Interpolated Value", stackComponent.parameters[currentParam]) }
-                            };
-
-                            foreach (var volume in volumes)
-                            {
-                                VolumeParameter param = null;
-                                var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
-                                if (profile.TryGet(selectedType, out VolumeComponent component) && component.parameters[currentParam].overrideState)
-                                    param = component.parameters[currentParam];
-                                row.children.Add(makeWidget(profile.name, param));
-                            }
-
-                            row.children.Add(makeWidget("Default Value", inst.parameters[currentParam]));
-                            rows.Add(row);
-                        }
-
-                        var fields = type
-                            .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                            .OrderBy(t => t.MetadataToken);
-                        foreach (var field in fields)
-                        {
-                            if (field.GetCustomAttributes(typeof(ObsoleteAttribute), false).Length != 0)
-                                continue;
-                            var fieldType = field.FieldType;
-                            if (fieldType.IsSubclassOf(typeof(VolumeParameter)))
-                                AddRow(field, baseName ?? "");
-                            else if (!fieldType.IsArray && fieldType.IsClass)
-                                AddParameterRows(fieldType, baseName ?? (field.Name + " "));
-                        }
-                    }
-
-                    AddParameterRows(selectedType);
-                    foreach (var r in rows.OrderBy(t => t.displayName))
-                        table.children.Add(r);
-
-                    data.volumeDebugSettings.RefreshVolumes(volumes);
-                    for (int i = 0; i < volumes.Length; i++)
-                        table.SetColumnVisibility(i + 1, data.volumeDebugSettings.VolumeHasInfluence(volumes[i]));
-                    list.Add(table);
-                }
-            }
-
-            m_DebugVolumeItems = list.ToArray();
-            var panel = DebugManager.instance.GetPanel(k_PanelVolume, true);
-            panel.children.Add(m_DebugVolumeItems);
-        }
-
         static class RenderingStrings
         {
             public static readonly NameAndTooltip FullscreenDebugMode = new() { name = "Fullscreen Debug Mode", tooltip = "Use the drop-down to select a rendering mode to display as an overlay on the screen." };
@@ -2158,7 +1861,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RegisterDisplayStatsDebug();
             RegisterMaterialDebug();
             RegisterLightingDebug();
-            RegisterVolumeDebug();
             RegisterRenderingDebug();
             DebugManager.instance.RegisterData(this);
         }
@@ -2169,7 +1871,6 @@ namespace UnityEngine.Rendering.HighDefinition
             UnregisterDisplayStatsDebug();
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
-            UnregisterDebugItems(k_PanelVolume, m_DebugVolumeItems);
             UnregisterRenderingDebug();
             DebugManager.instance.UnregisterData(this);
         }
