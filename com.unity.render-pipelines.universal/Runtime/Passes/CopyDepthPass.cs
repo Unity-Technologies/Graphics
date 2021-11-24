@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.graphicsFormat = isDepth ? GraphicsFormat.D32_SFloat_S8_UInt : GraphicsFormat.R32_SFloat;
             descriptor.msaaSamples = 1;
 
-            ConfigureTarget(destination, descriptor.graphicsFormat, descriptor.width, descriptor.height, descriptor.msaaSamples, isDepth);
+            ConfigureTarget(destination, isDepth);
             ConfigureClear(ClearFlag.None, Color.black);
         }
 

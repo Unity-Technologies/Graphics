@@ -143,9 +143,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             if (m_CreateEmptyShadowmap)
-                ConfigureTarget(m_EmptyLightShadowmapTexture, m_EmptyLightShadowmapTexture.rt.depthStencilFormat, renderTargetWidth, renderTargetHeight, 1, true);
+                ConfigureTarget(m_EmptyLightShadowmapTexture, true);
             else
-                ConfigureTarget(m_MainLightShadowmapTexture, m_MainLightShadowmapTexture.rt.depthStencilFormat, renderTargetWidth, renderTargetHeight, 1, true);
+                ConfigureTarget(m_MainLightShadowmapTexture, true);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 

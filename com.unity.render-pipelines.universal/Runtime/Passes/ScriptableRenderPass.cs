@@ -438,21 +438,6 @@ namespace UnityEngine.Rendering.Universal
             ConfigureTarget(colorAttachment);
         }
 
-        [Obsolete("Use RTHandles for colorAttachment and depthAttachment")]
-        internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, GraphicsFormat format)
-        {
-            m_DepthAttachment = null;
-            m_DepthAttachmentId = depthAttachment;
-            ConfigureTarget(colorAttachment, format);
-        }
-
-        internal void ConfigureTarget(RTHandle colorAttachment, RTHandle depthAttachment, GraphicsFormat format)
-        {
-            m_DepthAttachment = depthAttachment;
-            m_DepthAttachmentId = m_DepthAttachment.nameID;
-            ConfigureTarget(colorAttachment, format);
-        }
-
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
@@ -499,14 +484,6 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachment = depthAttachment;
         }
 
-        [Obsolete("Use RTHandles for colorAttachments and depthAttachment")]
-        internal void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment, GraphicsFormat[] formats)
-        {
-            ConfigureTarget(colorAttachments, depthAttachment);
-            for (int i = 0; i < formats.Length; ++i)
-                renderTargetFormat[i] = formats[i];
-        }
-
         internal void ConfigureTarget(RTHandle[] colorAttachments, RTHandle depthAttachment, GraphicsFormat[] formats)
         {
             ConfigureTarget(colorAttachments, depthAttachment);
@@ -551,37 +528,37 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [Obsolete("Use RTHandle for colorAttachment")]
-        internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, GraphicsFormat format, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
+        // [Obsolete("Use RTHandle for colorAttachment")]
+        // internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, GraphicsFormat format, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
+        // {
+        //     ConfigureTarget(colorAttachment);
+        //     for (int i = 1; i < m_ColorAttachments.Length; ++i)
+        //         renderTargetFormat[i] = GraphicsFormat.None;
+        //
+        //     if (depth == true && !GraphicsFormatUtility.IsDepthFormat(format))
+        //         throw new ArgumentException("When configuring a depth only target the passed in format must be a depth format.");
+        //
+        //     renderTargetWidth = width;
+        //     renderTargetHeight = height;
+        //     renderTargetSampleCount = sampleCount;
+        //     depthOnly = depth;
+        //     renderTargetFormat[0] = format;
+        // }
+
+        internal void ConfigureTarget(RTHandle colorAttachment, bool depth)
         {
             ConfigureTarget(colorAttachment);
-            for (int i = 1; i < m_ColorAttachments.Length; ++i)
-                renderTargetFormat[i] = GraphicsFormat.None;
+            //for (int i = 1; i < m_ColorAttachments.Length; ++i)
+            //    renderTargetFormat[i] = GraphicsFormat.None;
 
-            if (depth == true && !GraphicsFormatUtility.IsDepthFormat(format))
-                throw new ArgumentException("When configuring a depth only target the passed in format must be a depth format.");
-
-            renderTargetWidth = width;
-            renderTargetHeight = height;
-            renderTargetSampleCount = sampleCount;
+            // if (depth == true && !GraphicsFormatUtility.IsDepthFormat(format))
+            //     throw new ArgumentException("When configuring a depth only target the passed in format must be a depth format.");
+            //
+            // renderTargetWidth = width;
+            // renderTargetHeight = height;
+            // renderTargetSampleCount = sampleCount;
             depthOnly = depth;
-            renderTargetFormat[0] = format;
-        }
-
-        internal void ConfigureTarget(RTHandle colorAttachment, GraphicsFormat format, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
-        {
-            ConfigureTarget(colorAttachment);
-            for (int i = 1; i < m_ColorAttachments.Length; ++i)
-                renderTargetFormat[i] = GraphicsFormat.None;
-
-            if (depth == true && !GraphicsFormatUtility.IsDepthFormat(format))
-                throw new ArgumentException("When configuring a depth only target the passed in format must be a depth format.");
-
-            renderTargetWidth = width;
-            renderTargetHeight = height;
-            renderTargetSampleCount = sampleCount;
-            depthOnly = depth;
-            renderTargetFormat[0] = format;
+           // renderTargetFormat[0] = colorAttachment.rt.graphicsFormat;
         }
 
         /// <summary>

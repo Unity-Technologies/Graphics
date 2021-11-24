@@ -31,9 +31,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_DeferredLights.UseRenderPass)
                 ConfigureInputAttachments(m_DeferredLights.DeferredInputAttachments, m_DeferredLights.DeferredInputIsTransient);
 
-            // TODO: change to m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferLightingIndex) when it's not GraphicsFormat.None
             // TODO: Cannot currently bind depth texture as read-only!
-            ConfigureTarget(lightingAttachment, depthAttachment, cameraTextureDescripor.graphicsFormat);
+            ConfigureTarget(lightingAttachment, depthAttachment);
         }
 
         // ScriptableRenderPass

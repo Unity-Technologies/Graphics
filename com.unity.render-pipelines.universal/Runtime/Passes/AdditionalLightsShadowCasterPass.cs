@@ -819,7 +819,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            ConfigureTarget(m_AdditionalLightsShadowmapHandle, m_AdditionalLightsShadowmapHandle.rt.depthStencilFormat, renderTargetWidth, renderTargetHeight, 1, true);
+            ConfigureTarget(m_AdditionalLightsShadowmapHandle, true);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
