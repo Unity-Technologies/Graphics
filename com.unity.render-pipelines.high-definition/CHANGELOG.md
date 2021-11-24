@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed range fields for depth of field (case 1376609).
 - Fixed exception on DLSS when motion vectors are disabled (case # 1377986).
 - Fixed Lens Flare visible when being behind a camera with Panini Projection on (case 1370214)
+- Fixed the ray tracing acceleration structure build marker not being included in the ray tracing stats (case 1379383).
 
 ## [12.1.2] - 2021-10-22
 
