@@ -323,7 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.positionRWS = cookieParams.position;
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
-                lightData.positionRWS -= hdCamera.camera.transform.position;
+                lightData.positionRWS -= hdCamera.mainViewConstants.worldSpaceCameraPos;
             }
 
             if (additionalLightData.surfaceTexture == null)

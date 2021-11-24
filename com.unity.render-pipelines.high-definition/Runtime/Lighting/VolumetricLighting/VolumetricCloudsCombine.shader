@@ -62,7 +62,9 @@ Shader "Hidden/HDRP/VolumetricCloudsCombine"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 // Composite the result via hardware blending.
-                return LOAD_TEXTURE2D_X(_VolumetricCloudsUpscaleTextureRW, input.positionCS.xy);
+                // If MSAA is enabled on the camera, due to internal limitations, a different blending profile is used that may result in darker cloud edges.
+                float4 cloudData = LOAD_TEXTURE2D_X(_VolumetricCloudsUpscaleTextureRW, input.positionCS.xy);
+                return float4(cloudData.xyz, _CubicTransmittance ? cloudData.w * cloudData.w : cloudData.w);
             }
             ENDHLSL
         }

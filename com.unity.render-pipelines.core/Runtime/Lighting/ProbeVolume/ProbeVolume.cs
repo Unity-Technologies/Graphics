@@ -1,7 +1,3 @@
-using System;
-using UnityEngine.Serialization;
-using UnityEditor.Experimental;
-using Unity.Collections;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
@@ -39,6 +35,7 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField] internal Matrix4x4 cachedTransform;
         [SerializeField] internal int cachedHashCode;
 
+#if UNITY_EDITOR
         /// <summary>
         /// Returns the extents of the volume.
         /// </summary>
@@ -48,7 +45,6 @@ namespace UnityEngine.Experimental.Rendering
             return size;
         }
 
-#if UNITY_EDITOR
         internal void UpdateGlobalVolume(Scene scene)
         {
             if (gameObject.scene != scene) return;
@@ -126,8 +122,6 @@ namespace UnityEngine.Experimental.Rendering
             return hash;
         }
 
-#endif
-
         internal float GetMinSubdivMultiplier()
         {
             float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
@@ -145,6 +139,8 @@ namespace UnityEngine.Experimental.Rendering
         // other non-hidden component related to APV.
         #region APVGizmo
 
+        static List<ProbeVolume> sProbeVolumeInstances = new();
+
         MeshGizmo brickGizmos;
         MeshGizmo cellGizmo;
 
@@ -156,23 +152,19 @@ namespace UnityEngine.Experimental.Rendering
             cellGizmo = null;
         }
 
-        void OnDestroy()
+        void OnEnable()
         {
-            DisposeGizmos();
+            sProbeVolumeInstances.Add(this);
         }
 
         void OnDisable()
         {
+            sProbeVolumeInstances.Remove(this);
             DisposeGizmos();
         }
-#if UNITY_EDITOR
 
         // Only the first PV of the available ones will draw gizmos.
-        bool IsResponsibleToDrawGizmo()
-        {
-            var pvList = GameObject.FindObjectsOfType<ProbeVolume>();
-            return this == pvList[0];
-        }
+        bool IsResponsibleToDrawGizmo() => sProbeVolumeInstances.Count > 0 && sProbeVolumeInstances[0] == this;
 
         internal bool ShouldCullCell(Vector3 cellPosition, Vector3 originWS = default(Vector3))
         {
@@ -218,7 +210,6 @@ namespace UnityEngine.Experimental.Rendering
                     return;
                 cellSizeInMeters = profile.cellSizeInMeters;
             }
-
 
             if (debugDisplay.drawBricks)
             {
@@ -327,8 +318,8 @@ namespace UnityEngine.Experimental.Rendering
                 cellGizmo.RenderWireframe(Gizmos.matrix, gizmoName: "Brick Gizmo Rendering");
             }
         }
-
-#endif
         #endregion
+
+#endif // UNITY_EDITOR
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline

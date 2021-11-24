@@ -4,7 +4,15 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.2] - 2021-11-05
+
+### Fixed
+- Removed extra nodes in Ribbon template. [Case 1355602](https://issuetracker.unity3d.com/product/unity/issues/guid/1355602/)
+- Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
+
 ## [13.1.1] - 2021-10-04
+### Added
+- Multiple VFX graphs can be opened at the same time
 
 ### Changed
 - Search window now lists more nodes variants and they are organized by attribute first instead of operation
@@ -19,6 +27,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix potentially invalid value for pixel dimensions in HDRPCameraBinder
 - Exposed Camera property fails to upgrade and is converted to a float type [Case 1357685](https://issuetracker.unity3d.com/product/unity/issues/guid/1357685/)
 - Unexpected possible connection between GPUEvent and Spawn context [Case 1362739](https://issuetracker.unity3d.com/product/unity/issues/guid/1362739/)
+- Fixed Collision with Depth when using a physical camera. [Case 1344733](https://issuetracker.unity3d.com/product/unity/issues/guid/1344733/)
+- Fix bounds helper tool (automatic systems culling, world bounds computation, ...)
 
 ## [13.1.0] - 2021-09-24
 
@@ -26,6 +36,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rename "Material Offset" to "Sorting Priority" in output render state settings [Case 1365257](https://issuetracker.unity3d.com/product/unity/issues/guid/1365257/)
 
 ## [13.0.0] - 2021-09-01
+### Added
+- New options to select how to sort particles in the Output Context.
+
 
 ### Fixed
 - Prevent vector truncation error in HDRP Decal template
