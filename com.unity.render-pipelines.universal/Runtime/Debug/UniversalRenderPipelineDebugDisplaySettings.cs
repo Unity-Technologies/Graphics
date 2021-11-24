@@ -22,6 +22,11 @@ namespace UnityEngine.Rendering.Universal
         public DebugDisplaySettingsLighting lightingSettings { get; private set; }
 
         /// <summary>
+        /// Volume-related Rendering Debugger settings.
+        /// </summary>
+        public DebugDisplaySettingsVolume volumeSettings { get; private set; }
+
+        /// <summary>
         /// Display stats.
         /// </summary>
         internal DebugDisplayStats DisplayStats { get; private set; }
@@ -81,6 +86,7 @@ namespace UnityEngine.Rendering.Universal
             materialSettings = Add(new DebugDisplaySettingsMaterial());
             lightingSettings = Add(new DebugDisplaySettingsLighting());
             renderingSettings = Add(new DebugDisplaySettingsRendering());
+            volumeSettings = Add(new DebugDisplaySettingsVolume(new UniversalRenderPipelineVolumeDebugSettings()));
         }
 
         internal void UpdateFrameTiming()
