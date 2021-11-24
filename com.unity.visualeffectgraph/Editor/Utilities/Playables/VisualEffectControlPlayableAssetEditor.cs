@@ -120,6 +120,7 @@ namespace UnityEditor.VFX
 
         struct ClipEventBar
         {
+            public Color color;
             public float start;
             public float end;
             public uint rowIndex;
@@ -133,7 +134,7 @@ namespace UnityEditor.VFX
             {
                 if (o.rowIndex == current.rowIndex)
                 {
-                    if (Mathf.Min(o.start, current.start) <= Mathf.Min(o.end, current.end))
+                    if (!(current.end < o.start || current.start > o.end))
                         return true;
                 }
                 return false;
@@ -165,8 +166,8 @@ namespace UnityEditor.VFX
                 GUI.Label(scrubbingRect, Content.scrubbingDisabled, Style.scrubbingDisabled);
             }
 
-            var clipEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart, playable, true);
-            var singleEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart, playable, false);
+            var clipEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.AfterClipStart, playable, true);
+            var singleEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.AfterClipStart, playable, false);
             var allEvents = clipEvents.Concat(singleEvents);
             var clipEventsCount = clipEvents.Count();
             int index = 0;
@@ -178,16 +179,15 @@ namespace UnityEditor.VFX
                 var center = new Vector2(currentRect.position.x + currentRect.width * (float)relativeTime,
                     currentRect.height - eventNameHeight);
 
-                float color = index < clipEventsCount ? 0.5f : 0.3f;
                 var eventRect = new Rect(center - iconSize * new Vector2(1.0f, -0.5f), iconSize);
-                EditorGUI.DrawRect(eventRect, Color.HSVToRGB(color, 1.0f, 1.0f));
+                EditorGUI.DrawRect(eventRect, new Color(itEvent.editorColor.r, itEvent.editorColor.g, itEvent.editorColor.b));
 
                 var textRect = new Rect(center + new Vector2(2.0f, 0), iconSize);
                 ShadowLabel(textRect,
                     new GUIContent((string)itEvent.name),
                     Style.noneStyle,
-                    Color.HSVToRGB(color, 1.0f, 1.0f),
-                    Color.HSVToRGB(color, 1.0f, 0.1f));
+                    Color.white,
+                    Color.black);
 
                 index++;
             }
@@ -208,7 +208,8 @@ namespace UnityEditor.VFX
                     {
                         start = (float)enter.time,
                         end = (float)exit.time,
-                        rowIndex = 0u
+                        rowIndex = 0u,
+                        color = new Color(enter.editorColor.r, enter.editorColor.g, enter.editorColor.b)
                     };
 
                     while (!AvailableEmplacement(candidate, m_ClipEventBars))
@@ -237,10 +238,7 @@ namespace UnityEditor.VFX
                     endRange - startRange,
                     rowHeight - padding);
 
-                float hue = 0.5f;
-                var color = Color.HSVToRGB(hue, 1.0f, 1.0f);
-                color.a = 0.5f;
-                EditorGUI.DrawRect(rect, color);
+                EditorGUI.DrawRect(rect, bar.color);
             }
 
         }

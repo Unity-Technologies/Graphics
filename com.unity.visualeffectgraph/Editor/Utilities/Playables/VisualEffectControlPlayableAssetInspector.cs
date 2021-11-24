@@ -42,13 +42,28 @@ namespace UnityEditor.VFX
         }
     }
 
-    [CustomPropertyDrawer(typeof(VisualEffectPlayableSerializedEvent.TimeSpace))]
+    /*
+    [CustomPropertyDrawer(typeof(VisualEffectPlayableSerializedEvent))]
+    class VisualEffectPlayableSerializedEventDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            EditorGUI.PropertyField(position, property);
+        }
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            return EditorGUI.GetPropertyHeight(property);
+        }
+    }*/
+
+    [CustomPropertyDrawer(typeof(PlayableTimeSpace))]
     class VisualEffectPlayableSerializedEventTimeSpaceDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var previousTimeSpace = (VisualEffectPlayableSerializedEvent.TimeSpace)property.enumValueIndex;
-            var newTimeSpace = (VisualEffectPlayableSerializedEvent.TimeSpace)EditorGUI.EnumPopup(position, label, previousTimeSpace);
+            var previousTimeSpace = (PlayableTimeSpace)property.enumValueIndex;
+            var newTimeSpace = (PlayableTimeSpace)EditorGUI.EnumPopup(position, label, previousTimeSpace);
             if (previousTimeSpace != newTimeSpace)
             {
                 property.enumValueIndex = (int)newTimeSpace;
@@ -285,6 +300,15 @@ namespace UnityEditor.VFX
         private static VisualEffectPlayableSerializedEvent DeepClone(VisualEffectPlayableSerializedEvent source)
         {
             VisualEffectPlayableSerializedEvent newEvent = source;
+            newEvent.editorColor = new Color(newEvent.editorColor.r, newEvent.editorColor.g, newEvent.editorColor.b, newEvent.editorColor.a);
+            newEvent.name = DeepClone(newEvent.name);
+            newEvent.eventAttributes.content = DeepClone(newEvent.eventAttributes.content);
+            return newEvent;
+        }
+
+        private static VisualEffectPlayableSerializedEventNoColor DeepClone(VisualEffectPlayableSerializedEventNoColor source)
+        {
+            VisualEffectPlayableSerializedEventNoColor newEvent = source;
             newEvent.name = DeepClone(newEvent.name);
             newEvent.eventAttributes.content = DeepClone(newEvent.eventAttributes.content);
             return newEvent;
@@ -362,12 +386,12 @@ namespace UnityEditor.VFX
                     newClipEvent.enter.eventAttributes = new UnityEngine.VFX.EventAttributes();
                     newClipEvent.enter.name = VisualEffectAsset.PlayEventName;
                     newClipEvent.enter.time = 0.0;
-                    newClipEvent.enter.timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart;
+                    newClipEvent.enter.timeSpace = PlayableTimeSpace.AfterClipStart;
 
                     newClipEvent.exit.eventAttributes = new UnityEngine.VFX.EventAttributes();
                     newClipEvent.exit.name = VisualEffectAsset.StopEventName;
                     newClipEvent.exit.time = 0.0;
-                    newClipEvent.exit.timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd;
+                    newClipEvent.exit.timeSpace = PlayableTimeSpace.BeforeClipEnd;
                 }
                 playable.clipEvents.Add(newClipEvent);
                 clipEventsProperty.serializedObject.Update();

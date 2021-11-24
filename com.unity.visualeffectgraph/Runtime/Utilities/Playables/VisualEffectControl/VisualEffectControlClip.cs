@@ -55,12 +55,15 @@ namespace UnityEngine.VFX
             eventName = VisualEffectAsset.PlayEventName
         };
 
-
+        //TODOPAUL: Think about default value of editorColor
         [Serializable]
         public struct ClipEvent
         {
-            public VisualEffectPlayableSerializedEvent enter;
-            public VisualEffectPlayableSerializedEvent exit;
+#if UNITY_EDITOR
+            public Color editorColor;
+#endif
+            public VisualEffectPlayableSerializedEventNoColor enter;
+            public VisualEffectPlayableSerializedEventNoColor exit;
         }
 
         [NotKeyable]
@@ -68,18 +71,18 @@ namespace UnityEngine.VFX
         {
             new ClipEvent()
             {
-                enter = new VisualEffectPlayableSerializedEvent()
+                enter = new VisualEffectPlayableSerializedEventNoColor()
                 {
                     name = VisualEffectAsset.PlayEventName,
                     time = 0.0,
-                    timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart,
+                    timeSpace = PlayableTimeSpace.AfterClipStart,
                 },
 
-                exit = new VisualEffectPlayableSerializedEvent()
+                exit = new VisualEffectPlayableSerializedEventNoColor()
                 {
                     name = VisualEffectAsset.StopEventName,
                     time = 0.0,
-                    timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd,
+                    timeSpace = PlayableTimeSpace.BeforeClipEnd,
                 }
             }
         };

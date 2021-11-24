@@ -492,7 +492,7 @@ namespace UnityEngine.VFX
 
         static IEnumerable<Event> ComputeRuntimeEvent(VisualEffectControlPlayableBehaviour behavior, VisualEffect vfx)
         {
-            var events = VFXTimeSpaceHelper.GetEventNormalizedSpace(VisualEffectPlayableSerializedEvent.TimeSpace.Absolute, behavior);
+            var events = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.Absolute, behavior);
             foreach (var itEvent in events)
             {
                 //Apply clamping on the fly
