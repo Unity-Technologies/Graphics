@@ -835,8 +835,13 @@ namespace UnityEditor.ShaderFoundry
                         dotsInstancedPropertyBuilder.AppendLine("#define HYBRID_V1_CUSTOM_ADDITIONAL_MATERIAL_VARS \\");
 
                         int count = 0;
+                        var visitedProperties = new HashSet<string>();
                         foreach (var prop in shaderProperties)
                         {
+                            if (visitedProperties.Contains(prop.Name))
+                                continue;
+                            visitedProperties.Add(prop.Name);
+
                             if (prop.Attributes.GetDeclaration() != HLSLDeclaration.HybridPerInstance)
                                 continue;
 
