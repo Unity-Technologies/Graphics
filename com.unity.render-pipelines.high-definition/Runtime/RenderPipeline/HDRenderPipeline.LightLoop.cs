@@ -827,8 +827,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.DispatchCompute(data.deferredComputeShader, kernel, data.numTilesX * 2, data.numTilesY * 2, data.viewCount);
                     }
                 }
-
-                data.deferredComputeShader.EnableKeyword("CAPSULE_SHADOWS");
             }
         }
 

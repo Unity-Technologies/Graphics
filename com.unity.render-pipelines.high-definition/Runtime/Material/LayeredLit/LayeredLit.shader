@@ -693,6 +693,7 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
             #pragma multi_compile_fragment _ LIGHT_LAYERS
+            #pragma multi_compile_fragment _ CAPSULE_SHADOWS
 
         #ifndef DEBUG_DISPLAY
             // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
@@ -928,6 +929,7 @@ Shader "HDRP/LayeredLit"
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
+            #pragma multi_compile_fragment _ CAPSULE_SHADOWS
 
             // Supported shadow modes per light type
             #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH

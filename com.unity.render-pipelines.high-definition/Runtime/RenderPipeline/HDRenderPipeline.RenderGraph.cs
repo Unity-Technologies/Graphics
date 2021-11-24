@@ -836,6 +836,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         BindGlobalLightListBuffers(data, context);
                         BindDBufferGlobalData(data.dbuffer, context);
                         BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
+                        BindGlobalCapsuleShadowBuffers(context.cmd);
 
                         RenderForwardRendererList(data.frameSettings, data.rendererList, true, context.renderContext, context.cmd);
 
