@@ -1527,6 +1527,25 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_EnableCapsuleShadows = false;
+        /// <summary>
+        /// Controls if we want to cast capsule shadows.
+        /// </summary>
+        public bool enableCapsuleShadows
+        {
+            get => m_EnableCapsuleShadows;
+            set
+            {
+                if (m_EnableCapsuleShadows == value)
+                    return;
+
+                m_EnableCapsuleShadows = value;
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).enableCapsuleShadows = m_EnableCapsuleShadows;
+            }
+        }
+
+        [SerializeField]
         ShadowUpdateMode m_ShadowUpdateMode = ShadowUpdateMode.EveryFrame;
         /// <summary>
         /// Get/Set the shadow update mode.
@@ -3631,6 +3650,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.surfaceTint = m_SurfaceTint;
             lightRenderData.shadowTint = m_ShadowTint;
             lightRenderData.flareTint = m_FlareTint;
+            lightRenderData.enableCapsuleShadows = m_EnableCapsuleShadows;
         }
 
         internal void CreateHDLightRenderEntity(bool autoDestroy = false)

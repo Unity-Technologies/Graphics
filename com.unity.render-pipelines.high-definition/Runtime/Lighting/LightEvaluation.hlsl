@@ -1,6 +1,10 @@
 #ifndef UNITY_LIGHT_EVALUATION_INCLUDED
 #define UNITY_LIGHT_EVALUATION_INCLUDED
 
+#ifdef CAPSULE_SHADOWS
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
+#endif
+
 // This files include various function uses to evaluate lights
 // use #define LIGHT_EVALUATION_NO_HEIGHT_FOG to disable Height fog attenuation evaluation
 // use #define LIGHT_EVALUATION_NO_COOKIE to disable cookie evaluation
@@ -299,6 +303,15 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
 }
 #endif
 
+#ifdef CAPSULE_SHADOWS
+    if (light.enableCapsuleShadows != 0.f)
+    {
+        float cosTheta = cos(0.5f * light.angularDiameter);
+        float capsuleShadow = EvaluateCapsuleShadow(-light.forward, false, cosTheta, posInput);
+        shadow *= capsuleShadow;
+    }
+#endif
+
 #ifdef DEBUG_DISPLAY
     if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW && light.shadowIndex == _DebugSingleShadowIndex)
         g_DebugShadowAttenuation = shadow;
@@ -479,6 +492,17 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
     #endif
 
         shadow = min(shadow, allowContactShadow ? GetContactShadow(lightLoopContext, light.contactShadowMask, light.isRayTracedContactShadow) : 1.0);
+    }
+#endif
+
+#ifdef CAPSULE_SHADOWS
+    if (light.enableCapsuleShadows != 0.f)
+    {
+        float radius = light.size.x;
+        float sinTheta = radius/length(posInput.positionWS - light.positionRWS);
+        float cosTheta = sqrt(max(1.f - sinTheta*sinTheta, 0.f));
+        float capsuleShadow = EvaluateCapsuleShadow(light.positionRWS, true, cosTheta, posInput);
+        shadow *= capsuleShadow;
     }
 #endif
 

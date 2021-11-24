@@ -456,6 +456,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._EnvLightIndexShift = (uint)m_GpuLightsBuilder.lightsCount;
             cb._DecalIndexShift = (uint)(m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count);
             cb._LocalVolumetricFogIndexShift = (uint)(m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount);
+            cb._CapsuleOccluderIndexShift = (uint)(m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount + m_LocalVolumetricFogCount);
 
             // Copy the constant buffer into the parameter struct.
             passData.lightListCB = cb;
@@ -826,6 +827,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.DispatchCompute(data.deferredComputeShader, kernel, data.numTilesX * 2, data.numTilesY * 2, data.viewCount);
                     }
                 }
+
+                data.deferredComputeShader.EnableKeyword("CAPSULE_SHADOWS");
             }
         }
 
@@ -1022,6 +1025,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             context.cmd.SetGlobalTexture(HDShaderIDs._ShadowMaskTexture, TextureXR.GetWhiteTexture());
 
                         BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
+                        BindGlobalCapsuleShadowBuffers(context.cmd);
 
                         if (data.enableTile)
                         {

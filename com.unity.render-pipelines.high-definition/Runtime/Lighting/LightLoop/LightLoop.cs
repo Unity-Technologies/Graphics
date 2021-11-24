@@ -67,6 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Area,
         Env,
         Decal,
+        CapsuleOccluder,
         LocalVolumetricFog, // WARNING: Currently lightlistbuild.compute assumes Local Volumetric Fog is the last element in the LightCategory enum. Do not append new LightCategory types after LocalVolumetricFog. TODO: Fix .compute code.
         Count
     }
@@ -232,11 +233,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>All lights.</summary>
         [InspectorName("Reflection Probes, Area and Punctual")]
         EnvironmentAndAreaAndPunctual = 7,
-        /// <summary>Probe Volumes.</summary>
-        [InspectorName("Probe Volumes")]
-        ProbeVolumes = 8,
         /// <summary>Decals.</summary>
-        Decal = 16,
+        Decal = 8,
+        /// <summary>Capsule Occluders.</summary>
+        CapsuleOccluder = 16,
         /// <summary>Local Volumetric Fog.</summary>
         LocalVolumetricFog = 32,
         /// <summary>Local Volumetric Fog.</summary>
@@ -269,9 +269,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _DecalIndexShift;
 
         public uint _LocalVolumetricFogIndexShift;
+        public uint _CapsuleOccluderIndexShift;
         public uint _Pad0_SVLL;
         public uint _Pad1_SVLL;
-        public uint _Pad2_SVLL;
     }
 
     internal struct ProcessedProbeData
@@ -511,6 +511,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int m_TotalLightCount = 0;
         int m_LocalVolumetricFogCount = 0;
+        int m_CapsuleOccluderCount = 0;
         bool m_EnableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
 
         ComputeShader buildScreenAABBShader { get { return defaultResources.shaders.buildScreenAABBCS; } }
@@ -1386,6 +1387,44 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, lightVolumeData);
         }
 
+        void CreateSphereVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, float normalBiasDilation, out LightVolumeData volumeData, out SFiniteLightBound bound)
+        {
+            volumeData = new LightVolumeData();
+            bound = new SFiniteLightBound();
+
+            // Used in Probe Volumes:
+            // Conservatively dilate bounds used for tile / cluster assignment by normal bias.
+            // Otherwise, surfaces could bias outside of valid data within a tile.
+            var extentConservativeX = obb.extentX + normalBiasDilation;
+
+            // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
+            var positionVS = worldToView.MultiplyPoint(obb.center);
+            var rightVS    = worldToView.MultiplyVector(obb.right);
+            var upVS       = worldToView.MultiplyVector(obb.up);
+            var forwardVS  = Vector3.Cross(upVS, rightVS);
+            var extents    = new Vector3(extentConservativeX, extentConservativeX, extentConservativeX);
+
+            volumeData.lightVolume   = (uint)LightVolumeType.Sphere;
+            volumeData.lightCategory = (uint)category;
+            volumeData.featureFlags  = (uint)featureFlags;
+
+            bound.center   = positionVS;
+            bound.boxAxisX = extentConservativeX * rightVS;
+            bound.boxAxisY = extentConservativeX * upVS;
+            bound.boxAxisZ = extentConservativeX * forwardVS;
+            bound.radius   = extentConservativeX;
+            bound.scaleXY  = 1.0f;
+
+            // The culling system culls pixels that are further
+            //   than a threshold to the box influence extents.
+            // So we use an arbitrary threshold here (k_BoxCullingExtentOffset)
+            volumeData.lightPos     = positionVS;
+            volumeData.lightAxisX   = rightVS;
+            volumeData.lightAxisY   = upVS;
+            volumeData.lightAxisZ   = forwardVS;
+            volumeData.radiusSq = extentConservativeX * extentConservativeX;
+        }
+
         void CreateBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, float normalBiasDilation, out LightVolumeData volumeData, out SFiniteLightBound bound)
         {
             volumeData = new LightVolumeData();
@@ -1813,6 +1852,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDCamera hdCamera,
             CullingResults cullResults,
             HDProbeCullingResults hdProbeCullingResults,
+            CapsuleOccluderList capsuleOccluderList,
             LocalVolumetricFogList localVolumetricFogList,
             DebugDisplaySettings debugDisplaySettings,
             AOVRequestData aovRequest)
@@ -1859,6 +1899,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Inject Local Volumetric Fog into the clustered data structure for efficient look up.
                 m_LocalVolumetricFogCount = localVolumetricFogList.bounds != null ? localVolumetricFogList.bounds.Count : 0;
+                m_CapsuleOccluderCount = capsuleOccluderList.bounds != null ? capsuleOccluderList.bounds.Count : 0;
 
                 m_GpuLightsBuilder.NewFrame(
                     hdCamera,
@@ -1921,9 +1962,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
                     }
+
+                    for (int i = 0, n = m_CapsuleOccluderCount; i < n; i++)
+                    {
+                        // Capsule Occluders volumes are not lights and therefore should not affect light classification.
+                        LightFeatureFlags featureFlags = 0;
+                        CreateSphereVolumeDataAndBound(capsuleOccluderList.bounds[i], LightCategory.CapsuleOccluder, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+
+                        m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
+                    }
                 }
 
-                m_TotalLightCount = m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount + m_LocalVolumetricFogCount;
+                m_TotalLightCount = m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount + m_LocalVolumetricFogCount + m_CapsuleOccluderCount;
 
                 Debug.Assert(m_TotalLightCount == m_GpuLightsBuilder.lightsPerView[0].boundsCount);
 
