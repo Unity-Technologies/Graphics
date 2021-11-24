@@ -152,7 +152,6 @@ namespace UnityEditor.ShaderFoundry
                     vertexGraphOutputName);
 
                 vertexBlockBuilder.SetEntryPointFunction(vertexDescriptionFunction);
-                vertexBlockBuilder.BuildInterface(container, vertexDescriptionFunction);
                 vertexCPInst.BlockInstances.Add(BuildSimpleBlockInstance(container, vertexBlockBuilder.Build()));
             }
 
@@ -182,7 +181,6 @@ namespace UnityEditor.ShaderFoundry
                 pass.virtualTextureFeedback);
 
             fragmentBlockBuilder.SetEntryPointFunction(surfaceDescriptionFunction);
-            fragmentBlockBuilder.BuildInterface(container, surfaceDescriptionFunction);
             var sharedIncludeDesc = new IncludeDescriptor.Builder(container, $"\"{sharedPath}\"");
             fragmentBlockBuilder.AddInclude(sharedIncludeDesc.Build());
             foreach (var include in graphIncludes)
@@ -358,8 +356,8 @@ namespace UnityEditor.ShaderFoundry
 
                     foreach (var blockFieldDescriptor in passBlockMask)
                     {
-                        var matchingOutput = preBlock.Outputs.FirstOrDefault(prop => prop.DisplayName == blockFieldDescriptor.name);
-                        var matchingInput = postBlock.Inputs.FirstOrDefault(prop => prop.DisplayName == blockFieldDescriptor.name);
+                        var matchingOutput = preBlock.Outputs.FirstOrDefault(prop => prop.Name == blockFieldDescriptor.name);
+                        var matchingInput = postBlock.Inputs.FirstOrDefault(prop => prop.Name == blockFieldDescriptor.name);
                         if (matchingInput == null && matchingOutput == null)
                             continue;
                         // Hack: Removed this to make life easier

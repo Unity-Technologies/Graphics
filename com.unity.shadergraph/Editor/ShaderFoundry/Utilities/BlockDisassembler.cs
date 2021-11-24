@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderFoundry
             {
                 WriteVariableScopeBlock(builder, "Inputs", block.Inputs);
                 WriteVariableScopeBlock(builder, "Outputs", block.Outputs);
-                WriteVariableScopeBlock(builder, "Properties", block.Properties);
+                WriteVariableScopeBlock(builder, "Properties", block.Properties());
 
                 foreach (var type in block.Types)
                     Write(builder, type);
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderFoundry
                 foreach(var variable in variables)
                 {
                     builder.Indentation();
-                    Write(builder, variable.Attributes, variable.Type, variable.ReferenceName);
+                    Write(builder, variable.Attributes, variable.Type, variable.Name);
                     builder.Append(";");
                     builder.NewLine();
                 }

@@ -24,33 +24,19 @@ namespace UnityEditor.ShaderFoundry
 
             void CollectUniqueProperties(Block block)
             {
-                var properties = block.Properties;
+                var properties = block.Properties();
                 if (properties != null)
                 {
                     foreach (var prop in properties)
                     {
-                        if (!propertiesMap.ContainsKey(prop.ReferenceName))
-                        {
-                            propertiesMap.Add(prop.ReferenceName, prop);
-                            propertiesList.Add(prop);
-                        }
-                    }
-                }
-
-                var inputs = block.Inputs;
-                if (inputs != null)
-                {
-                    foreach (var input in inputs)
-                    {
-                        var decl = input.Attributes.GetDeclaration();
+                        var decl = prop.Attributes.GetDeclaration();
                         if (decl == UnityEditor.ShaderGraph.Internal.HLSLDeclaration.DoNotDeclare)
                             continue;
 
-                        if (!propertiesMap.ContainsKey(input.ReferenceName))
+                        if (!propertiesMap.ContainsKey(prop.Name))
                         {
-                            var prop = input.Clone(container);
+                            propertiesMap.Add(prop.Name, prop);
                             propertiesList.Add(prop);
-                            propertiesMap.Add(prop.ReferenceName, prop);
                         }
                     }
                 }

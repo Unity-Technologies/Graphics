@@ -51,8 +51,8 @@ namespace UnityEditor.ShaderFoundry
                 return false;
 
             var propInfo = new MaterialPropertyInfo();
-            propInfo.DefaultExpression = GetDefaultExpression(property.DefaultExpression, property.Attributes, subField);
-            propInfo.declaration = matPropertyAtt.BuildDeclarationString(property.ReferenceName, property.DisplayName);
+            propInfo.DefaultExpression = GetDefaultExpression(property, property.Attributes, subField);
+            propInfo.declaration = matPropertyAtt.BuildDeclarationString(property.Name, GetDisplayName(property));
             results.Add(propInfo);
             return true;
         }
@@ -64,14 +64,22 @@ namespace UnityEditor.ShaderFoundry
                 return false;
 
             var propInfo = new MaterialPropertyInfo();
-            propInfo.DefaultExpression = GetDefaultExpression(property.DefaultExpression, property.Attributes, subField);
-            propInfo.declaration = $"{property.ReferenceName}(\"{property.DisplayName}\", {propertyTypeAtt.PropertyType})";
+            propInfo.DefaultExpression = GetDefaultExpression(property, property.Attributes, subField);
+            propInfo.declaration = $"{property.Name}(\"{GetDisplayName(property)}\", {propertyTypeAtt.PropertyType})";
             results.Add(propInfo);
             return true;
         }
 
-        static string GetDefaultExpression(string defaultExpression, IEnumerable<ShaderAttribute> instanceAttributes, StructField subField)
+        // Currently there is no stored display name. Add this as a placeholder for later.
+        static string GetDisplayName(BlockVariable property)
         {
+            return property.Name;
+        }
+
+        static string GetDefaultExpression(BlockVariable property, IEnumerable<ShaderAttribute> instanceAttributes, StructField subField)
+        {
+            string defaultExpression = property.Attributes.FindFirstAttributeParamValue(CommonShaderAttributes.DefaultValue, 0);
+            
             MaterialPropertyDefaultAttribute attribute;
             if(subField.IsValid)
             {
@@ -97,7 +105,7 @@ namespace UnityEditor.ShaderFoundry
             var props = MaterialPropertyInfo.Extract(variable);
             foreach (var matProp in props)
             {
-                matProp.Declare(builder, variable.ReferenceName);
+                matProp.Declare(builder, variable.Name);
             }
         }
     }

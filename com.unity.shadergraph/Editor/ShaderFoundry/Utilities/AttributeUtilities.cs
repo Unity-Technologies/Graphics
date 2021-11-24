@@ -170,6 +170,21 @@ namespace UnityEditor.ShaderFoundry
             }
             return result;
         }
+
+        internal static bool GetDeclaration(this IEnumerable<ShaderAttribute> attributes, out HLSLDeclaration declaration)
+        {
+            declaration = HLSLDeclaration.DoNotDeclare;
+            foreach (var attribute in attributes)
+            {
+                var decl = attribute.GetDeclaration();
+                if (decl != HLSLDeclaration.DoNotDeclare)
+                {
+                    declaration = decl;
+                    return true;
+                }
+            }
+            return false;
+        }
     }
     
     internal class PropertyTypeAttribute
