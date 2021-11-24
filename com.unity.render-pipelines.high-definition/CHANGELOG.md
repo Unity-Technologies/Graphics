@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
 - Fixed Lens Flare visible when being behind a camera with Panini Projection on (case 1370214);
 - Fixed the ray tracing acceleration structure build marker not being included in the ray tracing stats (case 1379383).
+- Fixed shader graph errors when disabling the bias on texture samplers.
 
 ### Changed
 - Optimizations for the physically based depth of field.
