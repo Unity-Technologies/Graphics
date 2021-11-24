@@ -41,6 +41,17 @@ namespace UnityEditor.ShaderGraph
             vtProperty.hidden = true;
         }
 
+        public override int latestVersion => 1;
+        public override void OnAfterMultiDeserialize(string json)
+        {
+            if (sgVersion == 0)
+            {
+                // version 0 was implicitly declaring PVT stacks as Global shader properties
+                shaderDeclaration = HLSLDeclaration.Global;
+                ChangeVersion(1);
+            }
+        }
+
         [SerializeField]
         private VirtualTextureShaderProperty vtProperty = new VirtualTextureShaderProperty();
 
