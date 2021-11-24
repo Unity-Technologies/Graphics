@@ -83,7 +83,6 @@ namespace UnityEditor.ShaderFoundry
             blockBuilder.AddType(inputType);
             blockBuilder.AddType(outputType);
             blockBuilder.SetEntryPointFunction(entryPointFn);
-            blockBuilder.BuildInterface(container, entryPointFn);
             return blockBuilder.Build();
         }
 
@@ -133,7 +132,6 @@ namespace UnityEditor.ShaderFoundry
             blockBuilder.AddType(inputType);
             blockBuilder.AddType(outputType);
             blockBuilder.SetEntryPointFunction(entryPointFn);
-            blockBuilder.BuildInterface(container, entryPointFn);
             return blockBuilder.Build();
         }
 
@@ -183,7 +181,6 @@ namespace UnityEditor.ShaderFoundry
             blockBuilder.AddType(inputType);
             blockBuilder.AddType(outputType);
             blockBuilder.SetEntryPointFunction(entryPointFn);
-            blockBuilder.BuildInterface(container, entryPointFn);
             return blockBuilder.Build();
         }
 

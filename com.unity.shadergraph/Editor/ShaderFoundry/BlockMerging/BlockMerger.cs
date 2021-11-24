@@ -149,7 +149,7 @@ namespace UnityEditor.ShaderFoundry
             var mergedInputInstance = mergedBlockLinkInstance.InputInstance;
             foreach (var input in inputs)
             {
-                var inputInstance = mergedInputInstance.CreateSubField(input.Type, input.ReferenceName, input.Attributes);
+                var inputInstance = mergedInputInstance.CreateSubField(input.Type, input.Name, input.Attributes);
                 scopes.Set(inputInstance);
             }
         }
@@ -160,9 +160,9 @@ namespace UnityEditor.ShaderFoundry
             // For all available outputs, create the output field and find out who writes out to this last
             foreach (var output in outputs)
             {
-                var instance = mergedOutputInstance.CreateSubField(output.Type, output.ReferenceName, output.Attributes);
+                var instance = mergedOutputInstance.CreateSubField(output.Type, output.Name, output.Attributes);
                 // Record if someone writes out to this output
-                var matchingField = scopes.Find(output.Type, output.ReferenceName);
+                var matchingField = scopes.Find(output.Type, output.Name);
                 if (matchingField != null)
                 {
                     instance.SetSource(matchingField);

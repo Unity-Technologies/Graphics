@@ -141,7 +141,7 @@ namespace UnityEditor.ShaderFoundry
             foreach(var varying in customVaryings)
             {
                 var builder = new BlockVariable.Builder(Container);
-                builder.ReferenceName = varying.Name;
+                builder.Name = varying.Name;
                 builder.Type = varying.Type;
                 varyingBlockVariables.Add(builder.Build());
             }
@@ -192,10 +192,10 @@ namespace UnityEditor.ShaderFoundry
         {
             var existingOutputNames = new HashSet<string>();
             foreach (var output in existingOutputs)
-                existingOutputNames.Add(output.ReferenceName);
+                existingOutputNames.Add(output.Name);
             var existingInputNames = new HashSet<string>();
             foreach (var input in existingInputs)
-                existingInputNames.Add(input.ReferenceName);
+                existingInputNames.Add(input.Name);
 
             var availableOutputs = new Dictionary<string, BlockVariable>();
             void TryAddOutput(BlockVariable output, string fieldName)
@@ -206,7 +206,7 @@ namespace UnityEditor.ShaderFoundry
             // Find if any input/output have matching names. If so then create a varying
             foreach (var output in block0.Outputs)
             {
-                var fieldName = output.ReferenceName;
+                var fieldName = output.Name;
                 TryAddOutput(output, fieldName);
 
                 foreach (var aliasAtt in AliasAttribute.ForEach(output.Attributes))
@@ -220,7 +220,7 @@ namespace UnityEditor.ShaderFoundry
             }
             foreach (var input in block1.Inputs)
             {
-                string fieldName = input.ReferenceName;
+                string fieldName = input.Name;
                 TryLinkInput(input, fieldName);
 
                 foreach (var aliasAtt in AliasAttribute.ForEach(input.Attributes))
@@ -290,7 +290,6 @@ namespace UnityEditor.ShaderFoundry
             var entryPointFn = BuildEntryPointFunction(buildingContext, inputsInstance, outputsInstance, blockInputInstance, blockOutputInstance);
             //fnBuilder.Build();
             blockBuilder.SetEntryPointFunction(entryPointFn);
-            blockBuilder.BuildInterface(Container, entryPointFn);
             
             return blockBuilder.Build();
         }

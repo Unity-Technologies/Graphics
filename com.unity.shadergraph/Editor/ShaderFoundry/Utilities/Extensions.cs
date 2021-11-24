@@ -152,6 +152,18 @@ namespace UnityEditor.ShaderFoundry
         }
     }
 
+    static class BlockExtensions
+    {
+        internal static IEnumerable<BlockVariable> Properties(this Block block)
+        {
+            foreach(var input in block.Inputs)
+            {
+                if (input.Attributes.FindFirst(CommonShaderAttributes.Property).IsValid)
+                    yield return input;
+            }
+        }
+    }
+
     static class BlockBuilderExtensions
     {
         internal static void MergeTypesAndFunctions(this Block.Builder builder, Block block)
@@ -185,45 +197,6 @@ namespace UnityEditor.ShaderFoundry
         {
             builder.MergeTypesAndFunctions(block);
             builder.MergeDescriptors(block);
-        }
-
-        internal static void BuildInterface(this Block.Builder blockBuilder, ShaderContainer container, ShaderFunction entryPointFn)
-        {
-            var parameters = entryPointFn.Parameters.GetEnumerator();
-            if (!parameters.MoveNext())
-                return;
-
-            blockBuilder.BuildInterface(container, parameters.Current.Type, entryPointFn.ReturnType);
-        }
-
-        internal static void BuildInterface(this Block.Builder blockBuilder, ShaderContainer container, ShaderType inputType, ShaderType outputType)
-        {
-            BlockVariable.Builder BuildFromField(StructField field)
-            {
-                var varBuilder = new BlockVariable.Builder(container);
-                varBuilder.DisplayName = varBuilder.ReferenceName = field.Name;
-                varBuilder.Type = field.Type;
-                foreach (var attribute in field.Attributes)
-                    varBuilder.AddAttribute(attribute);
-                string defaultValueStr = field.Attributes.FindFirstAttributeParamValue(CommonShaderAttributes.DefaultValue, 0);
-                if (defaultValueStr != null)
-                    varBuilder.DefaultExpression = defaultValueStr;
-                return varBuilder;
-            }
-
-            foreach (var field in inputType.StructFields)
-            {
-                var builder = BuildFromField(field);
-                var input = builder.Build();
-                blockBuilder.AddInput(input);
-                if (input.Attributes.FindFirst(CommonShaderAttributes.Property).IsValid)
-                    blockBuilder.AddProperty(input);
-            }
-            foreach (var field in outputType.StructFields)
-            {
-                var builder = BuildFromField(field);
-                blockBuilder.AddOutput(builder.Build());
-            }
         }
     }
 

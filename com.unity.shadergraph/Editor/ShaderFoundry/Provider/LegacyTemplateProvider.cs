@@ -172,7 +172,6 @@ namespace UnityEditor.ShaderFoundry
             var outputType = BuildType(blockName + "Outputs", ExtractFields(fields));
             var entryPointFn = BuildDummyFunction("dummy", ShaderType.Invalid, outputType);
             builder.SetEntryPointFunction(entryPointFn);
-            builder.BuildInterface(Container, entryPointFn);
             return builder.Build();
         }
 
@@ -183,7 +182,6 @@ namespace UnityEditor.ShaderFoundry
             var inputType = BuildType(blockName + "Inputs", ExtractFields(fields));
             var entryPointFn = BuildDummyFunction("dummy", inputType, ShaderType.Invalid);
             builder.SetEntryPointFunction(entryPointFn);
-            builder.BuildInterface(Container, entryPointFn);
             return builder.Build();
         }
 
@@ -195,7 +193,6 @@ namespace UnityEditor.ShaderFoundry
             var outputType = BuildType(blockName + "Outputs", outputFields);
             var entryPointFn = BuildDummyFunction("dummy", ShaderType.Invalid, outputType);
             builder.SetEntryPointFunction(entryPointFn);
-            builder.BuildInterface(Container, entryPointFn);
             return builder.Build();
         }
 
@@ -206,7 +203,6 @@ namespace UnityEditor.ShaderFoundry
             var inputType = BuildType(blockName + "Inputs", ExtractFields(fields));
             var entryPointFn = BuildDummyFunction("dummy", inputType, ShaderType.Invalid);
             builder.SetEntryPointFunction(entryPointFn);
-            builder.BuildInterface(Container, entryPointFn);
             return builder.Build();
         }
 
@@ -214,7 +210,7 @@ namespace UnityEditor.ShaderFoundry
         {
             var builder = new BlockVariable.Builder(Container);
             builder.Type = variable.Type;
-            builder.ReferenceName = variable.ReferenceName;
+            builder.Name = variable.Name;
             foreach (var attribute in variable.Attributes)
                 builder.AddAttribute(attribute);
             return builder.Build();
@@ -242,7 +238,7 @@ namespace UnityEditor.ShaderFoundry
             // Collect some values for quick lookups by name
             var availableInputs = new Dictionary<string, BlockOutput>();
             foreach (var prop in preBlock.Outputs)
-                availableInputs[prop.ReferenceName] = prop;
+                availableInputs[prop.Name] = prop;
             var fieldDescriptorsByName = new Dictionary<string, FieldDescriptor>();
             foreach (var fieldDescriptor in fieldDescriptors)
                 fieldDescriptorsByName[fieldDescriptor.name] = fieldDescriptor;
@@ -260,36 +256,36 @@ namespace UnityEditor.ShaderFoundry
             foreach (var output in postBlock.Inputs)
             {
                 // First check if this is a variable remapping (i.e. one input name is getting remapped to a different output name)
-                if(nameMappingsByOutputName.TryGetValue(output.ReferenceName, out var mapping))
+                if(nameMappingsByOutputName.TryGetValue(output.Name, out var mapping))
                 {
                     BlockOutput inputProp;
                     availableInputs.TryGetValue(mapping.Source, out inputProp);
                     if (inputProp.IsValid)
                     {
-                        outputBuilder.AddField(output.Type, output.ReferenceName);
+                        outputBuilder.AddField(output.Type, output.Name);
                         // Add the input if we haven't already declared it
-                        if(!declaredInputs.Contains(inputProp.ReferenceName))
+                        if(!declaredInputs.Contains(inputProp.Name))
                         {
-                            inputBuilder.AddField(inputProp.Type, inputProp.ReferenceName);
-                            declaredInputs.Add(inputProp.ReferenceName);
+                            inputBuilder.AddField(inputProp.Type, inputProp.Name);
+                            declaredInputs.Add(inputProp.Name);
                         }
-                        variableExpressions[output.ReferenceName] = $"input.{mapping.Source};";
+                        variableExpressions[output.Name] = $"input.{mapping.Source};";
                     }
                 }
                 // Next see if this is a manually set default value
-                else if(defaultVariableValues.TryGetValue(output.ReferenceName, out var defaultValue))
+                else if(defaultVariableValues.TryGetValue(output.Name, out var defaultValue))
                 {
-                    variableExpressions[output.ReferenceName] = defaultValue;
-                    outputBuilder.AddField(output.Type, output.ReferenceName);
+                    variableExpressions[output.Name] = defaultValue;
+                    outputBuilder.AddField(output.Type, output.Name);
                 }
                 // Finally, check if this has a default value we can extract from a field descriptor
-                else if (fieldDescriptorsByName.TryGetValue(output.ReferenceName, out var fieldDescriptor))
+                else if (fieldDescriptorsByName.TryGetValue(output.Name, out var fieldDescriptor))
                 {
                     var defaultValueStr = GetDefaultValueString(output.Type, fieldDescriptor);
                     if (defaultValueStr != null)
                     {
-                        variableExpressions[output.ReferenceName] = defaultValueStr;
-                        outputBuilder.AddField(output.Type, output.ReferenceName);
+                        variableExpressions[output.Name] = defaultValueStr;
+                        outputBuilder.AddField(output.Type, output.Name);
                     }
                 }
             }
@@ -316,7 +312,6 @@ namespace UnityEditor.ShaderFoundry
             var entryPointFunction = fnBuilder.Build();
             mainBlockBuilder.AddFunction(entryPointFunction);
             mainBlockBuilder.SetEntryPointFunction(entryPointFunction);
-            mainBlockBuilder.BuildInterface(Container, entryPointFunction);
 
             return mainBlockBuilder.Build();
         }

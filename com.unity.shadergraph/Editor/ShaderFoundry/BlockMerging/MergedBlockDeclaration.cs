@@ -141,7 +141,6 @@ namespace UnityEditor.ShaderFoundry
 
             var entryPointFunction = GenerateEntryPointFunction(blockBuilder, context.EntryPointFunctionName, mergedInputInstance, mergedOutputInstance, blockLinkInstances);
             blockBuilder.SetEntryPointFunction(entryPointFunction);
-            blockBuilder.BuildInterface(Container, entryPointFunction);
 
             return blockBuilder.Build();
         }
