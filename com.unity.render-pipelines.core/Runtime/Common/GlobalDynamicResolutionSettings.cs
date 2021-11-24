@@ -68,11 +68,13 @@ namespace UnityEngine.Rendering
             lowResTransparencyMinimumThreshold = 0.0f,
             rayTracingHalfResThreshold = 50.0f,
 
-            //Defaults for dlss
+            // Defaults for dlss
             enableDLSS = false,
             DLSSUseOptimalSettings = true,
             DLSSPerfQualitySetting = 0,
-            DLSSSharpness = 0.5f
+            DLSSSharpness = 0.5f,
+
+            fsrSharpness = FSRUtils.kDefaultSharpnessLinear
         };
 
         /// <summary>Select whether the dynamic resolution is enabled or not.</summary>
@@ -94,6 +96,10 @@ namespace UnityEngine.Rendering
         /// <summary>Pixel sharpness of NVIDIA Deep Leraning Super Sampling (DLSS).</summary>
         [Range(0, 1)]
         public float DLSSSharpness;
+
+        /// <summary>Pixel sharpness of AMD FidelityFX Super Resolution (FSR).</summary>
+        [Range(0, 1)]
+        public float fsrSharpness;
 
         /// <summary>The maximum resolution percentage that dynamic resolution can reach.</summary>
         public float maxPercentage;

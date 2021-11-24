@@ -96,9 +96,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel--;
 #endif
 
-                EditorGUI.indentLevel++;
-                Drawer_Draw_FSR_Section(p, owner);
-                EditorGUI.indentLevel--;
+                bool isFsrEnabled = (dynamicResSettings.upsampleFilter == UnityEngine.Rendering.DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres);
+                if (isFsrEnabled)
+                {
+                    EditorGUI.indentLevel++;
+                    Drawer_Draw_FSR_Section(p, owner);
+                    EditorGUI.indentLevel--;
+                }
             }
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
@@ -160,7 +164,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!p.allowDynamicResolution.boolValue)
                     return;
 
-                EditorGUILayout.PropertyField(p.fsrSharpness, HDRenderPipelineUI.Styles.fsrSharpnessText);
+                EditorGUILayout.PropertyField(p.fsrOverrideSharpness, Styles.fsrOverrideSharpness);
+
+                bool overrideSharpness = p.fsrOverrideSharpness.boolValue;
+                if (overrideSharpness)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(p.fsrSharpness, HDRenderPipelineUI.Styles.fsrSharpnessText);
+                    --EditorGUI.indentLevel;
+                }
             }
 
             static void Drawer_Rendering_Antialiasing(SerializedHDCamera p, Editor owner)

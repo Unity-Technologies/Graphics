@@ -4875,6 +4875,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool keepAlpha;
             public bool dynamicResIsOn;
             public DynamicResUpscaleFilter dynamicResFilter;
+            public GlobalDynamicResolutionSettings drsSettings;
 
             public bool filmGrainEnabled;
             public Texture filmGrainTexture;
@@ -4912,6 +4913,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.keepAlpha = m_KeepAlpha;
                 passData.dynamicResIsOn = hdCamera.canDoDynamicResolution && hdCamera.DynResRequest.enabled;
                 passData.dynamicResFilter = hdCamera.DynResRequest.filter;
+                passData.drsSettings = currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
                 passData.useFXAA = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.FastApproximateAntialiasing && !passData.dynamicResIsOn && m_AntialiasingFS;
 
                 // Film Grain
@@ -4969,11 +4971,15 @@ namespace UnityEngine.Rendering.HighDefinition
                                         // running it inside a separate compute shader. This allows us to avoid an additional
                                         // round-trip through memory which improves performance.
 
+                                        // Use the per-camera sharpness override if a custom sharpness value was requested.
+                                        // Otherwise use the sharpness value from the pipeline asset.
+                                        float sharpness = data.hdCamera.fsrOverrideSharpness ? data.hdCamera.fsrSharpness : data.drsSettings.fsrSharpness;
+
                                         // When the sharpness value is zero, we can skip the RCAS logic since it won't make a visible difference.
-                                        if (data.hdCamera.fsrSharpness > 0.0)
+                                        if (sharpness > 0.0)
                                         {
                                             finalPassMaterial.EnableKeyword("RCAS");
-                                            FSRUtils.SetRcasConstantsLinear(ctx.cmd, data.hdCamera.fsrSharpness);
+                                            FSRUtils.SetRcasConstantsLinear(ctx.cmd, sharpness);
                                         }
                                         else
                                         {

@@ -36,6 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 public static readonly GUIContent DLSSAllow = EditorGUIUtility.TrTextContent("Allow DLSS", "Allows DLSS for this camera. For the effect to be enabled, it must be set in the quality asset of this project.");
                 public static readonly GUIContent DLSSCustomQualitySettings = EditorGUIUtility.TrTextContent("Use Custom Quality", "");
                 public static readonly GUIContent DLSSUseCustomAttributes = EditorGUIUtility.TrTextContent("Use Custom Attributes", "");
+                public static readonly GUIContent fsrOverrideSharpness = EditorGUIUtility.TrTextContent("Override FSR Sharpness", "Overrides the FSR sharpness value for this camera.");
                 public static GUIContent overrideSettingText { get; } = EditorGUIUtility.TrTextContent("", "If enabled, this camera setting will be used instead of the one specified in the quality asset of this project.");
             }
         }

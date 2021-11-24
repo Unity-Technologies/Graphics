@@ -581,6 +581,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     ++EditorGUI.indentLevel;
                 }
 #endif
+
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType, Styles.dynResType);
                 if (serialized.renderPipelineSettings.dynamicResolutionSettings.dynamicResType.hasMultipleDifferentValues)
                 {
@@ -589,6 +590,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else
                     EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.softwareUpsamplingFilter, showUpsampleFilterAsFallback ? Styles.fallbackUpsampleFilter : Styles.upsampleFilter);
+
+                // When the FSR upscaling filter is selected, allow the user to configure its sharpness.
+                DynamicResUpscaleFilter currentUpscaleFilter = (DynamicResUpscaleFilter)serialized.renderPipelineSettings.dynamicResolutionSettings.softwareUpsamplingFilter.intValue;
+                bool isFsrEnabled = (currentUpscaleFilter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres);
+                if (isFsrEnabled)
+                {
+                    ++EditorGUI.indentLevel;
+
+                    float sharpness = serialized.renderPipelineSettings.dynamicResolutionSettings.fsrSharpness.floatValue;
+                    EditorGUI.BeginChangeCheck();
+                    sharpness = EditorGUILayout.DelayedFloatField(Styles.fsrSharpnessText, sharpness);
+                    if (EditorGUI.EndChangeCheck())
+                        serialized.renderPipelineSettings.dynamicResolutionSettings.fsrSharpness.floatValue = Mathf.Clamp(sharpness, 0.0f, 1.0f);
+
+                    --EditorGUI.indentLevel;
+                }
 
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.useMipBias, Styles.useMipBias);
 
