@@ -66,7 +66,7 @@ MonoBehaviour:
 
     Contains
     basic settings, a camera, and a spot light.'
-  preview: {fileID: 0}
+  preview: {fileID: -4308689344477133876}
   dependencies:
   - dependency: {fileID: 2800000, guid: f20112bdeec2e8d4d9f80e8390e37263, type: 3}
     instantiationMode: 0
@@ -81,5 +81,5 @@ MonoBehaviour:
   - dependency: {fileID: 11400000, guid: ccdaf44d23fad9b4e864f8ed9cc711f9, type: 2}
     instantiationMode: 0
   templatePipeline: {fileID: 11500000, guid: 90991a6a2aded9347932cefc99cd07db, type: 3}
-  badge: {fileID: 0}
+  badge: {fileID: 2800000, guid: c3277299d06bd4147a6d6f9781636bdc, type: 3}
   addToDefaults: 0
