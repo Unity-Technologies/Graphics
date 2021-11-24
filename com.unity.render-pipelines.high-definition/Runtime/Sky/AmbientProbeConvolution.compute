@@ -158,7 +158,7 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
     {
         for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
-            // Sh Coefficient used for encoding 
+            // Sh Coefficient used for encoding
             outputSHCoeffs[i] = outputSHCoeffs[i] * kSHBasisCoef[i % 9] * weight;
         }
 
