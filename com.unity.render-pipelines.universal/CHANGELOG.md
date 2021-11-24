@@ -8,14 +8,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added [DisallowMultipleRendererFeature] attribute for Renderer Features.
+- Added a DepthNormalOnly pass for UniversalUnlit Shadergraph shaders.
+
+### Changed
+- MaterialReimporter.ReimportAllMaterials now batches the asset database changes to improve performance.
 
 ### Fixed
 - Fixed ShaderGraph needing updated normals for ShadowCaster in URP.
 - Fixed memory leak with XR combined occlusion meshes. [case 1366173]
 - Fixed an issue with MSAA falling back to the incorrect value when sample count 2 is not supported on some Android GPUs.
-
-### Changed
-- MaterialReimporter.ReimportAllMaterials now batches the asset database changes to improve performance.
 
 ## [10.7.0] - 2021-07-02
 

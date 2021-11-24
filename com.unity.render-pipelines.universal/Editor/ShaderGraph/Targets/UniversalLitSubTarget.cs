@@ -507,11 +507,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentDepthNormals,
+                validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
 
                 // Fields
                 structs = CoreStructCollections.Default,
-                requiredFields = LitRequiredFields.DepthNormals,
+                requiredFields = CoreRequiredFields.DepthNormals,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
@@ -564,16 +564,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
-
-            public static readonly BlockFieldDescriptor[] FragmentDepthNormals = new BlockFieldDescriptor[]
-            {
-                BlockFields.SurfaceDescription.NormalOS,
-                BlockFields.SurfaceDescription.NormalTS,
-                BlockFields.SurfaceDescription.NormalWS,
-                BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.AlphaClipThreshold,
-            };
-
         }
 #endregion
 
@@ -604,13 +594,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
-            };
-
-            public static readonly FieldCollection DepthNormals = new FieldCollection()
-            {
-                StructFields.Attributes.uv1,                            // needed for meta vertex position
-                StructFields.Varyings.normalWS,
-                StructFields.Varyings.tangentWS,                        // needed for vertex lighting
             };
 
             public static readonly FieldCollection Meta = new FieldCollection()
