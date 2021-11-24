@@ -603,11 +603,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // We put the FSR sharpness override value behind a top-level override checkbox so we can tell when the user intends to use a custom value rather than the default.
                     if (serialized.renderPipelineSettings.dynamicResolutionSettings.fsrOverrideSharpness.boolValue)
                     {
-                        float sharpness = serialized.renderPipelineSettings.dynamicResolutionSettings.fsrSharpness.floatValue;
-                        EditorGUI.BeginChangeCheck();
-                        sharpness = EditorGUILayout.DelayedFloatField(Styles.fsrSharpnessText, sharpness);
-                        if (EditorGUI.EndChangeCheck())
-                            serialized.renderPipelineSettings.dynamicResolutionSettings.fsrSharpness.floatValue = Mathf.Clamp(sharpness, 0.0f, 1.0f);
+                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.fsrSharpness, Styles.fsrSharpnessText);
                     }
 
                     --EditorGUI.indentLevel;
