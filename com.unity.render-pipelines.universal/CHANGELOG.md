@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added minimal picking support for DOTS 1.0 (on parity with Hybrid Renderer V2)
 - Added support for `RTHandle`.
+- Added support for upscaling filter selection.
 
 ### Changed
 - Converted internal render targets to use `RTHandle` targets instead of `RenderTargetHandle` and `RenderTargetIdentifier`.
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed decals to work with native render pass [case 1353141](https://issuetracker.unity3d.com/issues/urp-decals-are-not-visible-in-game-view-after-modifying-urp-asset-properties)
 - Fixed decals to work with render scale [1353885](https://issuetracker.unity3d.com/issues/urp-builtin-to-urp-render-pipeline-converter-freezes-the-editor-when-converting-rendering-settings)
 - Fix shadow rendering correctly to work with shader stripping in WebGl. [case 1381881](https://issuetracker.unity3d.com/issues/webgl-urp-mesh-is-not-rendered-in-the-scene-on-webgl-build)
+- Fixed FXAA quality issues when render scale is not 1.0.
 
 ## [13.1.1] - 2021-10-04
 
