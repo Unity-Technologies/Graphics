@@ -130,9 +130,75 @@ namespace UnityEditor.VFX
         }
         List<ClipEventBar> m_ClipEventBars = new List<ClipEventBar>();
 
+        struct TextEvent
+        {
+            public GUIStyle style
+            {
+                get
+                {
+                    if (currentType != IconType.ClipExit)
+                        return Style.leftAlignStyle;
+                    return Style.rightAlignStyle;
+                }
+            }
+
+            public TextEvent(Rect iconArea, IconType currentType, GUIContent textContent)
+            {
+                this.start = this.end = 0.0f;
+                this.drawRect = Rect.zero;
+                this.iconArea = iconArea;
+                this.currentType = currentType;
+                this.textContent = textContent;
+                RecomputeRangeAndRect();
+            }
+
+            public Rect iconArea;
+            public IconType currentType;
+            public GUIContent textContent;
+
+            public void RecomputeRangeAndRect()
+            {
+                var textSize = Vector2.zero;
+                if (!string.IsNullOrEmpty(textContent.text))
+                {
+                    textSize = style.CalcSize(textContent);
+                }
+
+                //TODOPAUL: Probably only consider tex range in start/end (thus, not need to recompute drawRect)
+                if (currentType != IconType.ClipExit)
+                {
+                    start = iconArea.position.x;
+                    end = start + iconArea.width + textSize.x;
+                    drawRect = new Rect(iconArea.position + new Vector2(iconArea.width, 0.0f), textSize);
+                }
+                else
+                {
+                    start = iconArea.position.x - textSize.x;
+                    end = iconArea.position.x + iconArea.width;
+                    drawRect = new Rect(iconArea.position - new Vector2(textSize.x, 0.0f), textSize);
+                }
+            }
+
+            public float start;
+            public float end;
+            public Rect drawRect;
+
+        }
+        List<TextEvent> m_TextEventAreaRequested = new List<TextEvent>();
+        List<TextEvent> m_TextEventArea = new List<TextEvent>();
+
+        bool AvailableEmplacement(TextEvent current, IEnumerable<TextEvent> currentZones)
+        {
+            return !currentZones.Any(o =>
+            {
+                if (!(current.end < o.start || current.start > o.end))
+                    return true;
+                return false;
+            });
+        }
+
         bool AvailableEmplacement(ClipEventBar current, IEnumerable<ClipEventBar> currentBars)
         {
-            var barInRow = currentBars.Where(o => o.rowIndex == current.rowIndex);
             return !currentBars.Any(o =>
             {
                 if (o.rowIndex == current.rowIndex)
@@ -170,9 +236,7 @@ namespace UnityEditor.VFX
                     currentRect.width,
                     Style.kScrubbingBarHeight);
                 EditorGUI.DrawRect(scrubbingRect, Style.kScrubbingBackgroundColor);
-
                 currentRect.height -= Style.kScrubbingBarHeight;
-
                 GUI.Label(scrubbingRect, Content.scrubbingDisabled, Style.scrubbingDisabled);
             }
 
@@ -185,6 +249,7 @@ namespace UnityEditor.VFX
             var eventNameHeight = 14.0f;
             var iconSize = new Vector2(eventNameHeight, eventNameHeight);
 
+            m_TextEventAreaRequested.Clear();
             foreach (var itEvent in allEvents)
             {
                 var relativeTime = InverseLerp(region.startTime, region.endTime, itEvent.time);
@@ -194,99 +259,118 @@ namespace UnityEditor.VFX
                     iconSize.x,
                     iconSize.y);
 
-                //Place holder for icons
-                var baseColor = new Color(itEvent.editorColor.r, itEvent.editorColor.g, itEvent.editorColor.b);
-                EditorGUI.DrawRect(iconArea, new Color(baseColor.r, baseColor.g, baseColor.b, 0.2f));
                 var currentType = IconType.SingleEvent;
                 if (index < clipEventsCount)
                     currentType = index % 2 == 0 ? IconType.ClipEnter : IconType.ClipExit;
 
-                if (currentType == IconType.SingleEvent)
+                //Place holder for icons
                 {
-                    EditorGUI.DrawRect(new Rect(
-                        iconArea.position.x + iconArea.width * 0.45f,
-                        iconArea.position.y,
-                        iconArea.width * 0.1f,
-                        iconArea.height), baseColor);
+                    var baseColor = new Color(itEvent.editorColor.r, itEvent.editorColor.g, itEvent.editorColor.b);
+                    EditorGUI.DrawRect(iconArea, new Color(baseColor.r, baseColor.g, baseColor.b, 0.2f));
 
-                    EditorGUI.DrawRect(new Rect(
-                        iconArea.position.x + iconArea.width * 0.3f,
-                        iconArea.position.y + iconArea.height * 0.25f,
-                        iconArea.width * 0.4f,
-                        iconArea.height * 0.75f), baseColor);
+                    if (currentType == IconType.SingleEvent)
+                    {
+                        EditorGUI.DrawRect(new Rect(
+                            iconArea.position.x + iconArea.width * 0.45f,
+                            iconArea.position.y,
+                            iconArea.width * 0.1f,
+                            iconArea.height), baseColor);
 
-                    EditorGUI.DrawRect(new Rect(
-                        iconArea.position.x + iconArea.width * 0.2f,
-                        iconArea.position.y + iconArea.height * 0.5f,
-                        iconArea.width * 0.6f,
-                        iconArea.height * 0.5f), baseColor);
-                }
-                else if (currentType == IconType.ClipEnter)
-                {
-                    EditorGUI.DrawRect(new Rect(
-                        iconArea.position.x + iconArea.width * 0.5f,
-                        iconArea.position.y,
-                        iconArea.width * 0.05f,
-                        iconArea.height), baseColor);
+                        EditorGUI.DrawRect(new Rect(
+                            iconArea.position.x + iconArea.width * 0.3f,
+                            iconArea.position.y + iconArea.height * 0.25f,
+                            iconArea.width * 0.4f,
+                            iconArea.height * 0.75f), baseColor);
 
-                    EditorGUI.DrawRect(new Rect(
-                        iconArea.position.x + iconArea.width * 0.5f,
-                        iconArea.position.y + iconArea.height * 0.25f,
-                        iconArea.width * 0.2f,
-                        iconArea.height * 0.75f), baseColor);
+                        EditorGUI.DrawRect(new Rect(
+                            iconArea.position.x + iconArea.width * 0.2f,
+                            iconArea.position.y + iconArea.height * 0.5f,
+                            iconArea.width * 0.6f,
+                            iconArea.height * 0.5f), baseColor);
+                    }
+                    else if (currentType == IconType.ClipEnter)
+                    {
+                        EditorGUI.DrawRect(new Rect(
+                            iconArea.position.x + iconArea.width * 0.5f,
+                            iconArea.position.y,
+                            iconArea.width * 0.05f,
+                            iconArea.height), baseColor);
 
-                    EditorGUI.DrawRect(new Rect(
-                        iconArea.position.x + iconArea.width * 0.5f,
-                        iconArea.position.y + iconArea.height * 0.5f,
-                        iconArea.width * 0.3f,
-                        iconArea.height * 0.5f), baseColor);
-                }
-                else if (currentType == IconType.ClipExit)
-                {
-                    EditorGUI.DrawRect(new Rect(
-                        iconArea.position.x + iconArea.width * 0.45f,
-                        iconArea.position.y,
-                        iconArea.width * 0.05f,
-                        iconArea.height), baseColor);
+                        EditorGUI.DrawRect(new Rect(
+                            iconArea.position.x + iconArea.width * 0.5f,
+                            iconArea.position.y + iconArea.height * 0.25f,
+                            iconArea.width * 0.2f,
+                            iconArea.height * 0.75f), baseColor);
 
-                    EditorGUI.DrawRect(new Rect(
-                        iconArea.position.x + iconArea.width * 0.3f,
-                        iconArea.position.y + iconArea.height * 0.25f,
-                        iconArea.width * 0.2f,
-                        iconArea.height * 0.75f), baseColor);
+                        EditorGUI.DrawRect(new Rect(
+                            iconArea.position.x + iconArea.width * 0.5f,
+                            iconArea.position.y + iconArea.height * 0.5f,
+                            iconArea.width * 0.3f,
+                            iconArea.height * 0.5f), baseColor);
+                    }
+                    else if (currentType == IconType.ClipExit)
+                    {
+                        EditorGUI.DrawRect(new Rect(
+                            iconArea.position.x + iconArea.width * 0.45f,
+                            iconArea.position.y,
+                            iconArea.width * 0.05f,
+                            iconArea.height), baseColor);
 
-                    EditorGUI.DrawRect(new Rect(
-                        iconArea.position.x + iconArea.width * 0.2f,
-                        iconArea.position.y + iconArea.height * 0.5f,
-                        iconArea.width * 0.3f,
-                        iconArea.height * 0.5f), baseColor);
-                }
+                        EditorGUI.DrawRect(new Rect(
+                            iconArea.position.x + iconArea.width * 0.3f,
+                            iconArea.position.y + iconArea.height * 0.25f,
+                            iconArea.width * 0.2f,
+                            iconArea.height * 0.75f), baseColor);
 
-                var eventName = (string)itEvent.name;
-                var textContent = new GUIContent(eventName);
-                Rect textRect;
-                GUIStyle style;
-                if (currentType != IconType.ClipExit)
-                {
-                    style = Style.leftAlignStyle;
-                    textRect = new Rect(iconArea.position + new Vector2(iconArea.width, 0.0f), style.CalcSize(textContent));
-                }
-                else
-                {
-                    style = Style.rightAlignStyle;
-                    var textSize = style.CalcSize(textContent);
-                    textRect = new Rect(iconArea.position - new Vector2(textSize.x, 0.0f), textSize);
-
+                        EditorGUI.DrawRect(new Rect(
+                            iconArea.position.x + iconArea.width * 0.2f,
+                            iconArea.position.y + iconArea.height * 0.5f,
+                            iconArea.width * 0.3f,
+                            iconArea.height * 0.5f), baseColor);
+                    }
                 }
 
-                ShadowLabel(textRect,
-                    new GUIContent(eventName),
-                    style,
-                    Color.white,
-                    Color.black);
-
+                TextEvent candidate = new TextEvent(iconArea, currentType, new GUIContent((string)itEvent.name));
+                m_TextEventAreaRequested.Add(candidate);
                 index++;
             }
+
+            //Resolve text overlapping
+            m_TextEventArea.Clear();
+            foreach (var request in m_TextEventAreaRequested)
+            {
+                var candidate = request;
+
+                //Trimming text content until it fits
+                while (!string.IsNullOrEmpty(candidate.textContent.text))
+                {
+                    if (AvailableEmplacement(candidate, m_TextEventArea))
+                        break;
+
+                    var newName = candidate.textContent.text;
+                    if (newName.Length > 2)
+                        newName = newName.Substring(0, newName.Length - 2) + "…";
+                    else
+                        newName = string.Empty;
+                    candidate.textContent = new GUIContent(newName);
+                    candidate.RecomputeRangeAndRect();
+                }
+                m_TextEventArea.Add(candidate);
+            }
+
+            //Render remaining text
+            foreach (var tex in m_TextEventArea)
+            {
+                if (string.IsNullOrEmpty(tex.textContent.text))
+                    continue;
+
+                ShadowLabel(tex.drawRect,
+                    tex.textContent,
+                    tex.style,
+                    Color.white,
+                    Color.black);
+            }
+
             currentRect.height -= eventNameHeight + 2; //TODOPAUL
 
             m_ClipEventBars.Clear();
