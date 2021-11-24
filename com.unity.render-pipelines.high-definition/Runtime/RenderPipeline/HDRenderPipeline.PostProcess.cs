@@ -4971,9 +4971,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                         // running it inside a separate compute shader. This allows us to avoid an additional
                                         // round-trip through memory which improves performance.
 
-                                        // Use the per-camera sharpness override if a custom sharpness value was requested.
-                                        // Otherwise use the sharpness value from the pipeline asset.
-                                        float sharpness = data.hdCamera.fsrOverrideSharpness ? data.hdCamera.fsrSharpness : data.drsSettings.fsrSharpness;
+                                        float sharpness = FSRUtils.kDefaultSharpnessLinear;
+
+                                        // Only consider custom sharpness values if the top-level pipeline override is enabled
+                                        if (data.drsSettings.fsrOverrideSharpness)
+                                        {
+                                            // Use the override value specified in the camera if it's available, otherwise use the value from the pipeline asset.
+                                            sharpness = data.hdCamera.fsrOverrideSharpness ? data.hdCamera.fsrSharpness : data.drsSettings.fsrSharpness;
+                                        }
 
                                         // When the sharpness value is zero, we can skip the RCAS logic since it won't make a visible difference.
                                         if (sharpness > 0.0)

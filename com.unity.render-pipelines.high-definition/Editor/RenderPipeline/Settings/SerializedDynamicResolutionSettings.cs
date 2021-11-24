@@ -13,6 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty DLSSPerfQualitySetting;
         public SerializedProperty DLSSUseOptimalSettings;
         public SerializedProperty DLSSSharpness;
+        public SerializedProperty fsrOverrideSharpness;
         public SerializedProperty fsrSharpness;
         public SerializedProperty maxPercentage;
         public SerializedProperty minPercentage;
@@ -33,6 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DLSSPerfQualitySetting = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSPerfQualitySetting);
             DLSSUseOptimalSettings = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSUseOptimalSettings);
             DLSSSharpness = root.Find((GlobalDynamicResolutionSettings s) => s.DLSSSharpness);
+            fsrOverrideSharpness = root.Find((GlobalDynamicResolutionSettings s) => s.fsrOverrideSharpness);
             fsrSharpness = root.Find((GlobalDynamicResolutionSettings s) => s.fsrSharpness);
             maxPercentage = root.Find((GlobalDynamicResolutionSettings s) => s.maxPercentage);
             minPercentage = root.Find((GlobalDynamicResolutionSettings s) => s.minPercentage);

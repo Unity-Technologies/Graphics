@@ -74,6 +74,7 @@ namespace UnityEngine.Rendering
             DLSSPerfQualitySetting = 0,
             DLSSSharpness = 0.5f,
 
+            fsrOverrideSharpness = false,
             fsrSharpness = FSRUtils.kDefaultSharpnessLinear
         };
 
@@ -96,6 +97,11 @@ namespace UnityEngine.Rendering
         /// <summary>Pixel sharpness of NVIDIA Deep Leraning Super Sampling (DLSS).</summary>
         [Range(0, 1)]
         public float DLSSSharpness;
+
+        /// <summary>Toggle sharpness override for AMD FidelityFX Super Resolution (FSR).
+        /// If this is on, a sharpness value specified by the user will be used instead of the default.
+        /// </summary>
+        public bool fsrOverrideSharpness;
 
         /// <summary>Pixel sharpness of AMD FidelityFX Super Resolution (FSR).</summary>
         [Range(0, 1)]

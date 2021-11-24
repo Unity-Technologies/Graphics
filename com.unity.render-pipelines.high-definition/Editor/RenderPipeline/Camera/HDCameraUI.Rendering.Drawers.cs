@@ -90,15 +90,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     p.antialiasing.intValue = (int)HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
                 }
 
+                if (p.allowDynamicResolution.boolValue)
+                {
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
-                EditorGUI.indentLevel++;
-                Drawer_Draw_DLSS_Section(p, owner);
-                EditorGUI.indentLevel--;
+                    EditorGUI.indentLevel++;
+                    Drawer_Draw_DLSS_Section(p, owner);
+                    EditorGUI.indentLevel--;
 #endif
 
-                bool isFsrEnabled = (dynamicResSettings.upsampleFilter == UnityEngine.Rendering.DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres);
-                if (isFsrEnabled)
-                {
                     EditorGUI.indentLevel++;
                     Drawer_Draw_FSR_Section(p, owner);
                     EditorGUI.indentLevel--;
@@ -108,9 +107,6 @@ namespace UnityEditor.Rendering.HighDefinition
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             static void Drawer_Draw_DLSS_Section(SerializedHDCamera p, Editor owner)
             {
-                if (!p.allowDynamicResolution.boolValue)
-                    return;
-
                 bool isDLSSEnabledInQualityAsset = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enableDLSS;
 
                 EditorGUILayout.PropertyField(p.allowDeepLearningSuperSampling, Styles.DLSSAllow);
@@ -161,17 +157,20 @@ namespace UnityEditor.Rendering.HighDefinition
 #endif
             static void Drawer_Draw_FSR_Section(SerializedHDCamera p, Editor owner)
             {
-                if (!p.allowDynamicResolution.boolValue)
-                    return;
+                var dynamicResSettings = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
 
-                EditorGUILayout.PropertyField(p.fsrOverrideSharpness, Styles.fsrOverrideSharpness);
-
-                bool overrideSharpness = p.fsrOverrideSharpness.boolValue;
-                if (overrideSharpness)
+                // Only display the per-camera sharpness override if the pipeline level override is enabled
+                if (dynamicResSettings.fsrOverrideSharpness)
                 {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(p.fsrSharpness, HDRenderPipelineUI.Styles.fsrSharpnessText);
-                    --EditorGUI.indentLevel;
+                    EditorGUILayout.PropertyField(p.fsrOverrideSharpness, Styles.fsrOverrideSharpness);
+
+                    bool overrideSharpness = p.fsrOverrideSharpness.boolValue;
+                    if (overrideSharpness)
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.PropertyField(p.fsrSharpness, HDRenderPipelineUI.Styles.fsrSharpnessText);
+                        --EditorGUI.indentLevel;
+                    }
                 }
             }
 
