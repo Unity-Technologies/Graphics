@@ -103,6 +103,8 @@ namespace UnityEditor.VFX
         {
             public static readonly GUIStyle noneStyle = GUIStyle.none; //Remove in the end
             public static GUIStyle centeredStyle = GUI.skin.GetStyle("Label");
+            public static GUIStyle leftAlignStyle = GUI.skin.GetStyle("Label");
+            public static GUIStyle rightAlignStyle = GUI.skin.GetStyle("Label");
             public static GUIStyle scrubbingDisabled = GUI.skin.GetStyle("Label");
             public static readonly Color kGlobalBackground = new Color32(81, 86, 94, 255);
             public static readonly float kScrubbingBarHeight = 14.0f;
@@ -111,7 +113,8 @@ namespace UnityEditor.VFX
             static Style()
             {
                 centeredStyle.alignment = TextAnchor.UpperCenter;
-
+                leftAlignStyle.alignment = TextAnchor.MiddleLeft;
+                rightAlignStyle.alignment = TextAnchor.MiddleRight;
                 scrubbingDisabled.alignment = TextAnchor.UpperCenter;
                 scrubbingDisabled.fontStyle = FontStyle.Bold;
                 scrubbingDisabled.fontSize = 12;
@@ -141,6 +144,13 @@ namespace UnityEditor.VFX
             });
         }
 
+        enum IconType
+        {
+            ClipEnter,
+            ClipExit,
+            SingleEvent
+        }
+
         public override void DrawBackground(TimelineClip clip, ClipBackgroundRegion region)
         {
             base.DrawBackground(clip, region);
@@ -166,34 +176,119 @@ namespace UnityEditor.VFX
                 GUI.Label(scrubbingRect, Content.scrubbingDisabled, Style.scrubbingDisabled);
             }
 
+            //TODOPAUL: Can use directly percentage space
             var clipEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.AfterClipStart, playable, true);
             var singleEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.AfterClipStart, playable, false);
             var allEvents = clipEvents.Concat(singleEvents);
             var clipEventsCount = clipEvents.Count();
             int index = 0;
-            var iconSize = new Vector2(8, 8);
             var eventNameHeight = 14.0f;
+            var iconSize = new Vector2(eventNameHeight, eventNameHeight);
+
             foreach (var itEvent in allEvents)
             {
                 var relativeTime = InverseLerp(region.startTime, region.endTime, itEvent.time);
-                var center = new Vector2(currentRect.position.x + currentRect.width * (float)relativeTime,
-                    currentRect.height - eventNameHeight);
+                var iconArea = new Rect(
+                    currentRect.position.x + currentRect.width * (float)relativeTime - iconSize.x * 0.5f,
+                    currentRect.height - eventNameHeight,
+                    iconSize.x,
+                    iconSize.y);
 
-                var eventRect = new Rect(center - iconSize * new Vector2(1.0f, -0.5f), iconSize);
-                EditorGUI.DrawRect(eventRect, new Color(itEvent.editorColor.r, itEvent.editorColor.g, itEvent.editorColor.b));
+                //Place holder for icons
+                var baseColor = new Color(itEvent.editorColor.r, itEvent.editorColor.g, itEvent.editorColor.b);
+                EditorGUI.DrawRect(iconArea, new Color(baseColor.r, baseColor.g, baseColor.b, 0.2f));
+                var currentType = IconType.SingleEvent;
+                if (index < clipEventsCount)
+                    currentType = index % 2 == 0 ? IconType.ClipEnter : IconType.ClipExit;
 
-                var textRect = new Rect(center + new Vector2(2.0f, 0), iconSize);
+                if (currentType == IconType.SingleEvent)
+                {
+                    EditorGUI.DrawRect(new Rect(
+                        iconArea.position.x + iconArea.width * 0.45f,
+                        iconArea.position.y,
+                        iconArea.width * 0.1f,
+                        iconArea.height), baseColor);
+
+                    EditorGUI.DrawRect(new Rect(
+                        iconArea.position.x + iconArea.width * 0.3f,
+                        iconArea.position.y + iconArea.height * 0.25f,
+                        iconArea.width * 0.4f,
+                        iconArea.height * 0.75f), baseColor);
+
+                    EditorGUI.DrawRect(new Rect(
+                        iconArea.position.x + iconArea.width * 0.2f,
+                        iconArea.position.y + iconArea.height * 0.5f,
+                        iconArea.width * 0.6f,
+                        iconArea.height * 0.5f), baseColor);
+                }
+                else if (currentType == IconType.ClipEnter)
+                {
+                    EditorGUI.DrawRect(new Rect(
+                        iconArea.position.x + iconArea.width * 0.5f,
+                        iconArea.position.y,
+                        iconArea.width * 0.05f,
+                        iconArea.height), baseColor);
+
+                    EditorGUI.DrawRect(new Rect(
+                        iconArea.position.x + iconArea.width * 0.5f,
+                        iconArea.position.y + iconArea.height * 0.25f,
+                        iconArea.width * 0.2f,
+                        iconArea.height * 0.75f), baseColor);
+
+                    EditorGUI.DrawRect(new Rect(
+                        iconArea.position.x + iconArea.width * 0.5f,
+                        iconArea.position.y + iconArea.height * 0.5f,
+                        iconArea.width * 0.3f,
+                        iconArea.height * 0.5f), baseColor);
+                }
+                else if (currentType == IconType.ClipExit)
+                {
+                    EditorGUI.DrawRect(new Rect(
+                        iconArea.position.x + iconArea.width * 0.45f,
+                        iconArea.position.y,
+                        iconArea.width * 0.05f,
+                        iconArea.height), baseColor);
+
+                    EditorGUI.DrawRect(new Rect(
+                        iconArea.position.x + iconArea.width * 0.3f,
+                        iconArea.position.y + iconArea.height * 0.25f,
+                        iconArea.width * 0.2f,
+                        iconArea.height * 0.75f), baseColor);
+
+                    EditorGUI.DrawRect(new Rect(
+                        iconArea.position.x + iconArea.width * 0.2f,
+                        iconArea.position.y + iconArea.height * 0.5f,
+                        iconArea.width * 0.3f,
+                        iconArea.height * 0.5f), baseColor);
+                }
+
+                var eventName = (string)itEvent.name;
+                var textContent = new GUIContent(eventName);
+                Rect textRect;
+                GUIStyle style;
+                if (currentType != IconType.ClipExit)
+                {
+                    style = Style.leftAlignStyle;
+                    textRect = new Rect(iconArea.position + new Vector2(iconArea.width, 0.0f), style.CalcSize(textContent));
+                }
+                else
+                {
+                    style = Style.rightAlignStyle;
+                    var textSize = style.CalcSize(textContent);
+                    textRect = new Rect(iconArea.position - new Vector2(textSize.x, 0.0f), textSize);
+
+                }
+
                 ShadowLabel(textRect,
-                    new GUIContent((string)itEvent.name),
-                    Style.noneStyle,
+                    new GUIContent(eventName),
+                    style,
                     Color.white,
                     Color.black);
 
                 index++;
             }
-            currentRect.height -= eventNameHeight; //TODOPAUL
+            currentRect.height -= eventNameHeight + 2; //TODOPAUL
 
-            //TODO Comment
             m_ClipEventBars.Clear();
             uint rowCount = 1u;
             using (var iterator = clipEvents.GetEnumerator())
