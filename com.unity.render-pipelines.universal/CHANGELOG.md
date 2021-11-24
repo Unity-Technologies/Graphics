@@ -6,11 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.1.3] - 2021-11-17
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
 ### Fixed
 - Fixed broken soft shadow filtering. [case 1374960](https://issuetracker.unity3d.com/product/unity/issues/guid/1374960/)
+- VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
 
 ## [12.1.2] - 2021-10-22
 
