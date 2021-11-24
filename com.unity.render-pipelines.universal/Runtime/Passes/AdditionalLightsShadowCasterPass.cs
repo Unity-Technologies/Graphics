@@ -84,6 +84,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_CreateEmptyShadowmap;
 
+        int renderTargetWidth;
+        int renderTargetHeight;
+
+
         ProfilingSampler m_ProfilingSetupSampler = new ProfilingSampler("Setup Additional Shadows");
 
         int MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO  // keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl

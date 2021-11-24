@@ -40,6 +40,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_CreateEmptyShadowmap;
 
+        int renderTargetWidth;
+        int renderTargetHeight;
+
         ProfilingSampler m_ProfilingSetupSampler = new ProfilingSampler("Setup Main Shadowmap");
 
         public MainLightShadowCasterPass(RenderPassEvent evt)

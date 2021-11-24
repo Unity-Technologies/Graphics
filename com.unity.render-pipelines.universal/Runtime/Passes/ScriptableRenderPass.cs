@@ -243,10 +243,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool useNativeRenderPass { get; set; }
 
-        internal int renderTargetWidth { get; set; }
-        internal int renderTargetHeight { get; set; }
-        internal int renderTargetSampleCount { get; set; }
-
         internal bool depthOnly { get; set; }
         // this flag is updated each frame to keep track of which pass is the last for the current camera
         internal bool isLastPass { get; set; }
@@ -299,9 +295,6 @@ namespace UnityEngine.Rendering.Universal
             isBlitRenderPass = false;
             profilingSampler = new ProfilingSampler($"Unnamed_{nameof(ScriptableRenderPass)}");
             useNativeRenderPass = true;
-            renderTargetWidth = -1;
-            renderTargetHeight = -1;
-            renderTargetSampleCount = -1;
             renderPassQueueIndex = -1;
             renderTargetFormat = new GraphicsFormat[]
             {
