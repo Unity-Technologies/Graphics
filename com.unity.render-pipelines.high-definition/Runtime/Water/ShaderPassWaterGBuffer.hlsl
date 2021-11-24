@@ -96,8 +96,7 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 void Frag(PackedVaryingsToPS packedInput,
     out float4 outGBuffer0 : SV_Target0,
     out float4 outGBuffer1 : SV_Target1,
-    out float4 outGBuffer2 : SV_Target2,
-    out float4 outGBuffer3 : SV_Target3)
+    out uint2 outGBuffer2 : SV_Target2)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
@@ -130,5 +129,5 @@ void Frag(PackedVaryingsToPS packedInput,
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
 
     // Encode the water into the gbuffer
-    EncodeIntoGBuffer(bsdfData, builtinData, posInput.positionSS, outGBuffer0, outGBuffer1, outGBuffer2, outGBuffer3);
+    EncodeIntoGBuffer(bsdfData, builtinData, posInput.positionSS, outGBuffer0, outGBuffer1, outGBuffer2);
 }

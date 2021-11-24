@@ -602,6 +602,24 @@ float3 EvaluateCaustics(float3 bedPositionAWS)
     return float3(voronoiR, voronoiG, voronoiB) * normalizedDepth * _CausticsIntensity;
 }
 
+float EdgeBlendingFactor(float2 screenPosition, float distanceToWaterSurface)
+{
+    // Convert the screen position to NDC
+    float2 screenPosNDC = screenPosition * 2 - 1;
+
+    // We want the value to be 0 at the center and go to 1 at the edges
+    float distanceToEdge = 1.0 - min((1.0 - abs(screenPosNDC.x)), (1.0 - abs(screenPosNDC.y)));
+
+    // What we want here is:
+    // - +inf -> 0.5 value is 0 
+    // - 0.5-> 0.25 value is going from  0 to 1
+    // - 0.25 -> 0 value is 1
+    float distAttenuation = 1.0 - saturate((distanceToWaterSurface - 0.75) / 0.25);
+
+    // Based on if the water surface is close, we want to make the blending region even bigger
+    return lerp(saturate((distanceToEdge - 0.8) / (0.2)), saturate(distanceToEdge + 0.25), distAttenuation);
+}
+
 void EvaluateScatteringData(float3 waterPosRWS, float3 waterNormal, float3 lowFrequencyNormals,
     float2 screenPosition, float3 viewWS,
     float sssMask, float lowFrequencyHeight, float lowFrequencyDisplacement, float foamIntensity,
@@ -618,7 +636,8 @@ void EvaluateScatteringData(float3 waterPosRWS, float3 waterNormal, float3 lowFr
     float3 refractionNormal = normalize(lerp(waterNormal, lowFrequencyNormals, saturate(underWaterDistance / max(_MaxRefractionDistance, 0.00001f))));
 
     // Compute the distorded water position and NDC
-    float3 distortionNormal = refractionNormal * float3(1, 0, 1); // I guess this is a refract?
+    float edgeWeight =  EdgeBlendingFactor(screenPosition, length(waterPosRWS));
+    float3 distortionNormal = lerp(refractionNormal, float3(0, 1, 0), edgeWeight) * float3(1, 0, 1); // I guess this is a refract?
     float3 distortedWaterWS = waterPosRWS + distortionNormal * min(underWaterDistance, _MaxRefractionDistance);
     float2 distortedWaterNDC = ComputeNormalizedDeviceCoordinates(distortedWaterWS, UNITY_MATRIX_VP);
 

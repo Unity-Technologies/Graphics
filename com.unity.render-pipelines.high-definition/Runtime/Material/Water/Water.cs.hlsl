@@ -37,6 +37,7 @@
 #define DEBUGVIEW_WATER_BSDFDATA_REFRACTION_COLOR (1658)
 #define DEBUGVIEW_WATER_BSDFDATA_FOAM (1659)
 #define DEBUGVIEW_WATER_BSDFDATA_TIP_THICKNESS (1660)
+#define DEBUGVIEW_WATER_BSDFDATA_SURFACE_INDEX (1661)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Water+SurfaceData
 // PackingRules = Exact
@@ -64,6 +65,7 @@ struct BSDFData
     float3 refractionColor;
     float foam;
     float tipThickness;
+    uint surfaceIndex;
 };
 
 //
@@ -144,6 +146,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_WATER_BSDFDATA_TIP_THICKNESS:
             result = bsdfdata.tipThickness.xxx;
+            break;
+        case DEBUGVIEW_WATER_BSDFDATA_SURFACE_INDEX:
+            result = GetIndexColor(bsdfdata.surfaceIndex);
             break;
     }
 }

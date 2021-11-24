@@ -22,27 +22,33 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1600)]
         public struct SurfaceData
         {
-            // Standard
+            // Base color on the water
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Albedo)]
             [SurfaceDataAttributes("Base Color", false, true)]
             public Vector3 baseColor;
 
+            // Complete normal signal
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true, checkIsNormalized: true)]
             public Vector3 normalWS;
 
+            // Low frequency normal signal
             [SurfaceDataAttributes(new string[] { "Low Frequency Normal WS", "Low Frequency Normal View Space" }, true, checkIsNormalized: true)]
             public Vector3 lowFrequencyNormalWS;
 
+            // Perceptual smoothness on the surface of the water
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
             [SurfaceDataAttributes("Smoothness")]
             public float perceptualSmoothness;
 
+            // Foam value on the surface of the water
             [SurfaceDataAttributes("Foam")]
             public float foam;
 
+            // Thickness of the waves
             public float tipThickness;
 
+            // Refraction color
             [SurfaceDataAttributes("Refraction Color")]
             public Vector3 refractionColor;
         }
@@ -54,24 +60,38 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1650)]
         public struct BSDFData
         {
+            // Base color on the water
             [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;
 
+            // Fresnel0 of the water surface
             public Vector3 fresnel0;
 
+            // Complete normal signal
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true, checkIsNormalized: true)]
             public Vector3 normalWS;
+            
+            // Low frequency normal signal
             [SurfaceDataAttributes(new string[] { "Low Frequency Normal WS", "Low Frequency Normal View Space" }, true)]
             public Vector3 lowFrequencyNormalWS;
 
+            // Perceptual smoothness on the surface of the water
             public float perceptualRoughness;
+
+            // Linear smoothness on the surface of the water
             public float roughness;
 
+            // Refraction color
             public Vector3 refractionColor;
 
+            // Foam Value
             public float foam;
 
+            // Thickness of the waves
             public float tipThickness;
+
+            // Integer that allows us to track
+            public uint surfaceIndex;
         }
 
         public Water() { }

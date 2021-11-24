@@ -36,12 +36,6 @@
             "m_Id": "f6e8b051dc44492e832943711ceb7668"
         },
         {
-            "m_Id": "22a396bf22384be988726e4ccf2c19d6"
-        },
-        {
-            "m_Id": "3bcd29e79721450e9b3d986abd5a7517"
-        },
-        {
             "m_Id": "8729b05f44c149369bb907bf3a034b61"
         },
         {
@@ -103,6 +97,9 @@
         },
         {
             "m_Id": "b7095c617e634f0096cd6fe24e3ca89e"
+        },
+        {
+            "m_Id": "babe3a9f0d1f48d6a109f545023cd84a"
         }
     ],
     "m_GroupDatas": [],
@@ -355,7 +352,7 @@
             },
             "m_InputSlot": {
                 "m_Node": {
-                    "m_Id": "22a396bf22384be988726e4ccf2c19d6"
+                    "m_Id": "babe3a9f0d1f48d6a109f545023cd84a"
                 },
                 "m_SlotId": 0
             }
@@ -691,7 +688,7 @@
                 "m_Id": "a1f0e69ea99e4a4bac9be90ddc22a956"
             },
             {
-                "m_Id": "22a396bf22384be988726e4ccf2c19d6"
+                "m_Id": "babe3a9f0d1f48d6a109f545023cd84a"
             },
             {
                 "m_Id": "f6e8b051dc44492e832943711ceb7668"
@@ -704,9 +701,6 @@
             },
             {
                 "m_Id": "af4d522d5ad14e61b118d69853e49ee4"
-            },
-            {
-                "m_Id": "3bcd29e79721450e9b3d986abd5a7517"
             }
         ]
     },
@@ -1234,40 +1228,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
-    "m_ObjectId": "22a396bf22384be988726e4ccf2c19d6",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "Material.FoamColor",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": 0.0,
-            "y": 0.0,
-            "width": 0.0,
-            "height": 0.0
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "8d0aba61378e4bedafa1514f3e96a9ae"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_SerializedDescriptor": "Material.FoamColor"
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "22f2c673410141e5a5caf0fd0ca90257",
     "m_Id": 1,
@@ -1480,40 +1440,6 @@
         "w": 0.0
     },
     "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
-    "m_ObjectId": "3bcd29e79721450e9b3d986abd5a7517",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "Material.SpecularSelfOcclusion",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": 18.99998664855957,
-            "y": 562.0,
-            "width": 200.00003051757813,
-            "height": 41.0
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "90a1884cac5940ff93e1ee6381448412"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_SerializedDescriptor": "Material.SpecularSelfOcclusion"
 }
 
 {
@@ -2148,6 +2074,21 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "7559f9e100c24c2a880fad893c98cd9b",
+    "m_Id": 0,
+    "m_DisplayName": "Foam",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Foam",
+    "m_StageCapability": 2,
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "7a264f9e92fd49c0b49d936e79fbdabc",
     "m_Id": 0,
@@ -2425,36 +2366,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.ColorRGBMaterialSlot",
-    "m_ObjectId": "8d0aba61378e4bedafa1514f3e96a9ae",
-    "m_Id": 0,
-    "m_DisplayName": "Foam Color",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "FoamColor",
-    "m_StageCapability": 2,
-    "m_Value": {
-        "x": 0.800000011920929,
-        "y": 0.800000011920929,
-        "z": 0.800000011920929
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-    },
-    "m_Labels": [],
-    "m_ColorMode": 0,
-    "m_DefaultColor": {
-        "r": 0.800000011920929,
-        "g": 0.800000011920929,
-        "b": 0.800000011920929,
-        "a": 1.0
-    }
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "9096233aab104023b31511c040a20608",
     "m_Id": 1,
@@ -2465,21 +2376,6 @@
     "m_StageCapability": 3,
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "90a1884cac5940ff93e1ee6381448412",
-    "m_Id": 0,
-    "m_DisplayName": "Self Specular Occlusion",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "SpecularSelfOcclusion",
-    "m_StageCapability": 2,
-    "m_Value": 1.0,
-    "m_DefaultValue": 1.0,
     "m_Labels": []
 }
 
@@ -2885,6 +2781,40 @@
         "b": 0.5,
         "a": 1.0
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
+    "m_ObjectId": "babe3a9f0d1f48d6a109f545023cd84a",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Material.Foam",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 20.000011444091798,
+            "y": 370.0,
+            "width": 200.0,
+            "height": 41.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "7559f9e100c24c2a880fad893c98cd9b"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_SerializedDescriptor": "Material.Foam"
 }
 
 {

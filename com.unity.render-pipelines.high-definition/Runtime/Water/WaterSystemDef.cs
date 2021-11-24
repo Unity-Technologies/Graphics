@@ -4,6 +4,18 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    // This structure holds all the information that can be requested during the deferred water lighting
+    [GenerateHLSL(PackingRules.Exact, false)]
+    struct WaterSurfaceProfile
+    {
+        public Vector3 waterAmbientProbe;
+        public float tipScatteringHeight;
+        public float bodyScatteringHeight;
+        public float _padding0;
+        public float _padding1;
+        public float _padding2;
+    }
+
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesWater
     {
@@ -68,8 +80,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float _DisplacementScattering;
         public float _ScatteringIntensity;
-        public float _BodyScatteringWeight;
-        public float _TipScatteringWeight;
+        public int _SurfaceIndex;
+        public float _PaddingW1;
 
         public Vector4 _ScatteringLambertLighting;
 
