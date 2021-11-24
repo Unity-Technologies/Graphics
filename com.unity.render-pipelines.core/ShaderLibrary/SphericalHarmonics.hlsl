@@ -11,6 +11,7 @@
 static const float kSHBasisCoef[] = { kSHBasis0, -kSHBasis1, kSHBasis1, -kSHBasis1, kSHBasis2, -kSHBasis2, kSHBasis3, -kSHBasis2, kSHBasis4 };
 
 // Clamped cosine convolution coefs (pre-divided by PI)
+// See https://seblagarde.wordpress.com/2012/01/08/pi-or-not-to-pi-in-game-lighting-equation/
 #define kClampedCosine0 1.0f
 #define kClampedCosine1 2.0f / 3.0f
 #define kClampedCosine2 1.0f / 4.0f
@@ -135,7 +136,7 @@ void ConvolveZonal(inout float sh[27], float3 zh)
 }
 
 // Packs coefficients so that we can use Peter-Pike Sloan's shader code.
-// Does not perform premultiplication with coefficients of SH basis functions.
+// The function does not perform premultiplication with coefficients of SH basis functions, caller need to do it
 // See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks".
 // Constant + linear
 void PackSH(RWStructuredBuffer<float4> buffer, float sh[27])
