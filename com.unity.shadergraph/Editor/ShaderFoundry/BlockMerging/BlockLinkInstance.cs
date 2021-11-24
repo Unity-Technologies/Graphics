@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderFoundry
             var instance = new VariableLinkInstance { Type = type, Name = name.ToLower(), Container = type.Container };
             // Extract all of the variables into instances
             foreach (var variable in variables)
-                instance.CreateSubField(variable.Type, variable.ReferenceName, variable.Attributes);
+                instance.CreateSubField(variable.Type, variable.Name, variable.Attributes);
             return instance;
         }
     }

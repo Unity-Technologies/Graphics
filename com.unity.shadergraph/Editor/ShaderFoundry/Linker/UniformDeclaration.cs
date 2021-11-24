@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderFoundry
 
         internal static List<UniformInfo> Extract(BlockVariable property)
         {
-            return Extract(property.Type, property.ReferenceName, property.Attributes);
+            return Extract(property.Type, property.Name, property.Attributes);
         }
 
         internal static List<UniformInfo> Extract(VariableLinkInstance property)
@@ -31,24 +31,24 @@ namespace UnityEditor.ShaderFoundry
             return Extract(property.Type, property.Name, property.Attributes);
         }
 
-        internal static List<UniformInfo> Extract(ShaderType type, string referenceName, IEnumerable<ShaderAttribute> attributes)
+        internal static List<UniformInfo> Extract(ShaderType type, string name, IEnumerable<ShaderAttribute> attributes)
         {
             List<UniformInfo> results = new List<UniformInfo>();
 
             if (type.IsStruct)
             {
                 foreach (var field in type.StructFields)
-                    ExtractField(field.Type, field.Name, field.Attributes, referenceName, attributes, true, results);
+                    ExtractField(field.Type, field.Name, field.Attributes, name, attributes, true, results);
             }
             else
             {
-                bool extracted = ExtractField(type, referenceName, attributes, referenceName, attributes, false, results);
+                bool extracted = ExtractField(type, name, attributes, name, attributes, false, results);
                 if(!extracted)
                 {
                     var info = new UniformInfo();
-                    info.uniformDeclaration = $"{type.Name} {referenceName}";
+                    info.uniformDeclaration = $"{type.Name} {name}";
                     info.declarationType = attributes.GetDeclaration();
-                    info.assignmentExpression = BuildAssignmentExpression(type, referenceName, info.declarationType);
+                    info.assignmentExpression = BuildAssignmentExpression(type, name, info.declarationType);
                     results.Add(info);
                 }
             }

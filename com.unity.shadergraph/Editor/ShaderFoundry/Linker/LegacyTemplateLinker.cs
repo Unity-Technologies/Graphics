@@ -159,7 +159,7 @@ namespace UnityEditor.ShaderFoundry
 
             void AddFieldFromProperty(ActiveFields activeFields, BlockVariable prop, FieldDescriptorLookupMap lookups)
             {
-                foreach(var descriptor in lookups.Find(prop.ReferenceName))
+                foreach(var descriptor in lookups.Find(prop.Name))
                     activeFields.baseInstance.Add(descriptor);
             }
 
@@ -477,7 +477,7 @@ namespace UnityEditor.ShaderFoundry
                     code = blockBuilder.ToString();
 
                     var block = blockInstance.Block;
-                    shaderProperties = shaderProperties.Concat(block.Properties);
+                    shaderProperties = shaderProperties.Concat(block.Properties());
                     shaderCommands = shaderCommands.Concat(block.Commands);
                     shaderDefines = shaderDefines.Concat(block.Defines);
                     shaderIncludes = shaderIncludes.Concat(block.Includes);
@@ -780,9 +780,9 @@ namespace UnityEditor.ShaderFoundry
                 var visitedProperties = new HashSet<string>();
                 foreach (var prop in shaderProperties)
                 {
-                    if (visitedProperties.Contains(prop.ReferenceName))
+                    if (visitedProperties.Contains(prop.Name))
                         continue;
-                    visitedProperties.Add(prop.ReferenceName);
+                    visitedProperties.Add(prop.Name);
                     UniformDeclaration.Declare(context, prop);
                 }
 
@@ -850,7 +850,7 @@ namespace UnityEditor.ShaderFoundry
                             dotsInstancedPropertyBuilder.Append("UNITY_DEFINE_INSTANCED_PROP(");
                             dotsInstancedPropertyBuilder.Append(prop.Type.Name);
                             dotsInstancedPropertyBuilder.Append(", ");
-                            dotsInstancedPropertyBuilder.Append(prop.ReferenceName);
+                            dotsInstancedPropertyBuilder.Append(prop.Name);
                             dotsInstancedPropertyBuilder.Append(")");
                             count++;
                         }

@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderFoundry
 
             var propInfo = new MaterialPropertyInfo();
             propInfo.DefaultExpression = GetDefaultExpression(property, property.Attributes, subField);
-            propInfo.declaration = matPropertyAtt.BuildDeclarationString(property.ReferenceName, GetDisplayName(property));
+            propInfo.declaration = matPropertyAtt.BuildDeclarationString(property.Name, GetDisplayName(property));
             results.Add(propInfo);
             return true;
         }
@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderFoundry
 
             var propInfo = new MaterialPropertyInfo();
             propInfo.DefaultExpression = GetDefaultExpression(property, property.Attributes, subField);
-            propInfo.declaration = $"{property.ReferenceName}(\"{GetDisplayName(property)}\", {propertyTypeAtt.PropertyType})";
+            propInfo.declaration = $"{property.Name}(\"{GetDisplayName(property)}\", {propertyTypeAtt.PropertyType})";
             results.Add(propInfo);
             return true;
         }
@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderFoundry
         // Currently there is no stored display name. Add this as a placeholder for later.
         static string GetDisplayName(BlockVariable property)
         {
-            return property.ReferenceName;
+            return property.Name;
         }
 
         static string GetDefaultExpression(BlockVariable property, IEnumerable<ShaderAttribute> instanceAttributes, StructField subField)
@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderFoundry
             var props = MaterialPropertyInfo.Extract(variable);
             foreach (var matProp in props)
             {
-                matProp.Declare(builder, variable.ReferenceName);
+                matProp.Declare(builder, variable.Name);
             }
         }
     }

@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderFoundry
 
             void CollectUniqueProperties(Block block)
             {
-                var properties = block.Properties;
+                var properties = block.Properties();
                 if (properties != null)
                 {
                     foreach (var prop in properties)
@@ -33,9 +33,9 @@ namespace UnityEditor.ShaderFoundry
                         if (decl == UnityEditor.ShaderGraph.Internal.HLSLDeclaration.DoNotDeclare)
                             continue;
 
-                        if (!propertiesMap.ContainsKey(prop.ReferenceName))
+                        if (!propertiesMap.ContainsKey(prop.Name))
                         {
-                            propertiesMap.Add(prop.ReferenceName, prop);
+                            propertiesMap.Add(prop.Name, prop);
                             propertiesList.Add(prop);
                         }
                     }
