@@ -47,6 +47,19 @@ namespace UnityEditor.VFX.UI
             s_Instance.PasteBlocks(viewController, (data as SerializableGraph).operators, targetModelContext, targetIndex, blocksInTheSameOrder);
         }
 
+        private static bool CanPasteNode(Node node, string openedAssetPath)
+        {
+            return node.settings
+                .Where(x => x.value.type == typeof(VisualEffectSubgraphBlock))
+                .All(x =>
+                    {
+                        var obj = x.value.Get<VisualEffectSubgraphBlock>();
+                        var path = AssetDatabase.GetAssetPath(obj);
+                        return path != openedAssetPath;
+                    }
+                );
+        }
+
         public static bool CanPaste(VFXView view, object data)
         {
             try
@@ -54,6 +67,15 @@ namespace UnityEditor.VFX.UI
                 var serializableGraph = JsonUtility.FromJson<SerializableGraph>(data.ToString());
                 if (serializableGraph.blocksOnly)
                 {
+                    if (view.controller.model.isSubgraph)
+                    {
+                        var path = AssetDatabase.GetAssetPath(view.controller.model.subgraph);
+                        if (!serializableGraph.operators.All(x => CanPasteNode(x, path)))
+                        {
+                            return false;
+                        }
+                    }
+
                     var selectedContexts = view.selection.OfType<VFXContextUI>();
                     var selectedBlocks = view.selection.OfType<VFXBlockUI>();
 
