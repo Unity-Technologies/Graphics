@@ -72,6 +72,7 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
 
     for (int channel = 0; channel < 3; ++channel)
     {
+        // Note: SH coefficient are apply letter
         outputSHCoeffs[channel * 9 + 0] = value[channel];
         outputSHCoeffs[channel * 9 + 1] = n.y * value[channel];
         outputSHCoeffs[channel * 9 + 2] = n.z * value[channel];
@@ -155,15 +156,15 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
     // Write to memory and convolution + weighing
     if (dispatchThreadId == 0)
     {
-        // SH Encoding
         for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
+            // Sh Coefficient used for encoding 
             outputSHCoeffs[i] = outputSHCoeffs[i] * kSHBasisCoef[i % 9] * weight;
         }
 
         for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
-            // ClampedCosine * SHDecode
+            // ClampedCosine * SH Coefficient used in Decode
             _AmbientProbeOutputBuffer[i] = outputSHCoeffs[i] * kClampedCosineCoefs[i % 9] * kSHBasisCoef[i % 9];
         }
 
@@ -180,10 +181,8 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
 #endif
 
 #if OUTPUT_VOLUMETRIC
-        // Following is a shader rewrite of the ambient probe transformation code found in HDRenderPipeline.VolumetricLighting.cs SetPreconvolvedAmbientLightProbe
-        // The whole thing can probably be simplified but for the sake of readability it is kept as is for now. Performance should not be an issue as this is executed usually only once.
-        // (or very rarely)
 
+        // Note: Code below could be optimize (lot of constant multiplication), but compiler may figure it out and this path is rarely executed, so prefer clean code.
         // Apply FogDimmer
         for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
