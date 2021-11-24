@@ -742,16 +742,7 @@ namespace UnityEngine.Rendering.Universal
                     SortStable(m_ActiveRenderPassQueue);
                 }
 
-                try
-                {
-                    SetupNativeRenderPassFrameData(cameraData, useRenderPassEnabled);
-                }
-                catch (Exception e)
-
-                {
-                    Console.WriteLine(e);
-                    m_ActiveRenderPassQueue.Clear();
-                }
+                SetupNativeRenderPassFrameData(cameraData, useRenderPassEnabled);
 
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
 
