@@ -90,6 +90,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ACES
     }
 
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="NeutralRangeReductionMode"/> value.
+    /// </summary>
     [Serializable]
     public sealed class NeutralRangeReductionModeParameter : VolumeParameter<NeutralRangeReductionMode>
     {
@@ -101,6 +104,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public NeutralRangeReductionModeParameter(NeutralRangeReductionMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="HDRACESPreset"/> value.
+    /// </summary>
     [Serializable]
     public sealed class HDRACESPresetParameter : VolumeParameter<HDRACESPreset>
     {
@@ -112,6 +118,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDRACESPresetParameter(HDRACESPreset value, bool overrideState = false) : base(value, overrideState) { }
     }
 
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="FallbackHDRTonemap"/> value.
+    /// </summary>
     [Serializable]
     public sealed class FallbackHDRTonemapParameter : VolumeParameter<FallbackHDRTonemap>
     {

@@ -150,7 +150,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (requestID >= 0 && requestID < m_RequestPositions.Count)
             {
-                Debug.Assert(ComputeCapturePositionIsValid(m_RequestPositions[requestID]));
+                Debug.Assert(ComputeCapturePositionIsValid(newPosition));
                 m_RequestPositions[requestID] = newPosition;
                 m_SHCoefficients[requestID] = new SphericalHarmonicsL2();
                 m_SHValidity[requestID] = kInvalidSH;
@@ -644,9 +644,7 @@ namespace UnityEngine.Experimental.Rendering
             m_MemoryBudget = parameters.memoryBudget;
             m_SHBands = parameters.shBands;
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
-            InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
             m_IsInitialized = true;
-            m_NeedsIndexRebuild = true;
             sceneData = parameters.sceneData;
             m_SupportStreaming = parameters.supportStreaming;
 
