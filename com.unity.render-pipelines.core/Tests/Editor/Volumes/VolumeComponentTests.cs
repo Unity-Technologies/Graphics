@@ -173,7 +173,7 @@ namespace UnityEngine.Rendering.Tests
                 typeof(VolumeComponentMixedAdditionalAttributes)
             };
 
-            Type volumeComponentProvider = ReflectionUtils.FindTypeByName("UnityEditor.Rendering.VolumeComponentProvider");
+            Type volumeComponentProvider = ReflectionUtils.FindTypeByName("UnityEngine.Rendering.VolumeManager");
             var volumeComponents = volumeComponentProvider.InvokeStatic("FilterVolumeComponentTypes",
                 types, typeof(RenderPipeline)) as List<(string, Type)>;
 
