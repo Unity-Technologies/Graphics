@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed screen space shadow debug view not showing when no shadows is available.
 - Fixed nullref from debug menu in release build (case 1381556).
 - Fixed debug window reset.
+- Fixed camera bridge action in release build (case 1367866).
 
 ### Changed
 - Optimizations for the physically based depth of field.
