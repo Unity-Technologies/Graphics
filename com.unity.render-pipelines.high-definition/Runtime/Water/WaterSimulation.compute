@@ -96,24 +96,16 @@ void EvaluateNormals(uint3 currentThread : SV_DispatchThreadID)
     uint2 coord = currentThread.xy;
     uint bandIdx = currentThread.z;
 
-    // Get the displacement at the center coordinate
-    float3 displacementCenter = LOAD_TEXTURE2D_ARRAY(_WaterDisplacementBuffer, coord, bandIdx).xyz;
+    // Get the displacement we need for the evaluate
+    float3 displacementCenter = ShuffleDisplacement(LOAD_TEXTURE2D_ARRAY(_WaterDisplacementBuffer, coord, bandIdx).xyz);
+    float3 displacementRight = ShuffleDisplacement(LOAD_TEXTURE2D_ARRAY(_WaterDisplacementBuffer, uint2(coord + int2(1, 0)) & (_BandResolution - 1), bandIdx).xyz);
+    float3 displacementUp = ShuffleDisplacement(LOAD_TEXTURE2D_ARRAY(_WaterDisplacementBuffer, uint2(coord + int2(0, 1)) & (_BandResolution - 1), bandIdx).xyz);
 
-    // Sample pixels from the region we need
-    float3 displacementRight = LOAD_TEXTURE2D_ARRAY(_WaterDisplacementBuffer, uint2(coord + int2(1, 0)) & (_BandResolution - 1), bandIdx).xyz;
-    float3 displacementUp = LOAD_TEXTURE2D_ARRAY(_WaterDisplacementBuffer, uint2(coord + int2(0, 1)) & (_BandResolution - 1), bandIdx).xyz;
-
-    // Compute the displacement factor we need to compute the derivatives
-    float displacementFactor = (_BandPatchSize[0] * PHILLIPS_AMPLITUDE_SCALAR) / square(_BandPatchSize[bandIdx]);
-    float deltaNormalization = _BandResolution / _BandPatchSize[bandIdx];
-
-    // Evaluate the surface gradient of this pixels
-    float deltaY = (_BandResolution * displacementFactor);
-    float deltaX = (displacementRight.x - displacementCenter.x);
-    float deltaZ = (displacementUp.x - displacementCenter.x);
-    float2 surfaceGradient = float2(deltaX, deltaZ) * deltaY;
+    // Compute the displacement normalization factor
+    float2 surfaceGradient = EvaluateSurfaceGradients(displacementCenter, displacementRight, displacementUp, bandIdx);
 
     // Compute the jacobian of this pixel
+    float deltaNormalization = _BandResolution / _BandPatchSize[bandIdx];
     float jacobianLambda = _FoamJacobianLambda[bandIdx];
     float Jxx = 1.f + jacobianLambda * (displacementRight.y - displacementCenter.y) * deltaNormalization;
     float Jyy = 1.f + jacobianLambda * (displacementUp.z - displacementCenter.z) * deltaNormalization;

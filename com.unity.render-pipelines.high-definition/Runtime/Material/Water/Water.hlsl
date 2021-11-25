@@ -594,10 +594,10 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     // This intends to simulate indirect specular "multi bounce"
     float3 attenuation = 1.0f;
-    if (R.y < 0.0)
+    if (R.y < 0.3)
     {
         float weight = saturate(-R.y * 2.0f);
-        attenuation = lerp(float3(1.0, 1.0, 1.0), bsdfData.diffuseColor, float3(weight, weight, weight));
+        attenuation = lerp(float3(1.0, 1.0, 1.0), bsdfData.fresnel0, float3(weight, weight, weight));
     }
     R.y = abs(R.y);
 

@@ -87,23 +87,36 @@ struct WaterSimulationCoordinates
 void ComputeWaterUVs(float3 positionWS, out WaterSimulationCoordinates waterCoord)
 {
     float2 uv = positionWS.xz;
-    uv /= _BandPatchSize.x;
+    waterCoord.uvBand0 = uv / _BandPatchSize.x;
+    waterCoord.uvBand1 = uv / _BandPatchSize.y;
+    waterCoord.uvBand2 = uv / _BandPatchSize.z;
+    waterCoord.uvBand3 = uv / _BandPatchSize.w;
+}
 
-    float R0 = _BandPatchUVScale.x;
-    float O0 = 0 / R0;
-    waterCoord.uvBand0 = ((uv + O0) * R0);
+float3 ShuffleDisplacement(float3 displacement)
+{
+    return float3(-displacement.y, displacement.x, -displacement.z);
+}
 
-    float R1 = _BandPatchUVScale.y;
-    float O1 = 0.5f / R1;
-    waterCoord.uvBand1 = ((uv + O1) * R1);
+float EvaluateDisplacementNormalization(uint bandIndex)
+{
+    // Compute the displacement normalization factor
+    float patchSize = _BandPatchSize[bandIndex] / _BandPatchSize[0];
+    float patchSize2 = patchSize * patchSize;
+    return _WaveAmplitude[bandIndex]  / patchSize2 * PHILLIPS_AMPLITUDE_SCALAR;
+}
 
-    float R2 = _BandPatchUVScale.z;
-    float O2 = 0.25 / R2;
-    waterCoord.uvBand2 = ((uv + O2) * R2);
-
-    float R3 = _BandPatchUVScale.w;
-    float O3 = 0.125 / R3;
-    waterCoord.uvBand3 = ((uv + O3) * R3);
+float2 EvaluateSurfaceGradients(float3 displacementC, float3 displacementR, float3 displacementU, uint bandIndex)
+{
+    float pixelSize = _BandPatchSize[bandIndex] / _BandResolution;
+    float displacementNormalization = EvaluateDisplacementNormalization(bandIndex);
+    float3 p0 = displacementC * displacementNormalization;
+    float3 p1 = displacementR * displacementNormalization + float3(pixelSize, 0, 0);
+    float3 p2 = displacementU * displacementNormalization + float3(0, 0, pixelSize);
+    float3 v0 = normalize(p1 - p0);
+    float3 v1 = normalize(p2 - p0);
+    float3 geometryNormal = normalize(cross(v1, v0));
+    return SurfaceGradientFromPerturbedNormal(float3(0, 1, 0), geometryNormal).xz;
 }
 
 #if !defined(WATER_SIMULATION)
@@ -394,7 +407,7 @@ void PackWaterVertexData(float3 positionAWS, float3 displacement, float3 displac
 {
     packedWaterData.positionOS = positionAWS + displacement;
     packedWaterData.normalOS = float3(0, 1, 0);
-    packedWaterData.uv0 = float4(positionAWS + displacementNoChopiness, 0.0);
+    packedWaterData.uv0 = float4(positionAWS + float3(0, displacementNoChopiness.y, 0), 0.0);
     packedWaterData.uv1 = float4(lowFrequencyHeight, customFoam, sssMask, length(float2(displacementNoChopiness.x, displacementNoChopiness.z)));
 }
 
@@ -421,27 +434,30 @@ void EvaluateWaterAdditionalData(float3 positionAWS, out WaterAdditionalData wat
 
     // First band
     float4 additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand0, 0, texSize) * waterMask.x;
-    float3 surfaceGradient = float3(additionalData.x, 0, additionalData.y) * _WaveAmplitude.x;
+    float3 surfaceGradient = float3(additionalData.x, 0, additionalData.y);
     float3 lowFrequencySurfaceGradient = surfaceGradient;
+
     float lowSurfaceFoam = additionalData.z * saturate(_WaveAmplitude.x);
     float deepFoam = additionalData.w * saturate(_WaveAmplitude.x);
 
     // Second band
     additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand1, 1, texSize) * waterMask.x;
-    surfaceGradient += float3(additionalData.x, 0, additionalData.y) * _WaveAmplitude.y;
-    lowFrequencySurfaceGradient += float3(additionalData.x, 0, additionalData.y) * _WaveAmplitude.y;
+    surfaceGradient += float3(additionalData.x, 0, additionalData.y);
+    lowFrequencySurfaceGradient += float3(additionalData.x, 0, additionalData.y);
     lowSurfaceFoam += additionalData.z;
     deepFoam += additionalData.w * saturate(_WaveAmplitude.y);
 
 #if defined(HIGH_RESOLUTION_WATER)
     // Third band
     additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand2, 2, texSize)* waterMask.y;
-    surfaceGradient += float3(additionalData.x, 0, additionalData.y) * _WaveAmplitude.z;
-
+    lowFrequencySurfaceGradient += float3(additionalData.x, 0, additionalData.y) * 0.5;
+    surfaceGradient += float3(additionalData.x, 0, additionalData.y);
+    
     // Fourth band
     additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand3, 3, texSize) * waterMask.y;
-    surfaceGradient += float3(additionalData.x, 0, additionalData.y) * _WaveAmplitude.w;
+    surfaceGradient += float3(additionalData.x, 0, additionalData.y);
 #endif
+
 
     // Blend the various surface gradients
     waterAdditionalData.surfaceGradient = surfaceGradient;
