@@ -39,7 +39,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed interpolation issue with wind orientation (case 1379841).
 - Fixed range fields for depth of field (case 1376609).
 - Fixed exception on DLSS when motion vectors are disabled (case # 1377986).
-- Fixed SpeedTree graph compatibility by adding raytracing quality keyword to provide a safe path.
 - Fixed decal performances when they use different material and the same draw order.
 
 ### Changed
