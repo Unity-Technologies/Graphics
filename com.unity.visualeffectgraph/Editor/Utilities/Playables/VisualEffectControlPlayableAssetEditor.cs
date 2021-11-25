@@ -398,7 +398,6 @@ namespace UnityEditor.VFX
 
         public override void DrawBackground(TimelineClip clip, ClipBackgroundRegion region)
         {
-            base.DrawBackground(clip, region);
             var playable = clip.asset as VisualEffectControlClip;
             if (playable.clipEvents == null || playable.singleEvents == null)
                 return;
@@ -461,10 +460,10 @@ namespace UnityEditor.VFX
             {
                 var drawRect = item.drawRect;
                 drawRect.position += eventRegion.position;
-                drawRect.height = eventRegion.height;
 
                 if (item.text)
                 {
+                    drawRect.height = eventRegion.height;
                     ShadowLabel(drawRect,
                         item.content,
                         item.textStyle,
@@ -548,6 +547,8 @@ namespace UnityEditor.VFX
                     }
                 }
             }
+
+            base.DrawBackground(clip, region);
         }
     }
 }
