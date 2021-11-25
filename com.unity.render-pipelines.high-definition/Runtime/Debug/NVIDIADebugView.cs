@@ -79,7 +79,7 @@ namespace UnityEngine.NVIDIA
                     m_Data.deviceState = DeviceState.Active;
                     m_Data.dlssSupported = device.IsFeatureAvailable(UnityEngine.NVIDIA.GraphicsDeviceFeature.DLSS);
                     device.UpdateDebugView(m_DebugView);
-                    m_Data.dlssFeatureInfos = TranslateDlssFeatureArray(m_Data.dlssFeatureInfos, m_DebugView);
+                    TranslateDlssFeatureArray(m_Data.dlssFeatureInfos, m_DebugView);
                 }
                 else
                 {
@@ -91,41 +91,41 @@ namespace UnityEngine.NVIDIA
                 bool isPluginLoaded = NVUnityPlugin.IsLoaded();
                 m_Data.deviceState = isPluginLoaded ?  DeviceState.DeviceCreationFailed : DeviceState.MissingPluginDLL;
                 m_Data.dlssSupported = false;
-                m_Data.dlssFeatureInfos = null;
+                ClearFeatureStateContainer(m_Data.dlssFeatureInfos);
             }
 
             UpdateDebugUITable();
         }
 
-        private static Container<DLSSDebugFeatureInfos>[] TranslateDlssFeatureArray(Container<DLSSDebugFeatureInfos>[] oldArray, in GraphicsDeviceDebugView debugView)
+        private static void ClearFeatureStateContainer(Container<DLSSDebugFeatureInfos>[] containerArray)
         {
-            if (!debugView.dlssFeatureInfos.Any())
-                return null;
-
-            Container<DLSSDebugFeatureInfos>[] targetArray = oldArray;
-            int dlssFeatureInfosCount = debugView.dlssFeatureInfos.Count();
-            if (targetArray == null || targetArray.Length != dlssFeatureInfosCount)
+            for (int i = 0; i < containerArray.Length; ++i)
             {
-                targetArray = new Container<DLSSDebugFeatureInfos>[dlssFeatureInfosCount];
+                containerArray[i].data = new DLSSDebugFeatureInfos();
             }
+        }
+
+        private static void TranslateDlssFeatureArray(Container<DLSSDebugFeatureInfos>[] containerArray, in GraphicsDeviceDebugView debugView)
+        {
+            ClearFeatureStateContainer(containerArray);
+            if (!debugView.dlssFeatureInfos.Any())
+                return;
 
             //copy data over
             int i = 0;
             foreach (var featureInfo in debugView.dlssFeatureInfos)
             {
-                if (targetArray[i] == null)
-                    targetArray[i] = new Container<DLSSDebugFeatureInfos>();
-                targetArray[i++].data = featureInfo;
+                if (i == containerArray.Length)
+                    break;
+                containerArray[i++].data = featureInfo;
             }
-
-
-            return targetArray;
         }
 
 #endregion
 
 #region Debug User Interface
 
+        private const int MaxDebugRows = 4;
         private DebugUI.Container m_DebugWidget = null;
         private DebugUI.Table.Row[] m_DlssViewStateTableRows = null;
         private DebugUI.Container m_DlssViewStateTableHeader = null;
@@ -135,8 +135,9 @@ namespace UnityEngine.NVIDIA
             if (m_DebugWidget != null)
                 return m_DebugWidget;
 
-            m_DlssViewStateTableHeader = new DebugUI.Container()
+            m_DlssViewStateTableHeader = new DebugUI.Table.Row()
             {
+                displayName = "",
                 children =
                 {
                     new DebugUI.Container() {
@@ -190,65 +191,58 @@ namespace UnityEngine.NVIDIA
                 }
             };
 
-            return m_DebugWidget;
-        }
-
-        private void UpdateDebugUITable()
-        {
-            if (m_Data.dlssFeatureInfos == null)
-            {
-                if (m_DlssViewStateTableRows != null)
-                    foreach (var w in m_DlssViewStateTableRows)
-                        m_DlssViewStateTable.children.Remove(w);
-                m_DlssViewStateTableRows = null;
-                return;
-            }
+            m_Data.dlssFeatureInfos = new Container<DLSSDebugFeatureInfos>[MaxDebugRows];
+            m_DlssViewStateTableRows = new DebugUI.Table.Row[m_Data.dlssFeatureInfos.Length];
 
             String resToString(uint a, uint b)
             {
                 return "" + a + "x" + b;
             }
 
-            if (m_DlssViewStateTableRows == null || m_DlssViewStateTableRows.Length != m_Data.dlssFeatureInfos.Length)
+            for (int r = 0; r < m_Data.dlssFeatureInfos.Length; ++r)
             {
-                if (m_DlssViewStateTableRows != null)
-                    foreach (var w in m_DlssViewStateTableRows)
-                        m_DlssViewStateTable.children.Remove(w);
-
-                m_DlssViewStateTableRows = new DebugUI.Table.Row[m_Data.dlssFeatureInfos.Length];
-                for (int r = 0; r < m_Data.dlssFeatureInfos.Length; ++r)
+                var c = new Container<DLSSDebugFeatureInfos>()
                 {
-                    var c = m_Data.dlssFeatureInfos[r];
-                    var dlssStateRow = new DebugUI.Table.Row()
-                    {
-                        children =
+                    data = new DLSSDebugFeatureInfos()
+                };
+                m_Data.dlssFeatureInfos[r] = c;
+                var dlssStateRow = new DebugUI.Table.Row()
+                {
+                    children =
                         {
                             new DebugUI.Value()
                             {
-                                getter = () => c.data.validFeature ? "Valid" : "Invalid"
+                                getter = () => c.data.validFeature ? "Valid" : ""
                             },
                             new DebugUI.Value()
                             {
-                                getter = () => resToString(c.data.execData.subrectWidth, c.data.execData.subrectHeight)
+                                getter = () => c.data.validFeature ? resToString(c.data.execData.subrectWidth, c.data.execData.subrectHeight) : ""
                             },
                             new DebugUI.Value()
                             {
-                                getter = () => resToString(c.data.initData.outputRTWidth, c.data.initData.outputRTHeight)
+                                getter = () => c.data.validFeature ? resToString(c.data.initData.outputRTWidth, c.data.initData.outputRTHeight) : ""
                             },
                             new DebugUI.Value()
                             {
-                                getter = () => c.data.initData.quality.ToString()
+                                getter = () => c.data.validFeature ? c.data.initData.quality.ToString() : ""
                             }
                         }
-                    };
-                    m_DlssViewStateTableRows[r] = dlssStateRow;
-                }
-                m_DlssViewStateTable.children.Add(m_DlssViewStateTableRows);
+                };
+                dlssStateRow.isHiddenCallback = () => !c.data.validFeature;
+                m_DlssViewStateTableRows[r] = dlssStateRow;
             }
+            m_DlssViewStateTable.children.Add(m_DlssViewStateTableRows);
 
+
+            return m_DebugWidget;
+        }
+
+        private void UpdateDebugUITable()
+        {
             for (int r = 0; r < m_DlssViewStateTableRows.Length; ++r)
             {
-                m_DlssViewStateTableRows[r].displayName = Convert.ToString(m_Data.dlssFeatureInfos[r].data.featureSlot);
+                var d = m_Data.dlssFeatureInfos[r].data;
+                m_DlssViewStateTableRows[r].displayName = d.validFeature ? Convert.ToString(d.featureSlot) : "";
             }
         }
 

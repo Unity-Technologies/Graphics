@@ -20,10 +20,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
 - Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
 - Fixed Lens Flare visible when being behind a camera with Panini Projection on (case 1370214);
+- Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
+- Fixed Xbox Series X compilation issue with DoF shader
+- Fixed references to reflection probes that wouldn't be cleared when unloading a scene. (case 1357459)
+- Fixed issue with Stacklit raytrace reflection
+- Fixed various issues with using SSR lighting with IBL fallback for Lit shader with clear coat(case 1380351)
+- Fixed stackLit coat screen space reflection and raytrace reflection light hierarchy and IBL fallback
+- Fixed compilation errors from Path Tracing on the PS5 build.
+- Fixed custom shader GUI for material inspector.
+- Fixed custom pass utils Blur and Copy functions in XR.
+- Fixed the ray tracing acceleration structure build marker not being included in the ray tracing stats (case 1379383).
+- Fixed missing information in the tooltip of affects smooth surfaces of the ray traced reflections denoiser (case 1376918).
+- Fixed broken debug views when dynamic resolution was enabled (case 1365368).
+- Fixed shader graph errors when disabling the bias on texture samplers.
 - Fixed flickering / edge aliasing issue when DoF and TAAU or DLSS are enabled (case 1381858).
 
 ### Changed
 - Optimizations for the physically based depth of field.
+- Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
+- Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
+- Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
 
 ## [13.1.1] - 2021-10-04
 
