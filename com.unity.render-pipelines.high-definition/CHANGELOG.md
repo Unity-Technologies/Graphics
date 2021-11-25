@@ -30,6 +30,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom shader GUI for material inspector.
 - Fixed custom pass utils Blur and Copy functions in XR.
 - Fixed the ray tracing acceleration structure build marker not being included in the ray tracing stats (case 1379383).
+- Fixed missing information in the tooltip of affects smooth surfaces of the ray traced reflections denoiser (case 1376918).
+- Fixed broken debug views when dynamic resolution was enabled (case 1365368).
+- Fixed shader graph errors when disabling the bias on texture samplers.
+- Fixed flickering / edge aliasing issue when DoF and TAAU or DLSS are enabled (case 1381858).
+- Fixed SpeedTree graph compatibility by adding raytracing quality keyword to provide a safe path.
 - Fixed objects belonging to preview scenes being marked as dirty during migration (case 1367204).
 
 ### Changed
