@@ -84,11 +84,19 @@ static half SSAORandomUV[40] =
 #define RADIUS _SSAOParams.y
 #define DOWNSAMPLE _SSAOParams.z
 
-// GLES2: In many cases, dynamic looping is not supported.
+
 #if defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
-    #define SAMPLE_COUNT 3
+    static const int SAMPLE_COUNT = 3;
+#elif defined(_SAMPLE_COUNT12)
+    static const int SAMPLE_COUNT = 12;
+#elif defined(_SAMPLE_COUNT10)
+    static const int SAMPLE_COUNT = 10;
+#elif defined(_SAMPLE_COUNT8)
+    static const int SAMPLE_COUNT = 8;
+#elif defined(_SAMPLE_COUNT6)
+    static const int SAMPLE_COUNT = 6;
 #else
-    #define SAMPLE_COUNT int(_SSAOParams.w)
+    static const int SAMPLE_COUNT = 4;
 #endif
 
 // Function defines

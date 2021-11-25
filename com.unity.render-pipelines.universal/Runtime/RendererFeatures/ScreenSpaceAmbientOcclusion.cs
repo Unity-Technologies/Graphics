@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal float Intensity = 3.0f;
         [SerializeField] internal float DirectLightingStrength = 0.25f;
         [SerializeField] internal float Radius = 0.035f;
-        [SerializeField] internal int SampleCount = 4;
+        [SerializeField] internal int SampleCount = -1;
+        [SerializeField] internal AOSampleOption Samples = AOSampleOption._4;
 
         [SerializeField] internal bool SinglePassBlur = false;
         [SerializeField] internal UpsampleTypes FinalUpsample = UpsampleTypes.None;
@@ -31,6 +32,15 @@ namespace UnityEngine.Rendering.Universal
             Low,
             Medium,
             High
+        }
+
+        internal enum AOSampleOption
+        {
+            _4,
+            _6,
+            _8,
+            _10,
+            _12
         }
 
         internal enum BlurTypes
@@ -73,6 +83,11 @@ namespace UnityEngine.Rendering.Universal
         private const string k_NormalReconstructionHighKeyword = "_RECONSTRUCT_NORMAL_HIGH";
         private const string k_SourceDepthKeyword = "_SOURCE_DEPTH";
         private const string k_SourceDepthNormalsKeyword = "_SOURCE_DEPTH_NORMALS";
+        private const string k_SampleCount4Keyword = "_SAMPLE_COUNT4";
+        private const string k_SampleCount6Keyword = "_SAMPLE_COUNT6";
+        private const string k_SampleCount8Keyword = "_SAMPLE_COUNT8";
+        private const string k_SampleCount10Keyword = "_SAMPLE_COUNT10";
+        private const string k_SampleCount12Keyword = "_SAMPLE_COUNT12";
 
         internal bool afterOpaque => m_Settings.AfterOpaque;
 
@@ -83,6 +98,21 @@ namespace UnityEngine.Rendering.Universal
             if (m_SSAOPass == null)
             {
                 m_SSAOPass = new ScreenSpaceAmbientOcclusionPass();
+            }
+
+            if (m_Settings.SampleCount > 0)
+            {
+                if (m_Settings.SampleCount > 11)
+                    m_Settings.Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption._12;
+                else if (m_Settings.SampleCount > 8)
+                    m_Settings.Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption._10;
+                else if (m_Settings.SampleCount > 6)
+                    m_Settings.Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption._8;
+                else if (m_Settings.SampleCount > 4)
+                    m_Settings.Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption._6;
+                else
+                    m_Settings.Samples = ScreenSpaceAmbientOcclusionSettings.AOSampleOption._4;
+                m_Settings.SampleCount = -1;
             }
 
             GetMaterials();
@@ -172,7 +202,6 @@ namespace UnityEngine.Rendering.Universal
             private RTHandle m_SSAOTexture3;
             private RTHandle m_SSAOTexture4;
             private RTHandle m_SSAOTexture5;
-            private RTHandle m_SSAOTextureFinal;
             private RenderTextureDescriptor m_AOPassDescriptor;
             private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
 
@@ -218,7 +247,6 @@ namespace UnityEngine.Rendering.Universal
             internal ScreenSpaceAmbientOcclusionPass()
             {
                 m_CurrentSettings = new ScreenSpaceAmbientOcclusionSettings();
-
                 m_SSAOTexture1 = RTHandles.Alloc(new RenderTargetIdentifier(s_SSAOTexture1ID, 0, CubemapFace.Unknown, -1), "_SSAO_OcclusionTexture1");
                 m_SSAOTexture2 = RTHandles.Alloc(new RenderTargetIdentifier(s_SSAOTexture2ID, 0, CubemapFace.Unknown, -1), "_SSAO_OcclusionTexture2");
                 m_SSAOTexture3 = RTHandles.Alloc(new RenderTargetIdentifier(s_SSAOTexture3ID, 0, CubemapFace.Unknown, -1), "_SSAO_OcclusionTexture3");
@@ -233,7 +261,6 @@ namespace UnityEngine.Rendering.Universal
                 m_SSAOTexture3.Release();
                 m_SSAOTexture4.Release();
                 m_SSAOTexture5.Release();
-                m_SSAOTextureFinal.Release();
             }
 
             internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScriptableRenderer renderer, Material material, Material blitMaterial)
@@ -272,8 +299,7 @@ namespace UnityEngine.Rendering.Universal
                 }
                 return m_Material != null
                     && m_CurrentSettings.Intensity > 0.0f
-                    && m_CurrentSettings.Radius > 0.0f
-                    && m_CurrentSettings.SampleCount > 0;
+                    && m_CurrentSettings.Radius > 0.0f;
             }
 
             /// <inheritdoc/>
@@ -288,7 +314,7 @@ namespace UnityEngine.Rendering.Universal
                     m_CurrentSettings.Intensity,   // Intensity
                     m_CurrentSettings.Radius,      // Radius
                     1.0f / downsampleDivider,      // Downsampling
-                    m_CurrentSettings.SampleCount  // Sample count
+                    0f                            // Unused
                 );
                 m_Material.SetVector(s_SSAOParamsID, ssaoParams);
 
@@ -327,6 +353,31 @@ namespace UnityEngine.Rendering.Universal
                 m_Material.SetVectorArray(s_CameraViewZExtentID, m_CameraZExtent);
 
                 // Update keywords
+                CoreUtils.SetKeyword(m_Material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
+
+                CoreUtils.SetKeyword(m_Material, k_SampleCount4Keyword, false);
+                CoreUtils.SetKeyword(m_Material, k_SampleCount6Keyword, false);
+                CoreUtils.SetKeyword(m_Material, k_SampleCount8Keyword, false);
+                CoreUtils.SetKeyword(m_Material, k_SampleCount10Keyword, false);
+                CoreUtils.SetKeyword(m_Material, k_SampleCount12Keyword, false);
+                switch (m_CurrentSettings.Samples)
+                {
+                    case ScreenSpaceAmbientOcclusionSettings.AOSampleOption._12:
+                        CoreUtils.SetKeyword(m_Material, k_SampleCount12Keyword, true);
+                        break;
+                    case ScreenSpaceAmbientOcclusionSettings.AOSampleOption._10:
+                        CoreUtils.SetKeyword(m_Material, k_SampleCount10Keyword, true);
+                        break;
+                    case ScreenSpaceAmbientOcclusionSettings.AOSampleOption._8:
+                        CoreUtils.SetKeyword(m_Material, k_SampleCount8Keyword, true);
+                        break;
+                    case ScreenSpaceAmbientOcclusionSettings.AOSampleOption._6:
+                        CoreUtils.SetKeyword(m_Material, k_SampleCount6Keyword, true);
+                        break;
+                    default:
+                        CoreUtils.SetKeyword(m_Material, k_SampleCount4Keyword, true);
+                        break;
+                }
                 CoreUtils.SetKeyword(m_Material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
 
                 ScreenSpaceAmbientOcclusionSettings.DepthSource source = this.isRendererDeferred

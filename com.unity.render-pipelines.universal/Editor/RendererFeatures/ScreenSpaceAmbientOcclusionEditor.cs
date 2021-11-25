@@ -15,8 +15,7 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_Intensity;
         private SerializedProperty m_DirectLightingStrength;
         private SerializedProperty m_Radius;
-        private SerializedProperty m_SampleCount;
-
+        private SerializedProperty m_Samples;
         private SerializedProperty m_SinglePassBlur;
         private SerializedProperty m_FinalUpsample;
         private SerializedProperty m_BlurType;
@@ -35,8 +34,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent Intensity = EditorGUIUtility.TrTextContent("Intensity", "The degree of darkness that Ambient Occlusion adds.");
             public static GUIContent DirectLightingStrength = EditorGUIUtility.TrTextContent("Direct Lighting Strength", "Controls how much the ambient occlusion affects direct lighting.");
             public static GUIContent Radius = EditorGUIUtility.TrTextContent("Radius", "The radius around a given point, where Unity calculates and applies the effect.");
-            public static GUIContent SampleCount = EditorGUIUtility.TrTextContent("Sample Count", "The number of samples that Unity takes when calculating the obscurance value. Higher values have high performance impact.");
-
+            public static GUIContent Samples = EditorGUIUtility.TrTextContent("Sample Count", "The number of samples that Unity takes when calculating the obscurance value. Higher values have high performance impact.");
             public static GUIContent SinglePassBlur = EditorGUIUtility.TrTextContent("Single Pass Blur", "Single pass blur approximation");
             public static GUIContent FinalUpsample = EditorGUIUtility.TrTextContent("Final Upsample", "Final upsample step to perform after blurring downsampled targets.");
             public static GUIContent BlurType = EditorGUIUtility.TrTextContent("Blur Type", "Blur Algorithm to Use");
@@ -52,8 +50,7 @@ namespace UnityEditor.Rendering.Universal
             m_Intensity = settings.FindPropertyRelative("Intensity");
             m_DirectLightingStrength = settings.FindPropertyRelative("DirectLightingStrength");
             m_Radius = settings.FindPropertyRelative("Radius");
-            m_SampleCount = settings.FindPropertyRelative("SampleCount");
-
+            m_Samples = settings.FindPropertyRelative("Samples");
             m_SinglePassBlur = settings.FindPropertyRelative("SinglePassBlur");
             m_FinalUpsample = settings.FindPropertyRelative("FinalUpsample");
             m_BlurType = settings.FindPropertyRelative("BlurType");
@@ -91,7 +88,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_Intensity, Styles.Intensity);
             EditorGUILayout.PropertyField(m_Radius, Styles.Radius);
             m_DirectLightingStrength.floatValue = EditorGUILayout.Slider(Styles.DirectLightingStrength, m_DirectLightingStrength.floatValue, 0f, 1f);
-            m_SampleCount.intValue = EditorGUILayout.IntSlider(Styles.SampleCount, m_SampleCount.intValue, 4, 20);
+            EditorGUILayout.PropertyField(m_Samples, Styles.Samples);
 
             m_Intensity.floatValue = Mathf.Clamp(m_Intensity.floatValue, 0f, m_Intensity.floatValue);
             m_Radius.floatValue = Mathf.Clamp(m_Radius.floatValue, 0f, m_Radius.floatValue);
