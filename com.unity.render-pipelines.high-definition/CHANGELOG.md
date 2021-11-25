@@ -59,7 +59,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Crash issue when adding an area light on its own.
 - Fixed rendertarget ColorMask in Forward with virtual texturing and transparent motion vectors.
 - Fixed light unit conversion after changing mid gray value.
-- Fix stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
 - Fix for screen space shadow debug view not showing when no shadows is available.
 
 ### Changed
