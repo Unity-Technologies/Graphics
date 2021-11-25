@@ -75,6 +75,8 @@ namespace UnityEditor.VFX
             var shadowRect = rect;
             shadowRect.xMin += 2.0f;
             shadowRect.yMin += 2.0f;
+            shadowRect.width += 2.0f;
+            shadowRect.height += 2.0f;
             GUI.Label(shadowRect, content, shadowStyle);
             GUI.Label(rect, content, textStyle);
         }
@@ -169,6 +171,7 @@ namespace UnityEditor.VFX
             public EventAreaItem(Rect iconDrawRect, IconType currentType, string text)
             {
                 this.content = new GUIContent(text);
+                this.color = Color.white;
                 var textWidth = ComputeTextWidth(content, GetTextGUIStyle(currentType));
 
                 var rectSize = new Vector2(textWidth, iconDrawRect.height);
@@ -187,9 +190,10 @@ namespace UnityEditor.VFX
                 RecomputeRange();
             }
 
-            public EventAreaItem(Rect iconDrawRect, IconType currentType, GUIContent icon)
+            public EventAreaItem(Rect iconDrawRect, IconType currentType, GUIContent icon, Color color)
             {
                 this.content = icon;
+                this.color = color;
                 this.drawRect = iconDrawRect;
                 this.text = false;
                 this.currentType = currentType;
@@ -200,6 +204,7 @@ namespace UnityEditor.VFX
             public readonly IconType currentType;
             public readonly bool text;
             public readonly Rect drawRect;
+            public readonly Color color;
 
             public GUIContent content;
             public float start;
@@ -305,6 +310,7 @@ namespace UnityEditor.VFX
             foreach (var itEvent in allEvents)
             {
                 var relativeTime = InverseLerp(region.startTime, region.endTime, itEvent.time);
+
                 var iconArea = new Rect(
                     currentRect.position.x + currentRect.width * (float)relativeTime - iconSize.x * 0.5f,
                     currentRect.height - eventNameHeight,
@@ -315,74 +321,8 @@ namespace UnityEditor.VFX
                 if (index < clipEventsCount)
                     currentType = index % 2 == 0 ? IconType.ClipEnter : IconType.ClipExit;
 
-                //Place holder for icons
-                {
-                    var baseColor = new Color(itEvent.editorColor.r, itEvent.editorColor.g, itEvent.editorColor.b);
-                    EditorGUI.DrawRect(iconArea, new Color(baseColor.r, baseColor.g, baseColor.b, 0.2f));
-
-                    if (currentType == IconType.SingleEvent)
-                    {
-                        EditorGUI.DrawRect(new Rect(
-                            iconArea.position.x + iconArea.width * 0.45f,
-                            iconArea.position.y,
-                            iconArea.width * 0.1f,
-                            iconArea.height), baseColor);
-
-                        EditorGUI.DrawRect(new Rect(
-                            iconArea.position.x + iconArea.width * 0.3f,
-                            iconArea.position.y + iconArea.height * 0.25f,
-                            iconArea.width * 0.4f,
-                            iconArea.height * 0.75f), baseColor);
-
-                        EditorGUI.DrawRect(new Rect(
-                            iconArea.position.x + iconArea.width * 0.2f,
-                            iconArea.position.y + iconArea.height * 0.5f,
-                            iconArea.width * 0.6f,
-                            iconArea.height * 0.5f), baseColor);
-                    }
-                    else if (currentType == IconType.ClipEnter)
-                    {
-                        EditorGUI.DrawRect(new Rect(
-                            iconArea.position.x + iconArea.width * 0.5f,
-                            iconArea.position.y,
-                            iconArea.width * 0.05f,
-                            iconArea.height), baseColor);
-
-                        EditorGUI.DrawRect(new Rect(
-                            iconArea.position.x + iconArea.width * 0.5f,
-                            iconArea.position.y + iconArea.height * 0.25f,
-                            iconArea.width * 0.2f,
-                            iconArea.height * 0.75f), baseColor);
-
-                        EditorGUI.DrawRect(new Rect(
-                            iconArea.position.x + iconArea.width * 0.5f,
-                            iconArea.position.y + iconArea.height * 0.5f,
-                            iconArea.width * 0.3f,
-                            iconArea.height * 0.5f), baseColor);
-                    }
-                    else if (currentType == IconType.ClipExit)
-                    {
-                        EditorGUI.DrawRect(new Rect(
-                            iconArea.position.x + iconArea.width * 0.45f,
-                            iconArea.position.y,
-                            iconArea.width * 0.05f,
-                            iconArea.height), baseColor);
-
-                        EditorGUI.DrawRect(new Rect(
-                            iconArea.position.x + iconArea.width * 0.3f,
-                            iconArea.position.y + iconArea.height * 0.25f,
-                            iconArea.width * 0.2f,
-                            iconArea.height * 0.75f), baseColor);
-
-                        EditorGUI.DrawRect(new Rect(
-                            iconArea.position.x + iconArea.width * 0.2f,
-                            iconArea.position.y + iconArea.height * 0.5f,
-                            iconArea.width * 0.3f,
-                            iconArea.height * 0.5f), baseColor);
-                    }
-                }
-
-                var icon = new EventAreaItem(iconArea, currentType, new GUIContent() /* TODOPAUL the icon png will be selected here */);
+                var color = new Color(itEvent.editorColor.r, itEvent.editorColor.g, itEvent.editorColor.b);
+                var icon = new EventAreaItem(iconArea, currentType, new GUIContent() /* TODOPAUL the icon png will be selected here */, color);
                 m_TextEventAreaRequested.Add(icon);
 
                 var text = new EventAreaItem(iconArea, currentType, (string)itEvent.name);
@@ -426,7 +366,7 @@ namespace UnityEditor.VFX
                     }
 
                     if (string.IsNullOrEmpty(candidate.content.text))
-                        continue; //Avoid putting null range
+                        continue; //Avoid putting empty range
 
                     m_TextEventArea.Add(candidate);
                 }
@@ -441,6 +381,77 @@ namespace UnityEditor.VFX
                         item.content,
                         item.textStyle,
                         item.textShadowStyle);
+                }
+                else
+                {
+                    //Place holder for icons
+                    {
+                        var iconArea = item.drawRect;
+                        var currentType = item.currentType;
+                        var baseColor = item.color;
+                        EditorGUI.DrawRect(iconArea, new Color(baseColor.r, baseColor.g, baseColor.b, 0.2f));
+
+                        if (currentType == IconType.SingleEvent)
+                        {
+                            EditorGUI.DrawRect(new Rect(
+                                iconArea.position.x + iconArea.width * 0.45f,
+                                iconArea.position.y,
+                                iconArea.width * 0.1f,
+                                iconArea.height), baseColor);
+
+                            EditorGUI.DrawRect(new Rect(
+                                iconArea.position.x + iconArea.width * 0.3f,
+                                iconArea.position.y + iconArea.height * 0.25f,
+                                iconArea.width * 0.4f,
+                                iconArea.height * 0.75f), baseColor);
+
+                            EditorGUI.DrawRect(new Rect(
+                                iconArea.position.x + iconArea.width * 0.2f,
+                                iconArea.position.y + iconArea.height * 0.5f,
+                                iconArea.width * 0.6f,
+                                iconArea.height * 0.5f), baseColor);
+                        }
+                        else if (currentType == IconType.ClipEnter)
+                        {
+                            EditorGUI.DrawRect(new Rect(
+                                iconArea.position.x + iconArea.width * 0.5f,
+                                iconArea.position.y,
+                                iconArea.width * 0.05f,
+                                iconArea.height), baseColor);
+
+                            EditorGUI.DrawRect(new Rect(
+                                iconArea.position.x + iconArea.width * 0.5f,
+                                iconArea.position.y + iconArea.height * 0.25f,
+                                iconArea.width * 0.2f,
+                                iconArea.height * 0.75f), baseColor);
+
+                            EditorGUI.DrawRect(new Rect(
+                                iconArea.position.x + iconArea.width * 0.5f,
+                                iconArea.position.y + iconArea.height * 0.5f,
+                                iconArea.width * 0.3f,
+                                iconArea.height * 0.5f), baseColor);
+                        }
+                        else if (currentType == IconType.ClipExit)
+                        {
+                            EditorGUI.DrawRect(new Rect(
+                                iconArea.position.x + iconArea.width * 0.45f,
+                                iconArea.position.y,
+                                iconArea.width * 0.05f,
+                                iconArea.height), baseColor);
+
+                            EditorGUI.DrawRect(new Rect(
+                                iconArea.position.x + iconArea.width * 0.3f,
+                                iconArea.position.y + iconArea.height * 0.25f,
+                                iconArea.width * 0.2f,
+                                iconArea.height * 0.75f), baseColor);
+
+                            EditorGUI.DrawRect(new Rect(
+                                iconArea.position.x + iconArea.width * 0.2f,
+                                iconArea.position.y + iconArea.height * 0.5f,
+                                iconArea.width * 0.3f,
+                                iconArea.height * 0.5f), baseColor);
+                        }
+                    }
                 }
             }
 
