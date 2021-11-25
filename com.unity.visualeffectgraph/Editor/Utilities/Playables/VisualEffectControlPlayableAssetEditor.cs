@@ -112,8 +112,8 @@ namespace UnityEditor.VFX
             static Style()
             {
                 centeredStyle.alignment = TextAnchor.UpperCenter;
-                eventLeftAlignStyle.alignment = eventLeftAlignShadowStyle.alignment = TextAnchor.MiddleLeft;
-                eventRightAlignStyle.alignment = eventRightAlignShadowStyle.alignment = TextAnchor.MiddleRight;
+                eventLeftAlignStyle.alignment = eventLeftAlignShadowStyle.alignment = TextAnchor.UpperLeft;
+                eventRightAlignStyle.alignment = eventRightAlignShadowStyle.alignment = TextAnchor.UpperRight;
 
                 var shadowColor = Color.black;
                 eventLeftAlignShadowStyle.normal.textColor = shadowColor;
@@ -416,10 +416,14 @@ namespace UnityEditor.VFX
             var eventNameHeight = Style.kEventNameHeight;
             var scrubbingHeight = playable.scrubbing ? 0.0f : Style.kScrubbingBarHeight;
 
-            var remainingHeight = region.position.height - (clipBarHeight + scrubbingHeight + eventNameHeight);
+            var initialAvailableHeight = region.position.height;
+            var remainingHeight = initialAvailableHeight - (clipBarHeight + scrubbingHeight + eventNameHeight);
             if (remainingHeight < 0)
                 remainingHeight = 0.0f;
             clipBarHeight += remainingHeight;
+
+            eventNameHeight = Mathf.Min(eventNameHeight, initialAvailableHeight - clipBarHeight);
+            scrubbingHeight = Mathf.Min(scrubbingHeight, initialAvailableHeight - clipBarHeight - eventNameHeight);
 
             var barRegion = new Rect(region.position.position, new Vector2(region.position.width, clipBarHeight));
             var eventRegion = new Rect(region.position.position + new Vector2(0, clipBarHeight), new Vector2(region.position.width, eventNameHeight));
@@ -457,6 +461,7 @@ namespace UnityEditor.VFX
             {
                 var drawRect = item.drawRect;
                 drawRect.position += eventRegion.position;
+                drawRect.height = eventRegion.height;
 
                 if (item.text)
                 {
