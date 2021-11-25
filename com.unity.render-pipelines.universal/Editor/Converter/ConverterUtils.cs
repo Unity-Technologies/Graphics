@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.Universal.Converters
 {
-    public class ConverterUtils
+    public static class ConverterUtils
     {
         public enum ConverterFilter
         {
