@@ -22,7 +22,7 @@ find_missing_docs_{{ package.name }}:
     image: package-ci/win10:stable
     flavor: b1.large
   commands:
-    - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git ../gfx-sdet-tools
+    - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git gfx-sdet-tools
     - git -C gfx-sdet-tools checkout ant/284/add-missing-docs-checker
     - python gfx-sdet-tools/FindMissingDocs/find_missing_docs.py --root-path {{ package.path }}
   artifacts:
