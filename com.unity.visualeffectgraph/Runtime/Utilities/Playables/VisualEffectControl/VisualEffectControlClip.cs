@@ -59,6 +59,7 @@ namespace UnityEngine.VFX
         [Serializable]
         public struct ClipEvent
         {
+//TODOPAUL: Remove
 #if UNITY_EDITOR
             public Color editorColor;
 #endif
