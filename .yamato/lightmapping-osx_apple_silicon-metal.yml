@@ -34,6 +34,9 @@ Lightmapping_OSX_Apple_Silicon_Metal_editmode_mono_Linear_trunk:
                UTR_RESULT=$?
                scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Lightmapping/test-results/ TestProjects/Lightmapping
                exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -69,6 +72,9 @@ Lightmapping_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
                UTR_RESULT=$?
                scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Lightmapping/test-results/ TestProjects/Lightmapping
                exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -104,6 +110,9 @@ Lightmapping_OSX_Apple_Silicon_Metal_editmode_mono_Linear_CUSTOM-REVISION:
                UTR_RESULT=$?
                scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Lightmapping/test-results/ TestProjects/Lightmapping
                exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -139,6 +148,9 @@ Lightmapping_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
                UTR_RESULT=$?
                scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/Lightmapping/test-results/ TestProjects/Lightmapping
                exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
