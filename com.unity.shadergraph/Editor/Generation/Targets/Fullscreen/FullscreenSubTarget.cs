@@ -215,6 +215,8 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
                 }
             }
 
+            result.Add(RenderState.Cull(UnityEditor.ShaderGraph.Cull.Off));
+
             return result;
         }
 
