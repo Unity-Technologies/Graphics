@@ -95,12 +95,12 @@ namespace UnityEngine.Rendering.Universal
                     cmd.GetTemporaryRT(k_CustomRTId, blitTargetDescriptor, FilterMode.Bilinear);
 
                 if (m_Settings.source == DrawFullscreenBufferType.CameraColor)
-                    m_Source = renderer.cameraColorTarget;
+                    m_Source = renderer.cameraColorTargetHandle;
                 else
                     m_Source = new RenderTargetIdentifier(k_CustomRTId);
 
                 if (m_Settings.destination == DrawFullscreenBufferType.CameraColor)
-                    m_Destination = renderer.cameraColorTarget;
+                    m_Destination = renderer.cameraColorTargetHandle;
                 else
                     m_Destination = new RenderTargetIdentifier(k_CustomRTId);
 
@@ -116,12 +116,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTagName);
 
-                cmd.SetGlobalTexture("_CameraOpaqueTexture", renderingData.cameraData.renderer.cameraColorTarget);
+                cmd.SetGlobalTexture("_CameraOpaqueTexture", renderingData.cameraData.renderer.cameraColorTargetHandle);
                 // Can't read and write to same color target, create a temp render target to blit.
                 if (m_IsSourceAndDestinationSameTarget)
                 {
                     Blitter.BlitTexture(cmd, m_Source, m_Temp, m_Settings.blitMaterial, m_Settings.blitMaterialPassIndex);
-                    Blit(cmd, m_Temp, m_Destination);
+                    cmd.Blit(m_Temp, m_Destination);
                 }
                 else
                 {
