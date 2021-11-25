@@ -1,17 +1,24 @@
 # Material Scripting API
 
-All the parameters of a material asset that you see in the Inspector window are accessible via script, giving you the power to change or animate how a material works at runtime.
+Most HDRP shaders allow enabling and disabling functionalities through the use of Shader keywords.
 
-You can find more information in the [Material section of the Unity Manual](https://docs.unity3d.com/Manual/MaterialsAccessingViaScript.html).
+For example, on the HDRP Lit Shader, normal mapping code is stripped from materials that do not use a normal map. Since these materials don’t include the code for normal mapping, they are faster to run, and to compile.
+Enabling the keyword for normal mapping is done automatically when activated through the material Inspector, but needs to be done explicitely from a script.
+
+You can find more information about Material parameters in Unity in the [Material section](https://docs.unity3d.com/Manual/MaterialsAccessingViaScript.html) of the Unity Manual. Information about shader variants, shader keywords and access in standalone builds can be found [here](https://docs.unity3d.com/Manual/shader-variants-and-keywords.html).
 
 ## Modifying HDRP materials in scripts
 
-When modifying a material via the Inspector, HDRP runs a validation step to setup properties, keywords and passes on the material to ensure it is in a valid state for rendering.
-When modifying a material via scripts, this validation is not done automatically, so it must be performed manually.
+When you change a Material’s properties in the Inspector, HDRP sets up properties, keywords and passes on the Material to make sure HDRP can render it correctly.This is called a validation step.
+When you use a script to change a Material’s properties, HDRP does not perform this step automatically. This means you must validate that Material manually.
 
-HDRP provides a function [ValidateMaterial](../api/UnityEngine.Rendering.HighDefinition.HDMaterial.html#UnityEngine_Rendering_HighDefinition_HDMaterial_ValidateMaterial) that will setup any material made from an HDRP Shader or a ShaderGraph with an HDRP Target.
+### Validating a Material in HDRP
 
-This examples creates a material with the HDRP/Lit shader and enables Alpha Clipping with a cutoff value of `0.2`:
+To validate a Material In HDRP, use the function `ValidateMaterial` to  force HDRP to perform a validation step on any Material made from an HDRP Shader or a ShaderGraph that has a HDRP Target.
+The following example script:
+ * Creates a Material with the [HDRP/Lit](Lit-Shader.md) shader,
+ * Enables Alpha Clipping and sets its cutoff value to `0.2`,
+ * Uses the `ValidateMaterial` function to enable the Alpha Clipping keywords on the Material.
 
 ```csharp
 using UnityEngine.Rendering.HighDefinition;
@@ -29,15 +36,20 @@ public class CreateCutoutMaterial : MonoBehaviour
 }
 ```
 
-## HDRP Material API
+### HDRP Material API
 
-However, some properties of HDRP shaders are not independent, and they require changes to other properties in order to have any effect.
-To help modifying these properties, HDRP provides a set of functions that will take care of setting all the required states.
+However, some properties of HDRP shaders are not independent, and they require changes to other properties or keywords in order to have any effect.
+To help modify these properties, HDRP provides a set of functions that will take care of setting all the required states.
+You can find a list of available methods in the [Scripting API](.../api/UnityEngine.Rendering.HighDefinition.HDMaterial.html).
+Please refer to the documentation to know with which shaders the methods are compatible.
 
-This list of available methods is in the [Scripting API](../api/UnityEngine.Rendering.HighDefinition.HDMaterial.html).
-Refer to the documentation to know with which shaders the function is compatible.
+The below example script:
+ * Creates a Material with the HDRP/Lit shader,
+ * Enables Alpha Clipping and sets its cutoff value to `0.2`. Keywords are automatically set appropriately.
 
-This is the same example as above but using the helper functions:
+To do this, it uses the following helper functions:
+ * material.SetAlphaClipping
+ * material.SetAlphaCutoff
 
 ```csharp
 using UnityEngine.Rendering.HighDefinition;
@@ -53,14 +65,14 @@ public class CreateCutoutMaterial : MonoBehaviour
 }
 ```
 
-## Changing keyword state at runtime
+## Making shader variants available at runtime
 
-To enable and disable some features, HDRP Shaders make use of [Shader Variants](https://docs.unity3d.com/Manual/SL-MultipleProgramVariants.html).
+Unity uses the set of keywords enabled on a Material to determine which Shader Variant to use. When you build a project, only the Shader Variants currently in use by the materials of the project will be included in the build.
+Because Shader Variants have to be compiled at project build time, changing keywords on a material at runtime can require using a Variant that has not been built.
 
-For example, if you choose to assign a Normal Map to your material, you need to activate the variant of the shader which supports Normal Mapping.
-This enables more efficient shaders as the code for normal mapping is not run if it's not used by a material. Additionally, when building a project, Unity will not include any variant that is not in use, thus reducing build time. As a result, these variants cannot be activated at runtime.
+To make all Shader Variants you need available at runtime, you need to ensure Unity knows that you need them. There are several ways to do that:
+1. You can record the shader variants used during a play session and store them in a **Shader Variant Collection** asset. To do that, navigate to the Project Settings window, open the Graphics tab and select Save to asset… This will build a collection containing all Shader Variants currently in use and save them out as an asset. You must then add this asset to the list of Preloaded Shaders for the variants to be included in a build.
 
-To ensure all variants you need will be available at runtime, you need to make sure Unity knows you need them by including at least one Material using each variant in your Assets. The material must be used in a scene or alternatively be placed in your [Resources Folder](https://docs.unity3d.com/Manual/LoadingResourcesatRuntime.html), otherwise Unity will still omit it from your build, because it appeared unused.
+![](Images/shader-variants.png)
 
-Another option is to use [Shader Variant Collections](https://docs.unity3d.com/ScriptReference/ShaderVariantCollection.html).
-You can either manually build the collection using the inspector, or record the shader variants used during a play session. To do that, click on the button "Save to asset..." in the **Graphics** tab of the **Project Settings** window. This will build a collection containing all Shader Variants currently in use and save them out as an asset. You must then add the asset to the list of Preloaded Shaders in the **Graphics** settings for the variants to be included in a build.
+2. You can include at least one Material using each variant in your Assets folder. This Material must be used in a scene or be placed in your Resources Folder, otherwise Unity ignores this Material when it builds the project.

@@ -16,6 +16,11 @@ platforms: # Components to have unity-downloader-cli to trigger.
     components:
       - editor
       - il2cpp
+  - name: OSX_Apple_Silicon
+    os: macos
+    components:
+      - editor
+      - il2cpp
   - name: Linux
     os: linux
     components:
