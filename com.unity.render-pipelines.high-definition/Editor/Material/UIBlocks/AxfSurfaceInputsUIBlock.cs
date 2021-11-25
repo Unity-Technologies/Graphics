@@ -12,7 +12,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static GUIContent header { get; } = EditorGUIUtility.TrTextContent("Advanced Surface Inputs");
 
-            public static GUIContent BRDFTypeText = new GUIContent("BRDF Type");
             public static GUIContent mapsTilingOffsetText = new GUIContent("Tiling and Offset for Map", "XY scales, ZW offsets");
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // SVBRDF Parameters
@@ -310,7 +309,9 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         protected override void OnGUIOpen()
         {
-            materialEditor.PopupShaderProperty(m_AxF_BRDFType, Styles.BRDFTypeText, AxfBrdfTypeNames);
+            AxfBrdfType AxF_BRDFType = (AxfBrdfType)m_AxF_BRDFType.floatValue;
+            AxF_BRDFType = (AxfBrdfType)EditorGUILayout.Popup("BRDF Type", (int)AxF_BRDFType, AxfBrdfTypeNames);
+            m_AxF_BRDFType.floatValue = (float)AxF_BRDFType;
 
             // Extract flag:
             uint flags = (uint)m_Flags.floatValue;
@@ -318,7 +319,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 out bool anisotropy, out bool clearcoat, out bool clearcoatRefraction, out bool useHeightMap, out bool brdfColorDiagonalClamp,
                 out bool honorMinRoughness);
 
-            switch ((AxfBrdfType)m_AxF_BRDFType.floatValue)
+            switch (AxF_BRDFType)
             {
                 case AxfBrdfType.SVBRDF:
                 {
@@ -339,12 +340,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Expand as user-friendly UI
                     EditorGUILayout.LabelField("BRDF Variants", EditorStyles.boldLabel);
 
-                    MaterialEditor.BeginProperty(m_SVBRDF_BRDFType);
                     diffuseType = (SvbrdfDiffuseType)EditorGUILayout.Popup("Diffuse Type", (int)diffuseType, SvbrdfDiffuseTypeNames);
                     specularType = (SvbrdfSpecularType)EditorGUILayout.Popup("Specular Type", (int)specularType, SvbrdfSpecularTypeNames);
-                    MaterialEditor.EndProperty();
 
-                    MaterialEditor.BeginProperty(m_SVBRDF_BRDFVariants);
                     if (specularType == SvbrdfSpecularType.WARD)
                     {
                         fresnelVariant = (SvbrdfFresnelVariant)EditorGUILayout.Popup("Fresnel Variant", (int)fresnelVariant, SvbrdfFresnelVariantNames);
@@ -354,7 +352,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         blinnVariant = (SvbrdfSpecularVariantBlinn)EditorGUILayout.Popup("Blinn Variant", (int)blinnVariant, SvbrdfSpecularVariantBlinnNames);
                     }
-                    MaterialEditor.EndProperty();
 
                     EditorGUILayout.Space();
                     EditorGUILayout.LabelField("Parameters and Maps", EditorStyles.boldLabel);
@@ -365,7 +362,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     materialEditor.TexturePropertySingleLine(Styles.diffuseColorMapText, m_DiffuseColorMap, m_DiffuseColorMapST);
                     materialEditor.TexturePropertySingleLine(Styles.specularColorMapText, m_SpecularColorMap, m_SpecularColorMapST);
                     materialEditor.TexturePropertySingleLine(Styles.specularLobeMapText, m_SpecularLobeMap, m_SpecularLobeMapST);
-                    materialEditor.ShaderProperty(m_SpecularLobeMapScale, Styles.specularLobeMapScaleText);
+                    m_SpecularLobeMapScale.floatValue = EditorGUILayout.FloatField(Styles.specularLobeMapScaleText, m_SpecularLobeMapScale.floatValue);
 
                     EditorGUILayout.Space();
                     DrawRightJustifiedHeader(Styles.mapsTilingOffsetText.text);
@@ -390,9 +387,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // Anisotropy
-                    MaterialEditor.BeginProperty(m_Flags);
                     anisotropy = EditorGUILayout.Toggle("Is Anisotropic", anisotropy);
-                    MaterialEditor.EndProperty();
                     if (anisotropy)
                     {
                         ++EditorGUI.indentLevel;
@@ -402,18 +397,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // Clearcoat
-                    MaterialEditor.BeginProperty(m_Flags);
                     clearcoat = EditorGUILayout.Toggle("Enable Clearcoat", clearcoat);
-                    MaterialEditor.EndProperty();
                     if (clearcoat)
                     {
                         ++EditorGUI.indentLevel;
                         DrawRightJustifiedHeader(Styles.mapsTilingOffsetText.text);
                         materialEditor.TexturePropertySingleLine(Styles.clearcoatColorMapText, m_ClearcoatColorMap, m_ClearcoatColorMapST);
                         materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap, m_ClearcoatNormalMapST);
-                        MaterialEditor.BeginProperty(m_Flags);
                         clearcoatRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatRefraction);
-                        MaterialEditor.EndProperty();
                         // The IOR map is always required for the coat F0, while in the CAR_PAINT model, the IOR
                         // is given by a scalar value.
                         DrawRightJustifiedHeader(Styles.mapsTilingOffsetText.text);
@@ -445,17 +436,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     // Regular maps
                     materialEditor.TexturePropertySingleLine(Styles.BRDFColorMapText, m_CarPaint2_BRDFColorMap);
-                    materialEditor.ShaderProperty(m_CarPaint2_BRDFColorMapScale, Styles.BRDFColorMapScaleText);
+                    m_CarPaint2_BRDFColorMapScale.floatValue = EditorGUILayout.FloatField(Styles.BRDFColorMapScaleText, m_CarPaint2_BRDFColorMapScale.floatValue);
 
-                    MaterialEditor.BeginProperty(m_Flags);
                     brdfColorDiagonalClamp = EditorGUILayout.Toggle("BRDF Color Table Diagonal Clamping", brdfColorDiagonalClamp);
-                    MaterialEditor.EndProperty();
                     if (brdfColorDiagonalClamp)
                     {
                         ++EditorGUI.indentLevel;
-                        MaterialEditor.BeginProperty(m_CarPaint2_BRDFColorMapUVScale);
                         m_CarPaint2_BRDFColorMapUVScale.vectorValue = EditorGUILayout.Vector2Field(Styles.BRDFColorMapUVScaleText, m_CarPaint2_BRDFColorMapUVScale.vectorValue);
-                        MaterialEditor.EndProperty();
                         --EditorGUI.indentLevel;
                     }
 
@@ -466,7 +453,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     //EditorGUILayout.LabelField( "Texture Dimension = " + m_CarPaint_BTFFlakesMap_sRGB.textureDimension );
                     //EditorGUILayout.LabelField( "Texture Format = " + m_CarPaint_BTFFlakesMap_sRGB.textureValue. );
-                    materialEditor.ShaderProperty(m_CarPaint2_BTFFlakeMapScale, Styles.BTFFlakesMapScaleText);
+                    m_CarPaint2_BTFFlakeMapScale.floatValue = EditorGUILayout.FloatField(Styles.BTFFlakesMapScaleText, m_CarPaint2_BTFFlakeMapScale.floatValue);
 
                     materialEditor.TexturePropertySingleLine(Styles.thetaFI_sliceLUTMapText, m_CarPaint2_FlakeThetaFISliceLUTMap);
 
@@ -477,11 +464,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     //m_CarPaint2_FlakeNumThetaF = FindProperty(m_CarPaint2_FlakeNumThetaFText);
                     //m_CarPaint2_FlakeNumThetaI = FindProperty(m_CarPaint2_FlakeNumThetaIText);
 
-                    materialEditor.ShaderProperty(m_CarPaint2_CTDiffuse, Styles.CarPaintCTDiffuseText);
-                    materialEditor.IntSliderShaderProperty(m_CarPaint2_LobeCount, 0, 3, Styles.CarPaintLobeCountText);
-                    materialEditor.Vector3ShaderProperty(m_CarPaint2_CTF0s, Styles.CarPaintCTF0sText);
-                    materialEditor.Vector3ShaderProperty(m_CarPaint2_CTCoeffs, Styles.CarPaintCTCoeffsText);
-                    materialEditor.Vector3ShaderProperty(m_CarPaint2_CTSpreads, Styles.CarPaintCTSpreadsText);
+                    m_CarPaint2_CTDiffuse.floatValue = EditorGUILayout.FloatField(Styles.CarPaintCTDiffuseText, m_CarPaint2_CTDiffuse.floatValue);
+                    m_CarPaint2_LobeCount.floatValue = Mathf.Floor(Mathf.Clamp(EditorGUILayout.FloatField(Styles.CarPaintLobeCountText, m_CarPaint2_LobeCount.floatValue), 0f, 3f));
+                    m_CarPaint2_CTF0s.vectorValue = EditorGUILayout.Vector3Field(Styles.CarPaintCTF0sText, m_CarPaint2_CTF0s.vectorValue);
+                    m_CarPaint2_CTCoeffs.vectorValue = EditorGUILayout.Vector3Field(Styles.CarPaintCTCoeffsText, m_CarPaint2_CTCoeffs.vectorValue);
+                    m_CarPaint2_CTSpreads.vectorValue = EditorGUILayout.Vector3Field(Styles.CarPaintCTSpreadsText, m_CarPaint2_CTSpreads.vectorValue);
 
                     if (useHeightMap)
                     {
@@ -489,9 +476,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // Clearcoat
-                    MaterialEditor.BeginProperty(m_Flags);
                     clearcoat = EditorGUILayout.Toggle("Enable Clearcoat", clearcoat);
-                    MaterialEditor.EndProperty();
                     if (clearcoat)
                     {
                         ++EditorGUI.indentLevel;
@@ -503,11 +488,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         //m_ClearcoatNormalMapST.vectorValue = EditorGUILayout.Vector4Field(Styles.clearcoatNormalMapTilingText, m_ClearcoatNormalMapST.vectorValue);
 
                         //materialEditor.TexturePropertySingleLine( Styles.clearcoatIORMapText, m_ClearcoatIORMap );
-                        materialEditor.ShaderProperty(m_CarPaint2_ClearcoatIOR, Styles.CarPaintIORText);
-                        MaterialEditor.BeginProperty(m_Flags);
-                        clearcoatRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatRefraction);
-                        MaterialEditor.EndProperty();
+                        m_CarPaint2_ClearcoatIOR.floatValue = EditorGUILayout.FloatField(Styles.CarPaintIORText, m_CarPaint2_ClearcoatIOR.floatValue);
                         --EditorGUI.indentLevel;
+                        clearcoatRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatRefraction);
                     }
 
                     --EditorGUI.indentLevel;

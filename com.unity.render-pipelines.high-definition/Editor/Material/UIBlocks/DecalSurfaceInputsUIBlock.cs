@@ -185,8 +185,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap, baseColor);
             else
             {
-                MaterialEditor.BeginProperty(baseColor);
-
                 Color color = baseColor.colorValue;
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.showMixedValue = baseColor.hasMixedValue;
@@ -194,8 +192,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.showMixedValue = false;
                 if (EditorGUI.EndChangeCheck())
                     baseColor.colorValue = color;
-
-                MaterialEditor.EndProperty();
             }
 
             using (new EditorGUI.DisabledScope(!affectNormal))
