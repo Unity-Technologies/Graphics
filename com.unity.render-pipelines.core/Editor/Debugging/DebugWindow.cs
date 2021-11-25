@@ -562,6 +562,9 @@ namespace UnityEditor.Rendering
             public readonly GUIStyle sectionHeader = new GUIStyle(EditorStyles.largeLabel);
             public readonly Color skinBackgroundColor;
 
+            public static GUIStyle centeredLeft = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleLeft };
+            public static float singleRowHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+
             public static int foldoutColumnWidth = 70;
 
             public Styles()

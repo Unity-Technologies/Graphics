@@ -204,9 +204,12 @@ namespace UnityEditor.Experimental.Rendering
                 serialized.size.vector3Value = tmpClamp;
             }
 
-            EditorGUILayout.PropertyField(serialized.objectLayerMask, Styles.s_ObjectLayerMask);
+            EditorGUILayout.LabelField("Geometry Settings", EditorStyles.boldLabel);
 
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(serialized.objectLayerMask, Styles.s_ObjectLayerMask);
             EditorGUILayout.PropertyField(serialized.geometryDistanceOffset, Styles.s_GeometryDistanceOffset);
+            EditorGUI.indentLevel--;
         }
     }
 }
