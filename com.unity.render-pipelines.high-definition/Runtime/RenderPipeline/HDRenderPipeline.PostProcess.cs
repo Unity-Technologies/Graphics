@@ -540,6 +540,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, depthMinMaxAvgMSAA, prepassOutput.stencilBuffer);
 
+                if (m_DepthOfField.IsActive() && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
+                {
+                    RenderAccumulation(m_RenderGraph, hdCamera, source, source, false);
+                }
+
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
                 // blurred bokeh rather than out of focus motion blur)
                 source = MotionBlurPass(renderGraph, hdCamera, depthBuffer, motionVectors, source);
