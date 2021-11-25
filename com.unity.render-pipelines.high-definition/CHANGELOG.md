@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed range fields for depth of field (case 1376609).
 - Fixed exception on DLSS when motion vectors are disabled (case # 1377986).
 - Fixed decal performances when they use different material and the same draw order.
+- Fixed alpha channel display in color picker in Local Volumetric Fog component (the alpha is not used for the fog) (case 1381267).
 
 ### Changed
 - Optimizations for the physically based depth of field.
