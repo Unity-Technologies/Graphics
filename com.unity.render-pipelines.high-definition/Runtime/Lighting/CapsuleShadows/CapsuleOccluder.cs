@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public class CapsuleOccluder : MonoBehaviour
     {
         public Vector3 center = Vector3.zero;
+        public Quaternion rotation = Quaternion.identity;
         public float radius = 0.1f;
         public float height = 1.0f;
         public float range = 5.0f;
@@ -31,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float xyScale = Mathf.Max(scale.x, scale.y);
                 return Matrix4x4.TRS(
                     tr.TransformPoint(center),
-                    tr.rotation,
+                    tr.rotation * rotation,
                     new Vector3(xyScale, xyScale, scale.z));
             }
         }
