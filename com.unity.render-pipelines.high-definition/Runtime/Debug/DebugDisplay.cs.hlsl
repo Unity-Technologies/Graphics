@@ -58,6 +58,7 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     float _DebugTransparencyOverdrawWeight;
     int _DebugMipMapModeTerrainTexture;
     int _ColorPickerMode;
+    float4 _DebugViewportSize;
     float4 _DebugLightingAlbedo;
     float4 _DebugLightingSmoothness;
     float4 _DebugLightingNormal;
