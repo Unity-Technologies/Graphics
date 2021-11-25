@@ -6,7 +6,7 @@
 
 uint4 _Sizes; // xy: Output width, height
 
-RW_TEXTURE2D_X(float4, _PathTracingEnvDataTexture);
+RW_TEXTURE2D_X(float4, _PathTracingSkySamplingTexture);
 
 [numthreads(8, 8, 1)]
 void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -28,5 +28,5 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 direction = float3(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi);
 	float3 color = _EnvLightSkyEnabled ? Luminance(SampleSkyTexture(direction, 0.0, 0).rgb) : 0.0;
 
-    _PathTracingEnvDataTexture[COORD_TEXTURE2D_X(texelCoord)] = float4(color, 1.0);
+    _PathTracingSkySamplingTexture[COORD_TEXTURE2D_X(texelCoord)] = float4(color, 1.0);
 }
