@@ -52,6 +52,8 @@ namespace UnityEngine.Experimental.Rendering
 
         public void UpdateCellStreaming(Camera camera)
         {
+            if (!isInitialized) return;
+
             var cameraPosition = camera.transform.position;
             if (!debugDisplay.freezeStreaming)
             {
