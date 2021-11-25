@@ -721,4 +721,4 @@ VFXUVData GetUVData(float2 flipBookSize, float2 uv, float texIndex)
 // Bounds reduction utils //
 ////////////////////////////
 
-#include "VFXBoundsReduction.hlsl"
+#include "VFXBoundsUtils.hlsl"

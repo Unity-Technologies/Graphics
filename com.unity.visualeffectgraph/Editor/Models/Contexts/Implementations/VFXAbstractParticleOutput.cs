@@ -121,6 +121,9 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField, Tooltip("Specifies the layout of the flipbook. It can either use a single texture with multiple frames, or a Texture2DArray with multiple slices.")]
         protected FlipbookLayout flipbookLayout = FlipbookLayout.Texture2D;
 
+        [VFXSetting, SerializeField, Tooltip("When enabled, particles will be participate in the ray traced effects.")]
+        protected bool isRaytraced = false;
+
 
         protected virtual bool bypassExposure { get { return true; } } // In case exposure weight is not used, tell whether pre exposure should be applied or not
 
@@ -140,6 +143,11 @@ namespace UnityEditor.VFX
         public bool HasComputeCulling() { return computeCulling && !HasStrips(true); }
         public bool HasFrustumCulling() { return frustumCulling && !HasStrips(true); }
         public bool NeedsOutputUpdate() { return outputUpdateFeatures != VFXOutputUpdate.Features.None; }
+
+        public bool IsRaytraced()
+        {
+            return isRaytraced;
+        }
 
         public bool needsOwnSort = false;
 

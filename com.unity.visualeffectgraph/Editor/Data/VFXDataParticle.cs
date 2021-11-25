@@ -589,6 +589,11 @@ namespace UnityEditor.VFX
             return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
         }
 
+        public bool NeedsAabbBuffer()
+        {
+            return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.IsRaytraced());
+        }
+
         public bool NeedsGlobalSort()
         {
             bool hasMainUpdate = compilableOwners.OfType<VFXBasicUpdate>().Any();
@@ -850,6 +855,14 @@ namespace UnityEditor.VFX
                 }
             }
 
+            int aabbBufferIndex = -1;
+            if (NeedsAabbBuffer())
+            {
+                aabbBufferIndex = outBufferDescs.Count;
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 24 }); //6 floats
+                systemBufferMappings.Add(new VFXMapping("aabbBuffer", aabbBufferIndex));
+            }
+
             var taskDescs = new List<VFXEditorTaskDesc>();
             var bufferMappings = new List<VFXMapping>();
             var uniformMappings = new List<VFXMapping>();
@@ -901,6 +914,8 @@ namespace UnityEditor.VFX
 
                 if (stripDataIndex != -1 && context.ownedType == VFXDataType.ParticleStrip)
                     bufferMappings.Add(new VFXMapping("stripDataBuffer", stripDataIndex));
+                if (aabbBufferIndex != -1 && context.contextType == VFXContextType.Update)
+                    bufferMappings.Add(new VFXMapping("aabbBuffer", aabbBufferIndex));
 
                 bool hasAttachedStrip = IsAttributeStored(VFXAttribute.StripAlive);
                 if (hasAttachedStrip)

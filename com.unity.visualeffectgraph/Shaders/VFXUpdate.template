@@ -123,14 +123,19 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		indirectBuffer[indirectIndex] = index;
 #endif
 #endif
-#if VFX_COMPUTE_BOUNDS
-		${VFXLoadSize}
-#if VFX_WORLD_SPACE
+#if VFX_COMPUTE_BOUNDS || VFX_COMPUTE_AABBS
+    ${VFXLoadSize}
+    #if VFX_WORLD_SPACE
         ${VFXLoadParameter:{worldToLocal}}
-#else
+    #else
         float4x4 worldToLocal = (float4x4)0;
-#endif
-		InitReduction(attributes, size3, tid, worldToLocal);
+    #endif
+    #if VFX_COMPUTE_BOUNDS
+        InitReduction(attributes, size3, tid, worldToLocal);
+    #endif
+    #if VFX_COMPUTE_AABBS
+        FillAabbBuffer(attributes, size3, index, worldToLocal);
+    #endif
 #endif
 
 	}
