@@ -20,7 +20,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
-- The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
 
 ## [10.7.0] - 2021-07-02
 
