@@ -272,10 +272,23 @@ namespace UnityEditor.VFX
             });
         }
 
+        private static double InverseLerp(double a, double b, double value)
+        {
+            return (value - a) / (b - a);
+        }
+
+        private static double Clamp(double value, double min, double max)
+        {
+            if (value < min)
+                value = min;
+            if (value > max)
+                value = max;
+            return value;
+        }
+
         List<ClipEventBar> m_ClipEventBars = new List<ClipEventBar>();
         private List<ClipEventBar> ComputeBarClipEvent(IEnumerable<VisualEffectPlayableSerializedEvent> clipEvents, out uint rowCount)
         {
-            //Precompute draw data
             m_ClipEventBars.Clear();
             rowCount = 1;
             using (var iterator = clipEvents.GetEnumerator())
@@ -307,7 +320,7 @@ namespace UnityEditor.VFX
 
         List<EventAreaItem> m_TextEventAreaRequested = new List<EventAreaItem>();
         List<EventAreaItem> m_TextEventArea = new List<EventAreaItem>();
-        private List<EventAreaItem> ComputeEventName(Rect baseRegion, IEnumerable<VisualEffectPlayableSerializedEvent> allEvents, uint clipEventCount)
+        private List<EventAreaItem> ComputeEventName(ClipBackgroundRegion baseRegion, double maxClipTime, IEnumerable<VisualEffectPlayableSerializedEvent> allEvents, uint clipEventCount)
         {
             m_TextEventAreaRequested.Clear();
             m_TextEventArea.Clear();
@@ -318,10 +331,10 @@ namespace UnityEditor.VFX
             m_TextEventAreaRequested.Clear();
             foreach (var itEvent in allEvents)
             {
-                var relativeTime = Mathf.Clamp01((float)itEvent.time / 100.0f);
-
+                var timeAfterClamp = Clamp(itEvent.time, 0.0f, maxClipTime);
+                var relativeTime = InverseLerp(baseRegion.startTime, baseRegion.endTime, timeAfterClamp);
                 var iconArea = new Rect(
-                    baseRegion.position.x + baseRegion.width * (float)relativeTime - iconSize.x * 0.5f,
+                    baseRegion.position.width * (float)relativeTime - iconSize.x * 0.5f,
                     0.0f,
                     iconSize.x,
                     iconSize.y);
@@ -390,13 +403,13 @@ namespace UnityEditor.VFX
             if (playable.clipEvents == null || playable.singleEvents == null)
                 return;
 
-            var clipEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.Percentage, playable, true);
-            var singleEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.Percentage, playable, false);
+            var clipEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.AfterClipStart, playable, true);
+            var singleEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.AfterClipStart, playable, false);
             var allEvents = clipEvents.Concat(singleEvents);
 
             //Precompute overlapping data
             var clipEventBars = ComputeBarClipEvent(clipEvents, out var rowCount);
-            var eventAreaName = ComputeEventName(region.position, allEvents, (uint)clipEvents.Count());
+            var eventAreaName = ComputeEventName(region, clip.duration, allEvents, (uint)clipEvents.Count());
 
             //Compute region
             var clipBarHeight = rowCount * (Style.kMinimalBarHeight + Style.kBarPadding * 2.0f);
@@ -425,8 +438,8 @@ namespace UnityEditor.VFX
             var rowHeight = clipBarHeight / (float)rowCount;
             foreach (var bar in clipEventBars)
             {
-                var relativeStart = bar.start / 100.0f;
-                var relativeStop = bar.end / 100.0f;
+                var relativeStart = InverseLerp(region.startTime, region.endTime, bar.start);
+                var relativeStop = InverseLerp(region.startTime, region.endTime, bar.end);
 
                 var startRange = region.position.width * Mathf.Clamp01((float)relativeStart);
                 var endRange = region.position.width * Mathf.Clamp01((float)relativeStop);
