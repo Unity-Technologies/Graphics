@@ -80,6 +80,8 @@ struct DirectionalLightData
     float distanceFromCamera;
     float angularDiameter;
     float flareFalloff;
+    float flareCosInner;
+    float flareCosOuter;
     float __unused__;
     float3 flareTint;
     float flareSize;
