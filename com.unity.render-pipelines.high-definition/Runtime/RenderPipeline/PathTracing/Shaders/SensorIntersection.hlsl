@@ -28,7 +28,7 @@ void SetBeamDirection(inout PathIntersection payload, float3 beamDirection)
     payload.cone.spreadAngle = beamDirection.z;
 }
 
-void clearBeamData(inout PathIntersection payload)
+void ClearBeamData(inout PathIntersection payload)
 {
     SetBeamOrigin(payload, 0.0);
     SetBeamDirection(payload, 0.0);
