@@ -109,7 +109,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     // Fetch, then clear the beam data aliased in our payload
     const float3 beamOrigin = GetBeamOrigin(pathIntersection);
     const float3 beamDirection = GetBeamDirection(pathIntersection);
-    clearBeamData(pathIntersection);
+    ClearBeamData(pathIntersection);
 
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;

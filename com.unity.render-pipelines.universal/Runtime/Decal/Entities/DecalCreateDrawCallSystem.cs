@@ -63,6 +63,15 @@ namespace UnityEngine.Rendering.Universal
         private ProfilingSampler m_Sampler;
         private float m_MaxDrawDistance;
 
+        /// <summary>
+        /// Provides acces to the maximum draw distance.
+        /// </summary>
+        public float maxDrawDistance
+        {
+            get { return m_MaxDrawDistance; }
+            set { m_MaxDrawDistance = value; }
+        }
+
         public DecalCreateDrawCallSystem(DecalEntityManager entityManager, float maxDrawDistance)
         {
             m_EntityManager = entityManager;
