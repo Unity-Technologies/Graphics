@@ -403,7 +403,7 @@
 {
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.ColorRGBAMaterialSlot",
-    "m_ObjectId": "c24aa6ff2bf0427b9eeebb7ef189d484",
+    "m_ObjectId": "c0fecf116f544e04b94d1901e75176ad",
     "m_Id": 2,
     "m_DisplayName": "Output",
     "m_SlotType": 1,
@@ -633,7 +633,7 @@
             "m_Id": "fc75ad78bad84a54a208e748b668e101"
         },
         {
-            "m_Id": "c24aa6ff2bf0427b9eeebb7ef189d484"
+            "m_Id": "c0fecf116f544e04b94d1901e75176ad"
         }
     ],
     "synonyms": [
@@ -650,7 +650,7 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_BufferType": 3
+    "m_BufferType": 4
 }
 
 {
