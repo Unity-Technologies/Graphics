@@ -284,6 +284,69 @@ namespace UnityEngine.Experimental.Rendering
         SphericalHarmonicsL2 = 2,
     }
 
+
+    // TODO_FCC: TMP_FCC This is all tmp stuff. In future we might need a flat 2D atlas as we'll not have
+    public class OctahedralDepthAtlas
+    {
+        internal OctahedralDepthAtlas(int width, int height)
+        {
+            atlasWidth = width;
+            atlasHeight = height;
+
+            atlas = new Texture2D(width, height, GraphicsFormat.R16G16_SFloat, TextureCreationFlags.None);
+
+            ClearAllocations();
+        }
+
+        internal Texture2D atlas;
+
+        internal int atlasWidth;
+        internal int atlasHeight;
+
+        internal int octDepthMapSize = 8; // Hard coded for now, we should make sure we support higher res.
+        internal Vector2Int sizeOfBrick => new Vector2Int(octDepthMapSize * 4, octDepthMapSize * 4);
+
+        internal int maxProbeAllowed => (atlasWidth / octDepthMapSize) * (atlasHeight / octDepthMapSize);
+
+        internal Queue<Vector2Int> freeSlots = new Queue<Vector2Int>();
+
+        internal void ClearAllocations()
+        {
+            freeSlots.Clear();
+            var sizeOfBrickSlab = sizeOfBrick;
+
+            for (int y = 0; y < atlasHeight; y += sizeOfBrickSlab.y)
+            {
+                for (int x = 0; x < atlasHeight; x += sizeOfBrickSlab.x)
+                {
+                    freeSlots.Enqueue(new Vector2Int(x, y));
+                }
+            }
+        }
+
+        internal Vector2Int GetNextFreeBrickAlloc()
+        {
+            Debug.Assert(freeSlots.Count > 0);
+            return freeSlots.Dequeue();
+        }
+
+        internal int GetNextFreeBrickAllocFlat()
+        {
+            Vector2Int index = GetNextFreeBrickAlloc();
+            Debug.Log(index);
+            return index.y * atlasWidth + index.x;
+        }
+
+
+        internal void Destroy()
+        {
+            CoreUtils.Destroy(atlas);
+            ClearAllocations();
+            atlas = null;
+        }
+    }
+
+
     /// <summary>
     /// The reference volume for the Probe Volume system. This defines the structure in which volume assets are loaded into. There must be only one, hence why it follow a singleton pattern.
     /// </summary>
@@ -512,6 +575,7 @@ namespace UnityEngine.Experimental.Rendering
         int m_TemporaryDataLocationMemCost;
 
         internal ProbeVolumeSceneData sceneData;
+        internal OctahedralDepthAtlas octDepthAtlas;
 
         /// <summary>
         ///  The input to the retrieveExtraDataAction action.
@@ -1070,6 +1134,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 Profiler.BeginSample("Initialize Reference Volume");
                 m_Pool = new ProbeBrickPool(memoryBudget, shBands);
+                octDepthAtlas = new OctahedralDepthAtlas(4096, 4096); // << TODO FCC Drive with memory budget
 
                 m_Index = new ProbeBrickIndex(memoryBudget);
                 m_CellIndices = new ProbeCellIndices(minCellPosition, maxCellPosition, (int)Mathf.Pow(3, m_MaxSubdivision - 1));
@@ -1212,6 +1277,12 @@ namespace UnityEngine.Experimental.Rendering
 
             m_BricksLoaded = true;
 
+            // Alloc stuff in octahedral depth
+            foreach (var brick in bricks)
+            {
+                brick.flatIdxOctaDepthAtlas = octDepthAtlas.GetNextFreeBrickAllocFlat();
+            }
+
             // Build index
             m_Index.AddBricks(cellInfo.cell, bricks, cellInfo.chunkList, ProbeBrickPool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), cellUpdateInfo);
 
@@ -1293,6 +1364,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_Index.Cleanup();
                 m_CellIndices.Cleanup();
                 m_Pool.Cleanup();
+                octDepthAtlas.Destroy();
                 m_TemporaryDataLocation.Cleanup();
             }
 

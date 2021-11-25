@@ -8,6 +8,7 @@ using System.Collections;
 using Chunk = UnityEngine.Experimental.Rendering.ProbeBrickPool.BrickChunkAlloc;
 using CellInfo = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.CellInfo;
 using Cell = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.Cell;
+using Unity.Collections;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -23,22 +24,41 @@ namespace UnityEngine.Experimental.Rendering
         int m_AvailableChunkCount;
 
         ComputeBuffer m_PhysicalIndexBuffer;
-        int[] m_PhysicalIndexBufferData;
+        Vector2Int[] m_PhysicalIndexBufferData;
 
         internal int estimatedVMemCost { get; private set; }
+
+        public struct OctahedralDepthInfo
+        {
+            public List<float> octaDepthData;
+            public int flatIdxOctaDepthAtlas;
+
+            // Assume order in same order in bricks.
+            public OctahedralDepthInfo(List<float> inData)
+            {
+                octaDepthData = new List<float>(inData.Count);
+                for (int i = 0; i < inData.Count; ++i)
+                {
+                    octaDepthData.Add(inData[i]);
+                }
+                flatIdxOctaDepthAtlas = -1;
+            }
+        }
 
         [DebuggerDisplay("Brick [{position}, {subdivisionLevel}]")]
         [Serializable]
 
-        public struct Brick : IEquatable<Brick>
+        public class Brick : IEquatable<Brick>
         {
             public Vector3Int position;   // refspace index, indices are cell coordinates at max resolution
             public int subdivisionLevel;              // size as factor covered elementary cells
+            public OctahedralDepthInfo octDepthInfo;
 
             internal Brick(Vector3Int position, int subdivisionLevel)
             {
                 this.position = position;
                 this.subdivisionLevel = subdivisionLevel;
+                this.octDepthInfo = new OctahedralDepthInfo();
             }
 
             public bool Equals(Brick other) => position == other.position && subdivisionLevel == other.subdivisionLevel;
@@ -129,8 +149,8 @@ namespace UnityEngine.Experimental.Rendering
             m_AvailableChunkCount = m_IndexInChunks;
             m_IndexChunks = new BitArray(Mathf.Max(1, m_IndexInChunks));
             int physicalBufferSize = m_IndexInChunks * kIndexChunkSize;
-            m_PhysicalIndexBufferData = new int[physicalBufferSize];
-            m_PhysicalIndexBuffer = new ComputeBuffer(physicalBufferSize, sizeof(int), ComputeBufferType.Structured);
+            m_PhysicalIndexBufferData = new Vector2Int[physicalBufferSize];
+            m_PhysicalIndexBuffer = new ComputeBuffer(physicalBufferSize, sizeof(int) * 2, ComputeBufferType.Structured);
             m_NextFreeChunk = 0;
 
             estimatedVMemCost = physicalBufferSize * sizeof(int);
@@ -161,7 +181,7 @@ namespace UnityEngine.Experimental.Rendering
             Profiler.BeginSample("Clear Index");
 
             for (int i = 0; i < m_PhysicalIndexBufferData.Length; ++i)
-                m_PhysicalIndexBufferData[i] = -1;
+                m_PhysicalIndexBufferData[i] = new Vector2Int(-1, -1);
 
             m_NeedUpdateIndexComputeBuffer = true;
             m_UpdateMinIndex = 0;
@@ -214,7 +234,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             Vector3Int vx_min, vx_max;
             ClipToIndexSpace(pos, GetVoxelSubdivLevel(), out vx_min, out vx_max, cellInfo);
-            UpdatePhysicalIndex(vx_min, vx_max, -1, cellInfo);
+            UpdatePhysicalIndex(vx_min, vx_max, new Vector2Int(-1, -1), cellInfo);
         }
 
         internal void GetRuntimeResources(ref ProbeReferenceVolume.RuntimeResources rr)
@@ -423,7 +443,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        void UpdatePhysicalIndex(Vector3Int brickMin, Vector3Int brickMax, int value, CellIndexUpdateInfo cellInfo)
+        void UpdatePhysicalIndex(Vector3Int brickMin, Vector3Int brickMax, Vector2Int value, CellIndexUpdateInfo cellInfo)
         {
             // We need to do our calculations in local space to the cell, so we move the brick to local space as a first step.
             // Reminder that at this point we are still operating at highest resolution possible, not necessarily the one that will be
@@ -525,7 +545,7 @@ namespace UnityEngine.Experimental.Rendering
                 brick_max.y = Mathf.Min(vx_max.y, brick_max.y);
                 brick_max.z = Mathf.Min(vx_max.z, brick_max.z - m_CenterRS.z);
 
-                UpdatePhysicalIndex(brick_min, brick_max, rbrick.flattenedIdx, cellInfo);
+                UpdatePhysicalIndex(brick_min, brick_max, new Vector2Int(rbrick.flattenedIdx, rbrick.brick.flatIdxOctaDepthAtlas), cellInfo);
             }
         }
 
@@ -583,7 +603,7 @@ namespace UnityEngine.Experimental.Rendering
             int flattenedLocationInCell = localRelativeIndexLoc.z * (sizeOfValid.x * sizeOfValid.y) + localRelativeIndexLoc.x * sizeOfValid.y + localRelativeIndexLoc.y;
             uint locationInPhysicalBuffer = chunkIdx * (uint)ProbeBrickIndex.kIndexChunkSize + (uint)flattenedLocationInCell;
 
-            return (uint)m_PhysicalIndexBufferData[locationInPhysicalBuffer];
+            return (uint)(m_PhysicalIndexBufferData[locationInPhysicalBuffer].x);
         }
 
         internal Vector3 GetUVW(Vector3 posWS)

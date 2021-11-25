@@ -17,7 +17,7 @@ SAMPLER(s_point_clamp_sampler);
 
 struct APVResources
 {
-    StructuredBuffer<int> index;
+    StructuredBuffer<int2> index;
 
     Texture3D L0_L1Rx;
 
@@ -70,7 +70,7 @@ struct APVSample
 };
 
 // Resources required for APV
-StructuredBuffer<int> _APVResIndex;
+StructuredBuffer<int2> _APVResIndex;
 StructuredBuffer<uint3> _APVResCellIndices;
 
 TEXTURE3D(_APVResL0_L1Rx);
@@ -190,7 +190,7 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
         isValidBrick = false;
     }
 
-    return isValidBrick ? apvRes.index[locationInPhysicalBuffer] : 0xffffffff;
+    return isValidBrick ? apvRes.index[locationInPhysicalBuffer].x : 0xffffffff;
 }
 
 // -------------------------------------------------------------
@@ -429,11 +429,30 @@ struct APVSamplingInput
     float3 oracle;
 };
 
-float GetOracleBasedWeight(float3 l0, float3 oracle)
+float GetOracleBasedWeight(float3 l0, float3 oracle, float3 closestL0)
 {
-    return 1;
     float oracleThresh = _AntiLeakParams.z;
-    return abs(Luminance(l0) - Luminance(oracle)) / Luminance(oracle) < oracleThresh;
+    return abs(Luminance(l0) - Luminance(closestL0)) / Luminance(closestL0) < oracleThresh;
+}
+
+float3 GetClosestL0ToOracle(float3 oracle, float4 L0s[8])
+{
+    float oracleLuma = Luminance(oracle);
+    float minLumaDiff = abs(oracleLuma - Luminance(L0s[0].xyz));
+    int minIndex = 0;
+
+    for (int i = 1; i < 8; ++i)
+    {
+        float l0Luma = Luminance(L0s[i].xyz);
+        float lumaDiff = abs(oracleLuma - l0Luma);
+        if (lumaDiff < minLumaDiff)
+        {
+            minLumaDiff = lumaDiff;
+            minIndex = i;
+        }
+    }
+
+    return L0s[minIndex].xyz;
 }
 
 float3 GetManuallyFilteredL0(APVSamplingInput inputs)
@@ -448,7 +467,24 @@ float3 GetManuallyFilteredL0(APVSamplingInput inputs)
     total = 0;
     float3 oneMinTexFrac = 1.0f - texFrac;
     float totalWeight = 0;
-    for (uint i = 0; i < 8; ++i)
+
+
+    uint i = 0;
+    float4 L0s[8];
+
+
+
+
+    for (i = 0; i < 8; ++i)
+    {
+        uint3 offset = GetSampleOffset(i);
+
+        L0s[i] = float4(LOAD_TEXTURE3D(inputs.apvRes.L0_L1Rx, texCoordInt + offset).xyz, 1);
+    }
+
+    float3 closestL0 = GetClosestL0ToOracle(inputs.oracle, L0s);
+
+    for (i = 0; i < 8; ++i)
     {
         uint3 offset = GetSampleOffset(i);
         float w =
@@ -458,8 +494,8 @@ float3 GetManuallyFilteredL0(APVSamplingInput inputs)
 
         float vW = GetLeakWeight(inputs.apvRes, inputs.posWS, inputs.normalWS, texCoordInt + offset);
         float finalW = lerp(w, w * vW, _ProbeVolumeBilateralFilterWeight);
-        float3 sampleL0 = LOAD_TEXTURE3D(inputs.apvRes.L0_L1Rx, texCoordInt + offset).xyz;
-        total += finalW * GetOracleBasedWeight(sampleL0, inputs.oracle) * sampleL0;
+        float3 sampleL0 = L0s[i].xyz;
+        total += finalW * GetOracleBasedWeight(sampleL0, inputs.oracle, closestL0) * sampleL0;
 
         totalWeight += finalW;
     }

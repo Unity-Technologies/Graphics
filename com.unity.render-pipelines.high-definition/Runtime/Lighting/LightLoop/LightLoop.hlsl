@@ -477,7 +477,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                         R,
                         V,
                         posInput.positionSS,
-                        aggregateLighting.direct.diffuse,
+                        aggregateLighting.direct.diffuse + EvaluateAmbientProbe(bsdfData.normalWS),
                         tempBuiltinData.bakeDiffuseLighting,
                         tempBuiltinData.backBakeDiffuseLighting,
                         lightInReflDir);
