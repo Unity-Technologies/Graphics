@@ -72,7 +72,9 @@ namespace UnityEngine.VFX
         {
             new ClipEvent()
             {
+#if UNITY_EDITOR
                 editorColor = Color.white,
+#endif
                 enter = new VisualEffectPlayableSerializedEventNoColor()
                 {
                     name = VisualEffectAsset.PlayEventName,
