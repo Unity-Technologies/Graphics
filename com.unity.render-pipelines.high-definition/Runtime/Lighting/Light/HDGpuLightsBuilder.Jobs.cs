@@ -725,7 +725,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 outputDirectionalLightCounts = m_DirectionalLightCount,
                 outputLightBoundsCount = m_LightBoundsCount,
                 globalConfig = CreateGpuLightDataJobGlobalConfig.Create(hdCamera, hdShadowSettings),
-                cameraPos = hdCamera.camera.transform.position,
+                cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos,
                 directionalSortedLightCounts = visibleLights.sortedDirectionalLightCounts,
                 isPbrSkyActive = isPbrSkyActive,
                 precomputedAtmosphericAttenuation = ShaderConfig.s_PrecomputedAtmosphericAttenuation,
