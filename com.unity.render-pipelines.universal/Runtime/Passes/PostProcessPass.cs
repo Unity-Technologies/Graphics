@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 
@@ -21,10 +22,10 @@ namespace UnityEngine.Rendering.Universal.Internal
     public class PostProcessPass : ScriptableRenderPass
     {
         RenderTextureDescriptor m_Descriptor;
-        RenderTargetIdentifier m_Source;
-        RenderTargetHandle m_Destination;
-        RenderTargetHandle m_Depth;
-        RenderTargetHandle m_InternalLut;
+        RTHandle m_Source;
+        RTHandle m_Destination;
+        RTHandle m_Depth;
+        RTHandle m_InternalLut;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
@@ -86,6 +87,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Renderer is using swapbuffer system
         bool m_UseSwapBuffer;
 
+        // RTHandle alias for _TempTarget
+        RTHandle m_TempTarget = RTHandles.Alloc(ShaderConstants._TempTarget);
+
+        // RTHandle alias for _TempTarget2
+        RTHandle m_TempTarget2 = RTHandles.Alloc(ShaderConstants._TempTarget2);
+
         Material m_BlitMaterial;
 
         public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
@@ -97,8 +104,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_BlitMaterial = blitMaterial;
 
             // Texture format pre-lookup
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear) &&
-                SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Render))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
             {
                 m_DefaultHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
                 m_UseRGBM = false;
@@ -117,9 +123,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             else
                 m_SMAAEdgeFormat = GraphicsFormat.R8G8B8A8_UNorm;
 
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, FormatUsage.Linear) && SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, FormatUsage.Render))
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_UNorm, FormatUsage.Linear | FormatUsage.Render))
                 m_GaussianCoCFormat = GraphicsFormat.R16_UNorm;
-            else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Linear) && SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Render))
+            else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Linear | FormatUsage.Render))
                 m_GaussianCoCFormat = GraphicsFormat.R16_SFloat;
             else // Expect CoC banding
                 m_GaussianCoCFormat = GraphicsFormat.R8_UNorm;
@@ -142,28 +148,28 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Cleanup() => m_Materials.Cleanup();
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, bool resolveToScreen, in RenderTargetHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, bool resolveToScreen, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
         {
             m_Descriptor = baseDescriptor;
             m_Descriptor.useMipMap = false;
             m_Descriptor.autoGenerateMips = false;
-            m_Source = source.id;
+            m_Source = source;
             m_Depth = depth;
             m_InternalLut = internalLut;
             m_IsFinalPass = false;
             m_HasFinalPass = hasFinalPass;
             m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
             m_ResolveToScreen = resolveToScreen;
-            m_Destination = RenderTargetHandle.CameraTarget;
+            m_Destination = k_CameraTarget;
             m_UseSwapBuffer = true;
         }
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, RTHandle destination, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
         {
             m_Descriptor = baseDescriptor;
             m_Descriptor.useMipMap = false;
             m_Descriptor.autoGenerateMips = false;
-            m_Source = source.id;
+            m_Source = source;
             m_Destination = destination;
             m_Depth = depth;
             m_InternalLut = internalLut;
@@ -173,10 +179,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_UseSwapBuffer = false;
         }
 
-        public void SetupFinalPass(in RenderTargetHandle source, bool useSwapBuffer = false)
+        public void SetupFinalPass(in RTHandle source, bool useSwapBuffer = false)
         {
-            m_Source = source.id;
-            m_Destination = RenderTargetHandle.CameraTarget;
+            m_Source = source;
+            m_Destination = k_CameraTarget;
             m_IsFinalPass = true;
             m_HasFinalPass = false;
             m_EnableSRGBConversionIfNeeded = true;
@@ -187,30 +193,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             overrideCameraTarget = true;
-
-            if (m_Destination == RenderTargetHandle.CameraTarget)
-                return;
-
-            // If RenderTargetHandle already has a valid internal render target identifier, we shouldn't request a temp
-            if (m_Destination.HasInternalRenderTargetId())
-                return;
-
-            var desc = GetCompatibleDescriptor();
-            desc.depthBufferBits = 0;
-            cmd.GetTemporaryRT(m_Destination.id, desc, FilterMode.Point);
-        }
-
-        /// <inheritdoc/>
-        public override void OnCameraCleanup(CommandBuffer cmd)
-        {
-            if (m_Destination == RenderTargetHandle.CameraTarget)
-                return;
-
-            // Logic here matches the if check in OnCameraSetup
-            if (m_Destination.HasInternalRenderTargetId())
-                return;
-
-            cmd.ReleaseTemporaryRT(m_Destination.id);
         }
 
         public void ResetHistory()
@@ -280,10 +262,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTextureDescriptor GetCompatibleDescriptor()
             => GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_Descriptor.graphicsFormat);
 
-        RenderTextureDescriptor GetCompatibleDescriptor(int width, int height, GraphicsFormat format, int depthBufferBits = 0)
+        RenderTextureDescriptor GetCompatibleDescriptor(int width, int height, GraphicsFormat format, DepthBits depthBufferBits = DepthBits.None)
+            => GetCompatibleDescriptor(m_Descriptor, width, height, format, depthBufferBits);
+
+        internal static RenderTextureDescriptor GetCompatibleDescriptor(RenderTextureDescriptor desc, int width, int height, GraphicsFormat format, DepthBits depthBufferBits = DepthBits.None)
         {
-            var desc = m_Descriptor;
-            desc.depthBufferBits = depthBufferBits;
+            desc.depthBufferBits = (int)depthBufferBits;
             desc.msaaSamples = 1;
             desc.width = width;
             desc.height = height;
@@ -355,28 +339,28 @@ namespace UnityEngine.Rendering.Universal.Internal
             // GetDestination() instead
             bool tempTargetUsed = false;
             bool tempTarget2Used = false;
-            RenderTargetIdentifier source = m_UseSwapBuffer ? renderer.cameraColorTarget : m_Source;
-            RenderTargetIdentifier destination = m_UseSwapBuffer ? renderer.GetCameraColorFrontBuffer(cmd) : -1;
+            RTHandle source = m_UseSwapBuffer ? renderer.cameraColorTargetHandle : m_Source;
+            RTHandle destination = m_UseSwapBuffer ? renderer.GetCameraColorFrontBuffer(cmd) : k_CameraTarget;
 
-            RenderTargetIdentifier GetSource() => source;
+            RTHandle GetSource() => source;
 
-            RenderTargetIdentifier GetDestination()
+            RTHandle GetDestination()
             {
                 if (m_UseSwapBuffer)
                     return destination;
                 else
                 {
-                    if (destination == -1)
+                    if (destination.nameID == BuiltinRenderTextureType.CameraTarget)
                     {
                         cmd.GetTemporaryRT(ShaderConstants._TempTarget, GetCompatibleDescriptor(), FilterMode.Bilinear);
-                        destination = ShaderConstants._TempTarget;
+                        destination = m_TempTarget;
                         tempTargetUsed = true;
                     }
                     else if (destination == m_Source && m_Descriptor.msaaSamples > 1)
                     {
                         // Avoid using m_Source.id as new destination, it may come with a depth buffer that we don't want, may have MSAA that we don't want etc
                         cmd.GetTemporaryRT(ShaderConstants._TempTarget2, GetCompatibleDescriptor(), FilterMode.Bilinear);
-                        destination = ShaderConstants._TempTarget2;
+                        destination = m_TempTarget2;
                         tempTarget2Used = true;
                     }
                     return destination;
@@ -388,14 +372,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 --amountOfPassesRemaining;
                 if (m_UseSwapBuffer)
                 {
+                    r.SwapColorBuffer(cmd);
+                    source = r.cameraColorTargetHandle;
                     //we want the last blit to be to MSAA
                     if (amountOfPassesRemaining == 0 && !m_HasFinalPass)
-                    {
                         r.EnableSwapBufferMSAA(true);
-                    }
-
-                    r.SwapColorBuffer(cmd);
-                    source = r.cameraColorTarget;
                     destination = r.GetCameraColorFrontBuffer(cmd);
                 }
                 else
@@ -511,7 +492,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Setup other effects constants
                 SetupLensDistortion(m_Materials.uber, isSceneViewCamera);
                 SetupChromaticAberration(m_Materials.uber);
-                SetupVignette(m_Materials.uber);
+                SetupVignette(m_Materials.uber, cameraData.xr);
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
 
                 // Only apply dithering & grain if there isn't a final pass.
@@ -532,15 +513,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, GetSource());
 
                 var colorLoadAction = RenderBufferLoadAction.DontCare;
-                if (m_Destination == RenderTargetHandle.CameraTarget && !cameraData.isDefaultViewport)
+                if (m_Destination == k_CameraTarget && !cameraData.isDefaultViewport)
                     colorLoadAction = RenderBufferLoadAction.Load;
 
-                RenderTargetIdentifier targetDestination = m_UseSwapBuffer ? destination : m_Destination.id;
+                RenderTargetIdentifier targetDestination = m_UseSwapBuffer ? destination : m_Destination.nameID;
 
                 // Note: We rendering to "camera target" we need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
                 // Overlay cameras need to output to the target described in the base camera while doing camera stack.
-                RenderTargetHandle cameraTargetHandle = RenderTargetHandle.GetCameraTarget(cameraData.xr);
-                RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null && !cameraData.xr.enabled) ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetHandle.Identifier();
+                RenderTargetIdentifier cameraTargetID = BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                    cameraTargetID = cameraData.xr.renderTarget;
+#endif
+                RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null && !cameraData.xr.enabled) ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetID;
 
                 if (m_UseSwapBuffer)
                 {
@@ -548,8 +533,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
                 {
-                    cameraTarget = (m_Destination == RenderTargetHandle.CameraTarget) ? cameraTarget : m_Destination.Identifier();
-                    m_ResolveToScreen = cameraData.resolveFinalTarget || (m_Destination == cameraTargetHandle || m_HasFinalPass == true);
+                    cameraTarget = (m_Destination.nameID == BuiltinRenderTextureType.CameraTarget) ? cameraTarget : m_Destination.nameID;
+                    m_ResolveToScreen = cameraData.resolveFinalTarget || (m_Destination.nameID == cameraTargetID || m_HasFinalPass == true);
                 }
 
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
@@ -591,10 +576,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
                 {
                     cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+#pragma warning disable 0618 // Obsolete usage: RenderTargetIdentifiers required here because of use of RenderTexture cameraData.targetTexture which is not managed by RTHandles
                     cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
+#pragma warning restore 0618
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
-                    if ((m_Destination == RenderTargetHandle.CameraTarget && !m_UseSwapBuffer) || m_ResolveToScreen)
+                    if ((m_Destination.nameID == BuiltinRenderTextureType.CameraTarget && !m_UseSwapBuffer) || (m_ResolveToScreen && m_UseSwapBuffer))
                         cmd.SetViewport(cameraData.pixelRect);
 
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
@@ -628,7 +615,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (tempTarget2Used)
                     cmd.ReleaseTemporaryRT(ShaderConstants._TempTarget2);
 
-                cmd.ReleaseTemporaryRT(m_InternalLut.id);
+                cmd.ReleaseTemporaryRT(Shader.PropertyToID(m_InternalLut.name));
             }
         }
 
@@ -676,17 +663,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Intermediate targets
             RenderTargetIdentifier stencil; // We would only need stencil, no depth. But Unity doesn't support that.
-            int tempDepthBits;
-            if (m_Depth == RenderTargetHandle.CameraTarget || m_Descriptor.msaaSamples > 1)
+            DepthBits tempDepthBits;
+            if (m_Depth == k_CameraTarget || m_Descriptor.msaaSamples > 1)
             {
                 // In case m_Depth is CameraTarget it may refer to the backbuffer and we can't use that as an attachment on all platforms
                 stencil = ShaderConstants._EdgeTexture;
-                tempDepthBits = 24;
+                tempDepthBits = DepthBits.Depth24;
             }
             else
             {
-                stencil = m_Depth.Identifier();
-                tempDepthBits = 0;
+                stencil = m_Depth.nameID;
+                tempDepthBits = DepthBits.None;
             }
             cmd.GetTemporaryRT(ShaderConstants._EdgeTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_SMAAEdgeFormat, tempDepthBits), FilterMode.Bilinear);
             cmd.GetTemporaryRT(ShaderConstants._BlendTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8G8B8A8_UNorm), FilterMode.Point);
@@ -952,13 +939,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Zero out the translation component.
             gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
             var gpuVP = gpuNonJitteredProj * camera.worldToCameraMatrix;
-
-            LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, LensFlareCommonSRP.Instance, camera, (float)Screen.width, (float)Screen.height,
+            LensFlareCommonSRP.DoLensFlareDataDrivenCommon(m_Materials.lensFlareDataDriven, LensFlareCommonSRP.Instance, camera, (float)m_Descriptor.width, (float)m_Descriptor.height,
                 usePanini, paniniDistance, paniniCropToFit,
                 true,
+                camera.transform.position,
                 gpuVP,
                 cmd, source,
                 (Light light, Camera cam, Vector3 wo) => { return GetLensFlareLightAttenuation(light, cam, wo); },
+                ShaderConstants._FlareOcclusionTex, ShaderConstants._FlareOcclusionIndex,
                 ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
                 ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4,
                 false);
@@ -1264,11 +1252,24 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         #region Vignette
 
-        void SetupVignette(Material material)
+        void SetupVignette(Material material, XRPass xrPass)
         {
             var color = m_Vignette.color.value;
             var center = m_Vignette.center.value;
             var aspectRatio = m_Descriptor.width / (float)m_Descriptor.height;
+
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (xrPass != null && xrPass.enabled)
+            {
+                if (xrPass.singlePassEnabled)
+                    material.SetVector(ShaderConstants._Vignette_ParamsXR, xrPass.ApplyXRViewCenterOffset(center));
+                else
+                    // In multi-pass mode we need to modify the eye center with the values from .xy of the corrected
+                    // center since the version of the shader that is not single-pass will use the value in _Vignette_Params2
+                    center = xrPass.ApplyXRViewCenterOffset(center);
+            }
+#endif
 
             var v1 = new Vector4(
                 color.r, color.g, color.b,
@@ -1297,7 +1298,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Source material setup
             float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
-            cmd.SetGlobalTexture(ShaderConstants._InternalLut, m_InternalLut.Identifier());
+            cmd.SetGlobalTexture(ShaderConstants._InternalLut, m_InternalLut.nameID);
             material.SetVector(ShaderConstants._Lut_Params, new Vector4(1f / lutWidth, 1f / lutHeight, lutHeight - 1f, postExposureLinear));
             material.SetTexture(ShaderConstants._UserLut, m_ColorLookup.texture.value);
             material.SetVector(ShaderConstants._UserLut_Params, !m_ColorLookup.IsActive()
@@ -1383,25 +1384,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             GetActiveDebugHandler(renderingData)?.UpdateShaderGlobalPropertiesForFinalValidationPass(cmd, ref cameraData, m_IsFinalPass);
 
-            if (!m_UseSwapBuffer)
-            {
-                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source);
-            }
-            else if (m_Source == cameraData.renderer.GetCameraColorFrontBuffer(cmd))
-            {
-                m_Source = cameraData.renderer.cameraColorTarget;
-            }
+            if (m_UseSwapBuffer)
+                m_Source = cameraData.renderer.GetCameraColorBackBuffer(cmd);
 
             cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source);
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
-            RenderTargetHandle cameraTargetHandle = RenderTargetHandle.GetCameraTarget(cameraData.xr);
-
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
-                RenderTargetIdentifier cameraTarget = cameraTargetHandle.Identifier();
+                RenderTargetIdentifier cameraTarget = cameraData.xr.renderTarget;
 
                 //Blit(cmd, m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
                 bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
@@ -1423,14 +1416,16 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
                 // Overlay cameras need to output to the target described in the base camera while doing camera stack.
-                RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetHandle.Identifier();
+                RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
 
                 cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(cameraData.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
                 cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+#pragma warning disable 0618 // Obsolete usage: RenderTargetIdentifiers required here because of use of RenderTexture cameraData.targetTexture which is not managed by RTHandles
                 cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
+#pragma warning restore 0618
             }
         }
 
@@ -1532,12 +1527,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _Chroma_Params = Shader.PropertyToID("_Chroma_Params");
             public static readonly int _Vignette_Params1 = Shader.PropertyToID("_Vignette_Params1");
             public static readonly int _Vignette_Params2 = Shader.PropertyToID("_Vignette_Params2");
+            public static readonly int _Vignette_ParamsXR = Shader.PropertyToID("_Vignette_ParamsXR");
             public static readonly int _Lut_Params = Shader.PropertyToID("_Lut_Params");
             public static readonly int _UserLut_Params = Shader.PropertyToID("_UserLut_Params");
             public static readonly int _InternalLut = Shader.PropertyToID("_InternalLut");
             public static readonly int _UserLut = Shader.PropertyToID("_UserLut");
             public static readonly int _DownSampleScaleFactor = Shader.PropertyToID("_DownSampleScaleFactor");
 
+            public static readonly int _FlareOcclusionTex = Shader.PropertyToID("_FlareOcclusionTex");
+            public static readonly int _FlareOcclusionIndex = Shader.PropertyToID("_FlareOcclusionIndex");
             public static readonly int _FlareTex = Shader.PropertyToID("_FlareTex");
             public static readonly int _FlareColorValue = Shader.PropertyToID("_FlareColorValue");
             public static readonly int _FlareData0 = Shader.PropertyToID("_FlareData0");

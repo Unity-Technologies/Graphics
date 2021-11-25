@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.Universal
         private DecalDrawGBufferSystem m_DrawSystem;
         private DecalScreenSpaceSettings m_Settings;
         private DeferredLights m_DeferredLights;
+        private RTHandle[] m_GbufferAttachments;
 
         public DecalGBufferRenderPass(DecalScreenSpaceSettings settings, DecalDrawGBufferSystem drawSystem)
         {
@@ -39,9 +40,21 @@ namespace UnityEngine.Rendering.Universal
             m_DeferredLights = deferredLights;
         }
 
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier);
+            if (m_DeferredLights.UseRenderPass)
+            {
+                m_GbufferAttachments = new RTHandle[]
+                {
+                    m_DeferredLights.GbufferAttachments[0], m_DeferredLights.GbufferAttachments[1],
+                    m_DeferredLights.GbufferAttachments[2], m_DeferredLights.GbufferAttachments[3]
+                };
+                ConfigureInputAttachments(m_DeferredLights.DepthCopyTexture, false);
+            }
+            else
+                m_GbufferAttachments = m_DeferredLights.GbufferAttachments;
+
+            ConfigureTarget(m_GbufferAttachments, m_DeferredLights.DepthAttachmentHandle);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)

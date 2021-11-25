@@ -1,6 +1,18 @@
 #ifndef UNITY_RANDOM_INCLUDED
 #define UNITY_RANDOM_INCLUDED
 
+// Safe for GLES2: HLSLcc will emulate the missing operator ^, >> and rcp
+float Hash(uint s)
+{
+    s = s ^ 2747636419u;
+    s = s * 2654435769u;
+    s = s ^ (s >> 16);
+    s = s * 2654435769u;
+    s = s ^ (s >> 16);
+    s = s * 2654435769u;
+    return float(s) * rcp(4294967296.0); // 2^-32
+}
+
 #if !defined(SHADER_API_GLES)
 
 // A single iteration of Bob Jenkins' One-At-A-Time hashing algorithm.
@@ -70,17 +82,6 @@ float GenerateHashedRandomFloat(uint4 v)
     return ConstructFloat(JenkinsHash(v));
 }
 
-float Hash(uint s)
-{
-    s = s ^ 2747636419u;
-    s = s * 2654435769u;
-    s = s ^ (s >> 16);
-    s = s * 2654435769u;
-    s = s ^ (s >> 16);
-    s = s * 2654435769u;
-    return float(s) * rcp(4294967296.0); // 2^-32
-}
-
 float2 InitRandom(float2 input)
 {
     float2 r;
@@ -99,6 +100,15 @@ float InterleavedGradientNoise(float2 pixCoord, int frameCount)
     float2 frameMagicScale = float2(2.083f, 4.867f);
     pixCoord += frameCount * frameMagicScale;
     return frac(magic.z * frac(dot(pixCoord, magic.xy)));
+}
+
+// 32-bit Xorshift random number generator
+uint XorShift(inout uint rngState)
+{
+    rngState ^= rngState << 13;
+    rngState ^= rngState >> 17;
+    rngState ^= rngState << 5;
+    return rngState;
 }
 
 #endif // UNITY_RANDOM_INCLUDED

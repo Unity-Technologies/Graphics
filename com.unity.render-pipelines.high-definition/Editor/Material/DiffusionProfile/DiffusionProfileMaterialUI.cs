@@ -21,6 +21,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static void OnGUI(MaterialEditor materialEditor, MaterialProperty diffusionProfileAsset, MaterialProperty diffusionProfileHash, int profileIndex, string displayName = "Diffusion Profile")
         {
+            MaterialEditor.BeginProperty(diffusionProfileAsset);
+            MaterialEditor.BeginProperty(diffusionProfileHash);
+
             // We can't cache these fields because of several edge cases like undo/redo or pressing escape in the object picker
             string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset.vectorValue);
             DiffusionProfileSettings diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(AssetDatabase.GUIDToAssetPath(guid));
@@ -52,24 +55,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            MaterialEditor.EndProperty();
+            MaterialEditor.EndProperty();
+
             DrawDiffusionProfileWarning(diffusionProfile);
         }
 
         internal static void DrawDiffusionProfileWarning(DiffusionProfileSettings materialProfile)
         {
             if (materialProfile != null && !HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList.Any(d => d == materialProfile))
-            {
-                using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
-                {
-                    GUIStyle wordWrap = new GUIStyle(EditorStyles.label);
-                    wordWrap.wordWrap = true;
-                    EditorGUILayout.LabelField(diffusionProfileNotInHDRPAsset, wordWrap);
-                    if (GUILayout.Button("Fix", GUILayout.ExpandHeight(true)))
-                    {
-                        HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(materialProfile);
-                    }
-                }
-            }
+                CoreEditorUtils.DrawFixMeBox(diffusionProfileNotInHDRPAsset, "Fix", () => HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(materialProfile));
         }
     }
 }

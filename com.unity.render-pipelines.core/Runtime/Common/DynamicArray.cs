@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering
         /// <param name="array">The array whose elements should be added to the end of the DynamicArray. The array itself cannot be null, but it can contain elements that are null, if type T is a reference type.</param>
         public void AddRange(DynamicArray<T> array)
         {
-            Reserve(size + array.size);
+            Reserve(size + array.size, true);
             for (int i = 0; i < array.size; ++i)
                 m_Array[size++] = array[i];
         }
@@ -131,6 +131,9 @@ namespace UnityEngine.Rendering
         /// <param name="count">The number of elements to remove.</param>
         public void RemoveRange(int index, int count)
         {
+            if (count == 0)
+                return;
+
             if (index < 0 || index >= size || count < 0 || index + count > size)
                 throw new ArgumentOutOfRangeException();
 

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine.Serialization;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.U2D;
@@ -57,7 +58,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// The accuracy of how the normap map calculation.
+        /// The accuracy of how the normal map calculation.
         /// </summary>
         public enum NormalMapQuality
         {
@@ -85,7 +86,7 @@ namespace UnityEngine.Rendering.Universal
             /// </summary>
             Additive,
             /// <summary>
-            /// Colors are blended using standed blending (alpha, 1-alpha)
+            /// Colors are blended using standard blending (alpha, 1-alpha)
             /// </summary>
             AlphaBlend
         }
@@ -116,7 +117,7 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("m_LightVolumeOpacity")]
         [SerializeField] float m_LightVolumeIntensity = 1.0f;
         [SerializeField] bool m_LightVolumeIntensityEnabled = false;
-        [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
+        [SerializeField] int[] m_ApplyToSortingLayers;  // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
 
         [Reload("Textures/2D/Sparkle.png")]
         [SerializeField] Sprite m_LightCookieSprite;
@@ -254,11 +255,11 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The Sprite that's used by the Sprite Light type to control the shape light
         /// </summary>
-        public Sprite lightCookieSprite { get { return m_LightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite; } }
+        public Sprite lightCookieSprite { get => m_LightCookieSprite; set => m_LightCookieSprite = value; }
         /// <summary>
         /// Controls the brightness and distance of the fall off (edge) of the light
         /// </summary>
-        public float falloffIntensity => m_FalloffIntensity;
+        public float falloffIntensity { get => m_FalloffIntensity; set => m_FalloffIntensity = Mathf.Clamp(value, 0, 1); }
 
         [Obsolete]
         public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; } }
@@ -283,6 +284,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public NormalMapQuality normalMapQuality => m_NormalMapQuality;
 
+        /// <summary>
+        /// Returns if volumetric shadows should be rendered.
+        /// </summary>
         public bool renderVolumetricShadows => volumetricShadowsEnabled && shadowVolumeIntensity > 0;
 
 
@@ -385,6 +389,12 @@ namespace UnityEngine.Rendering.Universal
 
         private void Awake()
         {
+#if UNITY_EDITOR
+            // Default target sorting layers to "All"
+            if (m_ApplyToSortingLayers == null)
+                m_ApplyToSortingLayers = SortingLayer.layers.Select(x => x.id).ToArray();
+#endif
+
             if (m_LightCookieSprite != null)
             {
                 bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
@@ -411,6 +421,10 @@ namespace UnityEngine.Rendering.Universal
 
         private void LateUpdate()
         {
+#if UNITY_EDITOR
+            Light2DManager.UpdateSortingLayers(ref m_ApplyToSortingLayers);
+#endif
+
             if (m_LightType == LightType.Global)
                 return;
 
@@ -418,11 +432,17 @@ namespace UnityEngine.Rendering.Universal
             UpdateBoundingSphere();
         }
 
+        /// <summary>
+        /// OnBeforeSerialize implementation.
+        /// </summary>
         public void OnBeforeSerialize()
         {
             m_ComponentVersion = k_CurrentComponentVersion;
         }
 
+        /// <summary>
+        /// OnAfterSerialize implementation.
+        /// </summary>
         public void OnAfterDeserialize()
         {
             // Upgrade from no serialized version

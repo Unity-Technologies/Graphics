@@ -10,6 +10,9 @@ using UnityEditor.ProjectWindowCallback;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Class <c>Renderer2DData</c> contains resources for a <c>Renderer2D</c>.
+    /// </summary>
     [Serializable, ReloadGroup, ExcludeFromPreset]
     [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DRendererData_overview.html")]
@@ -127,6 +130,10 @@ namespace UnityEngine.Rendering.Universal
         internal int cameraSortingLayerTextureBound => m_CameraSortingLayersTextureBound;
         internal Downsampling cameraSortingLayerDownsamplingMethod => m_CameraSortingLayerDownsamplingMethod;
 
+        /// <summary>
+        /// Creates the instance of the Renderer2D.
+        /// </summary>
+        /// <returns>The instance of Renderer2D</returns>
         protected override ScriptableRenderer Create()
         {
 #if UNITY_EDITOR
@@ -138,17 +145,23 @@ namespace UnityEngine.Rendering.Universal
             return new Renderer2D(this);
         }
 
+        /// <summary>
+        /// OnEnable implementation.
+        /// </summary>
         protected override void OnEnable()
         {
             base.OnEnable();
 
             for (var i = 0; i < m_LightBlendStyles.Length; ++i)
             {
-                m_LightBlendStyles[i].renderTargetHandle.Init($"_ShapeLightTexture{i}");
+                m_LightBlendStyles[i].renderTargetHandleId = Shader.PropertyToID($"_ShapeLightTexture{i}");
+                m_LightBlendStyles[i].renderTargetHandle = RTHandles.Alloc(m_LightBlendStyles[i].renderTargetHandleId, $"_ShapeLightTexture{i}");
             }
 
-            normalsRenderTarget.Init("_NormalMap");
-            shadowsRenderTarget.Init("_ShadowTex");
+            normalsRenderTargetId = Shader.PropertyToID("_NormalMap");
+            normalsRenderTarget = RTHandles.Alloc(normalsRenderTargetId, "_NormalMap");
+            shadowsRenderTargetId = Shader.PropertyToID("_ShadowTex");
+            shadowsRenderTarget = RTHandles.Alloc(shadowsRenderTargetId, "_ShadowTex");
 
             spriteSelfShadowMaterial = null;
             spriteUnshadowMaterial = null;
@@ -167,9 +180,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool isNormalsRenderTargetValid { get; set; }
         internal float normalsRenderTargetScale { get; set; }
-        internal RenderTargetHandle normalsRenderTarget;
-        internal RenderTargetHandle shadowsRenderTarget;
-        internal RenderTargetHandle cameraSortingLayerRenderTarget;
+        internal RTHandle normalsRenderTarget;
+        internal int normalsRenderTargetId;
+        internal RTHandle shadowsRenderTarget;
+        internal int shadowsRenderTargetId;
+        internal RTHandle cameraSortingLayerRenderTarget;
+        internal int cameraSortingLayerRenderTargetId;
 
         // this shouldn've been in RenderingData along with other cull results
         internal ILight2DCullResult lightCullResult { get; set; }

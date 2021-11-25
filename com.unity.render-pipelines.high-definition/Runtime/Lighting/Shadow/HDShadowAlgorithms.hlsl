@@ -311,6 +311,12 @@ float EvalShadow_CascadedDepth_Dither_SplitIndex(HDShadowContext shadowContext, 
     float   shadow = 1.0;
     shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, alpha, cascadeCount);
 
+    // Forcing the alpha to zero allows us to avoid the dithering as it requires the screen space position and an additional
+    // shadow read wich can be avoided in this case.
+#if defined(SHADER_STAGE_RAY_TRACING)
+    alpha = 0.0;
+#endif
+
     float3 basePositionWS = positionWS;
 
     if (shadowSplitIndex >= 0.0)

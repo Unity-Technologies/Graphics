@@ -86,6 +86,8 @@ VertexDescriptionInputs VaryingsMeshToDSToVertexDescriptionInputs(VaryingsMeshTo
     $VertexDescriptionInputs.TangentSpaceViewDirection:                 float3x3 tangentSpaceTransform = float3x3(output.WorldSpaceTangent, output.WorldSpaceBiTangent, output.WorldSpaceNormal);
     $VertexDescriptionInputs.TangentSpaceViewDirection:                 output.TangentSpaceViewDirection = TransformWorldToTangent(GetWorldSpaceNormalizeViewDir(input.positionRWS), tangentSpaceTransform);
     $VertexDescriptionInputs.ScreenPosition:                            output.ScreenPosition = ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x);
+    $VertexDescriptionInputs.NDCPosition:                               output.NDCPosition = output.ScreenPosition.xy / output.ScreenPosition.w;
+    $VertexDescriptionInputs.PixelPosition:                             output.PixelPosition = float2(output.NDCPosition.x, 1.0f - output.NDCPosition.y) * _ScreenParams.xy;
     $VertexDescriptionInputs.uv0:                                       output.uv0 = input.texCoord0;
     $VertexDescriptionInputs.uv1:                                       output.uv1 = input.texCoord1;
     $VertexDescriptionInputs.uv2:                                       output.uv2 = input.texCoord2;

@@ -3,6 +3,10 @@
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 
+#if UNITY_OLD_PREPROCESSOR
+#error DOTS Instancing requires the new shader preprocessor. Please enable Caching Preprocessor in the Editor settings!
+#endif
+
 /*
 Here's a bit of python code to generate these repetitive typespecs without
 a lot of C macro magic
@@ -95,39 +99,35 @@ for t, c, sz in (
 
 #define UNITY_DOTS_INSTANCING_CONCAT2(a, b) a ## b
 #define UNITY_DOTS_INSTANCING_CONCAT4(a, b, c, d) a ## b ## c ## d
-#define UNITY_DOTS_INSTANCING_CONCAT_WITHOUT_METADATA(metadata_prefix, typespec, metadata_underscore_var) UNITY_DOTS_INSTANCING_CONCAT4(metadata_prefix, typespec, _, metadata_underscore_var)
-#define UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(metadata_prefix, typespec, name) UNITY_DOTS_INSTANCING_CONCAT4(metadata_prefix, typespec, _Metadata_, name)
+#define UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(metadata_prefix, typespec, name) UNITY_DOTS_INSTANCING_CONCAT4(metadata_prefix, typespec, _Metadata, name)
 
 // Metadata constants for properties have the following name format:
-// unity_DOTSInstancing_<Type><Size>_Metadata_<Name>
+// unity_DOTSInstancing<Type><Size>_Metadata<Name>
 // where
 // <Type> is a single character element type specifier (e.g. F for float4x4)
 //          F = float, I = int, U = uint, H = half
 // <Size> is the total size of the property in bytes (e.g. 64 for float4x4)
 // <Name> is the name of the property
-#define UNITY_DOTS_INSTANCED_METADATA_NAME(type, name) UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(unity_DOTSInstancing_, UNITY_DOTS_INSTANCING_CONCAT2(UNITY_DOTS_INSTANCING_TYPESPEC_, type), name)
-#define UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(type, metadata_underscore_var) UNITY_DOTS_INSTANCING_CONCAT_WITHOUT_METADATA(unity_DOTSInstancing_, UNITY_DOTS_INSTANCING_CONCAT2(UNITY_DOTS_INSTANCING_TYPESPEC_, type), metadata_underscore_var)
+// NOTE: There is no underscore between 'Metadata' and <Name> to avoid a double
+//       underscore in the common case where the property name starts with an underscore.
+//       A prefix double underscore is illegal on some platforms like OpenGL.
+#define UNITY_DOTS_INSTANCED_METADATA_NAME(type, name) UNITY_DOTS_INSTANCING_CONCAT_WITH_METADATA(unity_DOTSInstancing, UNITY_DOTS_INSTANCING_CONCAT2(UNITY_DOTS_INSTANCING_TYPESPEC_, type), name)
 
 #define UNITY_DOTS_INSTANCING_START(name) cbuffer UnityDOTSInstancing_##name {
 #define UNITY_DOTS_INSTANCING_END(name)   }
 #define UNITY_DOTS_INSTANCED_PROP(type, name) uint UNITY_DOTS_INSTANCED_METADATA_NAME(type, name);
 
-// There is a separate FROM_MACRO variant to be used in macros of the form
-// #define <MACRO_NAME> UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float4, Metadata_<MACRO_NAME>)
-// These kinds of macros can be used to have shader code load constants from DOTS instancing
-// as if they were normal constants.
-// The reason for having the FROM_MACRO variant is that the fxc shader preprocessor is buggy,
-// and refuses to expand macros correctly if the macro body contains the macro itself.
-// The correct behavior would be for the macro name to appear in the expansion as is (i.e. no recursion),
-// but fxc's preprocessor completely breaks down in this situation.
-
 #define UNITY_ACCESS_DOTS_INSTANCED_PROP(type, var) LoadDOTSInstancedData_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
-#define UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(type, metadata_underscore_var) LoadDOTSInstancedData_##type(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(type, metadata_underscore_var))
 #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(type, arr, var) LoadDOTSInstancedData_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
+
+#define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(type, var) LoadDOTSInstancedData_##type(var, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
+#define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_DEFAULT(type, arr, var) LoadDOTSInstancedData_##type(var, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
+
+#define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, var, default_value) LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
+#define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, arr, var, default_value) LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
 
 // TODO: Shader feature level to compute only
 ByteAddressBuffer unity_DOTSInstanceData;
-
 
 // The data has to be wrapped inside a struct, otherwise the instancing code path
 // on some platforms does not trigger.
@@ -143,9 +143,26 @@ CBUFFER_START(UnityInstancingDOTS_InstanceVisibility)
     DOTSVisibleData unity_DOTSVisibleInstances[UNITY_INSTANCED_ARRAY_SIZE];
 CBUFFER_END
 
+// Keep these in sync with SRP Batcher DOTSInstancingFlags
+static const uint kDOTSInstancingFlagFlipWinding      = (1 << 0); // Flip triangle winding when rendering, e.g. when the scale is negative
+static const uint kDOTSInstancingFlagForceZeroMotion  = (1 << 1); // Object should produce zero motion vectors when rendered in the motion pass
+static const uint kDOTSInstancingFlagCameraMotion     = (1 << 2); // Object uses Camera motion (i.e. not per-Object motion)
+static const uint kDOTSInstancingFlagHasPrevPosition  = (1 << 3); // Object has a separate previous frame position vertex streams (e.g. for deformed objects)
+static const uint kDOTSInstancingFlagMainLightEnabled = (1 << 4); // Object should receive direct lighting from the main light (e.g. light not baked into lightmap)
+
 uint GetDOTSInstanceIndex()
 {
     return unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.x;
+}
+
+int GetDOTSInstanceCrossfadeSnorm8()
+{
+    return unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.y;
+}
+
+bool IsDOTSInstancedProperty(uint metadata)
+{
+    return (metadata & 0x80000000) != 0;
 }
 
 uint ComputeDOTSInstanceDataAddress(uint metadata, uint stride)
@@ -158,18 +175,33 @@ uint ComputeDOTSInstanceDataAddress(uint metadata, uint stride)
     return baseAddress + offset;
 }
 
+uint ComputeDOTSInstanceDataAddressOverridden(uint metadata, uint stride)
+{
+    uint baseAddress  = metadata & 0x7fffffff;
+    uint offset       = GetDOTSInstanceIndex() * stride;
+    return baseAddress + offset;
+}
+
 #define DEFINE_DOTS_LOAD_INSTANCE_SCALAR(type, conv, sizeof_type) \
 type LoadDOTSInstancedData_##type(uint metadata) \
 { \
-    uint address = ComputeDOTSInstanceDataAddress(metadata, sizeof_type); \
-    return conv(unity_DOTSInstanceData.Load(address)); \
+    return conv(unity_DOTSInstanceData.Load(ComputeDOTSInstanceDataAddress(metadata, sizeof_type))); \
+} \
+type LoadDOTSInstancedData_##type(type default_value, uint metadata) \
+{ \
+    return IsDOTSInstancedProperty(metadata) ? \
+        conv(unity_DOTSInstanceData.Load(ComputeDOTSInstanceDataAddress(metadata, sizeof_type))) : default_value; \
 }
 
 #define DEFINE_DOTS_LOAD_INSTANCE_VECTOR(type, width, conv, sizeof_type) \
 type##width LoadDOTSInstancedData_##type##width(uint metadata) \
 { \
-    uint address = ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width); \
-    return conv(unity_DOTSInstanceData.Load##width(address)); \
+    return conv(unity_DOTSInstanceData.Load##width(ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width))); \
+} \
+type##width LoadDOTSInstancedData_##type##width(type##width default_value, uint metadata) \
+{ \
+    return IsDOTSInstancedProperty(metadata) ? \
+        conv(unity_DOTSInstanceData.Load##width(ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width))) : default_value; \
 }
 
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(float, asfloat, 4)
@@ -204,7 +236,6 @@ float4x4 LoadDOTSInstancedData_float4x4(uint metadata)
         p1.z, p2.z, p3.z, p4.z,
         p1.w, p2.w, p3.w, p4.w);
 }
-float4x4 LoadDOTSInstancedData(float4x4 dummy, uint metadata) { return LoadDOTSInstancedData_float4x4(metadata); }
 
 float4x4 LoadDOTSInstancedData_float4x4_from_float3x4(uint metadata)
 {
@@ -228,7 +259,64 @@ float2x4 LoadDOTSInstancedData_float2x4(uint metadata)
         asfloat(unity_DOTSInstanceData.Load4(address + 0 * 8)),
         asfloat(unity_DOTSInstanceData.Load4(address + 1 * 8)));
 }
-float2x4 LoadDOTSInstancedData(float2x4 dummy, uint metadata) { return LoadDOTSInstancedData_float2x4(metadata); }
+
+float4x4 LoadDOTSInstancedData_float4x4(float4x4 default_value, uint metadata)
+{
+    return IsDOTSInstancedProperty(metadata) ?
+        LoadDOTSInstancedData_float4x4(metadata) : default_value;
+}
+
+float4x4 LoadDOTSInstancedData_float4x4_from_float3x4(float4x4 default_value, uint metadata)
+{
+    return IsDOTSInstancedProperty(metadata) ?
+        LoadDOTSInstancedData_float4x4_from_float3x4(metadata) : default_value;
+}
+
+float2x4 LoadDOTSInstancedData_float2x4(float4 default_value[2], uint metadata)
+{
+    return IsDOTSInstancedProperty(metadata) ?
+        LoadDOTSInstancedData_float2x4(metadata) : float2x4(default_value[0], default_value[1]);
+}
+
+float2x4 LoadDOTSInstancedData_float2x4(float2x4 default_value, uint metadata)
+{
+    return IsDOTSInstancedProperty(metadata) ?
+        LoadDOTSInstancedData_float2x4(metadata) : default_value;
+}
+
+float4  LoadDOTSInstancedData_RenderingLayer()
+{
+    return float4(asfloat(unity_DOTSVisibleInstances[0].VisibleData.z), 0,0,0);
+}
+
+float4 LoadDOTSInstancedData_MotionVectorsParams()
+{
+    uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
+    return float4(0, flags & kDOTSInstancingFlagForceZeroMotion ? 0.0f : 1.0f, -0.001f, flags & kDOTSInstancingFlagCameraMotion ? 0.0f : 1.0f);
+}
+
+float4 LoadDOTSInstancedData_WorldTransformParams()
+{
+    uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
+    return float4(0, 0, 0, flags & kDOTSInstancingFlagFlipWinding ? -1.0f : 1.0f);
+}
+
+float4 LoadDOTSInstancedData_LightData()
+{
+    uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
+    // X channel = light start index (not supported in DOTS instancing)
+    // Y channel = light count (not supported in DOTS instancing)
+    // Z channel = main light strength
+    return float4(0, 0, flags & kDOTSInstancingFlagMainLightEnabled ? 1.0f : 0.0f, 0);
+}
+
+float4 LoadDOTSInstancedData_LODFade()
+{
+    int crossfadeSNorm8 = GetDOTSInstanceCrossfadeSnorm8();
+    float crossfade = clamp((float)crossfadeSNorm8, -127, 127);
+    crossfade *= 1.0 / 127;
+    return crossfade;
+}
 
 #undef DEFINE_DOTS_LOAD_INSTANCE_SCALAR
 #undef DEFINE_DOTS_LOAD_INSTANCE_VECTOR

@@ -168,7 +168,7 @@ float3 _EmissionColor;
 CBUFFER_END
 
 // Following three variables are feeded by the C++ Editor for Scene selection
-// They are placed in globals instead of the PerMaterial cbuffer to make sure they don't break SRP Batcher compatibility
+// It need to be outside the UnityPerMaterial buffer to have Material compatible with SRP Batcher
 int _ObjectId;
 int _PassValue;
 float4 _SelectionID;

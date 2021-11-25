@@ -122,6 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
                 supportProbeVolume = false,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
+                supportProbeVolumeStreaming = false,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
             return settings;
@@ -336,6 +337,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportProbeVolume;
         /// <summary>Support Probe Volumes.</summary>
         public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
+        /// <summary>Support Streaming for Probe Volumes.</summary>
+        public bool supportProbeVolumeStreaming;
         /// <summary>Probe Volumes SH Bands.</summary>
         public ProbeVolumeSHBands probeVolumeSHBands;
 
