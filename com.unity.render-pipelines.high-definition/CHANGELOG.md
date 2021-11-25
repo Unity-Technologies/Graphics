@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadow cascade transition not working properly with bias.
 - Fixed broken rendering when duplicating a camera while the Rendering Debugger is opened.
 - Fixed screen space shadow debug view not showing when no shadows is available.
+- Fixed nullref from debug menu in release build (case 1381556).
 
 ### Changed
 - Optimizations for the physically based depth of field.
