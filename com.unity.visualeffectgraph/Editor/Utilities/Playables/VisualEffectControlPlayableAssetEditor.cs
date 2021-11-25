@@ -86,11 +86,6 @@ namespace UnityEditor.VFX
             return base.GetClipOptions(clip);
         }
 
-        private static double InverseLerp(double a, double b, double value)
-        {
-            return (value - a) / (b - a);
-        }
-
         static class Content
         {
             public static GUIContent scrubbingDisabled = new GUIContent("Scrubbing Disabled");
@@ -297,9 +292,8 @@ namespace UnityEditor.VFX
                 GUI.Label(scrubbingRect, Content.scrubbingDisabled, Style.scrubbingDisabled);
             }
 
-            //TODOPAUL: Can use directly percentage space
-            var clipEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.AfterClipStart, playable, true);
-            var singleEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.AfterClipStart, playable, false);
+            var clipEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.Percentage, playable, true);
+            var singleEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.Percentage, playable, false);
             var allEvents = clipEvents.Concat(singleEvents);
             var clipEventsCount = clipEvents.Count();
             int index = 0;
@@ -309,7 +303,7 @@ namespace UnityEditor.VFX
             m_TextEventAreaRequested.Clear();
             foreach (var itEvent in allEvents)
             {
-                var relativeTime = InverseLerp(region.startTime, region.endTime, itEvent.time);
+                var relativeTime = Mathf.Clamp01((float)itEvent.time / 100.0f);
 
                 var iconArea = new Rect(
                     currentRect.position.x + currentRect.width * (float)relativeTime - iconSize.x * 0.5f,
@@ -489,8 +483,8 @@ namespace UnityEditor.VFX
             var rowHeight = currentRect.height / (float)rowCount;
             foreach (var bar in m_ClipEventBars)
             {
-                var relativeStart = InverseLerp(region.startTime, region.endTime, bar.start);
-                var relativeStop = InverseLerp(region.startTime, region.endTime, bar.end);
+                var relativeStart = bar.start / 100.0f;
+                var relativeStop = bar.end / 100.0f;
 
                 var startRange = region.position.width * Mathf.Clamp01((float)relativeStart);
                 var endRange = region.position.width * Mathf.Clamp01((float)relativeStop);
