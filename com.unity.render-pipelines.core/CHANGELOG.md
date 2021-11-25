@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed issue when changing volume profiles at runtime with a script (case 1364256).
+- Fixed an issue causing Render Graph execution errors after a random amount of time.
 
 ## [13.1.0] - 2021-09-24
 
@@ -116,7 +117,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed potentially conflicting runtime Rendering Debugger UI command by adding an option to disable runtime UI altogether (1345783).
 - Fixed Lens Flare position for celestial at very far camera distances. It now locks correctly into the celestial position regardless of camera distance (1363291)
 - Fixed issues caused by automatically added EventSystem component, required to support Rendering Debugger Runtime UI input. (1361901)
-- Fixed an issue causing Render Graph execution errors after a random amount of time.
 
 ### Changed
 - Improved the warning messages for Volumes and their Colliders.
