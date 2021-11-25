@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed camera bridge action in release build (case 1367866).
 - Fixed contact shadow disappearing when shadowmask is used and no non-static object is available.
 - Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
+- Fixed shader graph errors when disabling the bias on texture samplers.
 
 ## [12.1.2] - 2021-10-22
 
