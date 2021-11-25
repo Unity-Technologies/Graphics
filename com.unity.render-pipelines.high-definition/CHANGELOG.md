@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the ray tracing acceleration structure build marker not being included in the ray tracing stats (case 1379383).
 - Fixed missing information in the tooltip of affects smooth surfaces of the ray traced reflections denoiser (case 1376918).
 - Fixed broken debug views when dynamic resolution was enabled (case 1365368).
+- Fixed shader graph errors when disabling the bias on texture samplers.
 
 ### Changed
 - Optimizations for the physically based depth of field.
