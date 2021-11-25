@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering
 
             // Grab all the component types we can find
             baseComponentTypeArray = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
-                .Where(t => !t.IsAbstract).ToArray();
+                .Where(t => !t.IsAbstract && !t.GetInterfaces().Contains(typeof(IDeprecatedVolumeComponent))).ToArray();
 
             var flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
             // Keep an instance of each type to be used in a virtual lowest priority global volume
