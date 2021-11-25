@@ -219,7 +219,10 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderPropertyId.zBufferParams, zBufferParams);
             cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
 
-            cmd.SetGlobalVector(ShaderPropertyId.screenSize, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f / scaledCameraWidth, 1.0f / scaledCameraHeight));
+            cmd.SetGlobalVector(ShaderPropertyId.screenSize, new Vector4(cameraWidth, cameraHeight, 1.0f / cameraWidth, 1.0f / cameraHeight));
+
+            //Set per camera matrices.
+            SetCameraMatrices(cmd, ref cameraData, true);
         }
 
         /// <summary>
@@ -732,7 +735,6 @@ namespace UnityEngine.Rendering.Universal
 
                 // Initialize Camera Render State
                 ClearRenderingState(cmd);
-                SetPerCameraShaderVariables(cmd, ref cameraData);
                 SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -776,12 +778,12 @@ namespace UnityEngine.Rendering.Universal
                     if (cameraData.renderType == CameraRenderType.Base)
                     {
                         context.SetupCameraProperties(camera);
-                        SetCameraMatrices(cmd, ref cameraData, true);
+                        SetPerCameraShaderVariables(cmd, ref cameraData);
                     }
                     else
                     {
                         // Set new properties
-                        SetCameraMatrices(cmd, ref cameraData, true);
+                        SetPerCameraShaderVariables(cmd, ref cameraData);
                         SetPerCameraClippingPlaneProperties(cmd, in cameraData);
                         SetPerCameraBillboardProperties(cmd, ref cameraData);
                     }
