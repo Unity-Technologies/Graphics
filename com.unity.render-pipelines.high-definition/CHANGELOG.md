@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom shader GUI for material inspector.
 - Fixed rasterized accumulation motion blur when DoF is enabled (case 1378497).
 - Fixed light mode not available after switching a light to area "Disc" or "Tube" (case 1372588).
+- Fixed CoC size computation when dynamic resolution is enabled
 
 ### Changed
 - Optimizations for the physically based depth of field.
