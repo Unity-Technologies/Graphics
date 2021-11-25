@@ -344,7 +344,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderVolumetricClouds_Accumulation(RenderGraph renderGraph, HDCamera hdCamera, TVolumetricCloudsCameraType cameraType,
             TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVectors, TextureHandle volumetricLighting, TextureHandle maxZMask)
         {
-            using (var builder = renderGraph.AddRenderPass<VolumetricCloudsAccumulationData>("Generating the rays for RTR", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricClouds)))
+            using (var builder = renderGraph.AddRenderPass<VolumetricCloudsAccumulationData>("Volumetric Clouds", out var passData, ProfilingSampler.Get(HDProfileId.VolumetricClouds)))
             {
                 builder.EnableAsyncCompute(false);
                 VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
@@ -405,9 +405,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.intermediateColorBufferCopy, data.intermediateBufferUpscale);
                     });
 
+                // Push the texture to the debug menu
                 PushFullScreenDebugTexture(m_RenderGraph, passData.currentHistoryBuffer0, FullScreenDebugMode.VolumetricClouds);
 
-                return passData.colorBuffer;
+                // We return the volumetric clouds buffers rendered at half resolution. We should ideally return the full resolution transmittance, but
+                // this should be enough for the initial case (which is the lens flares). The transmittance can be found in the alpha channel.
+                return passData.currentHistoryBuffer0;
             }
         }
     }
