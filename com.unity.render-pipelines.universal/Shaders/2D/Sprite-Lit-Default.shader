@@ -20,8 +20,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
         Pass
         {
-            Tags {"Queue" = "Transparent" "RenderType" = "Transparent"}
             Tags { "LightMode" = "Universal2D" }
+            Tags {"Queue" = "Transparent" "RenderType" = "Transparent"}
             Blend SrcAlpha OneMinusSrcAlpha
             Cull Off
             ZWrite Off
@@ -178,6 +178,10 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
         Pass
         {
             Tags { "LightMode" = "NormalsRendering"}
+            Tags {"Queue" = "Transparent" "RenderType" = "Transparent"}
+            Blend SrcAlpha OneMinusSrcAlpha
+            Cull Off
+            ZWrite Off
 
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -241,6 +245,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
         Pass
         {
             Tags { "LightMode" = "UniversalForward" "Queue"="Transparent" "RenderType"="Transparent"}
+            Blend SrcAlpha OneMinusSrcAlpha
+            Cull Off
+            ZWrite Off
 
             HLSLPROGRAM
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"

@@ -81,13 +81,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pipelineTag = UniversalTarget.kPipelineTag,
                 customTags = UniversalTarget.kLitMaterialTypeTag,
                 renderType = $"{RenderType.Transparent}",
-                renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
+                renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Geometry}",
                 generatesPreview = true,
                 passes = new PassCollection
                 {
                     { SpriteLitPasses.Lit },
                     { SpriteLitPasses.Normal },
                     { SpriteLitPasses.Forward },
+                    { SpriteLitPasses.Depth },
                 },
             };
         }
@@ -118,7 +119,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = CoreRenderStates.Default,
+                renderStates = SpriteLitRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
                 keywords = SpriteLitKeywords.Lit,
                 includes = SpriteLitIncludes.Lit,
@@ -187,6 +188,38 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
             };
+
+            public static PassDescriptor Depth = new PassDescriptor
+            {
+                // Definition
+                displayName = "Sprite Depth",
+                referenceName = "SHADERPASS_SPRITELIT",
+                lightMode = "DepthOnly",
+                useInPreview = true,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = SpriteLitBlockMasks.FragmentLit,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = SpriteLitRequiredFields.Lit,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = SpriteLitRenderStates.Depth,
+                pragmas = CorePragmas._2DDefault,
+                keywords = SpriteLitKeywords.Lit,
+                includes = SpriteLitIncludes.Depth,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
+            };
+
         }
         #endregion
 
@@ -264,6 +297,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             const string kSpriteLitPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteLitPass.hlsl";
             const string kSpriteNormalPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteNormalPass.hlsl";
             const string kSpriteForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteForwardPass.hlsl";
+            const string kSpriteDepthPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteDepthPass.hlsl";
 
             public static IncludeCollection Lit = new IncludeCollection
             {
@@ -298,6 +332,46 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { kSpriteForwardPass, IncludeLocation.Postgraph },
+            };
+
+            public static IncludeCollection Depth = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kSpriteDepthPass, IncludeLocation.Postgraph },
+            };
+        }
+        #endregion
+
+        #region RenderStates
+        static class SpriteLitRenderStates
+        {
+            public static readonly RenderStateCollection Default = new RenderStateCollection
+            {
+                { RenderState.ZTest(ZTest.LEqual) },
+                { RenderState.ZWrite(ZWrite.Off) },
+                { RenderState.Cull(Cull.Off) },
+                { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
+                { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
+                { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
+                { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
+                { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
+            };
+
+            public static readonly RenderStateCollection Depth = new RenderStateCollection
+            {
+                { RenderState.ZTest(ZTest.LEqual) },
+                { RenderState.ZWrite(ZWrite.On) },
+                { RenderState.Cull(Cull.Off) },
+                { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
+                { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
+                { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
+                { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
+                { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
             };
         }
         #endregion

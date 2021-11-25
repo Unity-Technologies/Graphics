@@ -77,12 +77,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pipelineTag = UniversalTarget.kPipelineTag,
                 customTags = UniversalTarget.kUnlitMaterialTypeTag,
                 renderType = $"{RenderType.Transparent}",
-                renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
+                renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Geometry}",
                 generatesPreview = true,
                 passes = new PassCollection
                 {
                     { SpriteUnlitPasses.Unlit },
                     { SpriteUnlitPasses.Forward },
+                    { SpriteUnlitPasses.Depth },
                 },
             };
         }
@@ -113,7 +114,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = CoreRenderStates.Default,
+                renderStates = SpriteRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
                 keywords = SpriteUnlitKeywords.Unlit,
                 includes = SpriteUnlitIncludes.Unlit,
@@ -148,6 +149,37 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas._2DDefault,
                 keywords = SpriteUnlitKeywords.Unlit,
                 includes = SpriteUnlitIncludes.Unlit,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
+            };
+
+            public static PassDescriptor Depth = new PassDescriptor
+            {
+                // Definition
+                displayName = "Sprite Depth",
+                referenceName = "SHADERPASS_SPRITELIT",
+                lightMode = "DepthOnly",
+                useInPreview = true,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = SpriteUnlitBlockMasks.Fragment,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = SpriteUnlitRequiredFields.Unlit,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = SpriteRenderStates.Depth,
+                pragmas = CorePragmas._2DDefault,
+                keywords = SpriteUnlitKeywords.Unlit,
+                includes = SpriteUnlitIncludes.Depth,
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -195,6 +227,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         static class SpriteUnlitIncludes
         {
             const string kSpriteUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteUnlitPass.hlsl";
+            const string kSpriteDepthPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteDepthPass.hlsl";
 
             public static IncludeCollection Unlit = new IncludeCollection
             {
@@ -205,6 +238,46 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { kSpriteUnlitPass, IncludeLocation.Postgraph },
+            };
+
+            public static IncludeCollection Depth = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kSpriteDepthPass, IncludeLocation.Postgraph },
+            };
+        }
+        #endregion
+
+        #region RenderStates
+        static class SpriteRenderStates
+        {
+            public static readonly RenderStateCollection Default = new RenderStateCollection
+            {
+                { RenderState.ZTest(ZTest.LEqual) },
+                { RenderState.ZWrite(ZWrite.Off) },
+                { RenderState.Cull(Cull.Off) },
+                { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
+                { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
+                { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
+                { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
+                { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
+            };
+
+            public static readonly RenderStateCollection Depth = new RenderStateCollection
+            {
+                { RenderState.ZTest(ZTest.LEqual) },
+                { RenderState.ZWrite(ZWrite.On) },
+                { RenderState.Cull(Cull.Off) },
+                { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
+                { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
+                { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
+                { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
+                { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
             };
         }
         #endregion
