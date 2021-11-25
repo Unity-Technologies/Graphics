@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed broken debug views when dynamic resolution was enabled (case 1365368).
 - Fixed shader graph errors when disabling the bias on texture samplers.
 - Fixed flickering / edge aliasing issue when DoF and TAAU or DLSS are enabled (case 1381858).
+- Fixed SpeedTree graph compatibility by adding raytracing quality keyword to provide a safe path.
 
 ### Changed
 - Optimizations for the physically based depth of field.
