@@ -141,7 +141,7 @@ float EvaluateCapsuleShadow(float3 lightPosOrAxis, bool lightIsPunctual, float l
     uint v_sphereListOffset = 0;
     uint v_sphereIdx = sphereStart;
 
-    float capsuleShadow = 0.f;
+    float capsuleShadow = 1.f;
 
     while (v_sphereListOffset < sphereCount)
     {
@@ -195,11 +195,11 @@ float EvaluateCapsuleShadow(float3 lightPosOrAxis, bool lightIsPunctual, float l
 #endif
 
             float falloff = smoothstep(1.0f, 0.75f, length(posInput.positionWS - centerRWS)/range);
-            capsuleShadow = max(capsuleShadow, occlusion*falloff);
+            capsuleShadow *= max(1.f - occlusion*falloff, 0.f);
         }
     }
 
-    return 1.f - capsuleShadow;
+    return capsuleShadow;
 }
 
 #endif
