@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed stackLit coat screen space reflection and raytrace reflection light hierarchy and IBL fallback
 - Fixed compilation errors from Path Tracing on the PS5 build.
 - Fixed custom shader GUI for material inspector.
+- Fixed rasterized accumulation motion blur when DoF is enabled (case 1378497).
 
 ### Changed
 - Optimizations for the physically based depth of field.
@@ -83,8 +84,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the point distribution for the diffuse denoiser sometimes not being properly intialized.
 - Fixed the bad blending between the sun and the clouds (case 1373282).
 - Fixed and optimize distance shadowmask fade.
-- Fixed light unit conversion after changing mid gray value.
-- Fixed rasterized accumulation motion blur when DoF is enabled (case 1378497).
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
