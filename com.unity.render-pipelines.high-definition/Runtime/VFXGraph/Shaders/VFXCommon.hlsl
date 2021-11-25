@@ -48,6 +48,12 @@ float4 VFXTransformFinalColor(float4 color)
     return color;
 }
 
+float2 VFXGetNormalizedScreenSpaceUV(float4 clipPos)
+{
+    //_ScreenParams.z is 1 + 1.0/width
+    return clipPos.xy * frac(_ScreenParams.zw);
+}
+
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
 #if VFX_WORLD_SPACE
