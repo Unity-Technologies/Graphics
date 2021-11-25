@@ -51,6 +51,8 @@ all_project_ci_nightly_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-postprocessing.yml#PostProcessing_trunk
          rerun: on_new_revision
+      -  path: .yamato/all-batchrenderergroup.yml#BatchRendererGroup_trunk
+         rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_trunk
          rerun: on_new_revision
 General_Checks_trunk:
@@ -75,7 +77,7 @@ Safety_net_trunk:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match [".yamato/**/*", "com.unity.*/**/*", "TestProjects/**/*"]
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match [".yamato/**/*", "com.unity.*/**/*", "TestProjects/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_trunk
          rerun: on_new_revision
@@ -164,6 +166,8 @@ all_project_ci_nightly_CUSTOM-REVISION:
       -  path: .yamato/all-lightmapping.yml#Lightmapping_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-postprocessing.yml#PostProcessing_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-batchrenderergroup.yml#BatchRendererGroup_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision

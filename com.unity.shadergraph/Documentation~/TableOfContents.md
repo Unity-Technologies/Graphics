@@ -103,6 +103,7 @@
         * Lighting
             * [Ambient](Ambient-Node)
             * [Baked GI](Baked-GI-Node)
+            * [Main Light Direction](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Main-Light-Direction-Node.html)
             * [Reflection Probe](Reflection-Probe-Node)
         * Matrix
             * [Matrix 2x2](Matrix-2x2-Node)

@@ -3,13 +3,13 @@ using System;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Deprecated DensityVolume</summary>
-    [Obsolete("DensityVolume has been deprecated (UnityUpgradable) -> LocalVolumetricFog", false)]
+    [Obsolete("DensityVolume has been deprecated, use LocalVolumetricFog", true)]
     public class DensityVolume : LocalVolumetricFog
     {
     }
 
     /// <summary>Deprecated DensityVolumeArtistParameters</summary>
-    [Obsolete("DensityVolumeArtistParameters has been deprecated (UnityUpgradable) -> LocalVolumetricFogArtistParameters", false)]
+    [Obsolete("DensityVolumeArtistParameters has been deprecated, use LocalVolumetricFogArtistParameters", true)]
     public struct DensityVolumeArtistParameters
     {
     }
