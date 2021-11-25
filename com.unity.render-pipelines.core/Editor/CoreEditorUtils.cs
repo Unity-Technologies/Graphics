@@ -426,6 +426,8 @@ namespace UnityEditor.Rendering
         {
             const float height = 17f;
             var backgroundRect = GUILayoutUtility.GetRect(1f, height);
+            if (backgroundRect.xMin != 0) // Fix for material editor
+                backgroundRect.xMin = 1 + 15f * (EditorGUI.indentLevel + 1);
             float xMin = backgroundRect.xMin;
 
             var labelRect = backgroundRect;

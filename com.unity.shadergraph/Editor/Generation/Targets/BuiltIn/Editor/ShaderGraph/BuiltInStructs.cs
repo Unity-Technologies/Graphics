@@ -20,7 +20,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 StructFields.Varyings.texCoord2,
                 StructFields.Varyings.texCoord3,
                 StructFields.Varyings.color,
-                StructFields.Varyings.viewDirectionWS,
                 StructFields.Varyings.screenPosition,
                 BuiltInStructFields.Varyings.lightmapUV,
                 BuiltInStructFields.Varyings.sh,
