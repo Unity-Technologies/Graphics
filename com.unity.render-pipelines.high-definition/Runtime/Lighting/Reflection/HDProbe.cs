@@ -124,12 +124,13 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_WasRenderedSinceLastOnDemandRequest = true;
 #if UNITY_EDITOR
         bool m_WasRenderedDuringAsyncCompilation = false;
-#endif
         int m_SHRequestID = -1;
-        [SerializeField]
-        SphericalHarmonicsL2 m_SHForNormalization;
-        [SerializeField]
-        bool m_HasValidSHForNormalization;
+#endif
+
+        [SerializeField] bool m_HasValidSHForNormalization;
+        [SerializeField] SphericalHarmonicsL2 m_SHForNormalization;
+        [SerializeField] Vector3 m_SHValidForCapturePosition;
+        [SerializeField] Vector3 m_SHValidForSourcePosition;
 
         // Array of names that will be used in the Render Loop to name the probes in debug
         internal string[] probeName = new string[6];
@@ -535,17 +536,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public void RequestRenderNextUpdate() => m_WasRenderedSinceLastOnDemandRequest = false;
 
 
-        internal bool TryUpdateLuminanceSHL2ForNormalization()
+        internal void TryUpdateLuminanceSHL2ForNormalization()
         {
 #if UNITY_EDITOR
-            if (AdditionalGIBakeRequestsManager.instance.RetrieveProbeSH(m_SHRequestID, out SphericalHarmonicsL2 shForNormalizationNext))
-            {
-                m_HasValidSHForNormalization = true;
-                m_SHForNormalization = shForNormalizationNext;
-                return true;
-            }
+            m_HasValidSHForNormalization = AdditionalGIBakeRequestsManager.instance.RetrieveProbeSH(m_SHRequestID, out m_SHForNormalization, out m_SHValidForCapturePosition);
+            if (m_HasValidSHForNormalization)
+                m_SHValidForSourcePosition = transform.position;
 #endif
-            return false;
         }
 
 #if UNITY_EDITOR
@@ -562,6 +559,8 @@ namespace UnityEngine.Rendering.HighDefinition
             SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 6, Vector3.zero);
             SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 7, Vector3.zero);
             SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 8, Vector3.zero);
+            if (m_SHRequestID >= 0)
+                AdditionalGIBakeRequestsManager.instance.DequeueRequest(m_SHRequestID);
 
             QueueSHBaking();
         }
@@ -570,16 +569,25 @@ namespace UnityEngine.Rendering.HighDefinition
         // Return luma of coefficients
         internal bool GetSHForNormalization(out Vector4 outL0L1, out Vector4 outL2_1, out float outL2_2)
         {
-            var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
 
-            bool hasValidSHData = hdrp.asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
-#if UNITY_EDITOR
-            if (!m_HasValidSHForNormalization)
+            var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+            var hasValidSHData = m_HasValidSHForNormalization && hdrp.asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
+
+            if (!hasValidSHData)
             {
-                m_HasValidSHForNormalization = m_SHRequestID >= 0 && AdditionalGIBakeRequestsManager.instance.RetrieveProbeSH(m_SHRequestID, out m_SHForNormalization);
+                // No valid data, so we disable the feature.
+                outL0L1 = outL2_1 = Vector4.zero; outL2_2 = 0f;
+                return false;
             }
-#endif
-            hasValidSHData = hasValidSHData && m_HasValidSHForNormalization;
+
+            if (m_SHForNormalization[0, 0] == float.MaxValue)
+            {
+                // Valid data, but probe is fully black. Setup coefficients so that light loop cancels out reflection probe contribution.
+                outL0L1 = new Vector4(float.MaxValue, 0f, 0f, 0f);
+                outL2_1 = Vector4.zero;
+                outL2_2 = 0f;
+                return true;
+            }
 
             var L0 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 0);
             var L1_0 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 1);
@@ -591,7 +599,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var L2_3 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 7);
             var L2_4 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 8);
 
-
             // If we are going to evaluate L2, we need to fixup the coefficients.
             if (hdrp.asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
             {
@@ -599,18 +606,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 L2_2 *= 3.0f;
             }
 
-            outL0L1.x = ColorUtils.Luminance(new Vector4(L0.x, L0.y, L0.z, 1.0f));
-            outL0L1.y = ColorUtils.Luminance(new Vector4(L1_0.x, L1_0.y, L1_0.z, 1.0f));
-            outL0L1.z = ColorUtils.Luminance(new Vector4(L1_1.x, L1_1.y, L1_1.z, 1.0f));
-            outL0L1.w = ColorUtils.Luminance(new Vector4(L1_2.x, L1_2.y, L1_2.z, 1.0f));
+            outL0L1.x = ColorUtils.Luminance(new Color(L0.x, L0.y, L0.z));
+            outL0L1.y = ColorUtils.Luminance(new Color(L1_0.x, L1_0.y, L1_0.z));
+            outL0L1.z = ColorUtils.Luminance(new Color(L1_1.x, L1_1.y, L1_1.z));
+            outL0L1.w = ColorUtils.Luminance(new Color(L1_2.x, L1_2.y, L1_2.z));
+            outL2_1.x = ColorUtils.Luminance(new Color(L2_0.x, L2_0.y, L2_0.z));
+            outL2_1.y = ColorUtils.Luminance(new Color(L2_1.x, L2_1.y, L2_1.z));
+            outL2_1.z = ColorUtils.Luminance(new Color(L2_2.x, L2_2.y, L2_2.z));
+            outL2_1.w = ColorUtils.Luminance(new Color(L2_3.x, L2_3.y, L2_3.z));
+            outL2_2 = ColorUtils.Luminance(new Color(L2_4.x, L2_4.y, L2_4.z));
 
-            outL2_1.x = ColorUtils.Luminance(new Vector4(L2_0.x, L2_0.y, L2_0.z, 1.0f));
-            outL2_1.y = ColorUtils.Luminance(new Vector4(L2_1.x, L2_1.y, L2_1.z, 1.0f));
-            outL2_1.z = ColorUtils.Luminance(new Vector4(L2_2.x, L2_2.y, L2_2.z, 1.0f));
-            outL2_1.w = ColorUtils.Luminance(new Vector4(L2_3.x, L2_3.y, L2_3.z, 1.0f));
-
-            outL2_2 = ColorUtils.Luminance(new Vector4(L2_4.x, L2_4.y, L2_4.z, 1.0f));
-            return hasValidSHData;
+            return true;
         }
 
         // Forces the re-rendering for both OnDemand and OnEnable
@@ -633,10 +639,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void QueueSHBaking()
         {
-            if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp))
+            if (Application.isPlaying)
                 return;
 
-            if (!hdrp.currentPlatformRenderPipelineSettings.supportProbeVolume)
+            var globalSettings = HDRenderPipelineGlobalSettings.instance;
+            if (globalSettings == null || !globalSettings.supportProbeVolumes)
                 return;
 
             Vector3 capturePositionWS = ComputeCapturePositionWS();
@@ -648,8 +655,43 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_SHRequestID = AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(m_SHRequestID, capturePositionWS);
             }
+
+            ValidateSHNormalizationSourcePosition(transform.position);
+            ValidateSHNormalizationCapturePosition(capturePositionWS);
         }
 
+        // Allow a probe to move this far before its baked normalization data gets invalidated. We could go two routes with this:
+        // either we set the threshold really low so any change invalidates the data (currently), or we make it configurable so one
+        // can have some leeway in moving them around.
+        private const float kMaxAllowedNormalizedProbePositionDeltaSqr = 0.01f * 0.01f;
+
+        // Returns true if capture position changed
+        private bool ValidateSHNormalizationCapturePosition(Vector3 capturePositionWS)
+        {
+            var capturePositionChanged = Vector3.SqrMagnitude(capturePositionWS - m_SHValidForCapturePosition) > kMaxAllowedNormalizedProbePositionDeltaSqr;
+
+            // If capture position has changed, the captured normalization data is no longer valid, so we discard it.
+            if (m_HasValidSHForNormalization & capturePositionChanged)
+            {
+                m_HasValidSHForNormalization = false;
+            }
+
+            return capturePositionChanged;
+        }
+
+        // Returns true if source position changed
+        private bool ValidateSHNormalizationSourcePosition(Vector3 position)
+        {
+            var sourcePositionChanged = Vector3.SqrMagnitude(position - m_SHValidForSourcePosition) > kMaxAllowedNormalizedProbePositionDeltaSqr;
+
+            // If probe position has changed, the captured normalization data is no longer valid, so we discard it.
+            if (m_HasValidSHForNormalization & sourcePositionChanged)
+            {
+                m_HasValidSHForNormalization = false;
+            }
+
+            return sourcePositionChanged;
+        }
 #endif
 
         void UpdateProbeName()
@@ -663,6 +705,17 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 probeName[0] = $"Planar Probe RenderCamera ({name})";
             }
+        }
+
+        void DequeueSHRequest()
+        {
+#if UNITY_EDITOR
+            if (m_SHRequestID >= 0)
+            {
+                AdditionalGIBakeRequestsManager.instance.DequeueRequest(m_SHRequestID);
+            }
+            m_SHRequestID = -1;
+#endif
         }
 
         void OnEnable()
@@ -685,8 +738,25 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             HDProbeSystem.UnregisterProbe(this);
 #if UNITY_EDITOR
+            UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
+            DequeueSHRequest();
             UnityEditor.EditorApplication.hierarchyChanged -= UpdateProbeName;
+            UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
 #endif
+        }
+
+#if UNITY_EDITOR
+        void Update()
+        {
+            // Update is conveniently called when moving gameobjects in the editor so we can use that to track probe position changes.
+            if (!Application.isPlaying)
+            {
+                // If position changed, calculate and upload a new capture position.
+                if (ValidateSHNormalizationSourcePosition(transform.position))
+                {
+                    QueueSHBaking();
+                }
+            }
         }
 
         void OnValidate()
@@ -698,11 +768,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 PrepareCulling();
                 HDProbeSystem.RegisterProbe(this);
 
-#if UNITY_EDITOR
                 UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
+                DequeueSHRequest();
                 QueueSHBaking();
-#endif
             }
         }
+
+        void OnDestroy()
+        {
+            m_RealtimeTexture?.Release();
+            m_RealtimeDepthBuffer?.Release();
+        }
+#endif
     }
 }

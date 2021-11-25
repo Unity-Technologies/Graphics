@@ -666,6 +666,12 @@ namespace UnityEngine.Rendering
                 }
 
                 Vector3 diffToObject = positionWS - cameraPositionWS;
+                // Check if the light is forward, can be an issue with,
+                // the math associated to Panini projection
+                if (Vector3.Dot(cam.transform.forward, diffToObject) < 0.0f)
+                {
+                    continue;
+                }
                 float distToObject = diffToObject.magnitude;
                 float coefDistSample = distToObject / comp.maxAttenuationDistance;
                 float coefScaleSample = distToObject / comp.maxAttenuationScale;

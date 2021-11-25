@@ -79,6 +79,8 @@ namespace UnityEditor.Rendering
         /// <param name="transform">Optional function to apply on the new value</param>
         public static void IntShaderProperty(this MaterialEditor editor, MaterialProperty prop, GUIContent label, System.Func<int, int> transform = null)
         {
+            MaterialEditor.BeginProperty(prop);
+
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = prop.hasMixedValue;
             int newValue = EditorGUI.IntField(GetRect(prop), label, (int)prop.floatValue);
@@ -89,6 +91,8 @@ namespace UnityEditor.Rendering
                     newValue = transform(newValue);
                 prop.floatValue = newValue;
             }
+
+            MaterialEditor.EndProperty();
         }
 
         /// <summary>
@@ -113,6 +117,8 @@ namespace UnityEditor.Rendering
         /// <param name="label">Label for the property</param>
         public static void IntSliderShaderProperty(this MaterialEditor editor, MaterialProperty prop, int min, int max, GUIContent label)
         {
+            MaterialEditor.BeginProperty(prop);
+
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = prop.hasMixedValue;
             int newValue = EditorGUI.IntSlider(GetRect(prop), label, (int)prop.floatValue, min, max);
@@ -122,6 +128,8 @@ namespace UnityEditor.Rendering
                 editor.RegisterPropertyChangeUndo(label.text);
                 prop.floatValue = newValue;
             }
+
+            MaterialEditor.EndProperty();
         }
 
         /// <summary>
@@ -133,6 +141,8 @@ namespace UnityEditor.Rendering
         /// <param name="min">The minimum value the user can specify</param>
         public static void MinFloatShaderProperty(this MaterialEditor editor, MaterialProperty prop, GUIContent label, float min)
         {
+            MaterialEditor.BeginProperty(prop);
+
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = prop.hasMixedValue;
             float newValue = EditorGUI.FloatField(GetRect(prop), label, prop.floatValue);
@@ -140,6 +150,28 @@ namespace UnityEditor.Rendering
             EditorGUI.showMixedValue = false;
             if (EditorGUI.EndChangeCheck())
                 prop.floatValue = newValue;
+
+            MaterialEditor.EndProperty();
+        }
+
+        /// <summary>
+        /// Draw an vector3 field for a vector shader property.
+        /// </summary>
+        /// <param name="editor"><see cref="MaterialEditor"/></param>
+        /// <param name="prop">The MaterialProperty to make a field for</param>
+        /// <param name="label">Label for the property</param>
+        public static void Vector3ShaderProperty(this MaterialEditor editor, MaterialProperty prop, GUIContent label)
+        {
+            MaterialEditor.BeginProperty(prop);
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = prop.hasMixedValue;
+            var vector = EditorGUILayout.Vector3Field(label, prop.vectorValue);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck())
+                prop.vectorValue = vector;
+
+            MaterialEditor.EndProperty();
         }
 
         /// <summary>
@@ -152,6 +184,8 @@ namespace UnityEditor.Rendering
         /// <returns>The index of the option that has been selected by the user</returns>
         public static int PopupShaderProperty(this MaterialEditor editor, MaterialProperty prop, GUIContent label, string[] displayedOptions)
         {
+            MaterialEditor.BeginProperty(prop);
+
             int val = (int)prop.floatValue;
 
             EditorGUI.BeginChangeCheck();
@@ -163,6 +197,8 @@ namespace UnityEditor.Rendering
                 editor.RegisterPropertyChangeUndo(label.text);
                 prop.floatValue = val = newValue;
             }
+
+            MaterialEditor.EndProperty();
 
             return val;
         }
@@ -178,6 +214,8 @@ namespace UnityEditor.Rendering
         /// <returns>The value of the option that has been selected by the user</returns>
         public static int IntPopupShaderProperty(this MaterialEditor editor, MaterialProperty prop, string label, string[] displayedOptions, int[] optionValues)
         {
+            MaterialEditor.BeginProperty(prop);
+
             int val = (int)prop.floatValue;
 
             EditorGUI.BeginChangeCheck();
@@ -189,6 +227,8 @@ namespace UnityEditor.Rendering
                 editor.RegisterPropertyChangeUndo(label);
                 prop.floatValue = val = newValue;
             }
+
+            MaterialEditor.EndProperty();
 
             return val;
         }
@@ -204,6 +244,9 @@ namespace UnityEditor.Rendering
         /// <param name="label">Label for the property</param>
         public static void MinMaxShaderProperty(this MaterialEditor editor, MaterialProperty min, MaterialProperty max, float minLimit, float maxLimit, GUIContent label)
         {
+            MaterialEditor.BeginProperty(min);
+            MaterialEditor.BeginProperty(max);
+
             float minValue = min.floatValue;
             float maxValue = max.floatValue;
             EditorGUI.BeginChangeCheck();
@@ -213,6 +256,9 @@ namespace UnityEditor.Rendering
                 min.floatValue = minValue;
                 max.floatValue = maxValue;
             }
+
+            MaterialEditor.EndProperty();
+            MaterialEditor.EndProperty();
         }
 
         /// <summary>
@@ -225,12 +271,16 @@ namespace UnityEditor.Rendering
         /// <param name="label">Label for the property</param>
         public static void MinMaxShaderProperty(this MaterialEditor editor, MaterialProperty remapProp, float minLimit, float maxLimit, GUIContent label)
         {
+            MaterialEditor.BeginProperty(remapProp);
+
             Vector2 remap = remapProp.vectorValue;
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.MinMaxSlider(label, ref remap.x, ref remap.y, minLimit, maxLimit);
             if (EditorGUI.EndChangeCheck())
                 remapProp.vectorValue = remap;
+
+            MaterialEditor.EndProperty();
         }
     }
 }
