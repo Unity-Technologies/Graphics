@@ -77,16 +77,16 @@ namespace UnityEditor.Rendering.Universal
             GUI.enabled = !isDeferredRenderingMode;
             EditorGUILayout.PropertyField(m_Source, Styles.Source);
 
-            EditorGUILayout.PropertyField(m_SinglePassBlur, Styles.SinglePassBlur);
-            EditorGUILayout.PropertyField(m_FinalUpsample, Styles.FinalUpsample);
-            EditorGUILayout.PropertyField(m_BlurType, Styles.BlurType);
-
             // We only enable this field when depth source is selected
             GUI.enabled = !isDeferredRenderingMode && m_Source.enumValueIndex == (int)ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth;
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_NormalQuality, Styles.NormalQuality);
             EditorGUI.indentLevel--;
             GUI.enabled = true;
+
+            EditorGUILayout.PropertyField(m_SinglePassBlur, Styles.SinglePassBlur);
+            EditorGUILayout.PropertyField(m_FinalUpsample, Styles.FinalUpsample);
+            EditorGUILayout.PropertyField(m_BlurType, Styles.BlurType);
 
             EditorGUILayout.PropertyField(m_Intensity, Styles.Intensity);
             EditorGUILayout.PropertyField(m_Radius, Styles.Radius);

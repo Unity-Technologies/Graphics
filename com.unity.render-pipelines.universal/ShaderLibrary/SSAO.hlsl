@@ -16,8 +16,6 @@ SAMPLER(sampler_ScreenSpaceOcclusionTexture);
 
 // Params
 half4 _BlurOffset;
-half4 _SSAOParams;
-half4 _SourceSize;
 
 half _KawaseBlurIteration;
 int _LastKawasePass;
@@ -96,6 +94,7 @@ static half SSAORandomUV[40] =
 // Function defines
 #define SCREEN_PARAMS        GetScaledScreenParams()
 #define SAMPLE_BASEMAP(uv)   SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
+#define SAMPLE_BASEMAP_R(uv)   SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)).r;
 
 // Constants
 // kContrast determines the contrast of occlusion. This allows users to control over/under
