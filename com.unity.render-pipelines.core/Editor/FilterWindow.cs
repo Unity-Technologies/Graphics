@@ -239,7 +239,13 @@ namespace UnityEditor.Rendering
             return true;
         }
 
-        internal static bool Show(Vector2 position, IProvider provider)
+        /// <summary>
+        /// Shows the filter window using the given provider.
+        /// </summary>
+        /// <param name="position">The position to show the filter window at.</param>
+        /// <param name="provider">The provider of items for the filter window.</param>
+        /// <returns>Returns true if the window is shown, false otherwise.</returns>
+        public static bool Show(Vector2 position, IProvider provider)
         {
             // If the window is already open, close it instead.
             var wins = Resources.FindObjectsOfTypeAll(typeof(FilterWindow));

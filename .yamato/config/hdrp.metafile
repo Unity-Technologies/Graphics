@@ -71,6 +71,19 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+  - name: OSX_Apple_Silicon
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: editmode
+          - name: editmode_XR
+          - name: playmode
+          - name: playmode_XR
+          - name: Standalone_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: Linux
     apis:
       - name: Vulkan
@@ -164,6 +177,12 @@ jobs:
         test_platforms:
           - editmode
       - platform: OSX
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone
+      - platform: OSX_Apple_Silicon
         api: Metal
         build_config: mono
         color_space: Linear
