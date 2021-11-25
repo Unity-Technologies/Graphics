@@ -24,7 +24,8 @@ half4 CombinedShapeLightShared(in SurfaceData2D surfaceData, in InputData2D inpu
     const half4 mask = surfaceData.mask;
     const half2 lightingUV = inputData.lightingUV;
 
-    AlphaDiscard(alpha, 0);
+    if (alpha == 0.0)
+        discard;
 
     color = color * _RendererColor; // This is needed for sprite shape
 

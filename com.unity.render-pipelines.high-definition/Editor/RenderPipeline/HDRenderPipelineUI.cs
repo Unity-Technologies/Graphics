@@ -49,7 +49,6 @@ namespace UnityEditor.Rendering.HighDefinition
             RTRQuality = 1 << 32,
             RTGIQuality = 1 << 33,
             SSGIQuality = 1 << 34,
-            VolumetricClouds = 1 << 35,
         }
 
         enum ExpandableShadows
