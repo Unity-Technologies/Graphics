@@ -1261,6 +1261,11 @@ namespace UnityEngine.Rendering.Universal
                     m_FirstTimeCameraColorTargetIsBound = false; // register that we did clear the camera target the first time it was bound
 
                     finalClearFlag |= (cameraClearFlag & ClearFlag.Color);
+
+                    // on platforms that support Load and Store actions having the clear flag means that the action will be DontCare, which is something we want when the color target is bound the first time
+                    if (SystemInfo.usesLoadStoreActions)
+                        finalClearFlag |= renderPass.clearFlag;
+
                     finalClearColor = cameraData.backgroundColor;
 
                     if (m_FirstTimeCameraDepthTargetIsBound)
