@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom pass utils Blur and Copy functions in XR.
 - Fixed SpeedTree graph compatibility by removing custom interpolators.
 - Fixed edges and ghosting appearing on shadow matte due to the shadow being black outside the range of the light (case 1371441).
+- Fixed interpolation issue with wind orientation (case 1379841).
 
 ## [12.1.2] - 2021-10-22
 
