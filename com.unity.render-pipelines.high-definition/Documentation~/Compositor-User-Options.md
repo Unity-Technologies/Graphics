@@ -51,7 +51,7 @@ When you add a new **Input Filter** to a Sub-layer, the properties that appear d
 * [Chroma Keying](#chroma-keying)
 * [Alpha Mask](#alpha-mask)
 
-you can use filters to apply common color processing operations to Sub-layers. The filter list is empty by default. To add new filters, click the add (**+**) button. 
+you can use filters to apply common color processing operations to Sub-layers. The filter list is empty by default. To add new filters, click the add (**+**) button.
 
 **Note**: It is possible to implement the functionality of many filters with nodes in the Composition Graph, but if you use the built-in filters instead, it makes the Composition Graph simpler.
 
@@ -71,5 +71,3 @@ Takes as input a static texture that overrides the alpha mask of the Sub-layer. 
 | **Property** | **Description** |
 | ---- | ---- |
 | **Alpha Mask** |Specifies the Texture that overrides the Sub-layer's alpha mask.|
-
-

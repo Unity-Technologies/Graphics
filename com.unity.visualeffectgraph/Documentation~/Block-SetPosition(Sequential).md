@@ -2,7 +2,7 @@
 
 Menu Path : **Position > Set Position (Sequential : \<SequentialMode\>)**
 
-The **Set Position (Sequential)** block calculates a position based on arithmetic sequences and stores the result in the **position** attribute. Optionally, it can also calculate a position based on an offset index in the sequence and store the result in the **targetPosition** attribute.
+The **Set Position (Sequential)** Block calculates a position based on arithmetic sequences and stores the result in the **position** attribute. Optionally, it can also calculate a position based on an offset index in the sequence and store the result in the **targetPosition** attribute.
 
 There are different modes available which determine which index to use for the sequence, whether to write the position and/or the target position, and how the sequence wraps when it reaches its limits.
 

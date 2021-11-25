@@ -1,6 +1,6 @@
 # Atan
 
-Menu Path : **Operator > Math > Trigonometry > Atan**  
+Menu Path : **Operator > Math > Trigonometry > Atan**
 
 The **Atan** Operator calculates the [arctangent](https://docs.unity3d.com/ScriptReference/Mathf.Atan.html) of the input. This Operator is the inverse of the [Tangent Operator](Operator-Tangent.md). The result is in radians.
 

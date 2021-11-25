@@ -5,7 +5,7 @@ Shader "FullScreen/#SCRIPTNAME#"
     #pragma vertex Vert
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
 
@@ -23,8 +23,8 @@ Shader "FullScreen/#SCRIPTNAME#"
     // To sample custom buffers, you have access to these functions:
     // But be careful, on most platforms you can't sample to the bound color buffer. It means that you
     // can't use the SampleCustomColor when the pass color buffer is set to custom (and same for camera the buffer).
-    // float4 SampleCustomColor(float2 uv);
-    // float4 LoadCustomColor(uint2 pixelCoords);
+    // float4 CustomPassSampleCustomColor(float2 uv);
+    // float4 CustomPassLoadCustomColor(uint2 pixelCoords);
     // float LoadCustomDepth(uint2 pixelCoords);
     // float SampleCustomDepth(float2 uv);
 
@@ -54,6 +54,7 @@ Shader "FullScreen/#SCRIPTNAME#"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Name "Custom Pass 0"

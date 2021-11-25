@@ -17,4 +17,3 @@ The High Definition Render Pipeline (HDRP) includes additional [Nodes](https://d
   * [ScleraIrisBlend](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Sclera-Iris-Blend-Node.html)
   * [ScleraLimbalRing](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Sclera-Limbal-Ring-Node.html)
   * [ScleraUVLocation](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?preview=1&subfolder=/manual/Sclera-UV-Location-Node.html)
-

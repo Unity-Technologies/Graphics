@@ -10,6 +10,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using UnityEditor.Searcher;
 using UnityEngine.Profiling;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -67,6 +68,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
             List<NodeEntry> nodeEntries = new List<NodeEntry>();
 
+            bool hideCustomInterpolators = m_Graph.activeTargets.All(at => at.ignoreCustomInterpolators);
+
             if (target is ContextView contextView)
             {
                 // Iterate all BlockFieldDescriptors currently cached on GraphData
@@ -95,15 +98,26 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 SortEntries(nodeEntries);
+
+                if (contextView.contextData.shaderStage == ShaderStage.Vertex && !hideCustomInterpolators)
+                {
+                    var customBlockNodeStub = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
+                    customBlockNodeStub.InitCustomDefault();
+                    AddEntries(customBlockNodeStub, new string[] { "Custom Interpolator" }, nodeEntries);
+                }
+
                 currentNodeEntries = nodeEntries;
                 return;
             }
 
+
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateKnowNodes");
             foreach (var type in NodeClassCache.knownNodeTypes)
             {
                 if ((!type.IsClass || type.IsAbstract)
                     || type == typeof(PropertyNode)
                     || type == typeof(KeywordNode)
+                    || type == typeof(DropdownNode)
                     || type == typeof(SubGraphNode))
                     continue;
 
@@ -111,13 +125,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (titleAttribute != null)
                 {
                     var node = (AbstractMaterialNode)Activator.CreateInstance(type);
+                    if (!node.ExposeToSearcher)
+                        continue;
+
                     if (ShaderGraphPreferences.allowDeprecatedBehaviors && node.latestVersion > 0)
                     {
-                        for (int i = 0; i <= node.latestVersion; ++i)
+                        var versions = node.allowedNodeVersions ?? Enumerable.Range(0, node.latestVersion + 1);
+                        bool multiple = (versions.Count() > 1);
+                        foreach (int i in versions)
                         {
                             var depNode = (AbstractMaterialNode)Activator.CreateInstance(type);
                             depNode.ChangeVersion(i);
-                            AddEntries(depNode, titleAttribute.title.Append($"V{i}").ToArray(), nodeEntries);
+                            if (multiple)
+                                AddEntries(depNode, titleAttribute.title.Append($"v{i}").ToArray(), nodeEntries);
+                            else
+                                AddEntries(depNode, titleAttribute.title, nodeEntries);
                         }
                     }
                     else
@@ -126,10 +148,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+            Profiler.EndSample();
 
-            foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(SubGraphAsset))))
+
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateSubgraphAssets");
+            foreach (var asset in NodeClassCache.knownSubGraphAssets)
             {
-                var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
+                if (asset == null)
+                    continue;
+
                 var node = new SubGraphNode { asset = asset };
                 var title = asset.path.Split('/').ToList();
 
@@ -148,7 +175,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     AddEntries(node, title.ToArray(), nodeEntries);
                 }
             }
+            Profiler.EndSample();
 
+
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateGraphInputs");
             foreach (var property in m_Graph.properties)
             {
                 if (property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
@@ -164,6 +194,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.keyword = keyword;
                 AddEntries(node, new[] { "Keywords", "Keyword: " + keyword.displayName }, nodeEntries);
             }
+            foreach (var dropdown in m_Graph.dropdowns)
+            {
+                var node = new DropdownNode();
+                node.dropdown = dropdown;
+                AddEntries(node, new[] { "Dropdowns", "dropdown: " + dropdown.displayName }, nodeEntries);
+            }
+            if (!hideCustomInterpolators)
+            {
+                foreach (var cibnode in m_Graph.vertexContext.blocks.Where(b => b.value.isCustomBlock))
+                {
+                    var node = Activator.CreateInstance<CustomInterpolatorNode>();
+                    node.ConnectToCustomBlock(cibnode.value);
+                    AddEntries(node, new[] { "Custom Interpolator", cibnode.value.customName }, nodeEntries);
+                }
+            }
+            Profiler.EndSample();
 
             SortEntries(nodeEntries);
             currentNodeEntries = nodeEntries;
@@ -332,10 +378,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (!(target is ContextView contextView))
                     return true;
 
+                // ensure custom blocks have a unique name provided the existing context.
+                if (blockNode.isCustomBlock)
+                {
+                    HashSet<string> usedNames = new HashSet<string>();
+                    foreach (var other in contextView.contextData.blocks) usedNames.Add(other.value.descriptor.displayName);
+                    blockNode.customName = GraphUtil.SanitizeName(usedNames, "{0}_{1}", blockNode.descriptor.displayName);
+                }
                 // Test against all current BlockNodes in the Context
                 // Never allow duplicate BlockNodes
-                if (contextView.contextData.blocks.Where(x => x.value.name == blockNode.name).FirstOrDefault().value != null)
+                else if (contextView.contextData.blocks.Where(x => x.value.name == blockNode.name).FirstOrDefault().value != null)
+                {
                     return true;
+                }
 
                 // Insert block to Data
                 blockNode.owner = m_Graph;
@@ -390,11 +445,23 @@ namespace UnityEditor.ShaderGraph.Drawing
                 keywordNode.keyword = ((KeywordNode)oldNode).keyword;
                 keywordNode.owner = null;
             }
+            else if (newNode is DropdownNode dropdownNode)
+            {
+                dropdownNode.owner = m_Graph;
+                dropdownNode.dropdown = ((DropdownNode)oldNode).dropdown;
+                dropdownNode.owner = null;
+            }
             else if (newNode is BlockNode blockNode)
             {
                 blockNode.owner = m_Graph;
                 blockNode.Init(((BlockNode)oldNode).descriptor);
                 blockNode.owner = null;
+            }
+            else if (newNode is CustomInterpolatorNode cinode)
+            {
+                cinode.owner = m_Graph;
+                cinode.ConnectToCustomBlockByName(((CustomInterpolatorNode)oldNode).customBlockNodeName);
+                cinode.owner = null;
             }
             return newNode;
         }

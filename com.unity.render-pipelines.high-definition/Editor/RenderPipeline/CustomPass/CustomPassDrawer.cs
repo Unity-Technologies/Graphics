@@ -34,17 +34,17 @@ namespace UnityEditor.Rendering.HighDefinition
         public enum PassUIFlag
         {
             /// <summary>Hides all the default UI fields.</summary>
-            None                = 0x00,
+            None = 0x00,
             /// <summary>Shows the name field.</summary>
-            Name                = 0x01,
+            Name = 0x01,
             /// <summary>Shows the target color buffer field.</summary>
-            TargetColorBuffer   = 0x02,
+            TargetColorBuffer = 0x02,
             /// <summary>Shows the target depth buffer field.</summary>
-            TargetDepthBuffer   = 0x04,
+            TargetDepthBuffer = 0x04,
             /// <summary>Shows the clear flags field.</summary>
-            ClearFlags          = 0x08,
+            ClearFlags = 0x08,
             /// <summary>Shows all the default UI fields.</summary>
-            All                 = ~0,
+            All = ~0,
         }
 
         /// <summary>
@@ -55,15 +55,15 @@ namespace UnityEditor.Rendering.HighDefinition
         bool firstTime = true;
 
         // Serialized Properties
-        SerializedProperty          m_Name;
-        SerializedProperty          m_Enabled;
-        SerializedProperty          m_TargetColorBuffer;
-        SerializedProperty          m_TargetDepthBuffer;
-        SerializedProperty          m_ClearFlags;
-        SerializedProperty          m_PassFoldout;
-        List<SerializedProperty>    m_CustomPassUserProperties = new List<SerializedProperty>();
-        CustomPass                  m_CustomPass;
-        Type                        m_PassType => m_CustomPass.GetType();
+        SerializedProperty m_Name;
+        SerializedProperty m_Enabled;
+        SerializedProperty m_TargetColorBuffer;
+        SerializedProperty m_TargetDepthBuffer;
+        SerializedProperty m_ClearFlags;
+        SerializedProperty m_PassFoldout;
+        List<SerializedProperty> m_CustomPassUserProperties = new List<SerializedProperty>();
+        CustomPass m_CustomPass;
+        Type m_PassType => m_CustomPass.GetType();
 
         void FetchProperties(SerializedProperty property)
         {
@@ -114,7 +114,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Use this function to initialize the local SerializedProperty you will use in your pass.
         /// </summary>
         /// <param name="customPass">Your custom pass instance represented as a SerializedProperty</param>
-        protected virtual void Initialize(SerializedProperty customPass) {}
+        protected virtual void Initialize(SerializedProperty customPass) { }
 
         internal void SetPass(CustomPass pass) => m_CustomPass = pass;
 
@@ -159,29 +159,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((commonPassUIFlags & PassUIFlag.TargetColorBuffer) != 0)
             {
-                EditorGUI.BeginProperty(rect, Styles.targetColorBuffer, m_TargetColorBuffer);
-                // There is still a bug with SerializedReference and PropertyField so we can't use it yet
-                // EditorGUI.PropertyField(rect, m_TargetColorBuffer, Styles.targetColorBuffer);
-                m_TargetColorBuffer.intValue = (int)(CustomPass.TargetBuffer)EditorGUI.EnumPopup(rect, Styles.targetColorBuffer, (CustomPass.TargetBuffer)m_TargetColorBuffer.intValue);
-                EditorGUI.EndProperty();
+                EditorGUI.PropertyField(rect, m_TargetColorBuffer, Styles.targetColorBuffer);
                 rect.y += Styles.defaultLineSpace;
             }
 
             if ((commonPassUIFlags & PassUIFlag.TargetDepthBuffer) != 0)
             {
-                EditorGUI.BeginProperty(rect, Styles.targetColorBuffer, m_TargetDepthBuffer);
-                // EditorGUI.PropertyField(rect, m_TargetDepthBuffer, Styles.targetDepthBuffer);
-                m_TargetDepthBuffer.intValue = (int)(CustomPass.TargetBuffer)EditorGUI.EnumPopup(rect, Styles.targetDepthBuffer, (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue);
-                EditorGUI.EndProperty();
+                EditorGUI.PropertyField(rect, m_TargetDepthBuffer, Styles.targetDepthBuffer);
                 rect.y += Styles.defaultLineSpace;
             }
 
             if ((commonPassUIFlags & PassUIFlag.ClearFlags) != 0)
             {
-                EditorGUI.BeginProperty(rect, Styles.clearFlags, m_ClearFlags);
-                // EditorGUI.PropertyField(rect, m_ClearFlags, Styles.clearFlags);
-                m_ClearFlags.intValue = (int)(ClearFlag)EditorGUI.EnumPopup(rect, Styles.clearFlags, (ClearFlag)m_ClearFlags.intValue);
-                EditorGUI.EndProperty();
+                EditorGUI.PropertyField(rect, m_ClearFlags, Styles.clearFlags);
                 rect.y += Styles.defaultLineSpace;
             }
         }

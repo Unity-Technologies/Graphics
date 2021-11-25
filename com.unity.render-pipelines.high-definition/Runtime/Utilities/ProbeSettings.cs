@@ -242,6 +242,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 frustum = Frustum.NewDefault(),
                 resolutionScalable = new PlanarReflectionAtlasResolutionScalableSettingValue(),
                 roughReflections = true,
+                distanceBasedRoughness = false,
             };
             probeSettings.resolutionScalable.@override = PlanarReflectionAtlasResolution.Resolution512;
 
@@ -265,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The proxy settings of the probe for the current volume.</summary>
         public ProxySettings proxySettings;
         /// <summary> An int scalable setting value</summary>
-        [Serializable] public class PlanarReflectionAtlasResolutionScalableSettingValue : ScalableSettingValue<PlanarReflectionAtlasResolution> {}
+        [Serializable] public class PlanarReflectionAtlasResolutionScalableSettingValue : ScalableSettingValue<PlanarReflectionAtlasResolution> { }
         /// <summary>Camera settings to use when capturing data.</summary>
         /// <summary>The resolution of the probe.</summary>
         public PlanarReflectionAtlasResolutionScalableSettingValue resolutionScalable;
@@ -275,8 +276,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serialization.FormerlySerializedAs("camera")]
         public CameraSettings cameraSettings;
 
-        /// <summary>Defines if the planar reflection should support rough reflections.</summary>
+        /// <summary>Indicates whether the ReflectionProbe supports rough reflections.</summary>
         public bool roughReflections;
+
+        /// <summary>Indicates whether the ReflectionProbe supports distance-based roughness.</summary>
+        public bool distanceBasedRoughness;
 
         /// <summary>
         /// Compute a hash of the settings.

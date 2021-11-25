@@ -1,10 +1,10 @@
 # Add
 
-Menu Path : **Operator > Math > Arithmetic > Add**  
+Menu Path : **Operator > Math > Arithmetic > Add**
 
 The **Add** Operator computes the sum of all its inputs. For example, an input value of (1, 2) + (3, 4, 5) outputs (4, 6, 5). Or, an input value of (1, 2) + 3 outputs (4, 5).
 
-This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). This Operator will always return a value in the largest vector type of its input. 
+This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). This Operator will always return a value in the largest vector type of its input.
 
 This Operator interprets missing values as zero. It interprets scalar values such as float, int, and unit as being as large as the largest vector input with the scalar value taking up every member of the vector.
 

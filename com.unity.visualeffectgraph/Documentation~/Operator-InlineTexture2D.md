@@ -18,4 +18,3 @@ The **Texture2D** inline Operator allows you to store an instance of a Texture2D
 | **Output** | Texture2D   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

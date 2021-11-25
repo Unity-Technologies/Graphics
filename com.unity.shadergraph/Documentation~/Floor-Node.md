@@ -2,7 +2,7 @@
 
 ## Description
 
-Returns the largest integer value, or whole number, that is less than or equal to the value of input **In**. 
+Returns the largest integer value, or whole number, that is less than or equal to the value of input **In**.
 
 ## Ports
 

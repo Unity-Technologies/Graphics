@@ -18,4 +18,3 @@ The **Plane** inline Operator allows you to store an instance of a [Plane](Type-
 | **Output** | Plane   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

@@ -5,7 +5,7 @@
 //--------------------------------------------------------------------------------------------------
 
 // #pragma enable_d3d11_debug_symbols
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel SubsurfaceScattering
 
@@ -33,7 +33,7 @@
 
 // Check for support of typed UAV loads from FORMAT_R16G16B16A16_FLOAT.
 // TODO: query the format support more precisely.
-#if !(defined(SHADER_API_PSSL) || defined(SHADER_API_XBOXONE)) || defined(ENABLE_MSAA)
+#if !(defined(SHADER_API_PSSL) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_GAMECORE)) || defined(ENABLE_MSAA)
 #define USE_INTERMEDIATE_BUFFER
 #endif
 
@@ -107,11 +107,11 @@ float4 LoadSampleFromVideoMemory(int2 pixelCoord)
 // Returns {irradiance, linearDepth}.
 float4 LoadSample(int2 pixelCoord, int2 cacheOffset)
 {
+    float4 value;
+
 #if SSS_USE_LDS_CACHE
     int2 cacheCoord = pixelCoord - cacheOffset;
     bool isInCache  = max((uint)cacheCoord.x, (uint)cacheCoord.y) < TEXTURE_CACHE_SIZE_1D;
-
-    float4 value;
 
     if (isInCache)
     {
@@ -168,7 +168,7 @@ float3 ComputeBilateralWeight(float xy2, float z, float mmPerUnit, float3 S, flo
 void EvaluateSample(uint i, uint n, int2 pixelCoord, int2 cacheOffset,
                     float3 S, float d, float3 centerPosVS, float mmPerUnit, float pixelsPerMm,
                     float phase, float3 tangentX, float3 tangentY, float4x4 projMatrix,
-                    inout float3 totalIrradiance, inout float3 totalWeight)
+                    inout float3 totalIrradiance, inout float3 totalWeight, float linearDepth)
 {
     // The sample count is loop-invariant.
     const float scale  = rcp(n);
@@ -217,7 +217,7 @@ void EvaluateSample(uint i, uint n, int2 pixelCoord, int2 cacheOffset,
     {
         // Apply bilateral weighting.
         float  viewZ  = textureSample.a;
-        float  relZ   = viewZ - centerPosVS.z;
+        float  relZ   = viewZ - linearDepth;
         float3 weight = ComputeBilateralWeight(xy2, relZ, mmPerUnit, S, rcpPdf);
 
         // Note: if the texture sample if off-screen, (z = 0) -> (viewZ = far) -> (weight ≈ 0).
@@ -383,7 +383,7 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
 
     // Compute the view-space dimensions of the pixel as a quad projected onto geometry.
     // Assuming square pixels, both X and Y are have the same dimensions.
-    float unitsPerPixel = 2 * abs(cornerPosVS.x - centerPosVS.x);
+    float unitsPerPixel = max(0.0001f, 2 * abs(cornerPosVS.x - centerPosVS.x));
     float pixelsPerMm   = rcp(unitsPerPixel) * unitsPerMm;
 
     // Area of a disk.
@@ -453,13 +453,14 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     float3 totalIrradiance = 0;
     float3 totalWeight     = 0;
 
+    float linearDepth = LinearEyeDepth(centerDepth, _ZBufferParams);
     for (uint i = 0; i < n; i++)
     {
         // Integrate over the image or tangent plane in the view space.
         EvaluateSample(i, n, pixelCoord, cacheOffset,
                        S, d, centerPosVS, mmPerUnit, pixelsPerMm,
                        phase, tangentX, tangentY, projMatrix,
-                       totalIrradiance, totalWeight);
+                       totalIrradiance, totalWeight, linearDepth);
     }
 
     // Total weight is 0 for color channels without scattering.

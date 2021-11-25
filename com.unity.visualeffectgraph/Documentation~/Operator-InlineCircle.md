@@ -18,4 +18,3 @@ The **Circle** inline Operator allows you to store an instance of a [Circle](Typ
 | **Output** | Circle   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

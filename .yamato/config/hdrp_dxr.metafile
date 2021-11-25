@@ -7,11 +7,8 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests" 
-  - type: playmode
-    name: playmode_NonRenderGraph
-    utr_flags:
-      - [all]: --extra-editor-arg="-non-rendergraph-tests"
+      - [all]: --extra-editor-arg="-xr-reuse-tests"
+
 platforms:
   - name: Win
     apis:
@@ -26,15 +23,26 @@ platforms:
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
         model: rtx2080
-all:
-  dependencies:
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone
-        - playmode
-        - playmode_XR
-        - playmode_NonRenderGraph
 
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies: # add any dependencies
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+  - name: Extra <PROJECT_NAME>
+    dependencies: # add any dependencies
+      - platform: Win
+        api: DX12
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode_XR
+          # - Standalone
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

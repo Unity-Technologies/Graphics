@@ -20,7 +20,7 @@ This Block is compatible with the following Contexts:
 
 | **Setting**     | **Type** | **Description**                                              |
 | --------------- | -------- | ------------------------------------------------------------ |
-| **Orientation** | Enum     | Specifies how the particle should orient itself. The options are:<br/>&#8226;  **Camera**: The particle faces the camera.<br/>&#8226;  **Direction**: The particle faces a particular direction.<br/>&#8226;  **Look At Position**: The particle faces a position in the scene. |
+| **Orientation** | Enum     | Specifies how the particle orients itself. The options are:<br/>&#8226;  **Camera**: The particle faces the camera.<br/>&#8226;  **Direction**: The particle faces a particular direction.<br/>&#8226;  **Look At Position**: The particle faces a position in the scene. |
 
 ## Block properties
 

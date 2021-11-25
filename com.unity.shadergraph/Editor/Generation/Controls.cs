@@ -135,4 +135,34 @@ namespace UnityEditor.ShaderGraph
             return ShaderGraphRequirements.none;
         }
     }
+
+    public class Vector4Control : IControl
+    {
+        public Vector4 value { get; private set; }
+
+        public Vector4Control(Vector4 value)
+        {
+            this.value = value;
+        }
+
+        public ShaderGraphRequirements GetRequirements()
+        {
+            return ShaderGraphRequirements.none;
+        }
+    }
+
+    public class VertexColorControl : IControl
+    {
+        public Color value { get; private set; }
+
+        public VertexColorControl(Color value)
+        {
+            this.value = value;
+        }
+
+        public ShaderGraphRequirements GetRequirements()
+        {
+            return new ShaderGraphRequirements() { requiresVertexColor = true };
+        }
+    }
 }

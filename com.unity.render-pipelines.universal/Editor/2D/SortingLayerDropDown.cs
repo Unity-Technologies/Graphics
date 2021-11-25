@@ -1,17 +1,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Experimental.Rendering.Universal
+namespace UnityEditor.Rendering.Universal
 {
     internal class SortingLayerDropDown
     {
         private class LayerSelectionData
         {
             public SerializedObject serializedObject;
-            public Object[]         targets;
-            public int              layerID;
+            public Object[] targets;
+            public int layerID;
             public System.Action<SerializedObject> onSelectionChanged;
 
             public LayerSelectionData(SerializedObject so, int lid, Object[] tgts, System.Action<SerializedObject> selectionChangedCallback)
@@ -25,8 +25,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         private static class Styles
         {
-            public static GUIContent sortingLayerAll = EditorGUIUtility.TrTextContent("All");
-            public static GUIContent sortingLayerNone = EditorGUIUtility.TrTextContent("None");
+            public static GUIContent sortingLayerAll = EditorGUIUtility.TrTextContent("Everything");
+            public static GUIContent sortingLayerNone = EditorGUIUtility.TrTextContent("Nothing");
             public static GUIContent sortingLayerMixed = EditorGUIUtility.TrTextContent("Mixed...");
         }
 

@@ -1,0 +1,51 @@
+#pragma kernel Copy
+#pragma kernel GenerateMipMap
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
+Texture3D<float4>   _Src3DTexture;
+RWTexture3D<float4> _Dst3DTexture;
+float3              _DstOffset;
+float               _SrcMip;
+float               _AlphaOnlyTexture;
+uint                _SrcSize;
+
+[numthreads(8,8,8)]
+void Copy(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id >= _SrcSize))
+        return;
+
+    float4 value = LOAD_TEXTURE3D_LOD(_Src3DTexture, id, _SrcMip);
+
+    if (_AlphaOnlyTexture)
+        _Dst3DTexture[id + _DstOffset] = float4(1, 1, 1, value.a);
+    else
+        _Dst3DTexture[id + _DstOffset] = value;
+}
+
+float3              _SrcScale;
+float3              _SrcOffset;
+SAMPLER(s_linear_clamp_sampler);
+
+[numthreads(8, 8, 8)]
+void GenerateMipMap(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id >= _SrcSize))
+        return;
+
+    float3 uvw = float3(id) / _SrcSize + rcp(_SrcSize * 2);
+
+    // Apply scale and bias when we sample from the atlas
+    uvw *= _SrcScale;
+    uvw += _SrcOffset;
+
+    // Then we use the bilinear filter to interpolate the value of the next mip level
+    float4 value = SAMPLE_TEXTURE3D_LOD(_Src3DTexture, s_linear_clamp_sampler, uvw, _SrcMip);
+
+    if (_AlphaOnlyTexture)
+        _Dst3DTexture[id + _DstOffset] = float4(1, 1, 1, value.a);
+    else
+        _Dst3DTexture[id + _DstOffset] = value;
+}

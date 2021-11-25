@@ -9,7 +9,8 @@ Pass
 	
 	#pragma multi_compile _ LIGHT_LAYERS
 	#pragma multi_compile _ DEBUG_DISPLAY
-	
+    #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+
 	#define UNITY_MATERIAL_LIT
 	
 	${VFXIncludeRP("VFXLitVaryings.template")}	
@@ -23,7 +24,11 @@ Pass
 		#if USE_FLIPBOOK_INTERPOLATION
 		float4 uv : TEXCOORD1;
 		#else
+		#if USE_FLIPBOOK_ARRAY_LAYOUT
+		float3 uv : TEXCOORD1;
+		#else
 		float2 uv : TEXCOORD1;	
+		#endif	
 		#endif
         #if VFX_SHADERGRAPH_HAS_UV1
         float4 uv1 : COLOR2;

@@ -11,7 +11,12 @@ namespace UnityEditor.ShaderGraph
 {
     abstract class GeometryNode : AbstractMaterialNode
     {
-        public virtual List<CoordinateSpace> validSpaces => new List<CoordinateSpace> {CoordinateSpace.Object, CoordinateSpace.View, CoordinateSpace.World, CoordinateSpace.Tangent};
+        public GeometryNode()
+        {
+            m_PreviewMode = PreviewMode.Preview3D;
+        }
+
+        public virtual List<CoordinateSpace> validSpaces => new List<CoordinateSpace> { CoordinateSpace.Object, CoordinateSpace.View, CoordinateSpace.World, CoordinateSpace.Tangent };
 
         [SerializeField]
         private CoordinateSpace m_Space = CoordinateSpace.World;
@@ -38,11 +43,6 @@ namespace UnityEditor.ShaderGraph
         public override bool hasPreview
         {
             get { return true; }
-        }
-
-        public override PreviewMode previewMode
-        {
-            get { return PreviewMode.Preview3D; }
         }
     }
 }

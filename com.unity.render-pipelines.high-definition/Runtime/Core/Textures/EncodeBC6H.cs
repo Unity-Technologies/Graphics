@@ -1,4 +1,5 @@
 using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
 {
@@ -71,7 +72,7 @@ namespace UnityEngine.Rendering
             {
                 autoGenerateMips = false,
                 bindMS = false,
-                colorFormat = RenderTextureFormat.ARGBInt,
+                graphicsFormat = GraphicsFormat.R32G32B32A32_SInt,
                 depthBufferBits = 0,
                 dimension = TextureDimension.Tex2DArray,
                 enableRandomWrite = true,

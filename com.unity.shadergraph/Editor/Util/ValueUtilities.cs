@@ -40,6 +40,8 @@ namespace UnityEditor.ShaderGraph
         {
             switch (type)
             {
+                case ShaderValueType.Float:
+                    return 1;
                 case ShaderValueType.Float2:
                     return 2;
                 case ShaderValueType.Float3:

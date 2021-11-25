@@ -1,14 +1,14 @@
 using System;
+using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.VFX;
 using UnityEngine.UIElements;
-using UnityEditor.VFX;
 using System.Collections.Generic;
-using System.Linq;
 
 using PositionType = UnityEngine.UIElements.Position;
 
-namespace  UnityEditor.VFX.UI
+namespace UnityEditor.VFX.UI
 {
     class VFXBlackboard : Blackboard, IControlledElement<VFXViewController>, IVFXMovable
     {
@@ -57,6 +57,7 @@ namespace  UnityEditor.VFX.UI
         VFXView m_View;
 
         Button m_AddButton;
+        VisualElement m_LockedElement;
 
         public VFXBlackboard(VFXView view)
         {
@@ -112,15 +113,64 @@ namespace  UnityEditor.VFX.UI
             if (s_LayoutManual != null)
                 s_LayoutManual.SetValue(this, false);
 
+            m_LockedElement = new Label("Asset is locked");
+            m_LockedElement.style.color = Color.white * 0.75f;
+            m_LockedElement.style.position = PositionType.Absolute;
+            m_LockedElement.style.left = 0f;
+            m_LockedElement.style.right = new StyleLength(0f);
+            m_LockedElement.style.top = new StyleLength(0f);
+            m_LockedElement.style.bottom = new StyleLength(0f);
+            m_LockedElement.style.unityTextAlign = TextAnchor.MiddleCenter;
+            var fontSize = 54f;
+            m_LockedElement.style.fontSize = new StyleLength(fontSize);
+            m_LockedElement.style.paddingBottom = fontSize / 2f;
+            m_LockedElement.style.paddingTop = fontSize / 2f;
+            m_LockedElement.style.display = DisplayStyle.None;
+            m_LockedElement.focusable = true;
+            m_LockedElement.RegisterCallback<KeyDownEvent>(e => e.StopPropagation());
+            Add(m_LockedElement);
+
             m_AddButton.SetEnabled(false);
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
         }
 
+        public void LockUI()
+        {
+            m_LockedElement.style.display = DisplayStyle.Flex;
+            m_AddButton.SetEnabled(false);
+        }
+
+        public void UnlockUI()
+        {
+            m_LockedElement.style.display = DisplayStyle.None;
+            m_AddButton.SetEnabled(m_Controller != null);
+        }
+
+        public VFXBlackboardCategory AddCategory(string initialName)
+        {
+            var newCategoryName = VFXParameterController.MakeNameUnique(initialName, new HashSet<string>(m_Categories.Keys));
+            var newCategory = new VFXBlackboardCategory { title = newCategoryName };
+            newCategory.SetSelectable();
+            this.m_Categories.Add(newCategoryName, newCategory);
+
+            this.Add(newCategory);
+
+            return newCategory;
+        }
+
+        DropdownMenuAction.Status GetContextualMenuStatus()
+        {
+            //Use m_AddButton state which relies on locked & controller status
+            if (m_AddButton.enabledSelf)
+                return DropdownMenuAction.Status.Normal;
+            return DropdownMenuAction.Status.Disabled;
+        }
+
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            evt.menu.AppendAction("Select All", (a) => SelectAll(), DropdownMenuAction.AlwaysEnabled);
-            evt.menu.AppendAction("Select Unused", (a) => SelectUnused(), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Select All", (a) => SelectAll(), (a) => GetContextualMenuStatus());
+            evt.menu.AppendAction("Select Unused", (a) => SelectUnused(), (a) => GetContextualMenuStatus());
         }
 
         void SelectAll()
@@ -324,7 +374,7 @@ namespace  UnityEditor.VFX.UI
 
                 SetDragIndicatorVisible(true);
 
-                m_DragIndicator.style.top =  indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
+                m_DragIndicator.style.top = indicatorY - m_DragIndicator.resolvedStyle.height * 0.5f;
 
                 DragAndDrop.visualMode = DragAndDropVisualMode.Move;
             }
@@ -400,6 +450,19 @@ namespace  UnityEditor.VFX.UI
             newParam.isOutput = true;
         }
 
+        private static IEnumerable<VFXModelDescriptor> GetSortedParameters()
+        {
+            foreach (var desc in VFXLibrary.GetParameters().OrderBy(o => o.name))
+            {
+                var type = desc.model.type;
+                var attribute = VFXLibrary.GetAttributeFromSlotType(type);
+                if (attribute != null && attribute.usages.HasFlag(VFXTypeAttribute.Usage.ExcludeFromProperty))
+                    continue;
+
+                yield return desc;
+            }
+        }
+
         void OnAddItem(Blackboard bb)
         {
             GenericMenu menu = new GenericMenu();
@@ -410,15 +473,9 @@ namespace  UnityEditor.VFX.UI
                 menu.AddSeparator(string.Empty);
             }
 
-            foreach (var parameter in VFXLibrary.GetParameters())
+            foreach (var parameter in GetSortedParameters())
             {
-                VFXParameter model = parameter.model as VFXParameter;
-
-                var type = model.type;
-                if (type == typeof(GPUEvent))
-                    continue;
-
-                menu.AddItem(EditorGUIUtility.TextContent(type.UserFriendlyName()), false, OnAddParameter, parameter);
+                menu.AddItem(EditorGUIUtility.TextContent(parameter.name), false, OnAddParameter, parameter);
             }
 
             menu.ShowAsContext();
@@ -516,7 +573,7 @@ namespace  UnityEditor.VFX.UI
         {
             GenericMenu menu = new GenericMenu();
 
-            foreach (var parameter in VFXLibrary.GetParameters())
+            foreach (var parameter in GetSortedParameters())
             {
                 VFXParameter model = parameter.model as VFXParameter;
 
@@ -578,7 +635,7 @@ namespace  UnityEditor.VFX.UI
                     VFXBlackboardCategory cat = null;
                     if (!m_Categories.TryGetValue(catModel.name, out cat))
                     {
-                        cat = new VFXBlackboardCategory() {title = catModel.name };
+                        cat = new VFXBlackboardCategory() { title = catModel.name };
                         cat.SetSelectable();
                         m_Categories.Add(catModel.name, cat);
                     }
@@ -632,6 +689,13 @@ namespace  UnityEditor.VFX.UI
         public void OnMoved()
         {
             BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.blackboard, GetPosition());
+        }
+
+        public void ForceUpdate()
+        {
+            this.Query<PropertyRM>()
+                .ToList()
+                .ForEach(x => x.ForceUpdate());
         }
     }
 }

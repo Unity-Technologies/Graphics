@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -26,7 +27,7 @@ namespace UnityEditor.Rendering
 
         class PathNode : IComparable<PathNode>
         {
-            public List<PathNode> nodes =  new List<PathNode>();
+            public List<PathNode> nodes = new List<PathNode>();
             public string name;
             public Type type;
 
@@ -49,56 +50,42 @@ namespace UnityEditor.Rendering
 
         public void CreateComponentTree(List<Element> tree)
         {
-            tree.Add(new GroupElement(0, "Volume Overrides"));
-
-            var types = VolumeManager.instance.baseComponentTypes;
-            var rootNode = new PathNode();
-
-            foreach (var t in types)
+            var currentPipeline = RenderPipelineManager.currentPipeline;
+            if (currentPipeline == null)
             {
-                // Skip components that have already been added to the volume
-                if (m_Target.Has(t))
-                    continue;
-
-                string path = string.Empty;
-
-                // Look for a VolumeComponentMenu attribute
-                var attrs = t.GetCustomAttributes(false);
-
-                bool skipComponent = false;
-                foreach (var attr in attrs)
-                {
-                    var attrMenu = attr as VolumeComponentMenu;
-                    if (attrMenu != null)
-                        path = attrMenu.menu;
-
-                    var attrDeprecated = attr as VolumeComponentDeprecated;
-                    if (attrDeprecated != null)
-                        skipComponent = true;
-                }
-
-                if (skipComponent)
-                    continue;
-
-                // If no attribute or in case something went wrong when grabbing it, fallback to a
-                // beautified class name
-                if (string.IsNullOrEmpty(path))
-                    path = ObjectNames.NicifyVariableName(t.Name);
-
-                // Prep the categories & types tree
-                AddNode(rootNode, path, t);
+                tree.Add(new GroupElement(0, "No SRP in use"));
+                return;
             }
 
-            // Recursively add all elements to the tree
-            Traverse(rootNode, 1, tree);
+            tree.Add(new GroupElement(0, "Volume Overrides"));
+
+            var volumeComponentTypesFiltered =
+                VolumeManager.GetSupportedVolumeComponents(currentPipeline.GetType());
+
+            if (volumeComponentTypesFiltered.Any())
+            {
+                var rootNode = new PathNode();
+
+                foreach (var (path, t) in volumeComponentTypesFiltered)
+                {
+                    // Skip components that have already been added to the volume
+                    if (m_Target.Has(t))
+                        continue;
+
+                    // Prep the categories & types tree
+                    AddNode(rootNode, path, t);
+                }
+
+                // Recursively add all elements to the tree
+                Traverse(rootNode, 1, tree);
+            }
         }
 
         public bool GoToChild(Element element, bool addIfComponent)
         {
-            if (element is VolumeComponentElement)
+            if (element is VolumeComponentElement volumeComponentElement)
             {
-                var e = (VolumeComponentElement)element;
-                m_TargetEditor.AddComponent(e.type);
+                m_TargetEditor.AddComponent(volumeComponentElement.type);
                 return true;
             }
 

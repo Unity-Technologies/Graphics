@@ -1,10 +1,10 @@
 # Round
 
-Menu Path : **Operator > Math > Clamp > Round**  
+Menu Path : **Operator > Math > Clamp > Round**
 
 The **Round** Operator rounds the input value to the nearest integer. For example, an input of (4.1, 4, 4.8) outputs(4, 4, 5).
 
-This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). 
+This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types).
 
 ## Operator properties
 

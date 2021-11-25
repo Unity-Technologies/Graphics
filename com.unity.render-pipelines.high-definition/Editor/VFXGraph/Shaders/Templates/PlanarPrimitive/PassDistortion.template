@@ -17,7 +17,11 @@ Pass
 		#if USE_FLIPBOOK_INTERPOLATION
 		float4 uv : TEXCOORD0;
 		#else
-		float2 uv : TEXCOORD0;	
+			#if USE_FLIPBOOK_ARRAY_LAYOUT
+			float3 uv : TEXCOORD0;
+			#else
+			float2 uv : TEXCOORD0;
+			#endif	
 		#endif
 
 		#if USE_SOFT_PARTICLE || VFX_USE_ALPHA_CURRENT || USE_FLIPBOOK_INTERPOLATION 

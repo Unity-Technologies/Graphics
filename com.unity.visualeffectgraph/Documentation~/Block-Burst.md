@@ -29,7 +29,7 @@ This Block is compatible with the following Contexts:
 | **Delay** | float/Vector2 | The duration of the delay this Block waits for before it spawns a burst of particles.<br/>If you set **Delay Mode** to **Constant**, this property is a float type and the value you set is the specific delay duration this Block waits for between particle spawns.<br/>If you set **Delay Mode** to **Random**, this property is a Vector 2 where the x-axis represents one boundary value and the y-axis represents the other boundary value. When the Block initiates a delay, it uses a random number between these two values to determine the delay duration. |
 
 ## Remarks
-You can emulate the single burst behavior with the following equivalent custom spawner callback implementation: 
+You can emulate the single burst behavior with the following equivalent custom spawner callback implementation:
 ```C#
 class SingleBurstEquivalent : VFXSpawnerCallbacks
 {
@@ -70,7 +70,7 @@ class SingleBurstEquivalent : VFXSpawnerCallbacks
 }
 ```
 
-You can emulate the periodic burst behavior with the following equivalent custom spawner callback implementation: 
+You can emulate the periodic burst behavior with the following equivalent custom spawner callback implementation:
 ```C#
 class PeriodicBurstEquivalent : VFXSpawnerCallbacks
 {

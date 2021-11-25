@@ -5,8 +5,32 @@ test_platforms:
   - type: Standalone
     utr_flags:
       - [OSX_Metal]: --timeout=2400
+    utr_flags_build:
+      - [all]: --testfilter="VFX.Test"
+  - type: Standalone
+    name: Standalone_PerformanceTests
+    utr_flags:
+      - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
+    utr_flags_build:
+      - [all]: --testfilter="VFX.PerformanceTest"
   - type: playmode
+    utr_flags:
+      - [all]: --testfilter="VFX.Test"
+  - type: playmode
+    name: playmode_PerformanceTests
+    utr_flags:
+      - [all]: --testfilter="VFX.PerformanceTest"
+      - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
+  - type: editmode
+    utr_flags:
+      - [all]: --testfilter="VFX.Test"
+  - type: editmode
+    name: editmode_PerformanceTests
+    utr_flags:
+      - [all]: --testfilter="VFX.PerformanceTest"
+      - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
 #  - type: editmode
+
 platforms:
   - name: Win
     apis:
@@ -17,7 +41,29 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
-  - name: OSX 
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      editmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      playmode:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      standalone:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+  - name: OSX
     apis:
       - name: Metal
         exclude_test_platforms:
@@ -31,7 +77,7 @@ platforms:
     color_spaces:
       - Linear
   - name: Linux
-    apis: 
+    apis:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
@@ -43,27 +89,61 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+  - name: iPhone
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
 #  - name: Android
-#    apis: 
+#    apis:
 #      - name: Vulkan
 #      - name: OpenGLES3
 #    build_configs:
 #      - name: mono
 #    color_spaces:
 #      - Linear
-#  - name: iPhone
-#    apis: 
-#      - name: Metal
-#    build_configs:
-#      - name: mono
-#    color_spaces:
-#      - Linear
-all:
-  dependencies:
-    - platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone
-        - playmode
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - Standalone
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      - platform: Win
+        api: DX11
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+          - editmode_PerformanceTests
+          - playmode_PerformanceTests
+          - Standalone_PerformanceTests
+      - platform: Win
+        api: Vulkan
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          - playmode
+      - platform: OSX
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          # - Standalone
+          - playmode
+          # - Standalone
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>

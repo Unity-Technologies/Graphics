@@ -16,10 +16,12 @@ Material:
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 2225
-  stringTagMap: {}
+  stringTagMap:
+    MotionVector: User
   disabledShaderPasses:
   - MOTIONVECTORS
   - RayTracingPrepass
+  - ForwardEmissiveForDeferred
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -287,6 +289,7 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    m_Ints: []
     m_Floats:
     - _AORemapMax: 1
     - _AORemapMax0: 1
@@ -340,7 +343,7 @@ Material:
     - _DiffusionProfileHash: 0
     - _DiffusionProfileHash0: 3.3412218
     - _DiffusionProfileHash1: 3.3412218
-    - _DiffusionProfileHash2: 0
+    - _DiffusionProfileHash2: 3.3412218
     - _DiffusionProfileHash3: 0
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
@@ -360,6 +363,7 @@ Material:
     - _DistortionVectorBias: -1
     - _DistortionVectorScale: 2
     - _DoubleSidedEnable: 0
+    - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
@@ -370,6 +374,7 @@ Material:
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
     - _EnergyConservingSpecularColor: 1
+    - _ForceForwardEmissive: 0
     - _HdrpVersion: 2
     - _HeightAmplitude: 0.02
     - _HeightAmplitude0: 0.02
@@ -444,11 +449,11 @@ Material:
     - _Metallic: 0
     - _Metallic0: 0.9
     - _Metallic1: 1
-    - _Metallic2: 0
+    - _Metallic2: 0.9
     - _Metallic3: 0
     - _MetallicRemapMax0: 1
     - _MetallicRemapMax1: 1
-    - _MetallicRemapMax2: 1
+    - _MetallicRemapMax2: 0.9
     - _MetallicRemapMax3: 1
     - _MetallicRemapMin0: 0
     - _MetallicRemapMin1: 0
@@ -482,7 +487,7 @@ Material:
     - _Smoothness: 0.5
     - _Smoothness0: 0.9
     - _Smoothness1: 0.8
-    - _Smoothness2: 0.5
+    - _Smoothness2: 0.8
     - _Smoothness3: 0.5
     - _SmoothnessRemapMax: 1
     - _SmoothnessRemapMax0: 1
@@ -562,7 +567,7 @@ Material:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColor0: {r: 1, g: 0, b: 0.5019608, a: 1}
     - _BaseColor1: {r: 0, g: 1, b: 0, a: 1}
-    - _BaseColor2: {r: 0, g: 0.5019608, b: 1, a: 1}
+    - _BaseColor2: {r: 1, g: 0.5019608, b: 0.5019608, a: 1}
     - _BaseColor3: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColorMap0_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
@@ -572,7 +577,8 @@ Material:
         a: -1.2453132e+13}
     - _DiffusionProfileAsset1: {r: -5.8700237e+22, g: -0.0000003144885, b: 1.9852604e+29,
         a: -1.2453132e+13}
-    - _DiffusionProfileAsset2: {r: 0, g: 0, b: 0, a: 0}
+    - _DiffusionProfileAsset2: {r: -5.8700237e+22, g: -0.0000003144885, b: 1.9852604e+29,
+        a: -1.2453132e+13}
     - _DiffusionProfileAsset3: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
@@ -600,6 +606,26 @@ Material:
     - _UVMappingMaskBlendMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
+--- !u!114 &2040901894306208529
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa486462e6be1764e89c788ba30e61f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_DiffusionProfileReferences:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 11400000, guid: 57e246e5f8d6a8b4395e2070883735d5, type: 2}
+  m_MaterialReferences:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 2100000, guid: d17b03e864ea6844bb85bb44177b0816, type: 2}
 --- !u!114 &4071416689027734782
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -612,4 +638,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 11
+  version: 12

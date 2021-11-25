@@ -4,7 +4,7 @@ In photography, vignetting is the term for the darkening and/or desaturating tow
 
 ## Using Vignette
 
-**Vignette** uses the [Volume](Volumes.md) system, so to enable and modify **Vignette** properties, you must add a **Vignette** override to a [Volume](Volumes.md) in your Scene. 
+**Vignette** uses the [Volume](Volumes.md) system, so to enable and modify **Vignette** properties, you must add a **Vignette** override to a [Volume](Volumes.md) in your Scene.
 
 To add **Vignette** to a Volume:
 
@@ -22,4 +22,3 @@ To add **Vignette** to a Volume:
 | **Intensity**  | Set the strength of the vignette effect.   |
 | **Smoothness** | Use the slider to set the smoothness of the vignette borders. Values range between 0.01 and 1. The higher the value, the smoother the vignette border. The default value is 0.2.
 | **Rounded**    | When enabled, the vignette is perfectly round. When disabled, the vignette matches the shape on the current aspect ratio. |
-

@@ -19,6 +19,12 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.shaderanalysis",
+            "expression": "0.0",
+            "define": "SHADERANALYSIS_SUPPORT"
+        }
+    ],
     "noEngineReferences": false
 }

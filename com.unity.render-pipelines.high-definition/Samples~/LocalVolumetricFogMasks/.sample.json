@@ -1,0 +1,5 @@
+{
+    "displayName":"Local Volumetric Fog Mask Textures",
+    "description": "Adds a set of 3D Mask Textures to your project. You can assign these Textures to the Local Volumetric Fog's Density Mask Texture input.",
+    "createSeparatePackage": false
+}

@@ -3,6 +3,8 @@ using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -114,10 +116,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         RenderData m_CustomRenderData;
 
-        // Only used in editor, but this data needs to be probe instance specific
-        // (Contains: UI section states)
-        [SerializeField]
-        uint m_EditorOnlyData;
 
         // Runtime Data
         RTHandle m_RealtimeTexture;
@@ -126,10 +124,33 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_WasRenderedSinceLastOnDemandRequest = true;
 #if UNITY_EDITOR
         bool m_WasRenderedDuringAsyncCompilation = false;
+        int m_SHRequestID = -1;
 #endif
+
+        [SerializeField] bool m_HasValidSHForNormalization;
+        [SerializeField] SphericalHarmonicsL2 m_SHForNormalization;
+        [SerializeField] Vector3 m_SHValidForCapturePosition;
+        [SerializeField] Vector3 m_SHValidForSourcePosition;
 
         // Array of names that will be used in the Render Loop to name the probes in debug
         internal string[] probeName = new string[6];
+
+        //This probe object is dumb, its the caller / pipelines responsibility
+        //to calculate its exposure values, since this requires frame data.
+        float m_ProbeExposureValue = 1.0f;
+
+        ///<summary>Set and used by the pipeline, depending on the resolved configuration of a probe.</summary>
+        public bool ExposureControlEnabled { set; get; }
+
+        internal void SetProbeExposureValue(float exposure)
+        {
+            m_ProbeExposureValue = exposure;
+        }
+
+        internal float ProbeExposureValue()
+        {
+            return m_ProbeExposureValue;
+        }
 
         internal bool requiresRealtimeUpdate
         {
@@ -160,7 +181,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                bool hasEverRendered = lastRenderedFrame != int.MinValue;
                 return hasEverRendered && hasValidTexture;
             }
         }
@@ -484,16 +504,16 @@ namespace UnityEngine.Rendering.HighDefinition
             : influenceToWorld;
 
         internal bool wasRenderedAfterOnEnable { get; private set; } = false;
-        internal int lastRenderedFrame { get; private set; } = int.MinValue;
+        internal bool hasEverRendered { get; private set; } = false;
 
-        internal void SetIsRendered(int frame)
+        internal void SetIsRendered()
         {
 #if UNITY_EDITOR
             m_WasRenderedDuringAsyncCompilation = ShaderUtil.anythingCompiling;
 #endif
             m_WasRenderedSinceLastOnDemandRequest = true;
             wasRenderedAfterOnEnable = true;
-            lastRenderedFrame = frame;
+            hasEverRendered = true;
         }
 
         // API
@@ -501,15 +521,103 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Prepare the probe for culling.
         /// You should call this method when you update the <see cref="influenceVolume"/> parameters during runtime.
         /// </summary>
-        public virtual void PrepareCulling() {}
+        public virtual void PrepareCulling() { }
 
         /// <summary>
-        /// Request to render this probe next update.
-        ///
-        /// Call this method with the mode <see cref="ProbeSettings.RealtimeMode.OnDemand"/> and the probe will
-        /// be rendered the next time it will influence a camera rendering.
+        /// Requests that Unity renders this Reflection Probe during the next update.
         /// </summary>
+        /// <remarks>
+        /// If the Reflection Probe uses <see cref="ProbeSettings.RealtimeMode.OnDemand"/> mode, Unity renders the probe the next time the probe influences a Camera rendering.
+        ///
+        /// If the Reflection Probe doesn't have an attached <see cref="HDAdditionalReflectionData"/> component, calling this function has no effect.
+        ///
+        /// Note: If any part of a Camera's frustum intersects a Reflection Probe's influence volume, the Reflection Probe influences the Camera.
+        /// </remarks>
         public void RequestRenderNextUpdate() => m_WasRenderedSinceLastOnDemandRequest = false;
+
+
+        internal void TryUpdateLuminanceSHL2ForNormalization()
+        {
+#if UNITY_EDITOR
+            m_HasValidSHForNormalization = AdditionalGIBakeRequestsManager.instance.RetrieveProbeSH(m_SHRequestID, out m_SHForNormalization, out m_SHValidForCapturePosition);
+            if (m_HasValidSHForNormalization)
+                m_SHValidForSourcePosition = transform.position;
+#endif
+        }
+
+#if UNITY_EDITOR
+        private void ClearSHBaking()
+        {
+            // Lighting data was cleared - clear out any stale SH data.
+            m_HasValidSHForNormalization = false;
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 0, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 1, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 2, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 3, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 4, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 5, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 6, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 7, Vector3.zero);
+            SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 8, Vector3.zero);
+            if (m_SHRequestID >= 0)
+                AdditionalGIBakeRequestsManager.instance.DequeueRequest(m_SHRequestID);
+
+            QueueSHBaking();
+        }
+
+#endif
+        // Return luma of coefficients
+        internal bool GetSHForNormalization(out Vector4 outL0L1, out Vector4 outL2_1, out float outL2_2)
+        {
+
+            var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+            var hasValidSHData = m_HasValidSHForNormalization && hdrp.asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
+
+            if (!hasValidSHData)
+            {
+                // No valid data, so we disable the feature.
+                outL0L1 = outL2_1 = Vector4.zero; outL2_2 = 0f;
+                return false;
+            }
+
+            if (m_SHForNormalization[0, 0] == float.MaxValue)
+            {
+                // Valid data, but probe is fully black. Setup coefficients so that light loop cancels out reflection probe contribution.
+                outL0L1 = new Vector4(float.MaxValue, 0f, 0f, 0f);
+                outL2_1 = Vector4.zero;
+                outL2_2 = 0f;
+                return true;
+            }
+
+            var L0 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 0);
+            var L1_0 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 1);
+            var L1_1 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 2);
+            var L1_2 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 3);
+            var L2_0 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 4);
+            var L2_1 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 5);
+            var L2_2 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 6);
+            var L2_3 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 7);
+            var L2_4 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 8);
+
+            // If we are going to evaluate L2, we need to fixup the coefficients.
+            if (hdrp.asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+            {
+                L0 -= L2_2;
+                L2_2 *= 3.0f;
+            }
+
+            outL0L1.x = ColorUtils.Luminance(new Color(L0.x, L0.y, L0.z));
+            outL0L1.y = ColorUtils.Luminance(new Color(L1_0.x, L1_0.y, L1_0.z));
+            outL0L1.z = ColorUtils.Luminance(new Color(L1_1.x, L1_1.y, L1_1.z));
+            outL0L1.w = ColorUtils.Luminance(new Color(L1_2.x, L1_2.y, L1_2.z));
+            outL2_1.x = ColorUtils.Luminance(new Color(L2_0.x, L2_0.y, L2_0.z));
+            outL2_1.y = ColorUtils.Luminance(new Color(L2_1.x, L2_1.y, L2_1.z));
+            outL2_1.z = ColorUtils.Luminance(new Color(L2_2.x, L2_2.y, L2_2.z));
+            outL2_1.w = ColorUtils.Luminance(new Color(L2_3.x, L2_3.y, L2_3.z));
+            outL2_2 = ColorUtils.Luminance(new Color(L2_4.x, L2_4.y, L2_4.z));
+
+            return true;
+        }
 
         // Forces the re-rendering for both OnDemand and OnEnable
         internal void ForceRenderingNextUpdate()
@@ -517,6 +625,74 @@ namespace UnityEngine.Rendering.HighDefinition
             m_WasRenderedSinceLastOnDemandRequest = false;
             wasRenderedAfterOnEnable = false;
         }
+
+#if UNITY_EDITOR
+        private Vector3 ComputeCapturePositionWS()
+        {
+            var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(this, null);
+            HDRenderUtilities.ComputeCameraSettingsFromProbeSettings(
+                this.settings, probePositionSettings,
+                out _, out var cameraPositionSettings, 0
+            );
+            return cameraPositionSettings.position;
+        }
+
+        private void QueueSHBaking()
+        {
+            if (Application.isPlaying)
+                return;
+
+            var globalSettings = HDRenderPipelineGlobalSettings.instance;
+            if (globalSettings == null || !globalSettings.supportProbeVolumes)
+                return;
+
+            Vector3 capturePositionWS = ComputeCapturePositionWS();
+            if (m_SHRequestID < 0)
+            {
+                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.EnqueueRequest(capturePositionWS);
+            }
+            else
+            {
+                m_SHRequestID = AdditionalGIBakeRequestsManager.instance.UpdatePositionForRequest(m_SHRequestID, capturePositionWS);
+            }
+
+            ValidateSHNormalizationSourcePosition(transform.position);
+            ValidateSHNormalizationCapturePosition(capturePositionWS);
+        }
+
+        // Allow a probe to move this far before its baked normalization data gets invalidated. We could go two routes with this:
+        // either we set the threshold really low so any change invalidates the data (currently), or we make it configurable so one
+        // can have some leeway in moving them around.
+        private const float kMaxAllowedNormalizedProbePositionDeltaSqr = 0.01f * 0.01f;
+
+        // Returns true if capture position changed
+        private bool ValidateSHNormalizationCapturePosition(Vector3 capturePositionWS)
+        {
+            var capturePositionChanged = Vector3.SqrMagnitude(capturePositionWS - m_SHValidForCapturePosition) > kMaxAllowedNormalizedProbePositionDeltaSqr;
+
+            // If capture position has changed, the captured normalization data is no longer valid, so we discard it.
+            if (m_HasValidSHForNormalization & capturePositionChanged)
+            {
+                m_HasValidSHForNormalization = false;
+            }
+
+            return capturePositionChanged;
+        }
+
+        // Returns true if source position changed
+        private bool ValidateSHNormalizationSourcePosition(Vector3 position)
+        {
+            var sourcePositionChanged = Vector3.SqrMagnitude(position - m_SHValidForSourcePosition) > kMaxAllowedNormalizedProbePositionDeltaSqr;
+
+            // If probe position has changed, the captured normalization data is no longer valid, so we discard it.
+            if (m_HasValidSHForNormalization & sourcePositionChanged)
+            {
+                m_HasValidSHForNormalization = false;
+            }
+
+            return sourcePositionChanged;
+        }
+#endif
 
         void UpdateProbeName()
         {
@@ -531,6 +707,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void DequeueSHRequest()
+        {
+#if UNITY_EDITOR
+            if (m_SHRequestID >= 0)
+            {
+                AdditionalGIBakeRequestsManager.instance.DequeueRequest(m_SHRequestID);
+            }
+            m_SHRequestID = -1;
+#endif
+        }
+
         void OnEnable()
         {
             wasRenderedAfterOnEnable = false;
@@ -541,6 +728,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             // Moving the garbage outside of the render loop:
             UnityEditor.EditorApplication.hierarchyChanged += UpdateProbeName;
+            UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
+            UnityEditor.Lightmapping.lightingDataCleared += ClearSHBaking;
+            QueueSHBaking();
 #endif
         }
 
@@ -548,8 +738,25 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             HDProbeSystem.UnregisterProbe(this);
 #if UNITY_EDITOR
+            UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
+            DequeueSHRequest();
             UnityEditor.EditorApplication.hierarchyChanged -= UpdateProbeName;
+            UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
 #endif
+        }
+
+#if UNITY_EDITOR
+        void Update()
+        {
+            // Update is conveniently called when moving gameobjects in the editor so we can use that to track probe position changes.
+            if (!Application.isPlaying)
+            {
+                // If position changed, calculate and upload a new capture position.
+                if (ValidateSHNormalizationSourcePosition(transform.position))
+                {
+                    QueueSHBaking();
+                }
+            }
         }
 
         void OnValidate()
@@ -560,7 +767,18 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 PrepareCulling();
                 HDProbeSystem.RegisterProbe(this);
+
+                UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
+                DequeueSHRequest();
+                QueueSHBaking();
             }
         }
+
+        void OnDestroy()
+        {
+            m_RealtimeTexture?.Release();
+            m_RealtimeDepthBuffer?.Release();
+        }
+#endif
     }
 }

@@ -7,6 +7,8 @@ The **Distance (Sphere)** Operator takes a sphere and a position and calculates:
 - The closest point on the sphere to the position.
 - The distance between the closest point and the position.
 
+This Operator doesn't support spheres that have scale axis of different lengths (ellipsoids). If you use an ellipsoid as an input, this Operator uses its longest axis to define the sphere.
+
 ## Operator properties
 
 | **Input**    | **Type** | **Description**                                              |

@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {

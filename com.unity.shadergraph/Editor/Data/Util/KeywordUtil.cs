@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph
                     new KeywordEntry("Medium", "MEDIUM"),
                     new KeywordEntry("Low", "LOW"),
                 },
+                stages = KeywordShaderStage.All,
             };
         }
     }
@@ -37,7 +38,7 @@ namespace UnityEditor.ShaderGraph
             TypeCache.GetMethodsWithAttribute<BuiltinKeywordAttribute>()
                 .Where(method => method.IsStatic && method.ReturnType == typeof(KeywordDescriptor))
                 .Select(method =>
-                    (KeywordDescriptor)method.Invoke(null, new object[0] {}));
+                    (KeywordDescriptor)method.Invoke(null, new object[0] { }));
 
         public static ConcreteSlotValueType ToConcreteSlotValueType(this KeywordType keywordType)
         {
@@ -49,6 +50,17 @@ namespace UnityEditor.ShaderGraph
                     return ConcreteSlotValueType.Vector1;
                 default:
                     throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public static string ToDeclarationSuffix(this KeywordScope scope)
+        {
+            switch (scope)
+            {
+                case KeywordScope.Local:
+                    return "_local";
+                default:
+                    return string.Empty;
             }
         }
 
@@ -65,23 +77,87 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static string ToDeclarationString(this KeywordDescriptor keyword)
+        static void GenerateKeywordPragmaStrings(
+            string keywordReferenceName,
+            KeywordDefinition keywordDefinition,
+            KeywordScope keywordScope,
+            KeywordShaderStage keywordStages,
+            string keywordVariantsString,
+            Action<string> PragmaStringAction)
         {
-            // Get definition type using scope
-            string scopeString = keyword.scope == KeywordScope.Local ? "_local" : string.Empty;
-            string definitionString = $"{keyword.definition.ToDeclarationString()}{scopeString}";
+            string definitionString = keywordDefinition.ToDeclarationString();
+            string scopeString = keywordScope.ToDeclarationSuffix();
 
-            switch (keyword.type)
+            // check the active shader stages
+            if ((keywordStages == KeywordShaderStage.All) || (keywordStages == 0))  // 0 is a default, so assume that means ALL
             {
-                case KeywordType.Boolean:
-                    return $"#pragma {definitionString} _ {keyword.referenceName}";
-                case KeywordType.Enum:
-                    var enumEntryDefinitions = keyword.entries.Select(x => $"{keyword.referenceName}_{x.referenceName}");
-                    string enumEntriesString = string.Join(" ", enumEntryDefinitions);
-                    return $"#pragma {definitionString} {enumEntriesString}";
-                default:
-                    throw new ArgumentOutOfRangeException();
+                PragmaStringAction($"#pragma {definitionString}{scopeString} {keywordVariantsString}");
             }
+            else
+            {
+                // have to process each stage separately
+                for (int shaderStage = (int)KeywordShaderStage.Vertex; shaderStage <= (int)keywordStages; shaderStage = shaderStage * 2)
+                {
+                    if (((int)keywordStages & shaderStage) != 0)
+                    {
+                        var keywordStage = (KeywordShaderStage)shaderStage;
+                        var stageString = keywordStage.ToKeywordStagesString();
+                        PragmaStringAction($"#pragma {definitionString}{scopeString}{stageString} {keywordVariantsString}");
+                    }
+                }
+            }
+        }
+
+        public static void GenerateEnumKeywordPragmaStrings(
+            string keywordReferenceName,
+            KeywordDefinition keywordDefinition,
+            KeywordScope keywordScope,
+            KeywordShaderStage keywordStages,
+            IEnumerable<KeywordEntry> keywordEntries,
+            Action<string> pragmaStringAction)
+        {
+            if (keywordDefinition != KeywordDefinition.Predefined)
+            {
+                var entryStrings = keywordEntries.Select(x => $"{keywordReferenceName}_{x.referenceName}");
+                string variantsString = string.Join(" ", entryStrings);
+                GenerateKeywordPragmaStrings(keywordReferenceName, keywordDefinition, keywordScope, keywordStages, variantsString, pragmaStringAction);
+            }
+        }
+
+        public static void GenerateBooleanKeywordPragmaStrings(
+            string keywordReferenceName,
+            KeywordDefinition keywordDefinition,
+            KeywordScope keywordScope,
+            KeywordShaderStage keywordStages,
+            Action<string> pragmaStringAction)
+        {
+            if (keywordDefinition != KeywordDefinition.Predefined)
+            {
+                string variantsString = $"_ {keywordReferenceName}";
+                GenerateKeywordPragmaStrings(keywordReferenceName, keywordDefinition, keywordScope, keywordStages, variantsString, pragmaStringAction);
+            }
+        }
+
+        public static string ToKeywordStagesString(this KeywordShaderStage stages)
+        {
+            string outString = "";
+
+            if (stages == KeywordShaderStage.All)
+                return outString;
+            if (stages == KeywordShaderStage.Vertex)
+                outString += "_vertex";
+            if (stages == KeywordShaderStage.Fragment)
+                outString += "_fragment";
+            if (stages == KeywordShaderStage.Geometry)
+                outString += "_geometry";
+            if (stages == KeywordShaderStage.Hull)
+                outString += "_hull";
+            if (stages == KeywordShaderStage.Domain)
+                outString += "_domain";
+            if (stages == KeywordShaderStage.RayTracing)
+                outString += "_raytracing";
+
+            return outString;
         }
 
         public static string ToDefineString(this KeywordDescriptor keyword, int value)
@@ -89,40 +165,12 @@ namespace UnityEditor.ShaderGraph
             switch (keyword.type)
             {
                 case KeywordType.Boolean:
-                    return value == 1 ? $"#define {keyword.referenceName}" : string.Empty;
+                    return value == 1 ? $"#define {keyword.referenceName} 1" : string.Empty;
                 case KeywordType.Enum:
                     return $"#define {keyword.referenceName}_{keyword.entries[value].referenceName}";
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-
-        public static int GetKeywordPermutationCount(this GraphData graph)
-        {
-            // Gather all unique keywords from the Graph including Sub Graphs
-            IEnumerable<ShaderKeyword> allKeywords = graph.keywords;
-            var subGraphNodes = graph.GetNodes<SubGraphNode>();
-            foreach (SubGraphNode subGraphNode in subGraphNodes)
-            {
-                if (subGraphNode.asset == null)
-                {
-                    continue;
-                }
-                allKeywords = allKeywords.Union(subGraphNode.asset.keywords);
-            }
-            allKeywords = allKeywords.Distinct();
-
-            // Get permutation count for all Keywords
-            int permutationCount = 1;
-            foreach (ShaderKeyword keyword in allKeywords)
-            {
-                if (keyword.keywordType == KeywordType.Boolean)
-                    permutationCount *= 2;
-                else
-                    permutationCount *= keyword.entries.Count;
-            }
-
-            return permutationCount;
         }
 
         public static string GetKeywordPermutationSetConditional(List<int> permutationSet)
@@ -156,7 +204,7 @@ namespace UnityEditor.ShaderGraph
             for (int p = 0; p < permutations.Count; p++)
             {
                 // ShaderStringBuilder.Append doesnt apply indentation
-                sb.AppendIndentation();
+                sb.TryAppendIndentation();
 
                 // Append correct if
                 bool isLast = false;

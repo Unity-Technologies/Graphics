@@ -4,6 +4,7 @@ Menu Path : **Context > Output Particle [Primitive]**
 *(Output Particle (Lit) Quad, Output Particle (Lit) Triangle, Output Particle (Lit) Octagon)*
 
 The Output Particle primitives (quad/triangle/octagon) Context are the most commonly-used output types and are great for a wide range of effects. They come in a regular (unlit) and a [Lit](Context-OutputLitSettings.md) variety (HDRP-only).
+
 ![](Images/Context-OutputPrimitiveExamples.png)
 
 This Context supports the following planar primitives:
@@ -19,8 +20,9 @@ Below is a list of settings and properties specific to the Output Particle Primi
 ## Context settings
 
 |**Setting**|**Type**|**Description**|
-|---|---|
+|---|---|---|
 |**Primitive Type**|Enum|**(Inspector)** Specifies the primitive this Context uses to render each particle. The options are:<br/>&#8226; **Quad**: Renders each particle as a quad.<br/>&#8226; **Triangle**: Renders each particle as a triangle.<br/>&#8226; **Octagon**: Renders each particle as an octagon.|
+
 ## Context properties
 
 |**Input**|**Type**|**Description**|

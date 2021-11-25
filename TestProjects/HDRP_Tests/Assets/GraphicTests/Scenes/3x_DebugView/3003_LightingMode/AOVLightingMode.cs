@@ -29,12 +29,11 @@ public class AOVLightingMode : MonoBehaviour
         return null;
     }
 
-
     AOVRequestDataCollection BuildAovRequest()
     {
         var aovRequestBuilder = new AOVRequestBuilder();
         var aovRequest = new AOVRequest(AOVRequest.NewDefault()).SetFullscreenOutput(LightingProperty.DiffuseOnly);
-        aovRequestBuilder.Add(aovRequest, RTAllocator, null, new[] { AOVBuffers.Color }, (cmd, textures, properties) => { if (diffuse != null) cmd.Blit(textures[0], diffuse); } );
+        aovRequestBuilder.Add(aovRequest, RTAllocator, null, new[] { AOVBuffers.Color }, (cmd, textures, properties) => { if (diffuse != null) cmd.Blit(textures[0], diffuse); });
         aovRequest.SetFullscreenOutput(LightingProperty.SpecularOnly);
         aovRequestBuilder.Add(aovRequest, RTAllocator, null, new[] { AOVBuffers.Color }, (cmd, textures, properties) => { if (specular != null) cmd.Blit(textures[0], specular); });
         aovRequest.SetFullscreenOutput(LightingProperty.DirectDiffuseOnly);
@@ -58,7 +57,7 @@ public class AOVLightingMode : MonoBehaviour
         var add = GetComponent<HDAdditionalCameraData>();
         add.SetAOVRequests(null);
     }
-    
+
     void OnValidate()
     {
         OnDisable();

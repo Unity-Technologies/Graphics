@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
@@ -8,10 +9,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// </summary>
     public struct RenderGraphBuilder : IDisposable
     {
-        RenderGraphPass             m_RenderPass;
+        RenderGraphPass m_RenderPass;
         RenderGraphResourceRegistry m_Resources;
-        RenderGraph                 m_RenderGraph;
-        bool                        m_Disposed;
+        RenderGraph m_RenderGraph;
+        bool m_Disposed;
 
         #region Public Interface
         /// <summary>
@@ -23,7 +24,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>An updated resource handle to the input resource.</returns>
         public TextureHandle UseColorBuffer(in TextureHandle input, int index)
         {
-            CheckResource(input.handle);
+            CheckResource(input.handle, true);
+            m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.SetColorBuffer(input, index);
             return input;
         }
@@ -36,7 +38,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>An updated resource handle to the input resource.</returns>
         public TextureHandle UseDepthBuffer(in TextureHandle input, DepthAccess flags)
         {
-            CheckResource(input.handle);
+            CheckResource(input.handle, true);
+            m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.SetDepthBuffer(input, flags);
             return input;
         }
@@ -49,6 +52,27 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle ReadTexture(in TextureHandle input)
         {
             CheckResource(input.handle);
+
+            if (!m_Resources.IsRenderGraphResourceImported(input.handle) && m_Resources.TextureNeedsFallback(input))
+            {
+                // If texture is read from but never written to, return a fallback black texture to have valid reads
+                // Return one from the preallocated default textures if possible
+                var desc = m_Resources.GetTextureResourceDesc(input.handle);
+                if (!desc.bindTextureMS)
+                {
+                    if (desc.dimension == TextureXR.dimension)
+                        return m_RenderGraph.defaultResources.blackTextureXR;
+                    else if (desc.dimension == TextureDimension.Tex3D)
+                        return m_RenderGraph.defaultResources.blackTexture3DXR;
+                    else
+                        return m_RenderGraph.defaultResources.blackTexture;
+                }
+                // If not, force a write to the texture so that it gets allocated, and ensure it gets initialized with a clear color
+                if (!desc.clearBuffer)
+                    m_Resources.ForceTextureClear(input.handle, Color.black);
+                WriteTexture(input);
+            }
+
             m_RenderPass.AddResourceRead(input.handle);
             return input;
         }
@@ -61,8 +85,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle WriteTexture(in TextureHandle input)
         {
             CheckResource(input.handle);
-            // TODO RENDERGRAPH: Manage resource "version" for debugging purpose
+            m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.AddResourceWrite(input.handle);
+            return input;
+        }
+
+        /// <summary>
+        /// Specify a Texture resource to read and write to during the pass.
+        /// </summary>
+        /// <param name="input">The Texture resource to read and write to during the pass.</param>
+        /// <returns>An updated resource handle to the input resource.</returns>
+        public TextureHandle ReadWriteTexture(in TextureHandle input)
+        {
+            CheckResource(input.handle);
+            m_Resources.IncrementWriteCount(input.handle);
+            m_RenderPass.AddResourceWrite(input.handle);
+            m_RenderPass.AddResourceRead(input.handle);
             return input;
         }
 
@@ -125,6 +163,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             CheckResource(input.handle);
             m_RenderPass.AddResourceWrite(input.handle);
+            m_Resources.IncrementWriteCount(input.handle);
             return input;
         }
 
@@ -195,6 +234,28 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             Dispose(true);
         }
 
+        /// <summary>
+        /// Allow or not pass culling based on renderer list results
+        /// By default all passes can be culled out if the render graph detects they are using a renderer list that is empty (does not draw any geometry)
+        /// In some cases, a pass may not write or read any texture but rather do something with side effects (like setting a global texture parameter for example).
+        /// This function can be used to tell the system that it should not cull this pass.
+        /// </summary>
+        /// <param name="value">True to allow pass culling.</param>
+        public void AllowRendererListCulling(bool value)
+        {
+            m_RenderPass.AllowRendererListCulling(value);
+        }
+
+        /// <summary>
+        /// Used to indicate that a pass depends on an external renderer list (that is not directly used in this pass).
+        /// </summary>
+        /// <param name="input">The renderer list handle this pass depends on.</param>
+        public RendererListHandle DependsOn(in RendererListHandle input)
+        {
+            m_RenderPass.UseRendererList(input);
+            return input;
+        }
+
         #endregion
 
         #region Internal Interface
@@ -215,13 +276,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_Disposed = true;
         }
 
-        void CheckResource(in ResourceHandle res)
+        void CheckResource(in ResourceHandle res, bool dontCheckTransientReadWrite = false)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (res.IsValid())
             {
-                int transientIndex = m_Resources.GetResourceTransientIndex(res);
-                if (transientIndex == m_RenderPass.index)
+                int transientIndex = m_Resources.GetRenderGraphResourceTransientIndex(res);
+                // We have dontCheckTransientReadWrite here because users may want to use UseColorBuffer/UseDepthBuffer API to benefit from render target auto binding. In this case we don't want to raise the error.
+                if (transientIndex == m_RenderPass.index && !dontCheckTransientReadWrite)
                 {
                     Debug.LogError($"Trying to read or write a transient resource at pass {m_RenderPass.name}.Transient resource are always assumed to be both read and written.");
                 }

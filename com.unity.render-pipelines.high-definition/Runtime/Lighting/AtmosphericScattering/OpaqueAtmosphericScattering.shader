@@ -3,9 +3,9 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
     HLSLINCLUDE
         #pragma target 4.5
         #pragma editor_sync_compilation
-        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-        #pragma multi_compile _ DEBUG_DISPLAY
+        #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
         // #pragma enable_d3d11_debug_symbols
 
@@ -89,12 +89,12 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float2 positionSS = input.positionCS.xy;
             float3 V = GetSkyViewDirWS(positionSS);
             float  depth = LoadCameraDepth(positionSS);
-            float3 surfColor = LOAD_TEXTURE2D_X(_ColorTexture, (int2)positionSS).rgb;
+            float4 surfColor = LOAD_TEXTURE2D_X(_ColorTexture, (int2)positionSS);
 
             float3 volColor, volOpacity;
             AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
 
-            return float4(volColor + (1 - volOpacity) * surfColor, 1); // Premultiplied alpha (over operator)
+            return float4(volColor + (1 - volOpacity) * surfColor.rgb, surfColor.a); // Premultiplied alpha (over operator), preserve alpha for the alpha channel for compositing
         }
 
             float4 FragMSAAPBRFog(Varyings input, uint sampleIndex: SV_SampleIndex) : SV_Target
@@ -103,22 +103,23 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float2 positionSS = input.positionCS.xy;
             float3 V = GetSkyViewDirWS(positionSS);
             float  depth = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, (int2)positionSS, sampleIndex).x;
-            float3 surfColor = LOAD_TEXTURE2D_X_MSAA(_ColorTextureMS, (int2)positionSS, sampleIndex).rgb;
+            float4 surfColor = LOAD_TEXTURE2D_X_MSAA(_ColorTextureMS, (int2)positionSS, sampleIndex);
 
             float3 volColor, volOpacity;
             AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
 
-            return float4(volColor + (1 - volOpacity) * surfColor, 1); // Premultiplied alpha (over operator)
+            return float4(volColor + (1 - volOpacity) * surfColor.rgb, surfColor.a); // Premultiplied alpha (over operator), preserve alpha for the alpha channel for compositing
         }
     ENDHLSL
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         // 0: NOMSAA
         Pass
         {
             Cull Off    ZWrite Off
-            Blend One SrcAlpha // Premultiplied alpha
+            Blend One SrcAlpha, Zero One // Premultiplied alpha for RGB, preserve alpha for the alpha channel
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
@@ -131,7 +132,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         Pass
         {
             Cull Off    ZWrite Off
-            Blend One SrcAlpha // Premultiplied alpha
+            Blend One SrcAlpha, Zero One // Premultiplied alpha for RGB, preserve alpha for the alpha channel
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM

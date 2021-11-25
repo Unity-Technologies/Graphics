@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11145981673336645838492a2d98e247, type: 3}
+  m_Name: RenderScale-1
+  m_EditorClassIdentifier: 
+  debugShaders:
+    debugReplacementPS: {fileID: 0}
+  m_RendererFeatures: []
+  m_RendererFeatureMap: 
+  m_UseNativeRenderPass: 0
+  m_TransparencySortMode: 0
+  m_TransparencySortAxis: {x: 0, y: 1, z: 0}
+  m_HDREmulationScale: 1
+  m_LightRenderTextureScale: 0.5
+  m_LightBlendStyles:
+  - name: Multiply
+    maskTextureChannel: 0
+    blendMode: 1
+  - name: Additive
+    maskTextureChannel: 0
+    blendMode: 0
+  - name: Multiply with Mask
+    maskTextureChannel: 1
+    blendMode: 1
+  - name: Additive with Mask
+    maskTextureChannel: 1
+    blendMode: 0
+  m_UseDepthStencilBuffer: 1
+  m_UseCameraSortingLayersTexture: 0
+  m_CameraSortingLayersTextureBound: -1
+  m_CameraSortingLayerDownsamplingMethod: 0
+  m_MaxLightRenderTextureCount: 16
+  m_MaxShadowRenderTextureCount: 1
+  m_ShapeLightShader: {fileID: 0}
+  m_ShapeLightVolumeShader: {fileID: 0}
+  m_PointLightShader: {fileID: 0}
+  m_PointLightVolumeShader: {fileID: 0}
+  m_BlitShader: {fileID: 0}
+  m_SamplingShader: {fileID: 0}
+  m_ProjectedShadowShader: {fileID: 0}
+  m_SpriteShadowShader: {fileID: 0}
+  m_SpriteUnshadowShader: {fileID: 0}
+  m_GeometryUnshadowShader: {fileID: 0}
+  m_FallbackErrorShader: {fileID: 0}
+  m_PostProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
+  m_FallOffLookup: {fileID: 0}
+  m_DefaultMaterialType: 0
+  m_DefaultCustomMaterial: {fileID: 0}
+  m_DefaultLitMaterial: {fileID: 0}
+  m_DefaultUnlitMaterial: {fileID: 0}

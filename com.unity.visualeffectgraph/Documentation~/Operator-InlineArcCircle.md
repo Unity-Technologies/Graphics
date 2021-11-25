@@ -18,4 +18,3 @@ The **ArcCircle** inline Operator allows you to store an instance of an [ArcCirc
 | **Output** | ArcCircle   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

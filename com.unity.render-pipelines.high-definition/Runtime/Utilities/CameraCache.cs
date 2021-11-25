@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// history buffers of the HDCamera are used.
     /// </summary>
     /// <typeparam name="K">The type of the key.</typeparam>
-    class CameraCache<K>: IDisposable
+    class CameraCache<K> : IDisposable
     {
         Dictionary<K, (Camera camera, int lastFrame)> m_Cache = new Dictionary<K, (Camera camera, int lastFrame)>();
         K[] cameraKeysCache = new K[0];
@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                camera.lastFrame = Time.frameCount;
+                camera.lastFrame = frameCount;
                 m_Cache[key] = camera;
             }
             return camera.camera;
@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_Cache.TryGetValue(key, out var value))
                 {
-                    if ((frameCount - value.lastFrame) > frameWindow)
+                    if (Math.Abs(frameCount - value.lastFrame) > frameWindow)
                     {
                         if (value.camera != null)
                         {

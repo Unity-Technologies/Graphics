@@ -1,0 +1,2 @@
+ConfigurationValidation:
+T|UnityEngine.Rendering.VolumeComponentDeprecated|Bug in the validation code cause it to fail to resolve HideInInspector in UnityEngine assembly

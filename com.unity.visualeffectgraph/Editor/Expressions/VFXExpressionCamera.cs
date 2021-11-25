@@ -147,14 +147,14 @@ namespace UnityEditor.VFX
     class VFXExpressionGetBufferFromMainCamera : VFXExpression
     {
         public VFXExpressionGetBufferFromMainCamera() : this(VFXCameraBufferTypes.None)
-        {}
+        { }
 
         public VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes bufferType) : base(VFXExpression.Flags.InvalidOnGPU)
         {
             m_BufferType = bufferType;
         }
 
-        public override VFXExpressionOperation operation { get { return VFXExpressionOperation.GetBufferFromMainCamera; }}
+        public override VFXExpressionOperation operation { get { return VFXExpressionOperation.GetBufferFromMainCamera; } }
         sealed protected override VFXExpression Evaluate(VFXExpression[] constParents) { return VFXValue.Constant<Texture2DArray>(null); }
 
         protected override VFXExpression Reduce(VFXExpression[] reducedParents)
@@ -166,5 +166,66 @@ namespace UnityEditor.VFX
 
         protected override int[] additionnalOperands { get { return new int[] { (int)m_BufferType }; } }
         private VFXCameraBufferTypes m_BufferType;
+    }
+
+    class VFXExpressionIsMainCameraOrthographic : VFXExpression
+    {
+        public VFXExpressionIsMainCameraOrthographic() : base(VFXExpression.Flags.InvalidOnGPU)
+        {
+        }
+
+        public override VFXExpressionOperation operation
+        {
+            get
+            {
+                return VFXExpressionOperation.IsMainCameraOrthographic;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            if (Camera.main != null)
+                return VFXValue.Constant(Camera.main.orthographic);
+            else
+                return VFXValue.Constant(false);
+        }
+    }
+
+    class VFXExpressionGetOrthographicSizeFromMainCamera : VFXExpression
+    {
+        public VFXExpressionGetOrthographicSizeFromMainCamera() : base(VFXExpression.Flags.InvalidOnGPU)
+        {
+        }
+
+        public override VFXExpressionOperation operation
+        {
+            get
+            {
+                return VFXExpressionOperation.GetOrthographicSizeFromMainCamera;
+            }
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            if (Camera.main != null)
+                return VFXValue.Constant(Camera.main.orthographicSize);
+            else
+                return VFXValue.Constant(CameraType.defaultValue.orthographicSize);
+        }
+    }
+
+    class VFXExpressionExtractLensShiftFromMainCamera : VFXExpression
+    {
+        public VFXExpressionExtractLensShiftFromMainCamera() : base(VFXExpression.Flags.InvalidOnGPU) { }
+
+        public override VFXExpressionOperation operation => VFXExpressionOperation.ExtractLensShiftFromMainCamera;
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            if (Camera.main != null)
+                return VFXValue.Constant(Camera.main.GetGateFittedLensShift());
+            else
+                return VFXValue.Constant(CameraType.defaultValue.lensShift);
+        }
     }
 }

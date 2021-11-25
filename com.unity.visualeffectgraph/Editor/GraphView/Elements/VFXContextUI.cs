@@ -77,7 +77,10 @@ namespace UnityEditor.VFX.UI
                 m_BlockProvider = new VFXBlockProvider(controller, (d, mPos) =>
                 {
                     if (d is VFXBlockProvider.NewBlockDescriptor)
+                    {
+                        UpdateSelectionWithNewBlocks();
                         AddBlock(mPos, (d as VFXBlockProvider.NewBlockDescriptor).newBlock);
+                    }
                     else
                     {
                         var subgraphBlock = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphBlock>((d as VFXBlockProvider.SubgraphBlockDescriptor).item.path);
@@ -86,8 +89,11 @@ namespace UnityEditor.VFX.UI
                         VFXBlock newModel = ScriptableObject.CreateInstance<VFXSubgraphBlock>();
 
                         newModel.SetSettingValue("m_Subgraph", subgraphBlock);
-
-                        controller.AddBlock(blockIndex, newModel);
+                        UpdateSelectionWithNewBlocks();
+                        using (var growContext = new GrowContext(this))
+                        {
+                            controller.AddBlock(blockIndex, newModel, true);
+                        }
                     }
                 });
             }
@@ -486,6 +492,7 @@ namespace UnityEditor.VFX.UI
 
                         newModel.SetSettingValue("m_Subgraph", references.First());
 
+                        UpdateSelectionWithNewBlocks();
                         controller.AddBlock(blockIndex, newModel);
                     }
 
@@ -587,6 +594,10 @@ namespace UnityEditor.VFX.UI
                 if (blockControllers.Count > 0)
                 {
                     VFXBlockUI prevBlock = null;
+
+                    VFXView view = GetFirstAncestorOfType<VFXView>();
+
+                    bool selectionCleared = false;
                     foreach (var blockController in blockControllers)
                     {
                         VFXBlockUI blockUI;
@@ -602,11 +613,22 @@ namespace UnityEditor.VFX.UI
                             blockUI = InstantiateBlock(blockController);
                             m_BlockContainer.Add(blockUI);
                             m_BlockContainer.Insert(prevBlock == null ? 0 : m_BlockContainer.IndexOf(prevBlock) + 1, blockUI);
+
+                            if (m_UpdateSelectionWithNewBlocks)
+                            {
+                                if (!selectionCleared)
+                                {
+                                    selectionCleared = true;
+                                    view.ClearSelection();
+                                }
+                                view.AddToSelection(blockUI);
+                            }
                             //Refresh error can only be called after the block has been instanciated
                             blockController.model.RefreshErrors(controller.viewController.graph);
                         }
                         prevBlock = blockUI;
                     }
+                    m_UpdateSelectionWithNewBlocks = false;
                     VFXBlockUI firstBlock = m_BlockContainer.Query<VFXBlockUI>();
                     firstBlock.AddToClassList("first");
                 }
@@ -628,7 +650,7 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        class GrowContext : IDisposable
+        internal class GrowContext : IDisposable
         {
             VFXContextUI m_Context;
             float m_PrevSize;
@@ -670,7 +692,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
 
-            using (var growContext = new GrowContext(this))
+            using (new GrowContext(this))
             {
                 controller.AddBlock(blockIndex, descriptor.CreateInstance(), true /* freshly created block, should init space */);
             }
@@ -689,7 +711,8 @@ namespace UnityEditor.VFX.UI
 
             Vector2 screenPosition = view.ViewToScreenPosition(referencePosition);
 
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, referencePosition, screenPosition, m_BlockProvider);
+            var window = VFXViewWindow.GetWindow(view);
+            VFXFilterWindow.Show(window, referencePosition, screenPosition, m_BlockProvider);
         }
 
         VFXBlockProvider m_BlockProvider = null;
@@ -736,7 +759,7 @@ namespace UnityEditor.VFX.UI
         public class VFXContextOnlyVFXNodeProvider : VFXNodeProvider
         {
             public VFXContextOnlyVFXNodeProvider(VFXViewController controller, Action<Descriptor, Vector2> onAddBlock, Func<Descriptor, bool> filter) :
-                base(controller, onAddBlock, filter, new Type[] { typeof(VFXContext)})
+                base(controller, onAddBlock, filter, new Type[] { typeof(VFXContext) })
             {
             }
 
@@ -770,7 +793,8 @@ namespace UnityEditor.VFX.UI
         void OnConvertContext(DropdownMenuAction action)
         {
             VFXView view = this.GetFirstAncestorOfType<VFXView>();
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, action.eventInfo.mousePosition, view.ViewToScreenPosition(action.eventInfo.mousePosition), new VFXContextOnlyVFXNodeProvider(view.controller, ConvertContext, ProviderFilter));
+            var window = VFXViewWindow.GetWindow(view);
+            VFXFilterWindow.Show(window, action.eventInfo.mousePosition, view.ViewToScreenPosition(action.eventInfo.mousePosition), new VFXContextOnlyVFXNodeProvider(view.controller, ConvertContext, ProviderFilter));
         }
 
         void ConvertContext(VFXNodeProvider.Descriptor d, Vector2 mPos)
@@ -780,7 +804,6 @@ namespace UnityEditor.VFX.UI
             if (view == null) return;
 
             mPos = view.contentViewContainer.ChangeCoordinatesTo(view, controller.position);
-
             var newNodeController = view.AddNode(d, mPos);
             var newContextController = newNodeController as VFXContextController;
 
@@ -793,7 +816,7 @@ namespace UnityEditor.VFX.UI
             var contextType = controller.model.GetType();
             foreach (var setting in newContextController.model.GetSettings(true))
             {
-                if ((newContextController.model is VFXPlanarPrimitiveOutput || newContextController.model.GetType().Name == "VFXLitPlanarPrimitiveOutput") && setting.field.Name == "primitiveType")
+                if (!newContextController.model.CanTransferSetting(setting))
                     continue;
 
                 if (!setting.valid || setting.field.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 0)
@@ -940,6 +963,12 @@ namespace UnityEditor.VFX.UI
         void OnTitleChange(ChangeEvent<string> e)
         {
             m_Label.text = m_TextField.value;
+        }
+
+        bool m_UpdateSelectionWithNewBlocks;
+        public void UpdateSelectionWithNewBlocks()
+        {
+            m_UpdateSelectionWithNewBlocks = true;
         }
     }
 }

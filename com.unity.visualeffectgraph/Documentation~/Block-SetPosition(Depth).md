@@ -6,7 +6,7 @@ The **Set Position (Depth)** Block calculates a position based on a Camera and i
 
 To calculate the position, this Block first determines the position in screen space, based on different modes (**Random**, **Sequential**, or a **Custom** provided value), then uses the depth buffer and the Camera's properties to convert the position into world space.
 
-You can either use the first [main Camera](https://docs.unity3d.com/ScriptReference/Camera-main.html) in the Scene or provide your own Camera. 
+You can either use the first [main Camera](https://docs.unity3d.com/ScriptReference/Camera-main.html) in the Scene or provide your own Camera.
 
 To provide your own Camera, create a new Camera property in the [Blackboard](Blackboard.md) and expose it. Then use an [HDRP Camera Property Binder](PropertyBinders.md).
 

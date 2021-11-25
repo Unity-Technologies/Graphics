@@ -1,0 +1,49 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/DepthOfFieldCommon.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma kernel KMain
+
+TEXTURE2D_X(_InputTexture);
+RW_TEXTURE2D_X(float4, _OutputTexture);
+
+// min-max tile size
+#define TILE_RES  8u
+
+#define GROUP_RES  8u
+#define GROUP_SIZE (GROUP_RES * GROUP_RES)
+
+void DilateTile(inout float4 tileInfo, float4 tile)
+{
+    // far field
+    tileInfo.x = tileInfo.x;
+    tileInfo.y = max(tileInfo.y, tile.y);
+
+    // near field
+    tileInfo.z = tileInfo.z;
+    tileInfo.w = min(tileInfo.w, tile.w);
+}
+
+[numthreads(GROUP_RES, GROUP_RES, 1)]
+void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    float4 tileInfo = _InputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+
+    int2 startIndex = max((int2)dispatchThreadId.xy - int2(1, 1), int2(0, 0));
+    int2 endIndex =  min((int2)dispatchThreadId.xy + int2(1, 1), _PostProcessScreenSize.xy / TILE_RES - int2(1, 1));
+
+    for (int i = startIndex.x; i <= endIndex.x; i++)
+    {
+        for (int j = startIndex.y; j <= endIndex.y; j++)
+        {
+            float4 tile = LOAD_TEXTURE2D_X(_InputTexture, int2(i, j));
+            DilateTile(tileInfo, tile);
+        }
+    }
+
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = tileInfo;
+}

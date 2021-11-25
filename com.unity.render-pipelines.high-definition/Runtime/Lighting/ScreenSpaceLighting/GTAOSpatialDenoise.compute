@@ -3,17 +3,14 @@
 
 // TODO: This pass really could really use some quality improvement.
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 #pragma kernel SpatialDenoise
 
 #pragma multi_compile _ TO_TEMPORAL
 
 TEXTURE2D_X(_AOPackedData);
-
-#ifdef TO_TEMPORAL
-RW_TEXTURE2D_X(float, _AOPackedBlurred);
-#else
 RW_TEXTURE2D_X(float, _OcclusionTexture);
-#endif
 
 #define DEBUG_VISUALIZE_BILATERAL_WEIGHTS 0
 
@@ -135,7 +132,7 @@ void SpatialDenoise(uint3 dispatchThreadId : SV_DispatchThreadID)
     float final = Blur(dispatchThreadId.xy, centralDepth, centralAO);
 
 #if TO_TEMPORAL
-    _AOPackedBlurred[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackAOOutput(final, centralDepth);
+    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackAOOutput(final, centralDepth);
 #else
     _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = OutputFinalAO(final);
 #endif

@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/009_AdditionalLightsShadows.unity
+    guid: fe73f67a2bc4933468c714f164c6596d
+  - enabled: 1
+    path: Assets/Scenes/019_Lighting_Scene_PointLights.unity
+    guid: c44973f9bcb9e469ea540fc8b0f0324a
+  - enabled: 1
+    path: Assets/Scenes/031_Shader_GlossyEnvironmentSky.unity
+    guid: 2d287b701f8e1bf429c14805ac505eb9
+  - enabled: 1
+    path: Assets/Scenes/032_Shader_GlossyEnvironmentColor.unity
+    guid: 375d3d0d24cdfe14aa69d3d595acb1c3
+  - enabled: 1
+    path: Assets/Scenes/033_Shader_HighlightsEnvironmentGradientSH.unity
+    guid: ff592545ad5dd744893d54a73f85b2cc
+  - enabled: 1
+    path: Assets/Scenes/034_Shader_HighlightsEnvironmentGradientBaked.unity
+    guid: e346f8573410f414ea2a8a4740526c88
+  - enabled: 1
+    path: Assets/Scenes/036_Lighting_Scene_DirectionalBakedDirectional.unity
+    guid: 7a8ef7ce062f0465b9e493dd5730cecb
+  - enabled: 1
+    path: Assets/Scenes/041_Lighting_BasicArea.unity
+    guid: cd37c7e9d54e74dd7add9b40a2698ada
+  - enabled: 1
+    path: Assets/Scenes/042_Lighting_Scene_VertexLighting.unity
+    guid: 700788280c77e4c63a4d1919a8bf97e3
+  - enabled: 1
+    path: Assets/Scenes/051_Lighting_Scene_NoLighting.unity
+    guid: ad2db338b63034856a2718d37e4bdd7a
+  - enabled: 1
+    path: Assets/Scenes/117_SkyboxReflectionTestProjection.unity
+    guid: f5310a9ab278ec748b2091bf7ba966a7
+  - enabled: 1
+    path: Assets/Scenes/118_SkyboxReflectionTestOrthographic.unity
+    guid: e1fb4b913911b734b88f86697de1b94a
+  m_configObjects: {}

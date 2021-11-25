@@ -228,7 +228,7 @@ namespace UnityEditor.Rendering
                 for (int i = 0; i < m_Editors.Count; i++)
                 {
                     var editor = m_Editors[i];
-                    string title = editor.GetDisplayTitle();
+                    var title = editor.GetDisplayTitle();
                     int id = i; // Needed for closure capture below
 
                     m_EditorDocumentationURLs.TryGetValue(editor.target.GetType(), out var documentationURL);
@@ -238,9 +238,9 @@ namespace UnityEditor.Rendering
                         title,
                         editor.baseProperty,
                         editor.activeProperty,
-                        pos => OnContextClick(pos, editor.target, id),
-                        editor.hasAdvancedMode ? () => editor.isInAdvancedMode : (Func<bool>)null,
-                        () => editor.isInAdvancedMode ^= true,
+                        pos => OnContextClick(pos, editor, id),
+                        editor.hasAdditionalProperties ? () => editor.showAdditionalProperties : (Func<bool>)null,
+                        () => editor.showAdditionalProperties ^= true,
                         documentationURL
                     );
 
@@ -270,8 +270,9 @@ namespace UnityEditor.Rendering
             }
         }
 
-        void OnContextClick(Vector2 position, VolumeComponent targetComponent, int id)
+        void OnContextClick(Vector2 position, VolumeComponentEditor targetEditor, int id)
         {
+            var targetComponent = targetEditor.target;
             var menu = new GenericMenu();
 
             if (id == 0)
@@ -302,6 +303,13 @@ namespace UnityEditor.Rendering
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () => ResetComponent(targetComponent.GetType(), id));
             menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
+            menu.AddSeparator(string.Empty);
+            if (targetEditor.hasAdditionalProperties)
+                menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), targetEditor.showAdditionalProperties, () => targetEditor.showAdditionalProperties ^= true);
+            else
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Show Additional Properties"));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."), false, () => CoreRenderPipelinePreferences.Open());
+
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Copy Settings"), false, () => CopySettings(targetComponent));
 
@@ -342,17 +350,17 @@ namespace UnityEditor.Rendering
             var componentProp = m_ComponentsProperty.GetArrayElementAtIndex(m_ComponentsProperty.arraySize - 1);
             componentProp.objectReferenceValue = component;
 
+            // Create & store the internal editor object for this effect
+            CreateEditor(component, componentProp, forceOpen: true);
+
+            m_SerializedObject.ApplyModifiedProperties();
+
             // Force save / refresh
             if (EditorUtility.IsPersistent(asset))
             {
                 EditorUtility.SetDirty(asset);
                 AssetDatabase.SaveAssets();
             }
-
-            // Create & store the internal editor object for this effect
-            CreateEditor(component, componentProp, forceOpen: true);
-
-            m_SerializedObject.ApplyModifiedProperties();
         }
 
         internal void RemoveComponent(int id)

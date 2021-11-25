@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 public class TabButton : VisualElement
 {
-    internal new class UxmlFactory : UxmlFactory<TabButton, UxmlTraits> {}
+    internal new class UxmlFactory : UxmlFactory<TabButton, UxmlTraits> { }
 
     internal new class UxmlTraits : VisualElement.UxmlTraits
     {

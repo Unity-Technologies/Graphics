@@ -18,4 +18,3 @@ The **Position** inline Operator allows you to store an instance of a [Position]
 | **Output** | Position   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

@@ -4,20 +4,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 
-#ifdef SHADER_API_PSSL
-    #ifndef Texture2DMS
-        #define Texture2DMS         MS_Texture2D
-    #endif
-
-    #ifndef SampleCmpLevelZero
-        #define SampleCmpLevelZero  SampleCmpLOD0
-    #endif
-
-    #ifndef firstbithigh
-        #define firstbithigh        FirstSetBit_Hi
-    #endif
-#endif
-
 #ifdef MSAA_ENABLED
     TEXTURE2D_X_MSAA(float, g_depth_tex) : register( t0 );
 

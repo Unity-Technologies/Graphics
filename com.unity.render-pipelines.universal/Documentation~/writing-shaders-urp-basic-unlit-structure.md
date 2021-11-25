@@ -13,27 +13,27 @@ Shader "Example/URPUnlitShaderBasic"
     Properties
     { }
 
-    // The SubShader block containing the Shader code. 
+    // The SubShader block containing the Shader code.
     SubShader
     {
         // SubShader Tags define when and under which conditions a SubShader block or
         // a pass is executed.
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
-        
+
         Pass
         {
             // The HLSL code block. Unity SRP uses the HLSL language.
             HLSLPROGRAM
-            // This line defines the name of the vertex shader. 
+            // This line defines the name of the vertex shader.
             #pragma vertex vert
-            // This line defines the name of the fragment shader. 
+            // This line defines the name of the fragment shader.
             #pragma fragment frag
 
             // The Core.hlsl file contains definitions of frequently used HLSL
             // macros and functions, and also contains #include references to other
             // HLSL files (for example, Common.hlsl, SpaceTransforms.hlsl, etc.).
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"            
-            
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
             // The structure definition defines which variables it contains.
             // This example uses the Attributes structure as an input structure in
             // the vertex shader.
@@ -41,16 +41,16 @@ Shader "Example/URPUnlitShaderBasic"
             {
                 // The positionOS variable contains the vertex positions in object
                 // space.
-                float4 positionOS   : POSITION;                 
+                float4 positionOS   : POSITION;
             };
 
             struct Varyings
             {
                 // The positions in this struct must have the SV_POSITION semantic.
                 float4 positionHCS  : SV_POSITION;
-            };            
+            };
 
-            // The vertex shader definition with properties defined in the Varyings 
+            // The vertex shader definition with properties defined in the Varyings
             // structure. The type of the vert function must match the type (struct)
             // that it returns.
             Varyings vert(Attributes IN)
@@ -64,7 +64,7 @@ Shader "Example/URPUnlitShaderBasic"
                 return OUT;
             }
 
-            // The fragment shader definition.            
+            // The fragment shader definition.
             half4 frag() : SV_Target
             {
                 // Defining the color variable and returning it.
@@ -87,7 +87,7 @@ The following section introduces you to the structure of this basic Unity shader
 
 ## Basic ShaderLab structure
 
-Unity shaders are written in a Unity-specific language called [ShaderLab](https://docs.unity3d.com/Manual/SL-Shader.html). 
+Unity shaders are written in a Unity-specific language called [ShaderLab](https://docs.unity3d.com/Manual/SL-Shader.html).
 
 The Unity shader in this example has the following blocks:
 
@@ -117,7 +117,7 @@ The path in this declaration determines the display name and location of the Uni
 
 The [Properties](https://docs.unity3d.com/Manual/SL-Properties.html) block contains the declarations of properties that users can set in the Inspector window on a Material.
 
-In this example, the Properties block is empty, because this Unity shader does not expose any Material properties that a user can define. 
+In this example, the Properties block is empty, because this Unity shader does not expose any Material properties that a user can define.
 
 ### SubShader block
 

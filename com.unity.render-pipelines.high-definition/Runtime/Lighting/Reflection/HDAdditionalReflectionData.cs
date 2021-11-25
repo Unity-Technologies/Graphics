@@ -3,10 +3,11 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Additional component used to store settings for HDRP's reflection probes.
     /// </summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Reflection-Probe" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Reflection-Probe")]
     [AddComponentMenu("")] // Hide in menu
+    [DisallowMultipleComponent]
     [RequireComponent(typeof(ReflectionProbe))]
-    public sealed partial class HDAdditionalReflectionData : HDProbe
+    public sealed partial class HDAdditionalReflectionData : HDProbe, IAdditionalData
     {
         void Awake()
         {
@@ -21,14 +22,16 @@ namespace UnityEngine.Rendering.HighDefinition
     public static class HDAdditionalReflectionDataExtensions
     {
         /// <summary>
-        /// Request to render this probe next update.
-        ///
-        /// Call this method with the mode <see cref="ProbeSettings.RealtimeMode.OnDemand"/> and the probe will
-        /// be rendered the next time it will influence a camera rendering.
-        ///
-        /// If the probe don't have a <see cref="HDAdditionalReflectionData"/> component, nothing is done.
+        /// Requests that Unity renders the passed in Reflection Probe during the next update.
         /// </summary>
-        /// <param name="probe">The probe to request a render.</param>
+        /// <remarks>
+        /// If you call this method for a Reflection Probe using <see cref="ProbeSettings.RealtimeMode.OnDemand"/> mode, Unity renders the probe the next time the probe influences a Camera rendering.
+        ///
+        /// If the Reflection Probe doesn't have an attached <see cref="HDAdditionalReflectionData"/> component, calling this function has no effect.
+        ///
+        /// Note: If any part of a Camera's frustum intersects a Reflection Probe's influence volume, the Reflection Probe influences the Camera.
+        /// </remarks>
+        /// <param name="probe">The Reflection Probe to request a render for.</param>
         public static void RequestRenderNextUpdate(this ReflectionProbe probe)
         {
             var add = probe.GetComponent<HDAdditionalReflectionData>();

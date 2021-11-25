@@ -12,7 +12,7 @@ using Unity.PerformanceTesting;
 public class HDRPRuntimePerformanceTests : PerformanceTests
 {
     const int WarmupCount = 20;
-    const int GlobalTimeout = 120 * 1000;       // 2 min
+    const int GlobalTimeout = 600 * 1000;       // 10 min
 
     static IEnumerable<CounterTestDescription> GetCounterTests()
     {
@@ -52,6 +52,13 @@ public class HDRPRuntimePerformanceTests : PerformanceTests
     [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]
     public IEnumerator Memory([ValueSource(nameof(GetMemoryTests))] MemoryTestDescription testDescription)
     {
-        yield return ReportMemoryUsage(testDescription);
+        yield return LoadScene(testDescription.sceneData.scene, testDescription.assetData.asset);
+
+        var unloadTask = Resources.UnloadUnusedAssets();
+        while (!unloadTask.isDone)
+            yield return new WaitForEndOfFrame();
+
+        var sceneSettings = SetupTestScene();
+        yield return ReportMemoryUsage(sceneSettings, testDescription);
     }
 }

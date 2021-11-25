@@ -32,6 +32,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             SerializedObject serializedObject;
             public SerializedProperty skyUniqueID;
+            public SerializedProperty cloudUniqueID;
+            public SerializedProperty volumetricCloudsToggle;
             public VolumeProfile volumeProfile
             {
                 get => (serializedObject.targetObject as StaticLightingSky).profile;
@@ -42,6 +44,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 serializedObject = new SerializedObject(staticLightingSky);
                 skyUniqueID = serializedObject.FindProperty("m_StaticLightingSkyUniqueID");
+                cloudUniqueID = serializedObject.FindProperty("m_StaticLightingCloudsUniqueID");
+                volumetricCloudsToggle = serializedObject.FindProperty("m_StaticLightingVolumetricClouds");
             }
 
             public void Apply() => serializedObject.ApplyModifiedProperties();
@@ -59,6 +63,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         List<GUIContent> m_SkyClassNames = null;
         List<int> m_SkyUniqueIDs = null;
+        List<GUIContent> m_CloudClassNames = null;
+        List<int> m_CloudUniqueIDs = null;
 
         const string k_ToggleValueKey = "HDRP:LightingWindowEnvironemntSection:Header";
         bool m_ToggleValue = true;
@@ -122,10 +128,12 @@ namespace UnityEditor.Rendering.HighDefinition
             WorkarroundWhileActiveSceneChangedHookIsNotCalled();
             m_SerializedActiveSceneLightingSky.Update();
 
-            //Volume can have changed. Check available sky
-            UpdateSkyIntPopupData();
-
             EditorGUI.BeginChangeCheck();
+
+            //Volume can have changed. Check available sky
+            UpdateIntPopupData(ref m_SkyClassNames, ref m_SkyUniqueIDs, SkyManager.skyTypesDict, m_SerializedActiveSceneLightingSky.skyUniqueID);
+            UpdateIntPopupData(ref m_CloudClassNames, ref m_CloudUniqueIDs, SkyManager.cloudTypesDict, m_SerializedActiveSceneLightingSky.cloudUniqueID);
+
             DrawGUI();
             if (EditorGUI.EndChangeCheck())
             {
@@ -185,46 +193,56 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.IntPopup(m_SerializedActiveSceneLightingSky.skyUniqueID, m_SkyClassNames.ToArray(), m_SkyUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Static Lighting Sky", "Specify which kind of sky you want to use for static ambient in the referenced profile for active scene."));
                 }
 
+                using (new EditorGUI.DisabledScope(m_CloudClassNames.Count == 1)) // Only "None"
+                {
+                    EditorGUILayout.IntPopup(m_SerializedActiveSceneLightingSky.cloudUniqueID, m_CloudClassNames.ToArray(), m_CloudUniqueIDs.ToArray(), EditorGUIUtility.TrTextContent("Static Lighting Clouds", "Specify which kind of clouds you want to use for static ambient in the referenced profile for active scene."));
+                }
+
+                EditorGUILayout.PropertyField(m_SerializedActiveSceneLightingSky.volumetricCloudsToggle, EditorGUIUtility.TrTextContent("Static Lighting Volumetric Clouds", "Specify if volumetric clouds should be used for static ambient in the referenced profile for active scene."));
+
+                EditorGUILayout.HelpBox("The interaction between the Scene Volume sky type and the Scene's dominant directional light may affect the visual characteristics of this bake.", MessageType.Info);
+
                 --EditorGUI.indentLevel;
             }
         }
 
-        void UpdateSkyIntPopupData()
+        void UpdateIntPopupData(ref List<GUIContent> classNames, ref List<int> uniqueIds, Dictionary<int, Type> typesDict, SerializedProperty idProperty)
         {
-            if (m_SkyClassNames == null)
+            if (classNames == null)
             {
-                m_SkyClassNames = new List<GUIContent>();
-                m_SkyUniqueIDs = new List<int>();
+                classNames = new List<GUIContent>();
+                uniqueIds = new List<int>();
             }
 
             // We always reinit because the content can change depending on the volume and we are not always notified when this happens (like for undo/redo for example)
-            m_SkyClassNames.Clear();
-            m_SkyUniqueIDs.Clear();
+            classNames.Clear();
+            uniqueIds.Clear();
 
             // Add special "None" case.
-            m_SkyClassNames.Add(new GUIContent("None"));
-            m_SkyUniqueIDs.Add(0);
+            classNames.Add(new GUIContent("None"));
+            uniqueIds.Add(0);
 
             VolumeProfile profile = m_SerializedActiveSceneLightingSky.volumeProfile;
             if (profile != null)
             {
                 bool foundID = false;
-                var currentID = m_SerializedActiveSceneLightingSky.skyUniqueID.intValue;
-                var skyTypesDict = SkyManager.skyTypesDict;
+                var currentID = idProperty.intValue;
 
-                foreach (KeyValuePair<int, Type> kvp in skyTypesDict)
+                foreach (KeyValuePair<int, Type> kvp in typesDict)
                 {
                     if (profile.TryGet(kvp.Value, out VolumeComponent comp) && comp.active)
                     {
-                        m_SkyClassNames.Add(new GUIContent(kvp.Value.Name.ToString()));
-                        m_SkyUniqueIDs.Add(kvp.Key);
-                        if (currentID == kvp.Key)
-                            foundID = true;
+                        classNames.Add(new GUIContent(kvp.Value.Name.ToString()));
+                        uniqueIds.Add(kvp.Key);
+                        foundID |= (currentID == kvp.Key);
                     }
                 }
 
-                if (!foundID)
-                    m_SerializedActiveSceneLightingSky.skyUniqueID.intValue = 0;
+                if (!foundID) // Selected volume component has been deleted
+                {
+                    idProperty.intValue = 0;
+                    GUI.changed = true;
+                }
             }
         }
 

@@ -5,6 +5,7 @@ Shader "Hidden/GUITextureBlit2SRGB" {
         _Color("Multiplicative color", Color) = (1.0, 1.0, 1.0, 1.0)
     }
     SubShader {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass {
             ZTest Always Cull Off ZWrite Off
 
@@ -14,7 +15,7 @@ Shader "Hidden/GUITextureBlit2SRGB" {
             HLSLPROGRAM
             #pragma editor_sync_compilation
             #pragma target 4.5
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             #pragma vertex vert
             #pragma fragment frag

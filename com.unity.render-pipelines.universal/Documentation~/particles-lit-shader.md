@@ -4,16 +4,16 @@
 
 In the Universal Render Pipeline (URP), use this Shader to make particles appear almost photorealistic, for example for camp fire particles, rain drops or torch smoke. This Shader produces lifelike visuals but uses the most computationally heavy [shading model](shading-model.md) in URP, which can impact performance.
 
-## Using the Particles Lit Shader in the Editor 
+## Using the Particles Lit Shader in the Editor
 
 To select and use this Shader:
 
-1. In your Project, create or find the Material you want to use the Shader on.  Select the __Material__. A Material Inspector window opens. 
+1. In your Project, create or find the Material you want to use the Shader on.  Select the __Material__. A Material Inspector window opens.
 2. Click __Shader__, and select __Universal Render Pipeline__ > __Particles__ > __Lit__.
 
-## UI overview 
+## UI overview
 
-The Inspector window for this Shader contains these elements: 
+The Inspector window for this Shader contains these elements:
 
 - __[Surface Options](#surface-options)__
 - __[Surface Inputs](#surface-inputs)__
@@ -21,9 +21,9 @@ The Inspector window for this Shader contains these elements:
 
 ![Inspector for the Particles Lit Shader](Images/Inspectors/Shaders/ParticlesLit.png)
 
-### Surface Options 
+### Surface Options
 
-The __Surface Options__ control how URP renders the Material on a screen. 
+The __Surface Options__ control how URP renders the Material on a screen.
 
 | Property           | Description                                                  |
 | ------------------ | ------------------------------------------------------------ |
@@ -35,7 +35,7 @@ The __Surface Options__ control how URP renders the Material on a screen.
 
 ### Surface Inputs
 
-The __Surface Inputs__ describe the surface itself. For example, you can use these properties to make your surface look wet, dry, rough, or smooth. 
+The __Surface Inputs__ describe the surface itself. For example, you can use these properties to make your surface look wet, dry, rough, or smooth.
 
 
 | Property         | Description                                                  |
@@ -55,7 +55,7 @@ The __Advanced__ settings affect behind-the-scenes rendering. They do not have a
 | ---------------------- | ------------------------------------------------------------ |
 | __Flip-Book Blending__ | Tick this box to blend flip-book frames together. This is useful in texture sheet animations with limited frames, because it makes animations smoother. If you have performance issues, try turning this off. |
 | __Vertex Streams__     | This list shows the vertex streams that this Material requires in order to work properly. If the vertex streams aren’t correctly assigned, the __Fix Now__ button appears. Click this button to apply the correct setup of vertex streams to the Particle System that this Material is assigned to. |
-| __Priority__           | Use this slider to determine the chronological rendering order for a Material. URP renders Materials with higher values first. You can use this to reduce overdraw on devices by making the pipeline render Materials in front of other Materials first, so it doesn't have to render overlapping areas twice. This works similarly to the [render queue](https://docs.unity3d.com/ScriptReference/Material-renderQueue.html) in the built-in Unity render pipeline. |
+| __Sorting Priority__   | Use this slider to determine the chronological rendering order for a Material. URP renders Materials with lower values first. You can use this to reduce overdraw on devices by making the pipeline render Materials in front of other Materials first, so it doesn't have to render overlapping areas twice. This works similarly to the [render queue](https://docs.unity3d.com/ScriptReference/Material-renderQueue.html) in the built-in Unity render pipeline. |
 
 
 #### Transparent surface type
@@ -69,4 +69,3 @@ If you’ve chosen a Transparent surface type under [Surface Options](#surface-o
 | __Soft Particles__ | Tick this box to make particles fade out when they get close to intersecting with the surface of other geometry written into the [depth buffer](https://docs.unity3d.com/Manual/class-RenderTexture.html).<br/>When you enable this feature, the **Surface Fade** settings appear:<br/>__Near__ sets the distance from the other surface where the particle is completely transparent. This is where the particle appears to fade out completely.<br/>__Far__ sets the distance from the other surface where the particle is completely opaque. The particle appears solid here.<br/>Distances are measured in world units. Only usable for transparent surface types.<br/><br/>**Note:** This setting uses the `CameraDepthTexture` that is created by URP. To use this setting, enable __Depth Texture__ in the [URP Asset](universalrp-asset.md) or for the [Camera](camera-component-reference.md) that is rendering the particles. |
 | __Camera Fading__  | Tick this box to make particles fade out when they get close to the camera.<br/>When you enable this feature, the __Distance__ settings appear:<br/>__Near__ sets the distance from the camera where the particle is completely transparent. This is where the particle appears to fade out completely.<br/>__Far__ sets the distance from the camera where the particle is completely opaque. The particle appears solid here.<br/>Distances are measured in world units. <br/><br/>**Note:** This uses the `CameraDepthTexture` that is created by URP. To use this setting, enable __Depth Texture__ in the [URP Asset](universalrp-asset.md) or for the [Camera](camera-component-reference.md) that is rendering the particles. |
 | __Distortion__     | Creates a distortion effect by making particles perform refraction with the objects drawn before them. This is useful for creating a heat wave effect or for warping objects behind the particles. <br/>When you enable this feature, these settings appear:<br/>__Strength__ controls how much the Particle distorts the background. Negative values have the opposite effect of positive values. So if something was offset to the right with a positive value, the equal negative value offsets it to the left.<br/>__Blend__ controls how visible the distortion is. At 0, there is no visible distortion. At 1, only the distortion effect is visible.<br/><br/>**Note:** This uses the `CameraOpaqueTexture` that is created by URP. To use this setting, enable __Opaque Texture__ in the [URP Asset](universalrp-asset.md) or for the [Camera](camera-component-reference.md) that is rendering the particles. |
-

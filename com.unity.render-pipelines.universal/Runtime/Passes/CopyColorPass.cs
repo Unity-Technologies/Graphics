@@ -16,8 +16,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         Downsampling m_DownsamplingMethod;
         Material m_CopyColorMaterial;
 
-        private RenderTargetIdentifier source { get; set; }
-        private RenderTargetHandle destination { get; set; }
+        private RTHandle source { get; set; }
+        private RTHandle destination { get; set; }
+        // TODO: Remove when Obsolete Setup is removed
+        private int destinationID { get; set; }
 
         /// <summary>
         /// Create the CopyColorPass
@@ -31,6 +33,28 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
             renderPassEvent = evt;
             m_DownsamplingMethod = Downsampling.None;
+            base.useNativeRenderPass = false;
+        }
+
+        /// <summary>
+        /// Get a descriptor and filter mode for the required texture for this pass
+        /// </summary>
+        public static void ConfigureDescriptor(Downsampling downsamplingMethod, ref RenderTextureDescriptor descriptor, out FilterMode filterMode)
+        {
+            descriptor.msaaSamples = 1;
+            descriptor.depthBufferBits = 0;
+            if (downsamplingMethod == Downsampling._2xBilinear)
+            {
+                descriptor.width /= 2;
+                descriptor.height /= 2;
+            }
+            else if (downsamplingMethod == Downsampling._4xBox || downsamplingMethod == Downsampling._4xBilinear)
+            {
+                descriptor.width /= 4;
+                descriptor.height /= 4;
+            }
+
+            filterMode = downsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear;
         }
 
         /// <summary>
@@ -38,7 +62,21 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         /// <param name="source">Source Render Target</param>
         /// <param name="destination">Destination Render Target</param>
+        [Obsolete("Use RTHandles for source and destination.")]
         public void Setup(RenderTargetIdentifier source, RenderTargetHandle destination, Downsampling downsampling)
+        {
+            this.source = RTHandles.Alloc(source);
+            this.destination = RTHandles.Alloc(destination.Identifier());
+            this.destinationID = destination.id;
+            m_DownsamplingMethod = downsampling;
+        }
+
+        /// <summary>
+        /// Configure the pass with the source and destination to execute on.
+        /// </summary>
+        /// <param name="source">Source Render Target</param>
+        /// <param name="destination">Destination Render Target</param>
+        public void Setup(RTHandle source, RTHandle destination, Downsampling downsampling)
         {
             this.source = source;
             this.destination = destination;
@@ -47,21 +85,28 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            descriptor.msaaSamples = 1;
-            descriptor.depthBufferBits = 0;
-            if (m_DownsamplingMethod == Downsampling._2xBilinear)
+            if (destination.rt == null)
             {
-                descriptor.width /= 2;
-                descriptor.height /= 2;
-            }
-            else if (m_DownsamplingMethod == Downsampling._4xBox || m_DownsamplingMethod == Downsampling._4xBilinear)
-            {
-                descriptor.width /= 4;
-                descriptor.height /= 4;
-            }
+                RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
+                descriptor.msaaSamples = 1;
+                descriptor.depthBufferBits = 0;
+                if (m_DownsamplingMethod == Downsampling._2xBilinear)
+                {
+                    descriptor.width /= 2;
+                    descriptor.height /= 2;
+                }
+                else if (m_DownsamplingMethod == Downsampling._4xBox || m_DownsamplingMethod == Downsampling._4xBilinear)
+                {
+                    descriptor.width /= 4;
+                    descriptor.height /= 4;
+                }
 
-            cmd.GetTemporaryRT(destination.id, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
+                cmd.GetTemporaryRT(destinationID, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
+            }
+            else
+            {
+                cmd.SetGlobalTexture(destination.name, destination.nameID);
+            }
         }
 
         /// <inheritdoc/>
@@ -74,28 +119,33 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             CommandBuffer cmd = CommandBufferPool.Get();
+
+            //It is possible that the given color target is now the frontbuffer
+            if (source == renderingData.cameraData.renderer.GetCameraColorFrontBuffer(cmd))
+            {
+                source = renderingData.cameraData.renderer.cameraColorTargetHandle;
+            }
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
             {
-                RenderTargetIdentifier opaqueColorRT = destination.Identifier();
-
-                ScriptableRenderer.SetRenderTarget(cmd, opaqueColorRT, BuiltinRenderTextureType.CameraTarget, clearFlag,
+                ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag,
                     clearColor);
 
                 bool useDrawProceduleBlit = renderingData.cameraData.xr.enabled;
                 switch (m_DownsamplingMethod)
                 {
                     case Downsampling.None:
-                        RenderingUtils.Blit(cmd, source, opaqueColorRT, m_CopyColorMaterial, 0, useDrawProceduleBlit);
+                        RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit);
                         break;
                     case Downsampling._2xBilinear:
-                        RenderingUtils.Blit(cmd, source, opaqueColorRT, m_CopyColorMaterial, 0, useDrawProceduleBlit);
+                        RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit);
                         break;
                     case Downsampling._4xBox:
                         m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
-                        RenderingUtils.Blit(cmd, source, opaqueColorRT, m_SamplingMaterial, 0, useDrawProceduleBlit);
+                        RenderingUtils.Blit(cmd, source, destination, m_SamplingMaterial, 0, useDrawProceduleBlit);
                         break;
                     case Downsampling._4xBilinear:
-                        RenderingUtils.Blit(cmd, source, opaqueColorRT, m_CopyColorMaterial, 0, useDrawProceduleBlit);
+                        RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit);
                         break;
                 }
             }
@@ -110,10 +160,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            if (destination != RenderTargetHandle.CameraTarget)
+            if (destination.rt == null && destinationID != -1)
             {
-                cmd.ReleaseTemporaryRT(destination.id);
-                destination = RenderTargetHandle.CameraTarget;
+                cmd.ReleaseTemporaryRT(destinationID);
+                destination.Release();
+                destination = null;
             }
         }
     }

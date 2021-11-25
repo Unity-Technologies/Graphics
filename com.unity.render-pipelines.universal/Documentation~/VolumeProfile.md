@@ -20,7 +20,6 @@ Open the Volume Profile in the Inspector to edit its properties. To do this, you
 
 When you view the Volume Profile in the Inspector, you can only see values from the Volume overrides that the Volume Profile includes; the Volume Profile hides all other values. You must add Volume override components in order to edit the default properties of the Volume Profile.
 
-To add a Volume override component, click on the **Add Override** button, and select which Volume override you want to add to the Volume Profile. 
+To add a Volume override component, click on the **Add Override** button, and select which Volume override you want to add to the Volume Profile.
 
-For example, click on the **Add Override** button and select the **Motion Blur** Volume override. This exposes properties relating to the [Motion Blur](Post-processing-Motion-Blur.md) effect in URP. 
-
+For example, click on the **Add Override** button and select the **Motion Blur** Volume override. This exposes properties relating to the [Motion Blur](Post-processing-Motion-Blur.md) effect in URP.

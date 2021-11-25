@@ -28,6 +28,14 @@ Material:
         m_Texture: {fileID: 2800000, guid: 17c8e6ca2c91eba44aa7c73b1ee3002e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _StringCFNCustomFunction_4eb8f7d0cd13638692727e687c43abf3_u_2:
+        m_Texture: {fileID: 2800000, guid: 17c8e6ca2c91eba44aa7c73b1ee3002e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture2DAsset_3a0da5c55748a28da4397cd33a3402dd_Out_0:
+        m_Texture: {fileID: 2800000, guid: 258fb0813c3d4b94787e48387961144f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _Texture2DAsset_7773CADF_Out:
         m_Texture: {fileID: 2800000, guid: 258fb0813c3d4b94787e48387961144f, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -36,5 +44,19 @@ Material:
         m_Texture: {fileID: 2800000, guid: 258fb0813c3d4b94787e48387961144f, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
     m_Floats: []
     m_Colors: []
+  m_BuildTextureStacks: []

@@ -1,9 +1,15 @@
-﻿Shader "Hidden/Shader/GreenPP"
+Shader "Hidden/Shader/GreenPP"
 {
+    Properties
+    {
+        // This property is necessary to make the CommandBuffer.Blit bind the source texture to _MainTex
+        _MainTex("Main Texture", 2DArray) = "grey" {}
+    }
+
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -36,14 +42,13 @@
 
     // List of properties to control your post process effect
     float _Intensity;
-    TEXTURE2D_X(_InputTexture);
+    TEXTURE2D_X(_MainTex);
 
     float4 CustomPostProcess(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-        uint2 positionSS = input.texcoord * _ScreenSize.xy;
-        float l = Luminance(LOAD_TEXTURE2D_X(_InputTexture, positionSS).xyz);
+        float l = Luminance(SAMPLE_TEXTURE2D_X(_MainTex, s_point_clamp_sampler, input.texcoord).xyz);
 
         return float4(0, l, 0, 1);
     }

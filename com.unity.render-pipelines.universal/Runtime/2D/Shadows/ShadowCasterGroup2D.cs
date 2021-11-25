@@ -1,14 +1,20 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
+    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
     public abstract class ShadowCasterGroup2D : MonoBehaviour
     {
         [SerializeField] internal int m_ShadowGroup = 0;
         List<ShadowCaster2D> m_ShadowCasters;
+
+        internal virtual void CacheValues()
+        {
+            for (int i = 0; i < m_ShadowCasters.Count; i++)
+                m_ShadowCasters[i].CacheValues();
+        }
 
         public List<ShadowCaster2D> GetShadowCasters() { return m_ShadowCasters; }
 

@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Math > Geometry > InvertTRS (Matrix)**
 
-The **Invert TRS (Matrix)** Operator inverts a TRS (Translation, Rotation, and Scaling) matrix. 
+The **Invert TRS (Matrix)** Operator inverts a TRS (Translation, Rotation, and Scaling) matrix.
 
 A matrix is the inverse of another matrix if, when you multiply them together, the result is an [identity matrix](https://docs.unity3d.com/ScriptReference/Matrix4x4-identity.html). For more information on inverse matrices, see [Matrix4x4.inverse](https://docs.unity3d.com/ScriptReference/Matrix4x4-inverse.html).
 

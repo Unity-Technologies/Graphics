@@ -36,12 +36,12 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Constants
-        const EditMode.SceneViewEditMode EditBaseShape = (EditMode.SceneViewEditMode) 100;
-        const EditMode.SceneViewEditMode EditInfluenceShape = (EditMode.SceneViewEditMode) 101;
-        const EditMode.SceneViewEditMode EditInfluenceNormalShape = (EditMode.SceneViewEditMode) 102;
-        const EditMode.SceneViewEditMode EditCapturePosition = (EditMode.SceneViewEditMode) 103;
-        const EditMode.SceneViewEditMode EditMirrorPosition = (EditMode.SceneViewEditMode) 104;
-        const EditMode.SceneViewEditMode EditMirrorRotation = (EditMode.SceneViewEditMode) 105;
+        const EditMode.SceneViewEditMode EditBaseShape = (EditMode.SceneViewEditMode)100;
+        const EditMode.SceneViewEditMode EditInfluenceShape = (EditMode.SceneViewEditMode)101;
+        const EditMode.SceneViewEditMode EditInfluenceNormalShape = (EditMode.SceneViewEditMode)102;
+        const EditMode.SceneViewEditMode EditCapturePosition = (EditMode.SceneViewEditMode)103;
+        const EditMode.SceneViewEditMode EditMirrorPosition = (EditMode.SceneViewEditMode)104;
+        const EditMode.SceneViewEditMode EditMirrorRotation = (EditMode.SceneViewEditMode)105;
         //Note: EditMode.SceneViewEditMode.ReflectionProbeOrigin is still used
         //by legacy reflection probe and have its own mecanism that we don't want
 
@@ -182,11 +182,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
 #endif
 
-                // Probe Mode
-                EditorGUILayout.IntPopup(serialized.probeSettings.mode, k_ModeContents, k_ModeValues, k_BakeTypeContent);
+                    // Probe Mode
+                    EditorGUILayout.IntPopup(serialized.probeSettings.mode, k_ModeContents, k_ModeValues, k_BakeTypeContent);
 
 #if !ENABLE_BAKED_PLANAR
-            }
+                }
 
 #endif
 
@@ -219,7 +219,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 ProbeSettingsUI.Draw(serialized.probeSettings, owner, provider.displayedCaptureSettings);
             }
 
-            public static void DrawAdvancedCaptureSettings(SerializedHDProbe serialized, Editor owner)
+            public static void DrawCaptureSettingsAdditionalProperties(SerializedHDProbe serialized, Editor owner)
             {
                 var provider = new TProvider();
                 ProbeSettingsUI.Draw(serialized.probeSettings, owner, provider.displayedAdvancedCaptureSettings);
@@ -267,6 +267,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         true
                     );
                 }
+
+                // Don't display distanceBasedRoughness if the projection is infinite (as in this case we force distanceBasedRoughness to be 0 in code)
+                if (owner is HDReflectionProbeEditor && !(serialized.proxyVolume.objectReferenceValue == null && serialized.probeSettings.proxyUseInfluenceVolumeAsProxyVolume.boolValue == false))
+                    EditorGUILayout.PropertyField(serialized.probeSettings.distanceBasedRoughness, EditorGUIUtility.TrTextContent("Distance Based Roughness", "When enabled, HDRP uses the assigned Proxy Volume to calculate distance based roughness for reflections. This produces more physically-accurate results if the Proxy Volume closely matches the environment."));
             }
 
             static readonly string[] k_BakeCustomOptionText = { "Bake as new Cubemap..." };
@@ -366,6 +370,34 @@ namespace UnityEditor.Rendering.HighDefinition
                         break;
                     default: throw new ArgumentOutOfRangeException();
                 }
+            }
+
+            public static void DrawSHNormalizationStatus(SerializedHDProbe serialized, Editor owner)
+            {
+                const string kResolution = " Please ensure that probe positions are valid (not inside static geometry) then bake lighting to regenerate data.";
+                const string kMixedMode = "Unable to show normalization data validity when selecting probes with different modes.";
+                const string kMixedValidity = "Baked reflection probe normalization data is partially invalid." + kResolution;
+                const string kValid = "Baked reflection probe normalization data is valid.";
+                const string kInvalid = "Baked reflection probe normalization data is invalid." + kResolution;
+
+                var globalSettings = HDRenderPipelineGlobalSettings.instance;
+                if (globalSettings == null || !globalSettings.supportProbeVolumes)
+                    return;
+
+                var spMode = serialized.serializedObject.FindProperty("m_ProbeSettings.mode");
+                var spValid = serialized.serializedObject.FindProperty("m_HasValidSHForNormalization");
+
+                if (spMode.intValue != (int)ProbeSettings.Mode.Baked)
+                    return;
+
+                EditorGUILayout.Space();
+
+                if (spMode.hasMultipleDifferentValues)
+                    EditorGUILayout.HelpBox(kMixedMode, MessageType.Info);
+                else if (spValid.hasMultipleDifferentValues)
+                    EditorGUILayout.HelpBox(kMixedValidity, MessageType.Warning);
+                else
+                    EditorGUILayout.HelpBox(spValid.boolValue ? kValid : kInvalid, spValid.boolValue ? MessageType.Info : MessageType.Warning);
             }
 
             static MethodInfo k_EditorGUI_ButtonWithDropdownList = typeof(EditorGUI).GetMethod("ButtonWithDropdownList", BindingFlags.Static | BindingFlags.NonPublic, null, CallingConventions.Any, new[] { typeof(GUIContent), typeof(string[]), typeof(GenericMenu.MenuFunction2), typeof(GUILayoutOption[]) }, new ParameterModifier[0]);

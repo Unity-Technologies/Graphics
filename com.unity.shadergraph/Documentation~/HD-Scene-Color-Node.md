@@ -22,4 +22,3 @@ The HD Scene Color Node does the same thing as the Scene Color Node, but allows 
 You can use the Exposure property to specify if you want to output the Camera color with exposure applied or not. By default, this property is disabled to avoid double exposure.
 
 The sampler that this Node uses to sample the color buffer is in trilinear clamp mode. This allows the sampler to smoothly interpolate between the mip maps.
-

@@ -1,0 +1,18 @@
+project:
+  name: Universal_Split
+
+jobs:
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - .yamato/all-urp_2d.yml#PR_URP_2D_<TRACK>
+      - .yamato/all-urp_foundation.yml#PR_URP_Foundation_<TRACK>
+      - .yamato/all-urp_lighting.yml#PR_URP_Lighting_<TRACK>
+      - .yamato/all-urp_terrain.yml#PR_URP_Terrain_<TRACK>
+      - .yamato/all-urp_postpro.yml#PR_URP_PostPro_<TRACK>
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      - .yamato/all-urp_2d.yml#Extra_URP_2D_<TRACK>
+      - .yamato/all-urp_foundation.yml#Extra_URP_Foundation_<TRACK>
+      - .yamato/all-urp_lighting.yml#Extra_URP_Lighting_<TRACK>
+      - .yamato/all-urp_terrain.yml#Extra_URP_Terrain_<TRACK>
+      - .yamato/all-urp_postpro.yml#Extra_URP_PostPro_<TRACK>

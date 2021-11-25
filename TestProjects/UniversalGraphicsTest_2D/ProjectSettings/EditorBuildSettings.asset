@@ -1,0 +1,218 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Letterbox_Horizontal.unity
+    guid: 24a1d843260e50e47a977dc5b85f2a1c
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Letterbox_Vertical.unity
+    guid: 8b440042f7e18e54091ec0018f0be114
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_None_Horizontal.unity
+    guid: ac09da777fb4f2941aec9e41024e77f3
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_None_Vertical.unity
+    guid: 8588594b594f43c488b566650e2a619c
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Pillarbox_Horizontal.unity
+    guid: 7d579c3d1dc998f488237ef1937f0d30
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Pillarbox_Vertical.unity
+    guid: d9f6f1c7b403eab4ea9471f5430e4983
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Stretch_Fill_Horizontal.unity
+    guid: 068270467c3d4b74dbf02fcd3f4e7874
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Stretch_Fill_Vertical.unity
+    guid: 1071a050545e7114f9b60aca728069f2
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Windowbox_Horizontal.unity
+    guid: 0f6e91656b4296249a0930b3285089c4
+  - enabled: 1
+    path: Assets/Scenes/001_Pixel_Perfect_CropFrame_Windowbox_Vertical.unity
+    guid: 8e1e5847d88a22b41820e186638b67ab
+  - enabled: 1
+    path: Assets/Scenes/002_PixelPerfect_Snap_PixelSnap.unity
+    guid: b39c936f0eee11d4babf26af4aa38caf
+  - enabled: 1
+    path: Assets/Scenes/002_PixelPerfect_Snap_UpscaleRenderTexture.unity
+    guid: 7448296ffbf688748a22e203bc2ed8b2
+  - enabled: 1
+    path: Assets/Scenes/003_PixelPerfect_Cinemachine.unity
+    guid: 548efbe8196c7bb41a94d25d70cf82e6
+  - enabled: 1
+    path: Assets/Scenes/003_PixelPerfect_StretchFill_RetroAA.unity
+    guid: 7dae1015b491af64bb5866e0b3c43aa2
+  - enabled: 1
+    path: Assets/Scenes/003_PixelPerfect_StretchFill_Point.unity
+    guid: 6d772a427194d2b4e96a0fc7ecf8b608
+  - enabled: 1
+    path: Assets/Scenes/003_PixelPerfect_StretchFill_UpscaleRT_RetroAA.unity
+    guid: ec03f185c783b444899615c87fd771b2
+  - enabled: 1
+    path: Assets/Scenes/003_PixelPerfect_StretchFill_UpscaleRT_Point.unity
+    guid: dc2319f8cc6ad4e458a9554e4647c0dd
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_000.unity
+    guid: 304cf4847cf9c824a914e06835197176
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_001_Self.unity
+    guid: 7599bce7824e37a4e98f14a6a979d514
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_010_Casts.unity
+    guid: f1133382f389ec44fb4ca453261df767
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_011_Casts_Self.unity
+    guid: 2ebe6f9707194264dbb7c5ea1a554a63
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_101_Silhoutte_Self.unity
+    guid: d8fca6ddf5f036e4c9f78ca6a73c9c7e
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_110_Silhoutte_Casts.unity
+    guid: 2dda30162850d854a82c0aefd796ac47
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_111_Silhoutte_Casts_Self.unity
+    guid: 6c6efdca0c680b644afe1e5633c16f1e
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Perspective_010_Casts.unity
+    guid: 131bd0d5f9d17c2428d5c3d1ec81c404
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Perspective_011_Casts_Self.unity
+    guid: 628b5808162e78e44873c13d02ee6004
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Perspective_110_Silhoutte_Casts.unity
+    guid: 4c07daa3552b3394089af62683209c84
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Perspective_111_Silhoutte_Casts_Self.unity
+    guid: 2a18f99570705fd449f8655170150241
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_Volumetric_111_Silhoutte_Casts_Self.unity
+    guid: 7162c533026f1df40acb93885a833d3d
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_Volumetric_110_Silhoutte_Casts.unity
+    guid: 352218ce3212d9e4fbe0a167d6081bb2
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_Volumetric_101_Silhoutte_Self.unity
+    guid: 09188a0a64a3a8148af5f186fe5575f9
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_Volumetric_011_Casts_Self.unity
+    guid: 45ef0f49a3464054399f4da9d4e9ff0d
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_Volumetric_010_Casts.unity
+    guid: cb076ec83e2f72c44b38c9252edd457c
+  - enabled: 1
+    path: Assets/Scenes/004_Shadows_Caster_Ortho_Volumetric_001_Self.unity
+    guid: d500c08dea0bd74489aa077fd270ce7c
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Composite_Ortho_010_Casts.unity
+    guid: bb5969d69f099614fac0de58964a31f7
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Composite_Ortho_011_Casts_Self.unity
+    guid: f7952349d3e7dc948939e2cb20e23cd7
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Composite_Ortho_110_Silhoutte_Casts.unity
+    guid: 69114a96062831843a5fbd2dc88d4bbc
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Composite_Ortho_111_Silhoutte_Casts_Self.unity
+    guid: 0c92f1bbe0928b542a0eabd9058802a0
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Composite_Perspective_010_Casts.unity
+    guid: b5cae22917767144b9ca74c726ad2397
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Composite_Perspective_011_Casts_Self.unity
+    guid: da610f9f6388f6643982010dab851e81
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Composite_Perspective_110_Silhoutte_Casts.unity
+    guid: 6911d731a08c29a42a27064fa52ba1ed
+  - enabled: 1
+    path: Assets/Scenes/005_Shadows_Composite_Perspective_111_Silhoutte_Casts_Self.unity
+    guid: 1e524f710a15aab43acaa97cb477ddab
+  - enabled: 1
+    path: Assets/Scenes/006_Shadows_Multi_Light_Ortho.unity
+    guid: 117f831afebc64849a3778657be72e4b
+  - enabled: 1
+    path: Assets/Scenes/007_Shadows_Layers_Ortho_All.unity
+    guid: de4584021b3367c4e8117b0cc77a3ced
+  - enabled: 1
+    path: Assets/Scenes/007_Shadows_Layers_Ortho_BG.unity
+    guid: ecdd95c8c8d9a10429c3a9a096b223dc
+  - enabled: 1
+    path: Assets/Scenes/007_Shadows_Layers_Ortho_Default.unity
+    guid: 68090b5e260eb2e4eb9bb33377560ec8
+  - enabled: 1
+    path: Assets/Scenes/008_Shadows_Transparency_Composite_Ortho_NonSelf_vs_NonSelf.unity
+    guid: 872553bc79db0924cb5950ce38bb55fe
+  - enabled: 1
+    path: Assets/Scenes/008_Shadows_Transparency_Composite_Ortho_Self_vs_NonSelf.unity
+    guid: e06c2b4e832508b4c81cf82a2e48355e
+  - enabled: 1
+    path: Assets/Scenes/008_Shadows_Transparency_Composite_Ortho_Self_vs_Self.unity
+    guid: 966062afce8978f48b90fbe2210979b6
+  - enabled: 1
+    path: Assets/Scenes/009_SpriteLitDefault_AlphaBlend.unity
+    guid: df07866e99067544bb1e108bba736149
+  - enabled: 1
+    path: Assets/Scenes/010_2D_Sprite_Mask.unity
+    guid: 69088ea57141f154599d0b9cb3b27662
+  - enabled: 1
+    path: Assets/Scenes/010_2D_Sprite_Mask_Normals.unity
+    guid: ed89280810f9d034f93a6efc7ca1816e
+  - enabled: 1
+    path: Assets/Scenes/011_UnlitSprites.unity
+    guid: c1aed1727cd63dd42882f4c9ebb99cf4
+  - enabled: 1
+    path: Assets/Scenes/012_NormalTesting_LightDown_Ortho.unity
+    guid: 849c312ff15ec204b8f18a77b8643a65
+  - enabled: 1
+    path: Assets/Scenes/012_NormalTesting_LightLeft_Ortho.unity
+    guid: 0fd44d2e2f67f3f409e235837e3a3849
+  - enabled: 1
+    path: Assets/Scenes/012_NormalTesting_LightRight_Ortho.unity
+    guid: 6542f843b1485984cb049a56a7311111
+  - enabled: 1
+    path: Assets/Scenes/012_NormalTesting_LightUp_Ortho.unity
+    guid: f93eb07698c337345b6f8bab66bfe2ba
+  - enabled: 1
+    path: Assets/Scenes/012_NormalTestingRotated_LightDown_Ortho.unity
+    guid: 0216281c78433a24a95d8eafeb7cb572
+  - enabled: 1
+    path: Assets/Scenes/012_NormalTestingRotated_LightLeft_Ortho.unity
+    guid: 317ee392775580949aee86f84c7e2686
+  - enabled: 1
+    path: Assets/Scenes/012_NormalTestingRotated_LightRight_Ortho.unity
+    guid: 1963e16dd003efc44a0259c239144717
+  - enabled: 1
+    path: Assets/Scenes/012_NormalTestingRotated_LightUp_Ortho.unity
+    guid: 84884fed3ff237d4d9a38a1163699383
+  - enabled: 1
+    path: Assets/Scenes/013_Shadergraph_AlphaBlend.unity
+    guid: a845098be7b438b40a7f4dee1b6aa5aa
+  - enabled: 1
+    path: Assets/Scenes/014_Layer_Batching_GlobalLightWithShadows.unity
+    guid: 428ccbee9b0fb7c4ca5f4dd5579b62d3
+  - enabled: 1
+    path: Assets/Scenes/072_Shadow_Prerendering.unity
+    guid: 5c51bb3f8f127fd4cbfa0fbdb9221b0e
+  - enabled: 1
+    path: Assets/Scenes/070_2D_Forward_Shader_Compatibility_2D.unity
+    guid: c8f0da7688959b142bebd1f707d6f935
+  - enabled: 1
+    path: Assets/Scenes/069_2D_Forward_Shader_Compatibility_Forward.unity
+    guid: 4387c323b80b3f8479359d07b90f0031
+  - enabled: 1
+    path: Assets/Scenes/060_2D_Renderer_Feature.unity
+    guid: 685e926d45059124dbe53d3d229ea876
+  - enabled: 1
+    path: Assets/Scenes/056_2D_Lights-Shadows.unity
+    guid: 4f7a50da47cfeca46b45fe14be17081d
+  - enabled: 1
+    path: Assets/Scenes/056_2D_Lights_Shader_Graph.unity
+    guid: 381306730e4f1b141bf8e0e1c35f16e9
+  - enabled: 1
+    path: Assets/Scenes/056_2D_Lights.unity
+    guid: c0c276a91b93d254b957277941d2329b
+  m_configObjects: {}

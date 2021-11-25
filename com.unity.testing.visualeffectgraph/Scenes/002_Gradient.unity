@@ -447,7 +447,7 @@ VisualEffect:
           key5: {r: 0, g: 0, b: 0, a: 0}
           key6: {r: 0, g: 0, b: 0, a: 0}
           key7: {r: 0, g: 0, b: 0, a: 0}
-          ctime0: 13220
+          ctime0: 15073
           ctime1: 65535
           ctime2: 65535
           ctime3: 0
@@ -455,7 +455,7 @@ VisualEffect:
           ctime5: 0
           ctime6: 0
           ctime7: 0
-          atime0: 13126
+          atime0: 15073
           atime1: 43155
           atime2: 65535
           atime3: 65535
@@ -1763,6 +1763,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1844919546}
+  - component: {fileID: 1844919547}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -1784,6 +1785,26 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 11
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1844919547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1844919545}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20f198885badb1f4fa1e65869995ff82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ImageComparisonSettings:
+    TargetWidth: 512
+    TargetHeight: 512
+    PerPixelCorrectnessThreshold: 0.00001
+    AverageCorrectnessThreshold: 0.00001
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 0
 --- !u!850595691 &1941860655
 LightingSettings:
   m_ObjectHideFlags: 0

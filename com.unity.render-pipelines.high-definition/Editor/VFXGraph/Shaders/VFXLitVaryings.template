@@ -67,7 +67,7 @@ o.VFX_VARYING_METALLIC = metallic;
 #elif HDRP_MATERIAL_TYPE_SPECULAR
 #ifdef VFX_VARYING_SPECULAR
 ${VFXLoadParameter:{specularColor}}
-o.VFX_VARYING_SPECULAR = specularColor;
+o.VFX_VARYING_SPECULAR = specularColor.rgb;
 #endif
 #elif HDRP_MATERIAL_TYPE_TRANSLUCENT
 #ifdef VFX_VARYING_THICKNESS
@@ -92,7 +92,7 @@ o.VFX_VARYING_EMISSIVESCALE = emissiveScale;
 o.VFX_VARYING_EMISSIVE = attributes.color;
 #elif HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
 ${VFXLoadParameter:{emissiveColor}}
-o.VFX_VARYING_EMISSIVE = emissiveColor;
+o.VFX_VARYING_EMISSIVE = emissiveColor.rgb;
 #endif
 #endif
 #if HDRP_USE_ADDITIONAL_BASE_COLOR

@@ -12,7 +12,7 @@ You can use this Operator to introduce variety to your particle attributes. A co
 
 | **Property**   | **Type** | **Description**                                              |
 | -------------- | -------- | ------------------------------------------------------------ |
-| **Dimensions** | Enum     | Specify whether the noise should be one, two, or three dimensional. |
+| **Dimensions** | Enum     | Specify whether the noise is one, two, or three dimensional. |
 | **Type**       | Enum     | Specify what type of noise to use.                           |
 
 ## Operator properties

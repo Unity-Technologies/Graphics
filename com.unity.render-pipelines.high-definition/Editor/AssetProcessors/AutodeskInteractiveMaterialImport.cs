@@ -21,8 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
-            var pipelineAsset = GraphicsSettings.currentRenderPipeline;
-            if (!pipelineAsset || pipelineAsset.GetType() != typeof(HDRenderPipelineAsset))
+            if (HDRenderPipeline.currentAsset == null)
                 return;
 
             if (IsAutodeskInteractiveMaterial(description))
@@ -54,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (description.TryGetProperty("base_color", out vectorProperty))
                     material.SetColor("_Color", vectorProperty);
                 if (description.TryGetProperty("emissive", out vectorProperty))
-                    material.SetColor("_EmissionColor", vectorProperty);
+                    material.SetColor("_Emissive", vectorProperty);
 
                 if (description.TryGetProperty("roughness", out floatProperty))
                     material.SetFloat("_Roughness", floatProperty);

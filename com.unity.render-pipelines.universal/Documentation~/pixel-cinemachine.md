@@ -14,6 +14,5 @@ When the [Cinemachine Brain](https://docs.unity3d.com/Packages/com.unity.cinemac
 
 The following are the current limitations of the extension:
 
-- When a virtual camera with the Pixel Perfect extension is set to follow a [Target Group](https://docs.unity3d.com/Packages/com.unity.cinemachine@2.3/manual/CinemachineTargetGroup.html), there may be visible choppiness when the virtual camera is positioned with the [Framing Transposer](https://www.google.com/search?client=firefox-b-d&q=framing+transposer+unity) component. 
+- When a virtual camera with the Pixel Perfect extension is set to follow a [Target Group](https://docs.unity3d.com/Packages/com.unity.cinemachine@2.3/manual/CinemachineTargetGroup.html), there may be visible choppiness when the virtual camera is positioned with the [Framing Transposer](https://www.google.com/search?client=firefox-b-d&q=framing+transposer+unity) component.
 - If the __Upscale Render Texture__ option is enabled on the Pixel Perfect Camera, there are less possible pixel-perfect resolutions that match the original orthographic size of the virtual cameras. This may cause  the framing of the virtual cameras to be off by quite a large margin after the pixel-perfect calculations.
-

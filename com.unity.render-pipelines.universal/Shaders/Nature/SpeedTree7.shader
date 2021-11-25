@@ -36,17 +36,22 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
-            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
+            #pragma multi_compile_fragment _ _LIGHT_COOKIES
+            #pragma multi_compile _ _CLUSTERED_RENDERING
+
             #pragma multi_compile_fog
 
             #pragma multi_compile_instancing
-            #pragma instancing_options assumeuniformscaling maxcount:50
+            #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50
 
             #pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH
             #pragma shader_feature_local EFFECT_BUMP
@@ -97,6 +102,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma vertex SpeedTree7VertDepth
             #pragma fragment SpeedTree7FragDepth
 
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
             #pragma multi_compile_instancing
@@ -107,6 +113,12 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #define ENABLE_WIND
             #define DEPTH_ONLY
             #define SHADOW_CASTER
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+
+            // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
 
             #include "SpeedTree7Input.hlsl"
             #include "SpeedTree7Passes.hlsl"
@@ -124,16 +136,18 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
-            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _LIGHT_LAYERS
+            #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
 
             #pragma multi_compile_instancing
-            #pragma instancing_options assumeuniformscaling maxcount:50
+            #pragma instancing_options renderinglayer assumeuniformscaling maxcount:50
 
             #pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH
             #pragma shader_feature_local EFFECT_BUMP
@@ -154,13 +168,14 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
-            ColorMask 0
+            ColorMask R
 
             HLSLPROGRAM
 
             #pragma vertex SpeedTree7VertDepth
             #pragma fragment SpeedTree7FragDepth
 
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
             #pragma multi_compile_instancing
@@ -187,6 +202,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma vertex SpeedTree7VertDepthNormal
             #pragma fragment SpeedTree7FragDepthNormal
 
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
             #pragma multi_compile_instancing

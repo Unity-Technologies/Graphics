@@ -25,6 +25,9 @@
 #ifdef DEBUG_DISPLAY
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 #endif
+#ifdef SCENESELECTIONPASS
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
+#endif
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
 #if SHADERPASS == SHADERPASS_FORWARD
@@ -50,6 +53,13 @@
     #if SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
         #define ATTRIBUTES_NEED_TEXCOORD1
         #define ATTRIBUTES_NEED_TEXCOORD2
+        #ifdef EDITOR_VISUALIZATION
+        #define ATTRIBUTES_NEED_TEXCOORD3
+        #define VARYINGS_NEED_TEXCOORD0
+        #define VARYINGS_NEED_TEXCOORD1
+        #define VARYINGS_NEED_TEXCOORD2
+        #define VARYINGS_NEED_TEXCOORD3
+        #endif
     #endif
     // Varying - Use for pixel shader
     // This second set of define allow to say which varyings will be output in the vertex (no more tesselation)

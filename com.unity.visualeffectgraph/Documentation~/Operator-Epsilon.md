@@ -1,6 +1,6 @@
 # Epsilon (Ɛ)
 
-Menu Path : **Operator > Math > Constants > Epsilon (Ɛ)**  
+Menu Path : **Operator > Math > Constants > Epsilon (Ɛ)**
 
 The **Epsilon (Ɛ)** Operator returns a tiny value. This is useful for comparisons as it can help to avoid potential precision issues with floats.
 

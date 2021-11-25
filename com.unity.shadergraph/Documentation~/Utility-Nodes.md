@@ -23,4 +23,3 @@
 |[**Not**](Not-Node.md)|[**Or**](Or-Node.md)|
 |![Image](images/NotNodeThumb.png)|![Image](images/OrNodeThumb.png)|
 |Returns the opposite of input In. If In is true, the output is false. Otherwise, it returns true.|Returns true if either input A or input B is true.|
-

@@ -43,10 +43,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_NumberOfBounces;
 
-        GUIContent      m_ModelTypeLabel = new GUIContent("Type", "Specifies a preset to simplify the interface.");
+        GUIContent m_ModelTypeLabel = new GUIContent("Type", "Specifies a preset to simplify the interface.");
 
-        GUIContent[]    m_ModelTypes = { new GUIContent("Earth (Simple)"), new GUIContent("Earth (Advanced)"), new GUIContent("Custom Planet") };
-        int[]           m_ModelTypeValues = { (int)PhysicallyBasedSkyModel.EarthSimple, (int)PhysicallyBasedSkyModel.EarthAdvanced, (int)PhysicallyBasedSkyModel.Custom };
+        GUIContent[] m_ModelTypes = { new GUIContent("Earth (Simple)"), new GUIContent("Earth (Advanced)"), new GUIContent("Custom Planet") };
+        int[] m_ModelTypeValues = { (int)PhysicallyBasedSkyModel.EarthSimple, (int)PhysicallyBasedSkyModel.EarthAdvanced, (int)PhysicallyBasedSkyModel.Custom };
 
         public override void OnEnable()
         {
@@ -58,60 +58,53 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var o = new PropertyFetcher<PhysicallyBasedSky>(serializedObject);
 
-            m_Type                     = Unpack(o.Find(x => x.type));
-            m_SphericalMode            = Unpack(o.Find(x => x.sphericalMode));
-            m_SeaLevel                 = Unpack(o.Find(x => x.seaLevel));
-            m_PlanetaryRadius          = Unpack(o.Find(x => x.planetaryRadius));
-            m_PlanetCenterPosition     = Unpack(o.Find(x => x.planetCenterPosition));
-            m_PlanetRotation           = Unpack(o.Find(x => x.planetRotation));
-            m_GroundColorTexture       = Unpack(o.Find(x => x.groundColorTexture));
-            m_GroundTint               = Unpack(o.Find(x => x.groundTint));
-            m_GroundEmissionTexture    = Unpack(o.Find(x => x.groundEmissionTexture));
+            m_Type = Unpack(o.Find(x => x.type));
+            m_SphericalMode = Unpack(o.Find(x => x.sphericalMode));
+            m_SeaLevel = Unpack(o.Find(x => x.seaLevel));
+            m_PlanetaryRadius = Unpack(o.Find(x => x.planetaryRadius));
+            m_PlanetCenterPosition = Unpack(o.Find(x => x.planetCenterPosition));
+            m_PlanetRotation = Unpack(o.Find(x => x.planetRotation));
+            m_GroundColorTexture = Unpack(o.Find(x => x.groundColorTexture));
+            m_GroundTint = Unpack(o.Find(x => x.groundTint));
+            m_GroundEmissionTexture = Unpack(o.Find(x => x.groundEmissionTexture));
             m_GroundEmissionMultiplier = Unpack(o.Find(x => x.groundEmissionMultiplier));
 
-            m_SpaceRotation            = Unpack(o.Find(x => x.spaceRotation));
-            m_SpaceEmissionTexture     = Unpack(o.Find(x => x.spaceEmissionTexture));
-            m_SpaceEmissionMultiplier  = Unpack(o.Find(x => x.spaceEmissionMultiplier));
+            m_SpaceRotation = Unpack(o.Find(x => x.spaceRotation));
+            m_SpaceEmissionTexture = Unpack(o.Find(x => x.spaceEmissionTexture));
+            m_SpaceEmissionMultiplier = Unpack(o.Find(x => x.spaceEmissionMultiplier));
 
-            m_AirMaximumAltitude       = Unpack(o.Find(x => x.airMaximumAltitude));
-            m_AirDensityR              = Unpack(o.Find(x => x.airDensityR));
-            m_AirDensityG              = Unpack(o.Find(x => x.airDensityG));
-            m_AirDensityB              = Unpack(o.Find(x => x.airDensityB));
-            m_AirTint                  = Unpack(o.Find(x => x.airTint));
+            m_AirMaximumAltitude = Unpack(o.Find(x => x.airMaximumAltitude));
+            m_AirDensityR = Unpack(o.Find(x => x.airDensityR));
+            m_AirDensityG = Unpack(o.Find(x => x.airDensityG));
+            m_AirDensityB = Unpack(o.Find(x => x.airDensityB));
+            m_AirTint = Unpack(o.Find(x => x.airTint));
 
-            m_AerosolMaximumAltitude   = Unpack(o.Find(x => x.aerosolMaximumAltitude));
-            m_AerosolDensity           = Unpack(o.Find(x => x.aerosolDensity));
-            m_AerosolTint              = Unpack(o.Find(x => x.aerosolTint));
-            m_AerosolAnisotropy        = Unpack(o.Find(x => x.aerosolAnisotropy));
+            m_AerosolMaximumAltitude = Unpack(o.Find(x => x.aerosolMaximumAltitude));
+            m_AerosolDensity = Unpack(o.Find(x => x.aerosolDensity));
+            m_AerosolTint = Unpack(o.Find(x => x.aerosolTint));
+            m_AerosolAnisotropy = Unpack(o.Find(x => x.aerosolAnisotropy));
 
-            m_ColorSaturation          = Unpack(o.Find(x => x.colorSaturation));
-            m_AlphaSaturation          = Unpack(o.Find(x => x.alphaSaturation));
-            m_AlphaMultiplier          = Unpack(o.Find(x => x.alphaMultiplier));
-            m_HorizonTint              = Unpack(o.Find(x => x.horizonTint));
-            m_ZenithTint               = Unpack(o.Find(x => x.zenithTint));
-            m_HorizonZenithShift       = Unpack(o.Find(x => x.horizonZenithShift));
+            m_ColorSaturation = Unpack(o.Find(x => x.colorSaturation));
+            m_AlphaSaturation = Unpack(o.Find(x => x.alphaSaturation));
+            m_AlphaMultiplier = Unpack(o.Find(x => x.alphaMultiplier));
+            m_HorizonTint = Unpack(o.Find(x => x.horizonTint));
+            m_ZenithTint = Unpack(o.Find(x => x.zenithTint));
+            m_HorizonZenithShift = Unpack(o.Find(x => x.horizonZenithShift));
 
-            m_NumberOfBounces          = Unpack(o.Find(x => x.numberOfBounces));
+            m_NumberOfBounces = Unpack(o.Find(x => x.numberOfBounces));
         }
 
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.LabelField("Model");
+            DrawHeader("Model");
 
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                DrawOverrideCheckbox(m_Type);
-
-                using (new EditorGUI.DisabledScope(!m_Type.overrideState.boolValue))
-                {
+            using (var scope = new OverridablePropertyScope(m_Type, m_ModelTypeLabel, this))
+                if (scope.displayed)
                     m_Type.value.intValue = EditorGUILayout.IntPopup(m_ModelTypeLabel, m_Type.value.intValue, m_ModelTypes, m_ModelTypeValues);
-                }
-            }
 
             PhysicallyBasedSkyModel type = (PhysicallyBasedSkyModel)m_Type.value.intValue;
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Planet");
+            DrawHeader("Planet");
 
             if (type == PhysicallyBasedSkyModel.EarthSimple)
                 PropertyField(m_SeaLevel);
@@ -119,7 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PropertyField(m_SphericalMode);
 
-                using (new HDEditorUtils.IndentScope())
+                using (new IndentLevelScope())
                 {
                     bool isSpherical = !m_SphericalMode.overrideState.boolValue || m_SphericalMode.value.boolValue;
                     if (isSpherical)
@@ -145,8 +138,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (type != PhysicallyBasedSkyModel.EarthSimple)
             {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Space");
+                DrawHeader("Space");
                 PropertyField(m_SpaceRotation);
                 PropertyField(m_SpaceEmissionTexture);
                 PropertyField(m_SpaceEmissionMultiplier);
@@ -154,8 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (type == PhysicallyBasedSkyModel.Custom)
             {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Air");
+                DrawHeader("Air");
                 PropertyField(m_AirMaximumAltitude);
                 PropertyField(m_AirDensityR);
                 PropertyField(m_AirDensityG);
@@ -163,8 +154,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_AirTint);
             }
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Aerosols");
+            DrawHeader("Aerosols");
             PropertyField(m_AerosolDensity);
             PropertyField(m_AerosolTint);
             if (type != PhysicallyBasedSkyModel.EarthSimple)
@@ -174,7 +164,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Artistic Overrides");
+            DrawHeader("Artistic Overrides");
             PropertyField(m_ColorSaturation);
             PropertyField(m_AlphaSaturation);
             PropertyField(m_AlphaMultiplier);
@@ -183,7 +173,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_ZenithTint);
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Miscellaneous");
+            DrawHeader("Miscellaneous");
             PropertyField(m_NumberOfBounces);
 
             base.CommonSkySettingsGUI();

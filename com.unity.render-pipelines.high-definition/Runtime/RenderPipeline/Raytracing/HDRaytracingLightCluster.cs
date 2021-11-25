@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
     class HDRaytracingLightCluster
     {
         // External data
-        RenderPipelineResources m_RenderPipelineResources = null;
+        HDRenderPipelineRuntimeResources m_RenderPipelineResources = null;
         HDRenderPipelineRayTracingResources m_RenderPipelineRayTracingResources = null;
         HDRenderPipeline m_RenderPipeline = null;
 
@@ -40,11 +40,8 @@ namespace UnityEngine.Rendering.HighDefinition
         List<EnvLightData> m_EnvLightDataCPUArray = new List<EnvLightData>();
         ComputeBuffer m_EnvLightDataGPUArray = null;
 
-        RTHandle m_DebugLightClusterTexture = null;
-
         // Light cluster debug material
         Material m_DebugMaterial = null;
-        MaterialPropertyBlock m_DebugMaterialProperties = new MaterialPropertyBlock();
 
         // String values
         const string m_LightClusterKernelName = "RaytracingLightCluster";
@@ -80,15 +77,11 @@ namespace UnityEngine.Rendering.HighDefinition
         VisibleLight visibleLight = new VisibleLight();
         Light lightComponent;
 
-        public HDRaytracingLightCluster()
-        {
-        }
-
         public void Initialize(HDRenderPipeline renderPipeline)
         {
             // Keep track of the external buffers
-            m_RenderPipelineResources = renderPipeline.asset.renderPipelineResources;
-            m_RenderPipelineRayTracingResources = renderPipeline.asset.renderPipelineRayTracingResources;
+            m_RenderPipelineResources = HDRenderPipelineGlobalSettings.instance.renderPipelineResources;
+            m_RenderPipelineRayTracingResources = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources;
 
             // Keep track of the render pipeline
             m_RenderPipeline = renderPipeline;
@@ -108,53 +101,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void ReleaseResources()
         {
-            if (m_LightVolumeGPUArray != null)
-            {
-                CoreUtils.SafeRelease(m_LightVolumeGPUArray);
-                m_LightVolumeGPUArray = null;
-            }
+            CoreUtils.SafeRelease(m_LightVolumeGPUArray);
+            m_LightVolumeGPUArray = null;
 
-            if (m_LightCluster != null)
-            {
-                CoreUtils.SafeRelease(m_LightCluster);
-                m_LightCluster = null;
-            }
+            CoreUtils.SafeRelease(m_LightCluster);
+            m_LightCluster = null;
 
-            if (m_LightCullResult != null)
-            {
-                CoreUtils.SafeRelease(m_LightCullResult);
-                m_LightCullResult = null;
-            }
+            CoreUtils.SafeRelease(m_LightCullResult);
+            m_LightCullResult = null;
 
-            if (m_LightDataGPUArray != null)
-            {
-                CoreUtils.SafeRelease(m_LightDataGPUArray);
-                m_LightDataGPUArray = null;
-            }
+            CoreUtils.SafeRelease(m_LightDataGPUArray);
+            m_LightDataGPUArray = null;
 
-            if (m_EnvLightDataGPUArray != null)
-            {
-                CoreUtils.SafeRelease(m_EnvLightDataGPUArray);
-                m_EnvLightDataGPUArray = null;
-            }
+            CoreUtils.SafeRelease(m_EnvLightDataGPUArray);
+            m_EnvLightDataGPUArray = null;
 
-            if (m_DebugMaterial != null)
-            {
-                CoreUtils.Destroy(m_DebugMaterial);
-                m_DebugMaterial = null;
-            }
-        }
-
-        public void InitializeNonRenderGraphResources()
-        {
-            // Texture used to output debug information
-            m_DebugLightClusterTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "DebugLightClusterTexture");
-        }
-
-        public void CleanupNonRenderGraphResources()
-        {
-            m_DebugLightClusterTexture.Release();
-            m_DebugLightClusterTexture = null;
+            CoreUtils.Destroy(m_DebugMaterial);
+            m_DebugMaterial = null;
         }
 
         void ResizeClusterBuffer(int bufferSize)
@@ -293,17 +256,25 @@ namespace UnityEngine.Rendering.HighDefinition
             totalLightCount = 0;
 
             int realIndex = 0;
-            for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightArray.Count; ++lightIdx)
+            HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
+            for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightEntityArray.Count; ++lightIdx)
             {
-                HDAdditionalLightData currentLight = rayTracingLights.hdLightArray[lightIdx];
+                int dataIndex = lightEntities.GetEntityDataIndex(rayTracingLights.hdLightEntityArray[lightIdx]);
+                HDAdditionalLightData currentLight = lightEntities.hdAdditionalLightData[dataIndex];
 
                 // When the user deletes a light source in the editor, there is a single frame where the light is null before the collection of light in the scene is triggered
                 // the workaround for this is simply to not add it if it is null for that invalid frame
                 if (currentLight != null)
                 {
                     Light light = currentLight.gameObject.GetComponent<Light>();
-                    if (light == null || !light.enabled) continue;
+                    if (light == null || !light.enabled)
+                        continue;
 
+                    // If the light is flagged as baked and has been effectively been baked, we need to skip it and not add it to the light cluster
+                    if (light.bakingOutput.lightmapBakeType == LightmapBakeType.Baked && light.bakingOutput.isBaked)
+                        continue;
+
+                    // If this light should not be included when ray tracing is active on the camera, skip it
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && !currentLight.includeForRayTracing)
                         continue;
 
@@ -334,7 +305,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // let's compute the oobb of the light influence volume first
                         Vector3 oobbDimensions = new Vector3(currentLight.shapeWidth + 2 * lightRange, currentLight.shapeHeight + 2 * lightRange, lightRange); // One-sided
-                        Vector3 extents    = 0.5f * oobbDimensions;
+                        Vector3 extents = 0.5f * oobbDimensions;
                         Vector3 oobbCenter = lightPositionRWS + extents.z * currentLight.gameObject.transform.forward;
 
                         // Let's now compute an AABB that matches the previously defined OOBB
@@ -360,15 +331,24 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDProbe currentEnvLight = rayTracingLights.reflectionProbeArray[lightIdx];
 
-                // Compute the camera relative position
-                Vector3 probePositionRWS = currentEnvLight.influenceToWorld.GetColumn(3);
-                if (ShaderConfig.s_CameraRelativeRendering != 0)
-                {
-                    probePositionRWS -= hdCamera.camera.transform.position;
-                }
 
                 if (currentEnvLight != null)
                 {
+                    // If the reflection probe is disabled, we should not be adding it
+                    if (!currentEnvLight.enabled)
+                        continue;
+
+                    // If the reflection probe is not baked yet.
+                    if (!currentEnvLight.HasValidRenderedData())
+                        continue;
+
+                    // Compute the camera relative position
+                    Vector3 probePositionRWS = currentEnvLight.influenceToWorld.GetColumn(3);
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        probePositionRWS -= hdCamera.camera.transform.position;
+                    }
+
                     if (currentEnvLight.influenceVolume.shape == InfluenceShape.Sphere)
                     {
                         m_LightVolumesCPUArray[lightIdx + indexOffset].shape = 0;
@@ -511,10 +491,20 @@ namespace UnityEngine.Rendering.HighDefinition
             BoolScalableSetting contactShadowScalableSetting = HDAdditionalLightData.ScalableSettings.UseContactShadow(m_RenderPipeline.asset);
 
             // Build the data for every light
-            for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightArray.Count; ++lightIdx)
+            HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
+            var processedLightEntity = new HDProcessedVisibleLight()
+            {
+                shadowMapFlags = HDProcessedVisibleLightsBuilder.ShadowMapFlags.None
+            };
+
+            var globalConfig = HDGpuLightsBuilder.CreateGpuLightDataJobGlobalConfig.Create(hdCamera, hdShadowSettings);
+            var shadowInitParams = m_RenderPipeline.currentPlatformRenderPipelineSettings.hdShadowInitParams;
+
+            for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightEntityArray.Count; ++lightIdx)
             {
                 // Grab the additinal light data to process
-                HDAdditionalLightData additionalLightData = rayTracingLights.hdLightArray[lightIdx];
+                int dataIndex = lightEntities.GetEntityDataIndex(rayTracingLights.hdLightEntityArray[lightIdx]);
+                HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[dataIndex];
 
                 LightData lightData = new LightData();
                 // When the user deletes a light source in the editor, there is a single frame where the light is null before the collection of light in the scene is triggered
@@ -535,18 +525,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Fetch the light component for this light
                 additionalLightData.gameObject.TryGetComponent(out lightComponent);
 
+                ref HDLightRenderData lightRenderData = ref lightEntities.GetLightDataAsRef(dataIndex);
+
                 // Build the processed light data  that we need
-                ProcessedLightData processedData = new ProcessedLightData();
-                processedData.additionalLightData = additionalLightData;
-                processedData.lightType = additionalLightData.type;
-                processedData.lightCategory = lightCategory;
-                processedData.gpuLightType = gpuLightType;
-                processedData.lightVolumeType = lightVolumeType;
-                // Both of these positions are non-camera-relative.
-                processedData.distanceToCamera = (additionalLightData.gameObject.transform.position - hdCamera.camera.transform.position).magnitude;
-                processedData.lightDistanceFade = HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.fadeDistance);
-                processedData.volumetricDistanceFade = HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.volumetricFadeDistance);
-                processedData.isBakedShadowMask = HDRenderPipeline.IsBakedShadowMaskLight(lightComponent);
+                processedLightEntity.dataIndex = dataIndex;
+                processedLightEntity.gpuLightType = gpuLightType;
+                processedLightEntity.lightType = additionalLightData.type;
+                processedLightEntity.distanceToCamera = (additionalLightData.transform.position - hdCamera.camera.transform.position).magnitude;
+                processedLightEntity.lightDistanceFade = HDUtils.ComputeLinearDistanceFade(processedLightEntity.distanceToCamera, lightRenderData.fadeDistance);
+                processedLightEntity.lightVolumetricDistanceFade = HDUtils.ComputeLinearDistanceFade(processedLightEntity.distanceToCamera, lightRenderData.volumetricFadeDistance);
+                processedLightEntity.isBakedShadowMask = HDRenderPipeline.IsBakedShadowMaskLight(lightComponent);
 
                 // Build a visible light
                 Color finalColor = lightComponent.color.linear * lightComponent.intensity;
@@ -554,7 +542,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     finalColor *= Mathf.CorrelatedColorTemperatureToRGB(lightComponent.colorTemperature);
                 visibleLight.finalColor = finalColor;
                 visibleLight.range = lightComponent.range;
-                // This should be done explicitely, localtoworld matrix doesn't work here
+                // This should be done explicitly, localToWorld matrix doesn't work here
                 localToWorldMatrix.SetColumn(3, lightComponent.gameObject.transform.position);
                 localToWorldMatrix.SetColumn(2, lightComponent.transform.forward);
                 localToWorldMatrix.SetColumn(1, lightComponent.transform.up);
@@ -563,13 +551,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 visibleLight.spotAngle = lightComponent.spotAngle;
 
                 int shadowIndex = additionalLightData.shadowIndex;
-                int screenSpaceShadowIndex = -1;
-                int screenSpaceChannelSlot = -1;
-                Vector3 lightDimensions =  new Vector3(0.0f, 0.0f, 0.0f);
+                Vector3 lightDimensions = new Vector3(0.0f, 0.0f, 0.0f);
 
                 // Use the shared code to build the light data
-                m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, in processedData,
-                    shadowIndex, contactShadowScalableSetting, isRasterization: false, ref lightDimensions, ref screenSpaceShadowIndex, ref screenSpaceChannelSlot, ref lightData);
+                HDGpuLightsBuilder.CreateGpuLightDataJob.ConvertLightToGPUFormat(
+                    lightCategory, gpuLightType, globalConfig,
+                    lightComponent.lightShadowCasterMode, lightComponent.bakingOutput,
+                    visibleLight, processedLightEntity, lightRenderData, out var _, ref lightData);
+                m_RenderPipeline.gpuLightList.ProcessLightDataShadowIndex(cmd, shadowInitParams, lightType, lightComponent, additionalLightData, shadowIndex, ref lightData);
 
                 // We make the light position camera-relative as late as possible in order
                 // to allow the preceding code to work with the absolute world space coordinates.
@@ -608,9 +597,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDProbe probeData = lights.reflectionProbeArray[lightIdx];
 
-                // Skip the probe if the probe has never rendered (in realtime cases) or if texture is null
-                if (!probeData.HasValidRenderedData()) continue;
-
                 HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, hdCamera);
 
                 var envLightData = new EnvLightData();
@@ -628,7 +614,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EnvLightDataGPUArray.SetData(m_EnvLightDataCPUArray);
         }
 
-        public struct LightClusterDebugParameters
+        class LightClusterDebugPassData
         {
             public int texWidth;
             public int texHeight;
@@ -636,83 +622,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3 clusterCellSize;
             public Material debugMaterial;
             public ComputeBuffer lightCluster;
-            public MaterialPropertyBlock debugMaterialProperties;
             public ComputeShader lightClusterDebugCS;
-        }
 
-        LightClusterDebugParameters PrepareLightClusterDebugParameters(HDCamera hdCamera)
-        {
-            LightClusterDebugParameters parameters = new LightClusterDebugParameters();
-            parameters.texWidth = hdCamera.actualWidth;
-            parameters.texHeight = hdCamera.actualHeight;
-            parameters.clusterCellSize = clusterCellSize;
-            parameters.lightCluster = m_LightCluster;
-            parameters.lightClusterDebugCS = m_RenderPipelineRayTracingResources.lightClusterDebugCS;
-            parameters.lightClusterDebugKernel = parameters.lightClusterDebugCS.FindKernel("DebugLightCluster");
-            parameters.debugMaterial = m_DebugMaterial;
-            parameters.debugMaterialProperties = m_DebugMaterialProperties;
-            return parameters;
-        }
-
-        public struct LightClusterDebugResources
-        {
-            public RTHandle depthStencilBuffer;
-            public RTHandle depthTexture;
-            public RTHandle debugLightClusterTexture;
-        }
-
-        LightClusterDebugResources PrepareLightClusterDebugResources(RTHandle outputDebugLightBuffer)
-        {
-            LightClusterDebugResources resources = new LightClusterDebugResources();
-            resources.debugLightClusterTexture = outputDebugLightBuffer;
-            resources.depthTexture = m_RenderPipeline.sharedRTManager.GetDepthTexture();
-            resources.depthStencilBuffer = m_RenderPipeline.sharedRTManager.GetDepthStencilBuffer();
-            return resources;
-        }
-
-        static public void ExecuteLightClusterDebug(CommandBuffer cmd, LightClusterDebugParameters parameters, LightClusterDebugResources resources)
-        {
-            // Bind the output texture
-            CoreUtils.SetRenderTarget(cmd, resources.debugLightClusterTexture, resources.depthStencilBuffer, clearFlag: ClearFlag.Color, clearColor: Color.black);
-
-            // Inject all the parameters to the debug compute
-            cmd.SetComputeBufferParam(parameters.lightClusterDebugCS, parameters.lightClusterDebugKernel, HDShaderIDs._RaytracingLightCluster, parameters.lightCluster);
-            cmd.SetComputeVectorParam(parameters.lightClusterDebugCS, _ClusterCellSize, parameters.clusterCellSize);
-            cmd.SetComputeTextureParam(parameters.lightClusterDebugCS, parameters.lightClusterDebugKernel, HDShaderIDs._CameraDepthTexture, resources.depthStencilBuffer);
-
-            // Target output texture
-            cmd.SetComputeTextureParam(parameters.lightClusterDebugCS, parameters.lightClusterDebugKernel, _DebutLightClusterTexture, resources.debugLightClusterTexture);
-
-            // Dispatch the compute
-            int lightVolumesTileSize = 8;
-            int numTilesX = (parameters.texWidth + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
-            int numTilesY = (parameters.texHeight + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
-
-            cmd.DispatchCompute(parameters.lightClusterDebugCS, parameters.lightClusterDebugKernel, numTilesX, numTilesY, 1);
-
-            // Bind the parameters
-            parameters.debugMaterialProperties.SetBuffer(HDShaderIDs._RaytracingLightCluster, parameters.lightCluster);
-            parameters.debugMaterialProperties.SetVector(_ClusterCellSize, parameters.clusterCellSize);
-            parameters.debugMaterialProperties.SetTexture(HDShaderIDs._CameraDepthTexture, resources.depthTexture);
-
-            // Draw the faces
-            cmd.DrawProcedural(Matrix4x4.identity, parameters.debugMaterial, 1, MeshTopology.Lines, 48, 64 * 64 * 32, parameters.debugMaterialProperties);
-            cmd.DrawProcedural(Matrix4x4.identity, parameters.debugMaterial, 0, MeshTopology.Triangles, 36, 64 * 64 * 32, parameters.debugMaterialProperties);
-        }
-
-        public void EvaluateClusterDebugView(CommandBuffer cmd, HDCamera hdCamera)
-        {
-            LightClusterDebugParameters parameters = PrepareLightClusterDebugParameters(hdCamera);
-            LightClusterDebugResources resources = PrepareLightClusterDebugResources(m_DebugLightClusterTexture);
-            ExecuteLightClusterDebug(cmd, parameters, resources);
-
-            // Bind the result
-            m_RenderPipeline.PushFullScreenDebugTexture(hdCamera, cmd, m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
-        }
-
-        class LightClusterDebugPassData
-        {
-            public LightClusterDebugParameters parameters;
             public TextureHandle depthStencilBuffer;
             public TextureHandle depthPyramid;
             public TextureHandle outputBuffer;
@@ -725,21 +636,49 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.EnableAsyncCompute(false);
 
-                passData.parameters = PrepareLightClusterDebugParameters(hdCamera);
+                passData.texWidth = hdCamera.actualWidth;
+                passData.texHeight = hdCamera.actualHeight;
+                passData.clusterCellSize = clusterCellSize;
+                passData.lightCluster = m_LightCluster;
+                passData.lightClusterDebugCS = m_RenderPipelineRayTracingResources.lightClusterDebugCS;
+                passData.lightClusterDebugKernel = passData.lightClusterDebugCS.FindKernel("DebugLightCluster");
+                passData.debugMaterial = m_DebugMaterial;
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);
                 passData.depthPyramid = builder.ReadTexture(depthStencilBuffer);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Light Cluster Debug Texture" }));
+                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Light Cluster Debug Texture" }));
 
                 builder.SetRenderFunc(
                     (LightClusterDebugPassData data, RenderGraphContext ctx) =>
                     {
-                        // We need to fill the structure that holds the various resources
-                        LightClusterDebugResources resources = new LightClusterDebugResources();
-                        resources.depthStencilBuffer = data.depthStencilBuffer;
-                        resources.depthTexture = data.depthPyramid;
-                        resources.debugLightClusterTexture = data.outputBuffer;
-                        ExecuteLightClusterDebug(ctx.cmd, data.parameters, resources);
+                        var debugMaterialProperties = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
+
+                        // Bind the output texture
+                        CoreUtils.SetRenderTarget(ctx.cmd, data.outputBuffer, data.depthStencilBuffer, clearFlag: ClearFlag.Color, clearColor: Color.black);
+
+                        // Inject all the parameters to the debug compute
+                        ctx.cmd.SetComputeBufferParam(data.lightClusterDebugCS, data.lightClusterDebugKernel, HDShaderIDs._RaytracingLightCluster, data.lightCluster);
+                        ctx.cmd.SetComputeVectorParam(data.lightClusterDebugCS, _ClusterCellSize, data.clusterCellSize);
+                        ctx.cmd.SetComputeTextureParam(data.lightClusterDebugCS, data.lightClusterDebugKernel, HDShaderIDs._CameraDepthTexture, data.depthStencilBuffer);
+
+                        // Target output texture
+                        ctx.cmd.SetComputeTextureParam(data.lightClusterDebugCS, data.lightClusterDebugKernel, _DebutLightClusterTexture, data.outputBuffer);
+
+                        // Dispatch the compute
+                        int lightVolumesTileSize = 8;
+                        int numTilesX = (data.texWidth + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
+                        int numTilesY = (data.texHeight + (lightVolumesTileSize - 1)) / lightVolumesTileSize;
+
+                        ctx.cmd.DispatchCompute(data.lightClusterDebugCS, data.lightClusterDebugKernel, numTilesX, numTilesY, 1);
+
+                        // Bind the parameters
+                        debugMaterialProperties.SetBuffer(HDShaderIDs._RaytracingLightCluster, data.lightCluster);
+                        debugMaterialProperties.SetVector(_ClusterCellSize, data.clusterCellSize);
+                        debugMaterialProperties.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramid);
+
+                        // Draw the faces
+                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugMaterial, 1, MeshTopology.Lines, 48, 64 * 64 * 32, debugMaterialProperties);
+                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugMaterial, 0, MeshTopology.Triangles, 36, 64 * 64 * 32, debugMaterialProperties);
                     });
 
                 debugTexture = passData.outputBuffer;
@@ -805,6 +744,7 @@ namespace UnityEngine.Rendering.HighDefinition
             maxClusterPos.Set(-float.MaxValue, -float.MaxValue, -float.MaxValue);
             punctualLightCount = 0;
             areaLightCount = 0;
+            envLightCount = 0;
         }
 
         public void CullForRayTracing(HDCamera hdCamera, HDRayTracingLights rayTracingLights)
@@ -845,11 +785,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void ReserveCookieAtlasSlots(HDRayTracingLights rayTracingLights)
         {
-            for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightArray.Count; ++lightIdx)
+            HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
+            for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightEntityArray.Count; ++lightIdx)
             {
+                int dataIndex = lightEntities.GetEntityDataIndex(rayTracingLights.hdLightEntityArray[lightIdx]);
+                HDAdditionalLightData additionalLightData = lightEntities.hdAdditionalLightData[dataIndex];
                 // Grab the additional light data to process
-                HDAdditionalLightData additionalLightData = rayTracingLights.hdLightArray[lightIdx];
-
                 // Fetch the light component for this light
                 additionalLightData.gameObject.TryGetComponent(out lightComponent);
 

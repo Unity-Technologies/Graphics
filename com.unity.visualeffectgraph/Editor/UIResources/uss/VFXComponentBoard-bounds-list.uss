@@ -1,0 +1,42 @@
+#container
+{
+    flex-direction:row;
+    align-items:center;
+}
+
+.bounds-mode
+{
+    width : 86px;
+    margin-right: 3px;
+}
+
+#system-field
+{
+    width: 40%;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding-left:4px;
+    padding-bottom:0px;
+
+}
+#system-button
+{
+    -unity-text-align: middle-center;
+    white-space: normal;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding-left:4px;
+}
+
+#divider {
+    background-color: rgba(0,0,0,0);
+    border-color: rgba(0,0,0,0);
+    flex-grow:1;
+}
+
+#divider.horizontal {
+    height: 0.05px;
+    border-bottom-width: 1px;
+}

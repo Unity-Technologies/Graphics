@@ -2,7 +2,7 @@
 
 Atmospheric scattering is the phenomena that occurs when particles suspended in the atmosphere diffuse (or scatter) a portion of the light passing through them in all directions.
 
-Examples of natural effects that cause atmospheric scattering include fog, clouds, or mist. 
+Examples of natural effects that cause atmospheric scattering include fog, clouds, or mist.
 
 The High Definition Render Pipeline (HDRP) simulates a [fog](Override-Fog.md) effect by overlaying a color onto objects, depending on their distance from the Camera. This is good for simulating fog or mist in outdoor environments. You can use it to hide the clipping of far away GameObjects, which is useful if you reduce a Camera’s far clip plane to enhance performance.
 

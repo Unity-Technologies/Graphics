@@ -1,10 +1,10 @@
 # Power
 
-Menu Path : **Operator > Math > Arithmetic > Power** 
+Menu Path : **Operator > Math > Arithmetic > Power**
 
 The **Power** Operator raises the first input to the power of the second input, then continues to raise the result to subsequent inputs. For example, an input value of (3, 2) (3, 4, 5) outputs (27,16,1).
 
-This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). This Operator always returns a value in the largest vector type of its input. 
+This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). This Operator always returns a value in the largest vector type of its input.
 
 This Operator interprets missing values as zero. It interprets scalar values such as float, int, and unit as being as large as the largest vector input with the scalar value taking up every member of the vector.
 

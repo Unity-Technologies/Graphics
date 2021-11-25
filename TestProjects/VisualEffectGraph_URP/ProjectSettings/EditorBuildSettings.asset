@@ -51,6 +51,24 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/014_PositionBlock.unity
     guid: 42a36d7781122534f9ce00fa769bdd5c
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/015_GraphicsBuffer.unity
+    guid: 634b18bfab994114e88a82f04f9c13ed
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/017_MaterialQueueOffset.unity
+    guid: cda518f246caf814c9de4d03ddee9a1e
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/016_DirectLink.unity
+    guid: f0e4fb0bb130c8e4294ceeadaf7d23f5
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/015_FixedTime.unity
+    guid: 30c9fe15b8e87e04f9a524d5c01aa810
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/018_CollisionScaledPrimitive.unity
+    guid: 237617e9908930149bc849c4ac0b9b8e
+  - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/019_CustomSimulate.unity
+    guid: ffbf1ce97ab782b43b4ec8f431e5a0ab
+  - enabled: 1
     path: Assets/GraphicsTests/100_Fog.unity
     guid: b288e123b6536de40bc86452b3811b20
   - enabled: 1
@@ -65,4 +83,19 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicsTests/102_RenderDepth.unity
     guid: bbb228de8c5a7dd4ba58363e4b3c8669
+  - enabled: 1
+    path: Assets/GraphicsTests/103_Renderer2D.unity
+    guid: 956dddffc117fe241a0ef90b1b12ec68
+  - enabled: 1
+    path: Assets/GraphicsTests/103_LitForward.unity
+    guid: 9c890c006fb7ff945be7b7cd51e79ee4
+  - enabled: 1
+    path: Assets/GraphicsTests/103_LitDeferred.unity
+    guid: b0e7da6ba3b491640864dda475909639
+  - enabled: 1
+    path: Assets/GraphicsTests/103_LitDeferredAccurate.unity
+    guid: b5d2bc0df9db8664aadc9b8fa26308fb
+  - enabled: 1
+    path: Assets/GraphicsTests/104_ShaderGraphGenerationFTP.unity
+    guid: febb29da98ad14a4d89b7679f8e53848
   m_configObjects: {}

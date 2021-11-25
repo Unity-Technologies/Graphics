@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.VFX;
 
-namespace UnityEditor.VFX // TODO Change namespace to UnityEngine.VFX
+namespace UnityEngine.VFX
 {
     class SpawnOverDistance : VFXSpawnerCallbacks
     {

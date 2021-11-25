@@ -57,6 +57,14 @@ Shader "Hidden/HDRP/CameraMotionVectors"
 
             // Convert from Clip space (-1..1) to NDC 0..1 space
             float2 motionVector = (positionCS - previousPositionCS);
+
+#ifdef KILL_MICRO_MOVEMENT
+            motionVector.x = abs(motionVector.x) < MICRO_MOVEMENT_THRESHOLD.x ? 0 : motionVector.x;
+            motionVector.y = abs(motionVector.y) < MICRO_MOVEMENT_THRESHOLD.y ? 0 : motionVector.y;
+#endif
+
+            motionVector = clamp(motionVector, -1.0f + MICRO_MOVEMENT_THRESHOLD, 1.0f - MICRO_MOVEMENT_THRESHOLD);
+
 #if UNITY_UV_STARTS_AT_TOP
             motionVector.y = -motionVector.y;
 #endif
@@ -82,7 +90,9 @@ Shader "Hidden/HDRP/CameraMotionVectors"
                 ReadMask [_StencilMask]
                 Ref [_StencilRef]
                 Comp NotEqual
-                Fail Zero   // We won't need the bit anymore.
+                // This line is intentionally commented, we keep the objectmotionvector information
+                // as it is used to do history rejection for numerous temporal accumulation based effects.
+                // Fail Zero   // We won't need the bit anymore.
             }
 
             Cull Off ZWrite Off

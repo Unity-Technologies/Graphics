@@ -19,7 +19,27 @@ namespace UnityEditor.ShaderGraph.Internal
         public bool gpuInstanced
         {
             get { return false; }
-            set {}
+            set { }
+        }
+
+        internal virtual string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
+        {
+            if (mode == GenerationMode.VFX)
+            {
+                // Per-element exposed properties are provided by the properties structure filled by VFX.
+                if (overrideHLSLDeclaration)
+                    return $"PROP.{referenceName}";
+                // For un-exposed global properties, just read from the cbuffer.
+                else
+                    return referenceName;
+            }
+
+            return referenceName;
+        }
+
+        internal string GetConnectionStateHLSLVariableName()
+        {
+            return GetConnectionStateVariableName(referenceName + "_" + objectId);
         }
 
         // NOTE: this does not tell you the HLSLDeclaration of the entire property...
@@ -54,9 +74,9 @@ namespace UnityEditor.ShaderGraph.Internal
 
         ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
         public ConcretePrecision concretePrecision => m_ConcretePrecision;
-        internal void ValidateConcretePrecision(ConcretePrecision graphPrecision)
+        internal void SetupConcretePrecision(ConcretePrecision defaultPrecision)
         {
-            m_ConcretePrecision = (precision == Precision.Inherit) ? graphPrecision : precision.ToConcrete();
+            m_ConcretePrecision = precision.ToConcrete(defaultPrecision, defaultPrecision);
         }
 
         [SerializeField]
@@ -95,14 +115,21 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal abstract void ForeachHLSLProperty(Action<HLSLProperty> action);
 
-        internal abstract string GetPropertyAsArgumentString();
+        internal virtual string GetPropertyAsArgumentStringForVFX(string precisionString)
+        {
+            return GetPropertyAsArgumentString(precisionString);
+        }
+
+        internal abstract string GetPropertyAsArgumentString(string precisionString);
         internal abstract AbstractMaterialNode ToConcreteNode();
         internal abstract PreviewProperty GetPreviewMaterialProperty();
 
         public virtual string GetPropertyTypeString()
         {
-            string depString = $" (Deprecated{(ShaderGraphPreferences.allowDeprecatedBehaviors ? " V" + sgVersion : "" )})";
-            return propertyType.ToString() + (sgVersion < latestVersion ? depString : "");
+            var typeString = propertyType.ToString();
+            if (sgVersion < latestVersion)
+                typeString = $"{typeString} (Legacy v{sgVersion})";
+            return typeString;
         }
     }
 
@@ -197,6 +224,28 @@ namespace UnityEditor.ShaderGraph.Internal
             this.customDeclaration = null;
         }
 
+        public bool ValueEquals(HLSLProperty other)
+        {
+            if ((name != other.name) ||
+                (type != other.type) ||
+                (precision != other.precision) ||
+                (declaration != other.declaration) ||
+                ((customDeclaration == null) != (other.customDeclaration == null)))
+            {
+                return false;
+            }
+            else if (customDeclaration != null)
+            {
+                var ssb = new ShaderStringBuilder();
+                var ssbother = new ShaderStringBuilder();
+                customDeclaration(ssb);
+                other.customDeclaration(ssbother);
+                if (ssb.ToCodeBlock() != ssbother.ToCodeBlock())
+                    return false;
+            }
+            return true;
+        }
+
         static string[,] kValueTypeStrings = new string[(int)HLSLType.FirstObjectType, 2]
         {
             {"float", "half"},
@@ -214,6 +263,15 @@ namespace UnityEditor.ShaderGraph.Internal
             "TEXTURE2D_ARRAY",
             "SAMPLER",
         };
+
+        public bool IsObjectType()
+        {
+            return type == HLSLType._SamplerState ||
+                type == HLSLType._Texture2D ||
+                type == HLSLType._Texture3D ||
+                type == HLSLType._TextureCube ||
+                type == HLSLType._Texture2DArray;
+        }
 
         public string GetValueTypeString()
         {

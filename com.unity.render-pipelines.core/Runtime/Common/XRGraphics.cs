@@ -74,11 +74,11 @@ namespace UnityEngine.Rendering
         {
             get
             {
-            #if UNITY_2020_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
                 return false;
-            #else
+#else
                 return UnityEditorInternal.VR.VREditor.GetVREnabledOnTargetGroup(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget));
-            #endif
+#endif
             }
         }
 #endif

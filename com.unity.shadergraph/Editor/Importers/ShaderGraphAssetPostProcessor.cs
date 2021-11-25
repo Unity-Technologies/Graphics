@@ -86,20 +86,29 @@ namespace UnityEditor.ShaderGraph
                     window.CheckForChanges();
                 }
             }
-
             // moved or imported subgraphs or HLSL files should notify open shadergraphs that they need to handle them
-            var changedFiles = movedAssets.Concat(importedAssets).Concat(deletedAssets)
-                .Where(x => x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase)
-                    || CustomFunctionNode.s_ValidExtensions.Contains(Path.GetExtension(x)))
+            var changedFileGUIDs = movedAssets.Concat(importedAssets).Concat(deletedAssets)
+                .Where(x =>
+                {
+                    if (x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase) || CustomFunctionNode.s_ValidExtensions.Contains(Path.GetExtension(x)))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        var asset = AssetDatabase.GetMainAssetTypeAtPath(x);
+                        return asset is null || asset.IsSubclassOf(typeof(Texture));
+                    }
+                })
                 .Select(AssetDatabase.AssetPathToGUID)
                 .Distinct()
                 .ToList();
 
-            if (changedFiles.Count > 0)
+            if (changedFileGUIDs.Count > 0)
             {
                 foreach (var window in windows)
                 {
-                    window.ReloadSubGraphsOnNextUpdate(changedFiles);
+                    window.ReloadSubGraphsOnNextUpdate(changedFileGUIDs);
                 }
             }
         }

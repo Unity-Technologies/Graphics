@@ -1,6 +1,6 @@
 #if VFX_HAS_PHYSICS
 #if ENABLE_INPUT_SYSTEM && VFX_HAS_INPUT_SYSTEM_PACKAGE
-    #define USE_INPUT_SYSTEM
+#define USE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 using System.Linq;
 #endif
@@ -95,8 +95,10 @@ namespace UnityEngine.VFX.Utility
                 trigger();
         }
 
-        void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             mouseDown.Enable();
             mouseUp.Enable();
             mouseDragStart.Enable();

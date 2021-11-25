@@ -265,8 +265,8 @@ namespace UnityEditor.ShaderGraph.Serialization
             }
 
             public override PropertyType propertyType => PropertyType.Float;
-            internal override void GetPropertyReferenceNames(List<string> result) {}
-            internal override void GetPropertyDisplayNames(List<string> result) {}
+            internal override void GetPropertyReferenceNames(List<string> result) { }
+            internal override void GetPropertyDisplayNames(List<string> result) { }
             internal override string GetPropertyBlockString() { return ""; }
             internal override void AppendPropertyBlockStrings(ShaderStringBuilder builder)
             {
@@ -279,7 +279,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                 action(new HLSLProperty(HLSLType._float, referenceName, HLSLDeclaration.Global, concretePrecision));
             }
 
-            internal override string GetPropertyAsArgumentString() { return ""; }
+            internal override string GetPropertyAsArgumentString(string precisionString) { return ""; }
             internal override AbstractMaterialNode ToConcreteNode() { return null; }
 
             internal override PreviewProperty GetPreviewMaterialProperty()
@@ -348,7 +348,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             public override ConcreteSlotValueType concreteValueType => ConcreteSlotValueType.Vector1;
 
-            public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode) {}
+            public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode) { }
 
             public override void CopyValuesFrom(MaterialSlot foundSlot)
             {
@@ -507,21 +507,22 @@ namespace UnityEditor.ShaderGraph.Serialization
             s_Entries.Add(new MultiJsonEntry(jsonObject.GetType().FullName, jsonObject.objectId, json));
         }
 
-        public static JsonObject CreateInstance(string typeString)
+        public static JsonObject CreateInstanceForDeserialization(string typeString)
         {
             if (!k_TypeMap.TryGetValue(typeString, out var type))
             {
                 return new UnknownJsonObject(typeString);
             }
             var output = (JsonObject)Activator.CreateInstance(type, true);
-            //This CreateInstance function is supposed to esentially create a blank copy of whatever class we end up deserializing into.
+            //This CreateInstance function is supposed to essentially create a blank copy of whatever class we end up deserializing into.
             //when we typically create new JsonObjects in all other cases, we want that object to be assumed to be the latest version.
-            //This doesnt work if any json object was serialized before we had the idea of version, as the blank copy would have the
-            //latest version on creation and since the serialized version wouldnt have a version member, it would not get overwritten
+            //This doesn't work if any json object was serialized before we had the idea of version, as the blank copy would have the
+            //latest version on creation and since the serialized version wouldn't have a version member, it would not get overwritten
             //and we would automatically upgrade all previously serialized json objects incorrectly and without user action. To avoid this,
             //we default jsonObject version to 0, and if the serialized value has a different saved version it gets changed and if the serialized
             //version does not have a different saved value it remains 0 (earliest version)
             output.ChangeVersion(0);
+            output.OnBeforeDeserialize();
             return output;
         }
 
@@ -552,7 +553,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                         }
                         else
                         {
-                            value = CreateInstance(entry.type);
+                            value = CreateInstanceForDeserialization(entry.type);
                         }
 
                         var id = entry.id;
@@ -676,7 +677,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
                 const string k_NewLineString = "\n";
                 var sb = new StringBuilder();
-                foreach (var(id, json) in idJsonList)
+                foreach (var (id, json) in idJsonList)
                 {
                     sb.Append(json);
                     sb.Append(k_NewLineString);

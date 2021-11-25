@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
     internal partial class XRSystem
     {
         // Valid empty pass when a camera is not using XR
-        internal readonly XRPass emptyPass = new XRPass();
+        internal static readonly XRPass emptyPass = new XRPass();
 
         // Store active passes and avoid allocating memory every frames
         List<(Camera, XRPass)> framePasses = new List<(Camera, XRPass)>();
@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static string ReadPassDebugInfo(int i) => passDebugInfos[i];
 #endif
 
-        internal XRSystem(RenderPipelineResources.ShaderResources shaders)
+        internal XRSystem(HDRenderPipelineRuntimeResources.ShaderResources shaders)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             RefreshXrSdk();
@@ -66,14 +66,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         internal static void XRSystemInit()
         {
-            if (GraphicsSettings.currentRenderPipeline == null)
+            if (GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset)
                 return;
 
-        #if UNITY_2020_2_OR_NEWER
+#if UNITY_2020_2_OR_NEWER
             SubsystemManager.GetSubsystems(displayList);
-        #else
+#else
             SubsystemManager.GetInstances(displayList);
-        #endif
+#endif
 
             for (int i = 0; i < displayList.Count; i++)
             {
@@ -130,13 +130,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Enable XR layout only for gameview camera
                 bool xrSupported = camera.cameraType == CameraType.Game && camera.targetTexture == null && HDUtils.TryGetAdditionalCameraDataOrDefault(camera).xrRendering;
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-                if (singlePassTestMode && LayoutSinglePassTestMode(new XRLayout() { camera = camera, xrSystem = this }))
-                {
-                    // single-pass test layout in used
-                }
-                else
-#endif
                 if (customLayout != null && customLayout(new XRLayout() { camera = camera, xrSystem = this }))
                 {
                     // custom layout in used
@@ -154,6 +147,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     CreateLayoutFromXrSdk(camera, singlePassAllowed);
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    if (singlePassTestMode)
+                        OverrideForAutomatedTests(camera);
+#endif
                 }
 #endif
                 else
@@ -169,8 +167,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ReleaseFrame()
         {
-            foreach ((Camera _, XRPass xrPass) in framePasses)
+            for (int i = 0; i < framePasses.Count; i++)
             {
+                // Pop from the back to keep initial ordering (see implementation of ObjectPool)
+                (Camera _, XRPass xrPass) = framePasses[framePasses.Count - i - 1];
+
                 if (xrPass != emptyPass)
                     XRPass.Release(xrPass);
             }
@@ -182,11 +183,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
 
-        #if UNITY_2020_2_OR_NEWER
+#if UNITY_2020_2_OR_NEWER
             SubsystemManager.GetSubsystems(displayList);
-        #else
+#else
             SubsystemManager.GetInstances(displayList);
-        #endif
+#endif
 
             if (displayList.Count > 0)
             {
@@ -357,55 +358,47 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-        bool LayoutSinglePassTestMode(XRLayout frameLayout)
+        private void OverrideForAutomatedTests(Camera camera)
         {
-            Camera camera = frameLayout.camera;
+            var camProjMatrix = camera.projectionMatrix;
+            var camViewMatrix = camera.worldToCameraMatrix;
 
-            if (camera != null && camera.cameraType == CameraType.Game && camera.TryGetCullingParameters(false, out var cullingParams))
+            if (camera.TryGetCullingParameters(false, out var cullingParams))
             {
-                cullingParams.stereoProjectionMatrix = camera.projectionMatrix;
-                cullingParams.stereoViewMatrix = camera.worldToCameraMatrix;
+                cullingParams.stereoProjectionMatrix = camProjMatrix;
+                cullingParams.stereoViewMatrix = camViewMatrix;
+                cullingParams.stereoSeparationDistance = 0.0f;
+                cullingParams.cullingOptions &= ~CullingOptions.Stereo;
 
-                var passInfo = new XRPassCreateInfo
+                for (int passId = 0; passId < framePasses.Count; passId++)
                 {
-                    multipassId = 0,
-                    cullingPassId = 0,
-                    cullingParameters = cullingParams,
-                    renderTarget = camera.targetTexture,
-                    customMirrorView = null
-                };
+                    var xrPass = framePasses[passId].Item2;
+                    xrPass.UpdateCullingParams(xrPass.cullingPassId, cullingParams);
 
-                var viewInfo2 = new XRViewCreateInfo
-                {
-                    projMatrix = camera.projectionMatrix,
-                    viewMatrix = camera.worldToCameraMatrix,
-                    viewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight),
-                    textureArraySlice = -1
-                };
+                    for (int viewId = 0; viewId < framePasses[passId].Item2.viewCount; viewId++)
+                    {
+                        var projMatrix = camProjMatrix;
+                        var viewMatrix = camViewMatrix;
 
-                // Change the first view so that it's a different viewpoint and projection to detect more issues
-                var viewInfo1 = viewInfo2;
-                var planes = viewInfo1.projMatrix.decomposeProjection;
-                planes.left *= 0.44f;
-                planes.right *= 0.88f;
-                planes.top *= 0.11f;
-                planes.bottom *= 0.33f;
-                viewInfo1.projMatrix = Matrix4x4.Frustum(planes);
-                viewInfo1.viewMatrix *= Matrix4x4.Translate(new Vector3(.34f, 0.25f, -0.08f));
+                        // Alter the first view in order to detect more issues
+                        bool isFirstViewMultiPass = framePasses.Count == 2 && passId == 0;
+                        bool isFirstViewSinglePass = framePasses.Count == 1 && viewId == 0;
 
-                // single-pass 2x rendering
-                {
-                    XRPass pass = frameLayout.CreatePass(passInfo);
+                        if (isFirstViewMultiPass || isFirstViewSinglePass)
+                        {
+                            var planes = projMatrix.decomposeProjection;
+                            planes.left *= 0.44f;
+                            planes.right *= 0.88f;
+                            planes.top *= 0.11f;
+                            planes.bottom *= 0.33f;
+                            projMatrix = Matrix4x4.Frustum(planes);
+                            viewMatrix *= Matrix4x4.Translate(new Vector3(.34f, 0.25f, -0.08f));
+                        }
 
-                    frameLayout.AddViewToPass(viewInfo1, pass);
-                    frameLayout.AddViewToPass(viewInfo2, pass);
+                        xrPass.UpdateView(viewId, projMatrix, viewMatrix, xrPass.GetViewport(viewId), viewId);
+                    }
                 }
-
-                // valid layout
-                return true;
             }
-
-            return false;
         }
 
 #endif

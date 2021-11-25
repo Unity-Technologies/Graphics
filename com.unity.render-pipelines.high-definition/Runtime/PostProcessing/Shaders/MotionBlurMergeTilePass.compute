@@ -1,5 +1,5 @@
 #pragma kernel TileMerge MERGE_PASS SCATTERING
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/MotionBlurTileCommon.hlsl"
 
@@ -25,10 +25,10 @@ void TileMerge(uint3 dispatchID : SV_DispatchThreadID)
     if (maxVelLen > TILE_SIZE * 3.5)
     {
 
-        float4 data0 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(-2.0, 0.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
-        float4 data1 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(0.0, 2.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
-        float4 data2 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(-2.0, 2.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
-        float4 data3 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinear((id + float2(0.0, 0.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
+        float4 data0 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture((id + float2(-2.0, 0.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
+        float4 data1 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture((id + float2(0.0, 2.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
+        float4 data2 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture((id + float2(-2.0, 2.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
+        float4 data3 = GATHER_TEXTURE2D_X(_TileToScatterMin, s_linear_clamp_sampler, ClampAndScaleUVForBilinearPostProcessTexture((id + float2(0.0, 0.0))  * _TileTargetSize.zw, _TileTargetSize.zw));
 
         float minData0 = min(data0.x, Min3(data0.y, data0.z, data0.w));
         float minData1 = min(data1.x, Min3(data1.y, data1.z, data1.w));

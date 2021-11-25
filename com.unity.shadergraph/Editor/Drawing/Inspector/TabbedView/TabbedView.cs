@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 public class TabbedView : VisualElement
 {
-    public new class UxmlFactory : UxmlFactory<TabbedView, UxmlTraits> {}
+    public new class UxmlFactory : UxmlFactory<TabbedView, UxmlTraits> { }
 
     private const string k_styleName = "TabbedView";
     private const string s_UssClassName = "unity-tabbed-view";
@@ -124,14 +124,16 @@ public class TabbedView : VisualElement
         VisualElement target = tabButton.Target;
 
         tabButton.Select();
-        Add(target);
+        if (target != null)
+            Add(target);
     }
 
     private void DeselectTab(TabButton tabButton)
     {
         VisualElement target = tabButton.Target;
 
-        Remove(target);
+        if (target != null)
+            Remove(target);
         tabButton.Deselect();
     }
 

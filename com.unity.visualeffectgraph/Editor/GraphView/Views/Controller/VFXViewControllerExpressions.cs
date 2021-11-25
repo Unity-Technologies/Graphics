@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.UI
 {
     class VFXRecompileEvent : ControllerEvent
     {
-        public bool valueOnly {get; set; }
+        public bool valueOnly { get; set; }
 
         public static VFXRecompileEvent Default = new VFXRecompileEvent();
         public VFXViewController controller = null;
@@ -45,7 +45,8 @@ namespace UnityEditor.VFX.UI
         {
             if (cause != VFXModel.InvalidationCause.kStructureChanged &&
                 cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
-                cause != VFXModel.InvalidationCause.kParamChanged)
+                cause != VFXModel.InvalidationCause.kParamChanged &&
+                cause != VFXModel.InvalidationCause.kEnableChanged)
             {
                 ExpressionGraphDirtyParamOnly = false;
                 return;

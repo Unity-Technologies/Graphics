@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Reflection;
 using UnityEngine;
 
-using UnityEditor.UIElements;
+
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
@@ -171,7 +171,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             value = Mathf.Max(Mathf.Min(value, 5), 1);
             m_IORPanel.Remove(m_IORSlider);
-            m_IORSlider = new Slider(1, 2.5f)  { value = value };
+            m_IORSlider = new Slider(1, 2.5f) { value = value };
             m_IORSlider.RegisterValueChangedCallback((evt) => OnChangeIORSlider(evt.newValue));
 
             m_IORPanel.Add(m_IORSlider);

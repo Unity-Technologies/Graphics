@@ -10,7 +10,7 @@ New Materials in HDRP use the [Lit Shader](Lit-Shader.md) by default. To create 
 
 1. In the Unity Editor, navigate to your Project's Asset window.
 
-2. Right-click the Asset Window and select __Create > Material__. This adds a new Material to your Unity Project’s Asset folder. 
+2. Right-click the Asset Window and select __Create > Material__. This adds a new Material to your Unity Project’s Asset folder.
 
 3. Click the __Shader__ drop-down at the top of the Material Inspector, and select __HDRP > Unlit__.
 

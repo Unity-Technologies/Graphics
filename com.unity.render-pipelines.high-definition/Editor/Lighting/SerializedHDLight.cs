@@ -5,9 +5,12 @@ using System.Collections.Generic;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    internal class SerializedHDLight
+    internal class SerializedHDLight : ISerializedLight
     {
-        public SerializedProperty intensity;
+        // Common properties
+        public SerializedProperty intensity { get; }
+
+        // HDRP specific properties
         public SerializedProperty enableSpotReflector;
         public SerializedProperty luxAtDistance;
         public SerializedProperty spotInnerPercent;
@@ -80,11 +83,10 @@ namespace UnityEditor.Rendering.HighDefinition
         // Editor stuff
         public SerializedProperty useOldInspector;
         public SerializedProperty showFeatures;
-        public SerializedProperty showAdditionalSettings;
         public SerializedProperty useVolumetric;
 
         // Layers
-        public SerializedProperty linkLightLayers;
+        public SerializedProperty linkShadowLayers;
         public SerializedProperty lightlayersMask;
 
         // Shadow datas
@@ -104,20 +106,21 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty slopeBias;
         public SerializedProperty normalBias;
 
-        private SerializedProperty pointLightHDType;
+        internal SerializedProperty pointLightHDType;
         private SerializedProperty areaLightShapeProperty;
 
         private GameObject[] emissiveMeshes;
 
         public bool needUpdateAreaLightEmissiveMeshComponents = false;
 
-        public SerializedObject serializedObject;
+        public SerializedObject serializedObject { get; }
+        public SerializedObject serializedAdditionalDataObject { get; }
 
         public SerializedProperty lightLayer;
         private SerializedObject lightGameObject;
 
         //contain serialized property that are mainly used to draw inspector
-        public LightEditor.Settings settings;
+        public LightEditor.Settings settings { get; }
 
         //type is converted on the fly each time so we cannot have SerializedProperty on it
         public HDLightType type
@@ -147,22 +150,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (value != (objects[index] as HDAdditionalLightData).type)
                         return true;
                 return false;
-            }
-        }
-
-        // This scope is here mainly to keep pointLightHDType isolated
-        public struct LightTypeEditionScope : System.IDisposable
-        {
-            public LightTypeEditionScope(Rect rect, GUIContent label, SerializedHDLight serialized)
-            {
-                EditorGUI.BeginProperty(rect, label, serialized.pointLightHDType);
-                EditorGUI.BeginProperty(rect, label, serialized.settings.lightType);
-            }
-
-            void System.IDisposable.Dispose()
-            {
-                EditorGUI.EndProperty();
-                EditorGUI.EndProperty();
             }
         }
 
@@ -396,12 +383,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Editor stuff
                 useOldInspector = o.Find("useOldInspector");
                 showFeatures = o.Find("featuresFoldout");
-                showAdditionalSettings = o.Find("showAdditionalSettings");
                 useVolumetric = o.Find("useVolumetric");
                 renderingLayerMask = settings.renderingLayerMask;
 
                 // Layers
-                linkLightLayers = o.Find("m_LinkShadowLayers");
+                linkShadowLayers = o.Find("m_LinkShadowLayers");
                 lightlayersMask = o.Find("m_LightlayersMask");
 
                 // Shadow datas:

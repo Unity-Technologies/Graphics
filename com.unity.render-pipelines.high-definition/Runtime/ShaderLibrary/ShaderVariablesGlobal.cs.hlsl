@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef SHADERVARIABLESGLOBAL_CS_HLSL
@@ -18,6 +18,7 @@
 // PackingRules = Exact
 GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4x4 _ViewMatrix;
+    float4x4 _CameraViewMatrix;
     float4x4 _InvViewMatrix;
     float4x4 _ProjMatrix;
     float4x4 _InvProjMatrix;
@@ -30,8 +31,11 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _WorldSpaceCameraPos_Internal;
     float4 _PrevCamPosRWS_Internal;
     float4 _ScreenSize;
+    float4 _PostProcessScreenSize;
     float4 _RTHandleScale;
     float4 _RTHandleScaleHistory;
+    float4 _RTHandlePostProcessScale;
+    float4 _RTHandlePostProcessScaleHistory;
     float4 _ZBufferParams;
     float4 _ProjectionParams;
     float4 unity_OrthoParams;
@@ -52,9 +56,9 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _MaxFogDistance;
     float4 _FogColor;
     float _FogColorMode;
+    float _GlobalMipBias;
+    float _GlobalMipBiasPow2;
     float _Pad0;
-    float _Pad1;
-    float _Pad2;
     float4 _MipFogParameters;
     float4 _HeightFogBaseScattering;
     float _HeightFogBaseExtinction;
@@ -62,8 +66,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _GlobalFogAnisotropy;
     int _VolumetricFilteringEnabled;
     float2 _HeightFogExponents;
-    float _Pad4;
-    float _Pad5;
+    int _FogDirectionalOnly;
+    float _Pad1;
     float4 _VBufferViewportSize;
     float4 _VBufferLightingViewportScale;
     float4 _VBufferLightingViewportLimit;
@@ -105,7 +109,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _MicroShadowOpacity;
     uint _EnableProbeVolumes;
     uint _ProbeVolumeCount;
-    float _Pad6;
+    float _SlopeScaleDepthBias;
     float4 _CookieAtlasSize;
     float4 _CookieAtlasData;
     float4 _PlanarAtlasData;
@@ -120,7 +124,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _NumTileClusteredX;
     uint _NumTileClusteredY;
     int _EnvSliceSize;
-    float _Pad7;
+    uint _EnableDecalLayers;
     float4 _ShapeParamsAndMaxScatterDists[16];
     float4 _TransmissionTintsAndFresnel0[16];
     float4 _WorldScalesAndFilterRadiiAndThicknessRemaps[16];
@@ -132,8 +136,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float2 _DecalAtlasResolution;
     uint _EnableDecals;
     uint _DecalCount;
+    float _OffScreenDownsampleFactor;
     uint _OffScreenRendering;
-    uint _OffScreenDownsampleFactor;
     uint _XRViewCount;
     int _FrameCount;
     float4 _CoarseStencilBufferSize;
@@ -141,18 +145,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _EnableRayTracedReflections;
     int _RaytracingFrameIndex;
     uint _EnableRecursiveRayTracing;
-    float4 _ProbeVolumeAtlasResolutionAndSliceCount;
-    float4 _ProbeVolumeAtlasResolutionAndSliceCountInverse;
-    float4 _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse;
-    int _ProbeVolumeLeakMitigationMode;
-    float _ProbeVolumeBilateralFilterWeightMin;
-    float _ProbeVolumeBilateralFilterWeight;
-    uint _EnableDecalLayers;
-    float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
     int _TransparentCameraOnlyMotionVectors;
     float _GlobalTessellationFactorMultiplier;
-    float _Pad8;
-    float _Pad9;
+    float _SpecularOcclusionBlend;
+    float _DeExposureMultiplier;
 CBUFFER_END
 
 

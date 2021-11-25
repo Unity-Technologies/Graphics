@@ -11,12 +11,13 @@ namespace UnityEngine.Rendering
     /// on Volumes.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public sealed class VolumeComponentMenu : Attribute
+    public class VolumeComponentMenu : Attribute
     {
         /// <summary>
         /// The name of the entry in the override list. You can use slashes to create sub-menus.
         /// </summary>
         public readonly string menu;
+
         // TODO: Add support for component icons
 
         /// <summary>
@@ -31,9 +32,46 @@ namespace UnityEngine.Rendering
     }
 
     /// <summary>
-    /// An attribute set on deprecated volume components.
+    /// This attribute allows you to add commands to the <strong>Add Override</strong> popup menu
+    /// on Volumes and specify for which render pipelines will be supported
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    public class VolumeComponentMenuForRenderPipeline : VolumeComponentMenu
+    {
+        /// <summary>
+        /// The list of pipeline types that the target class supports
+        /// </summary>
+        public Type[] pipelineTypes { get; }
+
+        /// <summary>
+        /// Creates a new <seealso cref="VolumeComponentMenuForRenderPipeline"/> instance.
+        /// </summary>
+        /// <param name="menu">The name of the entry in the override list. You can use slashes to
+        /// create sub-menus.</param>
+        /// <param name="pipelineTypes">The list of pipeline types that the target class supports</param>
+        public VolumeComponentMenuForRenderPipeline(string menu, params Type[] pipelineTypes)
+            : base(menu)
+        {
+            if (pipelineTypes == null)
+                throw new Exception("Specify a list of supported pipeline");
+
+            // Make sure that we only allow the class types that inherit from the render pipeline
+            foreach (var t in pipelineTypes)
+            {
+                if (!typeof(RenderPipeline).IsAssignableFrom(t))
+                    throw new Exception(
+                        $"You can only specify types that inherit from {typeof(RenderPipeline)}, please check {t}");
+            }
+
+            this.pipelineTypes = pipelineTypes;
+        }
+    }
+
+
+    /// <summary>
+    /// An attribute to hide the volume component to be added through `Add Override` button on the volume component list
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    [Obsolete("VolumeComponentDeprecated has been deprecated (UnityUpgradable) -> [UnityEngine] UnityEngine.HideInInspector", false)]
     public sealed class VolumeComponentDeprecated : Attribute
     {
     }
@@ -46,7 +84,7 @@ namespace UnityEngine.Rendering
     /// <code>
     /// using UnityEngine.Rendering;
     ///
-    /// [Serializable, VolumeComponentMenu("Custom/Example Component")]
+    /// [Serializable, VolumeComponentMenuForRenderPipeline("Custom/Example Component")]
     /// public class ExampleComponent : VolumeComponent
     /// {
     ///     public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
@@ -56,6 +94,21 @@ namespace UnityEngine.Rendering
     [Serializable]
     public class VolumeComponent : ScriptableObject
     {
+        /// <summary>
+        /// Local attribute for VolumeComponent fields only.
+        /// It handles relative indentation of a property for inspector.
+        /// </summary>
+        public sealed class Indent : PropertyAttribute
+        {
+            /// <summary> Relative indent amount registered in this atribute </summary>
+            public readonly int relativeAmount;
+
+            /// <summary> Constructor </summary>
+            /// <param name="relativeAmount">Relative indent change to use</param>
+            public Indent(int relativeAmount = 1)
+                => this.relativeAmount = relativeAmount;
+        }
+
         /// <summary>
         /// The active state of the set of parameters defined in this class. You can use this to
         /// quickly turn on or off all the overrides at once.
@@ -73,10 +126,32 @@ namespace UnityEngine.Rendering
         /// </summary>
         public ReadOnlyCollection<VolumeParameter> parameters { get; private set; }
 
-#pragma warning disable 414
-        [SerializeField]
-        bool m_AdvancedMode = false; // Editor-only
-#pragma warning restore 414
+        /// <summary>
+        /// Extracts all the <see cref="VolumeParameter"/>s defined in this class and nested classes.
+        /// </summary>
+        /// <param name="o">The object to find the parameters</param>
+        /// <param name="parameters">The list filled with the parameters.</param>
+        /// <param name="filter">If you want to filter the parameters</param>
+        internal static void FindParameters(object o, List<VolumeParameter> parameters, Func<FieldInfo, bool> filter = null)
+        {
+            if (o == null)
+                return;
+
+            var fields = o.GetType()
+                .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .OrderBy(t => t.MetadataToken); // Guaranteed order
+
+            foreach (var field in fields)
+            {
+                if (field.FieldType.IsSubclassOf(typeof(VolumeParameter)))
+                {
+                    if (filter?.Invoke(field) ?? true)
+                        parameters.Add((VolumeParameter)field.GetValue(o));
+                }
+                else if (!field.FieldType.IsArray && field.FieldType.IsClass)
+                    FindParameters(field.GetValue(o), parameters, filter);
+            }
+        }
 
         /// <summary>
         /// Unity calls this method when it loads the class.
@@ -87,13 +162,10 @@ namespace UnityEngine.Rendering
         protected virtual void OnEnable()
         {
             // Automatically grab all fields of type VolumeParameter for this instance
-            parameters = this.GetType()
-                .GetFields(BindingFlags.Public | BindingFlags.NonPublic  | BindingFlags.Instance)
-                .Where(t => t.FieldType.IsSubclassOf(typeof(VolumeParameter)))
-                .OrderBy(t => t.MetadataToken) // Guaranteed order
-                .Select(t => (VolumeParameter)t.GetValue(this))
-                .ToList()
-                .AsReadOnly();
+            var fields = new List<VolumeParameter>();
+            FindParameters(this, fields);
+            parameters = fields.AsReadOnly();
+
 
             foreach (var parameter in parameters)
             {
@@ -178,10 +250,14 @@ namespace UnityEngine.Rendering
         /// <param name="state">The value to set the state of the overrides to.</param>
         public void SetAllOverridesTo(bool state)
         {
-            SetAllOverridesTo(parameters, state);
+            SetOverridesTo(parameters, state);
         }
 
-        void SetAllOverridesTo(IEnumerable<VolumeParameter> enumerable, bool state)
+        /// <summary>
+        /// Sets the override state of the given parameters on this component to a given value.
+        /// </summary>
+        /// <param name="state">The value to set the state of the overrides to.</param>
+        internal void SetOverridesTo(IEnumerable<VolumeParameter> enumerable, bool state)
         {
             foreach (var prop in enumerable)
             {
@@ -196,7 +272,7 @@ namespace UnityEngine.Rendering
                             .GetValue(prop, null);
 
                     if (innerParams != null)
-                        SetAllOverridesTo(innerParams, state);
+                        SetOverridesTo(innerParams, state);
                 }
             }
         }

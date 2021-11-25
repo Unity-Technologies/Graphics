@@ -6,7 +6,6 @@ using UnityEditorInternal;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEngine.Rendering;
 using UnityEditor.Callbacks;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
@@ -90,6 +89,21 @@ class VFXExternalShaderProcessor : AssetPostprocessor
 [CanEditMultipleObjects]
 class VisualEffectAssetEditor : Editor
 {
+#if UNITY_2021_1_OR_NEWER
+    [OnOpenAsset(OnOpenAssetAttributeMode.Validate)]
+    public static bool WillOpenInUnity(int instanceID)
+    {
+        var obj = EditorUtility.InstanceIDToObject(instanceID);
+        if (obj is VFXGraph || obj is VFXModel || obj is VFXUI)
+            return true;
+        else if (obj is VisualEffectAsset)
+            return true;
+        else if (obj is VisualEffectSubgraph)
+            return true;
+        return false;
+    }
+
+#endif
     [OnOpenAsset(1)]
     public static bool OnOpenVFX(int instanceID, int line)
     {
@@ -101,19 +115,18 @@ class VisualEffectAssetEditor : Editor
             Selection.activeInstanceID = instanceID;
             return true;
         }
-        else if (obj is VisualEffectAsset)
+        else if (obj is VisualEffectAsset vfxAsset)
         {
-            VFXViewWindow.GetWindow<VFXViewWindow>().LoadAsset(obj as VisualEffectAsset, null);
+            VFXViewWindow.GetWindow(vfxAsset, true).LoadAsset(obj as VisualEffectAsset, null);
             return true;
         }
         else if (obj is VisualEffectSubgraph)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(obj));
-
-            VFXViewWindow.GetWindow<VFXViewWindow>().LoadResource(resource, null);
+            VFXViewWindow.GetWindow(resource, true).LoadResource(resource, null);
             return true;
         }
-        else if (obj is Shader || obj is ComputeShader)
+        else if (obj is Material || obj is ComputeShader)
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
 
@@ -139,7 +152,7 @@ class VisualEffectAssetEditor : Editor
     {
         for (int i = 0; i < m_OutputContexts.Count(); ++i)
         {
-            m_OutputContexts[i].sortPriority = i;
+            m_OutputContexts[i].vfxSystemSortPriority = i;
         }
     }
 
@@ -170,7 +183,7 @@ class VisualEffectAssetEditor : Editor
         {
             m_CurrentGraph = resource.GetOrCreateGraph();
             m_CurrentGraph.systemNames.Sync(m_CurrentGraph);
-            m_OutputContexts.AddRange(m_CurrentGraph.children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+            m_OutputContexts.AddRange(m_CurrentGraph.children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));
         }
 
         m_ReorderableList = new ReorderableList(m_OutputContexts, typeof(IVFXSubRenderer));
@@ -457,11 +470,7 @@ class VisualEffectAssetEditor : Editor
         bool newExactFixedTimeStep = false;
         EditorGUI.showMixedValue = !initialProcessEveryFrame.HasValue;
         EditorGUI.BeginDisabledGroup((!initialFixedDeltaTime.HasValue || !initialFixedDeltaTime.Value) && !resourceUpdateModeProperty.hasMultipleDifferentValues);
-
-#if CASE_1289829_HAS_BEEN_FIXED
         newExactFixedTimeStep = EditorGUILayout.Toggle(processEveryFrameContent, initialProcessEveryFrame ?? false);
-#endif
-
         EditorGUI.EndDisabledGroup();
         EditorGUI.showMixedValue = !initialIgnoreGameTimeScale.HasValue;
         bool newIgnoreTimeScale = EditorGUILayout.Toggle(ignoreTimeScaleContent, initialIgnoreGameTimeScale ?? false);
@@ -516,17 +525,37 @@ class VisualEffectAssetEditor : Editor
                 }
             }
         }
+        VisualEffectAsset asset = (VisualEffectAsset)target;
+        VisualEffectResource resource = asset.GetResource();
 
-        EditorGUILayout.BeginHorizontal();
-        EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
-        EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen."));
-        EditorGUI.BeginChangeCheck();
-        int newOption = EditorGUILayout.Popup(Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue), k_CullingOptionsContents);
-        if (EditorGUI.EndChangeCheck())
+        //The following should be working, and works for newly created systems, but fails for old systems,
+        //due probably to incorrectly pasting the VFXData when creating them.
+        // bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
+        //     .OfType<VFXDataParticle>().Any(d => d.boundsMode == BoundsSettingMode.Automatic);
+
+        bool hasAutomaticBoundsSystems = resource.GetOrCreateGraph().children
+            .OfType<VFXBasicInitialize>().Any(d => (d.GetData() as VFXDataParticle).boundsMode == BoundsSettingMode.Automatic);
+        using (new EditorGUI.DisabledScope(hasAutomaticBoundsSystems))
         {
-            cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
-            resourceObject.ApplyModifiedProperties();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUI.showMixedValue = cullingFlagsProperty.hasMultipleDifferentValues;
+            string forceSimulateTooltip = hasAutomaticBoundsSystems
+                ? " When using systems with Bounds Mode set to Automatic, this has to be set to Always recompute bounds and simulate."
+                : "";
+            EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags", "Specifies how the system recomputes its bounds and simulates when off-screen." + forceSimulateTooltip));
+            EditorGUI.BeginChangeCheck();
+
+            int newOption =
+                EditorGUILayout.Popup(
+                    Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue),
+                    k_CullingOptionsContents);
+            if (EditorGUI.EndChangeCheck())
+            {
+                cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
+                resourceObject.ApplyModifiedProperties();
+            }
         }
+
         EditorGUILayout.EndHorizontal();
 
         VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Initial state"), false, false);
@@ -633,34 +662,41 @@ class VisualEffectAssetEditor : Editor
 
         if (!serializedObject.isEditingMultipleObjects)
         {
-            VisualEffectAsset asset = (VisualEffectAsset)target;
-            VisualEffectResource resource = asset.GetResource();
+            asset = (VisualEffectAsset)target;
+            resource = asset.GetResource();
 
             m_OutputContexts.Clear();
-            m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.sortPriority));
+            m_OutputContexts.AddRange(resource.GetOrCreateGraph().children.OfType<IVFXSubRenderer>().OrderBy(t => t.vfxSystemSortPriority));
 
             m_ReorderableList.DoLayoutList();
 
-            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"),  false, false);
+            VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), false, false);
 
             string assetPath = AssetDatabase.GetAssetPath(asset);
             UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);
             string directory = Path.GetDirectoryName(assetPath) + "/" + VFXExternalShaderProcessor.k_ShaderDirectory + "/" + asset.name + "/";
 
-            foreach (var shader in objects)
+            foreach (var obj in objects)
             {
-                if (shader is Shader || shader is ComputeShader)
+                if (obj is Material || obj is ComputeShader)
                 {
                     GUILayout.BeginHorizontal();
                     Rect r = GUILayoutUtility.GetRect(0, 18, GUILayout.ExpandWidth(true));
 
                     int buttonsWidth = VFXExternalShaderProcessor.allowExternalization ? 240 : 160;
 
+                    int index = resource.GetShaderIndex(obj);
+
+                    var shader = obj;
+                    if (obj is Material) // Retrieve the shader from the material
+                        shader = ((Material)(obj)).shader;
+                    if (shader == null)
+                        continue;
 
                     Rect labelR = r;
                     labelR.width -= buttonsWidth;
                     GUI.Label(labelR, shader.name);
-                    int index = resource.GetShaderIndex(shader);
+
                     if (index >= 0)
                     {
                         if (VFXExternalShaderProcessor.allowExternalization && index < resource.GetShaderSourceCount())

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using System.IO;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering
 
             if (makeTexture)
             {
-                Texture2D tex = new Texture2D(1, 1, TextureFormat.ARGB32, false, true);
+                Texture2D tex = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None);
                 tex.SetPixel(0, 0, color);
                 tex.Apply();
 
@@ -84,34 +84,6 @@ namespace UnityEditor.Rendering
                 return tex;
         }
 
-        private static TextureFormat[] TextureFormatsWithouthAlpha =
-        {
-            TextureFormat.BC4,
-            TextureFormat.BC5,
-            TextureFormat.DXT1,
-            TextureFormat.DXT1Crunched,
-            TextureFormat.EAC_R,
-            TextureFormat.EAC_R_SIGNED,
-            TextureFormat.EAC_RG,
-            TextureFormat.EAC_RG_SIGNED,
-            TextureFormat.ETC2_RGB,
-            TextureFormat.ETC_RGB4,
-            TextureFormat.ETC_RGB4Crunched,
-            TextureFormat.PVRTC_RGB2,
-            TextureFormat.PVRTC_RGB4,
-            TextureFormat.R16,
-            TextureFormat.R8,
-            TextureFormat.RFloat,
-            TextureFormat.RG16,
-            TextureFormat.RGB24,
-            TextureFormat.RGB565,
-            TextureFormat.RGB9e5Float,
-            TextureFormat.RGFloat,
-            TextureFormat.RGHalf,
-            TextureFormat.RHalf,
-            TextureFormat.YUY2
-        };
-
         /// <summary>
         /// Specifies whether the Texture has an alpha channel or not. Returns true if it does and false otherwise.
         /// </summary>
@@ -121,16 +93,7 @@ namespace UnityEditor.Rendering
         {
             if (tex == null) return false;
 
-            bool o = true;
-            int i = 0;
-
-            while (i < TextureFormatsWithouthAlpha.Length && o)
-            {
-                o = tex.format != TextureFormatsWithouthAlpha[i];
-                ++i;
-            }
-
-            return o;
+            return GraphicsFormatUtility.HasAlphaChannel(tex.graphicsFormat);
         }
 
         private Texture m_rSource;
@@ -220,7 +183,7 @@ namespace UnityEditor.Rendering
             if (m_aSource.height > 4 && m_aSource.height < yMin) yMin = m_aSource.height;
             if (yMin == int.MaxValue) yMin = 4;
 
-            Texture2D combined = new Texture2D(xMin, yMin, TextureFormat.RGBAFloat, true, true);
+            Texture2D combined = new Texture2D(xMin, yMin, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.MipChain);
             combined.hideFlags = HideFlags.DontUnloadUnusedAsset;
 
             Material combinerMaterial = new Material(Shader.Find("Hidden/SRP_Core/TextureCombiner"));
@@ -241,7 +204,7 @@ namespace UnityEditor.Rendering
             combinerMaterial.SetVector("_BRemap", m_remapings[2]);
             combinerMaterial.SetVector("_ARemap", m_remapings[3]);
 
-            RenderTexture combinedRT = new RenderTexture(xMin, yMin, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.sRGB);
+            RenderTexture combinedRT = new RenderTexture(xMin, yMin, 0, GraphicsFormat.R32G32B32A32_SFloat);
 
             Graphics.Blit(Texture2D.whiteTexture, combinedRT, combinerMaterial);
 
@@ -283,7 +246,7 @@ namespace UnityEditor.Rendering
             //cleanup "raw" textures
             foreach (KeyValuePair<Texture, Texture> prop in m_RawTextures)
             {
-                if (AssetDatabase.Contains(prop.Value))
+                if (prop.Key != prop.Value && AssetDatabase.Contains(prop.Value))
                     AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(prop.Value));
             }
 
@@ -299,13 +262,12 @@ namespace UnityEditor.Rendering
             if (m_RawTextures == null) m_RawTextures = new Dictionary<Texture, Texture>();
             if (!m_RawTextures.ContainsKey(original))
             {
-                if (AssetDatabase.Contains(original))
+                string path = AssetDatabase.GetAssetPath(original);
+                string rawPath = "Assets/raw_" + Path.GetFileName(path);
+                bool isBuiltinResource = path.Contains("unity_builtin");
+
+                if (!isBuiltinResource && AssetDatabase.Contains(original) && AssetDatabase.CopyAsset(path, rawPath))
                 {
-                    string path = AssetDatabase.GetAssetPath(original);
-                    string rawPath = "Assets/raw_" + Path.GetFileName(path);
-
-                    AssetDatabase.CopyAsset(path, rawPath);
-
                     AssetDatabase.ImportAsset(rawPath);
 
                     TextureImporter rawImporter = (TextureImporter)AssetImporter.GetAtPath(rawPath);

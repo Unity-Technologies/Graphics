@@ -4,3 +4,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.HighDefinition-Tests.Editor")]
 [assembly: InternalsVisibleTo("Unity.GraphicTests.Performance.HDRP.Runtime")]
 [assembly: InternalsVisibleTo("Unity.GraphicTests.Performance.HDRP.Editor")]
+[assembly: InternalsVisibleTo("TestRuntime")]
+[assembly: InternalsVisibleTo("Unity.SensorSDK.Runtime")]
+[assembly: InternalsVisibleTo("Unity.SensorSDK.Editor")]
