@@ -511,39 +511,41 @@ CBUFFER_START(UnityInstancingUnityPerDraw)
     UnityPerDrawElement inst[2];
 CBUFFER_END
 
+static uint gSrpBatcherInstanceId;
+
 //unity_InstanceID
-#define unity_ObjectToWorld					inst[0]._unity_ObjectToWorld
-#define unity_WorldToObject                	inst[0]._unity_WorldToObject
-#define unity_LODFade                      	inst[0]._unity_LODFade
-#define unity_WorldTransformParams         	inst[0]._unity_WorldTransformParams
-#define unity_RenderingLayer               	inst[0]._unity_RenderingLayer
-#define unity_LightmapST                   	inst[0]._unity_LightmapST
-#define unity_DynamicLightmapST            	inst[0]._unity_DynamicLightmapST
-#define unity_SHAr                         	inst[0]._unity_SHAr
-#define unity_SHAg                         	inst[0]._unity_SHAg
-#define unity_SHAb                         	inst[0]._unity_SHAb
-#define unity_SHBr                         	inst[0]._unity_SHBr
-#define unity_SHBg                         	inst[0]._unity_SHBg
-#define unity_SHBb                         	inst[0]._unity_SHBb
-#define unity_SHC                          	inst[0]._unity_SHC
-#define unity_ProbeVolumeParams            	inst[0]._unity_ProbeVolumeParams
-#define unity_ProbeVolumeWorldToObject     	inst[0]._unity_ProbeVolumeWorldToObject
-#define unity_ProbeVolumeSizeInv           	inst[0]._unity_ProbeVolumeSizeInv
-#define unity_ProbeVolumeMin               	inst[0]._unity_ProbeVolumeMin
-#define unity_ProbesOcclusion              	inst[0]._unity_ProbesOcclusion
-#define unity_MatrixPreviousM              	inst[0]._unity_MatrixPreviousM
-#define unity_MatrixPreviousMI             	inst[0]._unity_MatrixPreviousMI
-#define unity_MotionVectorsParams          	inst[0]._unity_MotionVectorsParams
+#define unity_ObjectToWorld					inst[gSrpBatcherInstanceId]._unity_ObjectToWorld
+#define unity_WorldToObject                	inst[gSrpBatcherInstanceId]._unity_WorldToObject
+#define unity_LODFade                      	inst[gSrpBatcherInstanceId]._unity_LODFade
+#define unity_WorldTransformParams         	inst[gSrpBatcherInstanceId]._unity_WorldTransformParams
+#define unity_RenderingLayer               	inst[gSrpBatcherInstanceId]._unity_RenderingLayer
+#define unity_LightmapST                   	inst[gSrpBatcherInstanceId]._unity_LightmapST
+#define unity_DynamicLightmapST            	inst[gSrpBatcherInstanceId]._unity_DynamicLightmapST
+#define unity_SHAr                         	inst[gSrpBatcherInstanceId]._unity_SHAr
+#define unity_SHAg                         	inst[gSrpBatcherInstanceId]._unity_SHAg
+#define unity_SHAb                         	inst[gSrpBatcherInstanceId]._unity_SHAb
+#define unity_SHBr                         	inst[gSrpBatcherInstanceId]._unity_SHBr
+#define unity_SHBg                         	inst[gSrpBatcherInstanceId]._unity_SHBg
+#define unity_SHBb                         	inst[gSrpBatcherInstanceId]._unity_SHBb
+#define unity_SHC                          	inst[gSrpBatcherInstanceId]._unity_SHC
+#define unity_ProbeVolumeParams            	inst[gSrpBatcherInstanceId]._unity_ProbeVolumeParams
+#define unity_ProbeVolumeWorldToObject     	inst[gSrpBatcherInstanceId]._unity_ProbeVolumeWorldToObject
+#define unity_ProbeVolumeSizeInv           	inst[gSrpBatcherInstanceId]._unity_ProbeVolumeSizeInv
+#define unity_ProbeVolumeMin               	inst[gSrpBatcherInstanceId]._unity_ProbeVolumeMin
+#define unity_ProbesOcclusion              	inst[gSrpBatcherInstanceId]._unity_ProbesOcclusion
+#define unity_MatrixPreviousM              	inst[gSrpBatcherInstanceId]._unity_MatrixPreviousM
+#define unity_MatrixPreviousMI             	inst[gSrpBatcherInstanceId]._unity_MatrixPreviousMI
+#define unity_MotionVectorsParams          	inst[gSrpBatcherInstanceId]._unity_MotionVectorsParams
 
 
 
 // Define Model Matrix Macro
 // Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject/unity_MatrixPreviousM/unity_MatrixPreviousMI
 // We need to declare inline function. Using uniform directly mean they are expand with the macro
-float4x4 GetRawUnityObjectToWorld()     { return inst[0]._unity_ObjectToWorld; }
-float4x4 GetRawUnityWorldToObject()     { return inst[0]._unity_WorldToObject; }
-float4x4 GetRawUnityPrevObjectToWorld() { return inst[0]._unity_MatrixPreviousM; }
-float4x4 GetRawUnityPrevWorldToObject() { return inst[0]._unity_MatrixPreviousMI; }
+float4x4 GetRawUnityObjectToWorld()     { return inst[gSrpBatcherInstanceId]._unity_ObjectToWorld; }
+float4x4 GetRawUnityWorldToObject()     { return inst[gSrpBatcherInstanceId]._unity_WorldToObject; }
+float4x4 GetRawUnityPrevObjectToWorld() { return inst[gSrpBatcherInstanceId]._unity_MatrixPreviousM; }
+float4x4 GetRawUnityPrevWorldToObject() { return inst[gSrpBatcherInstanceId]._unity_MatrixPreviousMI; }
 
 #define UNITY_MATRIX_M         ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
 #define UNITY_MATRIX_I_M       ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())

@@ -23,7 +23,8 @@ struct AttributesMesh
     float4 color        : COLOR;
 #endif
 
-    UNITY_VERTEX_INPUT_INSTANCE_ID
+    uint instanceID : SV_InstanceID;
+    //    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct VaryingsMeshToPS
@@ -52,7 +53,8 @@ struct VaryingsMeshToPS
     float4 color;
 #endif
 
-    UNITY_VERTEX_INPUT_INSTANCE_ID
+    uint instanceID : SV_InstanceID;
+//    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct PackedVaryingsMeshToPS
@@ -85,7 +87,8 @@ struct PackedVaryingsMeshToPS
     float4 interpolators5 : TEXCOORD5;
 #endif
 
-    UNITY_VERTEX_INPUT_INSTANCE_ID
+    uint instanceID : SV_InstanceID;
+//    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 // Functions to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
@@ -93,6 +96,7 @@ PackedVaryingsMeshToPS PackVaryingsMeshToPS(VaryingsMeshToPS input)
 {
     PackedVaryingsMeshToPS output;
 
+    output.instanceID = input.instanceID;
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     output.positionCS = input.positionCS;
@@ -131,6 +135,7 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
     FragInputs output;
     ZERO_INITIALIZE(FragInputs, output);
 
+    gSrpBatcherInstanceId = input.instanceID;
     UNITY_SETUP_INSTANCE_ID(input);
 
     // Init to some default value to make the computer quiet (else it output "divide by zero" warning even if value is not used).
@@ -219,7 +224,8 @@ struct VaryingsMeshToDS
     float4 color;
 #endif
 
-    UNITY_VERTEX_INPUT_INSTANCE_ID
+    uint instanceID : SV_InstanceID;
+//    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct PackedVaryingsMeshToDS
@@ -248,7 +254,8 @@ struct PackedVaryingsMeshToDS
     float4 interpolators5 : TEXCOORD2;
 #endif
 
-     UNITY_VERTEX_INPUT_INSTANCE_ID
+    uint instanceID : SV_InstanceID;
+//  UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 // Functions to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
@@ -256,6 +263,7 @@ PackedVaryingsMeshToDS PackVaryingsMeshToDS(VaryingsMeshToDS input)
 {
     PackedVaryingsMeshToDS output;
 
+    output.instanceID = input.instanceID;
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     output.interpolators0 = float4(input.positionRWS, input.tessellationFactor);
@@ -286,6 +294,7 @@ VaryingsMeshToDS UnpackVaryingsMeshToDS(PackedVaryingsMeshToDS input)
 {
     VaryingsMeshToDS output;
 
+    output.instanceID = input.instanceID;
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     output.positionRWS = input.interpolators0.xyz;
@@ -317,6 +326,7 @@ VaryingsMeshToDS InterpolateWithBaryCoordsMeshToDS(VaryingsMeshToDS input0, Vary
 {
     VaryingsMeshToDS output;
 
+    output.instanceID = input.instanceID;
     UNITY_TRANSFER_INSTANCE_ID(input0, output);
 
     TESSELLATION_INTERPOLATE_BARY(positionRWS, baryCoords);

@@ -4,6 +4,7 @@ struct VaryingsToPS
 #ifdef VARYINGS_NEED_PASS
     VaryingsPassToPS vpass;
 #endif
+    uint instanceID : SV_InstanceID;
 };
 
 struct PackedVaryingsToPS
@@ -12,6 +13,7 @@ struct PackedVaryingsToPS
     PackedVaryingsPassToPS vpass;
 #endif
 
+    uint instanceID : SV_InstanceID;
     PackedVaryingsMeshToPS vmesh;
 
     // SGVs must be packed after all non-SGVs have been packed.
@@ -34,6 +36,7 @@ PackedVaryingsToPS PackVaryingsToPS(VaryingsToPS input)
 {
     PackedVaryingsToPS output;
     output.vmesh = PackVaryingsMeshToPS(input.vmesh);
+//    output.instanceID = input.instanceID;
 #ifdef VARYINGS_NEED_PASS
     output.vpass = PackVaryingsPassToPS(input.vpass);
 #endif
@@ -137,8 +140,9 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
 #if defined(USE_CUSTOMINTERP_SUBSTRUCT) || defined(HAVE_VFX_MODIFICATION)
     ZERO_INITIALIZE(VaryingsMeshType, output); // Only required with custom interpolator to quiet the shader compiler about not fully initialized struct
 #endif
-
+    gSrpBatcherInstanceId = input.instanceID;
     UNITY_SETUP_INSTANCE_ID(input);
+    output.instanceID = input.instanceID;
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
 #ifdef HAVE_VFX_MODIFICATION
@@ -256,7 +260,9 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 {
     VaryingsMeshToPS output;
 
+    gSrpBatcherInstanceId = input.instanceID;
     UNITY_SETUP_INSTANCE_ID(input);
+    output.instanceID = input.instanceID;
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     output.positionCS = TransformWorldToHClip(input.positionRWS);

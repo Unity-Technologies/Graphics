@@ -24,7 +24,7 @@ RenderSettings:
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 0
+  m_AmbientMode: 4
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 0}
   m_HaloStrength: 0.5
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 2021.5479, g: 1988.0723, b: 2395.3945, a: 1}
+  m_IndirectSpecularColor: {r: 2021.3242, g: 1989.3438, b: 2400.3906, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -423,8 +423,8 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 27040d61ae253004092b31c6c01d4d7c, type: 2}
   - {fileID: 2100000, guid: 391260548965be746af79270db2aa179, type: 2}
   - {fileID: 2100000, guid: 21e18d4c42664574780cd7e34db43dba, type: 2}
-  m_w: 40
-  m_h: 40
+  m_w: 64
+  m_h: 64
   m_randomMesh: 0
   m_sameMaterial: 0
   m_castShadows: 1
@@ -566,8 +566,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1823688464}
-  m_LocalRotation: {x: 0.2886846, y: -0.125912, z: 0.038329322, w: 0.94833446}
-  m_LocalPosition: {x: 12.311741, y: 17.009808, z: -26.642906}
+  m_LocalRotation: {x: -0.12161584, y: 0.87539107, z: -0.28990972, w: -0.3672227}
+  m_LocalPosition: {x: 29.743914, y: 21.727827, z: 30.178207}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
