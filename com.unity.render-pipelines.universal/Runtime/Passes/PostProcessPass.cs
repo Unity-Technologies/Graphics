@@ -2,16 +2,6 @@ using System;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Rendering.Universal
-{
-    // TODO: xmldoc
-    public interface IPostProcessComponent
-    {
-        bool IsActive();
-        bool IsTileCompatible();
-    }
-}
-
 namespace UnityEngine.Rendering.Universal.Internal
 {
     // TODO: TAA
