@@ -79,10 +79,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (scope.displayed)
                     {
+                        var rect = EditorGUILayout.GetControlRect();
+                        EditorGUI.BeginProperty(rect, m_SkyIntensityModeLabel, m_IntensityMode.value);
                         if (m_EnableLuxIntensityMode)
-                            m_IntensityMode.value.intValue = EditorGUILayout.IntPopup(m_SkyIntensityModeLabel, (int)m_IntensityMode.value.intValue, m_IntensityModes, m_IntensityModeValues);
+                            m_IntensityMode.value.intValue = EditorGUI.IntPopup(rect, m_SkyIntensityModeLabel, (int)m_IntensityMode.value.intValue, m_IntensityModes, m_IntensityModeValues);
                         else
-                            m_IntensityMode.value.intValue = EditorGUILayout.IntPopup(m_SkyIntensityModeLabel, (int)m_IntensityMode.value.intValue, m_IntensityModesNoLux, m_IntensityModeValuesNoLux);
+                            m_IntensityMode.value.intValue = EditorGUI.IntPopup(rect, m_SkyIntensityModeLabel, (int)m_IntensityMode.value.intValue, m_IntensityModesNoLux, m_IntensityModeValuesNoLux);
+                        EditorGUI.EndProperty();
                     }
                 }
 
