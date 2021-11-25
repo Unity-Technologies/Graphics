@@ -378,11 +378,14 @@ namespace UnityEditor.VFX
                 if (playable.clipEvents.Any())
                 {
                     var last = playable.clipEvents.Last();
+                    newClipEvent.editorColor = last.editorColor;
                     newClipEvent.enter = DeepClone(last.enter);
                     newClipEvent.exit = DeepClone(last.exit);
                 }
                 else
                 {
+                    newClipEvent.editorColor = Color.white;
+
                     newClipEvent.enter.eventAttributes = new UnityEngine.VFX.EventAttributes();
                     newClipEvent.enter.name = VisualEffectAsset.PlayEventName;
                     newClipEvent.enter.time = 0.0;

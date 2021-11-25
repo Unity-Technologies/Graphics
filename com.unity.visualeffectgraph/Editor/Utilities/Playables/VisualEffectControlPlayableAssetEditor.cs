@@ -449,7 +449,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            currentRect.height -= eventNameHeight + 2; //TODOPAUL
+            currentRect.height -= eventNameHeight + 2;
 
             m_ClipEventBars.Clear();
             uint rowCount = 1u;
@@ -497,7 +497,6 @@ namespace UnityEditor.VFX
 
                 EditorGUI.DrawRect(rect, bar.color);
             }
-
         }
     }
 }
