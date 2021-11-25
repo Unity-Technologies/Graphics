@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed objects belonging to preview scenes being marked as dirty during migration (case 1367204).
 - Fixed interpolation issue with wind orientation (case 1379841).
 - Fixed range fields for depth of field (case 1376609).
+- Fixed exception on DLSS when motion vectors are disabled (case # 1377986).
 
 ### Changed
 - Optimizations for the physically based depth of field.
