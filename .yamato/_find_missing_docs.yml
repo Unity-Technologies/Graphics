@@ -25,6 +25,10 @@ find_missing_docs_{{ package.name }}:
     - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git ../gfx-sdet-tools
     - git -C gfx-sdet-tools checkout ant/284/add-missing-docs-checker
     - python gfx-sdet-tools/FindMissingDocs/find_missing_docs.py --root-path {{ package.path }}
+  artifacts:
+    missing_docs:
+      paths:
+        - missing-docs.txt
 {% endfor %}
 
 find_missing_docs_all_packages:
