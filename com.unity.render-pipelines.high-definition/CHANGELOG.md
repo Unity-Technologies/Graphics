@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed options to trigger cached shadows updates on light transform changes.
 - Fixed objects belonging to preview scenes being marked as dirty during migration (case 1367204).
 - Fixed interpolation issue with wind orientation (case 1379841).
+- Fixed range fields for depth of field (case 1376609).
 
 ### Changed
 - Optimizations for the physically based depth of field.
