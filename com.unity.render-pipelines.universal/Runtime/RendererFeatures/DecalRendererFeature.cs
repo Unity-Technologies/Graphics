@@ -484,6 +484,8 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_Technique == DecalTechnique.DBuffer)
             {
+                m_DBufferRenderPass.Setup(renderingData.cameraData);
+
                 var universalRenderer = renderer as UniversalRenderer;
                 if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
                     m_CopyDepthPass.Setup(
@@ -509,6 +511,7 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Dispose(bool disposing)
         {
+            m_DBufferRenderPass?.Dispose();
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_DBufferClearMaterial);
 
