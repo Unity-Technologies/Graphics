@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SpeedTree graph compatibility by adding raytracing quality keyword to provide a safe path.
 - Fixed options to trigger cached shadows updates on light transform changes.
 - Fixed objects belonging to preview scenes being marked as dirty during migration (case 1367204).
+- Fixed interpolation issue with wind orientation (case 1379841).
 
 ### Changed
 - Optimizations for the physically based depth of field.
