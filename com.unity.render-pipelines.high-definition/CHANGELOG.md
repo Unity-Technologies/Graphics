@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
 - Fixed Xbox Series X compilation issue with DoF shader
+- Fixed references to reflection probes that wouldn't be cleared when unloading a scene. (case 1357459)
+- Fixed broken debug views when dynamic resolution was enabled (case 1365368).
 
 ## [12.1.2] - 2021-10-22
 
@@ -37,7 +39,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light unit conversion after changing mid gray value.
 - Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
 - Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
-- Fixed references to reflection probes that wouldn't be cleared when unloading a scene. (case 1357459)
 
 ### Changed
 - Maximum light count per fine prunned tile (opaque deferred) is now 63 instead of 23.
