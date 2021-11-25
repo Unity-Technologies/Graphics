@@ -142,26 +142,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 // 2) to the proper reflection probe cache size
                 bool sizeMismatch = cubeTexture.width != m_ProbeSize || cubeTexture.height != m_ProbeSize;
                 bool formatMismatch = (GraphicsFormatUtility.GetGraphicsFormat(cubeTexture.format, false) != m_TempRenderTexture.graphicsFormat);
-                if (formatMismatch || sizeMismatch)
+
+                // We comment the following warning as they have no impact on the result but spam the console, it is just that we waste offline time and a bit of quality for nothing.
+                if (sizeMismatch)
                 {
-                    // We comment the following warning as they have no impact on the result but spam the console, it is just that we waste offline time and a bit of quality for nothing.
-                    if (sizeMismatch)
-                    {
-                        // Debug.LogWarningFormat("Baked Reflection Probe {0} does not match HDRP Reflection Probe Cache size of {1}. Consider baking it at the same size for better loading performance.", texture.name, m_ProbeSize);
-                    }
-                    else if (cubeTexture.graphicsFormat == GraphicsFormat.RGB_BC6H_UFloat || cubeTexture.graphicsFormat == GraphicsFormat.RGB_BC6H_SFloat)
-                    {
-                        // Debug.LogWarningFormat("Baked Reflection Probe {0} is compressed but the HDRP Reflection Probe Cache is not. Consider removing compression from the input texture for better quality.", texture.name);
-                    }
-                    ConvertTexture(cmd, cubeTexture, m_TempRenderTexture);
+                    // Debug.LogWarningFormat("Baked Reflection Probe {0} does not match HDRP Reflection Probe Cache size of {1}. Consider baking it at the same size for better loading performance.", texture.name, m_ProbeSize);
                 }
-                else
+                else if (formatMismatch && (cubeTexture.graphicsFormat == GraphicsFormat.RGB_BC6H_UFloat || cubeTexture.graphicsFormat == GraphicsFormat.RGB_BC6H_SFloat))
                 {
-                    for (int f = 0; f < 6; f++)
-                    {
-                        cmd.CopyTexture(cubeTexture, f, 0, m_TempRenderTexture, f, 0);
-                    }
+                    // Debug.LogWarningFormat("Baked Reflection Probe {0} is compressed but the HDRP Reflection Probe Cache is not. Consider removing compression from the input texture for better quality.", texture.name);
                 }
+
+                // Convert the cubemap to match the size and texture format used for the cache
+                // This will also take care of decoding manually encoded HDR cubemaps (RGBM, dLDR)
+                ConvertTexture(cmd, cubeTexture, m_TempRenderTexture);
 
                 // Ideally if input is not compressed and has mipmaps, don't do anything here. Problem is, we can't know if mips have been already convolved offline...
                 cmd.GenerateMips(m_TempRenderTexture);

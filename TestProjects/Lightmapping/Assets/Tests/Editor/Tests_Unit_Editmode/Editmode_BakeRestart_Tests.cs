@@ -280,6 +280,7 @@ public class Editmode_BakeRestart_Tests
         clearAll();
     }
 
+    /* Unstable test, see case 1383020
     [UnityTest] // Case 1364204
     public IEnumerator RadeonProDenoiser_DisablingRadeonProDenoiserDuringABake_DoesNotFallbackToCPU()
     {
@@ -330,4 +331,5 @@ public class Editmode_BakeRestart_Tests
         Lightmapping.Clear();
         Lightmapping.ClearLightingDataAsset();
     }
+    */
 }
