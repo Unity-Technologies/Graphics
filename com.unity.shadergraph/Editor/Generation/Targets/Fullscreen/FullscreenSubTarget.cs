@@ -520,6 +520,8 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 
                 CollectRenderStateShaderProperties(collector, generationMode);
             }
+
+            collector.AddFloatProperty("_FlipY", 0, HLSLDeclaration.Global, false);
         }
 
         public void CollectRenderStateShaderProperties(PropertyCollector collector, GenerationMode generationMode)

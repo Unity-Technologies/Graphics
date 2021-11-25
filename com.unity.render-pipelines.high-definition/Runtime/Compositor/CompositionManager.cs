@@ -148,6 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         internal Matrix4x4 m_ViewProjMatrix;
         internal Matrix4x4 m_ViewProjMatrixFlipped;
         internal GameObject m_CompositorGameObject;
+        internal MaterialPropertyBlock fullscreenProperties;
 
         ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
 
@@ -840,13 +841,26 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 }
             }
 
+            int materialPass = m_Material.FindPass("DrawProcedural");
+            bool isFullscreen = materialPass != -1;
+
+            if (!isFullscreen)
+                materialPass = m_Material.FindPass("ForwardOnly");
+
             if (camera.camera.targetTexture)
             {
-                // When rendering to texture (or to camera bridge) we don't need to flip the image.
-                // If this matrix was used for the game view, then the image would appear flipped, hense the name of the variable.
-                m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrixFlipped;
-                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
-                cmd.Blit(null, camera.camera.targetTexture, m_Material, m_Material.FindPass("ForwardOnly"));
+                if (isFullscreen)
+                {
+                    CoreUtils.DrawFullScreen(cmd, m_Material, camera.camera.targetTexture, shaderPassId: materialPass);
+                }
+                else
+                {
+                    // When rendering to texture (or to camera bridge) we don't need to flip the image.
+                    // If this matrix was used for the game view, then the image would appear flipped, hense the name of the variable.
+                    m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrixFlipped;
+                    ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+                    cmd.Blit(null, camera.camera.targetTexture, m_Material, materialPass);
+                }
 
                 var recorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera.camera);
                 if (recorderCaptureActions != null)
@@ -863,21 +877,40 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
                 if (recorderCaptureActions != null)
                 {
-                    m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrixFlipped;
-                    ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
                     var format = m_InputLayers[0].GetRenderTarget().format;
                     cmd.GetTemporaryRT(m_RecorderTempRT, camera.camera.pixelWidth, camera.camera.pixelHeight, 0, FilterMode.Point, format);
-                    cmd.Blit(null, m_RecorderTempRT, m_Material, m_Material.FindPass("ForwardOnly"));
-                    for (recorderCaptureActions.Reset(); recorderCaptureActions.MoveNext();)
+
+                    if (isFullscreen)
                     {
-                        recorderCaptureActions.Current(m_RecorderTempRT, cmd);
+                        CoreUtils.DrawFullScreen(cmd, m_Material, m_RecorderTempRT, shaderPassId: materialPass);
+                    }
+                    else
+                    {
+                        m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrixFlipped;
+                        ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+                        cmd.Blit(null, m_RecorderTempRT, m_Material, materialPass);
+                        for (recorderCaptureActions.Reset(); recorderCaptureActions.MoveNext();)
+                        {
+                            recorderCaptureActions.Current(m_RecorderTempRT, cmd);
+                        }
                     }
                 }
 
-                // When we render directly to game view, we render the image flipped up-side-down, like other HDRP cameras
-                m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrix;
-                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
-                cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_Material, m_Material.FindPass("ForwardOnly"));
+                if (isFullscreen)
+                {
+                    if (fullscreenProperties == null)
+                        fullscreenProperties = new MaterialPropertyBlock();
+
+                    fullscreenProperties.SetFloat("_FlipY", 1);
+                    CoreUtils.DrawFullScreen(cmd, m_Material, BuiltinRenderTextureType.CameraTarget, fullscreenProperties, shaderPassId: materialPass);
+                }
+                else
+                {
+                    // When we render directly to game view, we render the image flipped up-side-down, like other HDRP cameras
+                    m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrix;
+                    ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+                    cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_Material, materialPass);
+                }
             }
 
             context.ExecuteCommandBuffer(cmd);

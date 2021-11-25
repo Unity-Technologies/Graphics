@@ -51,7 +51,7 @@ float4x4 inverse(float4x4 m) {
       a20 * b03 - a21 * b01 + a22 * b00) / det;
 }
 
-// Come render pipeline don't have access to the inverse view projection matrix
+// Some render pipeline don't have access to the inverse view projection matrix
 // It's okay to compute it in the vertex shader because we only have 3 to 4 vertices
 void BuildVaryingsWithoutInverseProjection(Attributes input, inout Varyings output)
 {
@@ -77,7 +77,8 @@ void BuildVaryings(Attributes input, inout Varyings output)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     output.texCoord0 = output.positionCS * 0.5 + 0.5;
-    output.texCoord0.y = 1 - output.texCoord0.y;
+    if (_FlipY <= 0.5)
+        output.texCoord0.y = 1 - output.texCoord0.y;
 
     float3 p = ComputeWorldSpacePosition(output.positionCS, UNITY_MATRIX_I_VP);
 
