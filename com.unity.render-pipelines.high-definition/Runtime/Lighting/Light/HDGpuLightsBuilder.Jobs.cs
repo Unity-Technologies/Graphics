@@ -683,6 +683,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 lightData.flareSize = Mathf.Max(lightRenderData.flareSize * Mathf.Deg2Rad, 5.960464478e-8f);
                 lightData.flareFalloff = lightRenderData.flareFalloff;
+
+                // On some vendors trigonometry has very bad precision, so we precompute what we can on CPU to avoid precision issues (case 1369376).
+                float radInner = 0.5f * lightData.angularDiameter;
+                lightData.flareCosInner = Mathf.Cos(radInner);
+                lightData.flareCosOuter = Mathf.Cos(radInner + lightData.flareSize);
+
                 lightData.flareTint = (Vector3)(Vector4)lightRenderData.flareTint;
                 lightData.surfaceTint = (Vector3)(Vector4)lightRenderData.surfaceTint;
 
