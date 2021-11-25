@@ -533,6 +533,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void Cleanup(CommandBuffer cmdBuffer)
             {
+                if (m_Views == null)
+                    return;
+
                 foreach (var v in m_Views)
                     v.Cleanup(cmdBuffer);
 
