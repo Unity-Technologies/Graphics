@@ -117,10 +117,55 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (mode == (int)DepthOfFieldMode.Manual)
             {
+                EditorGUI.BeginChangeCheck();
                 PropertyField(m_NearFocusStart, Styles.k_NearFocusStart);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    float maxBound = m_NearFocusEnd.overrideState.boolValue ? m_NearFocusEnd.value.floatValue :
+                        m_FarFocusStart.overrideState.boolValue ? m_FarFocusStart.value.floatValue :
+                        m_FarFocusEnd.overrideState.boolValue ? m_FarFocusEnd.value.floatValue : float.MaxValue;
+                    if (m_NearFocusStart.value.floatValue >= maxBound)
+                        m_NearFocusStart.value.floatValue = maxBound - 1e-5f;
+                }
+
+                EditorGUI.BeginChangeCheck();
                 PropertyField(m_NearFocusEnd, Styles.k_NearFocusEnd);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    float minBound = m_NearFocusStart.overrideState.boolValue ? m_NearFocusStart.value.floatValue : float.MinValue;
+                    if (m_NearFocusEnd.value.floatValue <= minBound)
+                        m_NearFocusEnd.value.floatValue = minBound + 1e-5f;
+
+                    float maxBound = m_FarFocusStart.overrideState.boolValue ? m_FarFocusStart.value.floatValue :
+                        m_FarFocusEnd.overrideState.boolValue ? m_FarFocusEnd.value.floatValue : float.MaxValue;
+                    if (m_NearFocusEnd.value.floatValue >= maxBound)
+                        m_NearFocusEnd.value.floatValue = maxBound - 1e-5f;
+                }
+
+                EditorGUI.BeginChangeCheck();
                 PropertyField(m_FarFocusStart, Styles.k_FarFocusStart);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    float minBound = m_NearFocusEnd.overrideState.boolValue ? m_NearFocusEnd.value.floatValue :
+                        m_NearFocusStart.overrideState.boolValue ? m_NearFocusStart.value.floatValue : float.MinValue;
+                    if (m_FarFocusStart.value.floatValue <= minBound)
+                        m_FarFocusStart.value.floatValue = minBound + 1e-5f;
+
+                    float maxBound = m_FarFocusEnd.overrideState.boolValue ? m_FarFocusEnd.value.floatValue : float.MaxValue;
+                    if (m_FarFocusStart.value.floatValue >= maxBound)
+                        m_FarFocusStart.value.floatValue = maxBound - 1e-5f;
+                }
+
+                EditorGUI.BeginChangeCheck();
                 PropertyField(m_FarFocusEnd, Styles.k_FarFocusEnd);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    float minBound = m_FarFocusStart.overrideState.boolValue ? m_FarFocusStart.value.floatValue :
+                        m_NearFocusEnd.overrideState.boolValue ? m_NearFocusEnd.value.floatValue :
+                        m_NearFocusStart.overrideState.boolValue ? m_NearFocusStart.value.floatValue : float.MinValue;
+                    if (m_FarFocusEnd.value.floatValue <= minBound)
+                        m_FarFocusEnd.value.floatValue = minBound + 1e-5f;
+                }
             }
         }
 

@@ -3,7 +3,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
     HLSLINCLUDE
         #pragma exclude_renderers gles
         #pragma multi_compile_local _ _USE_RGBM
-        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
+        #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"

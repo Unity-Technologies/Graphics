@@ -34,6 +34,8 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
     float4 Copy(Varyings varyings) : SV_Target
     {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
+
         float2 uv01 = (varyings.positionCS.xy * _ViewPortSize.zw - _ViewportScaleBias.zw) * _ViewportScaleBias.xy;
         // Apply scale and bias
         float2 uv = uv01 * _SourceScaleBias.xy + _SourceScaleBias.zw;
@@ -43,6 +45,8 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
     void CopyDepth(Varyings varyings, out float depth : SV_Depth)
     {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
+
         float2 uv01 = (varyings.positionCS.xy * _ViewPortSize.zw - _ViewportScaleBias.zw) * _ViewportScaleBias.xy;
         // Apply scale and bias
         float2 uv = uv01 * _SourceScaleBias.xy + _SourceScaleBias.zw;
@@ -81,18 +85,24 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
     float4 HorizontalBlur(Varyings varyings) : SV_Target
     {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
+
         float2 uv = GetScaledUVs(varyings);
         return Blur(uv, float2(1, 0));
     }
 
     float4 VerticalBlur(Varyings varyings) : SV_Target
     {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
+
         float2 uv = GetScaledUVs(varyings);
         return Blur(uv, float2(0, 1));
     }
 
     float4 DownSample(Varyings varyings) : SV_Target
     {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
+
         float2 uv = GetScaledUVs(varyings);
         return SAMPLE_TEXTURE2D_X_LOD(_Source, s_linear_clamp_sampler, uv, 0);
     }
