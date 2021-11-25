@@ -61,6 +61,11 @@ void BuildVaryingsWithoutInverseProjection(Attributes input, inout Varyings outp
 
     output.texCoord0 = output.positionCS * 0.5 + 0.5;
 
+#if UNITY_UV_STARTS_AT_TOP
+    if (_FlipY < 0.5)
+        output.texCoord0.y = 1 - output.texCoord0.y;
+#endif
+
     float3x3 inverseView = (float3x3)inverse(UNITY_MATRIX_V);
     float4x4 inverseProj = inverse(UNITY_MATRIX_P);
     float4 viewDirectionEyeSpace = mul(inverseProj, float4(output.positionCS.xyz, 1));
@@ -77,8 +82,11 @@ void BuildVaryings(Attributes input, inout Varyings output)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     output.texCoord0 = output.positionCS * 0.5 + 0.5;
-    if (_FlipY <= 0.5)
+
+#if UNITY_UV_STARTS_AT_TOP
+    if (_FlipY < 0.5)
         output.texCoord0.y = 1 - output.texCoord0.y;
+#endif
 
     float3 p = ComputeWorldSpacePosition(output.positionCS, UNITY_MATRIX_I_VP);
 
