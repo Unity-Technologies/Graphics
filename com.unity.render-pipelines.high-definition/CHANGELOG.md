@@ -40,12 +40,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed range fields for depth of field (case 1376609).
 - Fixed exception on DLSS when motion vectors are disabled (case # 1377986).
 - Fixed SpeedTree graph compatibility by adding raytracing quality keyword to provide a safe path.
+- Fixed decal performances when they use different material and the same draw order.
 
 ### Changed
 - Optimizations for the physically based depth of field.
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
 - Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
 - Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
+- The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
 
 ## [13.1.1] - 2021-10-04
 
