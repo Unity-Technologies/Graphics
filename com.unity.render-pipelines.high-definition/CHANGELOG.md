@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed decal performances when they use different material and the same draw order.
 - Fixed Nans happening due to volumetric clouds when the pixel color is perfectly black (case 1379185).
 - Fixed missing information in the tooltip of affects smooth surfaces of the ray traced reflections denoiser (case 1376918).
+- Fixed objects belonging to preview scenes being marked as dirty during migration (case 1367204).
 
 ## [12.1.2] - 2021-10-22
 
