@@ -1419,7 +1419,7 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
 #endif
 
     // Estimate the transmittance that shall be used
-    float finalTransmittance = EvaluateFinalTransmittance(currentColor, currentClouds.w);
+    float finalTransmittance = EvaluateFinalTransmittance(currentColor.rgb, currentClouds.w);
 
     // Compute the fog attenuation of the clouds
     float3 fogColor;

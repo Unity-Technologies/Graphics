@@ -33,6 +33,8 @@ URP_Performance_LostCrypt_trunk:
          rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-win-dx12.yml#URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_trunk
          rerun: on_new_revision
+      -  path: .yamato/urp_performance_lostcrypt-osx-metal.yml#URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_trunk
+         rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-android-opengles3.yml#URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-android-opengles3.yml#URP_Performance_LostCrypt_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_trunk
@@ -68,6 +70,8 @@ URP_Performance_LostCrypt_CUSTOM-REVISION:
       -  path: .yamato/urp_performance_lostcrypt-win-dx12.yml#URP_Performance_LostCrypt_Win_DX12_performance_playmode_editor_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-win-dx12.yml#URP_Performance_LostCrypt_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/urp_performance_lostcrypt-osx-metal.yml#URP_Performance_LostCrypt_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/urp_performance_lostcrypt-android-opengles3.yml#URP_Performance_LostCrypt_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision

@@ -73,7 +73,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
+        m_Scale: {x: 4, y: 4}
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
         m_Texture: {fileID: 2800000, guid: 1845e7b065cfb0b42a58c458598c58ca, type: 3}
@@ -285,3 +285,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   version: 12
+  hdPluginSubTargetMaterialVersions:
+    m_Keys: []
+    m_Values: 
