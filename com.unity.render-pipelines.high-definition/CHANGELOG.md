@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed edges and ghosting appearing on shadow matte due to the shadow being black outside the range of the light (case 1371441).
 - Fixed interpolation issue with wind orientation (case 1379841).
 - Fixed range fields for depth of field (case 1376609).
+- Fixed exception on DLSS when motion vectors are disabled (case # 1377986).
 
 ## [12.1.2] - 2021-10-22
 
