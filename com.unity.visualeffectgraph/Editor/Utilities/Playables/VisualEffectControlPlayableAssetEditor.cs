@@ -102,7 +102,12 @@ namespace UnityEditor.VFX
             public static GUIStyle scrubbingDisabled = new GUIStyle(GUI.skin.GetStyle("Label"));
             public static readonly Color kGlobalBackground = new Color32(81, 86, 94, 255);
             public static readonly float kScrubbingBarHeight = 14.0f;
+            public static readonly float kEventNameHeight = 14.0f;
             public static readonly Color kScrubbingBackgroundColor = new Color32(64, 68, 74, 255);
+
+            public static readonly float kMinimalBarHeight = 2.0f;
+            public static readonly float kBarPadding = 2.0f;
+
 
             static Style()
             {
@@ -129,7 +134,13 @@ namespace UnityEditor.VFX
             public float end;
             public uint rowIndex;
         }
-        List<ClipEventBar> m_ClipEventBars = new List<ClipEventBar>();
+
+        enum IconType
+        {
+            ClipEnter,
+            ClipExit,
+            SingleEvent
+        }
 
         struct EventAreaItem
         {
@@ -236,10 +247,9 @@ namespace UnityEditor.VFX
                 }
             }
         }
-        List<EventAreaItem> m_TextEventAreaRequested = new List<EventAreaItem>();
-        List<EventAreaItem> m_TextEventArea = new List<EventAreaItem>();
 
-        bool AvailableEmplacement(EventAreaItem current, IEnumerable<EventAreaItem> currentZones)
+
+        static bool AvailableEmplacement(EventAreaItem current, IEnumerable<EventAreaItem> currentZones)
         {
             return !currentZones.Any(o =>
             {
@@ -249,7 +259,7 @@ namespace UnityEditor.VFX
             });
         }
 
-        bool AvailableEmplacement(ClipEventBar current, IEnumerable<ClipEventBar> currentBars)
+        static bool AvailableEmplacement(ClipEventBar current, IEnumerable<ClipEventBar> currentBars)
         {
             return !currentBars.Any(o =>
             {
@@ -262,43 +272,48 @@ namespace UnityEditor.VFX
             });
         }
 
-        enum IconType
+        List<ClipEventBar> m_ClipEventBars = new List<ClipEventBar>();
+        private List<ClipEventBar> ComputeBarClipEvent(IEnumerable<VisualEffectPlayableSerializedEvent> clipEvents, out uint rowCount)
         {
-            ClipEnter,
-            ClipExit,
-            SingleEvent
+            //Precompute draw data
+            m_ClipEventBars.Clear();
+            rowCount = 1;
+            using (var iterator = clipEvents.GetEnumerator())
+            {
+                while (iterator.MoveNext())
+                {
+                    var enter = iterator.Current;
+                    iterator.MoveNext();
+                    var exit = iterator.Current;
+
+                    var candidate = new ClipEventBar()
+                    {
+                        start = (float)enter.time,
+                        end = (float)exit.time,
+                        rowIndex = 0u,
+                        color = new Color(enter.editorColor.r, enter.editorColor.g, enter.editorColor.b)
+                    };
+
+                    while (!AvailableEmplacement(candidate, m_ClipEventBars))
+                        candidate.rowIndex++;
+
+                    if (candidate.rowIndex >= rowCount)
+                        rowCount = candidate.rowIndex + 1;
+                    m_ClipEventBars.Add(candidate);
+                }
+            }
+            return m_ClipEventBars;
         }
 
-        public override void DrawBackground(TimelineClip clip, ClipBackgroundRegion region)
+        List<EventAreaItem> m_TextEventAreaRequested = new List<EventAreaItem>();
+        List<EventAreaItem> m_TextEventArea = new List<EventAreaItem>();
+        private List<EventAreaItem> ComputeEventName(Rect baseRegion, IEnumerable<VisualEffectPlayableSerializedEvent> allEvents, uint clipEventCount)
         {
-            base.DrawBackground(clip, region);
-            var playable = clip.asset as VisualEffectControlClip;
-            if (playable.clipEvents == null || playable.singleEvents == null)
-                return;
+            m_TextEventAreaRequested.Clear();
+            m_TextEventArea.Clear();
 
-            //Draw custom background
-            var currentRect = region.position;
-            EditorGUI.DrawRect(currentRect, Style.kGlobalBackground);
-
-            if (!playable.scrubbing)
-            {
-                var scrubbingRect = new Rect(
-                    currentRect.x,
-                    currentRect.height - Style.kScrubbingBarHeight,
-                    currentRect.width,
-                    Style.kScrubbingBarHeight);
-                EditorGUI.DrawRect(scrubbingRect, Style.kScrubbingBackgroundColor);
-                currentRect.height -= Style.kScrubbingBarHeight;
-                GUI.Label(scrubbingRect, Content.scrubbingDisabled, Style.scrubbingDisabled);
-            }
-
-            var clipEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.Percentage, playable, true);
-            var singleEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.Percentage, playable, false);
-            var allEvents = clipEvents.Concat(singleEvents);
-            var clipEventsCount = clipEvents.Count();
             int index = 0;
-            var eventNameHeight = 14.0f;
-            var iconSize = new Vector2(eventNameHeight, eventNameHeight);
+            var iconSize = new Vector2(Style.kEventNameHeight, Style.kEventNameHeight);
 
             m_TextEventAreaRequested.Clear();
             foreach (var itEvent in allEvents)
@@ -306,13 +321,13 @@ namespace UnityEditor.VFX
                 var relativeTime = Mathf.Clamp01((float)itEvent.time / 100.0f);
 
                 var iconArea = new Rect(
-                    currentRect.position.x + currentRect.width * (float)relativeTime - iconSize.x * 0.5f,
-                    currentRect.height - eventNameHeight,
+                    baseRegion.position.x + baseRegion.width * (float)relativeTime - iconSize.x * 0.5f,
+                    0.0f,
                     iconSize.x,
                     iconSize.y);
 
                 var currentType = IconType.SingleEvent;
-                if (index < clipEventsCount)
+                if (index < clipEventCount)
                     currentType = index % 2 == 0 ? IconType.ClipEnter : IconType.ClipExit;
 
                 var color = new Color(itEvent.editorColor.r, itEvent.editorColor.g, itEvent.editorColor.b);
@@ -365,123 +380,50 @@ namespace UnityEditor.VFX
                     m_TextEventArea.Add(candidate);
                 }
             }
+            return m_TextEventArea;
+        }
 
-            //Render remaining text
-            foreach (var item in m_TextEventArea)
+        public override void DrawBackground(TimelineClip clip, ClipBackgroundRegion region)
+        {
+            base.DrawBackground(clip, region);
+            var playable = clip.asset as VisualEffectControlClip;
+            if (playable.clipEvents == null || playable.singleEvents == null)
+                return;
+
+            var clipEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.Percentage, playable, true);
+            var singleEvents = VFXTimeSpaceHelper.GetEventNormalizedSpace(PlayableTimeSpace.Percentage, playable, false);
+            var allEvents = clipEvents.Concat(singleEvents);
+
+            //Precompute overlapping data
+            var clipEventBars = ComputeBarClipEvent(clipEvents, out var rowCount);
+            var eventAreaName = ComputeEventName(region.position, allEvents, (uint)clipEvents.Count());
+
+            //Compute region
+            var clipBarHeight = rowCount * (Style.kMinimalBarHeight + Style.kBarPadding * 2.0f);
+            var eventNameHeight = Style.kEventNameHeight;
+            var scrubbingHeight = playable.scrubbing ? 0.0f : Style.kScrubbingBarHeight;
+
+            var remainingHeight = region.position.height - (clipBarHeight + scrubbingHeight + eventNameHeight);
+            if (remainingHeight < 0)
+                remainingHeight = 0.0f;
+            clipBarHeight += remainingHeight;
+
+            var barRegion = new Rect(region.position.position, new Vector2(region.position.width, clipBarHeight));
+            var eventRegion = new Rect(region.position.position + new Vector2(0, clipBarHeight), new Vector2(region.position.width, eventNameHeight));
+            var scrubbingRegion = new Rect(region.position.position + new Vector2(0, clipBarHeight + eventNameHeight), new Vector2(region.position.width, scrubbingHeight));
+
+            //Draw custom background
+            EditorGUI.DrawRect(region.position, Style.kGlobalBackground);
+
+            if (!playable.scrubbing)
             {
-                if (item.text)
-                {
-                    ShadowLabel(item.drawRect,
-                        item.content,
-                        item.textStyle,
-                        item.textShadowStyle);
-                }
-                else
-                {
-                    //Place holder for icons
-                    {
-                        var iconArea = item.drawRect;
-                        var currentType = item.currentType;
-                        var baseColor = item.color;
-                        EditorGUI.DrawRect(iconArea, new Color(baseColor.r, baseColor.g, baseColor.b, 0.2f));
-
-                        if (currentType == IconType.SingleEvent)
-                        {
-                            EditorGUI.DrawRect(new Rect(
-                                iconArea.position.x + iconArea.width * 0.45f,
-                                iconArea.position.y,
-                                iconArea.width * 0.1f,
-                                iconArea.height), baseColor);
-
-                            EditorGUI.DrawRect(new Rect(
-                                iconArea.position.x + iconArea.width * 0.3f,
-                                iconArea.position.y + iconArea.height * 0.25f,
-                                iconArea.width * 0.4f,
-                                iconArea.height * 0.75f), baseColor);
-
-                            EditorGUI.DrawRect(new Rect(
-                                iconArea.position.x + iconArea.width * 0.2f,
-                                iconArea.position.y + iconArea.height * 0.5f,
-                                iconArea.width * 0.6f,
-                                iconArea.height * 0.5f), baseColor);
-                        }
-                        else if (currentType == IconType.ClipEnter)
-                        {
-                            EditorGUI.DrawRect(new Rect(
-                                iconArea.position.x + iconArea.width * 0.5f,
-                                iconArea.position.y,
-                                iconArea.width * 0.05f,
-                                iconArea.height), baseColor);
-
-                            EditorGUI.DrawRect(new Rect(
-                                iconArea.position.x + iconArea.width * 0.5f,
-                                iconArea.position.y + iconArea.height * 0.25f,
-                                iconArea.width * 0.2f,
-                                iconArea.height * 0.75f), baseColor);
-
-                            EditorGUI.DrawRect(new Rect(
-                                iconArea.position.x + iconArea.width * 0.5f,
-                                iconArea.position.y + iconArea.height * 0.5f,
-                                iconArea.width * 0.3f,
-                                iconArea.height * 0.5f), baseColor);
-                        }
-                        else if (currentType == IconType.ClipExit)
-                        {
-                            EditorGUI.DrawRect(new Rect(
-                                iconArea.position.x + iconArea.width * 0.45f,
-                                iconArea.position.y,
-                                iconArea.width * 0.05f,
-                                iconArea.height), baseColor);
-
-                            EditorGUI.DrawRect(new Rect(
-                                iconArea.position.x + iconArea.width * 0.3f,
-                                iconArea.position.y + iconArea.height * 0.25f,
-                                iconArea.width * 0.2f,
-                                iconArea.height * 0.75f), baseColor);
-
-                            EditorGUI.DrawRect(new Rect(
-                                iconArea.position.x + iconArea.width * 0.2f,
-                                iconArea.position.y + iconArea.height * 0.5f,
-                                iconArea.width * 0.3f,
-                                iconArea.height * 0.5f), baseColor);
-                        }
-                    }
-                }
+                EditorGUI.DrawRect(scrubbingRegion, Style.kScrubbingBackgroundColor);
+                GUI.Label(scrubbingRegion, Content.scrubbingDisabled, Style.scrubbingDisabled);
             }
 
-            currentRect.height -= eventNameHeight + 2;
-
-            m_ClipEventBars.Clear();
-            uint rowCount = 1u;
-            using (var iterator = clipEvents.GetEnumerator())
-            {
-                while (iterator.MoveNext())
-                {
-                    var enter = iterator.Current;
-                    iterator.MoveNext();
-                    var exit = iterator.Current;
-
-                    var candidate = new ClipEventBar()
-                    {
-                        start = (float)enter.time,
-                        end = (float)exit.time,
-                        rowIndex = 0u,
-                        color = new Color(enter.editorColor.r, enter.editorColor.g, enter.editorColor.b)
-                    };
-
-                    while (!AvailableEmplacement(candidate, m_ClipEventBars))
-                        candidate.rowIndex++;
-
-                    if (candidate.rowIndex >= rowCount)
-                        rowCount = candidate.rowIndex + 1;
-
-                    m_ClipEventBars.Add(candidate);
-                }
-            }
-
-            var padding = 2f;
-            var rowHeight = currentRect.height / (float)rowCount;
-            foreach (var bar in m_ClipEventBars)
+            //Draw Clip Bar
+            var rowHeight = clipBarHeight / (float)rowCount;
+            foreach (var bar in clipEventBars)
             {
                 var relativeStart = bar.start / 100.0f;
                 var relativeStop = bar.end / 100.0f;
@@ -490,12 +432,103 @@ namespace UnityEditor.VFX
                 var endRange = region.position.width * Mathf.Clamp01((float)relativeStop);
 
                 var rect = new Rect(
-                    currentRect.x + startRange,
-                    currentRect.y + rowHeight * (rowCount - bar.rowIndex - 1) + padding,
+                    barRegion.x + startRange,
+                    barRegion.y + rowHeight * (rowCount - bar.rowIndex - 1) + Style.kBarPadding,
                     endRange - startRange,
-                    rowHeight - padding);
-
+                    rowHeight - Style.kBarPadding);
                 EditorGUI.DrawRect(rect, bar.color);
+            }
+
+            //Draw Text Event
+            foreach (var item in eventAreaName)
+            {
+                var drawRect = item.drawRect;
+                drawRect.position += eventRegion.position;
+
+                if (item.text)
+                {
+                    ShadowLabel(drawRect,
+                        item.content,
+                        item.textStyle,
+                        item.textShadowStyle);
+                }
+                else
+                {
+                    //Place holder for icons
+                    {
+                        var currentType = item.currentType;
+                        var baseColor = item.color;
+                        EditorGUI.DrawRect(drawRect, new Color(baseColor.r, baseColor.g, baseColor.b, 0.2f));
+
+                        if (currentType == IconType.SingleEvent)
+                        {
+                            /* exception, drawing a 2px line from here to begin */
+                            EditorGUI.DrawRect(new Rect(
+                                drawRect.position.x + drawRect.width * 0.5f - 0.5f,
+                                0.0f,
+                                1.0f,
+                                clipBarHeight + eventNameHeight), baseColor);
+
+                            EditorGUI.DrawRect(new Rect(
+                                drawRect.position.x + drawRect.width * 0.45f,
+                                drawRect.position.y,
+                                drawRect.width * 0.1f,
+                                drawRect.height), baseColor);
+
+                            EditorGUI.DrawRect(new Rect(
+                                drawRect.position.x + drawRect.width * 0.3f,
+                                drawRect.position.y + drawRect.height * 0.25f,
+                                drawRect.width * 0.4f,
+                                drawRect.height * 0.75f), baseColor);
+
+                            EditorGUI.DrawRect(new Rect(
+                                drawRect.position.x + drawRect.width * 0.2f,
+                                drawRect.position.y + drawRect.height * 0.5f,
+                                drawRect.width * 0.6f,
+                                drawRect.height * 0.5f), baseColor);
+                        }
+                        else if (currentType == IconType.ClipEnter)
+                        {
+                            EditorGUI.DrawRect(new Rect(
+                                drawRect.position.x + drawRect.width * 0.5f,
+                                drawRect.position.y,
+                                drawRect.width * 0.05f,
+                                drawRect.height), baseColor);
+
+                            EditorGUI.DrawRect(new Rect(
+                                drawRect.position.x + drawRect.width * 0.5f,
+                                drawRect.position.y + drawRect.height * 0.25f,
+                                drawRect.width * 0.2f,
+                                drawRect.height * 0.75f), baseColor);
+
+                            EditorGUI.DrawRect(new Rect(
+                                drawRect.position.x + drawRect.width * 0.5f,
+                                drawRect.position.y + drawRect.height * 0.5f,
+                                drawRect.width * 0.3f,
+                                drawRect.height * 0.5f), baseColor);
+                        }
+                        else if (currentType == IconType.ClipExit)
+                        {
+                            EditorGUI.DrawRect(new Rect(
+                                drawRect.position.x + drawRect.width * 0.45f,
+                                drawRect.position.y,
+                                drawRect.width * 0.05f,
+                                drawRect.height), baseColor);
+
+                            EditorGUI.DrawRect(new Rect(
+                                drawRect.position.x + drawRect.width * 0.3f,
+                                drawRect.position.y + drawRect.height * 0.25f,
+                                drawRect.width * 0.2f,
+                                drawRect.height * 0.75f), baseColor);
+
+                            EditorGUI.DrawRect(new Rect(
+                                drawRect.position.x + drawRect.width * 0.2f,
+                                drawRect.position.y + drawRect.height * 0.5f,
+                                drawRect.width * 0.3f,
+                                drawRect.height * 0.5f), baseColor);
+                        }
+                    }
+                }
             }
         }
     }
