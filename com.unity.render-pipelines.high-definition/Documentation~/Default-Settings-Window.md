@@ -21,13 +21,13 @@ The **LookDev Volume Profile Asset** (B) references the Volume Profile HDRP uses
 
 Use this section to select which custom [Diffusion Profiles](Diffusion-Profile.md) can be in view at the same time. To use more than 15 custom Diffusion Profiles in a Scene, use the [Diffusion Profile Override](Override-Diffusion-Profile.md) inside a Volume. This allows you to specify which Diffusion Profiles to use in a certain area (or in the Scene if the Volume is global).
 
-The following image shows the Diffusion Profile Assets section set up for HDRP's default scene: 
+The following image shows the Diffusion Profile Assets section set up for HDRP's default scene:
 
 ![](Images/HDRPgs_Diffusion_Profile_Assets.png)
 
 ## Frame Settings (Default Values)
 
-The [Frame Settings](Frame-Settings.md) control the rendering passes that Cameras perform at runtime. 
+The [Frame Settings](Frame-Settings.md) control the rendering passes that Cameras perform at runtime.
 
 Use this section to set default values for the Frame Settings that all Cameras use if you don't enable their Custom Frame Settings checkbox. For information about what each property does, see [Frame Settings](Frame-Settings.md).
 
@@ -42,7 +42,7 @@ Use this section to set default values for the Frame Settings that all Cameras u
 
 Use this section to select which custom post processing effect HDRP uses in the project and at which stage in the render pipeline it executes them.
 
-HDRP provides one list for each post processing injection point. See the [Custom Post Process](Custom-Post-Process.md) documentation for more details. 
+HDRP provides one list for each post processing injection point. See the [Custom Post Process](Custom-Post-Process.md) documentation for more details.
 
 ![](Images/HDRPgs_Custom_PP.png)
 
