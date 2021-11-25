@@ -56,6 +56,8 @@
 
 #ifndef DOTS_INSTANCING_ON // UnityPerDraw cbuffer doesn't exist with hybrid renderer
 
+#if 0
+
 CBUFFER_START(UnityPerDraw)
 
     float4x4 unity_ObjectToWorld;
@@ -97,6 +99,9 @@ CBUFFER_START(UnityPerDraw)
     float4 unity_MotionVectorsParams;
 
 CBUFFER_END
+
+#endif
+
 
 #endif // DOTS_INSTANCING_ON
 
@@ -454,13 +459,91 @@ uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize)
 // There is no UnityPerDraw cbuffer with BatchRendererGroup. Those matrices don't exist, so don't try to access them
 #ifndef DOTS_INSTANCING_ON
 
+/*
+#undef unity_ObjectToWorld
+#undef unity_WorldToObject
+#undef unity_MatrixPreviousM
+#undef unity_MatrixPreviousMI
+*/
+
+struct	UnityPerDrawElement
+{
+    float4x4 _unity_ObjectToWorld;
+    float4x4 _unity_WorldToObject;
+    float4 _unity_LODFade; // x is the fade value ranging within [0,1]. y is x quantized into 16 levels
+    float4 _unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative scale transforms
+    float4 _unity_RenderingLayer;
+
+    float4 _unity_LightmapST;
+    float4 _unity_DynamicLightmapST;
+
+    // SH lighting environment
+    float4 _unity_SHAr;
+    float4 _unity_SHAg;
+    float4 _unity_SHAb;
+    float4 _unity_SHBr;
+    float4 _unity_SHBg;
+    float4 _unity_SHBb;
+    float4 _unity_SHC;
+
+    // x = Disabled(0)/Enabled(1)
+    // y = Computation are done in global space(0) or local space(1)
+    // z = Texel size on U texture coordinate
+    float4 _unity_ProbeVolumeParams;
+    float4x4 _unity_ProbeVolumeWorldToObject;
+    float4 _unity_ProbeVolumeSizeInv; // Note: This variable is float4 and not float3 (compare to builtin unity) to be compatible with SRP batcher
+    float4 _unity_ProbeVolumeMin; // Note: This variable is float4 and not float3 (compare to builtin unity) to be compatible with SRP batcher
+
+    // This contain occlusion factor from 0 to 1 for dynamic objects (no SH here)
+    float4 _unity_ProbesOcclusion;
+
+    // Velocity
+    float4x4 _unity_MatrixPreviousM;
+    float4x4 _unity_MatrixPreviousMI;
+    //X : Use last frame positions (right now skinned meshes are the only objects that use this
+    //Y : Force No Motion
+    //Z : Z bias value
+    //W : Camera only
+    float4 _unity_MotionVectorsParams;
+};
+
+CBUFFER_START(UnityInstancingUnityPerDraw)
+    UnityPerDrawElement inst[2];
+CBUFFER_END
+
+//unity_InstanceID
+#define unity_ObjectToWorld					inst[0]._unity_ObjectToWorld
+#define unity_WorldToObject                	inst[0]._unity_WorldToObject
+#define unity_LODFade                      	inst[0]._unity_LODFade
+#define unity_WorldTransformParams         	inst[0]._unity_WorldTransformParams
+#define unity_RenderingLayer               	inst[0]._unity_RenderingLayer
+#define unity_LightmapST                   	inst[0]._unity_LightmapST
+#define unity_DynamicLightmapST            	inst[0]._unity_DynamicLightmapST
+#define unity_SHAr                         	inst[0]._unity_SHAr
+#define unity_SHAg                         	inst[0]._unity_SHAg
+#define unity_SHAb                         	inst[0]._unity_SHAb
+#define unity_SHBr                         	inst[0]._unity_SHBr
+#define unity_SHBg                         	inst[0]._unity_SHBg
+#define unity_SHBb                         	inst[0]._unity_SHBb
+#define unity_SHC                          	inst[0]._unity_SHC
+#define unity_ProbeVolumeParams            	inst[0]._unity_ProbeVolumeParams
+#define unity_ProbeVolumeWorldToObject     	inst[0]._unity_ProbeVolumeWorldToObject
+#define unity_ProbeVolumeSizeInv           	inst[0]._unity_ProbeVolumeSizeInv
+#define unity_ProbeVolumeMin               	inst[0]._unity_ProbeVolumeMin
+#define unity_ProbesOcclusion              	inst[0]._unity_ProbesOcclusion
+#define unity_MatrixPreviousM              	inst[0]._unity_MatrixPreviousM
+#define unity_MatrixPreviousMI             	inst[0]._unity_MatrixPreviousMI
+#define unity_MotionVectorsParams          	inst[0]._unity_MotionVectorsParams
+
+
+
 // Define Model Matrix Macro
 // Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject/unity_MatrixPreviousM/unity_MatrixPreviousMI
 // We need to declare inline function. Using uniform directly mean they are expand with the macro
-float4x4 GetRawUnityObjectToWorld()     { return unity_ObjectToWorld; }
-float4x4 GetRawUnityWorldToObject()     { return unity_WorldToObject; }
-float4x4 GetRawUnityPrevObjectToWorld() { return unity_MatrixPreviousM; }
-float4x4 GetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI; }
+float4x4 GetRawUnityObjectToWorld()     { return inst[0]._unity_ObjectToWorld; }
+float4x4 GetRawUnityWorldToObject()     { return inst[0]._unity_WorldToObject; }
+float4x4 GetRawUnityPrevObjectToWorld() { return inst[0]._unity_MatrixPreviousM; }
+float4x4 GetRawUnityPrevWorldToObject() { return inst[0]._unity_MatrixPreviousMI; }
 
 #define UNITY_MATRIX_M         ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
 #define UNITY_MATRIX_I_M       ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
@@ -529,6 +612,12 @@ static const float4 unity_ProbeVolumeParams = float4(0,0,0,0);
 static const float4x4 unity_ProbeVolumeWorldToObject = float4x4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
 static const float4 unity_ProbeVolumeSizeInv = float4(1,1,1,0);
 static const float4 unity_ProbeVolumeMin = float4(0,0,0,0);
+
+#else
+
+
+
+
 
 #endif
 

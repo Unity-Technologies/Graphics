@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +8,7 @@ public class generator : MonoBehaviour
     public Material[] m_material;
     public int m_w;
     public int m_h;
+    public bool m_randomMesh;
     public bool m_sameMaterial;
     public bool m_castShadows = true;
     public bool m_receiveShadows = true;
@@ -31,15 +32,17 @@ public class generator : MonoBehaviour
             {
                 int mat = Random.Range(0, m_material.Length);
 
-                PrimitiveType t = PrimitiveType.Sphere;
-                switch (Random.Range(0,4))
+                PrimitiveType t = PrimitiveType.Cube;
+                if ( m_randomMesh )
                 {
-                    case 0: t = PrimitiveType.Sphere; break;
-                    case 1: t = PrimitiveType.Capsule; break;
-                    case 2: t = PrimitiveType.Cylinder; break;
-                    case 3: t = PrimitiveType.Cube; break;
+                    switch (Random.Range(0, 4))
+                    {
+                        case 0: t = PrimitiveType.Sphere; break;
+                        case 1: t = PrimitiveType.Capsule; break;
+                        case 2: t = PrimitiveType.Cylinder; break;
+                        case 3: t = PrimitiveType.Cube; break;
+                    }
                 }
-
                 m_objs[id] = GameObject.CreatePrimitive(t);
 
                 Collider collider = m_objs[id].GetComponent<Collider>();

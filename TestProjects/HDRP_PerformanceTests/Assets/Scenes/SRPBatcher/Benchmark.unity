@@ -24,7 +24,7 @@ RenderSettings:
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 4
+  m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 0}
   m_HaloStrength: 0.5
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 2020.6406, g: 1988.0566, b: 2397.2383, a: 1}
+  m_IndirectSpecularColor: {r: 2021.5479, g: 1988.0723, b: 2395.3945, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -423,8 +423,9 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 27040d61ae253004092b31c6c01d4d7c, type: 2}
   - {fileID: 2100000, guid: 391260548965be746af79270db2aa179, type: 2}
   - {fileID: 2100000, guid: 21e18d4c42664574780cd7e34db43dba, type: 2}
-  m_w: 32
-  m_h: 32
+  m_w: 40
+  m_h: 40
+  m_randomMesh: 0
   m_sameMaterial: 0
   m_castShadows: 1
   m_receiveShadows: 1
