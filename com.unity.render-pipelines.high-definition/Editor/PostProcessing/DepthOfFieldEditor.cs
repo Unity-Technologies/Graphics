@@ -136,7 +136,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (m_NearFocusEnd.value.floatValue <= minBound)
                         m_NearFocusEnd.value.floatValue = minBound + 1e-5f;
 
-                    float maxBound =  m_FarFocusStart.overrideState.boolValue ? m_FarFocusStart.value.floatValue :
+                    float maxBound = m_FarFocusStart.overrideState.boolValue ? m_FarFocusStart.value.floatValue :
                         m_FarFocusEnd.overrideState.boolValue ? m_FarFocusEnd.value.floatValue : float.MaxValue;
                     if (m_NearFocusEnd.value.floatValue >= maxBound)
                         m_NearFocusEnd.value.floatValue = maxBound - 1e-5f;
