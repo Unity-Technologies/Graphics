@@ -542,6 +542,29 @@ namespace UnityEngine.Experimental.Rendering
                     cell.validity[i] = validity[j];
                 }
 
+                // TODO_FCC: THIS IS NOT NEEDED.
+                int octDepthSize = 8;
+                int totalTexels = octDepthSize * octDepthSize;
+                List<float> brickHeldData = new List<float>(64 * totalTexels);
+                for (int brick = 0; brick < (numProbes/64); ++brick)
+                {
+                    brickHeldData.Clear();
+                    int beginOfBrickInDepth = brick * 64 * totalTexels;
+                    if (true)
+                    {
+                        for (var probe = 0; probe < 64; ++probe)
+                        {
+                            int beginProbe = beginOfBrickInDepth + probe * totalTexels;
+                            for (var texel = 0; texel < totalTexels; ++texel)
+                            {
+                                brickHeldData.Add(bakedProbeOctahedralDepth[beginProbe + texel]);
+                            }
+                        }
+                    }
+
+                    cell.bricks[brick].octDepthInfo = new ProbeBrickIndex.OctahedralDepthInfo(brickHeldData);
+                }
+
                 cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell, out var minValidLocalIdxAtMaxRes, out var sizeOfValidIndicesAtMaxRes);
                 cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Count);
 
