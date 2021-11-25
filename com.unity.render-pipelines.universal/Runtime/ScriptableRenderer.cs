@@ -1314,10 +1314,10 @@ namespace UnityEngine.Rendering.Universal
                 {
                     DebugHandler.TryGetScreenClearColor(ref finalClearColor);
                 }
-
-                if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
+                // Disabling Native RenderPass if not using RTHandles as we will be relying on info inside handles object
+                if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera && renderPass.m_UsesRTHandles)
                 {
-                    SetNativeRenderPassAttachmentList(renderPass, ref cameraData, passColorAttachment.nameID, passDepthAttachment.nameID, finalClearFlag, finalClearColor);
+                    SetNativeRenderPassAttachmentList(renderPass, ref cameraData, passColorAttachment.handle, passDepthAttachment.handle, finalClearFlag, finalClearColor);
                 }
                 else
                 {
