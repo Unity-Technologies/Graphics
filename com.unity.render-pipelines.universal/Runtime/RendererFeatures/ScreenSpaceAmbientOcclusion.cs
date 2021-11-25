@@ -429,14 +429,11 @@ namespace UnityEngine.Rendering.Universal
                 m_AOPassDescriptor = descriptor;
                 m_AOPassDescriptor.width /= downsampleDivider;
                 m_AOPassDescriptor.height /= downsampleDivider;
-                m_AOPassDescriptor.colorFormat = RenderTextureFormat.ARGB32;
-                cmd.GetTemporaryRT(s_SSAOTexture1ID, m_AOPassDescriptor, FilterMode.Bilinear);
-
-                // Blur Passes...
                 bool useRedComponentOnly = m_SupportsR8RenderTextureFormat && m_CurrentSettings.BlurType > ScreenSpaceAmbientOcclusionSettings.BlurTypes.Bilateral;
                 m_AOPassDescriptor.colorFormat = useRedComponentOnly ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
 
                 // Get temporary render textures
+                cmd.GetTemporaryRT(s_SSAOTexture1ID, m_AOPassDescriptor, FilterMode.Bilinear);
                 cmd.GetTemporaryRT(s_SSAOTexture2ID, m_AOPassDescriptor, FilterMode.Bilinear);
                 cmd.GetTemporaryRT(s_SSAOTexture3ID, m_AOPassDescriptor, FilterMode.Bilinear);
 

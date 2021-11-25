@@ -81,9 +81,13 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel--;
             GUI.enabled = true;
 
+            EditorGUILayout.Space();
+
+            EditorGUILayout.PropertyField(m_BlurType, Styles.BlurType);
             EditorGUILayout.PropertyField(m_SinglePassBlur, Styles.SinglePassBlur);
             EditorGUILayout.PropertyField(m_FinalUpsample, Styles.FinalUpsample);
-            EditorGUILayout.PropertyField(m_BlurType, Styles.BlurType);
+
+            EditorGUILayout.Space();
 
             EditorGUILayout.PropertyField(m_Intensity, Styles.Intensity);
             EditorGUILayout.PropertyField(m_Radius, Styles.Radius);
