@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed nullref from debug menu in release build (case 1381556).
 - Fixed debug window reset.
 - Fixed camera bridge action in release build (case 1367866).
+- Fixed contact shadow disappearing when shadowmask is used and no non-static object is available.
 
 ### Changed
 - Optimizations for the physically based depth of field.
