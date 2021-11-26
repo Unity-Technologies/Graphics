@@ -89,6 +89,19 @@ namespace UnityEditor.VFX
         static class Content
         {
             public static GUIContent scrubbingDisabled = new GUIContent("Scrubbing Disabled");
+            public static GUIContent singleEventIcon;
+            public static GUIContent clipEnterIcon;
+            public static GUIContent clipExitIcon;
+
+            static Content()
+            {
+                var singleEventTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/singleEvent.png");
+                var clipEnterTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/clipEnter.png");
+                var clipExitTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/clipExit.png");
+                singleEventIcon = new GUIContent(singleEventTexture);
+                clipEnterIcon = new GUIContent(clipEnterTexture);
+                clipExitIcon = new GUIContent(clipExitTexture);
+            }
         }
 
         static class Style
@@ -471,79 +484,29 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    //Place holder for icons
+                    var backupColor = GUI.color;
+
+                    var currentType = item.currentType;
+                    var baseColor = item.color;
+
+                    if (currentType == IconType.SingleEvent)
                     {
-                        var currentType = item.currentType;
-                        var baseColor = item.color;
-                        EditorGUI.DrawRect(drawRect, new Color(baseColor.r, baseColor.g, baseColor.b, 0.2f));
+                        /* exception, drawing a 2px line from here to begin */
+                        EditorGUI.DrawRect(new Rect(
+                            drawRect.position.x + drawRect.width * 0.5f - 0.5f,
+                            0.0f,
+                            1.0f,
+                            clipBarHeight + eventNameHeight), baseColor);
 
-                        if (currentType == IconType.SingleEvent)
-                        {
-                            /* exception, drawing a 2px line from here to begin */
-                            EditorGUI.DrawRect(new Rect(
-                                drawRect.position.x + drawRect.width * 0.5f - 0.5f,
-                                0.0f,
-                                1.0f,
-                                clipBarHeight + eventNameHeight), baseColor);
-
-                            EditorGUI.DrawRect(new Rect(
-                                drawRect.position.x + drawRect.width * 0.45f,
-                                drawRect.position.y,
-                                drawRect.width * 0.1f,
-                                drawRect.height), baseColor);
-
-                            EditorGUI.DrawRect(new Rect(
-                                drawRect.position.x + drawRect.width * 0.3f,
-                                drawRect.position.y + drawRect.height * 0.25f,
-                                drawRect.width * 0.4f,
-                                drawRect.height * 0.75f), baseColor);
-
-                            EditorGUI.DrawRect(new Rect(
-                                drawRect.position.x + drawRect.width * 0.2f,
-                                drawRect.position.y + drawRect.height * 0.5f,
-                                drawRect.width * 0.6f,
-                                drawRect.height * 0.5f), baseColor);
-                        }
-                        else if (currentType == IconType.ClipEnter)
-                        {
-                            EditorGUI.DrawRect(new Rect(
-                                drawRect.position.x + drawRect.width * 0.5f,
-                                drawRect.position.y,
-                                drawRect.width * 0.05f,
-                                drawRect.height), baseColor);
-
-                            EditorGUI.DrawRect(new Rect(
-                                drawRect.position.x + drawRect.width * 0.5f,
-                                drawRect.position.y + drawRect.height * 0.25f,
-                                drawRect.width * 0.2f,
-                                drawRect.height * 0.75f), baseColor);
-
-                            EditorGUI.DrawRect(new Rect(
-                                drawRect.position.x + drawRect.width * 0.5f,
-                                drawRect.position.y + drawRect.height * 0.5f,
-                                drawRect.width * 0.3f,
-                                drawRect.height * 0.5f), baseColor);
-                        }
-                        else if (currentType == IconType.ClipExit)
-                        {
-                            EditorGUI.DrawRect(new Rect(
-                                drawRect.position.x + drawRect.width * 0.45f,
-                                drawRect.position.y,
-                                drawRect.width * 0.05f,
-                                drawRect.height), baseColor);
-
-                            EditorGUI.DrawRect(new Rect(
-                                drawRect.position.x + drawRect.width * 0.3f,
-                                drawRect.position.y + drawRect.height * 0.25f,
-                                drawRect.width * 0.2f,
-                                drawRect.height * 0.75f), baseColor);
-
-                            EditorGUI.DrawRect(new Rect(
-                                drawRect.position.x + drawRect.width * 0.2f,
-                                drawRect.position.y + drawRect.height * 0.5f,
-                                drawRect.width * 0.3f,
-                                drawRect.height * 0.5f), baseColor);
-                        }
+                        GUI.DrawTexture(drawRect, Content.singleEventIcon.image, ScaleMode.StretchToFill, true, 1.0f, baseColor, 0, 0);
+                    }
+                    else if (currentType == IconType.ClipEnter)
+                    {
+                        GUI.DrawTexture(drawRect, Content.clipEnterIcon.image, ScaleMode.StretchToFill, true, 1.0f, baseColor, 0, 0);
+                    }
+                    else if (currentType == IconType.ClipExit)
+                    {
+                        GUI.DrawTexture(drawRect, Content.clipExitIcon.image, ScaleMode.StretchToFill, true, 1.0f, baseColor, 0, 0);
                     }
                 }
             }
