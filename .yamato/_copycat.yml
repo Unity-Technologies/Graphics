@@ -8,7 +8,7 @@ nightly_katana_abv_validate:
     flavor: b1.medium
   variables:
     MANIFEST: .copycat/graphics.json
-    RELEASE_BRANCH: trunk
+    RELEASE_BRANCH: 2022.1/staging
     SRP_VERSION: "13.1.2"
   skip_checkout: true
   commands:
@@ -30,7 +30,7 @@ vendor:
     flavor: b1.medium
   variables:
     MANIFEST: .copycat/graphics.json
-    RELEASE_BRANCH: trunk
+    RELEASE_BRANCH: 2022.1/staging
     SRP_VERSION: "13.1.2"
   skip_checkout: true
   commands:

@@ -1,18 +1,18 @@
-target_branch: master # specifies the branch on which recurrent or pr triggers are created, etc
-target_editor: trunk # specifies the target editor used for some package/preview publish jobs
+target_branch: 2022.1/staging # specifies the branch on which recurrent or pr triggers are created, etc
+target_editor: 2022.1 # specifies the target editor used for some package/preview publish jobs
 conditional_jobs: # some jobs are relevent only depending on the branch
   preview_publish: True
   formatting: True
   packages.package_publish_all: True
   packages.project_publish_all: True
 editors: # applied for all yml files
-  - track: trunk
-    name: trunk
+  - track: 2022.1
+    name: 2022.1
     rerun_strategy: on_new_revision
-    ono_branch_var: ONO_BRANCH_TRUNK
+    ono_branch_var: ONO_BRANCH_2022_1
     editor_pinning:
       enabled: True
-      nr_commits_to_retrieve: 100
+      nr_commits_to_retrieve: 1
     allow_triggers: True
     variables:
       CACHE_ARGS: '{{cache.flags}}'
@@ -596,7 +596,7 @@ platforms:
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
                     set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
-                    set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+                    set unityVersion={{2022_1.changeset.id}}
                     set artifactPath=Boatattack/Quest
                     set jenkinsJob=SBR_Quest_RunTest
                     set jenkinsNodeLabel=Quest
