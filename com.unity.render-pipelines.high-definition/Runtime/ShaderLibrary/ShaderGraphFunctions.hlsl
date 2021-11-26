@@ -4,10 +4,25 @@
 // Due to order of includes (Gradient struct need to be define before the declaration of $splice(GraphProperties))
 // And HDRP require that Material.hlsl and BuiltInGI are after it, we have two files to defines shader graph functions, one header and one where we setup HDRP functions
 
+#if defined(REQUIRE_NORMAL_TEXTURE)
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#endif
+
 float shadergraph_HDSampleSceneDepth(float2 uv)
 {
 #if defined(REQUIRE_DEPTH_TEXTURE)
     return SampleCameraDepth(uv);
+#endif
+    return 0;
+}
+
+float3 shadergraph_HDSampleSceneNormal(float2 uv)
+{
+#if defined(REQUIRE_NORMAL_TEXTURE)
+    float4 encodedNormal = SAMPLE_TEXTURE2D_X_LOD(_NormalBufferTexture, s_trilinear_clamp_sampler, uv * _RTHandleScale.xy, 0);
+    NormalData normalData;
+    DecodeFromNormalBuffer(encodedNormal, normalData);
+    return normalData.normalWS;
 #endif
     return 0;
 }
@@ -61,6 +76,11 @@ float3 shadergraph_HDMainLightDirection()
 #undef SHADERGRAPH_SAMPLE_SCENE_COLOR
 #endif
 #define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv) shadergraph_HDSampleSceneColor(uv)
+
+#ifdef SHADERGRAPH_SAMPLE_SCENE_NORMAL
+#undef SHADERGRAPH_SAMPLE_SCENE_NORMAL
+#endif
+#define SHADERGRAPH_SAMPLE_SCENE_NORMAL(uv) shadergraph_HDSampleSceneNormal(uv)
 
 #ifdef SHADERGRAPH_BAKED_GI
 #undef SHADERGRAPH_BAKED_GI

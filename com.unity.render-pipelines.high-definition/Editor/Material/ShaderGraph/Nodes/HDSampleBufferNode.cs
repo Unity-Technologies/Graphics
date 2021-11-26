@@ -129,7 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");
                                 s.AppendLine("NormalData normalData;");
                                 s.AppendLine("DecodeFromNormalBuffer(pixelCoords, normalData);");
-                                s.AppendLine("return IsSky(pixelCoords) ? 0 : normalData.normalWS;");
+                                s.AppendLine("return normalData.normalWS;");
                                 break;
                             case BufferType.Roughness:
                                 s.AppendLine("uint2 pixelCoords = uint2(uv * _ScreenSize.xy);");

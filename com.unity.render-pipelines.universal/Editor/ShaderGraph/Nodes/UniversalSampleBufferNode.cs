@@ -135,7 +135,6 @@ namespace UnityEditor.Rendering.Universal
                     // Default sampler when the sampler slot is not connected.
                     s.AppendLine("SAMPLER(s_linear_clamp_sampler);");
                     s.AppendLine("TEXTURE2D(_MotionVectorTexture);");
-                    s.AppendLine("#include \"Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl\"");
 
                     s.AppendLine("$precision{1} {0}($precision2 uv, SamplerState samplerState)", GetFunctionName(), channelCount);
                     using (s.BlockScope())
@@ -143,7 +142,7 @@ namespace UnityEditor.Rendering.Universal
                         switch (bufferType)
                         {
                             case BufferType.NormalWorldSpace:
-                                s.AppendLine("return SampleSceneNormals(uv);");
+                                s.AppendLine("return SHADERGRAPH_SAMPLE_SCENE_NORMAL(uv);");
                                 break;
                             case BufferType.MotionVectors:
                                 s.AppendLine($"return SAMPLE_TEXTURE2D_X_LOD(_MotionVectorTexture, samplerState, uv, 0).xy;");
