@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (isDeferred)
                 {
-                    cmd.SetGlobalTexture("_CameraNormalsTexture", deferredLights.GbufferAttachmentIdentifiers[deferredLights.GBufferNormalSmoothnessIndex]);
+                    cmd.SetGlobalTexture("_CameraNormalsTexture", deferredLights.GbufferAttachments[deferredLights.GBufferNormalSmoothnessIndex].nameID);
                 }
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT1, m_Settings.surfaceData == DecalSurfaceData.Albedo);

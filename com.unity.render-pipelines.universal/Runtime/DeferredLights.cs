@@ -195,7 +195,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         //
         internal RTHandle DepthCopyTexture { get; set; }
 
-        internal RenderTargetIdentifier[] GbufferAttachmentIdentifiers { get; set; }
         internal GraphicsFormat[] GbufferFormats { get; set; }
         internal RTHandle DepthAttachmentHandle { get; set; }
 
@@ -400,14 +399,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.GbufferAttachments[this.GBufferLightingIndex] = colorAttachment;
             this.DepthAttachment = depthAttachment;
 
-            if (this.GbufferAttachmentIdentifiers == null || this.GbufferAttachmentIdentifiers.Length != this.GbufferAttachments.Length)
-            {
-                this.GbufferAttachmentIdentifiers = new RenderTargetIdentifier[this.GbufferAttachments.Length];
+            if (this.GbufferFormats == null)
                 this.GbufferFormats = new GraphicsFormat[this.GbufferAttachments.Length];
-            }
+
             for (int i = 0; i < this.GbufferAttachments.Length; ++i)
             {
-                this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].nameID;
                 this.GbufferFormats[i] = this.GetGBufferFormat(i);
             }
             if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 3)
@@ -423,12 +419,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 };
             }
             this.DepthAttachmentHandle = this.DepthAttachment;
-#if ENABLE_VR && ENABLE_XR_MODULE
-            // In XR SinglePassInstance mode, the RTs are texture-array and all slices must be bound.
-            if (renderingData.cameraData.xr.enabled)
-                for (int i = 0; i < this.GbufferAttachmentIdentifiers.Length; ++i)
-                    this.GbufferAttachmentIdentifiers[i] = new RenderTargetIdentifier(this.GbufferAttachmentIdentifiers[i], 0, CubemapFace.Unknown, -1);
-#endif
         }
 
         public void OnCameraCleanup(CommandBuffer cmd)

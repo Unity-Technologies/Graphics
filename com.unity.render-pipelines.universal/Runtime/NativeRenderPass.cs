@@ -340,7 +340,7 @@ namespace UnityEngine.Rendering.Universal
                     // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(SystemInfo.GetGraphicsFormat(DefaultFormat.DepthStencil));
                     m_ActiveDepthAttachmentDescriptor.ConfigureTarget(passDepthAttachment.nameID != BuiltinRenderTextureType.CameraTarget ? passDepthAttachment.nameID :
-                            (usesTargetTexture ? new RenderTargetIdentifier(cameraData.targetTexture.depthBuffer) : (BuiltinRenderTextureType.Depth)),
+                            (usesTargetTexture ? new RenderTargetIdentifier(cameraData.targetTexture.depthBuffer) : BuiltinRenderTextureType.Depth),
                         ((uint)finalClearFlag & (uint)ClearFlag.Depth) == 0, true);
 
                     if (finalClearFlag != ClearFlag.None)
