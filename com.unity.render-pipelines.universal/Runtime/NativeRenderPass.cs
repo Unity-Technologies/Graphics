@@ -101,7 +101,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var renderPass = m_ActiveRenderPassQueue[i];
 
-                    renderPass.isLastPass = false;
                     renderPass.renderPassQueueIndex = i;
 
                     bool RPEnabled = renderPass.useNativeRenderPass && isRenderPassEnabled;
@@ -138,8 +137,6 @@ namespace UnityEngine.Rendering.Universal
 
                     m_MergeableRenderPassesMap[hash][GetValidPassIndexCount(m_MergeableRenderPassesMap[hash])] = i;
                 }
-
-                m_ActiveRenderPassQueue[lastPassIndex].isLastPass = true;
 
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {

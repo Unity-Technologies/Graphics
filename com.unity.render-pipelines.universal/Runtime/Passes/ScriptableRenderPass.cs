@@ -244,8 +244,6 @@ namespace UnityEngine.Rendering.Universal
         internal bool useNativeRenderPass { get; set; }
 
         internal bool depthOnly { get; set; }
-        // this flag is updated each frame to keep track of which pass is the last for the current camera
-        internal bool isLastPass { get; set; }
         // index to track the position in the current frame
         internal int renderPassQueueIndex { get; set; }
 
