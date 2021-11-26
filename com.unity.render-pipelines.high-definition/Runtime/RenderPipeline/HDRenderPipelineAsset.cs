@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
             => globalSettings?.renderPipelineEditorResources?.shaders.terrainDetailGrassBillboardShader;
 
         public override Shader defaultSpeedTree8Shader
-            => globalSettings?.renderPipelineEditorResources?.shaderGraphs.defaultSpeedTree8Shader;
+            => null;
 
         // Note: This function is HD specific
         /// <summary>HDRP default Decal material.</summary>

@@ -444,6 +444,14 @@ namespace UnityEngine.Experimental.Rendering
 
             bool validBakedProbes = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(m_BakingBatch.index, sh, validity, bakedProbeOctahedralDepth);
 
+            for (int i=0; i<bakedProbeOctahedralDepth.Length; ++i)
+            {
+                if (bakedProbeOctahedralDepth[i] != 0.0f)
+                {
+                    Debug.Log("Something is not 0.0f " + i + " " + bakedProbeOctahedralDepth[i]);
+                }
+            }
+
             if (!validBakedProbes)
             {
                 Debug.LogError("Lightmapper failed to produce valid probe data.  Please consider clearing lighting data and rebake.");
@@ -542,13 +550,14 @@ namespace UnityEngine.Experimental.Rendering
                     cell.validity[i] = validity[j];
                 }
 
-                // TODO_FCC: THIS IS NOT NEEDED.
+                // TODO_FCC: THIS IS NOT NEEDED. here to test.
                 int octDepthSize = 8;
                 int totalTexels = octDepthSize * octDepthSize;
-                List<float> brickHeldData = new List<float>(64 * totalTexels);
+                float[,] brickHeldData = new float[64, totalTexels];
+
                 for (int brick = 0; brick < (numProbes/64); ++brick)
                 {
-                    brickHeldData.Clear();
+
                     int beginOfBrickInDepth = brick * 64 * totalTexels;
                     if (true)
                     {
@@ -557,7 +566,7 @@ namespace UnityEngine.Experimental.Rendering
                             int beginProbe = beginOfBrickInDepth + probe * totalTexels;
                             for (var texel = 0; texel < totalTexels; ++texel)
                             {
-                                brickHeldData.Add(bakedProbeOctahedralDepth[beginProbe + texel]);
+                                brickHeldData[probe, texel] = bakedProbeOctahedralDepth[beginProbe + texel];
                             }
                         }
                     }

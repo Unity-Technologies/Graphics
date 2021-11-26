@@ -339,15 +339,18 @@ namespace UnityEngine.Experimental.Rendering
 
 
     // TODO_FCC: TMP_FCC This is all tmp stuff. In future we might need a flat 2D atlas as we'll not have
+
     public class OctahedralDepthAtlas
     {
+        internal const int k_OctDepthMapSize = 8;
+
         internal OctahedralDepthAtlas(int width, int height)
         {
             atlasWidth = width;
             atlasHeight = height;
-
-            atlas = new Texture2D(width, height, GraphicsFormat.R16G16_SFloat, TextureCreationFlags.None);
-
+            // TODO_FCC: YUCK. Only need 2 channels. wtf.
+            atlas = new Texture2D(width, height, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None);
+            freeSlots = new Queue<Vector2Int>();
             ClearAllocations();
         }
 
@@ -356,10 +359,9 @@ namespace UnityEngine.Experimental.Rendering
         internal int atlasWidth;
         internal int atlasHeight;
 
-        internal int octDepthMapSize = 8; // Hard coded for now, we should make sure we support higher res.
-        internal Vector2Int sizeOfBrick => new Vector2Int(octDepthMapSize * 4, octDepthMapSize * 4);
+        internal Vector2Int sizeOfBrick => new Vector2Int(k_OctDepthMapSize * 4, k_OctDepthMapSize * 4);
 
-        internal int maxProbeAllowed => (atlasWidth / octDepthMapSize) * (atlasHeight / octDepthMapSize);
+        internal int maxProbeAllowed => (atlasWidth / k_OctDepthMapSize) * (atlasHeight / k_OctDepthMapSize);
 
         internal Queue<Vector2Int> freeSlots = new Queue<Vector2Int>();
 
@@ -383,6 +385,10 @@ namespace UnityEngine.Experimental.Rendering
             return freeSlots.Dequeue();
         }
 
+        internal int FlattenIndex(Vector2Int allocLoc)
+        {
+            return allocLoc.y * atlasWidth + allocLoc.x;
+        }
         internal int GetNextFreeBrickAllocFlat()
         {
             Vector2Int index = GetNextFreeBrickAlloc();
@@ -390,6 +396,35 @@ namespace UnityEngine.Experimental.Rendering
             return index.y * atlasWidth + index.x;
         }
 
+        // TODO_FCC: This would need to be much faster... This is the DUMBEST way of doing it, but I just need to test visually before considering this to be viable anyway.
+        internal void InsertOctDepthData(float[,] brickData, Vector2Int startIndex)
+        {
+            int probeCount = brickData.GetLength(0);
+            int texelCount = brickData.GetLength(1);
+
+            for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; ++x)
+            {
+                for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; ++y)
+                {
+                    int startX = x * k_OctDepthMapSize + startIndex.x;
+                    int startY = y * k_OctDepthMapSize + startIndex.y;
+
+                    Color[] tmpStorage = new Color[texelCount];
+                    for (int i = 0; i < texelCount; ++i)
+                    {
+                        if (brickData[x + y * ProbeBrickPool.kBrickProbeCountPerDim, i] != 0.0f)
+                        {
+                            Debug.Log($"Blitting non-zero. {brickData[x + y * ProbeBrickPool.kBrickProbeCountPerDim, i]}");
+                        }
+                        tmpStorage[i] = new Color(brickData[x + y * ProbeBrickPool.kBrickProbeCountPerDim, i], 0, 0, 0);
+                    }
+
+                    atlas.SetPixels(startX, startY, k_OctDepthMapSize, k_OctDepthMapSize, tmpStorage);
+                }
+            }
+
+            atlas.Apply();
+        }
 
         internal void Destroy()
         {
@@ -1333,8 +1368,14 @@ namespace UnityEngine.Experimental.Rendering
             // Alloc stuff in octahedral depth
             foreach (var brick in bricks)
             {
-                brick.flatIdxOctaDepthAtlas = octDepthAtlas.GetNextFreeBrickAllocFlat();
+                Vector2Int nextAlloc = octDepthAtlas.GetNextFreeBrickAlloc();
+                brick.octDepthInfo.flatIdxOctaDepthAtlas = octDepthAtlas.FlattenIndex(nextAlloc);
+                // Put in alloc.
+                if (brick.octDepthInfo.octaDepthData != null)
+                    octDepthAtlas.InsertOctDepthData(brick.octDepthInfo.octaDepthData, nextAlloc);
             }
+
+
 
             // Build index
             m_Index.AddBricks(cellInfo.cell, bricks, cellInfo.chunkList, ProbeBrickPool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), cellUpdateInfo);

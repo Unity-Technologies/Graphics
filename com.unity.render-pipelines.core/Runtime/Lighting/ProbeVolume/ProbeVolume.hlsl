@@ -431,6 +431,7 @@ struct APVSamplingInput
 
 float GetOracleBasedWeight(float3 l0, float3 oracle, float3 closestL0)
 {
+    return 1;
     float oracleThresh = _AntiLeakParams.z;
     return abs(Luminance(l0) - Luminance(closestL0)) / Luminance(closestL0) < oracleThresh;
 }
