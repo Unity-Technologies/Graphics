@@ -106,17 +106,20 @@ namespace UnityEditor.VFX
 
         static class Style
         {
-            public static GUIStyle centeredStyle = new GUIStyle(GUI.skin.GetStyle("Label"));
-            public static GUIStyle eventLeftAlignStyle = new GUIStyle(GUI.skin.GetStyle("Label"));
-            public static GUIStyle eventRightAlignStyle = new GUIStyle(GUI.skin.GetStyle("Label"));
-            public static GUIStyle eventLeftAlignShadowStyle = new GUIStyle(GUI.skin.GetStyle("Label"));
-            public static GUIStyle eventRightAlignShadowStyle = new GUIStyle(GUI.skin.GetStyle("Label"));
+            public static GUIStyle eventLeftAlign = new GUIStyle(GUI.skin.GetStyle("Label"));
+            public static GUIStyle eventRightAlign = new GUIStyle(GUI.skin.GetStyle("Label"));
+            public static GUIStyle eventLeftAlignShadow = new GUIStyle(GUI.skin.GetStyle("Label"));
+            public static GUIStyle eventRightAlignShadow = new GUIStyle(GUI.skin.GetStyle("Label"));
+
+            public static readonly Color kDarkGlobalBackground = new Color32(81, 86, 94, 255);
+            public static readonly Color kDarkScrubbingBackground = new Color32(64, 68, 74, 255);
+            public static readonly Color kLightGlobalBackground = new Color32(108, 110, 113, 255);
+            public static readonly Color kLightScrubbingBackground = new Color32(136, 141, 148, 255);
 
             public static GUIStyle scrubbingDisabled = new GUIStyle(GUI.skin.GetStyle("Label"));
-            public static readonly Color kGlobalBackground = new Color32(81, 86, 94, 255);
-            public static readonly float kScrubbingBarHeight = 14.0f;
-            public static readonly float kEventNameHeight = 14.0f;
-            public static readonly Color kScrubbingBackgroundColor = new Color32(64, 68, 74, 255);
+            public static GUIStyle scrubbingDisabledShadow = new GUIStyle(GUI.skin.GetStyle("Label"));
+            public static readonly float kScrubbingBarHeight = 16.0f;
+            public static readonly float kEventNameHeight = 16.0f;
 
             public static readonly float kMinimalBarHeight = 2.0f;
             public static readonly float kBarPadding = 1.0f;
@@ -124,19 +127,34 @@ namespace UnityEditor.VFX
 
             static Style()
             {
-                centeredStyle.alignment = TextAnchor.UpperCenter;
-                eventLeftAlignStyle.alignment = eventLeftAlignShadowStyle.alignment = TextAnchor.UpperLeft;
-                eventRightAlignStyle.alignment = eventRightAlignShadowStyle.alignment = TextAnchor.UpperRight;
+                Color white = new Color32(229, 229, 229, 255);
+
+                eventLeftAlign.normal.textColor = white;
+                eventRightAlign.normal.textColor = white;
+                scrubbingDisabled.normal.textColor = white;
+                eventLeftAlign.hover.textColor = white;
+                eventRightAlign.hover.textColor = white;
+                scrubbingDisabled.hover.textColor = new Color32(209, 210, 211, 255);
+
+                eventLeftAlign.alignment = eventLeftAlignShadow.alignment = TextAnchor.UpperLeft;
+                eventRightAlign.alignment = eventRightAlignShadow.alignment = TextAnchor.UpperRight;
 
                 var shadowColor = Color.black;
-                eventLeftAlignShadowStyle.normal.textColor = shadowColor;
-                eventLeftAlignShadowStyle.hover.textColor = shadowColor;
-                eventRightAlignShadowStyle.normal.textColor = shadowColor;
-                eventRightAlignShadowStyle.hover.textColor = shadowColor;
+                eventLeftAlignShadow.normal.textColor = shadowColor;
+                eventLeftAlignShadow.hover.textColor = shadowColor;
+                eventRightAlignShadow.normal.textColor = shadowColor;
+                eventRightAlignShadow.hover.textColor = shadowColor;
+                scrubbingDisabledShadow.normal.textColor = shadowColor;
 
-                scrubbingDisabled.alignment = TextAnchor.UpperCenter;
-                scrubbingDisabled.fontStyle = FontStyle.Bold;
-                scrubbingDisabled.fontSize = 12;
+                eventLeftAlign.fontSize
+                    = eventRightAlign.fontSize
+                    = eventLeftAlignShadow.fontSize
+                    = eventRightAlignShadow.fontSize
+                    = 12;
+
+                scrubbingDisabled.alignment = scrubbingDisabledShadow.alignment = TextAnchor.UpperCenter;
+                scrubbingDisabled.fontStyle = scrubbingDisabledShadow.fontStyle = FontStyle.Bold;
+                scrubbingDisabled.fontSize = scrubbingDisabledShadow.fontSize = 12;
             }
         }
 
@@ -160,8 +178,8 @@ namespace UnityEditor.VFX
             static GUIStyle GetTextGUIStyle(IconType type)
             {
                 if (type != IconType.ClipExit)
-                    return Style.eventLeftAlignStyle;
-                return Style.eventRightAlignStyle;
+                    return Style.eventLeftAlign;
+                return Style.eventRightAlign;
             }
 
             public GUIStyle textStyle
@@ -175,8 +193,8 @@ namespace UnityEditor.VFX
             static GUIStyle GetTextShadowGUIStyle(IconType type)
             {
                 if (type != IconType.ClipExit)
-                    return Style.eventLeftAlignShadowStyle;
-                return Style.eventRightAlignShadowStyle;
+                    return Style.eventLeftAlignShadow;
+                return Style.eventRightAlignShadow;
             }
 
             public GUIStyle textShadowStyle
@@ -451,12 +469,12 @@ namespace UnityEditor.VFX
             var scrubbingRegion = new Rect(region.position.position + new Vector2(0, clipBarHeight + eventNameHeight), new Vector2(region.position.width, scrubbingHeight));
 
             //Draw custom background
-            EditorGUI.DrawRect(region.position, Style.kGlobalBackground);
+            EditorGUI.DrawRect(region.position, EditorGUIUtility.isProSkin ? Style.kDarkGlobalBackground : Style.kLightGlobalBackground);
 
             if (!playable.scrubbing)
             {
-                EditorGUI.DrawRect(scrubbingRegion, Style.kScrubbingBackgroundColor);
-                GUI.Label(scrubbingRegion, Content.scrubbingDisabled, Style.scrubbingDisabled);
+                EditorGUI.DrawRect(scrubbingRegion, EditorGUIUtility.isProSkin ? Style.kDarkScrubbingBackground : Style.kLightScrubbingBackground);
+                ShadowLabel(scrubbingRegion, Content.scrubbingDisabled, Style.scrubbingDisabled, Style.scrubbingDisabledShadow);
             }
 
             //Draw Clip Bar
