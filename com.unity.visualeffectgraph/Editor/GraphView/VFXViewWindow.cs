@@ -57,13 +57,13 @@ namespace UnityEditor.VFX.UI
 
         public static VFXViewWindow GetWindow(VisualEffectAsset vfxAsset, bool createIfNeeded = false)
         {
-            return GetWindowLambda(x => x.graphView?.controller?.graph.visualEffectResource.asset == vfxAsset, createIfNeeded, true);
+            return GetWindowLambda(x => x.m_DisplayedResource?.asset == vfxAsset, createIfNeeded, true);
         }
 
         public static VFXViewWindow GetWindow(VFXGraph vfxGraph, bool createIfNeeded = false, bool show = true)
         {
             return GetWindowLambda(
-                x => x.graphView?.controller?.graph.visualEffectResource == vfxGraph?.visualEffectResource,
+                x => x.displayedResource == vfxGraph?.visualEffectResource,
                 createIfNeeded,
                 show);
         }
@@ -108,6 +108,19 @@ namespace UnityEditor.VFX.UI
         public static VFXViewWindow GetWindowNoShow(VFXView vfxView) => GetWindow(vfxView.controller?.graph, false, false);
         public static VFXViewWindow GetWindow(VFXView vfxView) => GetWindow(vfxView.controller?.graph);
         public static ReadOnlyCollection<VFXViewWindow> GetAllWindows() => s_VFXWindows.AsReadOnly();
+
+        public static bool CloseIfNotLast(VFXView vfxView)
+        {
+            var noAssetWindows = s_VFXWindows.Where(x => x.graphView.controller?.graph == null).ToArray();
+            if (noAssetWindows.Length > 1)
+            {
+                var window = noAssetWindows.Single(x => x.graphView == vfxView);
+                window.Close();
+                return true;
+            }
+
+            return false;
+        }
 
         public VFXView graphView { get; private set; }
         public VisualEffectResource displayedResource => m_DisplayedResource;
@@ -264,7 +277,6 @@ namespace UnityEditor.VFX.UI
             {
                 graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
                 graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
-                graphView.controller = null;
                 graphView.Dispose();
                 graphView = null;
             }
