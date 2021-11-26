@@ -129,19 +129,20 @@ namespace UnityEditor.VFX.Migration
                     {
                         new VisualEffectControlClip.ClipEvent()
                         {
-                            enter = new VisualEffectPlayableSerializedEvent()
+                            editorColor = VisualEffectControlClip.ClipEvent.defaultEditorColor,
+                            enter = new VisualEffectPlayableSerializedEventNoColor()
                             {
                                 name = (string)oldAsset.activationBehavior.onClipEnter,
                                 time = 0.0,
-                                timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart,
+                                timeSpace = PlayableTimeSpace.AfterClipStart,
                                 eventAttributes = MigrateEventStateToAttributes(oldAsset.activationBehavior.clipEnterEventAttributes)
                             },
 
-                            exit = new VisualEffectPlayableSerializedEvent()
+                            exit = new VisualEffectPlayableSerializedEventNoColor()
                             {
                                 name = (string)oldAsset.activationBehavior.onClipExit,
                                 time = 0.0,
-                                timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd,
+                                timeSpace = PlayableTimeSpace.BeforeClipEnd,
                                 eventAttributes = MigrateEventStateToAttributes(oldAsset.activationBehavior.clipExitEventAttributes)
                             }
                         }

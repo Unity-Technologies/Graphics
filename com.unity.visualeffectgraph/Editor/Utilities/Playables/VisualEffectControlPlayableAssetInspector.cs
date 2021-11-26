@@ -42,13 +42,13 @@ namespace UnityEditor.VFX
         }
     }
 
-    [CustomPropertyDrawer(typeof(VisualEffectPlayableSerializedEvent.TimeSpace))]
+    [CustomPropertyDrawer(typeof(PlayableTimeSpace))]
     class VisualEffectPlayableSerializedEventTimeSpaceDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var previousTimeSpace = (VisualEffectPlayableSerializedEvent.TimeSpace)property.enumValueIndex;
-            var newTimeSpace = (VisualEffectPlayableSerializedEvent.TimeSpace)EditorGUI.EnumPopup(position, label, previousTimeSpace);
+            var previousTimeSpace = (PlayableTimeSpace)property.enumValueIndex;
+            var newTimeSpace = (PlayableTimeSpace)EditorGUI.EnumPopup(position, label, previousTimeSpace);
             if (previousTimeSpace != newTimeSpace)
             {
                 property.enumValueIndex = (int)newTimeSpace;
@@ -290,6 +290,14 @@ namespace UnityEditor.VFX
             return newEvent;
         }
 
+        private static VisualEffectPlayableSerializedEventNoColor DeepClone(VisualEffectPlayableSerializedEventNoColor source)
+        {
+            VisualEffectPlayableSerializedEventNoColor newEvent = source;
+            newEvent.name = DeepClone(newEvent.name);
+            newEvent.eventAttributes.content = DeepClone(newEvent.eventAttributes.content);
+            return newEvent;
+        }
+
         private static ExposedProperty DeepClone(ExposedProperty source)
         {
             ExposedProperty newExposedProperty = (string)source;
@@ -325,6 +333,33 @@ namespace UnityEditor.VFX
             return newEventAttributeArray;
         }
 
+        static Color[] kNiceColor = new Color[]
+        {
+            new Color32(123, 158, 5, 255),
+            new Color32(52, 136, 167, 255),
+            new Color32(204, 112, 0, 255),
+            new Color32(90, 178, 188, 255),
+            new Color32(114, 104, 12, 255),
+            new Color32(197, 162, 6, 255),
+            new Color32(136, 40, 7, 255),
+            new Color32(97, 73, 133, 255),
+            new Color32(122, 123, 30, 255),
+            new Color32(80, 160, 93, 255)
+        };
+
+        private static Color SmartPickingNewColor(VisualEffectControlClip controlClip)
+        {
+            var allColor = controlClip.clipEvents.Select(o => o.editorColor);
+            allColor = allColor.Concat(controlClip.singleEvents.Select(o => o.editorColor));
+
+            var candidate = kNiceColor.Where(o => !allColor.Contains(o));
+            if (candidate.Any())
+                return candidate.First();
+
+            //Arbitrary picking (but not random) of color
+            return kNiceColor[allColor.Count() % kNiceColor.Length];
+        }
+
         private void OnEnable()
         {
             s_RegisteredInspector.Add((target as VisualEffectControlClip, this));
@@ -350,24 +385,29 @@ namespace UnityEditor.VFX
                 Undo.RegisterCompleteObjectUndo(playable, "Add new clip event");
                 clipEventsProperty.serializedObject.ApplyModifiedProperties();
 
+                var newColor = SmartPickingNewColor(playable);
+
                 var newClipEvent = new VisualEffectControlClip.ClipEvent();
                 if (playable.clipEvents.Any())
                 {
                     var last = playable.clipEvents.Last();
+                    newClipEvent.editorColor = newColor;
                     newClipEvent.enter = DeepClone(last.enter);
                     newClipEvent.exit = DeepClone(last.exit);
                 }
                 else
                 {
+                    newClipEvent.editorColor = newColor;
+
                     newClipEvent.enter.eventAttributes = new UnityEngine.VFX.EventAttributes();
                     newClipEvent.enter.name = VisualEffectAsset.PlayEventName;
                     newClipEvent.enter.time = 0.0;
-                    newClipEvent.enter.timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.AfterClipStart;
+                    newClipEvent.enter.timeSpace = PlayableTimeSpace.AfterClipStart;
 
                     newClipEvent.exit.eventAttributes = new UnityEngine.VFX.EventAttributes();
                     newClipEvent.exit.name = VisualEffectAsset.StopEventName;
                     newClipEvent.exit.time = 0.0;
-                    newClipEvent.exit.timeSpace = VisualEffectPlayableSerializedEvent.TimeSpace.BeforeClipEnd;
+                    newClipEvent.exit.timeSpace = PlayableTimeSpace.BeforeClipEnd;
                 }
                 playable.clipEvents.Add(newClipEvent);
                 clipEventsProperty.serializedObject.Update();
@@ -387,6 +427,8 @@ namespace UnityEditor.VFX
                     var last = playable.singleEvents.Last();
                     newSingleEvent = DeepClone(last);
                 }
+                newSingleEvent.editorColor = SmartPickingNewColor(playable);
+
                 playable.singleEvents.Add(newSingleEvent);
                 singleEventsProperty.serializedObject.Update();
             };
