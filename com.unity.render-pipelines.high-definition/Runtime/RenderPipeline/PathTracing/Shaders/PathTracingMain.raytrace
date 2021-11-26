@@ -31,7 +31,8 @@ float4   _PathTracingDoFParameters;    // x: aperture radius, y: focus distance,
 float4   _PathTracingTilingParameters; // xy: tile count, zw: current tile index
 
 // FIXME
-TEXTURE2D_X(_PathTracingSkySamplingTexture);
+TEXTURE2D(_PathTracingSkyPDFTexture);
+TEXTURE2D(_PathTracingSkyCDFTexture);
 
 // Output(s)
 RW_TEXTURE2D_X(float4, _FrameTexture);
@@ -188,9 +189,11 @@ void RayGen()
 
     // FIXME:
     uint2 pixelResolution = DispatchRaysDimensions().xy;
-    float2 envConversion = float2(1024.0 / pixelResolution.x, 512.0 / pixelResolution.y);
+    float2 envConversion = float2(512.0 / pixelResolution.x, 256.0 / pixelResolution.y);
     uint2 envCoord = envConversion * pixelCoord;
-    float3 envColor = _PathTracingSkySamplingTexture[COORD_TEXTURE2D_X(envCoord)];
+    //float3 envColor = float3(_PathTracingSkySamplingTexture[envCoord].xy * GetInverseCurrentExposureMultiplier(), 0.0);
+    //float3 envColor = _PathTracingSkySamplingTexture[envCoord].x;
+    float3 envColor = _PathTracingSkyCDFTexture[envCoord].x * GetInverseCurrentExposureMultiplier();
     _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(envColor, 1.0);
 }
 
