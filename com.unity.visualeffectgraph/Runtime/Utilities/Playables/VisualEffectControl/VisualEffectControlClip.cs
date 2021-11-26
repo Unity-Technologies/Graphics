@@ -55,14 +55,11 @@ namespace UnityEngine.VFX
             eventName = VisualEffectAsset.PlayEventName
         };
 
-        //TODOPAUL: Think about default value of editorColor
         [Serializable]
         public struct ClipEvent
         {
-//TODOPAUL: Remove
-#if UNITY_EDITOR
+            public static Color defaultEditorColor = new Color32(123, 158, 5, 255);
             public Color editorColor;
-#endif
             public VisualEffectPlayableSerializedEventNoColor enter;
             public VisualEffectPlayableSerializedEventNoColor exit;
         }
@@ -72,9 +69,7 @@ namespace UnityEngine.VFX
         {
             new ClipEvent()
             {
-#if UNITY_EDITOR
-                editorColor = Color.white,
-#endif
+                editorColor = ClipEvent.defaultEditorColor,
                 enter = new VisualEffectPlayableSerializedEventNoColor()
                 {
                     name = VisualEffectAsset.PlayEventName,

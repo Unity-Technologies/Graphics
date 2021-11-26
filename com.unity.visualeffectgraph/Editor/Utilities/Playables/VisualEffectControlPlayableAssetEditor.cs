@@ -388,7 +388,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            //Resolve text
+            //Resolve text overlapping
             foreach (var request in m_TextEventAreaRequested)
             {
                 var candidate = request;
@@ -500,7 +500,7 @@ namespace UnityEditor.VFX
 
                     if (currentType == IconType.SingleEvent)
                     {
-                        /* exception, drawing a 2px line from here to begin */
+                        //Exception, drawing a 2px line from here to begin of clip
                         EditorGUI.DrawRect(new Rect(
                             drawRect.position.x + drawRect.width * 0.5f - 0.5f,
                             0.0f,

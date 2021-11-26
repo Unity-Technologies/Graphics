@@ -42,21 +42,6 @@ namespace UnityEditor.VFX
         }
     }
 
-    /*
-    [CustomPropertyDrawer(typeof(VisualEffectPlayableSerializedEvent))]
-    class VisualEffectPlayableSerializedEventDrawer : PropertyDrawer
-    {
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-        {
-            EditorGUI.PropertyField(position, property);
-        }
-
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
-        {
-            return EditorGUI.GetPropertyHeight(property);
-        }
-    }*/
-
     [CustomPropertyDrawer(typeof(PlayableTimeSpace))]
     class VisualEffectPlayableSerializedEventTimeSpaceDrawer : PropertyDrawer
     {
@@ -300,7 +285,6 @@ namespace UnityEditor.VFX
         private static VisualEffectPlayableSerializedEvent DeepClone(VisualEffectPlayableSerializedEvent source)
         {
             VisualEffectPlayableSerializedEvent newEvent = source;
-            newEvent.editorColor = new Color(newEvent.editorColor.r, newEvent.editorColor.g, newEvent.editorColor.b, newEvent.editorColor.a);
             newEvent.name = DeepClone(newEvent.name);
             newEvent.eventAttributes.content = DeepClone(newEvent.eventAttributes.content);
             return newEvent;
@@ -349,6 +333,33 @@ namespace UnityEditor.VFX
             return newEventAttributeArray;
         }
 
+        static Color[] kNiceColor = new Color[]
+        {
+            new Color32(123, 158, 5, 255),
+            new Color32(52, 136, 167, 255),
+            new Color32(204, 112, 0, 255),
+            new Color32(90, 178, 188, 255),
+            new Color32(114, 104, 12, 255),
+            new Color32(197, 162, 6, 255),
+            new Color32(136, 40, 7, 255),
+            new Color32(97, 73, 133, 255),
+            new Color32(122, 123, 30, 255),
+            new Color32(80, 160, 93, 255)
+        };
+
+        private static Color SmarkPickingNewColor(VisualEffectControlClip controlClip)
+        {
+            var allColor = controlClip.clipEvents.Select(o => o.editorColor);
+            allColor = allColor.Concat(controlClip.singleEvents.Select(o => o.editorColor));
+
+            var candidate = kNiceColor.Where(o => !allColor.Contains(o));
+            if (candidate.Any())
+                return candidate.First();
+
+            //Arbitrary picking (but not random) of color
+            return kNiceColor[allColor.Count() % kNiceColor.Length];
+        }
+
         private void OnEnable()
         {
             s_RegisteredInspector.Add((target as VisualEffectControlClip, this));
@@ -374,17 +385,19 @@ namespace UnityEditor.VFX
                 Undo.RegisterCompleteObjectUndo(playable, "Add new clip event");
                 clipEventsProperty.serializedObject.ApplyModifiedProperties();
 
+                var newColor = SmarkPickingNewColor(playable);
+
                 var newClipEvent = new VisualEffectControlClip.ClipEvent();
                 if (playable.clipEvents.Any())
                 {
                     var last = playable.clipEvents.Last();
-                    newClipEvent.editorColor = last.editorColor;
+                    newClipEvent.editorColor = newColor;
                     newClipEvent.enter = DeepClone(last.enter);
                     newClipEvent.exit = DeepClone(last.exit);
                 }
                 else
                 {
-                    newClipEvent.editorColor = Color.white;
+                    newClipEvent.editorColor = newColor;
 
                     newClipEvent.enter.eventAttributes = new UnityEngine.VFX.EventAttributes();
                     newClipEvent.enter.name = VisualEffectAsset.PlayEventName;
@@ -414,6 +427,8 @@ namespace UnityEditor.VFX
                     var last = playable.singleEvents.Last();
                     newSingleEvent = DeepClone(last);
                 }
+                newSingleEvent.editorColor = SmarkPickingNewColor(playable);
+
                 playable.singleEvents.Add(newSingleEvent);
                 singleEventsProperty.serializedObject.Update();
             };

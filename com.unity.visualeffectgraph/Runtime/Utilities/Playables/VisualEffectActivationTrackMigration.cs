@@ -129,7 +129,7 @@ namespace UnityEditor.VFX.Migration
                     {
                         new VisualEffectControlClip.ClipEvent()
                         {
-                            editorColor = Color.white,
+                            editorColor = VisualEffectControlClip.ClipEvent.defaultEditorColor,
                             enter = new VisualEffectPlayableSerializedEventNoColor()
                             {
                                 name = (string)oldAsset.activationBehavior.onClipEnter,
