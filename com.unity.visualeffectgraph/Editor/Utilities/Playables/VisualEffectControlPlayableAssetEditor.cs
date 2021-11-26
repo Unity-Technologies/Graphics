@@ -357,7 +357,16 @@ namespace UnityEditor.VFX
                     currentType = index % 2 == 0 ? IconType.ClipEnter : IconType.ClipExit;
 
                 var color = new Color(itEvent.editorColor.r, itEvent.editorColor.g, itEvent.editorColor.b);
-                var icon = new EventAreaItem(iconArea, currentType, new GUIContent() /* TODOPAUL the icon png will be selected here */, color);
+
+                GUIContent iconContent = null;
+                switch (currentType)
+                {
+                    case IconType.ClipEnter: iconContent = Content.clipEnterIcon; break;
+                    case IconType.ClipExit: iconContent = Content.clipExitIcon; break;
+                    case IconType.SingleEvent: iconContent = Content.singleEventIcon; break;
+                }
+
+                var icon = new EventAreaItem(iconArea, currentType, iconContent, color);
                 m_TextEventAreaRequested.Add(icon);
 
                 var text = new EventAreaItem(iconArea, currentType, (string)itEvent.name);
@@ -497,17 +506,9 @@ namespace UnityEditor.VFX
                             0.0f,
                             1.0f,
                             clipBarHeight + eventNameHeight), baseColor);
+                    }
 
-                        GUI.DrawTexture(drawRect, Content.singleEventIcon.image, ScaleMode.StretchToFill, true, 1.0f, baseColor, 0, 0);
-                    }
-                    else if (currentType == IconType.ClipEnter)
-                    {
-                        GUI.DrawTexture(drawRect, Content.clipEnterIcon.image, ScaleMode.StretchToFill, true, 1.0f, baseColor, 0, 0);
-                    }
-                    else if (currentType == IconType.ClipExit)
-                    {
-                        GUI.DrawTexture(drawRect, Content.clipExitIcon.image, ScaleMode.StretchToFill, true, 1.0f, baseColor, 0, 0);
-                    }
+                    GUI.DrawTexture(drawRect, item.content.image, ScaleMode.StretchToFill, true, 1.0f, baseColor, 0, 0);
                 }
             }
 
