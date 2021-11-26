@@ -464,19 +464,37 @@ namespace UnityEngine.Experimental.Rendering
 
         void BakeLightingForSet(ProbeVolumeSceneData.BakingSet set)
         {
-            // Save current scenes:
-            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-            {
-                Debug.LogError("Can't bake while a scene is dirty!");
-                return;
-            }
-
             var scenesToRestore = new List<string>();
             for (int i = 0; i < EditorSceneManager.sceneCount; i++)
                 scenesToRestore.Add(EditorSceneManager.GetSceneAt(i).path);
 
-            // First, load all the scenes
-            LoadScenesInBakingSet(set);
+            bool sceneSetChanged = scenesToRestore.Count != set.sceneGUIDs.Count;
+            if (!sceneSetChanged)
+            {
+                for (int i = 0; i < scenesToRestore.Count; i++)
+                {
+                    if (set.sceneGUIDs.IndexOf(AssetDatabase.AssetPathToGUID(scenesToRestore[i])) == -1)
+                    {
+                        sceneSetChanged = true;
+                        break;
+                    }
+                }
+            }
+
+            if (sceneSetChanged)
+            {
+                // Save current scenes:
+                if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                {
+                    Debug.LogError("Can't bake while a scene is dirty!");
+                    return;
+                }
+
+                // Load all the scenes
+                LoadScenesInBakingSet(set);
+            }
+            else
+                scenesToRestore.Clear();
 
             // Then we wait 1 frame for HDRP to render and bake
             bool skipFirstFrame = true;
@@ -493,7 +511,8 @@ namespace UnityEngine.Experimental.Rendering
                 UnityEditor.Lightmapping.BakeAsync();
 
                 // Enqueue scene restore operation after bake is finished
-                EditorApplication.update += RestoreScenesAfterBake;
+                if (scenesToRestore.Count != 0)
+                    EditorApplication.update += RestoreScenesAfterBake;
             }
 
             void RestoreScenesAfterBake()
