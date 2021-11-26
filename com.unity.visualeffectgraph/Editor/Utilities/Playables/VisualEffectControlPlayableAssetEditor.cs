@@ -119,7 +119,7 @@ namespace UnityEditor.VFX
             public static readonly Color kScrubbingBackgroundColor = new Color32(64, 68, 74, 255);
 
             public static readonly float kMinimalBarHeight = 2.0f;
-            public static readonly float kBarPadding = 2.0f;
+            public static readonly float kBarPadding = 1.0f;
 
 
             static Style()
@@ -471,9 +471,9 @@ namespace UnityEditor.VFX
 
                 var rect = new Rect(
                     barRegion.x + startRange,
-                    barRegion.y + rowHeight * (rowCount - bar.rowIndex - 1) + Style.kBarPadding,
+                    barRegion.y + rowHeight * bar.rowIndex + Style.kBarPadding,
                     endRange - startRange,
-                    rowHeight - Style.kBarPadding);
+                    rowHeight - Style.kBarPadding * 2);
                 EditorGUI.DrawRect(rect, bar.color);
             }
 
