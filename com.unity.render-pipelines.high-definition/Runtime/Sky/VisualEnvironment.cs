@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Returns interpolated value from the visual environment.</summary>
         /// <param name="camera">The camera containing the volume stack to evaluate</param>
         /// <returns>The value for this parameter.</returns>
-        public float GetValue(HDCamera camera)
+        public virtual float GetValue(HDCamera camera)
         {
             if (value.mode == WindOverrideMode.Custom)
                 return value.customValue;
@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Returns interpolated value from the visual environment.</summary>
         /// <param name="camera">The camera containing the volume stack to evaluate</param>
         /// <returns>The value for this parameter.</returns>
-        public float GetValue(HDCamera camera)
+        public override float GetValue(HDCamera camera)
         {
             // Multiply mode is not supported for wind orientation
             if (value.mode == WindOverrideMode.Multiply)

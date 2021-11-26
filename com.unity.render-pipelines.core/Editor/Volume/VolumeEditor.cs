@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering
         static class Styles
         {
             public static readonly GUIContent mode = EditorGUIUtility.TrTextContent("Mode", "This property defines whether the Volume is Global or Local. Global: Volumes affect the Camera everywhere in the Scene. Local: Volumes affect the Camera if the Camera is within the bounds of the Collider.");
-            public static readonly GUIContent[] modes = {EditorGUIUtility.TrTextContent("Global"), EditorGUIUtility.TrTextContent("Local")};
+            public static readonly GUIContent[] modes = { EditorGUIUtility.TrTextContent("Global"), EditorGUIUtility.TrTextContent("Local") };
 
             public static readonly GUIContent addBoxCollider = EditorGUIUtility.TrTextContent("Add a Box Collider");
             public static readonly GUIContent sphereBoxCollider = EditorGUIUtility.TrTextContent("Add a Sphere Collider");

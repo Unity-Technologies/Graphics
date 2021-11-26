@@ -73,7 +73,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         uint  m_CacheMaxIteration = 0;
 #endif // UNITY_EDITOR
-        ulong m_CacheAccelSize = 0;
         uint m_CacheLightCount = 0;
         int m_CameraID = 0;
         bool m_RenderSky = true;
@@ -184,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private CameraData CheckDirtiness(HDCamera hdCamera, int camID, CameraData camData)
         {
-            // Check camera resolution dirtiness
+            // Check resolution dirtiness
             if (hdCamera.actualWidth != camData.width || hdCamera.actualHeight != camData.height)
             {
                 camData.width = (uint)hdCamera.actualWidth;
@@ -192,7 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ResetPathTracing(camID, camData);
             }
 
-            // Check camera sky dirtiness
+            // Check sky dirtiness
             bool enabled = (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky);
             if (enabled != camData.skyEnabled)
             {
@@ -200,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ResetPathTracing(camID, camData);
             }
 
-            // Check camera fog dirtiness
+            // Check fog dirtiness
             enabled = Fog.IsFogEnabled(hdCamera);
             if (enabled != camData.fogEnabled)
             {
@@ -208,9 +207,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ResetPathTracing(camID, camData);
             }
 
-            // Check camera matrix dirtiness
-            if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
+            // Check acceleration structure dirtiness
+            ulong accelSize = RequestAccelerationStructure(hdCamera).GetSize();
+            if (accelSize != camData.accelSize)
             {
+                camData.accelSize = accelSize;
                 return ResetPathTracing(camID, camData);
             }
 
@@ -238,15 +239,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 return camData;
             }
 
-            // Check geometry dirtiness
-            ulong accelSize = RequestAccelerationStructure(hdCamera).GetSize();
-            if (accelSize != m_CacheAccelSize)
+            // Check camera matrix dirtiness
+            if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
             {
-                m_CacheAccelSize = accelSize;
-                ResetPathTracing();
+                return ResetPathTracing(camID, camData);
             }
 
-            // If the camera has changed, re-render the sky texture
+            // If nothing but the camera has changed, re-render the sky texture
             if (camID != m_CameraID)
             {
                 m_RenderSky = true;
@@ -425,7 +424,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_HDRP_DXR_TESTS_DEFINE
             if (Application.isPlaying)
+            {
+                camData.ResetIteration();
                 m_SubFrameManager.subFrameCount = 1;
+            }
 #endif
 
             if (camData.currentIteration < m_SubFrameManager.subFrameCount)
