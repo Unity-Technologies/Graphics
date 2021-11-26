@@ -1108,6 +1108,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (serialized.shadowUpdateMode.intValue > 0)
                 {
+                    EditorGUILayout.PropertyField(serialized.shadowUpdateUponTransformChange, s_Styles.shadowUpdateOnLightTransformChange);
+
                     HDShadowInitParameters hdShadowInitParameters = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
                     if (serialized.type == HDLightType.Directional)
                     {
