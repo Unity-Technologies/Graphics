@@ -226,9 +226,8 @@ namespace UnityEngine.Rendering.Universal
                             new AttachmentDescriptor(pass.renderTargetFormat[i] != GraphicsFormat.None ? pass.renderTargetFormat[i] : GetDefaultGraphicsFormat(cameraData));
 
                         var colorHandle = pass.overrideCameraTarget ? pass.colorAttachmentHandles[i] : m_CameraColorTarget.handle;
-                        RenderTargetIdentifier colorTarget = colorHandle.nameID;
 
-                        int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(colorTarget, m_ActiveColorAttachmentDescriptors);
+                        int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(colorHandle.nameID, m_ActiveColorAttachmentDescriptors);
 
                         if (m_UseOptimizedStoreActions)
                             currentAttachmentDescriptor.storeAction = m_FinalColorStoreAction[i];
@@ -238,7 +237,7 @@ namespace UnityEngine.Rendering.Universal
                             // add a new attachment
                             m_ActiveColorAttachmentDescriptors[currentAttachmentIdx] = currentAttachmentDescriptor;
                             bool passHasClearColor = (pass.clearFlag & ClearFlag.Color) != 0;
-                            m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureTarget(colorTarget, !passHasClearColor, true);
+                            m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureTarget(colorHandle.nameID, !passHasClearColor, true);
 
                             if (pass.colorAttachmentHandles[i] == m_CameraColorTarget.handle && needCustomCameraColorClear && (cameraClearFlag & ClearFlag.Color) != 0)
                                 m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureClear(cameraData.backgroundColor, 1.0f, 0);
@@ -673,10 +672,8 @@ namespace UnityEngine.Rendering.Universal
             else
                 targetRT = renderPass.colorAttachmentHandle.rt != null ? renderPass.colorAttachmentHandle.rt.descriptor : renderPass.depthAttachmentHandle.rt.descriptor;
 
-#pragma warning disable 0618 // Obsolete usage: Deprecated depthAttachment used to ensure backwards compatibility with passes set with RenderTargetIdentifiers
-            var depthTarget = renderPass.overrideCameraTarget ? renderPass.depthAttachment : m_CameraDepthTarget.nameID;
-            var depthID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : depthTarget.GetHashCode();
-#pragma warning restore 0618
+            var depthTarget = renderPass.overrideCameraTarget ? renderPass.depthAttachmentHandle : cameraDepthTargetHandle;
+            var depthID = renderPass.depthOnly ? renderPass.colorAttachmentHandle.GetHashCode() : depthTarget.GetHashCode();
             return new RenderPassDescriptor(targetRT.width, targetRT.height, targetRT.msaaSamples, depthID);
         }
 
