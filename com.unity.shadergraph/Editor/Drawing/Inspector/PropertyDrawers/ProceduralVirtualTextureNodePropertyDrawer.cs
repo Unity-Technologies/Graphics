@@ -11,6 +11,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
+#if PROCEDURAL_VT_IN_GRAPH
     [SGPropertyDrawer(typeof(ProceduralVirtualTextureNode))]
     class ProceduralVirtualTextureNodePropertyDrawer : AbstractMaterialNodePropertyDrawer
     {
@@ -59,4 +60,5 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             parentElement.Add(propertyRow);
         }
     }
+#endif // PROCEDURAL_VT_IN_GRAPH
 }
