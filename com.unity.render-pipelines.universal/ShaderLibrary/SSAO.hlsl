@@ -175,16 +175,40 @@ float2 GetScreenSpacePosition(float2 uv)
     return float2(uv * SCREEN_PARAMS.xy * DOWNSAMPLE);
 }
 
+float nrand(float2 uv, float dx, float dy)
+{
+    uv += float2(dx, dy/* + _Time.x*/);
+    return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+
+half3 spherical_kernel(float2 uv, float index)
+{
+    // Uniformaly distributed points
+    // http://mathworld.wolfram.com/SpherePointPicking.html
+    float u = nrand(uv, 0, index) * 2 - 1;
+    float theta = nrand(uv, 1, index) * PI * 2;
+    float u2 = sqrt(1 - u * u);
+    float3 v = float3(u2 * cos(theta), u2 * sin(theta), u);
+    // Adjustment for distance distribution.
+    float l = index / SAMPLE_COUNT;
+    return v * lerp(0.1, 1.0, l * l);
+}
+
 // Sample point picker
 half3 PickSamplePoint(float2 uv, int sampleIndex)
 {
-    const float2 positionSS = GetScreenSpacePosition(uv);
-    const half gn = half(InterleavedGradientNoise(positionSS, sampleIndex));
+    #if defined(_NEW_SAMPLING)
+        return spherical_kernel(uv, sampleIndex);
+    #else
+        const float2 positionSS = GetScreenSpacePosition(uv);
+        const half gn = half(InterleavedGradientNoise(positionSS, sampleIndex));
 
-    const half u = frac(GetRandomUVForSSAO(half(0.0), sampleIndex) + gn) * half(2.0) - half(1.0);
-    const half theta = (GetRandomUVForSSAO(half(1.0), sampleIndex) + gn) * half(TWO_PI);
+        const half u = frac(GetRandomUVForSSAO(half(0.0), sampleIndex) + gn) * half(2.0) - half(1.0);
+        const half theta = (GetRandomUVForSSAO(half(1.0), sampleIndex) + gn) * half(TWO_PI);
 
-    return half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
+        return half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
+    #endif
 }
 
 float SampleAndGetLinearEyeDepth(float2 uv)

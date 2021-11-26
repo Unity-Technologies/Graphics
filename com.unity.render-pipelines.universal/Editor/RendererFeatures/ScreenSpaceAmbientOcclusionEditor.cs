@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.Universal
     internal class ScreenSpaceAmbientOcclusionEditor : Editor
     {
         #region Serialized Properties
+        private SerializedProperty m_NewSampling;
         private SerializedProperty m_Downsample;
         private SerializedProperty m_AfterOpaque;
         private SerializedProperty m_Source;
@@ -27,6 +28,7 @@ namespace UnityEditor.Rendering.Universal
         // Structs
         private struct Styles
         {
+            public static GUIContent NewSampling = EditorGUIUtility.TrTextContent("New Sampling", "");
             public static GUIContent Downsample = EditorGUIUtility.TrTextContent("Downsample", "With this option enabled, Unity downsamples the SSAO effect texture to improve performance. Each dimension of the texture is reduced by a factor of 2.");
             public static GUIContent AfterOpaque = EditorGUIUtility.TrTextContent("After Opaque", "With this option enabled, Unity calculates and apply SSAO after the opaque pass to improve performance on mobile platforms with tiled-based GPU architectures. This is not physically correct.");
             public static GUIContent Source = EditorGUIUtility.TrTextContent("Source", "The source of the normal vector values.\nDepth Normals: the feature uses the values generated in the Depth Normal prepass.\nDepth: the feature reconstructs the normal values using the depth buffer.\nIn the Deferred rendering path, the feature uses the G-buffer normals texture.");
@@ -44,6 +46,7 @@ namespace UnityEditor.Rendering.Universal
         {
             SerializedProperty settings = serializedObject.FindProperty("m_Settings");
             m_Source = settings.FindPropertyRelative("Source");
+            m_NewSampling = settings.FindPropertyRelative("NewSampling");
             m_Downsample = settings.FindPropertyRelative("Downsample");
             m_AfterOpaque = settings.FindPropertyRelative("AfterOpaque");
             m_NormalQuality = settings.FindPropertyRelative("NormalSamples");
@@ -66,6 +69,8 @@ namespace UnityEditor.Rendering.Universal
             }
 
             bool isDeferredRenderingMode = RendererIsDeferred();
+
+            EditorGUILayout.PropertyField(m_NewSampling, Styles.NewSampling);
 
             EditorGUILayout.PropertyField(m_Downsample, Styles.Downsample);
 

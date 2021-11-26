@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.Universal
     internal class ScreenSpaceAmbientOcclusionSettings
     {
         // Parameters
+        [SerializeField] internal bool NewSampling = false;
         [SerializeField] internal bool Downsample = false;
         [SerializeField] internal bool AfterOpaque = false;
         [SerializeField] internal DepthSource Source = DepthSource.DepthNormals;
@@ -77,6 +78,7 @@ namespace UnityEngine.Rendering.Universal
         // Constants
         private const string k_SSAOShaderName = "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion";
         private const string k_BlitShaderName = "Hidden/Universal Render Pipeline/Blit";
+        private const string k_NewSamplingKeyword = "_NEW_SAMPLING";
         private const string k_OrthographicCameraKeyword = "_ORTHOGRAPHIC";
         private const string k_NormalReconstructionLowKeyword = "_RECONSTRUCT_NORMAL_LOW";
         private const string k_NormalReconstructionMediumKeyword = "_RECONSTRUCT_NORMAL_MEDIUM";
@@ -354,6 +356,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Update keywords
                 CoreUtils.SetKeyword(m_Material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
+                CoreUtils.SetKeyword(m_Material, k_NewSamplingKeyword, m_CurrentSettings.NewSampling);
 
                 CoreUtils.SetKeyword(m_Material, k_SampleCount4Keyword, false);
                 CoreUtils.SetKeyword(m_Material, k_SampleCount6Keyword, false);
