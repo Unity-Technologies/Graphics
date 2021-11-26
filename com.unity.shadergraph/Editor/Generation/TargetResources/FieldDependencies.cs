@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpacePositionPredisplacement,           StructFields.Varyings.positionPredisplacementWS),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpacePositionPredisplacement,             StructFields.Varyings.positionPredisplacementWS),
 
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection,                      StructFields.Varyings.viewDirectionWS),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection,                      StructFields.Varyings.positionWS),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,                     StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.ViewSpaceViewDirection,                       StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.TangentSpaceViewDirection,                    StructFields.SurfaceDescriptionInputs.WorldSpaceViewDirection),
