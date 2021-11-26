@@ -14,7 +14,8 @@ Based on Sahl-Snell's Law, for a medium's given refractive index, there is an an
 | Normal      | Input | Vector | None | The normalized normal of the surface that should cause the refraction. |
 | IOR Source     | Input | Float    | None | The refractive index Source, or where the light is coming from. |
 | IOR Medium     | Input | Float    | None | The refractive index Medium, or the medium causing the refraction. |
-| Out | Output      |  Vector | None | The refracted vector |
+| Refracted | Output      |  Vector | None | The refracted vector. |
+| Intensity | Output      |  Float | None | Intensity of the refraction. |
 
 ## Controls
 
@@ -34,7 +35,12 @@ void Unity_RefractCriticalAngle(float3 Incident, float3 Normal, float IORInput, 
     $precision eta = internalIORInput/internalIORMedium;
     $precision cos0 = dot(Incident, Normal);
     $precision k = 1.0 - eta*eta*(1.0 - cos0*cos0);
-    Out = k >= 0.0 ? eta*Incident - (eta*cos0 + sqrt(k))*Normal : 0.0;
+    Refracted = k >= 0.0 ? eta*Incident - (eta*cos0 + sqrt(k))*Normal : reflect(Incident, Normal);
+    Intensity = internalIORSource <= internalIORMedium ?;
+        saturate(F_Transm_Schlick(IorToFresnel0(internalIORMedium, internalIORSource), -cos0)) :
+        (k >= 0.0 ?
+            saturate(F_FresnelDielectric(internalIORMedium/internalIORSource, -cos0)) :
+            F_Schlick(IorToFresnel0(internalIORMedium, internalIORSource), -cos0));
 }
 
 void Unity_RefractSafe(float3 Incident, float3 Normal, float IORInput, float IORMedium, out float Out)
@@ -44,6 +50,11 @@ void Unity_RefractSafe(float3 Incident, float3 Normal, float IORInput, float IOR
     $precision eta = internalIORInput/internalIORMedium;
     $precision cos0 = dot(Incident, Normal);
     $precision k = 1.0 - eta*eta*(1.0 - cos0*cos0);
-    Out = eta*Incident - (eta*cos0 + sqrt(max(k, 0.0)))*Normal;
+    Refracted = eta*Incident - (eta*cos0 + sqrt(max(k, 0.0)))*Normal;
+    Intensity = internalIORSource <= internalIORMedium ?;
+        saturate(F_Transm_Schlick(IorToFresnel0(internalIORMedium, internalIORSource), -cos0)) :
+        (CosCritialAngle(internalIORMedium/internalIORSource) > -cos0 ?
+            0.0 :
+            saturate(F_FresnelDielectric(internalIORMedium/internalIORSource, -cos0)));
 }
 ```

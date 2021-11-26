@@ -1,6 +1,7 @@
 using System.Reflection;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 
 namespace UnityEditor.ShaderGraph
@@ -12,10 +13,26 @@ namespace UnityEditor.ShaderGraph
     };
 
     [Title("Math", "Vector", "Refract")]
-    class RefractNode : CodeFunctionNode
+    class RefractNode : AbstractMaterialNode
+        , IGeneratesBodyCode
+        , IGeneratesFunction
     {
         [SerializeField]
         private RefractMode m_RefractMode = RefractMode.Safe;
+
+        const int kIncidentInputSlotId = 0;
+        const string kIncidentInputSlotName = "Incident";
+        const int kNormalInputSlotId = 1;
+        const string kNormalInputSlotName = "Normal";
+        const int kIORSourceInputSlotId = 2;
+        const string kIORSourceInputSlotName = "IORSource";
+        const int kIORMediumInputSlotId = 3;
+        const string kIORMediumInputSlotName = "IORMedium";
+
+        const int kRefractedOutputSlotId = 4;
+        const string kRefractedOutputSlotName = "Refracted";
+        const int kIntensityOutputSlotId = 5;
+        const string kIntensityOutputSlotName = "Intensity";
 
         [EnumControl("Mode")]
         public RefractMode refractMode
@@ -35,54 +52,86 @@ namespace UnityEditor.ShaderGraph
         {
             name = "Refract";
             synonyms = new string[] { "refract", "warp", "bend", "distort" };
+            UpdateNodeAfterDeserialization();
         }
 
-        protected override MethodInfo GetFunctionToConvert()
+        public override bool hasPreview { get { return true; } }
+
+        public sealed override void UpdateNodeAfterDeserialization()
         {
-            if (m_RefractMode == RefractMode.CriticalAngle)
-                return GetType().GetMethod("Unity_RefractCriticalAngle", BindingFlags.Static | BindingFlags.NonPublic);
-            else
-                return GetType().GetMethod("Unity_RefractSafe", BindingFlags.Static | BindingFlags.NonPublic);
+            AddSlot(new Vector3MaterialSlot(kIncidentInputSlotId, kIncidentInputSlotName, kIncidentInputSlotName, SlotType.Input, Vector3.forward));
+            AddSlot(new Vector3MaterialSlot(kNormalInputSlotId, kNormalInputSlotName, kNormalInputSlotName, SlotType.Input, -Vector3.forward));
+            AddSlot(new Vector1MaterialSlot(kIORSourceInputSlotId, kIORSourceInputSlotName, kIORSourceInputSlotName, SlotType.Input, 1.0f));
+            AddSlot(new Vector1MaterialSlot(kIORMediumInputSlotId, kIORMediumInputSlotName, kIORMediumInputSlotName, SlotType.Input, 1.5f));
+
+            AddSlot(new Vector3MaterialSlot(kRefractedOutputSlotId, kRefractedOutputSlotName, kRefractedOutputSlotName, SlotType.Output, Vector3.forward));
+            AddSlot(new Vector1MaterialSlot(kIntensityOutputSlotId, kIntensityOutputSlotName, kIntensityOutputSlotName, SlotType.Output, 1.0f));
+
+            RemoveSlotsNameNotMatching(new[]
+            {
+                kIncidentInputSlotId,
+                kNormalInputSlotId,
+                kIORSourceInputSlotId,
+                kIORMediumInputSlotId,
+                kRefractedOutputSlotId,
+                kIntensityOutputSlotId
+            });
         }
 
-        static string Unity_RefractCriticalAngle(
-            [Slot(0, Binding.None, 0, 0, 0, 1)] DynamicDimensionVector Incident,
-            [Slot(1, Binding.None, 0, 1, 0, 1)] DynamicDimensionVector Normal,
-            [Slot(2, Binding.None, 1, 0, 0, 0)] Vector1 IORSource,
-            [Slot(3, Binding.None, 1, 0, 0, 0)] Vector1 IORMedium,
-            [Slot(4, Binding.None)] out DynamicDimensionVector Out)
+        string GetFunctionName()
         {
-            return
-@"
-{
-    $precision internalIORInput = max(IORSource, 1.0);
-    $precision internalIORMedium = max(IORMedium, 1.0);
-    $precision eta = internalIORInput/internalIORMedium;
-    $precision cos0 = dot(Incident, Normal);
-    $precision k = 1.0 - eta*eta*(1.0 - cos0*cos0);
-    Out = k >= 0.0 ? eta*Incident - (eta*cos0 + sqrt(k))*Normal : 0.0;
-}
-";
+            return string.Format("Unity_Refract{0}_$precision", m_RefractMode.ToString());
         }
 
-        static string Unity_RefractSafe(
-            [Slot(0, Binding.None, 0, 0, 0, 1)] DynamicDimensionVector Incident,
-            [Slot(1, Binding.None, 0, 1, 0, 1)] DynamicDimensionVector Normal,
-            [Slot(2, Binding.None, 1, 0, 0, 0)] Vector1 IORSource,
-            [Slot(3, Binding.None, 1, 0, 0, 0)] Vector1 IORMedium,
-            [Slot(4, Binding.None)] out DynamicDimensionVector Out)
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            return
-@"
-{
-    $precision internalIORInput = max(IORSource, 1.0);
-    $precision internalIORMedium = max(IORMedium, 1.0);
-    $precision eta = internalIORInput/internalIORMedium;
-    $precision cos0 = dot(Incident, Normal);
-    $precision k = 1.0 - eta*eta*(1.0 - cos0*cos0);
-    Out = eta*Incident - (eta*cos0 + sqrt(max(k, 0.0)))*Normal;
-}
-";
+            registry.RequiresIncludePath("Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl");
+
+            registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine("void {0}(out $precision3 Refracted, out $precision3 Intensity, $precision3 Incident, $precision3 Normal, $precision IORSource, $precision IORMedium)", GetFunctionName());
+                using (s.BlockScope())
+                {
+                    s.AppendLine("$precision internalIORSource = max(IORSource, 1.0);");
+                    s.AppendLine("$precision internalIORMedium = max(IORMedium, 1.0);");
+                    s.AppendLine("$precision eta = internalIORSource/internalIORMedium;");
+                    s.AppendLine("$precision cos0 = dot(Incident, Normal);");
+                    s.AppendLine("$precision k = 1.0 - eta*eta*(1.0 - cos0*cos0);");
+                    if (m_RefractMode == RefractMode.Safe)
+                    {
+                        s.AppendLine("Refracted = eta*Incident - (eta*cos0 + sqrt(max(k, 0.0)))*Normal;");
+                    }
+                    else
+                    {
+                        s.AppendLine("Refracted = k >= 0.0 ? eta*Incident - (eta*cos0 + sqrt(k))*Normal : reflect(Incident, Normal);");
+                    }
+                    s.AppendLine("Intensity = internalIORSource <= internalIORMedium ?");
+                    s.AppendLine("    saturate(F_Transm_Schlick(IorToFresnel0(internalIORMedium, internalIORSource), -cos0)) :");
+                    if (m_RefractMode == RefractMode.Safe)
+                    {
+                        s.AppendLine("    (CosCritialAngle(internalIORMedium/internalIORSource) > -cos0 ? 0.0 : saturate(F_FresnelDielectric(internalIORMedium/internalIORSource, -cos0)));");
+                    }
+                    else
+                    {
+                        s.AppendLine("    (k >= 0.0 ? saturate(F_FresnelDielectric(internalIORMedium/internalIORSource, -cos0)) : F_Schlick(IorToFresnel0(internalIORMedium, internalIORSource), -cos0));");
+                    }
+                }
+            });
+        }
+
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
+        {
+            sb.AppendLine("$precision3 {0};", GetVariableNameForSlot(kRefractedOutputSlotId));
+            sb.AppendLine("$precision3 {0};", GetVariableNameForSlot(kIntensityOutputSlotId));
+            sb.AppendLine("{0}({1}, {2}, {3}, {4}, {5}, {6});",
+                GetFunctionName(),
+                GetVariableNameForSlot(kRefractedOutputSlotId),
+                GetVariableNameForSlot(kIntensityOutputSlotId),
+                GetSlotValue(kIncidentInputSlotId, generationMode),
+                GetSlotValue(kNormalInputSlotId, generationMode),
+                GetSlotValue(kIORSourceInputSlotId, generationMode),
+                GetSlotValue(kIORMediumInputSlotId, generationMode)
+            );
         }
     }
 }
