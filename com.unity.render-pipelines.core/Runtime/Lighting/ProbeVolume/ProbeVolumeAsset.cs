@@ -1,5 +1,5 @@
 using System;
-using UnityEngine.Serialization;
+using System.IO;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
@@ -51,35 +51,25 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
-        internal static string GetFileName(Scene scene)
+        public static string GetPath(string scenePath, string sceneName, int state, bool createFolder)
         {
-            string assetName = "ProbeVolumeData";
+            const string assetName = "ProbeVolumeData";
 
-            String scenePath = scene.path;
-            String sceneDir = System.IO.Path.GetDirectoryName(scenePath);
-            String sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
-
-            String assetPath = System.IO.Path.Combine(sceneDir, sceneName);
-
-            if (!UnityEditor.AssetDatabase.IsValidFolder(assetPath))
+            string sceneDir = Path.GetDirectoryName(scenePath);
+            string assetPath = Path.Combine(sceneDir, sceneName);
+            if (createFolder && !UnityEditor.AssetDatabase.IsValidFolder(assetPath))
                 UnityEditor.AssetDatabase.CreateFolder(sceneDir, sceneName);
 
-            String assetFileName = UnityEditor.AssetDatabase.GenerateUniqueAssetPath(assetName + ".asset");
-
-            assetFileName = System.IO.Path.Combine(assetPath, assetFileName);
-
-            return assetFileName;
+            var fileName = assetName + "-" + state + ".asset";
+            return Path.Combine(assetPath, fileName);
         }
 
-        public static ProbeVolumeAsset CreateAsset(Scene scene)
+        public static ProbeVolumeAsset CreateAsset(Scene scene, int state)
         {
-            ProbeVolumeAsset asset = ScriptableObject.CreateInstance<ProbeVolumeAsset>();
-            string assetFileName = GetFileName(scene);
+            ProbeVolumeAsset asset = CreateInstance<ProbeVolumeAsset>();
+            asset.m_AssetFullPath = GetPath(scene.path, scene.name, state, true);
 
-            UnityEditor.AssetDatabase.CreateAsset(asset, assetFileName);
-
-            asset.m_AssetFullPath = assetFileName;
-
+            UnityEditor.AssetDatabase.CreateAsset(asset, asset.m_AssetFullPath);
             return asset;
         }
 
@@ -88,6 +78,42 @@ namespace UnityEngine.Experimental.Rendering
             cellSizeInBricks = profile.cellSizeInBricks;
             simplificationLevels = profile.simplificationLevels;
             minDistanceBetweenProbes = profile.minDistanceBetweenProbes;
+        }
+
+        internal static bool Compatible(ProbeVolumeAsset a, ProbeVolumeAsset b)
+        {
+            if (a == null || b == null)
+                return false;
+
+            if (a.maxCellPosition != b.maxCellPosition) return false;
+            if (a.minCellPosition != b.minCellPosition) return false;
+            if (a.globalBounds != b.globalBounds) return false;
+            if (a.bands != b.bands) return false;
+            if (a.cellSizeInBricks != b.cellSizeInBricks) return false;
+            if (a.minDistanceBetweenProbes != b.minDistanceBetweenProbes) return false;
+            if (a.simplificationLevels != b.simplificationLevels) return false;
+            if (a.cells.Count != b.cells.Count) return false;
+            for (int i = 0; i < a.cells.Count; i++)
+            {
+                if (a.cells[i].position != b.cells[i].position) return false;
+                if (a.cells[i].minSubdiv != b.cells[i].minSubdiv) return false;
+                if (a.cells[i].indexChunkCount != b.cells[i].indexChunkCount) return false;
+                if (a.cells[i].shChunkCount != b.cells[i].shChunkCount) return false;
+                if (a.cells[i].bricks.Count != b.cells[i].bricks.Count) return false;
+                if (a.cells[i].probePositions.Length != b.cells[i].probePositions.Length) return false;
+
+                for (int j = 0; j < a.cells[i].bricks.Count; j++)
+                {
+                    if (a.cells[i].bricks[j].position != b.cells[i].bricks[j].position) return false;
+                    if (a.cells[i].bricks[j].subdivisionLevel != b.cells[i].bricks[j].subdivisionLevel) return false;
+                }
+                for (int j = 0; j < a.cells[i].probePositions.Length; j++)
+                {
+                    if (a.cells[i].probePositions[j] != b.cells[i].probePositions[j]) return false;
+                }
+            }
+
+            return true;
         }
 #endif
     }

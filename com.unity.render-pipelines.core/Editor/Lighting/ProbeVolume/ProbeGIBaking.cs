@@ -92,17 +92,13 @@ namespace UnityEngine.Experimental.Rendering
         {
             var perSceneData = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
             foreach (var data in perSceneData)
-            {
                 data.InvalidateAllAssets();
-                var refVol = ProbeReferenceVolume.instance;
-                refVol.Clear();
-            }
+
+            ProbeReferenceVolume.instance.Clear();
 
             var probeVolumes = GameObject.FindObjectsOfType<ProbeVolume>();
             foreach (var probeVolume in probeVolumes)
-            {
                 probeVolume.OnLightingDataAssetCleared();
-            }
         }
 
         public static void FindWorldBounds(out bool hasFoundInvalidSetup)
@@ -174,6 +170,8 @@ namespace UnityEngine.Experimental.Rendering
                 var scene = data.gameObject.scene;
                 var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(scene);
                 Debug.Assert(profile != null, "Trying to bake a scene without a profile properly set.");
+
+                data.SetBakingState(ProbeVolumeSceneData.bakingState);
 
                 if (i == 0)
                 {
@@ -454,7 +452,7 @@ namespace UnityEngine.Experimental.Rendering
             m_BakedCells.Clear();
 
             // Clear baked data
-            Clear();
+            ProbeReferenceVolume.instance.Clear();
 
             // Make sure all pending operations are done (needs to be after the Clear to unload all previous scenes)
             probeRefVolume.PerformPendingOperations();
@@ -554,16 +552,13 @@ namespace UnityEngine.Experimental.Rendering
             // Reset index
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
 
-            // Map from each scene to an existing reference volume
+            // Map from each scene to an existing reference volume, and each reference volume to a new asset
             var scene2Data = new Dictionary<Scene, ProbeVolumePerSceneData>();
-            foreach (var data in GameObject.FindObjectsOfType<ProbeVolumePerSceneData>())
-                scene2Data[data.gameObject.scene] = data;
-
-            // Map from each reference volume to its asset
             var data2Asset = new Dictionary<ProbeVolumePerSceneData, ProbeVolumeAsset>();
-            foreach (var data in scene2Data.Values)
+            foreach (var data in GameObject.FindObjectsOfType<ProbeVolumePerSceneData>())
             {
-                data2Asset[data] = ProbeVolumeAsset.CreateAsset(data.gameObject.scene);
+                scene2Data[data.gameObject.scene] = data;
+                data2Asset[data] = data.CreateAssetForCurrentState();
             }
 
             // Put cells into the respective assets
@@ -592,9 +587,6 @@ namespace UnityEngine.Experimental.Rendering
                 var data = pair.Key;
                 var asset = pair.Value;
 
-                // TODO: This will need to use the proper state, not default, when we have them.
-                data.StoreAssetForState(ProbeVolumeState.Default, asset);
-
                 if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
                 {
                     UnityEditor.EditorUtility.SetDirty(data);
@@ -619,6 +611,13 @@ namespace UnityEngine.Experimental.Rendering
 
             // ---- Perform dilation ---
             PerformDilation();
+
+            // Mark old bakes as out of date if needed
+            if (EditorWindow.HasOpenInstances<ProbeVolumeBakingWindow>())
+            {
+                var window = (ProbeVolumeBakingWindow)EditorWindow.GetWindow(typeof(ProbeVolumeBakingWindow));
+                window.UpdateBakingStatesStatuses(ProbeVolumeSceneData.bakingState);
+            }
         }
 
         static void OnLightingDataCleared()

@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Reflection;
 using System.Linq;
+using System.IO;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -76,6 +77,31 @@ namespace UnityEngine.Experimental.Rendering
         internal Dictionary<string, ProbeVolumeBakingProcessSettings> sceneBakingSettings;
         internal List<BakingSet> bakingSets;
 
+        [SerializeField] internal List<string> bakingStates;
+        [SerializeField] private int m_BakingState = -1;
+
+        /// <summary>Delegate for baking state change.</summary>
+        /// <param name="newState">The new baking state.</param>
+        public delegate void BakingStateChangedDelegate(int newState);
+        /// <summary>Delegate called when the baking state is changed. </summary>
+        public static BakingStateChangedDelegate onBakingStateChanged;
+
+        /// <summary>The currently selected baking state.</summary>
+        public static int bakingState
+        {
+            get => ProbeReferenceVolume.instance.sceneData.m_BakingState;
+            set
+            {
+                var sceneData = ProbeReferenceVolume.instance.sceneData;
+                if (value == sceneData.m_BakingState)
+                    return;
+                sceneData.m_BakingState = value;
+                foreach (var data in Object.FindObjectsOfType<ProbeVolumePerSceneData>())
+                    data.SetBakingState(value);
+                onBakingStateChanged.Invoke(value);
+            }
+        }
+
         /// <summary>Constructor for ProbeVolumeSceneData. </summary>
         /// <param name="parentAsset">The asset holding this ProbeVolumeSceneData, it will be dirtied every time scene bounds or settings are changed. </param>
         /// <param name="parentSceneDataPropertyName">The name of the property holding the ProbeVolumeSceneData in the parentAsset.</param>
@@ -95,6 +121,7 @@ namespace UnityEngine.Experimental.Rendering
             serializedBakeSettings = new List<SerializablePVBakeSettings>();
 
             UpdateBakingSets();
+            InitBakingStates();
         }
 
         /// <summary>Set a reference to the object holding this ProbeVolumeSceneData.</summary>
@@ -145,6 +172,9 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var set in serializedBakingSets)
                 bakingSets.Add(set);
+
+            if (bakingStates == null || bakingStates.Count == 0)
+                InitBakingStates();
         }
 
         // This function must not be called during the serialization (because of asset creation)
@@ -165,6 +195,12 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             SyncBakingSetSettings();
+        }
+
+        void InitBakingStates()
+        {
+            m_BakingState = 0;
+            bakingStates = new List<string>() { "Default State" };
         }
 
         /// <summary>
@@ -228,6 +264,45 @@ namespace UnityEngine.Experimental.Rendering
             bakingSets.Add(set);
 
             return set;
+        }
+
+        internal void CreateNewBakingState(string name)
+        {
+            bakingStates.Add(name);
+        }
+
+        internal void RemoveBakingState(int index)
+        {
+#if UNITY_EDITOR
+            var scene2Data = new Dictionary<string, ProbeVolumePerSceneData>();
+            foreach (var data in GameObject.FindObjectsOfType<ProbeVolumePerSceneData>())
+                scene2Data[data.gameObject.scene.path] = data;
+
+            AssetDatabase.StartAssetEditing();
+            int stateCount = ProbeReferenceVolume.instance.sceneData.bakingStates.Count;
+            foreach (var set in bakingSets)
+            {
+                foreach (var sceneGUID in set.sceneGUIDs)
+                {
+                    var scenePath = AssetDatabase.GUIDToAssetPath(sceneGUID);
+                    var asset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
+                    var data = scene2Data[scenePath];
+
+                    var assetPath = ProbeVolumeAsset.GetPath(scenePath, data.gameObject.scene.name, index, false);
+                    data.DeleteAssetForState(index);
+                    File.Delete(assetPath);
+                    for (int i = index + 1; i < stateCount; i++)
+                    {
+                        var nextAsset = ProbeVolumeAsset.GetPath(scenePath, data.gameObject.scene.name, i, false);
+                        AssetDatabase.MoveAsset(nextAsset, assetPath);
+                        nextAsset = assetPath;
+                    }
+                }
+
+            }
+            AssetDatabase.StopAssetEditing();
+#endif
+            bakingStates.RemoveAt(index);
         }
 
         void InitializeBakingSet(BakingSet set, string name)
