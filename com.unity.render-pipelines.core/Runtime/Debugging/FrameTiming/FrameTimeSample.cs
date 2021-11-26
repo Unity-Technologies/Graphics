@@ -117,6 +117,8 @@ namespace UnityEngine.Rendering
 
         internal void DiscardOldSamples(int sampleHistorySize)
         {
+            Debug.Assert(sampleHistorySize > 0, "Invalid sampleHistorySize");
+
             while (m_Samples.Count >= sampleHistorySize)
                 m_Samples.RemoveAt(0);
 

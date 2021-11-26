@@ -44,6 +44,8 @@ namespace UnityEngine.Rendering
 
         internal void DiscardOldSamples(int historySize)
         {
+            Debug.Assert(historySize > 0, "Invalid sampleHistorySize");
+
             while (m_Bottlenecks.Count >= historySize)
                 m_Bottlenecks.RemoveAt(0);
 
