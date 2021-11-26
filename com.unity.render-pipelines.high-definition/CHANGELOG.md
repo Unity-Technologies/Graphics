@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed stackLit coat screen space reflection and raytrace reflection light hierarchy and IBL fallback
 - Fixed custom pass utils Blur and Copy functions in XR.
 - Fixed SpeedTree graph compatibility by removing custom interpolators.
+- Fixed taa jitter for after post process materials (case 1380967).
 
 ## [12.1.2] - 2021-10-22
 
