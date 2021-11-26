@@ -316,6 +316,12 @@ Real time raytracing effect are currently in Preview and behavior could change i
 - [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
 - [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.md) is an alternative to [Subsurface-Scattering](Subsurface-Scattering.md) that can make use of off-screen data.
 
+### Light count limit
+
+HDRP has a maximum limit on the number of lights a single pixel can get influence from. You can change this limit with a new setting in `ShaderConfig.cs` called `FPTLMaxLightCount`.
+
+To increase this value, you must generate a new Shader config project. For information on how to create a new Shader config project, see [HDRP-Config-Package](HDRP-Config-Package.md).
+
 <a name="Camera"></a>
 
 ## Camera

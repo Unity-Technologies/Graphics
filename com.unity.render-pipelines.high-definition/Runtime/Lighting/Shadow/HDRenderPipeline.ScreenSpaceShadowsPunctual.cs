@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.shadowKernel = lightData.lightType == GPULightType.Point ? m_RaytracingPointShadowSample : m_RaytracingSpotShadowSample;
 
                 // Grab the acceleration structure for the target camera
-                passData.accelerationStructure = RequestAccelerationStructure();
+                passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.screenSpaceShadowCS = m_ScreenSpaceShadowsCS;
                 passData.screenSpaceShadowRT = m_ScreenSpaceShadowsRT;
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;

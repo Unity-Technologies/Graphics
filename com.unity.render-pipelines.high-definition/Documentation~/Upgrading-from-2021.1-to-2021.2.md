@@ -33,7 +33,8 @@ The algorithm to calculate the contribution of ambient occlusion and specular oc
 
 ### Light list
 
-The previous `g_vLightListGlobal` uniform have been rename to explicit `g_vLightListTile` and `g_vLightListCluster` light list name. This work required to fix a wrong behavior on console.
+- HDRP version 2021.2 includes a new setting in `ShaderConfig.cs` called `FPTLMaxLightCount`. You can use this setting to set the maximum number of lights per tile on the GPU. To increase this value, you must generate a new Shader config project. For information on how to create a new Shader config project, see [HDRP-Config-Package](HDRP-Config-Package.md).
+- The `g_vLightListGlobal` uniform has been renamed to the explicit `g_vLightListTile` and `g_vLightListCluster` light list name. This fix corrects unexpected behavior on the console.
 
 ## Density Volumes
 
@@ -42,6 +43,9 @@ Density Volumes are now known as **Local Volumetric Fog**.
 If a Scene uses Density Volumes, HDRP automatically changes the GameObjects to use the new component name, with all the same properties set for the Density Volume.
 
 However, if you reference a **Density Volume** through a C# script, a warning appears (**DensityVolume has been deprecated (UnityUpgradable) -> Local Volumetric Fog**) in the Console window. This warning may stop your Project from compiling in future versions of HDRP. To resolve this, change your code to target the new component.
+
+The sampling axis of **3DTexture** in the **Density Volume** component has been corrected to match Unity's axis convention.
+To accommodate this change you will have to mirror the **3DTextures** you are using along their **Z axis**.
 
 ## ClearFlag
 

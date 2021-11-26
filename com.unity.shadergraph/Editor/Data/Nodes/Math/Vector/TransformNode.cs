@@ -94,6 +94,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        internal SpaceTransform spaceTransform => new SpaceTransform(conversion.from, conversion.to, conversionType, normalize, sgVersion);
+
         public override bool hasPreview
         {
             get { return true; }
@@ -110,47 +112,28 @@ namespace UnityEditor.ShaderGraph
         {
             NodeUtils.SlotConfigurationExceptionIfBadConfiguration(this, new[] { InputSlotId }, new[] { OutputSlotId });
 
-            var xform = new SpaceTransform(conversion.from, conversion.to, conversionType, normalize, sgVersion);
-
             string inputValue = $"{GetSlotValue(InputSlotId, generationMode)}.xyz";
             string outputVariable = GetVariableNameForSlot(OutputSlotId);
             string outputType = FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString();
 
             // declare output variable and fill it out
             sb.AddLine(outputType, " ", outputVariable, ";");
-            SpaceTransformUtil.GenerateTransformCodeStatement(xform, inputValue, outputVariable, sb);
-        }
-
-        bool RequiresWorldSpaceTangentTransform()
-        {
-            if (conversion.from == CoordinateSpace.View && conversion.to == CoordinateSpace.Tangent
-                || conversion.from == CoordinateSpace.AbsoluteWorld
-                || conversion.from == CoordinateSpace.Object && conversion.to == CoordinateSpace.Tangent
-                || conversion.from == CoordinateSpace.Tangent)
-                return true;
-            else
-                return false;
+            SpaceTransformUtil.GenerateTransformCodeStatement(spaceTransform, inputValue, outputVariable, sb);
         }
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
-            if (RequiresWorldSpaceTangentTransform())
-                return NeededCoordinateSpace.World;
-            return conversion.from.ToNeededCoordinateSpace();
+            return spaceTransform.RequiresTangent;
         }
 
         public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
         {
-            if (RequiresWorldSpaceTangentTransform())
-                return NeededCoordinateSpace.World;
-            return conversion.from.ToNeededCoordinateSpace();
+            return spaceTransform.RequiresBitangent;
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
-            if (RequiresWorldSpaceTangentTransform())
-                return NeededCoordinateSpace.World;
-            return conversion.from.ToNeededCoordinateSpace();
+            return spaceTransform.RequiresNormal;
         }
 
         public NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability)
@@ -163,10 +146,8 @@ namespace UnityEditor.ShaderGraph
 
         NeededCoordinateSpace IMayRequirePosition.RequiresPosition(ShaderStageCapability stageCapability)
         {
-            // tangent space transforms need world position
             if (sgVersion > 1)
-                if ((conversion.from == CoordinateSpace.Tangent) || (conversion.to == CoordinateSpace.Tangent))
-                    return NeededCoordinateSpace.World;
+                return spaceTransform.RequiresPosition;
 
             return NeededCoordinateSpace.None;
         }

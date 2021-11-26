@@ -23,6 +23,12 @@ namespace UnityEngine.Rendering.HighDefinition
         PerfectLens
     }
 
+    enum ColorGradingSpace
+    {
+        AcesCg = 0,
+        sRGB        // Legacy.
+    }
+
     /// <summary>
     /// High Definition Render Pipeline's Global Settings.
     /// Global settings are unique per Render Pipeline type. In HD, Global Settings contain:
@@ -775,6 +781,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField]
         internal LensAttenuationMode lensAttenuationMode;
+
+        [SerializeField]
+        internal ColorGradingSpace colorGradingSpace;
 
         [SerializeField]
         internal DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];

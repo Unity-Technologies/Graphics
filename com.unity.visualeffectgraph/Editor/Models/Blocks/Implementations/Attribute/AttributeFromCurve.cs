@@ -9,9 +9,9 @@ namespace UnityEditor.VFX.Block
 {
     class AttributeFromCurveProvider : VariantProvider
     {
-        public override IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
+        public override IEnumerable<Variant> ComputeVariants()
         {
-            var compositions = new[] { AttributeCompositionMode.Add, AttributeCompositionMode.Overwrite };
+            var compositions = new[] { AttributeCompositionMode.Add, AttributeCompositionMode.Overwrite, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend };
             var attributes = VFXAttribute.AllIncludingVariadicReadWritable.Except(new[] { VFXAttribute.Alive.name }).ToArray();
             var sampleModes = new[] { AttributeFromCurve.CurveSampleMode.OverLife, AttributeFromCurve.CurveSampleMode.BySpeed, AttributeFromCurve.CurveSampleMode.Random }.ToArray();
 
@@ -31,16 +31,21 @@ namespace UnityEditor.VFX.Block
                             continue;
                         }
 
-                        yield return new[] {    new KeyValuePair<string, object>("attribute", attribute),
-                                                new KeyValuePair<string, object>("Composition", composition),
-                                                new KeyValuePair<string, object>("SampleMode", sampleMode)};
+                        yield return new Variant(
+                            new[]
+                            {
+                                new KeyValuePair<string, object>("attribute", attribute),
+                                new KeyValuePair<string, object>("Composition", composition),
+                                new KeyValuePair<string, object>("SampleMode", sampleMode)
+                            },
+                            new[] { attribute, VFXBlockUtility.GetNameString(composition) });
                     }
                 }
             }
         }
     }
 
-    [VFXInfo(category = "Attribute/Curve", variantProvider = typeof(AttributeFromCurveProvider))]
+    [VFXInfo(category = "Attribute/{0}/Curve/{1}", variantProvider = typeof(AttributeFromCurveProvider))]
     class AttributeFromCurve : VFXBlock
     {
         public enum CurveSampleMode

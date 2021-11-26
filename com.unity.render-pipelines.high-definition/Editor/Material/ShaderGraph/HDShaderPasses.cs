@@ -60,7 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = CoreRequiredFields.Basic,
                 renderStates = GenerateRenderState(),
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, useTessellation),
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -126,7 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = GenerateRequiredFields(),
                 renderStates = CoreRenderStates.ScenePicking,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2EditorSync, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstancedEditorSync, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.ScenePicking, useVFX, useTessellation),
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = CoreRequiredFields.Basic,
                 renderStates = CoreRenderStates.SceneSelection,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2EditorSync, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstancedEditorSync, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.SceneSelection, useVFX, useTessellation),
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -230,7 +230,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = CoreRequiredFields.Basic,
                 renderStates = CoreRenderStates.ShadowCaster,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(null, useVFX, useTessellation),
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -279,7 +279,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.Meta,
                 renderStates = CoreRenderStates.Meta,
                 // Note: no tessellation for meta pass
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, false),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, false),
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, false),
                 keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization },
                 includes = GenerateIncludes(),
@@ -324,7 +324,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = GenerateRequiredFields(),
                 renderStates = GenerateRenderState(),
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(supportLighting ? CoreDefines.DepthForwardOnly : CoreDefines.DepthForwardOnlyUnlit, useVFX, useTessellation),
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -382,7 +382,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = GenerateRequiredFields(),
                 renderStates = GenerateRenderState(),
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 // For shadow matte (unlit SG only) we need to enable write normal buffer
                 // For lighting case: we want to use WRITE_NORMAL_BUFFER as a define in forward only case and WRITE_NORMAL_BUFFER as a keyword in Lit case.
                 // This is handled in CollectPassKeywords() function in SurfaceSubTarget.cs so we don't add it here.
@@ -448,7 +448,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
                 requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.BasicMotionVector,
                 renderStates = CoreRenderStates.Forward,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit, useVFX, useTessellation),
                 includes = GenerateIncludes(),
 
@@ -505,7 +505,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // BackThenFront is a forward pass and thus require same settings
                 requiredFields = supportLighting ? CoreRequiredFields.BasicLighting : CoreRequiredFields.BasicMotionVector,
                 renderStates = CoreRenderStates.TransparentBackface,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.BackThenFront, useVFX, useTessellation),
                 includes = GenerateIncludes(),
 
@@ -583,7 +583,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = GenerateRequiredFields(),
                 renderStates = GenerateRenderState(),
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 // For TransparentDepthPrepass, WRITE_NORMAL_BUFFER is define in the ShaderPass.template directly as it rely on other define
                 defines = GenerateDefines(CoreDefines.TransparentDepthPrepass, useVFX, useTessellation),
                 includes = GenerateIncludes(),
@@ -666,7 +666,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = CoreRequiredFields.Basic,
                 renderStates = GenerateRenderState(),
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.TransparentDepthPostpass, useVFX, useTessellation),
                 includes = GenerateIncludes(),
                 customInterpolators = CoreCustomInterpolators.Common,
@@ -723,7 +723,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = GenerateRequiredFields(),
                 renderStates = CoreRenderStates.DepthOnly,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, useTessellation),
                 keywords = LitDepthOnlyKeywords,
                 includes = DepthOnlyIncludes,
@@ -776,7 +776,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = CoreRequiredFields.BasicLighting,
                 renderStates = GBufferRenderState,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, useTessellation),
                 keywords = GBufferKeywords,
                 includes = GBufferIncludes,
@@ -834,7 +834,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
                 requiredFields = CoreRequiredFields.BasicLighting,
                 renderStates = CoreRenderStates.Forward,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV1AndV2, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.ForwardLit, useVFX, useTessellation),
                 includes = ForwardIncludes,
                 virtualTextureFeedback = true,
@@ -926,7 +926,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = CoreStructCollections.BasicRaytracing,
                 pragmas = CorePragmas.BasicRaytracing,
-                defines = supportLighting ? RaytracingIndirectDefines : null,
+                defines = supportLighting ? RaytracingIndirectDefines : RaytracingIndirectUnlitDefines,
                 keywords = supportLighting ? IndirectDiffuseKeywordCollection : null,
                 includes = GenerateIncludes(),
             };
@@ -961,6 +961,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return includes;
             }
         }
+
+        public static DefineCollection RaytracingIndirectUnlitDefines = new DefineCollection
+        {
+            { Defines.shadowLow },
+            { Defines.raytracingRaytraced },
+        };
 
         public static DefineCollection RaytracingIndirectDefines = new DefineCollection
         {
@@ -1046,7 +1052,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = CoreStructCollections.BasicRaytracing,
                 pragmas = CorePragmas.BasicRaytracing,
-                defines = supportLighting ? RaytracingForwardDefines : null,
+                defines = supportLighting ? RaytracingForwardDefines : RaytracingForwardUnlitDefines,
                 includes = GenerateIncludes(),
             };
 
@@ -1091,6 +1097,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
+        public static DefineCollection RaytracingForwardUnlitDefines = new DefineCollection
+        {
+            { Defines.shadowLow },
+            { Defines.raytracingRaytraced },
+        };
+
         #endregion
 
         #region Raytracing GBuffer
@@ -1113,7 +1125,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = CoreStructCollections.BasicRaytracing,
                 pragmas = CorePragmas.BasicRaytracing,
-                defines = supportLighting ? RaytracingGBufferDefines : null,
+                defines = RaytracingGBufferDefines,
                 keywords = supportLighting ? CoreKeywords.RaytracingGBuffer : null,
                 includes = GenerateIncludes(),
             };
@@ -1289,7 +1301,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = GenerateStructs(null, useVFX, useTessellation),
                 requiredFields = CoreRequiredFields.Basic,
-                pragmas = GeneratePragmas(CorePragmas.DotsInstancedInV2Only, useVFX, useTessellation),
+                pragmas = GeneratePragmas(CorePragmas.DotsInstanced, useVFX, useTessellation),
                 defines = GenerateDefines(CoreDefines.ShaderGraphRaytracingDefault, useVFX, useTessellation),
                 renderStates = FullScreenDebugRenderState,
                 includes = GenerateIncludes(),

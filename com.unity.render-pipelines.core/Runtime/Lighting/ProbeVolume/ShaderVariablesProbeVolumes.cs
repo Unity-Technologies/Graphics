@@ -16,8 +16,8 @@ namespace UnityEngine.Rendering
         public Vector3 _PoolDim;
         public float _ViewBias;
 
-        public float _PVSamplingNoise;
         public Vector3 _MinCellPosition;
+        public float _PVSamplingNoise;
 
         public Vector3 _CellIndicesDim;
         public float _CellInMeters;

@@ -26,6 +26,7 @@ namespace UnityEngine.Experimental.Rendering
         public float probeCullingDistance = 200.0f;
         public int maxSubdivToVisualize = ProbeBrickIndex.kMaxSubdivisionLevels;
         public float exposureCompensation;
+        public bool freezeStreaming;
     }
 
     public partial class ProbeReferenceVolume
@@ -166,8 +167,12 @@ namespace UnityEngine.Experimental.Rendering
                 });
             }
 
+            var streamingContainer = new DebugUI.Container() { displayName = "Streaming" };
+            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", getter = () => debugDisplay.freezeStreaming, setter = value => debugDisplay.freezeStreaming = value });
+
             widgetList.Add(subdivContainer);
             widgetList.Add(probeContainer);
+            widgetList.Add(streamingContainer);
 
             m_DebugItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel("Probe Volume", true);
@@ -245,20 +250,23 @@ namespace UnityEngine.Experimental.Rendering
 
         void CreateInstancedProbes()
         {
-            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
+            foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
             {
-                if (cell.sh == null || cell.sh.Length == 0)
+                var cell = cellInfo.cell;
+
+                if (cell.sh == null || cell.sh.Length == 0 || !cellInfo.loaded)
                     continue;
 
                 float largestBrickSize = cell.bricks.Count == 0 ? 0 : cell.bricks[0].subdivisionLevel;
                 List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
                 List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
-                CellChunkInfo chunks;
-                if (!m_ChunkInfo.TryGetValue(cell.index, out chunks))
-                    continue;
+                var chunks = cellInfo.chunkList;
 
                 Vector4[] texels = new Vector4[kProbesPerBatch];
                 float[] validity = new float[kProbesPerBatch];
+                float[] relativeSize = new float[kProbesPerBatch];
+
                 List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
 
                 var debugData = new CellInstancedDebugProbes();
@@ -271,9 +279,9 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     var brickSize = cell.bricks[i / 64].subdivisionLevel;
 
-                    int chunkIndex = i / m_Pool.GetChunkSizeInProbeCount();
-                    var chunk = chunks.chunks[chunkIndex];
-                    int indexInChunk = i % m_Pool.GetChunkSizeInProbeCount();
+                    int chunkIndex = i / ProbeBrickPool.GetChunkSizeInProbeCount();
+                    var chunk = chunks[chunkIndex];
+                    int indexInChunk = i % ProbeBrickPool.GetChunkSizeInProbeCount();
                     int brickIdx = indexInChunk / 64;
                     int indexInBrick = indexInChunk % 64;
 
@@ -284,6 +292,7 @@ namespace UnityEngine.Experimental.Rendering
                     probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
                     validity[idxInBatch] = cell.validity[i];
                     texels[idxInBatch] = new Vector4(texelLoc.x, texelLoc.y, texelLoc.z, brickSize);
+                    relativeSize[idxInBatch] = (float)brickSize / (float)maxSubdiv;
                     idxInBatch++;
 
                     if (probeBuffer.Count >= kProbesPerBatch || i == cell.probePositions.Length - 1)
@@ -292,6 +301,7 @@ namespace UnityEngine.Experimental.Rendering
                         MaterialPropertyBlock prop = new MaterialPropertyBlock();
 
                         prop.SetFloatArray("_Validity", validity);
+                        prop.SetFloatArray("_RelativeSize", relativeSize);
                         prop.SetVectorArray("_IndexInAtlas", texels);
 
                         props.Add(prop);

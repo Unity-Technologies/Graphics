@@ -170,6 +170,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_SerializedPassVolume.useTargetCamera.boolValue)
                 {
                     EditorGUILayout.PropertyField(m_SerializedPassVolume.targetCamera, Styles.targetCamera);
+                    EditorGUILayout.PropertyField(m_SerializedPassVolume.injectionPoint, Styles.injectionPoint);
                 }
                 else
                 {

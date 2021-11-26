@@ -290,6 +290,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return new TextureHandle(textureIndex, shared: true);
         }
 
+        internal void RefreshSharedTextureDesc(TextureHandle texture, in TextureDesc desc)
+        {
+            if (!IsRenderGraphResourceShared(RenderGraphResourceType.Texture, texture.handle))
+            {
+                throw new InvalidOperationException($"Trying to refresh texture {texture} that is not a shared resource.");
+            }
+
+            var texResource = GetTextureResource(texture.handle);
+            texResource.ReleaseGraphicsResource();
+            texResource.desc = desc;
+        }
+
         internal void ReleaseSharedTexture(TextureHandle texture)
         {
             var texResources = m_RenderGraphResources[(int)RenderGraphResourceType.Texture];

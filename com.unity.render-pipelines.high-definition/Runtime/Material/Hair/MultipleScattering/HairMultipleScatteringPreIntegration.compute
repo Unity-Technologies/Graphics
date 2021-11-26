@@ -1,6 +1,8 @@
 #pragma kernel Main
 #pragma kernel PreIntegrateAzimuthalScattering
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 // This define is required for invoking BSDF.
 #define HAS_LIGHTLOOP
 

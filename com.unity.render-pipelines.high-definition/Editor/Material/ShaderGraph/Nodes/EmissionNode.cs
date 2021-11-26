@@ -9,12 +9,6 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    enum EmissiveIntensityUnit
-    {
-        Nits,
-        EV100,
-    }
-
     [SRPFilter(typeof(HDRenderPipeline))]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.EmissionNode")]
     [Title("Utility", "High Definition Render Pipeline", "Emission Node")]
