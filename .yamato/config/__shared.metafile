@@ -596,7 +596,7 @@ platforms:
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
                     set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
-                    set unityVersion={{editor_versions.trunk_latest_internal.XRQuest.revision}}
+                    set unityVersion={{2022_1.changeset.id}}
                     set artifactPath=Boatattack/Quest
                     set jenkinsJob=SBR_Quest_RunTest
                     set jenkinsNodeLabel=Quest

@@ -32,6 +32,10 @@ all_project_ci_nightly_2022.1:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
+    triggers:
+        recurring:
+          -  branch: 2022.1/staging
+             frequency: 1 * * ?
     dependencies:
       -  path: .yamato/all-hdrp.yml#Nightly_HDRP_2022.1
          rerun: on_new_revision
