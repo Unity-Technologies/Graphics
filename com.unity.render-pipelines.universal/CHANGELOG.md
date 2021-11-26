@@ -6,23 +6,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.1.3] - 2021-11-17
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+- Renderer Features can now use the HelpURLAttribute to specify a documentation URL to be used in the inspector.
+- Added inspector documentation URLs to the SSAO, Decal, and Render Objects renderer features.
+- Added a warning when using Pixel Perfect Camera in SRP without a 2D Renderer and exposed RenderPipelineConverter for 2D Pixel Perfect to URP converter.
+
+### Changed
+- The "Add Renderer Feature" menu now supports filtering.
+- Removed the name input for the SSAO and Screen Space Shadows renderer features.
+
+### Fixed
+- Fix shadow rendering correctly to work with shader stripping in WebGl. [case 1381881](https://issuetracker.unity3d.com/issues/webgl-urp-mesh-is-not-rendered-in-the-scene-on-webgl-build)
+- VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
+- Fixed inspector documentation URLs for the URP asset and Universal Renderer asset.
 
 ## [13.1.2] - 2021-11-05
 
 ### Added
 - Added minimal picking support for DOTS 1.0 (on parity with Hybrid Renderer V2)
 - Added support for `RTHandle`.
-- Renderer Features can now use the HelpURLAttribute to specify a documentation URL to be used in the inspector.
-- Added inspector documentation URLs to the SSAO, Decal, and Render Objects renderer features.
 
 ### Changed
 - Converted internal render targets to use `RTHandle` targets instead of `RenderTargetHandle` and `RenderTargetIdentifier`.
 - Set usage of `RenderTargetHandle` and public functions using `RenderTargetIdentifier` as obsolete for future removal.
 - Split RendererFeatures `AddRenderPasses` into two functions with `SetupRenderPasses` so render targets can be used after allocation.
-- The "Add Renderer Feature" menu now supports filtering.
-- Removed the name input for the SSAO and Screen Space Shadows renderer features.
 
 ### Fixed
 - Fixed an issue where 2D global lights with shadows enabled could break light layer batching [case 1376487](https://issuetracker.unity3d.com/issues/2d-urp-upgrading-global-light-sets-shadow-settings-to-enabled)
@@ -33,14 +40,10 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue with MSAA falling back to the incorrect value when sample count 2 is not supported on some Android GPUs
 - Fixed decals to work with native render pass [case 1353141](https://issuetracker.unity3d.com/issues/urp-decals-are-not-visible-in-game-view-after-modifying-urp-asset-properties)
 - Fixed decals to work with render scale [1353885](https://issuetracker.unity3d.com/issues/urp-builtin-to-urp-render-pipeline-converter-freezes-the-editor-when-converting-rendering-settings)
-- Fix shadow rendering correctly to work with shader stripping in WebGl. [case 1381881](https://issuetracker.unity3d.com/issues/webgl-urp-mesh-is-not-rendered-in-the-scene-on-webgl-build)
-- VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
-- Fixed inspector documentation URLs for the URP asset and Universal Renderer asset.
 
 ## [13.1.1] - 2021-10-04
 
 ### Added
-- Added a warning when using Pixel Perfect Camera in SRP without a 2D Renderer and exposed RenderPipelineConverter for 2D Pixel Perfect to URP converter.
 - Added Depth Texture setting for Overlay Camera.
 - Added Depth Priming support for Vulkan with MSAA.
 - Added Shadows and Additional Lights off variants stripping.

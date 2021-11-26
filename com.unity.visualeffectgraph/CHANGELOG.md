@@ -6,14 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.1.3] - 2021-11-17
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
 
 ## [13.1.2] - 2021-11-05
 
 ### Fixed
 - Removed extra nodes in Ribbon template. [Case 1355602](https://issuetracker.unity3d.com/product/unity/issues/guid/1355602/)
-- Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
 
 ## [13.1.1] - 2021-10-04
 ### Added
