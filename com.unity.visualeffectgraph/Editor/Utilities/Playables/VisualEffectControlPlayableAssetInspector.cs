@@ -5,8 +5,6 @@ using System.Reflection;
 using System.Collections.Generic;
 using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.UIElements;
-using UnityEditor.UIElements;
 using UnityEngine.VFX;
 using UnityEngine.VFX.Utility;
 

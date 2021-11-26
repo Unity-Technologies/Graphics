@@ -448,7 +448,7 @@ namespace UnityEditor.VFX
 
             //Precompute overlapping data
             var clipEventBars = ComputeBarClipEvent(clipEvents, out var rowCount);
-            var eventAreaName = ComputeEventName(region, clip.duration, allEvents, (uint)clipEvents.Count());
+            var eventAreaItems = ComputeEventName(region, clip.duration, allEvents, (uint)clipEvents.Count());
 
             //Compute region
             var clipBarHeight = rowCount * (Style.kMinimalBarHeight + Style.kBarPadding * 2.0f);
@@ -496,7 +496,7 @@ namespace UnityEditor.VFX
             }
 
             //Draw Text Event
-            foreach (var item in eventAreaName)
+            foreach (var item in eventAreaItems)
             {
                 var drawRect = item.drawRect;
                 drawRect.position += eventRegion.position;
@@ -511,8 +511,6 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    var backupColor = GUI.color;
-
                     var currentType = item.currentType;
                     var baseColor = item.color;
 
@@ -529,7 +527,6 @@ namespace UnityEditor.VFX
                     GUI.DrawTexture(drawRect, item.content.image, ScaleMode.StretchToFill, true, 1.0f, baseColor, 0, 0);
                 }
             }
-
             base.DrawBackground(clip, region);
         }
     }

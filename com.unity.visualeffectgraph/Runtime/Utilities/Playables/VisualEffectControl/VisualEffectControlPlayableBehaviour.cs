@@ -211,7 +211,7 @@ namespace UnityEngine.VFX
         }
     }
 
-    public enum PlayableTimeSpace
+    enum PlayableTimeSpace
     {
         AfterClipStart,
         BeforeClipEnd,
