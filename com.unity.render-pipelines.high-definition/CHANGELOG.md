@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed alpha channel display in color picker in Local Volumetric Fog component (the alpha is not used for the fog) (case 1381267).
 - Fixed Nans happening due to volumetric clouds when the pixel color is perfectly black (case 1379185).
 - Fixed for screen space overlay rendered by camera when HDR is disabled.
+- Fixed dirtiness handling in path tracing, when using multiple cameras at once (case 1376940).
 
 ### Changed
 - Optimizations for the physically based depth of field.
