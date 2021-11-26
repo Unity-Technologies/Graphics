@@ -617,7 +617,47 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
             GetRenderStatePropertiesGUI(ref context, onChange, registerUndo);
         }
 
-        public void GetRenderStatePropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        protected virtual void GetRenderStatePropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        {
+            GetBlendingPropertiesGUI(ref context, onChange, registerUndo);
+
+            context.AddProperty("Depth Test", new EnumField(fullscreenData.depthTestMode) { value = fullscreenData.depthTestMode }, (evt) =>
+            {
+                if (Equals(fullscreenData.depthTestMode, evt.newValue))
+                    return;
+
+                registerUndo("Change Depth Test");
+                fullscreenData.depthTestMode = (CompareFunction)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Depth Write", new Toggle { value = fullscreenData.depthWrite }, (evt) =>
+            {
+                if (Equals(fullscreenData.depthWrite, evt.newValue))
+                    return;
+
+                registerUndo("Change Depth Write");
+                fullscreenData.depthWrite = evt.newValue;
+                onChange();
+            });
+
+            if (fullscreenData.depthWrite || fullscreenData.depthTestMode != CompareFunction.Disabled)
+            {
+                context.AddProperty("Depth Write Mode", new EnumField(fullscreenData.depthWriteMode) { value = fullscreenData.depthWriteMode }, (evt) =>
+                {
+                    if (Equals(fullscreenData.depthWriteMode, evt.newValue))
+                        return;
+
+                    registerUndo("Change Depth Write Mode");
+                    fullscreenData.depthWriteMode = (FullscreenDepthWriteMode)evt.newValue;
+                    onChange();
+                });
+            }
+
+            GetStencilPropertiesGUI(ref context, onChange, registerUndo);
+        }
+
+        protected virtual void GetBlendingPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             context.AddProperty("Blend Mode", new EnumField(fullscreenData.blendMode) { value = fullscreenData.blendMode }, (evt) =>
             {
@@ -695,40 +735,10 @@ namespace UnityEditor.Rendering.Fullscreen.ShaderGraph
 
                 context.globalIndentLevel--;
             }
+        }
 
-            context.AddProperty("Depth Test", new EnumField(fullscreenData.depthTestMode) { value = fullscreenData.depthTestMode }, (evt) =>
-            {
-                if (Equals(fullscreenData.depthTestMode, evt.newValue))
-                    return;
-
-                registerUndo("Change Depth Test");
-                fullscreenData.depthTestMode = (CompareFunction)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Depth Write", new Toggle { value = fullscreenData.depthWrite }, (evt) =>
-            {
-                if (Equals(fullscreenData.depthWrite, evt.newValue))
-                    return;
-
-                registerUndo("Change Depth Write");
-                fullscreenData.depthWrite = evt.newValue;
-                onChange();
-            });
-
-            if (fullscreenData.depthWrite || fullscreenData.depthTestMode != CompareFunction.Disabled)
-            {
-                context.AddProperty("Depth Write Mode", new EnumField(fullscreenData.depthWriteMode) { value = fullscreenData.depthWriteMode }, (evt) =>
-                {
-                    if (Equals(fullscreenData.depthWriteMode, evt.newValue))
-                        return;
-
-                    registerUndo("Change Depth Write Mode");
-                    fullscreenData.depthWriteMode = (FullscreenDepthWriteMode)evt.newValue;
-                    onChange();
-                });
-            }
-
+        protected virtual void GetStencilPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        {
             context.AddProperty("Enable Stencil", new Toggle { value = fullscreenData.enableStencil }, (evt) =>
             {
                 if (Equals(fullscreenData.enableStencil, evt.newValue))

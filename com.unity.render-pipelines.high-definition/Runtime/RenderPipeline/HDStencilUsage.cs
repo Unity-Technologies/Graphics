@@ -56,6 +56,8 @@ namespace UnityEngine.Rendering.HighDefinition
     [Flags]
     public enum UserStencilUsage
     {
+        /// <summary>All stencil bits disabled.</summary>
+        None = 0,
         /// <summary>User stencil bit 0.</summary>
         UserBit0 = StencilUsage.UserBit0,
         /// <summary>User stencil bit 1.</summary>
