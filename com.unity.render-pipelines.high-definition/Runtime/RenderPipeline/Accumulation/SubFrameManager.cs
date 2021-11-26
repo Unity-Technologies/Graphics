@@ -381,7 +381,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
 
                             // if denoised frame is ready, blit it
-                            if (cpuFallBack && camData.denoiser.QueryDenoiseReques())
+                            if (cpuFallBack && camData.denoiser.QueryDenoiseRequest())
                             {
                                 camData.denoiser.UpdateTexture(ctx.cmd, history.rt);
                             }
