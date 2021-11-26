@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
  - Fixed a recent regression in ShaderGraph Screen Position behavior on some platforms in Built-in, Universal and HDRP [1369450]
+ - Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
 
 ## [13.1.1] - 2021-10-04
 
@@ -35,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fixed missing shader keyword stage during keyword copying.
  - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
  - Fixed upgrade warnings on SpeedTree8 subgraphs.
+ - Fixed the behavior of checkerboard node with raytracing
 
 ## [13.1.0] - 2021-09-24
 

@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     {
     }
 
-    [DisallowMultipleRendererFeature]
+    [DisallowMultipleRendererFeature("Screen Space Shadows")]
     [Tooltip("Screen Space Shadows")]
     internal class ScreenSpaceShadows : ScriptableRendererFeature
     {

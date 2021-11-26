@@ -509,11 +509,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
 
-                if (m_DLSSPassEnabled && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
+                if (DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
                 {
-                    TextureHandle colorBiasMask = DoDLSSColorMaskPass(renderGraph, hdCamera, depthBuffer);
-                    source = DoDLSSPass(renderGraph, hdCamera, inputColor, depthBuffer, motionVectors, colorBiasMask);
-                    SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
+                    source = DoDLSSPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors);
                 }
 
                 source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_GlobalSettings.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
@@ -566,6 +564,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 hdCamera.didResetPostProcessingHistoryInLastFrame = hdCamera.resetPostProcessingHistory;
 
                 hdCamera.resetPostProcessingHistory = false;
+            }
+            else
+            {
+                if (DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
+                {
+                    source = DoDLSSPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors);
+                }
             }
 
             if (DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost)
@@ -666,6 +671,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public DLSSPass.Parameters parameters;
             public DLSSPass.CameraResourcesHandles resourceHandles;
+        }
+
+        TextureHandle DoDLSSPasses(RenderGraph renderGraph, HDCamera hdCamera,
+            TextureHandle source, TextureHandle depthBuffer, TextureHandle motionVectors)
+        {
+            if (!m_DLSSPassEnabled)
+                return source;
+
+            TextureHandle colorBiasMask = DoDLSSColorMaskPass(renderGraph, hdCamera, depthBuffer);
+            source = DoDLSSPass(renderGraph, hdCamera, source, depthBuffer, motionVectors, colorBiasMask);
+            SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
+            return source;
         }
 
         TextureHandle DoDLSSPass(
@@ -2867,8 +2884,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool postDoFTAAEnabled = false;
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
-            bool taaEnabled = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+            bool stabilizeCoC = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
             bool isOrtho = hdCamera.camera.orthographic;
+
+            // If DLSS is enabled, we need to stabilize the CoC buffer (because the upsampled depth is jittered)
+            if (m_DLSSPassEnabled)
+                stabilizeCoC = true;
 
             // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
             bool isDoFPathTraced = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
@@ -2882,7 +2903,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
                 // Note: for Rendergraph the m_IsDoFHisotoryValid perhaps should be moved to the "pass data" struct
-                if (taaEnabled && hdCamera.dofHistoryIsValid != m_DepthOfField.physicallyBased)
+                if (stabilizeCoC && hdCamera.dofHistoryIsValid != m_DepthOfField.physicallyBased)
                 {
                     hdCamera.resetPostProcessingHistory = true;
                 }
@@ -2911,7 +2932,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "DoF Destination");
                     passData.destination = builder.WriteTexture(dest);
                     passData.motionVecTexture = builder.ReadTexture(motionVectors);
-                    passData.taaEnabled = taaEnabled;
+                    passData.taaEnabled = stabilizeCoC;
 
                     if (!m_DepthOfField.physicallyBased)
                     {
@@ -3062,7 +3083,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // When physically based DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and then after DoF to accumulate more aperture samples
-                if (taaEnabled && m_DepthOfField.physicallyBased)
+                if (stabilizeCoC && m_DepthOfField.physicallyBased)
                 {
                     source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, stencilTexture, postDoF: true, "Post-DoF TAA Destination");
                     hdCamera.dofHistoryIsValid = true;
@@ -3199,7 +3220,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.parameters.skipCopy);
                         });
 
-                    PushFullScreenDebugTexture(renderGraph, source, FullScreenDebugMode.LensFlareDataDriven);
+                    PushFullScreenDebugTexture(renderGraph, source, hdCamera.postProcessRTScales, FullScreenDebugMode.LensFlareDataDriven);
                 }
             }
 
