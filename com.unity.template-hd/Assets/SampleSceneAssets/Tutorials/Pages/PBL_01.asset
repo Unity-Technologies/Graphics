@@ -39,12 +39,12 @@ MonoBehaviour:
       Text:
         m_Untranslated: "<b>Physically based lighting</b> attempts to simulate the
           correct behavior of light, it is a key requirement to achieve believable
-          lighting results, especially when targetting a photorealistic look.\n\nOne
-          important factor is the intensity of the lighting. HDRP relies on real-life
-          lighting units, such as Lux and Lumen. \n\nWorking with real-life units
+          lighting results, especially when targetting a photorealistic look. One
+          important factor is the intensity of the lighting: HDRP relies on real-life
+          lighting units, such as Lux and Lumen.\n\nWorking with real-life units
           and intensties will improve the consistenty of the lighting and facilitate
           the calibration between different types of lighting, especially between
-          natural and artificial lighting.\n\nThese intensities can easily be found
+          natural and artificial lighting. These intensities can easily be found
           online (e.g. online shopping and manufacaturers websites). \n\nIn addition,
           relying on these real-world values greatly reduces the burden on beginners
           when it comes to selecting the correct light intensities.\n\nHere are some
