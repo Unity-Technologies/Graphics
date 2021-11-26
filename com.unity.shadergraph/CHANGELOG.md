@@ -6,9 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.1.2] - 2021-11-05
 
+### Added
+ - Added ability to set "Global" or "Per Material" shader declaration in PVT node settings [1372152]
+ - Show PVT stack names (needed for binding) under the Properties in the Shader Inspector
+
 ### Fixed
  - Fixed a recent regression in ShaderGraph Screen Position behavior on some platforms in Built-in, Universal and HDRP [1369450]
  - Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
+ - Fixed SRP-batching when PVT stacks are bound per material by properly declaring properties for PVT stacks [1372152]
 
 ## [13.1.1] - 2021-10-04
 
