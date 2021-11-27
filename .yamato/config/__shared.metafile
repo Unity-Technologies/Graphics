@@ -153,7 +153,7 @@ test_platforms:
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
-      - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal, iPhone_Metal, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
     after_build:
       - [OSX_OpenGlCore, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
   - type: playmode
@@ -201,7 +201,7 @@ test_platforms:
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
-      - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
 
   - type: editmode
     allow_cache: False
@@ -255,7 +255,7 @@ test_platforms:
           - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
           - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
     after:
-      - [OSX_OpenGlCore, OSX_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
+      - [OSX_OpenGlCore, OSX_Metal, OSX_Apple_Silicon_Metal, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan, Android_OpenGLES3, Android_Vulkan, XRQuest_OpenGLES3, XRQuest_Vulkan]: <shared.platform.commands.log_parser>
 
 platforms:
   Win:
@@ -440,6 +440,9 @@ platforms:
           - brew install unity-downloader-cli
           - unity-downloader-cli <EDITOR_REVISION_CMD> -c editor -c il2cpp  --wait --published-only
           - rsync -az .Editor/ bokken@$BOKKEN_DEVICE_IP:~/Graphics/.Editor
+        log_parser:
+          - command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+          - command: find_instabilities || exit 0
 
   Linux:
     name: Linux
