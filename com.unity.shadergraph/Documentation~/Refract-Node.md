@@ -38,9 +38,7 @@ void Unity_RefractCriticalAngle(float3 Incident, float3 Normal, float IORInput, 
     Refracted = k >= 0.0 ? eta*Incident - (eta*cos0 + sqrt(k))*Normal : reflect(Incident, Normal);
     Intensity = internalIORSource <= internalIORMedium ?;
         saturate(F_Transm_Schlick(IorToFresnel0(internalIORMedium, internalIORSource), -cos0)) :
-        (k >= 0.0 ?
-            saturate(F_FresnelDielectric(internalIORMedium/internalIORSource, -cos0)) :
-            F_Schlick(IorToFresnel0(internalIORMedium, internalIORSource), -cos0));
+        (k >= 0.0 ? saturate(F_FresnelDielectric(internalIORMedium/internalIORSource, -cos0)) : 0.0);
 }
 
 void Unity_RefractSafe(float3 Incident, float3 Normal, float IORInput, float IORMedium, out float Out)
@@ -53,8 +51,6 @@ void Unity_RefractSafe(float3 Incident, float3 Normal, float IORInput, float IOR
     Refracted = eta*Incident - (eta*cos0 + sqrt(max(k, 0.0)))*Normal;
     Intensity = internalIORSource <= internalIORMedium ?;
         saturate(F_Transm_Schlick(IorToFresnel0(internalIORMedium, internalIORSource), -cos0)) :
-        (CosCritialAngle(internalIORMedium/internalIORSource) > -cos0 ?
-            0.0 :
-            saturate(F_FresnelDielectric(internalIORMedium/internalIORSource, -cos0)));
+        (k >= 0.0 ? saturate(F_FresnelDielectric(internalIORMedium/internalIORSource, -cos0)) : 1.0);
 }
 ```

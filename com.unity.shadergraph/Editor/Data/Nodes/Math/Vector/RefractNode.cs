@@ -107,13 +107,14 @@ namespace UnityEditor.ShaderGraph
                     }
                     s.AppendLine("Intensity = internalIORSource <= internalIORMedium ?");
                     s.AppendLine("    saturate(F_Transm_Schlick(IorToFresnel0(internalIORMedium, internalIORSource), -cos0)) :");
+                    s.AppendLine("    (k >= 0.0 ? F_FresnelDielectric(internalIORMedium/internalIORSource, -cos0) : ");
                     if (m_RefractMode == RefractMode.Safe)
                     {
-                        s.AppendLine("    (CosCritialAngle(internalIORMedium/internalIORSource) > -cos0 ? 0.0 : saturate(F_FresnelDielectric(internalIORMedium/internalIORSource, -cos0)));");
+                        s.Append("0.0);");
                     }
                     else
                     {
-                        s.AppendLine("    (k >= 0.0 ? saturate(F_FresnelDielectric(internalIORMedium/internalIORSource, -cos0)) : F_Schlick(IorToFresnel0(internalIORMedium, internalIORSource), -cos0));");
+                        s.Append("1.0);");
                     }
                 }
             });
