@@ -15,6 +15,14 @@ namespace UnityEditor.ShaderGraph
                 new NormalControl(CoordinateSpace.Object), ShaderStage.Vertex);
             public static BlockFieldDescriptor Tangent = new BlockFieldDescriptor(VertexDescription.name, "Tangent", "VERTEXDESCRIPTION_TANGENT",
                 new TangentControl(CoordinateSpace.Object), ShaderStage.Vertex);
+            public static BlockFieldDescriptor UV0 = new BlockFieldDescriptor(VertexDescription.name, "uv0", "VERTEXDESCRIPTION_UV0",
+                new Vector4Control(Vector4.zero), ShaderStage.Vertex);
+            public static BlockFieldDescriptor UV1 = new BlockFieldDescriptor(VertexDescription.name, "uv1", "VERTEXDESCRIPTION_UV1",
+                new Vector4Control(Vector4.zero), ShaderStage.Vertex);
+            public static BlockFieldDescriptor UV2 = new BlockFieldDescriptor(VertexDescription.name, "uv2", "VERTEXDESCRIPTION_UV2",
+                new Vector4Control(Vector4.zero), ShaderStage.Vertex);
+            public static BlockFieldDescriptor UV3 = new BlockFieldDescriptor(VertexDescription.name, "uv3", "VERTEXDESCRIPTION_UV3",
+                new Vector4Control(Vector4.zero), ShaderStage.Vertex);
         }
 
         [GenerateBlocks]

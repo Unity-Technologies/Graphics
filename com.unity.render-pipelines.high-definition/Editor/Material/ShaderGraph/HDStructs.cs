@@ -4,6 +4,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class HDStructs
     {
+        public static StructDescriptor AttributesMeshProcedural = new StructDescriptor()
+        {
+            name = "AttributesMesh",
+            packFields = false,
+            fields = new FieldDescriptor[]
+            {
+                HDStructFields.AttributesMesh.instanceID,
+                HDStructFields.AttributesMesh.vertexID,
+            }
+        };
+
         public static StructDescriptor AttributesMesh = new StructDescriptor()
         {
             name = "AttributesMesh",
