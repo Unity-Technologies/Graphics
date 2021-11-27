@@ -24,6 +24,9 @@ namespace UnityEngine.Rendering.Tests
             if (!FrameTimingManager.IsFeatureEnabled())
                 Assert.Ignore("Frame timing stats are disabled in Player Settings, skipping test.");
 
+            if (Application.isBatchMode)
+                Assert.Ignore("Frame timing tests are not supported in batch mode, skipping test.");
+
             // HACK #1 - really shouldn't have to do this here, but previous tests are leaking gameobjects
             var objects = GameObject.FindObjectsOfType<GameObject>();
             foreach (var o in objects)
