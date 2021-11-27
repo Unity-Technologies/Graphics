@@ -29,6 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _DebugMipMapModeTerrainTexture; // Match enum DebugMipMapModeTerrainTexture
         public int _ColorPickerMode; // Match enum ColorPickerDebugMode
 
+        public Vector4 _DebugViewportSize; //Frame viewport size used during rendering.
         public Vector4 _DebugLightingAlbedo; // x == bool override, yzw = albedo for diffuse
         public Vector4 _DebugLightingSmoothness; // x == bool override, y == override value
         public Vector4 _DebugLightingNormal; // x == bool override
