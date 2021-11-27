@@ -51,6 +51,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
 - Fixed for changes of color curves not being applied immediately.
 
+## [13.1.2] - 2021-11-05
+
+### Added
+- Added minimal picking support for DOTS 1.0 (on parity with Hybrid Renderer V2)
+
+### Fixed
+- Fixed compilation errors when using Elipse, Rectangle, Polygon, Checkerboard, RoundedPolygon, RoundedRectangle in a ray tracing shader graph (case 1377610).
+- Fixed outdated documentation about supported GPUs for ray tracing (case 1375895).
+- Fixed outdated documentation about recursie ray tracing effects support (case 1374904).
+- Fixed Shadow Matte not appearing in ray tracing effects (case 1364005).
+- Fixed Crash issue when adding an area light on its own.
+- Fixed rendertarget ColorMask in Forward with virtual texturing and transparent motion vectors.
+- Fixed light unit conversion after changing mid gray value.
+- Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
+- Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
+- Fixed Lens Flare visible when being behind a camera with Panini Projection on (case 1370214);
+
 ### Changed
 - Optimizations for the physically based depth of field.
 
