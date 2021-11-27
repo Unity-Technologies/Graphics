@@ -1395,6 +1395,8 @@ namespace UnityEngine.Rendering.HighDefinition
         MaterialPropertyBlock m_RecorderPropertyBlock = new MaterialPropertyBlock();
         Rect? m_OverridePixelRect = null;
 
+        internal bool hasCaptureActions => m_RecorderCaptureActions != null;
+
         // Keep track of the previous DLSS state
         private DynamicResolutionHandler.UpsamplerScheduleType m_PrevUpsamplerSchedule = DynamicResolutionHandler.UpsamplerScheduleType.AfterPost;
 
