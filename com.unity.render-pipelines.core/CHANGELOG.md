@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed potentially conflicting runtime Rendering Debugger UI command by adding an option to disable runtime UI altogether (1345783).
 - Fixed issue when changing volume profiles at runtime with a script (case 1364256).
 - Fixed XR support in CoreUtils.DrawFullscreen function.
+- Fixed an issue causing Render Graph execution errors after a random amount of time.
 
 ## [10.7.0] - 2021-07-02
 
