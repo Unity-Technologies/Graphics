@@ -90,8 +90,9 @@ real3 F_Transm_Schlick(real3 f0, real u)
 // If eta >= 1 the it's an AirMedium interation, otherwise it's MediumAir interation
 real CosCritialAngle(real eta)
 {
+    return sqrt(max(1.0 - Sq(eta), 0.0));
     // For 1 <= IOR <= 4: Max error: 0.0268594
-    return eta >= 1.0 ? 0.0 : (((3.0 + eta) * sqrt(max(0.0, 1.0 - eta))) / (2.0 * sqrt(2.0)));
+    //return eta >= 1.0 ? 0.0 : (((3.0 + eta) * sqrt(max(0.0, 1.0 - eta))) / (2.0 * sqrt(2.0)));
     // For 1 <= IOR <= 4: Max error: 0.00533065
     //return eta >= 1.0 ? 0.0 : (-((-23.0 - 10.0 * eta + Sq(eta)) * sqrt(max(0.0, 1.0 - eta))) / (16.0 * sqrt(2.0)));
     // For 1 <= IOR <= 4: Max error: 0.00129402
