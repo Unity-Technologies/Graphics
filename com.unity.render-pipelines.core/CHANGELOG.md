@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed XR support in CoreUtils.DrawFullscreen function.
+- Fixed an issue causing Render Graph execution errors after a random amount of time.
+
 ## [13.1.2] - 2021-11-05
 
 ### Added
@@ -19,8 +21,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed issue when changing volume profiles at runtime with a script (case 1364256).
-- Fixed XR support in CoreUtils.DrawFullscreen function.
-- Fixed an issue causing Render Graph execution errors after a random amount of time.
 
 ## [13.1.1] - 2021-10-04
 
