@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_Asset.currentPlatformRenderPipelineSettings.supportWater)
                 return;
             // Grab all the water surfaces in the scene
-            var waterSurfaces = GameObject.FindObjectsOfType<WaterSurface>();
+            var waterSurfaces = WaterSurface.instancesAsArray;
 
             // Loop through them and display them
             int numWaterSurfaces = waterSurfaces.Length;
@@ -422,8 +422,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 GetBlueNoiseManager().BindDitheredRNGData1SPP(cmd);
 
                 // Grab all the water surfaces in the scene
-                // WARNING: This generated a memory allocation, we need to find a better way of doing this.
-                var waterSurfaces = GameObject.FindObjectsOfType<WaterSurface>();
+                var waterSurfaces = WaterSurface.instancesAsArray;
 
                 // Loop through them and update them
                 int numWaterSurfaces = waterSurfaces.Length;
@@ -653,8 +652,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // Grab all the water surfaces in the scene
-            // WARNING: This generated a memory allocation, we need to find a better way of doing this.
-            var waterSurfaces = GameObject.FindObjectsOfType<WaterSurface>();
+            var waterSurfaces = WaterSurface.instancesAsArray;
 
             // Loop through them and display them
             int numWaterSurfaces = waterSurfaces.Length;

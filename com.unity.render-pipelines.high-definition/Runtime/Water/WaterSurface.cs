@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -18,6 +19,29 @@ namespace UnityEngine.Rendering.HighDefinition
             // The water will be rendered with a mesh provided by the user.
             Custom
         }
+
+        #region Instance Management
+
+        // Management to avoid memory allocations at fetch time
+        internal static HashSet<WaterSurface> instances = new HashSet<WaterSurface>();
+        internal static WaterSurface[] instancesAsArray = null;
+
+        internal static void RegisterInstance(WaterSurface surface)
+        {
+            instances.Add(surface);
+            int numInstances = instances.Count;
+            instancesAsArray = new WaterSurface[numInstances];
+            instances.CopyTo(instancesAsArray);
+        }
+
+        internal static void UnregisterInstance(WaterSurface surface)
+        {
+            instances.Remove(surface);
+            int numInstances = instances.Count;
+            instancesAsArray = new WaterSurface[numInstances];
+            instances.CopyTo(instancesAsArray);
+        }
+        #endregion
 
         #region Water General
         /// <summary>
@@ -326,6 +350,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return !needUpdate;
         }
 
+        private void Awake()
+        {
+            // Add this water surface to the internal surface management
+            RegisterInstance(this);
+        }
+
         void UpdateSimulationData()
         {
             simulation.windSpeed = windSpeed;
@@ -337,6 +367,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnDestroy()
         {
+            // Remove this water surface from the internal surface management
+            UnregisterInstance(this);
+
             // Make sure to release the resources if they have been created (before HDRP destroys them)
             if (simulation.AllocatedTextures())
                 simulation.ReleaseSmmulationResources();
