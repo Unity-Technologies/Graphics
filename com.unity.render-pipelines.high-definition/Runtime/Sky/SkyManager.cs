@@ -80,9 +80,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Reset()
         {
-            // We keep around the renderer and the rendering context to avoid useless allocation if they get reused.
+            // We keep around the rendering context to avoid useless allocation if they get reused.
             hash = 0;
             refCount = 0;
+            if (renderingContext != null)
+                renderingContext.Reset();
         }
 
         public void Cleanup()
@@ -760,7 +762,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Debug.Log("Update Sky Lighting");
                         RenderSkyToCubemap(skyContext);
 
-                        if (updateAmbientProbe)
+                        if (updateAmbientProbe&& !renderingContext.computeAmbientProbeRequested)
                         {
                             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
                             {
@@ -768,6 +770,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 cmd.SetComputeTextureParam(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, m_AmbientProbeInputCubemap, renderingContext.skyboxCubemapRT);
                                 cmd.DispatchCompute(m_ComputeAmbientProbeCS, m_ComputeAmbientProbeKernel, 1, 1, 1);
                                 cmd.RequestAsyncReadback(renderingContext.ambientProbeResult, renderingContext.OnComputeAmbientProbeDone);
+                                renderingContext.computeAmbientProbeRequested = true;
 
                                 // When the profiler is enabled, we don't want to submit the render context because
                                 // it will break all the profiling sample Begin() calls issued previously, which leads

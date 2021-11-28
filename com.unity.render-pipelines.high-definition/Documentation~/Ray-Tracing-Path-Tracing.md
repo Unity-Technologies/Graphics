@@ -65,6 +65,7 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
 - If a Mesh in your scene has a Material assigned that does not have the `HDRenderPipeline` tag, the mesh will not appear in your scene. For more information, see [Ray tracing and Meshes](Ray-Tracing-Getting-Started.md#RayTracingMeshes).
 - Does not support 3D Text and TextMeshPro.
 - Does not support Shader Graph nodes that use derivatives (for example, a normal map that derives from a texture).
+- Does not support Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md).
 - Does not support decals.
 - Does not support tessellation.
 - Does not support Tube and Disc-shaped Area Lights.
