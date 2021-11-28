@@ -20,6 +20,7 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_SinglePassBlur;
         private SerializedProperty m_FinalUpsample;
         private SerializedProperty m_BlurType;
+        private SerializedProperty m_OnlyAO;
 
         #endregion
 
@@ -40,6 +41,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent SinglePassBlur = EditorGUIUtility.TrTextContent("Single Pass Blur", "Single pass blur approximation");
             public static GUIContent FinalUpsample = EditorGUIUtility.TrTextContent("Final Upsample", "Final upsample step to perform after blurring downsampled targets.");
             public static GUIContent BlurType = EditorGUIUtility.TrTextContent("Blur Type", "Blur Algorithm to Use");
+            public static GUIContent OnlyAO = EditorGUIUtility.TrTextContent("Only AO", "");
         }
 
         private void Init()
@@ -57,6 +59,7 @@ namespace UnityEditor.Rendering.Universal
             m_SinglePassBlur = settings.FindPropertyRelative("SinglePassBlur");
             m_FinalUpsample = settings.FindPropertyRelative("FinalUpsample");
             m_BlurType = settings.FindPropertyRelative("BlurType");
+            m_OnlyAO = settings.FindPropertyRelative("OnlyAO");
 
             m_IsInitialized = true;
         }
@@ -88,6 +91,7 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.Space();
 
+            EditorGUILayout.PropertyField(m_OnlyAO, Styles.OnlyAO);
             EditorGUILayout.PropertyField(m_BlurType, Styles.BlurType);
             EditorGUILayout.PropertyField(m_SinglePassBlur, Styles.SinglePassBlur);
             EditorGUILayout.PropertyField(m_FinalUpsample, Styles.FinalUpsample);

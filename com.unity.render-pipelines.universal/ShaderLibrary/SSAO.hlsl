@@ -403,7 +403,12 @@ half4 SSAO(Varyings input) : SV_Target
 
     // Apply contrast
     ao = PositivePow(ao * INTENSITY * rcpSampleCount, kContrast);
-    return PackAONormal(ao, norm_o);
+
+    #if defined(_ONLY_AO)
+        return half(1.0) - ao;
+    #else
+        return PackAONormal(ao, norm_o);
+    #endif
 }
 
 // Geometry-aware separable bilateral filter
