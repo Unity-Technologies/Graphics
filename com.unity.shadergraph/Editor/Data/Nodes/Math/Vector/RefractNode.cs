@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return string.Format("Unity_Refract{0}_$precision", m_RefractMode.ToString());
+            return string.Format("Unity_Refract_{0}_$precision", m_RefractMode.ToString());
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
