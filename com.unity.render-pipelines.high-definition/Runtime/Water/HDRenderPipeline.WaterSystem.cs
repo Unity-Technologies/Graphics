@@ -422,6 +422,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 GetBlueNoiseManager().BindDitheredRNGData1SPP(cmd);
 
                 // Grab all the water surfaces in the scene
+                // WARNING: This generated a memory allocation, we need to find a better way of doing this.
                 var waterSurfaces = GameObject.FindObjectsOfType<WaterSurface>();
 
                 // Loop through them and update them
@@ -652,6 +653,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // Grab all the water surfaces in the scene
+            // WARNING: This generated a memory allocation, we need to find a better way of doing this.
             var waterSurfaces = GameObject.FindObjectsOfType<WaterSurface>();
 
             // Loop through them and display them
