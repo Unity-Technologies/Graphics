@@ -1181,14 +1181,19 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_FrameCount = newCount;
                 HDCamera.CleanUnused();
+
             }
 
-            // Update the water surfaces
-            var commandBuffer = CommandBufferPool.Get("");
-            UpdateWaterSurfaces(commandBuffer);
-            renderContext.ExecuteCommandBuffer(commandBuffer);
-            renderContext.Submit();
-            commandBuffer.Clear();
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportWater)
+            {
+                // Update the water surfaces
+                var commandBuffer = CommandBufferPool.Get("");
+                UpdateWaterSurfaces(commandBuffer);
+                renderContext.ExecuteCommandBuffer(commandBuffer);
+                renderContext.Submit();
+                commandBuffer.Clear();
+                CommandBufferPool.Release(commandBuffer);
+            }
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
             m_DebugDisplaySettings.nvidiaDebugView.Update();
