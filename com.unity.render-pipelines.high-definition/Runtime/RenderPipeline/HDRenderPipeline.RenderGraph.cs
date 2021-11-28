@@ -250,7 +250,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.NanTracker);
                 PushFullScreenLightingDebugTexture(m_RenderGraph, colorBuffer);
 
-                bool accumulateInPost = m_PostProcessEnabled && m_DepthOfField.IsActive();
+                bool accumulateInPost = m_PostProcessSystem.m_PostProcessEnabled && m_PostProcessSystem.m_DepthOfField.IsActive();
                 if (!accumulateInPost && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
                 {
                     RenderAccumulation(m_RenderGraph, hdCamera, colorBuffer, colorBuffer, false);
