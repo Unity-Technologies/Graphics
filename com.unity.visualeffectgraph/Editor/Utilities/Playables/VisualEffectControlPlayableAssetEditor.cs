@@ -95,9 +95,9 @@ namespace UnityEditor.VFX
 
             static Content()
             {
-                var singleEventTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/singleEvent.png");
-                var clipEnterTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/clipEnter.png");
-                var clipExitTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/clipExit.png");
+                var singleEventTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/marker_Single2x.png");
+                var clipEnterTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/marker_In2x.png");
+                var clipExitTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/marker_Out2x.png");
                 singleEventIcon = new GUIContent(singleEventTexture);
                 clipEnterIcon = new GUIContent(clipEnterTexture);
                 clipExitIcon = new GUIContent(clipExitTexture);
@@ -123,7 +123,7 @@ namespace UnityEditor.VFX
 
             public static readonly float kMinimalBarHeight = 2.0f;
             public static readonly float kBarPadding = 1.0f;
-
+            public static readonly float kSingleEventWidth = 2.0f;
 
             static Style()
             {
@@ -145,6 +145,7 @@ namespace UnityEditor.VFX
                 eventRightAlignShadow.normal.textColor = shadowColor;
                 eventRightAlignShadow.hover.textColor = shadowColor;
                 scrubbingDisabledShadow.normal.textColor = shadowColor;
+                scrubbingDisabledShadow.hover.textColor = shadowColor;
 
                 eventLeftAlign.fontSize
                     = eventRightAlign.fontSize
@@ -351,24 +352,18 @@ namespace UnityEditor.VFX
 
         List<EventAreaItem> m_TextEventAreaRequested = new List<EventAreaItem>();
         List<EventAreaItem> m_TextEventArea = new List<EventAreaItem>();
-        private List<EventAreaItem> ComputeEventName(ClipBackgroundRegion baseRegion, double maxClipTime, IEnumerable<VisualEffectPlayableSerializedEvent> allEvents, uint clipEventCount)
+        private List<EventAreaItem> ComputeEventItemArea(ClipBackgroundRegion baseRegion, double maxClipTime, IEnumerable<VisualEffectPlayableSerializedEvent> allEvents, uint clipEventCount)
         {
             m_TextEventAreaRequested.Clear();
             m_TextEventArea.Clear();
 
             int index = 0;
-            var iconSize = new Vector2(Style.kEventNameHeight, Style.kEventNameHeight);
 
             m_TextEventAreaRequested.Clear();
             foreach (var itEvent in allEvents)
             {
                 var timeAfterClamp = Clamp(itEvent.time, 0.0f, maxClipTime);
                 var relativeTime = InverseLerp(baseRegion.startTime, baseRegion.endTime, timeAfterClamp);
-                var iconArea = new Rect(
-                    baseRegion.position.width * (float)relativeTime - iconSize.x * 0.5f,
-                    0.0f,
-                    iconSize.x,
-                    iconSize.y);
 
                 var currentType = IconType.SingleEvent;
                 if (index < clipEventCount)
@@ -383,6 +378,26 @@ namespace UnityEditor.VFX
                     case IconType.ClipExit: iconContent = Content.clipExitIcon; break;
                     case IconType.SingleEvent: iconContent = Content.singleEventIcon; break;
                 }
+
+                var scale = Style.kEventNameHeight / iconContent.image.height;
+                var iconOffset = 0.0f;
+                switch (currentType)
+                {
+                    case IconType.ClipEnter:
+                        iconOffset = 0.0f;
+                        break;
+
+                    case IconType.ClipExit:
+                        iconOffset = -iconContent.image.width * scale;
+                        break;
+
+                    case IconType.SingleEvent:
+                        iconOffset = -iconContent.image.width * scale * 0.5f;
+                        break;
+                }
+                var iconArea = new Rect(baseRegion.position.width * (float)relativeTime + iconOffset, 0.0f,
+                    iconContent.image.width * scale,
+                    iconContent.image.height * scale);
 
                 var icon = new EventAreaItem(iconArea, currentType, iconContent, color);
                 m_TextEventAreaRequested.Add(icon);
@@ -448,7 +463,7 @@ namespace UnityEditor.VFX
 
             //Precompute overlapping data
             var clipEventBars = ComputeBarClipEvent(clipEvents, out var rowCount);
-            var eventAreaItems = ComputeEventName(region, clip.duration, allEvents, (uint)clipEvents.Count());
+            var eventAreaItems = ComputeEventItemArea(region, clip.duration, allEvents, (uint)clipEvents.Count());
 
             //Compute region
             var clipBarHeight = rowCount * (Style.kMinimalBarHeight + Style.kBarPadding * 2.0f);
@@ -516,12 +531,11 @@ namespace UnityEditor.VFX
 
                     if (currentType == IconType.SingleEvent)
                     {
-                        //Exception, drawing a 1px line from here to begin of clip
+                        //Exception, drawing a kSingleEventWidth px line from here to begin of clip
                         EditorGUI.DrawRect(new Rect(
-                            drawRect.position.x + drawRect.width * 0.5f - 0.5f,
-                            0.0f,
-                            1.0f,
-                            clipBarHeight + eventNameHeight), baseColor);
+                            drawRect.position.x + drawRect.width * 0.5f - Style.kSingleEventWidth * 0.5f, 0.0f,
+                            Style.kSingleEventWidth, eventRegion.position.y + eventRegion.height),
+                            baseColor);
                     }
 
                     GUI.DrawTexture(drawRect, item.content.image, ScaleMode.StretchToFill, true, 1.0f, baseColor, 0, 0);
