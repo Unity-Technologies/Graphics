@@ -86,6 +86,8 @@ namespace UnityEditor.VFX
             return base.GetClipOptions(clip);
         }
 
+        static readonly bool use2xMarker = false;
+
         static class Content
         {
             public static GUIContent scrubbingDisabled = new GUIContent("Scrubbing Disabled");
@@ -95,9 +97,20 @@ namespace UnityEditor.VFX
 
             static Content()
             {
-                var singleEventTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/marker_Single2x.png");
-                var clipEnterTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/marker_In2x.png");
-                var clipExitTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/marker_Out2x.png");
+                Texture2D singleEventTexture, clipEnterTexture, clipExitTexture;
+                if (use2xMarker)
+                {
+                    singleEventTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/marker_Single2x.png");
+                    clipEnterTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/marker_In2x.png");
+                    clipExitTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/marker_Out2x.png");
+                }
+                else
+                {
+                    singleEventTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/marker_Single1x.png");
+                    clipEnterTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/marker_In1x.png");
+                    clipExitTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/marker_Out1x.png");
+                }
+
                 singleEventIcon = new GUIContent(singleEventTexture);
                 clipEnterIcon = new GUIContent(clipEnterTexture);
                 clipExitIcon = new GUIContent(clipExitTexture);
@@ -123,7 +136,7 @@ namespace UnityEditor.VFX
 
             public static readonly float kMinimalBarHeight = 2.0f;
             public static readonly float kBarPadding = 1.0f;
-            public static readonly float kSingleEventWidth = 2.0f;
+            public static readonly float kSingleEventWidth = use2xMarker ? 2.0f : 1.0f;
 
             static Style()
             {
@@ -379,7 +392,7 @@ namespace UnityEditor.VFX
                     case IconType.SingleEvent: iconContent = Content.singleEventIcon; break;
                 }
 
-                var scale = Style.kEventNameHeight / iconContent.image.height;
+                var scale = 1.0f;
                 var iconOffset = 0.0f;
                 switch (currentType)
                 {
@@ -395,13 +408,16 @@ namespace UnityEditor.VFX
                         iconOffset = -iconContent.image.width * scale * 0.5f;
                         break;
                 }
-                var iconArea = new Rect(baseRegion.position.width * (float)relativeTime + iconOffset, 0.0f,
+                var iconArea = new Rect(
+                    baseRegion.position.width * (float)relativeTime + iconOffset,
+                    (Style.kEventNameHeight - (iconContent.image.height * scale)) * 0.5f,
                     iconContent.image.width * scale,
                     iconContent.image.height * scale);
 
                 var icon = new EventAreaItem(iconArea, currentType, iconContent, color);
                 m_TextEventAreaRequested.Add(icon);
 
+                iconArea.y = 0.0f;
                 var text = new EventAreaItem(iconArea, currentType, (string)itEvent.name);
                 m_TextEventAreaRequested.Add(text);
 
@@ -534,7 +550,7 @@ namespace UnityEditor.VFX
                         //Exception, drawing a kSingleEventWidth px line from here to begin of clip
                         EditorGUI.DrawRect(new Rect(
                             drawRect.position.x + drawRect.width * 0.5f - Style.kSingleEventWidth * 0.5f, 0.0f,
-                            Style.kSingleEventWidth, eventRegion.position.y + eventRegion.height),
+                            Style.kSingleEventWidth, drawRect.position.y + drawRect.height),
                             baseColor);
                     }
 
