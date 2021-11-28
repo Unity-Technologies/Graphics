@@ -1004,6 +1004,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
+        public void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
+        {
+            bool accumulateInPost = m_PostProcessEnabled && m_DepthOfField.IsActive();
+            if (!accumulateInPost && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
+            {
+                RenderAccumulation(m_RenderGraph, hdCamera, colorBuffer, colorBuffer, false);
+            }
+        }
+
         public void Render(RenderGraph renderGraph,
                             HDCamera hdCamera,
                             BlueNoise blueNoise,
@@ -1051,7 +1060,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_DepthOfField.IsActive() && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
                 {
-                    RenderAccumulation(m_RenderGraph, hdCamera, source, source, false);
+                    RenderAccumulation(renderGraph, hdCamera, source, source, false);
                 }
 
                 // Motion blur after depth of field for aesthetic reasons (better to see motion

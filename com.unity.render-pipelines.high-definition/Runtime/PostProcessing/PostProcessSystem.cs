@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Prefetched components (updated on every frame)
         Exposure m_Exposure;
-        internal DepthOfField m_DepthOfField;
+        DepthOfField m_DepthOfField;
         MotionBlur m_MotionBlur;
         PaniniProjection m_PaniniProjection;
         Bloom m_Bloom;
@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly TargetPool m_Pool;
 
         readonly bool m_UseSafePath;
-        internal bool m_PostProcessEnabled;
+        bool m_PostProcessEnabled;
         bool m_AnimatedMaterialsEnabled;
 
         bool m_MotionBlurSupportsScattering;
