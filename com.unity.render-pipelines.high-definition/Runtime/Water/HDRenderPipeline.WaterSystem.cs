@@ -248,11 +248,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // If the asset doesn't support water surfaces, nothing to do here
             if (!m_Asset.currentPlatformRenderPipelineSettings.supportWater)
                 return;
+
             // Grab all the water surfaces in the scene
             var waterSurfaces = WaterSurface.instancesAsArray;
+            int numWaterSurfaces = WaterSurface.instanceCount;
 
             // Loop through them and display them
-            int numWaterSurfaces = waterSurfaces.Length;
             for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
             {
                 WaterSurface waterSurface = waterSurfaces[surfaceIdx];
@@ -409,8 +410,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateWaterSurfaces(CommandBuffer cmd)
         {
+            // Grab the number of water surfaces to process
+            int numWaterSurfaces = WaterSurface.instanceCount;
+
             // If water surface simulation is disabled, skip.
-            if (!m_ActiveWaterSimulation)
+            if (!m_ActiveWaterSimulation || WaterSurface.instanceCount == 0)
                 return;
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.WaterSurfaceSimulation)))
@@ -425,7 +429,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 var waterSurfaces = WaterSurface.instancesAsArray;
 
                 // Loop through them and update them
-                int numWaterSurfaces = waterSurfaces.Length;
                 for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
                 {
                     // Grab the current water surface
@@ -646,16 +649,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderWaterSurfaces(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle colorPyramid)
         {
-            // If the water is disabled, no need to render or simulate
-            WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
-            if (!settings.enable.value || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water))
-                return;
-
             // Grab all the water surfaces in the scene
             var waterSurfaces = WaterSurface.instancesAsArray;
+            int numWaterSurfaces = WaterSurface.instanceCount;
+
+            // If the water is disabled, no need to render or simulate
+            WaterRendering settings = hdCamera.volumeStack.GetComponent<WaterRendering>();
+            if (!settings.enable.value || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water) || numWaterSurfaces == 0)
+                return;
 
             // Loop through them and display them
-            int numWaterSurfaces = waterSurfaces.Length;
             for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
             {
                 // Grab the current water surface

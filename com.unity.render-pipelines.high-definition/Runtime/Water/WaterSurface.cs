@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Water surface component.
     /// </summary>
     [DisallowMultipleComponent]
+    [ExecuteInEditMode]
     public class WaterSurface : MonoBehaviour
     {
         /// <summary>
@@ -25,21 +26,36 @@ namespace UnityEngine.Rendering.HighDefinition
         // Management to avoid memory allocations at fetch time
         internal static HashSet<WaterSurface> instances = new HashSet<WaterSurface>();
         internal static WaterSurface[] instancesAsArray = null;
+        internal static int instanceCount = 0;
 
         internal static void RegisterInstance(WaterSurface surface)
         {
             instances.Add(surface);
-            int numInstances = instances.Count;
-            instancesAsArray = new WaterSurface[numInstances];
-            instances.CopyTo(instancesAsArray);
+            instanceCount = instances.Count;
+            if (instanceCount > 0)
+            {
+                instancesAsArray = new WaterSurface[instanceCount];
+                instances.CopyTo(instancesAsArray);
+            }
+            else
+            {
+                instancesAsArray = null;
+            }
         }
 
         internal static void UnregisterInstance(WaterSurface surface)
         {
             instances.Remove(surface);
-            int numInstances = instances.Count;
-            instancesAsArray = new WaterSurface[numInstances];
-            instances.CopyTo(instancesAsArray);
+            instanceCount = instances.Count;
+            if (instanceCount > 0)
+            {
+                instancesAsArray = new WaterSurface[instanceCount];
+                instances.CopyTo(instancesAsArray);
+            }
+            else
+            {
+                instancesAsArray = null;
+            }
         }
         #endregion
 
@@ -349,6 +365,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return !needUpdate;
         }
+        private void Start()
+        {
+            // Add this water surface to the internal surface management
+            RegisterInstance(this);
+        }
 
         private void Awake()
         {
@@ -371,7 +392,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UnregisterInstance(this);
 
             // Make sure to release the resources if they have been created (before HDRP destroys them)
-            if (simulation.AllocatedTextures())
+            if (simulation != null && simulation.AllocatedTextures())
                 simulation.ReleaseSmmulationResources();
         }
     }
