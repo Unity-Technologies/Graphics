@@ -198,7 +198,6 @@ namespace UnityEditor.ShaderGraph
                 keywordScope = keywordScope,
                 entries = entries,
                 value = value,
-                keywordStages = keywordStages
             };
         }
     }
