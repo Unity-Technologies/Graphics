@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: Global Volume Profile
+  m_Name: CloudsAndPostProcess
   m_EditorClassIdentifier: 
   components:
   - {fileID: 6148599852487746282}
@@ -33,7 +33,7 @@ MonoBehaviour:
     m_Value: 1
   contrast:
     m_OverrideState: 1
-    m_Value: 100
+    m_Value: 80
   colorFilter:
     m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
@@ -278,12 +278,9 @@ MonoBehaviour:
   shapeScale:
     m_OverrideState: 0
     m_Value: 2.5
-  shapeOffsetX:
+  shapeOffset:
     m_OverrideState: 0
-    m_Value: 0
-  shapeOffsetZ:
-    m_OverrideState: 0
-    m_Value: 0
+    m_Value: {x: 0, y: 0, z: 0}
   erosionFactor:
     m_OverrideState: 0
     m_Value: 0.5
@@ -296,6 +293,9 @@ MonoBehaviour:
   ambientLightProbeDimmer:
     m_OverrideState: 1
     m_Value: 0
+  sunLightDimmer:
+    m_OverrideState: 0
+    m_Value: 1
   erosionOcclusion:
     m_OverrideState: 0
     m_Value: 0.1
@@ -325,9 +325,18 @@ MonoBehaviour:
   erosionSpeedMultiplier:
     m_OverrideState: 0
     m_Value: 0.25
+  verticalShapeWindSpeed:
+    m_OverrideState: 0
+    m_Value: 0
+  verticalErosionWindSpeed:
+    m_OverrideState: 0
+    m_Value: 0
   temporalAccumulationFactor:
     m_OverrideState: 0
     m_Value: 0.95
+  ghostingReduction:
+    m_OverrideState: 0
+    m_Value: 0
   shadows:
     m_OverrideState: 0
     m_Value: 0
@@ -346,10 +355,19 @@ MonoBehaviour:
   shadowOpacityFallback:
     m_OverrideState: 0
     m_Value: 0
-  m_Version: 1
+  m_Version: 2
   m_ObsoleteWindSpeed:
     m_OverrideState: 0
     m_Value: 1
   m_ObsoleteOrientation:
+    m_OverrideState: 0
+    m_Value: 0
+  m_ObsoleteShapeOffsetX:
+    m_OverrideState: 0
+    m_Value: 0
+  m_ObsoleteShapeOffsetY:
+    m_OverrideState: 0
+    m_Value: 0
+  m_ObsoleteShapeOffsetZ:
     m_OverrideState: 0
     m_Value: 0
