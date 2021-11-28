@@ -392,7 +392,7 @@ namespace UnityEditor.VFX
                     case IconType.SingleEvent: iconContent = Content.singleEventIcon; break;
                 }
 
-                var scale = 1.0f;
+                var scale = 1.0f; //Could be computed from image size
                 var iconOffset = 0.0f;
                 switch (currentType)
                 {
