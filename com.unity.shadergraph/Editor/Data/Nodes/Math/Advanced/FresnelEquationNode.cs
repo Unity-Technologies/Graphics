@@ -96,7 +96,7 @@ namespace UnityEditor.ShaderGraph
                 f0InputSlot = new Vector1MaterialSlot(kF0InputSlotId, kF0InputSlotName, kF0InputSlotName, SlotType.Input, 0.04f);
                 AddSlot(f0InputSlot);
             }
-            else if (m_FresnelEquationMode == FresnelEquationMode.Dielectric )
+            else if (m_FresnelEquationMode == FresnelEquationMode.Dielectric)
             {
                 kIORSourceInputSlotId = slotId++;
                 kIORMediumInputSlotId = slotId++;
@@ -137,7 +137,7 @@ namespace UnityEditor.ShaderGraph
             return string.Format("Unity_FresnelEquation_{0}_$precision", m_FresnelEquationMode.ToString());
         }
 
-        string  GetResultType()
+        string GetResultType()
         {
             string resultType;
             if (m_FresnelEquationMode == FresnelEquationMode.Schlick)
