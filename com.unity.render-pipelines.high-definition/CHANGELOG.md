@@ -6,12 +6,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.1.3] - 2021-11-17
 
-### Changed
-- Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
-- Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
-- Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
-- The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
-
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
 - Fixed Xbox Series X compilation issue with DoF shader
@@ -50,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed contact shadow disappearing when shadowmask is used and no non-static object is available.
 - Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
 - Fixed for changes of color curves not being applied immediately.
+- Fixed the rendering order of decals that have a similar draw order value.
 
 ## [13.1.2] - 2021-11-05
 

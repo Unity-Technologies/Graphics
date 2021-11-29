@@ -4,13 +4,6 @@ This page contains an overview of new features, improvements, and issues resolve
 
 ## Added
 
-### Material Samples Transparency Scenes
-
-![](Images/HDRP-MaterialSample-ShadowsTransparency.png)
-
-These new scenes include examples and informations on how to setup properly transparents in your projects using different rendering methods (Rasterization, Ray Tracing, Path Tracing).
-To take advantage of all the content of the sample, a GPU that supports [Ray Tracing](Ray-Tracing-Getting-Started.md) is needed.
-
 ### Material Runtime API
 
 From this HDRP version, you can use new APIs to run shader validation steps from script at runtime, both in the editor and in standalone builds. You can use this to change the keyword state or one or more properties in order to enable or disable HDRP shader features on a Material.
