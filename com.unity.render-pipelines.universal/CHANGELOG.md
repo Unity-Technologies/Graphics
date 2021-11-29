@@ -6,19 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.1.3] - 2021-11-17
 
-### Added
-- Renderer Features can now use the HelpURLAttribute to specify a documentation URL to be used in the inspector.
-- Added inspector documentation URLs to the SSAO, Decal, and Render Objects renderer features.
-- Added a warning when using Pixel Perfect Camera in SRP without a 2D Renderer and exposed RenderPipelineConverter for 2D Pixel Perfect to URP converter.
-
 ### Changed
-- The "Add Renderer Feature" menu now supports filtering.
 - Removed the name input for the SSAO and Screen Space Shadows renderer features.
 
 ### Fixed
 - Fix shadow rendering correctly to work with shader stripping in WebGl. [case 1381881](https://issuetracker.unity3d.com/issues/webgl-urp-mesh-is-not-rendered-in-the-scene-on-webgl-build)
 - VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
 - Fixed inspector documentation URLs for the URP asset and Universal Renderer asset.
+- Fixed inspector documentation URLs to the SSAO, Decal, and Render Objects renderer features.
+- Fixed "Add Renderer Feature" filtering in menu
 
 ## [13.1.2] - 2021-11-05
 
