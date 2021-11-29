@@ -66,11 +66,19 @@ namespace UnityEngine.Rendering
 
                     if (EditorUtility.IsPersistent(this))
                     {
-                        AssetDatabase.AddObjectToAsset(component, this);
                         EditorUtility.SetDirty(this);
-                        AssetDatabase.SaveAssets();
+                        AssetDatabase.AddObjectToAsset(component, this);
+                        AssetDatabase.RemoveObjectFromAsset(volumeComponent as ScriptableObject);
                     }
                 }
+            }
+
+            if (toUpgrade.Count > 0)
+            {
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+                Reset();
+                VolumeManager.instance.RebuildDefaultStack();
             }
 #endif
         }
