@@ -21,8 +21,10 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Helper to get an enum value from a SerializedProperty.
         /// This handle case where index do not correspond to enum value.
+        /// </summary>
+        /// <typeparam name="T">A valid <see cref="Enum"/></typeparam>
+        /// <param name="property">The <see cref="SerializedProperty"/></param>
         /// <example>
-        /// <code>
         /// enum MyEnum
         /// {
         ///     A = 2,
@@ -43,9 +45,8 @@ namespace UnityEditor.Rendering
         ///     }
         /// }
         /// #endif
-        /// </code>
         /// </example>
-        /// </summary>
+        /// <returns>The <see cref="Enum"/> value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T GetEnumValue<T>(this SerializedProperty property)
             where T : Enum
@@ -64,6 +65,9 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Helper to set an enum value to a SerializedProperty
         /// </summary>
+        /// <typeparam name="T">A valid <see cref="Enum"/></typeparam>
+        /// <param name="property">The <see cref="SerializedProperty"/></param>
+        /// <param name="value">The <see cref="Enum"/></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetEnumValue<T>(this SerializedProperty property, T value)
             where T : Enum

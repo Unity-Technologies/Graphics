@@ -254,8 +254,8 @@ namespace UnityEngine.Rendering
         /// Reserve space from atlas for a texture.
         /// Pass width and height for CubeMap (use 2*width) & Texture2D (use width).
         /// </summary>
-        /// <param name="textureA">Source texture A.</param>
-        /// <param name="textureB">Source texture B.</param>
+        /// <param name="textureA">Source texture A</param>
+        /// <param name="textureB">Source texture B</param>
         /// <param name="width">Request width in pixels.</param>
         /// <param name="height">Request height in pixels.</param>
         /// <returns>True on success, false otherwise.</returns>
