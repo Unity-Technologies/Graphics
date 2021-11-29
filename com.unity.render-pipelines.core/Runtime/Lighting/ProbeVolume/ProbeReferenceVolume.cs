@@ -344,14 +344,28 @@ namespace UnityEngine.Experimental.Rendering
     {
         internal const int k_OctDepthMapSize = 8;
 
+        // TMP. This is just because updating the tex is slow.
+        float[] atlasOnCPU;
+
         internal OctahedralDepthAtlas(int width, int height)
         {
             atlasWidth = width;
             atlasHeight = height;
             // TODO_FCC: YUCK. Only need 2 channels. wtf.
-            atlas = new Texture2D(width, height, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None);
+            EnsureTexValidity();
+            Debug.Log($"{atlas != null} with {width}, {height}");
             freeSlots = new Queue<Vector2Int>();
             ClearAllocations();
+            atlasOnCPU = new float[width * height];
+        }
+
+        internal void EnsureTexValidity()
+        {
+            if (atlas == null)
+            {
+                ClearAllocations();
+                atlas = new Texture2D(atlasWidth, atlasHeight, GraphicsFormat.R32_SFloat, TextureCreationFlags.None);
+            }
         }
 
         internal Texture2D atlas;
@@ -396,12 +410,19 @@ namespace UnityEngine.Experimental.Rendering
             return index.y * atlasWidth + index.x;
         }
 
-        // TODO_FCC: This would need to be much faster... This is the DUMBEST way of doing it, but I just need to test visually before considering this to be viable anyway.
-        internal void InsertOctDepthData(float[,] brickData, Vector2Int startIndex)
+        internal void FreeList(Vector2Int alloc)
         {
-            int probeCount = brickData.GetLength(0);
-            int texelCount = brickData.GetLength(1);
+            freeSlots.Enqueue(alloc);
+        }
 
+        void InsertPixel(int x, int y, float value)
+        {
+            int loc = y * atlasWidth + x;
+            atlasOnCPU[loc] = value;
+        }
+        // TODO_FCC: This will need to be much faster... This is the DUMBEST way of doing it, but I just need to test visually before considering this to be viable anyway.
+        internal void InsertOctDepthData(float[] brickData, Vector2Int startIndex)
+        {
             for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; ++x)
             {
                 for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; ++y)
@@ -409,20 +430,18 @@ namespace UnityEngine.Experimental.Rendering
                     int startX = x * k_OctDepthMapSize + startIndex.x;
                     int startY = y * k_OctDepthMapSize + startIndex.y;
 
-                    Color[] tmpStorage = new Color[texelCount];
-                    for (int i = 0; i < texelCount; ++i)
+                    for (int i = 0; i < k_OctDepthMapSize * k_OctDepthMapSize; ++i)
                     {
-                        if (brickData[x + y * ProbeBrickPool.kBrickProbeCountPerDim, i] != 0.0f)
-                        {
-                            Debug.Log($"Blitting non-zero. {brickData[x + y * ProbeBrickPool.kBrickProbeCountPerDim, i]}");
-                        }
-                        tmpStorage[i] = new Color(brickData[x + y * ProbeBrickPool.kBrickProbeCountPerDim, i], 0, 0, 0);
-                    }
+                        InsertPixel(startX + i % k_OctDepthMapSize, startY + i / k_OctDepthMapSize, brickData[i]);
 
-                    atlas.SetPixels(startX, startY, k_OctDepthMapSize, k_OctDepthMapSize, tmpStorage);
+                    }
                 }
             }
+        }
 
+        internal void ApplyOnAtlas()
+        {
+            atlas.SetPixelData<float>(atlasOnCPU, 0);
             atlas.Apply();
         }
 
@@ -641,6 +660,7 @@ namespace UnityEngine.Experimental.Rendering
             /// TODO DOCS
             /// </summary>
             public Texture3D Validity;
+            public Texture2D octaDepth;
         }
 
         bool m_IsInitialized = false;
@@ -1112,6 +1132,7 @@ namespace UnityEngine.Experimental.Rendering
                 return;
 
             m_Pool.EnsureTextureValidity();
+            octDepthAtlas.EnsureTexValidity();
 
             // Load the ones that are already active but reload if we said we need to load
             if (m_HasChangedIndex)
@@ -1222,7 +1243,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 Profiler.BeginSample("Initialize Reference Volume");
                 m_Pool = new ProbeBrickPool(memoryBudget, shBands);
-                octDepthAtlas = new OctahedralDepthAtlas(4096, 4096); // << TODO FCC Drive with memory budget
+                octDepthAtlas = new OctahedralDepthAtlas(2048, 2048); // << TODO FCC Drive with memory budget
 
                 m_Index = new ProbeBrickIndex(memoryBudget);
                 m_CellIndices = new ProbeCellIndices(minCellPosition, maxCellPosition, (int)Mathf.Pow(3, m_MaxSubdivision - 1));
@@ -1265,6 +1286,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Index.GetRuntimeResources(ref rr);
             m_CellIndices.GetRuntimeResources(ref rr);
             m_Pool.GetRuntimeResources(ref rr);
+            rr.octaDepth = octDepthAtlas.atlas;
             return rr;
         }
 
@@ -1368,12 +1390,22 @@ namespace UnityEngine.Experimental.Rendering
             // Alloc stuff in octahedral depth
             foreach (var brick in bricks)
             {
-                Vector2Int nextAlloc = octDepthAtlas.GetNextFreeBrickAlloc();
-                brick.octDepthInfo.flatIdxOctaDepthAtlas = octDepthAtlas.FlattenIndex(nextAlloc);
                 // Put in alloc.
                 if (brick.octDepthInfo.octaDepthData != null)
+                {
+                    Vector2Int nextAlloc = octDepthAtlas.GetNextFreeBrickAlloc();
+                    brick.octDepthInfo.flatIdxOctaDepthAtlas = nextAlloc;
+
                     octDepthAtlas.InsertOctDepthData(brick.octDepthInfo.octaDepthData, nextAlloc);
+                }
+                else
+                {
+                    Debug.Log("Something's wrong");
+                }
+
             }
+
+            octDepthAtlas.ApplyOnAtlas();
 
 
 
@@ -1407,6 +1439,11 @@ namespace UnityEngine.Experimental.Rendering
 
             // clean up the pool
             m_Pool.Deallocate(cellInfo.chunkList);
+
+            foreach (var b in cellInfo.cell.bricks)
+            {
+                octDepthAtlas.FreeList(b.octDepthInfo.flatIdxOctaDepthAtlas);
+            }
 
             cellInfo.chunkList.Clear();
         }

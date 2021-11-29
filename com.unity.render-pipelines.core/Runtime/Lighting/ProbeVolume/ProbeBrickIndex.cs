@@ -31,23 +31,24 @@ namespace UnityEngine.Experimental.Rendering
         [Serializable]
         public struct OctahedralDepthInfo
         {
-            public float[,] octaDepthData;
-            public int flatIdxOctaDepthAtlas;
+            public float[] octaDepthData;
+            public Vector2Int flatIdxOctaDepthAtlas;
 
-            // Assume order in same order in bricks.
-            public OctahedralDepthInfo(float[,] inData)
+            public void AddData(float[,] inData)
             {
+                Debug.Log("Add");
+
                 const int singleDim = OctahedralDepthAtlas.k_OctDepthMapSize;
                 const int numberOfTexelsForMap = singleDim * singleDim;
-                octaDepthData = new float[ProbeBrickPool.kBrickProbeCountTotal, numberOfTexelsForMap];
+                octaDepthData = new float[ProbeBrickPool.kBrickProbeCountTotal * numberOfTexelsForMap];
                 for (int i = 0; i < ProbeBrickPool.kBrickProbeCountTotal; ++i)
                 {
                     for (int tex = 0; tex < numberOfTexelsForMap; ++tex)
                     {
-                        octaDepthData[i, tex] = inData[i, tex];
+                        octaDepthData[i * numberOfTexelsForMap + tex] = inData[i, tex];
                     }
                 }
-                flatIdxOctaDepthAtlas = -1;
+                flatIdxOctaDepthAtlas = new Vector2Int(-1, -1);
             }
         }
 
@@ -551,7 +552,7 @@ namespace UnityEngine.Experimental.Rendering
                 brick_max.y = Mathf.Min(vx_max.y, brick_max.y);
                 brick_max.z = Mathf.Min(vx_max.z, brick_max.z - m_CenterRS.z);
 
-                UpdatePhysicalIndex(brick_min, brick_max, new Vector2Int(rbrick.flattenedIdx, rbrick.brick.octDepthInfo.flatIdxOctaDepthAtlas), cellInfo);
+                UpdatePhysicalIndex(brick_min, brick_max, new Vector2Int(rbrick.flattenedIdx, ProbeReferenceVolume.instance.octDepthAtlas.FlattenIndex(rbrick.brick.octDepthInfo.flatIdxOctaDepthAtlas)), cellInfo);
             }
         }
 

@@ -14,6 +14,7 @@ SAMPLER(s_point_clamp_sampler);
 
 
 #define MANUAL_FILTERING 1
+#define PACKED_VERSION 1
 
 struct APVResources
 {
@@ -73,6 +74,10 @@ struct APVSample
 StructuredBuffer<int2> _APVResIndex;
 StructuredBuffer<uint3> _APVResCellIndices;
 
+
+TEXTURE2D(_OctahedralDepthAtlas);
+
+
 TEXTURE3D(_APVResL0_L1Rx);
 
 TEXTURE3D(_APVResL1G_L1Ry);
@@ -90,7 +95,7 @@ TEXTURE3D(_APVResValidity);
 // -------------------------------------------------------------
 float GetValidityWeight(APVResources apvRes, int3 sampleLoc)
 {
-    float vW = LOAD_TEXTURE3D(apvRes.Validity, sampleLoc).w;
+    float vW = LOAD_TEXTURE3D(apvRes.Validity, sampleLoc).x;
     return all(_AntiLeakParams == 0) ? 1 : 1-step(0.00000001f, vW);
 }
 
@@ -117,6 +122,13 @@ float GetLeakWeight(APVResources apvRes, float3 samplePosWS, float3 sampleNormal
 
     return 1;
 }
+
+float GetValidityWeight(int offset, uint validityMask)
+{
+    int mask = 1 << offset;
+    return (validityMask & mask) > 0 ? 1 : 0;
+}
+
 // -------------------------------------------------------------
 // Indexing functions
 // -------------------------------------------------------------
@@ -456,6 +468,11 @@ float3 GetClosestL0ToOracle(float3 oracle, float4 L0s[8])
     return L0s[minIndex].xyz;
 }
 
+float DDGIWeight(float3 uvw)
+{
+    return     SAMPLE_TEXTURE2D_LOD(_OctahedralDepthAtlas, s_linear_clamp_sampler, uvw.xy, 0).r == 101020 ? 0.999999 : 1;
+}
+
 float3 GetManuallyFilteredL0(APVSamplingInput inputs)
 {
     float3 total = 0.0f;
@@ -485,6 +502,8 @@ float3 GetManuallyFilteredL0(APVSamplingInput inputs)
 
     float3 closestL0 = GetClosestL0ToOracle(inputs.oracle, L0s);
 
+    uint validityMask = (LOAD_TEXTURE3D(inputs.apvRes.Validity, texCoordInt).x) * 255;
+
     for (i = 0; i < 8; ++i)
     {
         uint3 offset = GetSampleOffset(i);
@@ -493,7 +512,11 @@ float3 GetManuallyFilteredL0(APVSamplingInput inputs)
             ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
             ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
 
+#if PACKED_VERSION == 1
+        float vW = GetValidityWeight(i, validityMask);
+#else
         float vW = GetLeakWeight(inputs.apvRes, inputs.posWS, inputs.normalWS, texCoordInt + offset);
+#endif
         float finalW = lerp(w, w * vW, _ProbeVolumeBilateralFilterWeight);
         float3 sampleL0 = L0s[i].xyz;
         total += finalW * GetOracleBasedWeight(sampleL0, inputs.oracle, closestL0) * sampleL0;
@@ -503,7 +526,11 @@ float3 GetManuallyFilteredL0(APVSamplingInput inputs)
 
     totalWeight = max(1e-3f, totalWeight);
 
-    return total / totalWeight;
+
+    //// JUST TO SHOW TEXTURE. NOT THE RIGHT THING.
+
+
+    return (total / totalWeight) * DDGIWeight(inputs.uvw);
 }
 
 

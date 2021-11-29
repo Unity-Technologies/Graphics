@@ -555,24 +555,49 @@ namespace UnityEngine.Experimental.Rendering
                 int totalTexels = octDepthSize * octDepthSize;
                 float[,] brickHeldData = new float[64, totalTexels];
 
-                for (int brick = 0; brick < (numProbes/64); ++brick)
+                for (int brick = 0; brick < (numProbes / 64); ++brick)
                 {
-
-                    int beginOfBrickInDepth = brick * 64 * totalTexels;
                     if (true)
                     {
                         for (var probe = 0; probe < 64; ++probe)
                         {
-                            int beginProbe = beginOfBrickInDepth + probe * totalTexels;
+                            int probeIndex = brick * 64 + probe;
+                            int probeIndexInBakedData = bakingCells[c].probeIndices[probeIndex];
                             for (var texel = 0; texel < totalTexels; ++texel)
                             {
-                                brickHeldData[probe, texel] = bakedProbeOctahedralDepth[beginProbe + texel];
+                                int idx = totalTexels * probeIndexInBakedData + texel;
+                               // Debug.Log($"{idx}");
+                                if (bakedProbeOctahedralDepth[idx] != 0.0f)
+                                {
+                                //    Debug.Log($"{idx} - > bakedProbeOctahedralDepth[idx]");
+                                }
+                                brickHeldData[probe, texel] = bakedProbeOctahedralDepth[idx];
+
                             }
+                            int indexInOct = probeIndex * totalTexels + probe;
                         }
                     }
-
-                    cell.bricks[brick].octDepthInfo = new ProbeBrickIndex.OctahedralDepthInfo(brickHeldData);
+                    cell.bricks[brick].octDepthInfo.AddData(brickHeldData);
                 }
+
+                //for (int brick = 0; brick < (numProbes/64); ++brick)
+                //{
+
+                //    int beginOfBrickInDepth = brick * 64 * totalTexels;
+                //    if (true)
+                //    {
+                //        for (var probe = 0; probe < 64; ++probe)
+                //        {
+                //            int beginProbe = beginOfBrickInDepth + probe * totalTexels;
+                //            for (var texel = 0; texel < totalTexels; ++texel)
+                //            {
+                //                int j = bakingCells[c].probeIndices[beginProbe + texel];
+                //            //    brickHeldData[probe, texel] = (float)texel;
+                //            }
+                //        }
+                //    }
+
+                //}
 
                 cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell, out var minValidLocalIdxAtMaxRes, out var sizeOfValidIndicesAtMaxRes);
                 cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Count);
@@ -649,8 +674,12 @@ namespace UnityEngine.Experimental.Rendering
                 data.QueueAssetLoading();
             }
 
+            Debug.Log("BEFORE DILATION");
             // ---- Perform dilation ---
             PerformDilation();
+
+            Debug.Log("AFTER DILATION");
+
         }
 
         static void OnLightingDataCleared()
