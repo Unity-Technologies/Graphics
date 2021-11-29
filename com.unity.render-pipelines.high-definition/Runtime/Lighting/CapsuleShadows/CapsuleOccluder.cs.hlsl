@@ -8,8 +8,10 @@
 // PackingRules = Exact
 struct CapsuleOccluderData
 {
-    float4 centerRWS_radius;
-    float4 directionWS_range;
+    float3 centerRWS;
+    float radius;
+    float3 directionWS;
+    float range;
 };
 
 

@@ -9,10 +9,11 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false)]
     internal struct CapsuleOccluderData
     {
-        public Vector4 centerRWS_radius;
-        public Vector4 directionWS_range;
+        public Vector3 centerRWS;
+        public float radius;
+        public Vector3 directionWS;
+        public float range;
     }
-
 
     [ExecuteAlways]
     public class CapsuleOccluder : MonoBehaviour
@@ -60,8 +61,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return new CapsuleOccluderData
             {
-                centerRWS_radius = new Vector4(centerRWS.x, centerRWS.y, centerRWS.z, radiusWS),
-                directionWS_range = new Vector4(directionWS.x, directionWS.y, directionWS.z, range),
+                centerRWS = centerRWS,
+                radius = radiusWS,
+                directionWS = directionWS,
+                range = range,
             };
         }
     }

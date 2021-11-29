@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     internal struct CapsuleOccluderList
     {
+        public bool useSphereBounds;
         public List<OrientedBBox> bounds;
         public List<CapsuleOccluderData> occluders;
     };
@@ -34,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleCapsuleOccluderBounds = null;
         }
 
-        internal CapsuleOccluderList PrepareVisibleCapsuleOccludersList(HDCamera hdCamera, CommandBuffer cmd)
+        internal CapsuleOccluderList PrepareVisibleCapsuleOccludersList(HDCamera hdCamera, CommandBuffer cmd, CullingResults cullResults)
         {
             Vector3 originWS = Vector3.zero;
             if (ShaderConfig.s_CameraRelativeRendering != 0)
@@ -42,33 +43,102 @@ namespace UnityEngine.Rendering.HighDefinition
                 originWS = hdCamera.camera.transform.position;
             }
 
+            // if there is a single light with capsule shadows, build optimised bounds
+            HDLightRenderDatabase lightEntities = HDLightRenderDatabase.instance;
+            bool optimiseBoundsForLight = false;
+            Vector3 lightDirection = Vector3.zero;
+            float lightHalfAngle = 0.0f;
+            for (int i = 0; i < cullResults.visibleLights.Length; ++i)
+            {
+                VisibleLight visibleLight = cullResults.visibleLights[i];
+                Light light = visibleLight.light;
+
+                int dataIndex = lightEntities.FindEntityDataIndex(light);
+                if (dataIndex == HDLightRenderDatabase.InvalidDataIndex)
+                    continue;
+
+                HDAdditionalLightData lightData = lightEntities.hdAdditionalLightData[dataIndex];
+                if (lightData.enableCapsuleShadows)
+                {
+                    if (light.type == LightType.Directional && !optimiseBoundsForLight)
+                    {
+                        // optimise for this light, continue checking through the visible list
+                        optimiseBoundsForLight = true;
+                        lightDirection = visibleLight.GetForward().normalized;
+                        lightHalfAngle = lightData.angularDiameter * Mathf.Deg2Rad * 0.5f;
+                    }
+                    else
+                    {
+                        // cannot optimise for a single directional light, disable and early out
+                        optimiseBoundsForLight = false;
+                        break;
+                    }
+                }
+            }
+
             m_VisibleCapsuleOccluderBounds.Clear();
             m_VisibleCapsuleOccluderData.Clear();
 
-            var occluders = CapsuleOccluderManager.instance.occluders;
-            foreach (CapsuleOccluder occluder in occluders)
+            bool enableCapsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadows>().enable.value;
+            if (enableCapsuleShadows)
             {
-                if (m_VisibleCapsuleOccluderData.Count >= k_MaxVisibleCapsuleOccluders)
+                var occluders = CapsuleOccluderManager.instance.occluders;
+                foreach (CapsuleOccluder occluder in occluders)
                 {
-                    break;
+                    if (m_VisibleCapsuleOccluderData.Count >= k_MaxVisibleCapsuleOccluders)
+                    {
+                        break;
+                    }
+
+                    CapsuleOccluderData data = occluder.GetOccluderData(originWS);
+
+                    // TODO: visibility check vs frustum
+
+                    OrientedBBox bbox;
+                    if (optimiseBoundsForLight)
+                    {
+                        // align local X with the capsule axis if possible, otherwise just any ortho direction
+                        Vector3 localZ = lightDirection;
+                        Vector3 localX = Vector3.Cross(localZ, data.directionWS).normalized;
+                        if (localX.sqrMagnitude < 0.9f)
+                            localX = Vector3.Cross(localZ, Mathf.Abs(lightDirection.y) < 0.99f ? Vector3.up : Vector3.right).normalized;
+                        Vector3 localY = Vector3.Cross(localZ, localX);
+
+                        // capsule bounds, extended along light direction
+                        Vector3 halfExtentLS = new Vector3(
+                            Mathf.Abs(Vector3.Dot(data.directionWS, localX)) + data.radius,
+                            Mathf.Abs(Vector3.Dot(data.directionWS, localY)) + data.radius,
+                            Mathf.Abs(Vector3.Dot(data.directionWS, localZ)) + data.radius);
+                        halfExtentLS.z += data.range;
+
+                        // expand by max penumbra
+                        float penumbraSize = Mathf.Tan(lightHalfAngle) * data.range;
+                        halfExtentLS.x += penumbraSize;
+                        halfExtentLS.y += penumbraSize;
+
+                        bbox = new OrientedBBox(new Matrix4x4(
+                            2.0f * halfExtentLS.x * localX,
+                            2.0f * halfExtentLS.y * localY,
+                            2.0f * halfExtentLS.z * localZ,
+                            data.centerRWS));
+                    }
+                    else
+                    {
+                        float length = 2.0f * data.range;
+                        bbox = new OrientedBBox(
+                            Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
+                    }
+
+                    m_VisibleCapsuleOccluderBounds.Add(bbox);
+                    m_VisibleCapsuleOccluderData.Add(data);
                 }
-
-                CapsuleOccluderData data = occluder.GetOccluderData(originWS);
-                // TODO: visibility check range vs frustum
-
-                Vector3 centre = new Vector3(data.centerRWS_radius.x, data.centerRWS_radius.y, data.centerRWS_radius.z);
-                float length = 2.0f * data.directionWS_range.w;
-                OrientedBBox bbox = new OrientedBBox(
-                    Matrix4x4.TRS(centre, Quaternion.identity, new Vector3(length, length, length)));
-
-                m_VisibleCapsuleOccluderBounds.Add(bbox);
-                m_VisibleCapsuleOccluderData.Add(data);
             }
 
             m_VisibleCapsuleOccluderDataBuffer.SetData(m_VisibleCapsuleOccluderData);
 
             return new CapsuleOccluderList
             {
+                useSphereBounds = !optimiseBoundsForLight,
                 bounds = m_VisibleCapsuleOccluderBounds,
                 occluders = m_VisibleCapsuleOccluderData,
             };

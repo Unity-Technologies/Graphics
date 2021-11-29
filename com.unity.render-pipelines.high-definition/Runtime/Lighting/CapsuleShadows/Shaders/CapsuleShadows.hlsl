@@ -164,10 +164,10 @@ float EvaluateCapsuleShadow(float3 lightPosOrAxis, bool lightIsPunctual, float l
         {
             v_sphereListOffset++;
 
-            float3 centerRWS = s_capsuleData.centerRWS_radius.xyz;
-            float radius = s_capsuleData.centerRWS_radius.w;
-            float3 directionWS = s_capsuleData.directionWS_range.xyz;
-            float range = s_capsuleData.directionWS_range.w;
+            float3 centerRWS = s_capsuleData.centerRWS;
+            float radius = s_capsuleData.radius;
+            float3 directionWS = s_capsuleData.directionWS;
+            float range = s_capsuleData.range;
 
             float3 surfaceToLightDir = lightPosOrAxis;
             float surfaceToLightDistance = FLT_MAX;
