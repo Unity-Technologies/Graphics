@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.Rendering
 {
     public interface IPostProcessComponent
@@ -12,5 +14,7 @@ namespace UnityEngine.Rendering
 
     public interface IDeprecatedVolumeComponent
     {
+        public void CopyToNewComponent(VolumeComponent old);
+        public Type GetNewComponentType();
     }
 }

@@ -30,5 +30,22 @@ namespace UnityEngine.Rendering
         {
             return distance.value > 0f;
         }
+
+        public Type GetNewComponentType()
+        {
+            return typeof(PaniniProjection);
+        }
+
+        public void CopyToNewComponent(VolumeComponent volumeComponent)
+        {
+            if (volumeComponent is not PaniniProjection panini)
+                return;
+
+            panini.active = active;
+            panini.hideFlags = hideFlags;
+            panini.displayName = displayName;
+            panini.distance = distance;
+            panini.cropToFit = cropToFit;
+        }
     }
 }

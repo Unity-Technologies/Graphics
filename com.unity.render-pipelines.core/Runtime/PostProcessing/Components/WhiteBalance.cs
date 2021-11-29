@@ -32,5 +32,22 @@ namespace UnityEngine.Rendering
         }
 
         public bool IsTileCompatible() => true;
+
+        public Type GetNewComponentType()
+        {
+            return typeof(WhiteBalance);
+        }
+
+        public void CopyToNewComponent(VolumeComponent volumeComponent)
+        {
+            if (volumeComponent is not WhiteBalance wb)
+                return;
+
+            wb.active = active;
+            wb.hideFlags = hideFlags;
+            wb.displayName = displayName;
+            wb.temperature = temperature;
+            wb.tint = tint;
+        }
     }
 }

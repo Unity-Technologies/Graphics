@@ -8,6 +8,5 @@ namespace UnityEngine.Rendering.HighDefinition.Obsolete
     [Serializable]
     [Obsolete]
     public sealed class ChannelMixer : UnityEngine.Rendering.ChannelMixer, IDeprecatedVolumeComponent
-    {
-    }
+    { }
 }

@@ -68,5 +68,27 @@ namespace UnityEngine.Rendering
         protected ShadowsMidtonesHighlights() => displayName = "Shadows, Midtones, Highlights";
 
         public bool IsTileCompatible() => true;
+
+        public Type GetNewComponentType()
+        {
+            return typeof(ShadowsMidtonesHighlights);
+        }
+
+        public void CopyToNewComponent(VolumeComponent volumeComponent)
+        {
+            if (volumeComponent is not ShadowsMidtonesHighlights smh)
+                return;
+
+            smh.active = active;
+            smh.hideFlags = hideFlags;
+            smh.displayName = displayName;
+            smh.shadows = shadows;
+            smh.midtones = midtones;
+            smh.highlights = highlights;
+            smh.shadowsStart = shadowsStart;
+            smh.shadowsEnd = shadowsEnd;
+            smh.highlightsStart = highlightsStart;
+            smh.highlightsEnd = highlightsEnd;
+        }
     }
 }

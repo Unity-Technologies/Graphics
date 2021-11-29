@@ -9,5 +9,6 @@ namespace UnityEngine.Rendering.HighDefinition.Obsolete
     [Obsolete]
     //[HDRPHelpURLAttribute("Post-Processing-White-Balance")]
     public sealed class WhiteBalance : UnityEngine.Rendering.WhiteBalance, IDeprecatedVolumeComponent
-    { }
+    {
+    }
 }

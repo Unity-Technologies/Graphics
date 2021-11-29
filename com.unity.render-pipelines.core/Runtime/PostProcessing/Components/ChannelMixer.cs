@@ -84,5 +84,29 @@ namespace UnityEngine.Rendering
         }
 
         public bool IsTileCompatible() => true;
+
+        public Type GetNewComponentType()
+        {
+            return typeof(ChannelMixer);
+        }
+
+        public void CopyToNewComponent(VolumeComponent volumeComponent)
+        {
+            if (volumeComponent is not ChannelMixer mixer)
+                return;
+
+            mixer.active = active;
+            mixer.hideFlags = hideFlags;
+            mixer.displayName = displayName;
+            mixer.redOutRedIn = redOutRedIn;
+            mixer.redOutGreenIn = redOutGreenIn;
+            mixer.redOutBlueIn = redOutBlueIn;
+            mixer.greenOutRedIn = greenOutRedIn;
+            mixer.greenOutGreenIn = greenOutGreenIn;
+            mixer.greenOutBlueIn = greenOutBlueIn;
+            mixer.blueOutRedIn = blueOutRedIn;
+            mixer.blueOutGreenIn = blueOutGreenIn;
+            mixer.blueOutBlueIn = blueOutBlueIn;
+        }
     }
 }
