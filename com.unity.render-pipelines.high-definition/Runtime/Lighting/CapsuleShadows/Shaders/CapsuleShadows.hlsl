@@ -5,6 +5,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;
+uint _CapsuleOccluderCount;
 
 // ref: https://www.iquilezles.org/www/articles/intersectors/intersectors.htm
 float RayIntersectCapsule(float3 ro, float3 rd, float3 pa, float3 pb, float r)
@@ -118,7 +119,7 @@ float EvaluateCapsuleShadow(float3 lightPosOrAxis, bool lightIsPunctual, float l
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     GetCountAndStart(posInput, LIGHTCATEGORY_CAPSULE_OCCLUDER, sphereStart, sphereCount);
 #else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    sphereCount = /* TO ADD FIXED COUNT */ ; 
+    sphereCount = _CapsuleOccluderCount; 
     sphereStart = 0;
 #endif
 

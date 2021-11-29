@@ -18,6 +18,9 @@
 #define LIGHT_EVALUATION_NO_CONTACT_SHADOWS // To define before LightEvaluation.hlsl
 // #define LIGHT_EVALUATION_NO_HEIGHT_FOG
 
+// No capsule shadows in volumetrics for now
+#define LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
+
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     #define USE_BIG_TILE_LIGHTLIST
 #endif

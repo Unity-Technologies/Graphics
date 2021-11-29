@@ -1,8 +1,10 @@
 #ifndef UNITY_LIGHT_EVALUATION_INCLUDED
 #define UNITY_LIGHT_EVALUATION_INCLUDED
 
-#ifdef CAPSULE_SHADOWS
+#ifndef LIGHT_EVALUATION_NO_SHADOWS
+#ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/Shaders/CapsuleShadows.hlsl"
+#endif
 #endif
 
 // This files include various function uses to evaluate lights
@@ -303,7 +305,7 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
 }
 #endif
 
-#ifdef CAPSULE_SHADOWS
+#ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
     if (light.enableCapsuleShadows != 0.f)
     {
         float cosTheta = cos(0.5f * light.angularDiameter);
@@ -495,7 +497,7 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
     }
 #endif
 
-#ifdef CAPSULE_SHADOWS
+#ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
     if (light.enableCapsuleShadows != 0.f)
     {
         float radius = light.size.x;
