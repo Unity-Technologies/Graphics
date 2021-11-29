@@ -134,6 +134,8 @@ namespace UnityEditor.VFX
             public static readonly float kScrubbingBarHeight = 16.0f;
             public static readonly float kEventNameHeight = 16.0f;
 
+            public static readonly float kIconScale = 1.0f;
+
             public static readonly float kMinimalBarHeight = 2.0f;
             public static readonly float kBarPadding = 1.0f;
             public static readonly float kSingleEventWidth = use2xMarker ? 2.0f : 1.0f;
@@ -392,7 +394,6 @@ namespace UnityEditor.VFX
                     case IconType.SingleEvent: iconContent = Content.singleEventIcon; break;
                 }
 
-                var scale = 1.0f; //Could be computed from image size
                 var iconOffset = 0.0f;
                 switch (currentType)
                 {
@@ -401,18 +402,18 @@ namespace UnityEditor.VFX
                         break;
 
                     case IconType.ClipExit:
-                        iconOffset = -iconContent.image.width * scale;
+                        iconOffset = -iconContent.image.width * Style.kIconScale;
                         break;
 
                     case IconType.SingleEvent:
-                        iconOffset = -iconContent.image.width * scale * 0.5f;
+                        iconOffset = -iconContent.image.width * Style.kIconScale * 0.5f;
                         break;
                 }
                 var iconArea = new Rect(
                     baseRegion.position.width * (float)relativeTime + iconOffset,
-                    (Style.kEventNameHeight - (iconContent.image.height * scale)) * 0.5f,
-                    iconContent.image.width * scale,
-                    iconContent.image.height * scale);
+                    (Style.kEventNameHeight - (iconContent.image.height * Style.kIconScale)) * 0.5f,
+                    iconContent.image.width * Style.kIconScale,
+                    iconContent.image.height * Style.kIconScale);
 
                 var icon = new EventAreaItem(iconArea, currentType, iconContent, color);
                 m_TextEventAreaRequested.Add(icon);
@@ -548,13 +549,33 @@ namespace UnityEditor.VFX
                     if (currentType == IconType.SingleEvent)
                     {
                         //Exception, drawing a kSingleEventWidth px line from here to begin of clip
-                        EditorGUI.DrawRect(new Rect(
-                            drawRect.position.x + drawRect.width * 0.5f - Style.kSingleEventWidth * 0.5f, 0.0f,
-                            Style.kSingleEventWidth, drawRect.position.y + drawRect.height),
-                            baseColor);
-                    }
+                        var sourceArea = drawRect;
 
-                    GUI.DrawTexture(drawRect, item.content.image, ScaleMode.StretchToFill, true, 1.0f, baseColor, 0, 0);
+                        float triangleGap = 0.0f;
+                        var middlePosition = sourceArea.position.x + sourceArea.width * 0.5f;
+                        var leftRect = new Rect(middlePosition - Style.kSingleEventWidth * triangleGap - Content.clipExitIcon.image.width * Style.kIconScale,
+                                                sourceArea.y,
+                                                Content.clipExitIcon.image.width * Style.kIconScale,
+                                                Content.clipExitIcon.image.height * Style.kIconScale);
+
+                        var rightRect = new Rect(middlePosition + Style.kSingleEventWidth * triangleGap,
+                                                sourceArea.y,
+                                                Content.clipEnterIcon.image.width * Style.kIconScale,
+                                                Content.clipEnterIcon.image.height * Style.kIconScale);
+
+                        GUI.DrawTexture(leftRect, Content.clipExitIcon.image, ScaleMode.StretchToFill, true, 1.0f, baseColor, 0, 0);
+                        GUI.DrawTexture(rightRect, Content.clipEnterIcon.image, ScaleMode.StretchToFill, true, 1.0f, baseColor, 0, 0);
+
+                        var middleLineRect = new Rect(middlePosition - Style.kSingleEventWidth * 0.5f,
+                                                        0.0f,
+                                                        Style.kSingleEventWidth,
+                                                        sourceArea.position.y + sourceArea.height);
+                        EditorGUI.DrawRect(middleLineRect, baseColor);
+                    }
+                    else
+                    {
+                        GUI.DrawTexture(drawRect, item.content.image, ScaleMode.StretchToFill, true, 1.0f, baseColor, 0, 0);
+                    }
                 }
             }
             base.DrawBackground(clip, region);
