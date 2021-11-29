@@ -50,6 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0_L1Rx, rr.L0_L1rx);
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1G_L1Ry, rr.L1_G_ry);
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1B_L1Rz, rr.L1_B_rz);
+                    cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResValidity, rr.Validity);
 
                     if (refVolume.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {
@@ -79,6 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1G_L1Ry, TextureXR.GetBlackTexture3D());
                 cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1B_L1Rz, TextureXR.GetBlackTexture3D());
+                cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResValidity, TextureXR.GetBlackTexture3D());
 
                 if (refVolume.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 {
@@ -104,6 +106,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.viewBias = probeVolumeOptions.viewBias.value;
                 parameters.scaleBiasByMinDistanceBetweenProbes = probeVolumeOptions.scaleBiasWithMinProbeDistance.value;
                 parameters.samplingNoise = probeVolumeOptions.samplingNoise.value;
+                parameters.leakReductionMode = LeakReductionMode.None;
+                parameters.occlusionWeightContribution = 1.0f;
                 ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
             }
         }

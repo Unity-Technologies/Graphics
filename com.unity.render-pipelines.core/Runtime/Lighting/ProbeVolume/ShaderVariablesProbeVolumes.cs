@@ -10,6 +10,12 @@ namespace UnityEngine.Rendering
         GlobalRegister = 5
     }
 
+    public enum LeakReductionMode
+    {
+        None = 0,
+        ValidityBased = 1
+    }
+
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)APVConstantBufferRegister.GlobalRegister)]
     internal unsafe struct ShaderVariablesProbeVolumes
     {
@@ -22,9 +28,12 @@ namespace UnityEngine.Rendering
         public Vector3 _CellIndicesDim;
         public float _CellInMeters;
 
+        public Vector4 _LeakReductionParams;
+
         public float _CellInMinBricks;
         public float _MinBrickSize;
         public int _IndexChunkSize;
         public float _NormalBias;
+
     }
 }
