@@ -23,7 +23,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light mode not available after switching a light to area "Disc" or "Tube" (case 1372588).
 - Fixed CoC size computation when dynamic resolution is enabled
 - Fixed shadow cascade transition not working properly with bias.
-- Fixed broken rendering when duplicating a camera while the Rendering Debugger is opened.
 - Fixed screen space shadow debug view not showing when no shadows is available.
 - Fixed debug window reset.
 - Fixed camera bridge action in release build (case 1367866).
