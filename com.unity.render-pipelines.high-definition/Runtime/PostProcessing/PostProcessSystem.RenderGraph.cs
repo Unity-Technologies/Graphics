@@ -1009,7 +1009,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool accumulateInPost = m_PostProcessEnabled && m_DepthOfField.IsActive();
             if (!accumulateInPost && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
             {
-                RenderAccumulation(m_RenderGraph, hdCamera, colorBuffer, colorBuffer, false);
+                RenderAccumulation(renderGraph, hdCamera, colorBuffer, colorBuffer, false);
             }
         }
 
