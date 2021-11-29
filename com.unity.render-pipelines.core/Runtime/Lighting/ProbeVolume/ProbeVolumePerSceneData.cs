@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -76,6 +77,23 @@ namespace UnityEngine.Experimental.Rendering
 
         internal ProbeVolumeAsset GetAssetForState(int state) => assets.GetValueOrDefault(state, null);
 
+        internal void Clear()
+        {
+            AssetDatabase.StartAssetEditing();
+            foreach (var asset in assets)
+            {
+                if (asset.Value != null)
+                {
+                    ProbeReferenceVolume.instance.AddPendingAssetRemoval(asset.Value);
+                    AssetDatabase.DeleteAsset(ProbeVolumeAsset.GetPath(gameObject.scene, asset.Key, false));
+                }
+            }
+            AssetDatabase.StopAssetEditing();
+            AssetDatabase.Refresh();
+
+            assets.Clear();
+        }
+
         internal void InvalidateAllAssets()
         {
             foreach (var asset in assets.Values)
@@ -83,8 +101,6 @@ namespace UnityEngine.Experimental.Rendering
                 if (asset != null)
                     ProbeReferenceVolume.instance.AddPendingAssetRemoval(asset);
             }
-
-            assets.Clear();
         }
 
         internal ProbeVolumeAsset GetCurrentStateAsset()

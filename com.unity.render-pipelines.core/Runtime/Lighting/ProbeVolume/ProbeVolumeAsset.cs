@@ -51,6 +51,9 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
+        public static string GetPath(Scene scene, int state, bool createFolder)
+            => GetPath(scene.path, scene.name, state, createFolder);
+
         public static string GetPath(string scenePath, string sceneName, int state, bool createFolder)
         {
             const string assetName = "ProbeVolumeData";
@@ -67,7 +70,7 @@ namespace UnityEngine.Experimental.Rendering
         public static ProbeVolumeAsset CreateAsset(Scene scene, int state)
         {
             ProbeVolumeAsset asset = CreateInstance<ProbeVolumeAsset>();
-            asset.m_AssetFullPath = GetPath(scene.path, scene.name, state, true);
+            asset.m_AssetFullPath = GetPath(scene, state, true);
 
             UnityEditor.AssetDatabase.CreateAsset(asset, asset.m_AssetFullPath);
             return asset;

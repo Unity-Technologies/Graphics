@@ -92,7 +92,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             var perSceneData = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
             foreach (var data in perSceneData)
-                data.InvalidateAllAssets();
+                data.Clear();
 
             ProbeReferenceVolume.instance.Clear();
 
@@ -452,6 +452,8 @@ namespace UnityEngine.Experimental.Rendering
             m_BakedCells.Clear();
 
             // Clear baked data
+            foreach (var data in GameObject.FindObjectsOfType<ProbeVolumePerSceneData>())
+                data.InvalidateAllAssets();
             ProbeReferenceVolume.instance.Clear();
 
             // Make sure all pending operations are done (needs to be after the Clear to unload all previous scenes)
@@ -552,7 +554,7 @@ namespace UnityEngine.Experimental.Rendering
             // Reset index
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
 
-            // Map from each scene to an existing reference volume, and each reference volume to a new asset
+            // Map from each scene to its per scene data, and per scene data to a new asset for the current baking state
             var scene2Data = new Dictionary<Scene, ProbeVolumePerSceneData>();
             var data2Asset = new Dictionary<ProbeVolumePerSceneData, ProbeVolumeAsset>();
             foreach (var data in GameObject.FindObjectsOfType<ProbeVolumePerSceneData>())
