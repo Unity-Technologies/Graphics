@@ -618,6 +618,19 @@ namespace UnityEngine.Experimental.Rendering
 
         static ProbeReferenceVolume _instance = new ProbeReferenceVolume();
 
+        internal List<ProbeVolumePerSceneData> perSceneDataList { get; private set; } = new List<ProbeVolumePerSceneData>();
+
+        internal void RegisterPerSceneData(ProbeVolumePerSceneData data)
+        {
+            if (!perSceneDataList.Contains(data))
+                perSceneDataList.Add(data);
+        }
+
+        internal void UnregisterPerSceneData(ProbeVolumePerSceneData data)
+        {
+            perSceneDataList.Remove(data);
+        }
+
         /// <summary>
         /// Get the instance of the probe reference volume (singleton).
         /// </summary>

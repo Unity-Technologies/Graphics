@@ -96,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (value == sceneData.m_BakingState)
                     return;
                 sceneData.m_BakingState = value;
-                foreach (var data in Object.FindObjectsOfType<ProbeVolumePerSceneData>())
+                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                     data.SetBakingState(value);
                 onBakingStateChanged.Invoke(value);
             }
@@ -275,7 +275,7 @@ namespace UnityEngine.Experimental.Rendering
         {
 #if UNITY_EDITOR
             var scene2Data = new Dictionary<string, ProbeVolumePerSceneData>();
-            foreach (var data in GameObject.FindObjectsOfType<ProbeVolumePerSceneData>())
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 scene2Data[data.gameObject.scene.path] = data;
 
             AssetDatabase.StartAssetEditing();
@@ -503,14 +503,13 @@ namespace UnityEngine.Experimental.Rendering
 
             if (hasProbeVolumes.ContainsKey(sceneGUID) && hasProbeVolumes[sceneGUID])
             {
-                var perSceneData = UnityEngine.GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
-
                 bool foundPerSceneData = false;
-                foreach (var data in perSceneData)
+                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 {
                     if (GetSceneGUID(data.gameObject.scene) == sceneGUID)
                     {
                         foundPerSceneData = true;
+                        break;
                     }
                 }
 

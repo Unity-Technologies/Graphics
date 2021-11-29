@@ -90,8 +90,7 @@ namespace UnityEngine.Experimental.Rendering
 
         static public void Clear()
         {
-            var perSceneData = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
-            foreach (var data in perSceneData)
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 data.Clear();
 
             ProbeReferenceVolume.instance.Clear();
@@ -158,13 +157,13 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        static void SetBakingContext(ProbeVolumePerSceneData[] perSceneData)
+        static void SetBakingContext(List<ProbeVolumePerSceneData> perSceneData)
         {
             // We need to make sure all scenes we are baking have the same profile. The same should be done for the baking settings, but we check only profile.
             // TODO: This should be ensured by the controlling panel, until we have that we need to assert.
 
             // To check what are  the scenes that have probe volume enabled we checks the ProbeVolumePerSceneData. We are guaranteed to have only one per scene.
-            for (int i=0; i<perSceneData.Length; ++i)
+            for (int i=0; i<perSceneData.Count; ++i)
             {
                 var data = perSceneData[i];
                 var scene = data.gameObject.scene;
@@ -189,15 +188,15 @@ namespace UnityEngine.Experimental.Rendering
         static void OnBakeStarted()
         {
             if (!ProbeReferenceVolume.instance.isInitialized) return;
+            if (ProbeReferenceVolume.instance.perSceneDataList.Count == 0) return;
 
             var pvList = GameObject.FindObjectsOfType<ProbeVolume>();
             if (pvList.Length == 0) return; // We have no probe volumes.
 
             FindWorldBounds(out bool hasFoundInvalidSetup);
-            var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
-            if (perSceneDataList.Length == 0 || hasFoundInvalidSetup) return;
+            if (hasFoundInvalidSetup) return;
 
-            SetBakingContext(perSceneDataList);
+            SetBakingContext(ProbeReferenceVolume.instance.perSceneDataList);
 
             if (m_BakingSettings.virtualOffsetSettings.useVirtualOffset)
                 AddOccluders();
@@ -242,9 +241,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (m_BakingProfile == null)
             {
-                var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
-                if (perSceneDataList.Length == 0) return;
-                SetBakingContext(perSceneDataList);
+                if (ProbeReferenceVolume.instance.perSceneDataList.Count == 0) return;
+                SetBakingContext(ProbeReferenceVolume.instance.perSceneDataList);
             }
 
             var dilationSettings = m_BakingSettings.dilationSettings;
@@ -272,10 +270,11 @@ namespace UnityEngine.Experimental.Rendering
         // proper UX.
         internal static void PerformDilation()
         {
+            var perSceneDataList = ProbeReferenceVolume.instance.perSceneDataList;
+            if (perSceneDataList.Count == 0) return;
+
             Dictionary<int, List<string>> cell2Assets = new Dictionary<int, List<string>>();
             List<CellInfo> tempLoadedCells = new List<CellInfo>();
-            var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
-            if (perSceneDataList.Length == 0) return;
 
             var prv = ProbeReferenceVolume.instance;
 
@@ -452,7 +451,7 @@ namespace UnityEngine.Experimental.Rendering
             m_BakedCells.Clear();
 
             // Clear baked data
-            foreach (var data in GameObject.FindObjectsOfType<ProbeVolumePerSceneData>())
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 data.InvalidateAllAssets();
             ProbeReferenceVolume.instance.Clear();
 
@@ -557,7 +556,7 @@ namespace UnityEngine.Experimental.Rendering
             // Map from each scene to its per scene data, and per scene data to a new asset for the current baking state
             var scene2Data = new Dictionary<Scene, ProbeVolumePerSceneData>();
             var data2Asset = new Dictionary<ProbeVolumePerSceneData, ProbeVolumeAsset>();
-            foreach (var data in GameObject.FindObjectsOfType<ProbeVolumePerSceneData>())
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
             {
                 scene2Data[data.gameObject.scene] = data;
                 data2Asset[data] = data.CreateAssetForCurrentState();
@@ -693,9 +692,8 @@ namespace UnityEngine.Experimental.Rendering
             Vector3 refVolOrigin = Vector3.zero; // TODO: This will need to be center of the world bounds.
             if (m_BakingProfile == null)
             {
-                var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
-                if (perSceneDataList.Length == 0) return ctx;
-                SetBakingContext(perSceneDataList);
+                if (ProbeReferenceVolume.instance.perSceneDataList.Count == 0) return ctx;
+                SetBakingContext(ProbeReferenceVolume.instance.perSceneDataList);
             }
             ctx.Initialize(m_BakingProfile, refVolOrigin);
 

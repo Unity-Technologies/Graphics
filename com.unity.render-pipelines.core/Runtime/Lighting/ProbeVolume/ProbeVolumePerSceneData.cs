@@ -132,12 +132,14 @@ namespace UnityEngine.Experimental.Rendering
 
         void OnEnable()
         {
+            ProbeReferenceVolume.instance.RegisterPerSceneData(this);
             QueueAssetLoading();
         }
 
         void OnDisable()
         {
             QueueAssetRemoval();
+            ProbeReferenceVolume.instance.UnregisterPerSceneData(this);
         }
 
         void OnDestroy()

@@ -298,7 +298,7 @@ namespace UnityEngine.Experimental.Rendering
                 bakingStatesStatuses = new BakingStateStatus[m_BakingStates.count];
 
             var scene2Data = new Dictionary<string, ProbeVolumePerSceneData>();
-            foreach (var data in GameObject.FindObjectsOfType<ProbeVolumePerSceneData>())
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 scene2Data[data.gameObject.scene.path] = data;
 
             for (int i = 0; i < bakingStatesStatuses.Length; i++)
