@@ -239,7 +239,26 @@ namespace UnityEngine.Rendering
                 {
                     // Keep track of the override state for debugging purpose
                     stateParam.overrideState = toParam.overrideState;
-                    stateParam.Interp(stateParam, toParam, interpFactor);
+
+                    // Custom interpolation func for animation curves. The Interp()
+                    // api blends lhs and rhs and returns the blend. However to avoid GC
+                    // we need to overwrite stateParam, which doesn't work with the
+                    // Interp() api.
+                    if (stateParam is AnimationCurveParameter)
+                    {
+                        Debug.Assert(toParam is AnimationCurveParameter);
+
+                        AnimationCurveParameter lhsParam = (AnimationCurveParameter)stateParam;
+                        AnimationCurveParameter rhsParam = (AnimationCurveParameter)toParam;
+
+                        AnimationCurve lhsValue = lhsParam.value;
+                        KeyframeUtility.InterpAnimationCurve(ref lhsValue, rhsParam.value, interpFactor);
+                        lhsParam.value = lhsValue;
+                    }
+                    else
+                    {
+                        stateParam.Interp(stateParam, toParam, interpFactor);
+                    }
                 }
             }
         }

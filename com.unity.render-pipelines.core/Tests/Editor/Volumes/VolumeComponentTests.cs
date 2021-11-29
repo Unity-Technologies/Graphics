@@ -177,11 +177,12 @@ namespace UnityEngine.Rendering.Tests
             var volumeComponents = volumeComponentProvider.InvokeStatic("FilterVolumeComponentTypes",
                 types, typeof(RenderPipeline)) as List<(string, Type)>;
 
+
             Assert.NotNull(volumeComponents);
             Assert.False(volumeComponents.Any());
         }
 
-        static private void TestAnimationCurveInterp(AnimationCurve lhsCurve, AnimationCurve rhsCurve, float t, float startTime, float endTime, int numSteps, float eps, bool debugPrint)
+        static private bool TestAnimationCurveInterp(AnimationCurve lhsCurve, AnimationCurve rhsCurve, float t, float startTime, float endTime, int numSteps, float eps, bool debugPrint)
         {
             AnimationCurve midCurve = new AnimationCurve(lhsCurve.keys);
             KeyframeUtility.InterpAnimationCurve(ref midCurve, rhsCurve, t);
@@ -204,42 +205,101 @@ namespace UnityEngine.Rendering.Tests
                     Debug.Log(i.ToString() + ": " + offset.ToString());
                 }
 
-                Assert.IsTrue(Mathf.Abs(offset) < eps);
+                if (Mathf.Abs(offset) >= eps)
+                {
+                    return false;
+                }
             }
+
+            return true;
         }
 
-        [Test]
-        public void RenderInterpolateAnimationCurve()
+        static private AnimationCurve CreateTestCurve(int index)
         {
-            AnimationCurve testCurve0 = new AnimationCurve();
-            testCurve0.AddKey(new Keyframe(0.0f, 3.0f, 2.0f, 2.0f));
-            testCurve0.AddKey(new Keyframe(4.0f, 2.0f, -1.0f, -1.0f));
-            testCurve0.AddKey(new Keyframe(7.0f, 2.6f, -1.0f, -1.0f));
+            AnimationCurve testCurve = new AnimationCurve();
+            if (index == 0)
+            {
+                testCurve.AddKey(new Keyframe(0.0f, 3.0f, 2.0f, 2.0f));
+                testCurve.AddKey(new Keyframe(4.0f, 2.0f, -1.0f, -1.0f));
+                testCurve.AddKey(new Keyframe(7.0f, 2.6f, -1.0f, -1.0f));
+            }
+            else if (index == 1)
+            {
+                testCurve.AddKey(new Keyframe(-1.0f, 3.0f, 2.0f, 2.0f));
+                testCurve.AddKey(new Keyframe(4.0f, 2.0f, 3.0f, 3.0f));
+                testCurve.AddKey(new Keyframe(5.0f, 2.6f, 0.0f, 0.0f));
+                testCurve.AddKey(new Keyframe(9.0f, 2.6f, -5.0f, -5.0f));
+            }
+            else if (index == 2)
+            {
+                // Needed for the same positions as curve 0 but different values and tangents
+                testCurve.AddKey(new Keyframe(0.0f, 1.0f, -1.0f, 3.0f));
+                testCurve.AddKey(new Keyframe(4.0f, 6.0f, -9.0f, -2.0f));
+                testCurve.AddKey(new Keyframe(7.0f, 5.2f, -3.0f, -4.0f));
+            }
+            else
+            {
+                // Need for the test case where two curves have no overlap
+                testCurve.AddKey(new Keyframe(11.0f, 1.0f, -1.0f, 3.0f));
+                testCurve.AddKey(new Keyframe(14.0f, 6.0f, -9.0f, -2.0f));
+                testCurve.AddKey(new Keyframe(17.0f, 5.2f, -3.0f, -4.0f));
+            }
 
-            AnimationCurve testCurve1 = new AnimationCurve();
-            testCurve1.AddKey(new Keyframe(-1.0f, 3.0f, 2.0f, 2.0f));
-            testCurve1.AddKey(new Keyframe(4.0f, 2.0f, 3.0f, 3.0f));
-            testCurve1.AddKey(new Keyframe(5.0f, 2.6f, 0.0f, 0.0f));
-            testCurve1.AddKey(new Keyframe(9.0f, 2.6f, -5.0f, -5.0f));
-
-            // Test the same positions as curve 0 but different values and tangents
-            AnimationCurve testCurve2 = new AnimationCurve();
-            testCurve2.AddKey(new Keyframe(0.0f, 1.0f, -1.0f, 3.0f));
-            testCurve2.AddKey(new Keyframe(4.0f, 6.0f, -9.0f, -2.0f));
-            testCurve2.AddKey(new Keyframe(7.0f, 5.2f, -3.0f, -4.0f));
-
-            // Test the case where two curves have no overlap
-            AnimationCurve testCurve3 = new AnimationCurve();
-            testCurve3.AddKey(new Keyframe(11.0f, 1.0f, -1.0f, 3.0f));
-            testCurve3.AddKey(new Keyframe(14.0f, 6.0f, -9.0f, -2.0f));
-            testCurve3.AddKey(new Keyframe(17.0f, 5.2f, -3.0f, -4.0f));
-
-            TestAnimationCurveInterp(testCurve0, testCurve1, 0.5f, -2.0f, 10.0f, 100, 1e-5f, false);
-            TestAnimationCurveInterp(testCurve1, testCurve2, 0.5f, -2.0f, 10.0f, 100, 1e-5f, false);
-            TestAnimationCurveInterp(testCurve0, testCurve2, 0.5f, -2.0f, 10.0f, 100, 1e-5f, false);
-            TestAnimationCurveInterp(testCurve0, testCurve3, 0.5f, -2.0f, 25.0f, 100, 1e-5f, false);
+            return testCurve;
         }
 
+        public class AnimationCurveTestPair
+        {
+            public int lhsIndex;
+            public int rhsIndex;
+            public float t;
+            public string testName;
+        };
 
+        static object[] s_AnimationCurveTestPairs =
+        {
+            new AnimationCurveTestPair
+            {
+                lhsIndex = 0,
+                rhsIndex = 1,
+                t = 0.25f,
+                testName = "CurveTest 1"
+            },
+            new AnimationCurveTestPair
+            {
+                lhsIndex = 1,
+                rhsIndex = 2,
+                t = 0.25f,
+                testName = "CurveTest 2"
+            },
+            new AnimationCurveTestPair
+            {
+                lhsIndex = 0,
+                rhsIndex = 2,
+                t = 0.25f,
+                testName = "CurveTest Same Positions"
+            },
+            new AnimationCurveTestPair
+            {
+                lhsIndex = 0,
+                rhsIndex = 3,
+                t = 0.25f,
+                testName = "CurveTest No Overlap"
+            }
+        };
+
+        [Test, TestCaseSource(nameof(s_AnimationCurveTestPairs))]
+        public void RenderInterpolateAnimationCurve(AnimationCurveTestPair testPairData)
+        {
+            AnimationCurve lhsCurve = CreateTestCurve(testPairData.lhsIndex);
+            AnimationCurve rhsCurve = CreateTestCurve(testPairData.rhsIndex);
+
+            bool success = TestAnimationCurveInterp(lhsCurve, rhsCurve, testPairData.t, -5.0f, 20.0f, 100, 1e-5f, false);
+            if (!success)
+            {
+                Debug.Log("Animation Curve Test Failed: " + testPairData.testName);
+            }
+            Assert.IsTrue(success);
+        }
     }
 }

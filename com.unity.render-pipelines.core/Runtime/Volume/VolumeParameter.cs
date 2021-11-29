@@ -1643,30 +1643,15 @@ namespace UnityEngine.Rendering
     [Serializable]
     public class AnimationCurveParameter : VolumeParameter<AnimationCurve>
     {
-
         /// <summary>
         /// Creates a new <seealso cref="AnimationCurveParameter"/> instance.
         /// </summary>
         /// <param name="value">The initial value to be stored in the parameter</param>
         /// <param name="overrideState">The initial override state for the parameter</param>
         public AnimationCurveParameter(AnimationCurve value, bool overrideState = false)
-            : base(value, overrideState)
-        {
-        }
+            : base(value, overrideState) { }
 
-        /// <summary>
-        /// Interpolates between two AnimationCurve values. Note that it will overwrite the values in lhsCurve,
-        /// whereas rhsCurve data will be unchanged. Thus, it is legal to call it as:
-        ///     stateParam.Interp(stateParam, toParam, interpFactor);
-        /// However, it should NOT be called when the lhsCurve parameter needs to be preserved.
-        /// </summary>
-        /// <param name="lhsCurve">The start value.</param>
-        /// <param name="rhsCurve">The end value.</param>
-        /// <param name="t">The interpolation factor in range [0,1].</param>
-        public override void Interp(AnimationCurve lhsCurve, AnimationCurve rhsCurve, float t)
-        {
-            m_Value = lhsCurve;
-            KeyframeUtility.InterpAnimationCurve(ref m_Value, rhsCurve, t);
-        }
+        // Curve interpolation can not be implemented, because blending two curves to create a new one would create garbage.
+        // Instead, use KeyframeUtility.InterpAnimationCurve() which interpolates the curves bot overwrites the from paramter.
     }
 }

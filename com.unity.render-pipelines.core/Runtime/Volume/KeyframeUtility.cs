@@ -22,6 +22,27 @@ namespace UnityEngine.Rendering
     /// curves and reuses them to avoid creating garbage. The number of curves needed is quite small, since curves only need
     /// to be used when interpolating multiple volumes together with different curve parameters. The underlying interp
     /// function isn't allowed to fail, so in the case where we run out of memory we fall back to returning a single keyframe.
+    /// 
+    /// <example>Example:
+    /// <code>
+    /// {
+    ///     AnimationCurve curve0 = new AnimationCurve();
+    ///     curve0.AddKey(new Keyframe(0.0f, 3.0f));
+    ///     curve0.AddKey(new Keyframe(4.0f, 2.0f));
+    ///     
+    ///     AnimationCurve curve1 = new AnimationCurve();
+    ///     curve1.AddKey(new Keyframe(0.0f, 0.0f));
+    ///     curve1.AddKey(new Keyframe(2.0f, 1.0f));
+    ///     curve1.AddKey(new Keyframe(4.0f, 4.0f));
+    ///
+    ///     float t = 0.5f;
+    ///     KeyframeUtility.InterpAnimationCurve(curve0, curve1, t);
+    ///
+    ///     // curve0 now stores the resulting interpolated curve
+    /// }
+    /// </code>
+    /// </example>
+
     /// </summary>
     public class KeyframeUtility
     {
@@ -30,7 +51,7 @@ namespace UnityEngine.Rendering
         /// this function clears existing keys so the curve is ready for reuse.
         /// </summary>
         /// <param name="curve">The curve to reset.</param>
-        static public void ResetAnimationCurve(ref AnimationCurve curve)
+        static public void ResetAnimationCurve(AnimationCurve curve)
         {
             int numPoints = curve.length;
             for (int i = numPoints - 1; i >= 0; i--)
@@ -63,12 +84,19 @@ namespace UnityEngine.Rendering
         /// key and the outTangent of the last key.
         static private Keyframe GetKeyframeAndClampEdge([DisallowNull] Keyframe[] keys, int index)
         {
+            var lastKeyIndex = keys.Length - 1;
+            if (index < 0 || index > lastKeyIndex)
+            {
+                Debug.LogWarning("Invalid index in GetKeyframeAndClampEdge. This is likely a bug.");
+                return new Keyframe();
+            }
+
             var currKey = keys[index];
             if (index == 0)
             {
                 currKey.inTangent = 0.0f;
             }
-            if (index == keys.Length - 1)
+            if (index == lastKeyIndex)
             {
                 currKey.outTangent = 0.0f;
             }
@@ -181,7 +209,7 @@ namespace UnityEngine.Rendering
                 //
                 // stateParam (lhsCurve) is a temporary in/out parameter, but toParam (rhsCurve) might point to the original component, so it's unsafe to
                 // change that data. Thus, we need to copy the keys from the rhsCurve to the lhsCurve instead of returning rhsCurve.
-                KeyframeUtility.ResetAnimationCurve(ref lhsAndResultCurve);
+                KeyframeUtility.ResetAnimationCurve(lhsAndResultCurve);
 
                 for (int i = 0; i < rhsCurve.length; i++)
                 {
@@ -281,7 +309,7 @@ namespace UnityEngine.Rendering
                 }
 
                 // Replace the keys in lhsAndResultCurve with our interpolated curve.
-                KeyframeUtility.ResetAnimationCurve(ref lhsAndResultCurve);
+                KeyframeUtility.ResetAnimationCurve(lhsAndResultCurve);
                 for (int i = 0; i < currNumKeys; i++)
                 {
                     lhsAndResultCurve.AddKey(dstKeys[i]);

@@ -38,6 +38,5 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Texture2D.whiteTexture
             ));
         }
-
     }
 }
