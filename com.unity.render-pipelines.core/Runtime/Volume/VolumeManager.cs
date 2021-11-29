@@ -187,6 +187,11 @@ namespace UnityEngine.Rendering
             stack = m_DefaultStack;
         }
 
+        internal void RebuildDefaultStack()
+        {
+            m_DefaultStack = CreateStack();
+        }
+
         /// <summary>
         /// Destroy a Volume Stack
         /// </summary>
