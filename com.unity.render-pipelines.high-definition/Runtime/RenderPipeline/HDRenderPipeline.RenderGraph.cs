@@ -250,8 +250,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.NanTracker);
                 PushFullScreenLightingDebugTexture(m_RenderGraph, colorBuffer);
 
-                m_PostProcessSystem.RenderAccumulation(m_RenderGraph, hdCamera, colorBuffer);
-
                 // Render gizmos that should be affected by post processes
                 RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PreImageEffects);
 

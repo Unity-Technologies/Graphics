@@ -19,7 +19,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRP Decals performances when they use different materials (~5x improvement in the decal update loop code).
 - Fixed light unit conversion after changing mid gray value.
 - Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
-- Fixed rasterized accumulation motion blur when DoF is enabled (case 1378497).
 - Fixed light mode not available after switching a light to area "Disc" or "Tube" (case 1372588).
 - Fixed CoC size computation when dynamic resolution is enabled
 - Fixed shadow cascade transition not working properly with bias.
