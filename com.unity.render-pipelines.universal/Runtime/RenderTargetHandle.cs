@@ -1,8 +1,10 @@
+using System;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
     // RenderTargetHandle can be thought of as a kind of ShaderProperty string hash
+    [Obsolete("Deprecated in favor of RTHandle")]
     public struct RenderTargetHandle
     {
         public int id { set; get; }
@@ -14,6 +16,19 @@ namespace UnityEngine.Rendering.Universal
         {
             id = -2;
             rtid = renderTargetIdentifier;
+        }
+
+        public RenderTargetHandle(RTHandle rtHandle)
+        {
+            if (rtHandle.nameID == BuiltinRenderTextureType.CameraTarget)
+                id = -1;
+            else if (rtHandle.name.Length == 0)
+                id = -2;
+            else
+                id = Shader.PropertyToID(rtHandle.name);
+            rtid = rtHandle.nameID;
+            if (rtHandle.rt != null && id != rtid)
+                id = -2;
         }
 
         internal static RenderTargetHandle GetCameraTarget(XRPass xr)
