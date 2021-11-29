@@ -6,9 +6,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.1.3] - 2021-11-17
 
-### Added
-- Context menu on Volume Parameters to restore them to their default values.
-
 ### Fixed
 - Fixed XR support in CoreUtils.DrawFullscreen function.
 - Fixed an issue causing Render Graph execution errors after a random amount of time.

@@ -14,11 +14,7 @@ namespace UnityEditor.Rendering
                 return false;
 
             var o = parameter.GetObjectRef<ColorParameter>();
-
-            var rect = EditorGUILayout.GetControlRect();
-            EditorGUI.BeginProperty(rect, title, value);
-            value.colorValue = EditorGUI.ColorField(rect, title, value.colorValue, o.showEyeDropper, o.showAlpha, o.hdr);
-            EditorGUI.EndProperty();
+            value.colorValue = EditorGUILayout.ColorField(title, value.colorValue, o.showEyeDropper, o.showAlpha, o.hdr);
             return true;
         }
     }

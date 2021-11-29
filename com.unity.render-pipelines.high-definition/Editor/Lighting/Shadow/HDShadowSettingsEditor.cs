@@ -190,11 +190,7 @@ namespace UnityEditor.Rendering.HighDefinition
             float max = o.normalized ? 100f : o.representationDistance;
             float modifiableValue = value.floatValue * max;
             EditorGUI.BeginChangeCheck();
-
-            var lineRect = EditorGUILayout.GetControlRect();
-            EditorGUI.BeginProperty(lineRect, title, value);
-            modifiableValue = EditorGUI.Slider(lineRect, title, modifiableValue, 0f, max);
-            EditorGUI.EndProperty();
+            modifiableValue = EditorGUILayout.Slider(title, modifiableValue, 0f, max);
             if (EditorGUI.EndChangeCheck())
             {
                 modifiableValue /= max;
@@ -218,10 +214,7 @@ namespace UnityEditor.Rendering.HighDefinition
             float max = o.normalized ? 100f : o.representationDistance;
             float modifiableValue = value.floatValue * max;
             EditorGUI.BeginChangeCheck();
-            var lineRect = EditorGUILayout.GetControlRect();
-            EditorGUI.BeginProperty(lineRect, title, value);
-            modifiableValue = EditorGUI.Slider(lineRect, title, modifiableValue, 0f, max);
-            EditorGUI.EndProperty();
+            modifiableValue = EditorGUILayout.Slider(title, modifiableValue, 0f, max);
             if (EditorGUI.EndChangeCheck())
                 value.floatValue = Mathf.Clamp01(modifiableValue / max);
             return true;

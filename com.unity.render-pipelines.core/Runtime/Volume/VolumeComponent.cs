@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Reflection;
+using System.Linq;
 
 namespace UnityEngine.Rendering
 {
@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering
     /// </code>
     /// </example>
     [Serializable]
-    public partial class VolumeComponent : ScriptableObject
+    public class VolumeComponent : ScriptableObject
     {
         /// <summary>
         /// Local attribute for VolumeComponent fields only.
@@ -146,10 +146,7 @@ namespace UnityEngine.Rendering
                 if (field.FieldType.IsSubclassOf(typeof(VolumeParameter)))
                 {
                     if (filter?.Invoke(field) ?? true)
-                    {
-                        VolumeParameter volumeParameter = (VolumeParameter)field.GetValue(o);
-                        parameters.Add(volumeParameter);
-                    }
+                        parameters.Add((VolumeParameter)field.GetValue(o));
                 }
                 else if (!field.FieldType.IsArray && field.FieldType.IsClass)
                     FindParameters(field.GetValue(o), parameters, filter);

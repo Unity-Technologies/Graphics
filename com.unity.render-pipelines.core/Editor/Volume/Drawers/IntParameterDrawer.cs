@@ -15,8 +15,8 @@ namespace UnityEditor.Rendering
                 return false;
 
             var o = parameter.GetObjectRef<MinIntParameter>();
-            EditorGUILayout.PropertyField(value, title);
-            value.intValue = Mathf.Max(value.intValue, o.min);
+            int v = EditorGUILayout.IntField(title, value.intValue);
+            value.intValue = Mathf.Max(v, o.min);
             return true;
         }
     }
@@ -32,8 +32,8 @@ namespace UnityEditor.Rendering
                 return false;
 
             var o = parameter.GetObjectRef<NoInterpMinIntParameter>();
-            EditorGUILayout.PropertyField(value, title);
-            value.intValue = Mathf.Max(value.intValue, o.min);
+            int v = EditorGUILayout.IntField(title, value.intValue);
+            value.intValue = Mathf.Max(v, o.min);
             return true;
         }
     }
@@ -49,8 +49,8 @@ namespace UnityEditor.Rendering
                 return false;
 
             var o = parameter.GetObjectRef<MaxIntParameter>();
-            EditorGUILayout.PropertyField(value, title);
-            value.intValue = Mathf.Min(value.intValue, o.max);
+            int v = EditorGUILayout.IntField(title, value.intValue);
+            value.intValue = Mathf.Min(v, o.max);
             return true;
         }
     }
@@ -66,8 +66,8 @@ namespace UnityEditor.Rendering
                 return false;
 
             var o = parameter.GetObjectRef<NoInterpMaxIntParameter>();
-            EditorGUILayout.PropertyField(value, title);
-            value.intValue = Mathf.Min(value.intValue, o.max);
+            int v = EditorGUILayout.IntField(title, value.intValue);
+            value.intValue = Mathf.Min(v, o.max);
             return true;
         }
     }
@@ -83,11 +83,8 @@ namespace UnityEditor.Rendering
                 return false;
 
             var o = parameter.GetObjectRef<ClampedIntParameter>();
-            var lineRect = EditorGUILayout.GetControlRect();
-            EditorGUI.BeginProperty(lineRect, title, value);
-            EditorGUI.IntSlider(lineRect, value, o.min, o.max, title);
+            EditorGUILayout.IntSlider(value, o.min, o.max, title);
             value.intValue = Mathf.Clamp(value.intValue, o.min, o.max);
-            EditorGUI.EndProperty();
             return true;
         }
     }
@@ -103,11 +100,8 @@ namespace UnityEditor.Rendering
                 return false;
 
             var o = parameter.GetObjectRef<NoInterpClampedIntParameter>();
-            var lineRect = EditorGUILayout.GetControlRect();
-            EditorGUI.BeginProperty(lineRect, title, value);
-            EditorGUI.IntSlider(lineRect, value, o.min, o.max, title);
+            EditorGUILayout.IntSlider(value, o.min, o.max, title);
             value.intValue = Mathf.Clamp(value.intValue, o.min, o.max);
-            EditorGUI.EndProperty();
             return true;
         }
     }
@@ -157,11 +151,9 @@ namespace UnityEditor.Rendering
             if (value.propertyType != SerializedPropertyType.LayerMask)
                 return false;
 
-            var lineRect = EditorGUILayout.GetControlRect();
-            EditorGUI.BeginProperty(lineRect, title, value);
             value.intValue = FieldToLayerMask(
-                EditorGUI.MaskField(lineRect, title, LayerMaskToField(value.intValue), InternalEditorUtility.layers));
-            EditorGUI.EndProperty();
+                EditorGUILayout.MaskField(title, LayerMaskToField(value.intValue), InternalEditorUtility.layers));
+
             return true;
         }
     }

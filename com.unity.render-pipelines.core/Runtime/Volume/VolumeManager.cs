@@ -131,17 +131,6 @@ namespace UnityEngine.Rendering
         // would be error-prone)
         readonly List<VolumeComponent> m_ComponentsDefaultState;
 
-        internal VolumeComponent GetDefaultVolumeComponent(Type volumeComponentType)
-        {
-            foreach (VolumeComponent component in m_ComponentsDefaultState)
-            {
-                if (component.GetType() == volumeComponentType)
-                    return component;
-            }
-
-            return null;
-        }
-
         // Recycled list used for volume traversal
         readonly List<Collider> m_TempColliders;
 
