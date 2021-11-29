@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Allocate the additional rendering data
             m_WaterMaterialPropertyBlock = new MaterialPropertyBlock();
-            m_InternalWaterMaterial = defaultResources.materials.defaultWaterMaterial;
+            m_InternalWaterMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.waterPS);
         }
 
         void ReleaseWaterSystem()
@@ -268,6 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_FFTRowPassRs);
             RTHandles.Release(m_HtIs);
             RTHandles.Release(m_HtRs);
+            CoreUtils.Destroy(m_InternalWaterMaterial);
         }
 
         Vector2 OrientationToDirection(float orientation)

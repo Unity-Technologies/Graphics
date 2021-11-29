@@ -339,7 +339,7 @@ float EvaluateSSSMask(float3 positionWS, float3 cameraPositionWS)
 {
     float3 viewWS = normalize(cameraPositionWS - positionWS);
     float distanceToCamera = distance(cameraPositionWS, positionWS);
-    float angleWithWaterPlane = pow(saturate(viewWS.y), .2);
+    float angleWithWaterPlane = PositivePow(saturate(viewWS.y), 0.2);
     return (1.f - exp(-distanceToCamera * _SSSMaskCoefficient)) * angleWithWaterPlane;
 }
 
@@ -554,7 +554,7 @@ float EvaluateDisplacementScattering(float displacement)
 float GetWaveTipThickness(float normalizedDistanceToMaxWaveHeightPlane, float3 worldView, float3 refractedRay)
 {
     float H = saturate(normalizedDistanceToMaxWaveHeightPlane);
-    return 1.f - saturate(1 + refractedRay.y - 0.2) * pow(H, 2) / 0.4;
+    return 1.f - saturate(1 + refractedRay.y - 0.2) * (H * H) / 0.4;
 }
 
 float2 Molulo2D(float2 divident, float2 divisor)
@@ -615,9 +615,9 @@ float3 EvaluateCaustics(float3 bedPositionAWS)
     float2 causticsUV = EvaluateCausticsUV(bedPositionAWS);
     float colorShiftItensity = normalizedDepth * _DispersionAmount;
 
-    float voronoiR = VoronoiNoise(causticsUV + float2(pow(colorShiftItensity, 0.9) * _CausticsTiling, 0.0));
-    float voronoiG = VoronoiNoise(causticsUV + float2(pow(colorShiftItensity, 1.6) * _CausticsTiling, 0.0));
-    float voronoiB = VoronoiNoise(causticsUV + float2(pow(colorShiftItensity, 2.0) * _CausticsTiling, 0.0));
+    float voronoiR = VoronoiNoise(causticsUV + float2(PositivePow(colorShiftItensity, 0.9) * _CausticsTiling, 0.0));
+    float voronoiG = VoronoiNoise(causticsUV + float2(PositivePow(colorShiftItensity, 1.6) * _CausticsTiling, 0.0));
+    float voronoiB = VoronoiNoise(causticsUV + float2(PositivePow(colorShiftItensity, 2.0) * _CausticsTiling, 0.0));
 
     return float3(voronoiR, voronoiG, voronoiB) * normalizedDepth * _CausticsIntensity;
 }
