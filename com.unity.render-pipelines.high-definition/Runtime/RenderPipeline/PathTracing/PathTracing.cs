@@ -555,7 +555,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // This is the method to call from the main render loop
-        TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
+        TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle motionVectors)
         {
             m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
@@ -612,7 +612,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderPathTracingFrame(m_RenderGraph, hdCamera, camData, m_FrameTexture);
             }
 
-            RenderAccumulation(m_RenderGraph, hdCamera, m_FrameTexture, colorBuffer, true);
+            RenderAccumulation(m_RenderGraph, hdCamera, m_FrameTexture, colorBuffer, motionVectors, true);
 
             return colorBuffer;
         }
