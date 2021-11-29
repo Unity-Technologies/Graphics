@@ -60,10 +60,6 @@ From HDRP 12.0, HDRP includes a new [Light Anchor](light-anchor.md) component. Y
 ![](Images/LightAnchor0.png)
 
 
-### Maximum light count for gpu
-
-The new default maximum light count per pixel for Fine Prunning Tile List is now 63.
-Added a new setting in ShaderConfig.cs, FPTLMaxLightCount. This setting can now set the maximum number of lights per tile on the GPU. A new Shader config project must be generated to upgrade. See the [HDRP-Config-Package](HDRP-Config-Package.md) guide for information on how to upgrade.
 
 ## New upsampling methods
 
@@ -230,6 +226,12 @@ From HDRP 12.0 you can use a new option in the [HDRP Asset](HDRP-Asset.md) (**Re
 
 In the image above, the example image on the left does not use this method. The image on the right uses the new additive normal blending method.
 
+### Increased the default GPU light count
+
+This version of HDRP increases the default number of lights a single pixel can get influence from to 63. You can use a new setting in `ShaderConfig.cs` called `FPTLMaxLightCount` to set the maximum number of lights per tile on the GPU.
+
+To increase this value, you must generate a new Shader config project. For information on how to create a new Shader config project, see [HDRP-Config-Package](HDRP-Config-Package.md).
+
 ### Physical Camera
 
 HDRP 12.0 includes the following physical Camera improvements:
@@ -247,6 +249,8 @@ Improved the quality of the physically-based Depth Of Field in the following way
 - Improved support for MSAA to remove artifacts around the edges of visible GameObjects.
 
 ![](Images/HDRPFeatures-BetterDoF.png)
+
+Optimize the physically based depth of field implementation. In particular, image regions that are out-of-focus are now computed at lower resolution, while in-focus regions retain the full resolution. For many scenes this results in significant speedup, without any visible reduction in image quality.
 
 ### Physically Based Hair Shader
 ![](Images/PBHairShader.png)

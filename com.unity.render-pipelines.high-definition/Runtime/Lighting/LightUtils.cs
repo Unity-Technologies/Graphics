@@ -8,8 +8,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     class LightUtils
     {
-        static float s_LuminanceToEvFactor = Mathf.Log(100f / ColorUtils.s_LightMeterCalibrationConstant, 2);
-        static float s_EvToLuminanceFactor = -Mathf.Log(100f / ColorUtils.s_LightMeterCalibrationConstant, 2);
+        static float s_LuminanceToEvFactor => Mathf.Log(100f / ColorUtils.s_LightMeterCalibrationConstant, 2);
+        static float s_EvToLuminanceFactor => -Mathf.Log(100f / ColorUtils.s_LightMeterCalibrationConstant, 2);
 
         // Physical light unit helper
         // All light unit are in lumen (Luminous power)
