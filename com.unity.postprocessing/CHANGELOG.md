@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [3.2.1] - 2021-11-15
 
 ### Fixed
-- Incorrect Screen-space Reflections rendering on OpenGL platforms (case 1368370) 
+- Incorrect Screen-space Reflections rendering on OpenGL platforms (case 1368370)
 
 ## [3.2.0] - 2021-11-15
 
