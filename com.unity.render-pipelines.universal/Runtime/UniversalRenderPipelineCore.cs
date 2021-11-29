@@ -558,8 +558,8 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 desc = camera.targetTexture.descriptor;
-                desc.width = camera.pixelWidth;
-                desc.height = camera.pixelHeight;
+                desc.width = (int)((float)camera.pixelWidth * renderScale);
+                desc.height = (int)((float)camera.pixelHeight * renderScale);
                 if (camera.cameraType == CameraType.SceneView && !isHdrEnabled)
                 {
                     desc.graphicsFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
