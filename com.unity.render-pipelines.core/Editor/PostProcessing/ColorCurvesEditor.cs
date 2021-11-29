@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEditor.Rendering
 {
     using CurveState = InspectorCurveEditor.CurveState;
 
@@ -31,6 +32,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_RawSatVsSat;
         SerializedProperty m_RawLumVsSat;
 
+        SerializedProperty m_SelectedCurve;
+
         InspectorCurveEditor m_CurveEditor;
         Dictionary<SerializedProperty, Color> m_CurveDict;
         static Material s_MaterialGrid;
@@ -48,8 +51,6 @@ namespace UnityEditor.Rendering.Universal
             new GUIContent("Sat Vs Sat"),
             new GUIContent("Lum Vs Sat")
         };
-
-        SavedInt m_SelectedCurve;
 
         public override void OnEnable()
         {
@@ -75,7 +76,7 @@ namespace UnityEditor.Rendering.Universal
             m_RawSatVsSat = o.Find("satVsSat.m_Value.m_Curve");
             m_RawLumVsSat = o.Find("lumVsSat.m_Value.m_Curve");
 
-            m_SelectedCurve = new SavedInt($"{target.GetType()}.SelectedCurve", 0);
+            m_SelectedCurve = o.Find("m_SelectedCurve");
 
             // Prepare the curve editor
             m_CurveEditor = new InspectorCurveEditor();
@@ -146,7 +147,7 @@ namespace UnityEditor.Rendering.Universal
                     int current = i; // Capture local for closure
                     menu.AddItem(s_Curves[i], current == id, () =>
                     {
-                        m_SelectedCurve.value = current;
+                        m_SelectedCurve.intValue = current;
                         serializedObject.ApplyModifiedProperties();
                     });
                 }
@@ -160,12 +161,12 @@ namespace UnityEditor.Rendering.Universal
         void DrawBackgroundTexture(Rect rect, int pass)
         {
             if (s_MaterialGrid == null)
-                s_MaterialGrid = new Material(Shader.Find("Hidden/Universal Render Pipeline/Editor/CurveBackground")) { hideFlags = HideFlags.HideAndDontSave };
+                s_MaterialGrid = new Material(Shader.Find("Hidden/HD PostProcessing/Editor/CurveBackground")) { hideFlags = HideFlags.HideAndDontSave };
 
             float scale = EditorGUIUtility.pixelsPerPoint;
 
             var oldRt = RenderTexture.active;
-            var rt = RenderTexture.GetTemporary(Mathf.CeilToInt(rect.width * scale), Mathf.CeilToInt(rect.height * scale), 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            var rt = RenderTexture.GetTemporary(Mathf.CeilToInt(rect.width * scale), Mathf.CeilToInt(rect.height * scale), 0, GraphicsFormat.R8G8B8A8_SRGB);
             s_MaterialGrid.SetFloat("_DisabledState", GUI.enabled ? 1f : 0.5f);
 
             Graphics.Blit(null, rt, s_MaterialGrid, pass);
@@ -208,7 +209,7 @@ namespace UnityEditor.Rendering.Universal
                 // Top toolbar
                 using (new GUILayout.HorizontalScope(EditorStyles.toolbar))
                 {
-                    curveEditingId = DoCurveSelectionPopup(m_SelectedCurve.value);
+                    curveEditingId = DoCurveSelectionPopup(m_SelectedCurve.intValue);
                     curveEditingId = Mathf.Clamp(curveEditingId, 0, 7);
 
                     EditorGUILayout.Space();
@@ -276,7 +277,7 @@ namespace UnityEditor.Rendering.Universal
                         }
                     }
 
-                    m_SelectedCurve.value = curveEditingId;
+                    m_SelectedCurve.intValue = curveEditingId;
                 }
 
                 // Curve area
@@ -332,7 +333,7 @@ namespace UnityEditor.Rendering.Universal
                     {
                         Repaint();
                         GUI.changed = true;
-                        MarkTextureCurveAsDirty(m_SelectedCurve.value);
+                        MarkTextureCurveAsDirty(m_SelectedCurve.intValue);
                     }
                 }
 

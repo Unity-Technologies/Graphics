@@ -1,13 +1,13 @@
 using System;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// A volume component that holds settings for the Color Adjustments effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Color Curves", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Post-Processing-Color-Curves")]
-    public sealed class ColorCurves : VolumeComponent, IPostProcessComponent
+    [Serializable, VolumeComponentMenu("Post-processing/Color Curves")]
+    //[HDRPHelpURLAttribute("Post-Processing-Color-Curves")]
+    public class ColorCurves : VolumeComponent, IPostProcessComponent
     {
         // Note: we don't need tooltips as this component uses a custom editor with no use for tooltips
 
@@ -63,6 +63,31 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsActive()
         {
             return true;
+        }
+
+        public bool IsTileCompatible() => true;
+
+        public Type GetNewComponentType()
+        {
+            return typeof(ColorCurves);
+        }
+
+        public void CopyToNewComponent(VolumeComponent volumeComponent)
+        {
+            if (volumeComponent is not ColorCurves curves)
+                return;
+
+            curves.active = active;
+            curves.hideFlags = hideFlags;
+            curves.displayName = displayName;
+            curves.master = master;
+            curves.red = red;
+            curves.green = green;
+            curves.blue = blue;
+            curves.hueVsHue = hueVsHue;
+            curves.hueVsSat = hueVsSat;
+            curves.satVsSat = satVsSat;
+            curves.lumVsSat = lumVsSat;
         }
     }
 }
