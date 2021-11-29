@@ -3,7 +3,7 @@
 ## Description
 
 The Fresnel Equation Node, add various equation for the Fresnel Component. Unity had 3 modes, **Schlick**, **Dielectric** and **DielectricGeneric**.
-**Schlick** mode produce an approximation based on the [Schlick's Approximation](https://en.wikipedia.org/wiki/Schlick%27s_approximation), ideal for any interaction between Air-Dielectric material. 
+**Schlick** mode produce an approximation based on the [Schlick's Approximation](https://en.wikipedia.org/wiki/Schlick%27s_approximation), ideal for any interaction between Air-Dielectric material.
 **Dielectric** mode produce code to compute Fresnel equation simplified for Dielectric Material Interaction, for instance Air-Glass, Glass-Water, Water-Air.
 **DielectricGeneric** mode produce code to compute [Fresnel equation](https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations) for interaction between Dielectic and any material, for instance clear_coat-Metal, Glass-Metal, Water-Metal, ... (note if we set **IORMediumK** as 0, **DielectricGeneric** behave like **Dielectric**).
 Numerical values of refractive indices can be found here [refractiveindex.info](https://refractiveindex.info/).
