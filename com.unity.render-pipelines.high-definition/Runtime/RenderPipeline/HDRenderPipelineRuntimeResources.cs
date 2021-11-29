@@ -329,6 +329,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader dofCoCMinMaxCS;
             [Reload("Runtime/PostProcessing/Shaders/DoFMinMaxDilate.compute")]
             public ComputeShader dofMinMaxDilateCS;
+            [Reload("Runtime/PostProcessing/Shaders/DoFCombine.compute")]
+            public ComputeShader dofCombineCS;
 
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;

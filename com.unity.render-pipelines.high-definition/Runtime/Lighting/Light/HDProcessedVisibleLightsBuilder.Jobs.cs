@@ -5,6 +5,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using System.Threading;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Burst.CompilerServices;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -216,6 +217,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 return flags;
             }
 
+#if DEBUG
+            [IgnoreWarning(1370)] //Ignore throwing exception warning.
+#endif
             private ref HDLightRenderData GetLightData(int dataIndex)
             {
 #if DEBUG
@@ -229,6 +233,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+#if DEBUG
+            [IgnoreWarning(1370)] //Ignore throwing exception warning.
+#endif
             public void Execute(int index)
             {
                 VisibleLight visibleLight = visibleLights[index];
