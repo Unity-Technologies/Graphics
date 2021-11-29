@@ -363,7 +363,7 @@ EditorBuildSettings:
     path: Assets/Scenes/5005_PathTracing_Fog.unity
     guid: 9f38d7cbc64ad534485db5107427e269
   - enabled: 1
-    path: Assets/Scenes/5006_PathTracing_DoF.unity
+    path: Assets/Scenes/5006_PathTracing_DoFVolume.unity
     guid: c163eeeb7af1c194590ab367fb84a376
   - enabled: 1
     path: Assets/Scenes/5007_PathTracing_Materials_SG_Lit.unity
@@ -395,6 +395,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/5014_PathTracing_DoubleSidedOverride.unity
     guid: f203d44025933174baacc2d0fe75d528
+  - enabled: 1
+    path: Assets/Scenes/5015_PathTracing_DoFCamera.unity
+    guid: 9fc75d906f08e784ab1183b8153659f0
   - enabled: 1
     path: Assets/Scenes/6000_VertexFormats.unity
     guid: 6788ab4459664394f96537c7ad864afb
