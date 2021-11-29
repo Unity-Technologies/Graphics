@@ -9,13 +9,16 @@
 
 // Textures & Samplers
 TEXTURE2D_X(_BaseMap);
+TEXTURE2D_X(_BlueNoiseTexture);
 TEXTURE2D_X(_ScreenSpaceOcclusionTexture);
 
 SAMPLER(sampler_BaseMap);
+SAMPLER(sampler_BlueNoiseTexture);
 SAMPLER(sampler_ScreenSpaceOcclusionTexture);
 
 // Params
 half4 _BlurOffset;
+float4 _BlueNoiseTexture_TexelSize;
 
 half _KawaseBlurIteration;
 int _LastKawasePass;
@@ -81,9 +84,16 @@ static half SSAORandomUV[40] =
 
 // SSAO Settings
 #define INTENSITY _SSAOParams.x
-#define RADIUS _SSAOParams.y
-#define DOWNSAMPLE _SSAOParams.z
 
+#if defined(_BLUE_NOISE)
+#define RADIUS _SSAOParams.y
+#elif defined(_KEIJIRO)
+#define RADIUS _SSAOParams.y * 1.5
+#else
+#define RADIUS _SSAOParams.y
+#endif
+#define DOWNSAMPLE _SSAOParams.z
+#define FALLOFF _SSAOParams.w
 
 #if defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
     static const int SAMPLE_COUNT = 3;
@@ -104,11 +114,14 @@ static half SSAORandomUV[40] =
 #define SAMPLE_BASEMAP(uv)   SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
 #define SAMPLE_BASEMAP_R(uv)   SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)).r;
 
+//#define SAMPLE_BLUE_NOISE(uv) normalize(SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_BlueNoiseTexture, UnityStereoTransformScreenSpaceTex(uv)) * 2.0 - 1.0);
+#define SAMPLE_BLUE_NOISE(uv) UnpackNormal(SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_BlueNoiseTexture, UnityStereoTransformScreenSpaceTex(uv)));
+
 // Constants
 // kContrast determines the contrast of occlusion. This allows users to control over/under
 // occlusion. At the moment, this is not exposed to the editor because it's rarely useful.
 // The range is between 0 and 1.
-static const half kContrast = half(0.5);
+static const half kContrast = half(0.6);
 
 // The constant below controls the geometry-awareness of the bilateral
 // filter. The higher value, the more sensitive it is.
@@ -181,8 +194,7 @@ float nrand(float2 uv, float dx, float dy)
     return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
 }
 
-
-half3 spherical_kernel(float2 uv, float index)
+half3 PickSamplePointKeijiro(float2 uv, float index)
 {
     // Uniformaly distributed points
     // http://mathworld.wolfram.com/SpherePointPicking.html
@@ -190,24 +202,47 @@ half3 spherical_kernel(float2 uv, float index)
     float theta = nrand(uv, 1, index) * PI * 2;
     float u2 = sqrt(1 - u * u);
     float3 v = float3(u2 * cos(theta), u2 * sin(theta), u);
+
     // Adjustment for distance distribution.
     float l = index / SAMPLE_COUNT;
     return v * lerp(0.1, 1.0, l * l);
 }
 
+void Unity_RandomRange_float(float2 Seed, float Min, float Max, out float Out)
+{
+    float randomno =  frac(sin(dot(Seed, float2(12.9898, 78.233)))*43758.5453);
+    Out = lerp(Min, Max, randomno);
+}
+
+half3 PickSamplePointBlueNoise(float2 uv, float index)
+{
+    const float2 positionSS = GetScreenSpacePosition(uv);
+    float nX = InterleavedGradientNoise(positionSS, index + _Time.x * 100.0);
+    float nY = InterleavedGradientNoise(positionSS, index + _Time.y * 100.0);
+    float2 noise = float2(nX, nY);
+    return SAMPLE_BLUE_NOISE(positionSS * _BlueNoiseTexture_TexelSize.xy + noise);
+}
+
+half3 PickSamplePointOld(float2 uv, float index)
+{
+    const float2 positionSS = GetScreenSpacePosition(uv);
+    const half gn = half(InterleavedGradientNoise(positionSS, index));
+
+    const half u = frac(GetRandomUVForSSAO(half(0.0), index) + gn) * half(2.0) - half(1.0);
+    const half theta = (GetRandomUVForSSAO(half(1.0), index) + gn) * half(TWO_PI);
+
+    return half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
+}
+
 // Sample point picker
 half3 PickSamplePoint(float2 uv, int sampleIndex)
 {
-    #if defined(_NEW_SAMPLING)
-        return spherical_kernel(uv, sampleIndex);
+    #if defined(_BLUE_NOISE)
+        return PickSamplePointBlueNoise(uv, sampleIndex);
+    #elif defined(_KEIJIRO)
+        return PickSamplePointKeijiro(uv, sampleIndex);
     #else
-        const float2 positionSS = GetScreenSpacePosition(uv);
-        const half gn = half(InterleavedGradientNoise(positionSS, sampleIndex));
-
-        const half u = frac(GetRandomUVForSSAO(half(0.0), sampleIndex) + gn) * half(2.0) - half(1.0);
-        const half theta = (GetRandomUVForSSAO(half(1.0), sampleIndex) + gn) * half(TWO_PI);
-
-        return half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
+        return PickSamplePointOld(uv, sampleIndex);
     #endif
 }
 
@@ -353,6 +388,15 @@ half4 SSAO(Varyings input) : SV_Target
     half3 vpos_o;
     SampleDepthNormalView(uv, depth_o, norm_o, vpos_o);
 
+    if (depth_o > FALLOFF)
+    {
+        #if defined(_ONLY_AO)
+            return half(1.0);
+        #else
+            return PackAONormal(0.0, norm_o);
+        #endif
+    }
+
     // This was added to avoid a NVIDIA driver issue.
     const half rcpSampleCount = half(rcp(SAMPLE_COUNT));
     half ao = 0.0;
@@ -403,6 +447,10 @@ half4 SSAO(Varyings input) : SV_Target
 
     // Apply contrast
     ao = PositivePow(ao * INTENSITY * rcpSampleCount, kContrast);
+
+    const half rcpFalloff = half(rcp(FALLOFF));
+    float falloff = 1.0 - depth_o * rcpFalloff;
+    ao = saturate(ao * INTENSITY * falloff * rcpSampleCount);
 
     #if defined(_ONLY_AO)
         return half(1.0) - ao;

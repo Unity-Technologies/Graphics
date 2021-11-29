@@ -8,7 +8,8 @@ namespace UnityEditor.Rendering.Universal
     internal class ScreenSpaceAmbientOcclusionEditor : Editor
     {
         #region Serialized Properties
-        private SerializedProperty m_NewSampling;
+        private SerializedProperty m_BlueNoiseTexture;
+        private SerializedProperty m_AOAlgorithm;
         private SerializedProperty m_Downsample;
         private SerializedProperty m_AfterOpaque;
         private SerializedProperty m_Source;
@@ -16,6 +17,7 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_Intensity;
         private SerializedProperty m_DirectLightingStrength;
         private SerializedProperty m_Radius;
+        private SerializedProperty m_Falloff;
         private SerializedProperty m_Samples;
         private SerializedProperty m_SinglePassBlur;
         private SerializedProperty m_FinalUpsample;
@@ -29,7 +31,8 @@ namespace UnityEditor.Rendering.Universal
         // Structs
         private struct Styles
         {
-            public static GUIContent NewSampling = EditorGUIUtility.TrTextContent("New Sampling", "");
+            public static GUIContent AOAlgorithm = EditorGUIUtility.TrTextContent("AO Algorithm", "");
+            public static GUIContent BlueNoiseTexture = EditorGUIUtility.TrTextContent("Blue Noise Texture", "");
             public static GUIContent Downsample = EditorGUIUtility.TrTextContent("Downsample", "With this option enabled, Unity downsamples the SSAO effect texture to improve performance. Each dimension of the texture is reduced by a factor of 2.");
             public static GUIContent AfterOpaque = EditorGUIUtility.TrTextContent("After Opaque", "With this option enabled, Unity calculates and apply SSAO after the opaque pass to improve performance on mobile platforms with tiled-based GPU architectures. This is not physically correct.");
             public static GUIContent Source = EditorGUIUtility.TrTextContent("Source", "The source of the normal vector values.\nDepth Normals: the feature uses the values generated in the Depth Normal prepass.\nDepth: the feature reconstructs the normal values using the depth buffer.\nIn the Deferred rendering path, the feature uses the G-buffer normals texture.");
@@ -42,13 +45,15 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent FinalUpsample = EditorGUIUtility.TrTextContent("Final Upsample", "Final upsample step to perform after blurring downsampled targets.");
             public static GUIContent BlurType = EditorGUIUtility.TrTextContent("Blur Type", "Blur Algorithm to Use");
             public static GUIContent OnlyAO = EditorGUIUtility.TrTextContent("Only AO", "");
+            public static GUIContent Falloff = EditorGUIUtility.TrTextContent("Falloff Distance", "");
         }
 
         private void Init()
         {
             SerializedProperty settings = serializedObject.FindProperty("m_Settings");
+            m_BlueNoiseTexture = settings.FindPropertyRelative("BlueNoiseTexture");
             m_Source = settings.FindPropertyRelative("Source");
-            m_NewSampling = settings.FindPropertyRelative("NewSampling");
+            m_AOAlgorithm = settings.FindPropertyRelative("AOAlgorithm");
             m_Downsample = settings.FindPropertyRelative("Downsample");
             m_AfterOpaque = settings.FindPropertyRelative("AfterOpaque");
             m_NormalQuality = settings.FindPropertyRelative("NormalSamples");
@@ -60,6 +65,7 @@ namespace UnityEditor.Rendering.Universal
             m_FinalUpsample = settings.FindPropertyRelative("FinalUpsample");
             m_BlurType = settings.FindPropertyRelative("BlurType");
             m_OnlyAO = settings.FindPropertyRelative("OnlyAO");
+            m_Falloff = settings.FindPropertyRelative("Falloff");
 
             m_IsInitialized = true;
         }
@@ -73,7 +79,9 @@ namespace UnityEditor.Rendering.Universal
 
             bool isDeferredRenderingMode = RendererIsDeferred();
 
-            EditorGUILayout.PropertyField(m_NewSampling, Styles.NewSampling);
+            EditorGUILayout.PropertyField(m_BlueNoiseTexture, Styles.BlueNoiseTexture);
+
+            EditorGUILayout.PropertyField(m_AOAlgorithm, Styles.AOAlgorithm);
 
             EditorGUILayout.PropertyField(m_Downsample, Styles.Downsample);
 
@@ -100,11 +108,14 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.PropertyField(m_Intensity, Styles.Intensity);
             EditorGUILayout.PropertyField(m_Radius, Styles.Radius);
+            EditorGUILayout.PropertyField(m_Falloff, Styles.Falloff);
             m_DirectLightingStrength.floatValue = EditorGUILayout.Slider(Styles.DirectLightingStrength, m_DirectLightingStrength.floatValue, 0f, 1f);
             EditorGUILayout.PropertyField(m_Samples, Styles.Samples);
 
             m_Intensity.floatValue = Mathf.Clamp(m_Intensity.floatValue, 0f, m_Intensity.floatValue);
             m_Radius.floatValue = Mathf.Clamp(m_Radius.floatValue, 0f, m_Radius.floatValue);
+
+            m_Falloff.floatValue = Mathf.Clamp(m_Falloff.floatValue, 0f, m_Falloff.floatValue);
         }
 
         private bool RendererIsDeferred()
