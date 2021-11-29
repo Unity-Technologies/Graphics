@@ -240,7 +240,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.WorldSpacePosition, fullScreenDebugFormat);
                     PushFullScreenLightingDebugTexture(m_RenderGraph, colorBuffer, fullScreenDebugFormat);
 
-                    if (m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
+                    bool accumulateInPost = m_PostProcessEnabled && m_DepthOfField.IsActive();
+                    if (!accumulateInPost && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
                     {
                         RenderAccumulation(m_RenderGraph, hdCamera, colorBuffer, colorBuffer, false);
                     }
@@ -953,12 +954,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (AfterPostProcessPassData data, RenderGraphContext ctx) =>
                     {
+                        // Disable camera jitter. See coment in RestoreNonjitteredMatrices
+                        if (data.hdCamera.RequiresCameraJitter())
+                        {
+                            data.hdCamera.UpdateAllViewConstants(false);
+                            data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB);
+                        }
+
                         UpdateOffscreenRenderingConstants(ref data.globalCB, true, 1.0f);
                         ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
                         DrawOpaqueRendererList(ctx.renderContext, ctx.cmd, data.hdCamera.frameSettings, data.opaqueAfterPostprocessRL);
                         // Setup off-screen transparency here
                         DrawTransparentRendererList(ctx.renderContext, ctx.cmd, data.hdCamera.frameSettings, data.transparentAfterPostprocessRL);
+
+                        // Reenable camera jitter for CustomPostProcessBeforeTAA injection point
+                        if (data.hdCamera.RequiresCameraJitter())
+                        {
+                            data.hdCamera.UpdateAllViewConstants(true);
+                            data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB);
+                        }
 
                         UpdateOffscreenRenderingConstants(ref data.globalCB, false, 1.0f);
                         ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);

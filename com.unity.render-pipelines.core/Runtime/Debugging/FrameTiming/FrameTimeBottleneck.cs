@@ -33,14 +33,23 @@ namespace UnityEngine.Rendering
     /// </summary>
     internal class BottleneckHistory
     {
+        public BottleneckHistory(int initialCapacity)
+        {
+            m_Bottlenecks.Capacity = initialCapacity;
+        }
+
         List<PerformanceBottleneck> m_Bottlenecks = new();
 
         internal BottleneckHistogram Histogram;
 
         internal void DiscardOldSamples(int historySize)
         {
+            Debug.Assert(historySize > 0, "Invalid sampleHistorySize");
+
             while (m_Bottlenecks.Count >= historySize)
                 m_Bottlenecks.RemoveAt(0);
+
+            m_Bottlenecks.Capacity = historySize;
         }
 
         internal void AddBottleneckFromAveragedSample(FrameTimeSample frameHistorySampleAverage)
