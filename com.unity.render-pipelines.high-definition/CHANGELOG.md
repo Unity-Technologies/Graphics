@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed auto-exposure mismatch between sky background and scene objects in path tracing (case 1385131).
 - Fixed build warnings due to the exception in burst code (case 1382827).
 - Fixed write to VT feedback in debug modes (case 1376874)
+- Fixed the ray tracing fallbacks being broken since an Nvidia Driver Update.
 
 ## [13.1.3] - 2021-11-17
 
@@ -65,8 +66,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed contact shadow disappearing when shadowmask is used and no non-static object is available.
 - Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
 - Fixed for changes of color curves not being applied immediately.
+<<<<<<< HEAD
 - Fixed the rendering order of decals that have a similar draw order value.
 - Fixed HDRP build issues with DOTS_INSTANCING_ON shader variant.
+=======
+- Fixed edges and ghosting appearing on shadow matte due to the shadow being black outside the range of the light (case 1371441).
+- Fixed the ray tracing fallbacks being broken since an Nvidia Driver Update.
+>>>>>>> 71d1eb052c (- Fixed the ray tracing fallbacks being broken since an Nvidia Driver Update. (#6424))
 
 ## [13.1.2] - 2021-11-05
 
