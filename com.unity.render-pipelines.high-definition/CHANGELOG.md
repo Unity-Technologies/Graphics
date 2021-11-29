@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRP Decals performances when they use different materials (~5x improvement in the decal update loop code).
 - Fixed light unit conversion after changing mid gray value.
 - Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
+- Fixed MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes.
 - Fixed light mode not available after switching a light to area "Disc" or "Tube" (case 1372588).
 - Fixed CoC size computation when dynamic resolution is enabled
 - Fixed shadow cascade transition not working properly with bias.
@@ -28,9 +29,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed camera bridge action in release build (case 1367866).
 - Fixed contact shadow disappearing when shadowmask is used and no non-static object is available.
 - Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
-
-### Changed
-- MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
 
 ## [10.7.0] - 2021-07-02
 
