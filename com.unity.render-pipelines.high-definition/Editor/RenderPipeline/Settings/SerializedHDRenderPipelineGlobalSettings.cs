@@ -1,11 +1,10 @@
+using System; //Type
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Rendering;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEditorInternal; //ReorderableList
 using UnityEngine; //ScriptableObject
 using UnityEngine.Rendering; //CoreUtils.Destroy
-using System; //Type
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -221,7 +220,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawDiffusionProfileElement(SerializedProperty element, Rect rect, int index)
         {
-            EditorGUI.BeginChangeCheck();
             EditorGUI.ObjectField(rect, element, EditorGUIUtility.TrTextContent("Profile " + index));
         }
     }
