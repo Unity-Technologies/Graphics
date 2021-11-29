@@ -49,11 +49,12 @@ namespace UnityEditor.VFX.UI
 
         private static bool CanPasteNode(Node node, string openedAssetPath)
         {
+            var subgraphType = typeof(VisualEffectSubgraph);
             return node.settings
-                .Where(x => x.value.type == typeof(VisualEffectSubgraphBlock))
+                .Where(x => subgraphType.IsAssignableFrom(x.value.type))
                 .All(x =>
                     {
-                        var obj = x.value.Get<VisualEffectSubgraphBlock>();
+                        var obj = x.value.Get<VisualEffectSubgraph>();
                         var path = AssetDatabase.GetAssetPath(obj);
                         return path != openedAssetPath;
                     }
@@ -65,17 +66,18 @@ namespace UnityEditor.VFX.UI
             try
             {
                 var serializableGraph = JsonUtility.FromJson<SerializableGraph>(data.ToString());
+
+                if (view.controller.model.isSubgraph)
+                {
+                    var path = AssetDatabase.GetAssetPath(view.controller.model.subgraph);
+                    if (!serializableGraph.operators.All(x => CanPasteNode(x, path)))
+                    {
+                        return false;
+                    }
+                }
+
                 if (serializableGraph.blocksOnly)
                 {
-                    if (view.controller.model.isSubgraph)
-                    {
-                        var path = AssetDatabase.GetAssetPath(view.controller.model.subgraph);
-                        if (!serializableGraph.operators.All(x => CanPasteNode(x, path)))
-                        {
-                            return false;
-                        }
-                    }
-
                     var selectedContexts = view.selection.OfType<VFXContextUI>();
                     var selectedBlocks = view.selection.OfType<VFXBlockUI>();
 
