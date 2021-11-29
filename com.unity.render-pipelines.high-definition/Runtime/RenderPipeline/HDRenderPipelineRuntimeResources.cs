@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader materialError;
             [Reload("Runtime/Debug/ProbeVolumeDebug.shader")]
             public Shader probeVolumeDebugShader;
+            [Reload("Runtime/Debug/ClearDebugBuffer.compute")]
+            public ComputeShader clearDebugBufferCS;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
@@ -335,11 +337,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader dofCoCMinMaxCS;
             [Reload("Runtime/PostProcessing/Shaders/DoFMinMaxDilate.compute")]
             public ComputeShader dofMinMaxDilateCS;
+            [Reload("Runtime/PostProcessing/Shaders/DoFCombine.compute")]
+            public ComputeShader dofCombineCS;
 
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;
-            [Reload("Runtime/PostProcessing/Shaders/RobustContrastAdaptiveSharpen.compute")]
-            public ComputeShader robustContrastAdaptiveSharpenCS;
             [Reload("Runtime/PostProcessing/Shaders/EdgeAdaptiveSpatialUpsampling.compute")]
             public ComputeShader edgeAdaptiveSpatialUpsamplingCS;
             [Reload("Runtime/VirtualTexturing/Shaders/DownsampleVTFeedback.compute")]

@@ -116,15 +116,16 @@ half CameraFade(float near, float far, float4 projection)
     return half(saturate((thisZ - near) * far));
 }
 
-half3 AlphaModulate(half3 albedo, half alpha)
+half3 AlphaModulateAndPremultiply(half3 albedo, half alpha)
 {
 #if defined(_ALPHAMODULATE_ON)
-    return lerp(half3(1.0h, 1.0h, 1.0h), albedo, alpha);
+    return AlphaModulate(albedo, alpha);
 #elif defined(_ALPHAPREMULTIPLY_ON)
-    return albedo * alpha;
+    return AlphaPremultiply(albedo, alpha);
 #endif
     return albedo;
 }
+
 
 half3 Distortion(float4 baseColor, float3 normal, half strength, half blend, float4 projection)
 {

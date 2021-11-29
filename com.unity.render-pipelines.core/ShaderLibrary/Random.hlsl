@@ -102,4 +102,13 @@ float InterleavedGradientNoise(float2 pixCoord, int frameCount)
     return frac(magic.z * frac(dot(pixCoord, magic.xy)));
 }
 
+// 32-bit Xorshift random number generator
+uint XorShift(inout uint rngState)
+{
+    rngState ^= rngState << 13;
+    rngState ^= rngState >> 17;
+    rngState ^= rngState << 5;
+    return rngState;
+}
+
 #endif // UNITY_RANDOM_INCLUDED
