@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.viewBias = probeVolumeOptions.viewBias.value;
                 parameters.scaleBiasByMinDistanceBetweenProbes = probeVolumeOptions.scaleBiasWithMinProbeDistance.value;
                 parameters.samplingNoise = probeVolumeOptions.samplingNoise.value;
-                parameters.leakReductionMode = probeVolumeOptions.leakReductionMode.value;
+                parameters.leakReductionMode = hdCamera.camera.cameraType == CameraType.Reflection ? APVLeakReductionMode.None : probeVolumeOptions.leakReductionMode.value;
                 parameters.occlusionWeightContribution = 1.0f;
                 ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
             }
