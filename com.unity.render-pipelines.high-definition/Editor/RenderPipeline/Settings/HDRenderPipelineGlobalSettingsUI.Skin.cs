@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Rendering;
-using UnityEngine.UIElements;
-using UnityEditorInternal;
-using System.Linq;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    internal partial class HDGlobalSettingsPanelIMGUI
+    internal partial class HDRenderPipelineGlobalSettingsUI
     {
         internal class Styles
         {
@@ -68,12 +61,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent diffusionProfileSettingsLabel = EditorGUIUtility.TrTextContent("Diffusion Profile Assets");
 
-            public static readonly string warningHdrpNotActive = "Project graphics settings do not refer to a HDRP Asset. Check the settings: Graphics > Scriptable Render Pipeline Settings, Quality > Render Pipeline Asset.";
-            public static readonly string warningGlobalSettingsMissing = "The Settings property does not contain a valid HDRP Global Settings asset. There might be issues in rendering. Select a valid HDRP Global Settings asset.";
-            public static readonly string infoGlobalSettingsMissing = "Select a HDRP Global Settings asset.";
-
-            public static readonly GUIContent newAssetButtonLabel = EditorGUIUtility.TrTextContent("New", "Create a HD Global Settings Asset in your default resource folder (defined in Wizard)");
-            public static readonly GUIContent cloneAssetButtonLabel = EditorGUIUtility.TrTextContent("Clone", "Clone a HD Global Settings Asset in your default resource folder (defined in Wizard)");
             public static readonly GUIContent newVolumeProfileLabel = EditorGUIUtility.TrTextContent("New", "Create a new Volume Profile for default in your default resource folder (defined in Wizard)");
             public static readonly GUIContent fixAssetButtonLabel = EditorGUIUtility.TrTextContent("Fix", "Ensure a HD Global Settings Asset is assigned.");
 
