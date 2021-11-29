@@ -10,6 +10,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public BoolParameter enable = new BoolParameter(false);
 
+        // TODO: move to settings/debug?
+        public BoolParameter useEllipsoids = new BoolParameter(false);
+
         CapsuleShadows()
         {
             displayName = "Capsule Shadows";

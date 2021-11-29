@@ -5,7 +5,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;
-uint _CapsuleOccluderCount;
 
 // ref: https://www.iquilezles.org/www/articles/intersectors/intersectors.htm
 float RayIntersectCapsule(float3 ro, float3 rd, float3 pa, float3 pb, float r)
@@ -85,31 +84,40 @@ float RayClosestPoint(float3 ro, float3 rd, float3 p)
     return dot(rd, p - ro)/dot(rd, rd);
 }
 
-float ApproximateCapsuleOcclusion(
-    float3 coneOrigin,
+float ApproximateSphereOcclusion(
     float3 coneAxis,
     float coneCosTheta,
     float maxDistance,
-    float3 capsuleA,
-    float3 capsuleB,
-    float capsuleRadius)
+    float3 sphereCenter,
+    float sphereRadius)
 {
     float intersectionCosTheta = 1.f;
 
-    // find the point on the capsule axis that is closest to the ray
-    float3 capsuleFromCone = capsuleA - coneOrigin;
-    float3 capsuleVec = capsuleB - capsuleA;
-    float t = saturate(RayVsRayClosestPoints(0.f, coneAxis, capsuleFromCone, capsuleVec).y);
-
-    // occlude using a sphere at this point
-    float3 sphereCenter = capsuleFromCone + t*capsuleVec;
+    // do not occlude when the sphere moves farther away than the light
+    // TODO: make smooth
     if (length(sphereCenter) < maxDistance) {
         intersectionCosTheta =
-            ApproximateConeVsSphereIntersectionCosTheta(coneAxis, coneCosTheta, sphereCenter, capsuleRadius);
+            ApproximateConeVsSphereIntersectionCosTheta(coneAxis, coneCosTheta, sphereCenter, sphereRadius);
     }
 
     // return the amount the intersection occludes the cone
     return saturate((1.f - intersectionCosTheta)/(1.f - coneCosTheta));
+}
+
+float ApproximateCapsuleOcclusion(
+    float3 coneAxis,
+    float coneCosTheta,
+    float maxDistance,
+    float3 capsuleStart,
+    float3 capsuleVec,
+    float capsuleRadius)
+{
+    // find the point on the capsule axis that is closest to the ray
+    float t = saturate(RayVsRayClosestPoints(0.f, coneAxis, capsuleStart, capsuleVec).y);
+
+    // occlude using a sphere at this point
+    float3 sphereCenter = capsuleStart + t*capsuleVec;
+    return ApproximateSphereOcclusion(coneAxis, coneCosTheta, maxDistance, sphereCenter, capsuleRadius);
 }
 
 float EvaluateCapsuleShadow(float3 lightPosOrAxis, bool lightIsPunctual, float lightCosTheta, PositionInputs posInput)
@@ -169,31 +177,67 @@ float EvaluateCapsuleShadow(float3 lightPosOrAxis, bool lightIsPunctual, float l
             float3 directionWS = s_capsuleData.directionWS;
             float range = s_capsuleData.range;
 
-            float3 surfaceToLightDir = lightPosOrAxis;
-            float surfaceToLightDistance = FLT_MAX;
-            if (lightIsPunctual) {
-                float3 surfaceToLightVec = lightPosOrAxis - posInput.positionWS;
-                surfaceToLightDistance = length(surfaceToLightVec);
-                surfaceToLightDir = surfaceToLightVec/surfaceToLightDistance;
-            }
+            float occlusion;
+            if (_CapsuleOccluderUseEllipsoid)
+            {
+                // make everything relative to the surface
+                float3 surfaceToLightVec = lightPosOrAxis;
+                if (lightIsPunctual)
+                    surfaceToLightVec -= posInput.positionWS;
 
-#if 0
-            float occlusion = (RayIntersectCapsule(
-                posInput.positionWS,
-                surfaceToLightDir,
-                centerRWS - directionWS,
-                centerRWS + directionWS,
-                radius) > 0.f) ? 1.f : 0.f;
-#else
-            float occlusion = ApproximateCapsuleOcclusion(
-                posInput.positionWS,
-                surfaceToLightDir,
-                lightCosTheta,
-                surfaceToLightDistance,
-                centerRWS - directionWS,
-                centerRWS + directionWS,
-                radius);
-#endif
+                float3 surfaceToCapsuleVec = centerRWS - posInput.positionWS;
+
+                // scale down along the capsule axis to approximate the capsule with a sphere
+                float dirLen = length(directionWS);
+                if (dirLen > 0.01f*radius)
+                {
+                    float3 zAxisDir = directionWS/dirLen;
+                    float zOffsetFactor = dirLen/(radius + dirLen);
+
+                    surfaceToLightVec -= zAxisDir*(dot(surfaceToLightVec, zAxisDir)*zOffsetFactor);
+                    surfaceToCapsuleVec -= zAxisDir*(dot(surfaceToCapsuleVec, zAxisDir)*zOffsetFactor);
+                }
+
+                // consider sphere occlusion of the light cone
+                float3 surfaceToLightDir;
+                float maxDistance = FLT_MAX;
+                if (lightIsPunctual)
+                {
+                    maxDistance = length(surfaceToLightVec);
+                    surfaceToLightDir = surfaceToLightVec/maxDistance;
+                }
+                else
+                    surfaceToLightDir = normalize(surfaceToLightVec);
+
+                // consider sphere occlusion of the light cone
+                occlusion = ApproximateSphereOcclusion(surfaceToLightDir, lightCosTheta, maxDistance, surfaceToCapsuleVec, radius);
+            }
+            else
+            {
+                // make everything relative to the surface
+                float3 surfaceToLightDir;
+                float maxDistance = FLT_MAX;
+                if (lightIsPunctual)
+                {
+                    surfaceToLightDir = lightPosOrAxis - posInput.positionWS;
+                    maxDistance = length(surfaceToLightDir);
+                    surfaceToLightDir /= maxDistance;
+                }
+                else
+                    surfaceToLightDir = lightPosOrAxis;
+
+                float3 surfaceToCapsule = centerRWS - directionWS - posInput.positionWS;
+                float3 capsuleVec = 2.f*directionWS;
+
+                // occlude using closest sphere along this capsule
+                occlusion = ApproximateCapsuleOcclusion(
+                    surfaceToLightDir,
+                    lightCosTheta,
+                    maxDistance,
+                    surfaceToCapsule,
+                    capsuleVec,
+                    radius);
+            }
 
             float falloff = smoothstep(1.0f, 0.75f, length(posInput.positionWS - centerRWS)/range);
             capsuleShadow *= max(1.f - occlusion*falloff, 0.f);

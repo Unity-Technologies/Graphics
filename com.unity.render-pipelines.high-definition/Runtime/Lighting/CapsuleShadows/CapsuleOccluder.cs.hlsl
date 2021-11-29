@@ -4,6 +4,15 @@
 
 #ifndef CAPSULEOCCLUDER_CS_HLSL
 #define CAPSULEOCCLUDER_CS_HLSL
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesCapsuleOccluders
+// PackingRules = Exact
+CBUFFER_START(ShaderVariablesCapsuleOccluders)
+    int _CapsuleOccluderCount;
+    int _CapsuleOccluderUseEllipsoid;
+    int _CapsuleOccluderPad0;
+    int _CapsuleOccluderPad1;
+CBUFFER_END
+
 // Generated from UnityEngine.Rendering.HighDefinition.CapsuleOccluderData
 // PackingRules = Exact
 struct CapsuleOccluderData

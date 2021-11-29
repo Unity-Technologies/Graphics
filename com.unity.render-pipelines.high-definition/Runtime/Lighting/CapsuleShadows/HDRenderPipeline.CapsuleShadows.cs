@@ -79,8 +79,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleCapsuleOccluderBounds.Clear();
             m_VisibleCapsuleOccluderData.Clear();
 
-            bool enableCapsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadows>().enable.value;
-            if (enableCapsuleShadows)
+            CapsuleShadows capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadows>();
+            if (capsuleShadows.enable.value)
             {
                 var occluders = CapsuleOccluderManager.instance.occluders;
                 foreach (CapsuleOccluder occluder in occluders)
@@ -137,6 +137,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             m_VisibleCapsuleOccluderDataBuffer.SetData(m_VisibleCapsuleOccluderData);
+
+            ShaderVariablesCapsuleOccluders shaderVariables = new ShaderVariablesCapsuleOccluders
+            {
+                _CapsuleOccluderCount = m_VisibleCapsuleOccluderData.Count,
+                _CapsuleOccluderUseEllipsoid = capsuleShadows.useEllipsoids.value ? 1 : 0,
+            };
+            ConstantBuffer.PushGlobal(cmd, shaderVariables, HDShaderIDs._ShaderVariablesCapsuleOccluders);
 
             return new CapsuleOccluderList
             {

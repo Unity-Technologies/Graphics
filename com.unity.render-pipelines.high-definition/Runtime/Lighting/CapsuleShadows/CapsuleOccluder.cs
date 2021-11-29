@@ -6,6 +6,15 @@ using UnityEngine.UIElements;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    internal struct ShaderVariablesCapsuleOccluders
+    {
+        public int _CapsuleOccluderCount;
+        public int _CapsuleOccluderUseEllipsoid;
+        public int _CapsuleOccluderPad0;
+        public int _CapsuleOccluderPad1;
+    }
+
     [GenerateHLSL(needAccessors = false)]
     internal struct CapsuleOccluderData
     {
