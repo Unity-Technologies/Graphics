@@ -59,21 +59,15 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-#if UNITY_EDITOR
-        internal ProbeVolumeAsset CreateAssetForCurrentState()
+        internal void StoreAssetForState(int state, ProbeVolumeAsset asset)
         {
-            var asset = ProbeVolumeAsset.CreateAsset(gameObject.scene, m_CurrentState);
-
-            assets[m_CurrentState] = asset;
-            QueueAssetLoading();
-            return asset;
+            assets[state] = asset;
         }
 
         internal void DeleteAssetForState(int state)
         {
             assets.Remove(state);
         }
-#endif
 
         internal ProbeVolumeAsset GetAssetForState(int state) => assets.GetValueOrDefault(state, null);
 

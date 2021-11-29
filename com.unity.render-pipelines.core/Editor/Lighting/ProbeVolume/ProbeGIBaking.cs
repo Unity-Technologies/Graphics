@@ -558,8 +558,11 @@ namespace UnityEngine.Experimental.Rendering
             var data2Asset = new Dictionary<ProbeVolumePerSceneData, ProbeVolumeAsset>();
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
             {
+                var asset = ProbeVolumeAsset.CreateAsset(data.gameObject.scene, ProbeVolumeSceneData.bakingState);
+                data.StoreAssetForState(ProbeVolumeSceneData.bakingState, asset);
+
                 scene2Data[data.gameObject.scene] = data;
-                data2Asset[data] = data.CreateAssetForCurrentState();
+                data2Asset[data] = asset;
             }
 
             // Put cells into the respective assets
