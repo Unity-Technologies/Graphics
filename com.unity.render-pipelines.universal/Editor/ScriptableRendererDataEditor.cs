@@ -94,7 +94,8 @@ namespace UnityEditor.Rendering.Universal
                     var r = hscope.rect;
                     var pos = new Vector2(r.x + r.width / 2f, r.yMax + 18f);
                     FilterWindow.Show(pos, new ScriptableRendererFeatureProvider(this));
-;                }
+                    ;
+                }
             }
         }
 

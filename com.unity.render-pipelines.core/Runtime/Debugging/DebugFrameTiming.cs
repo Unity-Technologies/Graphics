@@ -1,9 +1,9 @@
+//#define RTPROFILER_DEBUG
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-
-//#define RTPROFILER_DEBUG
 
 namespace UnityEngine.Rendering
 {
@@ -13,8 +13,8 @@ namespace UnityEngine.Rendering
         const string k_MsFormatString = "{0:F2}ms";
         const float k_RefreshRate = 1f / 5f;
 
-        internal FrameTimeSampleHistory m_FrameHistory = new();
-        internal BottleneckHistory m_BottleneckHistory = new();
+        internal FrameTimeSampleHistory m_FrameHistory;
+        internal BottleneckHistory m_BottleneckHistory;
 
         /// <summary>
         /// Size of the Bottleneck History Window in number of samples.
@@ -28,6 +28,12 @@ namespace UnityEngine.Rendering
 
         FrameTiming[] m_Timing = new FrameTiming[1];
         FrameTimeSample m_Sample = new FrameTimeSample();
+
+        public DebugFrameTiming()
+        {
+            m_FrameHistory = new FrameTimeSampleHistory(sampleHistorySize);
+            m_BottleneckHistory = new BottleneckHistory(bottleneckHistorySize);
+        }
 
         /// <summary>
         /// Update timing data from profiling counters.
@@ -158,16 +164,16 @@ namespace UnityEngine.Rendering
                     new DebugUI.IntField
                     {
                         displayName = "Frame Time Sample History Size",
-                        getter = () => SampleHistorySize,
-                        setter = (value) => { SampleHistorySize = value; },
+                        getter = () => sampleHistorySize,
+                        setter = (value) => { sampleHistorySize = value; },
                         min = () => 1,
                         max = () => 100
                     },
                     new DebugUI.IntField
                     {
                         displayName = "Bottleneck History Size",
-                        getter = () => BottleneckHistorySize,
-                        setter = (value) => { BottleneckHistorySize = value; },
+                        getter = () => bottleneckHistorySize,
+                        setter = (value) => { bottleneckHistorySize = value; },
                         min = () => 1,
                         max = () => 100
                     },
