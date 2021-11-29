@@ -222,9 +222,7 @@ namespace UnityEngine.VFX
     [Serializable]
     struct VisualEffectPlayableSerializedEvent
     {
-#if UNITY_EDITOR
         public Color editorColor;
-#endif
         public double time;
         public PlayableTimeSpace timeSpace;
         public ExposedProperty name;
