@@ -33,6 +33,7 @@ float4   _PathTracingTilingParameters; // xy: tile count, zw: current tile index
 // FIXME
 TEXTURE2D(_PathTracingSkyPDFTexture);
 TEXTURE2D(_PathTracingSkyCDFTexture);
+TEXTURE2D(_PathTracingSkyMarginalTexture);
 
 // Output(s)
 RW_TEXTURE2D_X(float4, _FrameTexture);

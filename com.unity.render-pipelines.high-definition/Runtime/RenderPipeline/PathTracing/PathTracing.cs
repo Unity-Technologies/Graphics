@@ -77,10 +77,11 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_CameraID = 0;
         bool m_RenderSky = true;
 
-        TextureHandle m_FrameTexture;  // Stores the per-pixel results of path tracing for one frame
-        TextureHandle m_SkyBGTexture;  // Stores the sky background as seem from the camera
-        TextureHandle m_SkyPDFTexture; // Stores latlon sky data (PDF) for importance sampling
-        TextureHandle m_SkyCDFTexture; // Stores latlon sky data (CDF) for importance sampling
+        TextureHandle m_FrameTexture;       // Stores the per-pixel results of path tracing for one frame
+        TextureHandle m_SkyBGTexture;       // Stores the sky background as seem from the camera
+        TextureHandle m_SkyPDFTexture;      // Stores latlon sky data (PDF) for importance sampling
+        TextureHandle m_SkyCDFTexture;      // Stores latlon sky data (CDF) for importance sampling
+        TextureHandle m_SkyMarginalTexture; // Stores latlon sky data (Marginal) for importance sampling
 
         int m_skySamplingSize; // value used for the latlon sky texture (width = 2*size, height = size)
 
@@ -117,6 +118,10 @@ namespace UnityEngine.Rendering.HighDefinition
             td.height = m_skySamplingSize;
             m_SkyPDFTexture = renderGraph.CreateSharedTexture(td);
             m_SkyCDFTexture = renderGraph.CreateSharedTexture(td);
+
+            td.width = m_skySamplingSize;
+            td.height = 1;            
+            m_SkyMarginalTexture = renderGraph.CreateSharedTexture(td);
         }
 
         void ReleasePathTracing()
@@ -300,6 +305,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle skyBG;
             public TextureHandle skyPDF; // FIXME
             public TextureHandle skyCDF; // FIXME
+            public TextureHandle skyMarginal; // FIXME
 
 #if ENABLE_SENSOR_SDK
             public Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays;
@@ -343,6 +349,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.skyBG = builder.ReadTexture(m_SkyBGTexture);
                 passData.skyPDF = builder.ReadTexture(m_SkyPDFTexture); // FIXME
                 passData.skyCDF = builder.ReadTexture(m_SkyCDFTexture); // FIXME
+                passData.skyMarginal = builder.ReadTexture(m_SkyMarginalTexture); // FIXME
 
                 builder.SetRenderFunc(
                     (RenderPathTracingData data, RenderGraphContext ctx) =>
@@ -374,6 +381,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // FIXME
                         ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._PathTracingSkyPDFTexture, data.skyPDF);
                         ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._PathTracingSkyCDFTexture, data.skyCDF);
+                        ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._PathTracingSkyMarginalTexture, data.skyMarginal);
 
                         ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._FrameTexture, data.output);
                         ctx.cmd.SetRayTracingMatrixParam(data.shader, HDShaderIDs._PixelCoordToViewDirWS, data.pixelCoordToViewDirWS);
@@ -421,6 +429,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int size;
             public TextureHandle outputPDF;
             public TextureHandle outputCDF;
+            public TextureHandle outputMarginal;
         }
 
         // Prepares data (PDF, CDF) to be able to importance sample the sky afterwards
@@ -437,16 +446,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.size = m_skySamplingSize;
                 passData.outputPDF = builder.WriteTexture(m_SkyPDFTexture);
                 passData.outputCDF = builder.WriteTexture(m_SkyCDFTexture);
+                passData.outputMarginal = builder.WriteTexture(m_SkyMarginalTexture);
 
                 builder.SetRenderFunc(
                     (RenderSkySamplingPassData data, RenderGraphContext ctx) =>
                     {
                         ctx.cmd.SetComputeIntParams(data.shader, HDShaderIDs._Sizes, data.size * 2, data.size, 0, 0);
+
                         ctx.cmd.SetComputeTextureParam(data.shader, data.k0, "PDF", data.outputPDF);
                         ctx.cmd.SetComputeTextureParam(data.shader, data.k0, "CDF", data.outputCDF);
+                        ctx.cmd.SetComputeTextureParam(data.shader, data.k0, "Marginal", data.outputMarginal);
                         ctx.cmd.DispatchCompute(data.shader, data.k0, 1, data.size, 1);
 
-                        ctx.cmd.SetComputeTextureParam(data.shader, data.k1, "CDF", data.outputCDF);
+                        ctx.cmd.SetComputeTextureParam(data.shader, data.k1, "Marginal", data.outputMarginal);
                         ctx.cmd.DispatchCompute(data.shader, data.k1, 1, 1, 1);
                     });
             }
