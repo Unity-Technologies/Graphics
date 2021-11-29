@@ -606,12 +606,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // having issues with "persisting" textures stomping on each other if they have the same descriptor.
             m_ShadowManager.InitializeNonRenderGraphResources();
 
+            EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
+
             // custom-begin:
-            // Force non-rendergraph path, until we have refactored all custom rendering code, and probe volumes to be compatible with the RenderGraph path.  
-            //
-            //EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
             ProbeVolumeDynamicGI.instance.Allocate(defaultResources);
-            EnableRenderGraph(false);
             // custom-end
         }
 
