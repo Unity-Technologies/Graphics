@@ -10,9 +10,19 @@ namespace UnityEngine.Rendering
         GlobalRegister = 5
     }
 
-    public enum LeakReductionMode
+    [GenerateHLSL]
+    /// <summary>
+    /// Defines the method used to reduce leaking.
+    /// </summary>
+    public enum APVLeakReductionMode
     {
+        /// <summary>
+        /// Nothing special is done to prevent leaking. Cheapest option in terms of cost of sampling.
+        /// </summary>
         None = 0,
+        /// <summary>
+        /// Validity based occlusion. It detects occlusion through invalid probes, meaning that occlusion is detected only when probes fall inside geometry. Cheaper than other options, but works only on some specific cases.
+        /// </summary>
         ValidityBased = 1
     }
 

@@ -154,7 +154,7 @@ namespace UnityEngine.Experimental.Rendering
             parameters.viewBias = 0;
             parameters.scaleBiasByMinDistanceBetweenProbes = false;
             parameters.samplingNoise = 0;
-            parameters.leakReductionMode = LeakReductionMode.None;
+            parameters.leakReductionMode = APVLeakReductionMode.None;
             parameters.occlusionWeightContribution = 0.0f;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
 

@@ -4,6 +4,12 @@
 
 #ifndef SHADERVARIABLESPROBEVOLUMES_CS_HLSL
 #define SHADERVARIABLESPROBEVOLUMES_CS_HLSL
+//
+// UnityEngine.Rendering.APVLeakReductionMode:  static fields
+//
+#define APVLEAKREDUCTIONMODE_NONE (0)
+#define APVLEAKREDUCTIONMODE_VALIDITY_BASED (1)
+
 // Generated from UnityEngine.Rendering.ShaderVariablesProbeVolumes
 // PackingRules = Exact
 GLOBAL_CBUFFER_START(ShaderVariablesProbeVolumes, b5)

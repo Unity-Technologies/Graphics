@@ -7,6 +7,19 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEngine.Experimental.Rendering
 {
     /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="APVLeakReductionMode"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class APVLeakReductionModeParameter : VolumeParameter<APVLeakReductionMode>
+    {
+        /// <summary>
+        /// Creates a new <see cref="APVLeakReductionModeParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public APVLeakReductionModeParameter(APVLeakReductionMode value, bool overrideState = false) : base(value, overrideState) { }
+    }
+    /// <summary>
     /// A volume component that holds settings for the Probe Volumes System per-camera options.
     /// </summary>
     [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/Probe Volumes Options (Experimental)", typeof(HDRenderPipeline))]
@@ -35,5 +48,11 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         [AdditionalProperty, Tooltip("Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.")]
         public ClampedFloatParameter samplingNoise = new ClampedFloatParameter(0.125f, 0.0f, 1.0f);
+
+        /// <summary>
+        /// Method used to reduce leaks. Validity mode will only find occlusions when a probe is inside an object. Will provide a crude reduction only in some cases.
+        /// </summary>
+        [AdditionalProperty, Tooltip("Method used to reduce leaks. Validity mode will only find occlusions when a probe is inside an object. Will provide a crude reduction only in some cases.")]
+        public APVLeakReductionModeParameter leakReductionMode = new APVLeakReductionModeParameter(APVLeakReductionMode.None);
     }
 }

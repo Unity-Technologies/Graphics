@@ -307,7 +307,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Method used for leak reduction.
         /// </summary>
-        public LeakReductionMode leakReductionMode;
+        public APVLeakReductionMode leakReductionMode;
         /// <summary>
         /// Contribution of leak reduction weights.
         /// </summary>

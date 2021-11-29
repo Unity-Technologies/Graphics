@@ -400,7 +400,10 @@ APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, floa
     if (TryToGetPoolUVW(apvRes, posWS, biasNormalWS, viewDir, pool_uvw))
     {
 #if MANUAL_FILTERING == 1
-        outSample = ManuallyFilteredSample(apvRes, pool_uvw);
+        if (_LeakReductionParams.x == APVLEAKREDUCTIONMODE_VALIDITY_BASED)
+            outSample = ManuallyFilteredSample(apvRes, pool_uvw);
+        else
+            outSample = SampleAPV(apvRes, pool_uvw);
 #else
         outSample = SampleAPV(apvRes, pool_uvw);
 #endif
