@@ -1,45 +1,15 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Rendering;
-using UnityEngine.UIElements;
-using UnityEditorInternal;
-using System.Linq;
 using System.Reflection;
-using UnityEditor.VFX.HDRP;
-using UnityEditor.VFX.UI;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     using CED = CoreEditorDrawer<SerializedHDRenderPipelineGlobalSettings>;
 
-    class HDGlobalSettingsPanelProvider
+    internal partial class HDRenderPipelineGlobalSettingsUI
     {
-        static HDGlobalSettingsPanelIMGUI s_IMGUIImpl = new HDGlobalSettingsPanelIMGUI();
-
-        [SettingsProvider]
-        public static SettingsProvider CreateSettingsProvider()
-        {
-            var keywords = SettingsProvider.GetSearchKeywordsFromGUIContentProperties<HDGlobalSettingsPanelIMGUI.Styles>()
-                .Concat(OverridableFrameSettingsArea.frameSettingsKeywords);
-
-            keywords = RenderPipelineSettingsUtilities.RemoveDLSSKeywords(keywords);
-
-            return new SettingsProvider("Project/Graphics/HDRP Global Settings", SettingsScope.Project)
-            {
-                activateHandler = s_IMGUIImpl.OnActivate,
-                keywords = keywords.ToArray(),
-                guiHandler = s_IMGUIImpl.DoGUI,
-                titleBarGuiHandler = s_IMGUIImpl.OnTitleBarGUI
-            };
-        }
-    }
-
-    internal partial class HDGlobalSettingsPanelIMGUI
-    {
-        public static readonly CED.IDrawer Inspector;
-
         public class DocumentationUrls
         {
             public static readonly string k_Volumes = "Volume-Profile";
@@ -49,152 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly string k_DecalLayers = "Decal";
             public static readonly string k_CustomPostProcesses = "Custom-Post-Process";
         }
-
-        static HDGlobalSettingsPanelIMGUI()
-        {
-            Inspector = CED.Group(
-                VolumeSection,
-                CED.Group((serialized, owner) => EditorGUILayout.Space()),
-                DiffusionProfileSettingsSection,
-                CED.Group((serialized, owner) => EditorGUILayout.Space()),
-                FrameSettingsSection,
-                CED.Group((serialized, owner) => EditorGUILayout.Space()),
-                LayerNamesSection,
-                CED.Group((serialized, owner) => EditorGUILayout.Space()),
-                CustomPostProcessesSection,
-                CED.Group((serialized, owner) => EditorGUILayout.Space()),
-                MiscSection,
-                CED.Group((serialized, owner) => EditorGUILayout.Space()),
-                ResourcesSection
-            );
-        }
-
-        SerializedHDRenderPipelineGlobalSettings serializedSettings;
-        HDRenderPipelineGlobalSettings settingsSerialized;
-
-        public void OnTitleBarGUI()
-        {
-            if (GUILayout.Button(CoreEditorStyles.iconHelp, CoreEditorStyles.iconHelpStyle))
-                Help.BrowseURL(Documentation.GetPageLink("Default-Settings-Window"));
-        }
-
-        internal static bool needRefreshVfxErrors = false;
-
-        public void DoGUI(string searchContext)
-        {
-            // When the asset being serialized has been deleted before its reconstruction
-            if (serializedSettings != null && serializedSettings.serializedObject.targetObject == null)
-            {
-                serializedSettings = null;
-                settingsSerialized = null;
-            }
-
-            if (serializedSettings == null || settingsSerialized != HDRenderPipelineGlobalSettings.instance)
-            {
-                if (HDRenderPipelineGlobalSettings.instance != null)
-                {
-                    settingsSerialized = HDRenderPipelineGlobalSettings.Ensure();
-                    var serializedObject = new SerializedObject(settingsSerialized);
-                    serializedSettings = new SerializedHDRenderPipelineGlobalSettings(serializedObject);
-                }
-                else
-                {
-                    serializedSettings = null;
-                    settingsSerialized = null;
-                }
-            }
-            else if (settingsSerialized != null && serializedSettings != null)
-            {
-                serializedSettings.serializedObject.Update();
-            }
-
-            DrawAssetSelection(ref serializedSettings, null);
-            DrawWarnings(ref serializedSettings, null);
-            if (settingsSerialized != null && serializedSettings != null)
-            {
-                EditorGUILayout.Space();
-                Inspector.Draw(serializedSettings, null);
-                serializedSettings.serializedObject?.ApplyModifiedProperties();
-                VFXHDRPSettingsUtility.RefreshVfxErrorsIfNeeded(ref needRefreshVfxErrors);
-            }
-        }
-
-        /// <summary>
-        /// Executed when activate is called from the settings provider.
-        /// </summary>
-        /// <param name="searchContext"></param>
-        /// <param name="rootElement"></param>
-        public void OnActivate(string searchContext, VisualElement rootElement)
-        {
-        }
-
-        void DrawWarnings(ref SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
-        {
-            bool isHDRPinUse = HDRenderPipeline.currentAsset != null;
-            if (isHDRPinUse && serialized != null)
-                return;
-
-            if (isHDRPinUse)
-            {
-                ShowMessageWithFixButton(Styles.warningGlobalSettingsMissing, MessageType.Warning);
-            }
-            else
-            {
-                EditorGUILayout.HelpBox(Styles.warningHdrpNotActive, MessageType.Warning);
-                if (serialized == null)
-                {
-                    ShowMessageWithFixButton(Styles.infoGlobalSettingsMissing, MessageType.Info);
-                }
-            }
-        }
-
-        void ShowMessageWithFixButton(string helpBoxLabel, MessageType type)
-        {
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                EditorGUILayout.HelpBox(helpBoxLabel, type);
-                if (GUILayout.Button(Styles.fixAssetButtonLabel, GUILayout.Width(45)))
-                {
-                    HDRenderPipelineGlobalSettings.Ensure();
-                }
-            }
-        }
-
-        #region Global HDRenderPipelineGlobalSettings asset selection
-        void DrawAssetSelection(ref SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
-        {
-            var oldWidth = EditorGUIUtility.labelWidth;
-            EditorGUIUtility.labelWidth = Styles.labelWidth;
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                EditorGUI.BeginChangeCheck();
-                var newAsset = (HDRenderPipelineGlobalSettings)EditorGUILayout.ObjectField(settingsSerialized, typeof(HDRenderPipelineGlobalSettings), false);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    HDRenderPipelineGlobalSettings.UpdateGraphicsSettings(newAsset);
-                    Debug.Assert(newAsset == HDRenderPipelineGlobalSettings.instance);
-                    if (settingsSerialized != null && !settingsSerialized.Equals(null))
-                        EditorUtility.SetDirty(settingsSerialized);
-                }
-
-                if (GUILayout.Button(Styles.newAssetButtonLabel, GUILayout.Width(45), GUILayout.Height(18)))
-                {
-                    HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Create(useProjectSettingsFolder: true, assignToActiveAsset: true);
-                }
-
-                bool guiEnabled = GUI.enabled;
-                GUI.enabled = guiEnabled && (settingsSerialized != null);
-                if (GUILayout.Button(Styles.cloneAssetButtonLabel, GUILayout.Width(45), GUILayout.Height(18)))
-                {
-                    HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Clone(settingsSerialized, assignToActiveAsset: true);
-                }
-                GUI.enabled = guiEnabled;
-            }
-            EditorGUIUtility.labelWidth = oldWidth;
-            EditorGUILayout.Space();
-        }
-
-        #endregion // Global HDRenderPipelineGlobalSettings asset selection
 
         #region Resources
 
@@ -366,7 +190,10 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.Space(5);
+                var labelWidth = EditorGUIUtility.labelWidth;
+                EditorGUIUtility.labelWidth = 100;
                 serialized.m_DiffusionProfileUI.OnGUI(serialized.diffusionProfileSettingsList);
+                EditorGUIUtility.labelWidth = labelWidth;
             }
         }
 
@@ -605,5 +432,20 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         #endregion
+
+        public static readonly CED.IDrawer Inspector = CED.Group(
+        VolumeSection,
+        CED.Group((serialized, owner) => EditorGUILayout.Space()),
+        DiffusionProfileSettingsSection,
+        CED.Group((serialized, owner) => EditorGUILayout.Space()),
+        FrameSettingsSection,
+        CED.Group((serialized, owner) => EditorGUILayout.Space()),
+        LayerNamesSection,
+        CED.Group((serialized, owner) => EditorGUILayout.Space()),
+        CustomPostProcessesSection,
+        CED.Group((serialized, owner) => EditorGUILayout.Space()),
+        MiscSection,
+        CED.Group((serialized, owner) => EditorGUILayout.Space()),
+        ResourcesSection);
     }
 }
