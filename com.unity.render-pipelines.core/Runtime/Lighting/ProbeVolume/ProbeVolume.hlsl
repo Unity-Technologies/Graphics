@@ -42,6 +42,9 @@ struct APVSample
     float4 L2_G;
     float4 L2_B;
     float3 L2_C;
+
+    // This validity mask is available in APVSample only when L2 as we sample it alongside the L2_C part.
+    uint validityMask;
 #endif
 
 #define APV_SAMPLE_STATUS_INVALID -1
@@ -68,20 +71,6 @@ struct APVSample
             status = APV_SAMPLE_STATUS_DECODED;
         }
     }
-
-    void SetToZero()
-    {
-        L0 = 0;
-        L1_R = 0;
-        L1_G = 0;
-        L1_B = 0;
-#ifdef PROBE_VOLUMES_L2
-        L2_R = 0;
-        L2_G = 0;
-        L2_B = 0;
-        L2_C = 0;
-#endif
-    }
 };
 
 // Resources required for APV
@@ -102,6 +91,7 @@ TEXTURE3D(_APVResValidity);
 // -------------------------------------------------------------
 // Various weighting functions for occlusion or helper functions.
 // -------------------------------------------------------------
+
 
 uint3 GetSampleOffset(uint i)
 {
@@ -283,7 +273,9 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw)
     apvSample.L2_R = SAMPLE_TEXTURE3D_LOD(apvRes.L2_0, s_linear_clamp_sampler, uvw, 0).rgba;
     apvSample.L2_G = SAMPLE_TEXTURE3D_LOD(apvRes.L2_1, s_linear_clamp_sampler, uvw, 0).rgba;
     apvSample.L2_B = SAMPLE_TEXTURE3D_LOD(apvRes.L2_2, s_linear_clamp_sampler, uvw, 0).rgba;
-    apvSample.L2_C = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgb;
+    float4 L2CAndValidityMask = SAMPLE_TEXTURE3D_LOD(apvRes.L2_3, s_linear_clamp_sampler, uvw, 0).rgba;
+    apvSample.L2_C = L2CAndValidityMask.xyz;
+    apvSample.validityMask = L2CAndValidityMask.w * 255;
 #endif
 
     apvSample.status = APV_SAMPLE_STATUS_ENCODED;
@@ -308,7 +300,9 @@ APVSample LoadAndDecodeAPV(APVResources apvRes, int3 loc)
     apvSample.L2_R = LOAD_TEXTURE3D(apvRes.L2_0, loc).rgba;
     apvSample.L2_G = LOAD_TEXTURE3D(apvRes.L2_1, loc).rgba;
     apvSample.L2_B = LOAD_TEXTURE3D(apvRes.L2_2, loc).rgba;
-    apvSample.L2_C = LOAD_TEXTURE3D(apvRes.L2_3, loc).rgba;
+    float4 L2CAndValidityMask = LOAD_TEXTURE3D(apvRes.L2_3, loc).rgba;
+    apvSample.L2_C = L2CAndValidityMask.xyz;
+    apvSample.validityMask = L2CAndValidityMask.w * 255;
 #endif
 
     apvSample.status = APV_SAMPLE_STATUS_ENCODED;
@@ -355,15 +349,28 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 uvw)
     float3 texFrac = frac(texCoordFloat);
     float3 oneMinTexFrac = 1.0f - texFrac;
 
-    // TODO_FCC: Branch over this.
-    uint validityMask = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt).x * 255;
-
     bool sampled = false;
     float totalW = 0.0f;
+
     APVSample baseSample;
+
+#ifdef PROBE_VOLUMES_L2
+    baseSample = LoadAndDecodeAPV(apvRes, texCoordInt);
+    uint validityMask = baseSample.validityMask;
+
+    float validityWeight = GetValidityWeight(0, validityMask);
+    float sample0Weight = validityWeight * (oneMinTexFrac.x * oneMinTexFrac.y * oneMinTexFrac.z);
+    WeightSample(baseSample, sample0Weight);
+    totalW += sample0Weight;
+
+    for (int i = 1; i < 8; ++i)
+#else
     ZERO_INITIALIZE(APVSample, baseSample);
 
+    uint validityMask = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt).x * 255;
     for (int i = 0; i < 8; ++i)
+#endif
+
     {
         uint3 offset = GetSampleOffset(i);
         float trilinearW =
@@ -375,7 +382,6 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 uvw)
         if (validityWeight > 0)
         {
             APVSample apvSample = LoadAndDecodeAPV(apvRes, texCoordInt + offset);
-           // return apvSample;
             AccumulateSamples(baseSample, apvSample, trilinearW);
             totalW += trilinearW;
         }

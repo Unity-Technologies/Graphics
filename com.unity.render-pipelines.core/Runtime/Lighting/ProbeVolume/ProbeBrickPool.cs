@@ -551,7 +551,7 @@ namespace UnityEngine.Experimental.Rendering
                         int packedData = PackValidity(validities);
                         if (bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                         {
-                            SetPixelAlpha(s_L2_3_locData, x, y, z, loc.width, loc.height, packedData * 255.0f); // TODO: Verify this mantains correctly the bit pattern.
+                            SetPixelAlpha(s_L2_3_locData, x, y, z, loc.width, loc.height, packedData / 255.0f); // TODO: Verify this mantains correctly the bit pattern.
                         }
                         else
                         {
