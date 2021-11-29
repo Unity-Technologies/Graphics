@@ -145,7 +145,8 @@ public unsafe class RenderBRG : MonoBehaviour
         [ReadOnly]
         public NativeArray<FrustumPlanes.PlanePacket4> planes;
 
-        [DeallocateOnJobCompletion] [ReadOnly]
+        [DeallocateOnJobCompletion]
+        [ReadOnly]
         public NativeArray<int> splitCounts;
 
         [ReadOnly]
@@ -264,7 +265,7 @@ public unsafe class RenderBRG : MonoBehaviour
                             batchID = batchID,
                             materialID = drawBatches[remappedIndex].key.material,
                             meshID = drawBatches[remappedIndex].key.meshID,
-                            submeshIndex = (ushort) drawBatches[remappedIndex].key.submeshIndex,
+                            submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
                             splitVisibilityMask = (ushort)visibleMaskPrev,
                             flags = BatchDrawCommandFlags.None,
                             sortingPosition = 0
@@ -340,7 +341,7 @@ public unsafe class RenderBRG : MonoBehaviour
 
         BatchCullingOutputDrawCommands drawCommands = new BatchCullingOutputDrawCommands();
         drawCommands.drawRanges = Malloc<BatchDrawRange>(m_drawRanges.Length);
-        drawCommands.drawCommands = Malloc<BatchDrawCommand>(m_drawBatches.Length * 
+        drawCommands.drawCommands = Malloc<BatchDrawCommand>(m_drawBatches.Length *
             splitCounts.Length * 10); // TODO: Multiplying the DrawCommand count by splitCount*10 is NOT an conservative upper bound. But in practice is enough. Sorting would give us a real conservative bound...
 
         drawCommands.drawCommandPickingInstanceIDs = Malloc<int>(m_drawBatches.Length);

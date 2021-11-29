@@ -197,7 +197,7 @@ public unsafe class BRGSetup : MonoBehaviour
                 int i = z * itemGridSize + x;
 
                 /*
-                 *  mat4x3 packed like this: 
+                 *  mat4x3 packed like this:
                  *
                         float4x4(
                                 p1.x, p1.w, p2.z, p3.y,
@@ -215,7 +215,7 @@ public unsafe class BRGSetup : MonoBehaviour
                 // compute the new current frame matrix
                 m_sysmemBuffer[positionOffset + i * 3 + 0] = new Vector4(1, 0, 0, 0);
                 m_sysmemBuffer[positionOffset + i * 3 + 1] = new Vector4(1, 0, 0, 0);
-                m_sysmemBuffer[positionOffset + i * 3 + 2] = new Vector4(1, px + pos.x, pos.y, pz+pos.z);
+                m_sysmemBuffer[positionOffset + i * 3 + 2] = new Vector4(1, px + pos.x, pos.y, pz + pos.z);
 
                 // compute the new inverse matrix
                 m_sysmemBuffer[positionOffset + i * 3 + 0 + itemCountOffset * 2] = new Vector4(1, 0, 0, 0);
