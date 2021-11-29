@@ -64,7 +64,7 @@
 // basic instancing setups
 // - UNITY_VERTEX_INPUT_INSTANCE_ID     Declare instance ID field in vertex shader input / output struct.
 // - UNITY_GET_INSTANCE_ID              (Internal) Get the instance ID from input struct.
-#if UNITY_ANY_INSTANCING_ENABLED
+#if 1 //UNITY_ANY_INSTANCING_ENABLED
 
     // A global instance ID variable that functions can directly access.
     static uint unity_InstanceID;
@@ -164,7 +164,7 @@
 //                                  Also procedural function is called to setup instance data.
 // - UNITY_TRANSFER_INSTANCE_ID     Copy instance ID from input struct to output struct. Used in vertex shader.
 
-#if UNITY_ANY_INSTANCING_ENABLED
+#if 1 //UNITY_ANY_INSTANCING_ENABLED
     void UnitySetupInstanceID(uint inputInstanceID)
     {
         #ifdef UNITY_STEREO_INSTANCING_ENABLED

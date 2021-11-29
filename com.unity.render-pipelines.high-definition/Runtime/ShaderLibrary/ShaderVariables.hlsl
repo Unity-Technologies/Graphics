@@ -456,6 +456,16 @@ uint Get1DAddressFromPixelCoord(uint2 pixCoord, uint2 screenSize)
     return Get1DAddressFromPixelCoord(pixCoord, screenSize, 0);
 }
 
+
+// To get instancing working, we must use UNITY_MATRIX_M/UNITY_MATRIX_I_M/UNITY_PREV_MATRIX_M/UNITY_PREV_MATRIX_I_M as UnityInstancing.hlsl redefine them
+#define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
+#define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
+
+// This define allow to tell to unity instancing that we will use our camera relative functions (ApplyCameraTranslationToMatrix and  ApplyCameraTranslationToInverseMatrix) for the model view matrix
+#define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+
+
 // There is no UnityPerDraw cbuffer with BatchRendererGroup. Those matrices don't exist, so don't try to access them
 #ifndef DOTS_INSTANCING_ON
 
@@ -508,44 +518,44 @@ struct	UnityPerDrawElement
 };
 
 CBUFFER_START(UnityInstancingUnityPerDraw)
-    UnityPerDrawElement inst[2];
+UnityPerDrawElement inst[2];
 CBUFFER_END
 
-static uint gSrpBatcherInstanceId;
+//static uint gSrpBatcherInstanceId;
 
 //unity_InstanceID
-#define unity_ObjectToWorld					inst[gSrpBatcherInstanceId]._unity_ObjectToWorld
-#define unity_WorldToObject                	inst[gSrpBatcherInstanceId]._unity_WorldToObject
-#define unity_LODFade                      	inst[gSrpBatcherInstanceId]._unity_LODFade
-#define unity_WorldTransformParams         	inst[gSrpBatcherInstanceId]._unity_WorldTransformParams
-#define unity_RenderingLayer               	inst[gSrpBatcherInstanceId]._unity_RenderingLayer
-#define unity_LightmapST                   	inst[gSrpBatcherInstanceId]._unity_LightmapST
-#define unity_DynamicLightmapST            	inst[gSrpBatcherInstanceId]._unity_DynamicLightmapST
-#define unity_SHAr                         	inst[gSrpBatcherInstanceId]._unity_SHAr
-#define unity_SHAg                         	inst[gSrpBatcherInstanceId]._unity_SHAg
-#define unity_SHAb                         	inst[gSrpBatcherInstanceId]._unity_SHAb
-#define unity_SHBr                         	inst[gSrpBatcherInstanceId]._unity_SHBr
-#define unity_SHBg                         	inst[gSrpBatcherInstanceId]._unity_SHBg
-#define unity_SHBb                         	inst[gSrpBatcherInstanceId]._unity_SHBb
-#define unity_SHC                          	inst[gSrpBatcherInstanceId]._unity_SHC
-#define unity_ProbeVolumeParams            	inst[gSrpBatcherInstanceId]._unity_ProbeVolumeParams
-#define unity_ProbeVolumeWorldToObject     	inst[gSrpBatcherInstanceId]._unity_ProbeVolumeWorldToObject
-#define unity_ProbeVolumeSizeInv           	inst[gSrpBatcherInstanceId]._unity_ProbeVolumeSizeInv
-#define unity_ProbeVolumeMin               	inst[gSrpBatcherInstanceId]._unity_ProbeVolumeMin
-#define unity_ProbesOcclusion              	inst[gSrpBatcherInstanceId]._unity_ProbesOcclusion
-#define unity_MatrixPreviousM              	inst[gSrpBatcherInstanceId]._unity_MatrixPreviousM
-#define unity_MatrixPreviousMI             	inst[gSrpBatcherInstanceId]._unity_MatrixPreviousMI
-#define unity_MotionVectorsParams          	inst[gSrpBatcherInstanceId]._unity_MotionVectorsParams
+#define unity_ObjectToWorld					inst[unity_InstanceID]._unity_ObjectToWorld
+#define unity_WorldToObject                	inst[unity_InstanceID]._unity_WorldToObject
+#define unity_LODFade                      	inst[unity_InstanceID]._unity_LODFade
+#define unity_WorldTransformParams         	inst[unity_InstanceID]._unity_WorldTransformParams
+#define unity_RenderingLayer               	inst[unity_InstanceID]._unity_RenderingLayer
+#define unity_LightmapST                   	inst[unity_InstanceID]._unity_LightmapST
+#define unity_DynamicLightmapST            	inst[unity_InstanceID]._unity_DynamicLightmapST
+#define unity_SHAr                         	inst[unity_InstanceID]._unity_SHAr
+#define unity_SHAg                         	inst[unity_InstanceID]._unity_SHAg
+#define unity_SHAb                         	inst[unity_InstanceID]._unity_SHAb
+#define unity_SHBr                         	inst[unity_InstanceID]._unity_SHBr
+#define unity_SHBg                         	inst[unity_InstanceID]._unity_SHBg
+#define unity_SHBb                         	inst[unity_InstanceID]._unity_SHBb
+#define unity_SHC                          	inst[unity_InstanceID]._unity_SHC
+#define unity_ProbeVolumeParams            	inst[unity_InstanceID]._unity_ProbeVolumeParams
+#define unity_ProbeVolumeWorldToObject     	inst[unity_InstanceID]._unity_ProbeVolumeWorldToObject
+#define unity_ProbeVolumeSizeInv           	inst[unity_InstanceID]._unity_ProbeVolumeSizeInv
+#define unity_ProbeVolumeMin               	inst[unity_InstanceID]._unity_ProbeVolumeMin
+#define unity_ProbesOcclusion              	inst[unity_InstanceID]._unity_ProbesOcclusion
+#define unity_MatrixPreviousM              	inst[unity_InstanceID]._unity_MatrixPreviousM
+#define unity_MatrixPreviousMI             	inst[unity_InstanceID]._unity_MatrixPreviousMI
+#define unity_MotionVectorsParams          	inst[unity_InstanceID]._unity_MotionVectorsParams
 
 
 
 // Define Model Matrix Macro
 // Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject/unity_MatrixPreviousM/unity_MatrixPreviousMI
 // We need to declare inline function. Using uniform directly mean they are expand with the macro
-float4x4 GetRawUnityObjectToWorld()     { return inst[gSrpBatcherInstanceId]._unity_ObjectToWorld; }
-float4x4 GetRawUnityWorldToObject()     { return inst[gSrpBatcherInstanceId]._unity_WorldToObject; }
-float4x4 GetRawUnityPrevObjectToWorld() { return inst[gSrpBatcherInstanceId]._unity_MatrixPreviousM; }
-float4x4 GetRawUnityPrevWorldToObject() { return inst[gSrpBatcherInstanceId]._unity_MatrixPreviousMI; }
+float4x4 GetRawUnityObjectToWorld() { return inst[unity_InstanceID]._unity_ObjectToWorld; }
+float4x4 GetRawUnityWorldToObject() { return inst[unity_InstanceID]._unity_WorldToObject; }
+float4x4 GetRawUnityPrevObjectToWorld() { return inst[unity_InstanceID]._unity_MatrixPreviousM; }
+float4x4 GetRawUnityPrevWorldToObject() { return inst[unity_InstanceID]._unity_MatrixPreviousMI; }
 
 #define UNITY_MATRIX_M         ApplyCameraTranslationToMatrix(GetRawUnityObjectToWorld())
 #define UNITY_MATRIX_I_M       ApplyCameraTranslationToInverseMatrix(GetRawUnityWorldToObject())
@@ -554,13 +564,9 @@ float4x4 GetRawUnityPrevWorldToObject() { return inst[gSrpBatcherInstanceId]._un
 
 #endif
 
-// To get instancing working, we must use UNITY_MATRIX_M/UNITY_MATRIX_I_M/UNITY_PREV_MATRIX_M/UNITY_PREV_MATRIX_I_M as UnityInstancing.hlsl redefine them
-#define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
-#define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
 
-// This define allow to tell to unity instancing that we will use our camera relative functions (ApplyCameraTranslationToMatrix and  ApplyCameraTranslationToInverseMatrix) for the model view matrix
-#define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+
+
 
 // VFX may also redefine UNITY_MATRIX_M / UNITY_MATRIX_I_M as static per-particle global matrices.
 #ifdef HAVE_VFX_MODIFICATION

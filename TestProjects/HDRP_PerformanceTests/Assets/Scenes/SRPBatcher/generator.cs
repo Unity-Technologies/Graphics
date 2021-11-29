@@ -52,7 +52,8 @@ public class generator : MonoBehaviour
                 m_objs[id].transform.position = m_pos[id];
                 Renderer rend = m_objs[id].GetComponent<Renderer>();
 
-                rend.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+//                rend.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+                rend.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.BlendProbes;
                 rend.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
 
                 rend.shadowCastingMode = m_castShadows ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
