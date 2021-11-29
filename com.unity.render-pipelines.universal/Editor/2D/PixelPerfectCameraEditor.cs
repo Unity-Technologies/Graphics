@@ -21,8 +21,7 @@ namespace UnityEditor.Rendering.Universal
             public GUIContent currentPixelRatio = new GUIContent("Current Pixel Ratio", "Ratio of the rendered Sprites compared to their original size.");
             public GUIContent runInEditMode = new GUIContent("Run In Edit Mode", "Enable this to preview Camera setting changes in Edit Mode. This will cause constant changes to the Scene while active.");
             public const string cameraStackingWarning = "Pixel Perfect Camera won't function properly if stacked with another camera.";
-            public const string nonRenderer2DWarning = "URP Pixel Perfect Camera requires a camera using a 2D Renderer. Some features, such as Upscale Render Texture, are not supported with other Renderers.";
-            public const string nonRenderer2DError = "URP Pixel Perfect Camera requires a camera using a 2D Renderer.";
+            public const string nonRenderer2DError = "Pixel Perfect Camera requires a camera using a 2D Renderer.";
 
             public GUIStyle centeredLabel;
 
@@ -58,23 +57,11 @@ namespace UnityEditor.Rendering.Universal
                 m_CurrentPixelRatioValue = new GUIContent();
         }
 
-        UniversalAdditionalCameraData GetCameraData()
+        bool UsingRenderer2D()
         {
             PixelPerfectCamera obj = target as PixelPerfectCamera;
             UniversalAdditionalCameraData cameraData = null;
             obj?.TryGetComponent(out cameraData);
-            return cameraData;
-        }
-
-        bool UsingSRP()
-        {
-            var cameraData = GetCameraData();
-            return cameraData?.scriptableRenderer != null;
-        }
-
-        bool UsingRenderer2D()
-        {
-            var cameraData = GetCameraData();
 
             if (cameraData != null)
             {
@@ -90,9 +77,11 @@ namespace UnityEditor.Rendering.Universal
         {
             m_CameraStacking = false;
 
-            var cameraData = GetCameraData();
+            PixelPerfectCamera obj = target as PixelPerfectCamera;
+            UniversalAdditionalCameraData cameraData = null;
+            obj?.TryGetComponent(out cameraData);
 
-            if (cameraData == null || cameraData.scriptableRenderer == null)
+            if (cameraData == null)
                 return;
 
             if (cameraData.renderType == CameraRenderType.Base)
@@ -135,15 +124,10 @@ namespace UnityEditor.Rendering.Universal
         {
             LazyInit();
 
-            if (!UsingSRP())
+            if (!UsingRenderer2D())
             {
                 EditorGUILayout.HelpBox(Style.nonRenderer2DError, MessageType.Error);
                 return;
-            }
-            else if (!UsingRenderer2D())
-            {
-                EditorGUILayout.HelpBox(Style.nonRenderer2DWarning, MessageType.Warning);
-                EditorGUILayout.Space();
             }
 
             float originalLabelWidth = EditorGUIUtility.labelWidth;
