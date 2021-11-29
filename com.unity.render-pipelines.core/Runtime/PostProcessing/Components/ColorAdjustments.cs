@@ -1,13 +1,13 @@
 using System;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// A volume component that holds settings for the Color Adjustments effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Color Adjustments", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Post-Processing-Color-Adjustments")]
-    public sealed class ColorAdjustments : VolumeComponent, IPostProcessComponent
+    [Serializable, VolumeComponentMenu("Post-processing/Color Adjustments")]
+    //[HDRPHelpURLAttribute("Post-Processing-Color-Adjustments")]
+    public class ColorAdjustments : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
         /// Adjusts the brightness of the image just before color grading, in EV.
@@ -46,10 +46,32 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsActive()
         {
             return postExposure.value != 0f
-                || contrast.value != 0f
-                || colorFilter != Color.white
-                || hueShift != 0f
-                || saturation != 0f;
+                   || contrast.value != 0f
+                   || colorFilter != Color.white
+                   || hueShift != 0f
+                   || saturation != 0f;
+        }
+
+        public bool IsTileCompatible() => true;
+
+        public Type GetNewComponentType()
+        {
+            return typeof(ColorAdjustments);
+        }
+
+        public void CopyToNewComponent(VolumeComponent volumeComponent)
+        {
+            if (volumeComponent is not ColorAdjustments ca)
+                return;
+
+            ca.active = active;
+            ca.hideFlags = hideFlags;
+            ca.displayName = displayName;
+            ca.postExposure = postExposure;
+            ca.contrast = contrast;
+            ca.colorFilter = colorFilter;
+            ca.hueShift = hueShift;
+            ca.saturation = saturation;
         }
     }
 }
