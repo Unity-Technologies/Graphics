@@ -108,6 +108,25 @@ namespace UnityEngine.Rendering
         }
 
         public bool IsTileCompatible() => true;
+
+        public Type GetNewComponentType()
+        {
+            return typeof(FilmGrain);
+        }
+
+        public void CopyToNewComponent(VolumeComponent volumeComponent)
+        {
+            if (volumeComponent is not FilmGrain grain)
+                return;
+
+            grain.active = active;
+            grain.hideFlags = hideFlags;
+            grain.displayName = displayName;
+            grain.type = type;
+            grain.intensity = intensity;
+            grain.response = response;
+            grain.texture = texture;
+        }
     }
 
     /// <summary>

@@ -8,6 +8,5 @@ namespace UnityEngine.Rendering.HighDefinition.Obsolete
     [Serializable]
     [Obsolete]
     public sealed class PaniniProjection : UnityEngine.Rendering.PaniniProjection, IDeprecatedVolumeComponent
-    {
-    }
+    { }
 }

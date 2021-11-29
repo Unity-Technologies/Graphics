@@ -9,6 +9,5 @@ namespace UnityEngine.Rendering.HighDefinition.Obsolete
     [Obsolete]
    // [HDRPHelpURLAttribute("Post-Processing-Lift-Gamma-Gain")]
     public sealed class LiftGammaGain : UnityEngine.Rendering.LiftGammaGain, IDeprecatedVolumeComponent
-    {
-    }
+    { }
 }

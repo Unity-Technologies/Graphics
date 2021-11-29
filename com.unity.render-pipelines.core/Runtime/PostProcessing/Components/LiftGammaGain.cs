@@ -42,5 +42,23 @@ namespace UnityEngine.Rendering
         protected LiftGammaGain() => displayName = "Lift, Gamma, Gain";
 
         public bool IsTileCompatible() => true;
+
+        public Type GetNewComponentType()
+        {
+            return typeof(LiftGammaGain);
+        }
+
+        public void CopyToNewComponent(VolumeComponent volumeComponent)
+        {
+            if (volumeComponent is not LiftGammaGain lgg)
+                return;
+
+            lgg.active = active;
+            lgg.displayName = displayName;
+            lgg.hideFlags = hideFlags;
+            lgg.lift = lift;
+            lgg.gamma = gamma;
+            lgg.gain = gain;
+        }
     }
 }
