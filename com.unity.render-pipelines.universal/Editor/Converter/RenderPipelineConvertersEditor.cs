@@ -10,7 +10,7 @@ using UnityEngine.UIElements;
 using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
 
-namespace UnityEditor.Rendering.Universal.Converters
+namespace UnityEditor.Rendering.Universal
 {
     // Status for each row item to say in which state they are in.
     // This will make sure they are showing the correct icon

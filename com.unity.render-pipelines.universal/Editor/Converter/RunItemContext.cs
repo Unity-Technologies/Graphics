@@ -1,4 +1,4 @@
-namespace UnityEditor.Rendering.Universal.Converters
+namespace UnityEditor.Rendering.Universal
 {
     /// <summary>
     /// A structure needed for the conversion part of the converter.

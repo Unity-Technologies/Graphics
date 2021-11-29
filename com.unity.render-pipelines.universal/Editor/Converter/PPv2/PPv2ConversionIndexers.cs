@@ -3,7 +3,7 @@ using UnityEditor.Search;
 using UnityEngine;
 using BIRPRendering = UnityEngine.Rendering.PostProcessing;
 
-namespace UnityEditor.Rendering.Universal.Converters
+namespace UnityEditor.Rendering.Universal
 {
     static class PPv2ConversionIndexers
     {
