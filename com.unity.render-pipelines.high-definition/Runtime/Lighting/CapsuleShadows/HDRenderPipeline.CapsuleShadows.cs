@@ -92,8 +92,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     CapsuleOccluderData data = occluder.GetOccluderData(originWS);
 
-                    // TODO: visibility check vs frustum
-
                     OrientedBBox bbox;
                     if (optimiseBoundsForLight)
                     {
@@ -129,8 +127,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
                     }
 
-                    m_VisibleCapsuleOccluderBounds.Add(bbox);
-                    m_VisibleCapsuleOccluderData.Add(data);
+                    // Frustum cull on the CPU for now.
+                    if (GeometryUtils.Overlap(bbox, hdCamera.frustum, 6, 8))
+                    {
+                        m_VisibleCapsuleOccluderBounds.Add(bbox);
+                        m_VisibleCapsuleOccluderData.Add(data);
+                    }
                 }
             }
 
