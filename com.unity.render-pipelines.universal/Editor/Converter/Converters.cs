@@ -196,6 +196,9 @@ namespace UnityEditor.Rendering.Universal
                     var ctx = new RunItemContext(item);
                     ctx.isBatchMode = true;
                     converter.OnRun(ref ctx);
+
+                    string converterStatus = ctx.didFail ? $"Fail\nInfo: {ctx.info}" : "Pass";
+                    Debug.Log($"Name: {ctx.item.descriptor.name}\nConverter Status: {converterStatus}");
                 }
 
                 converter.OnPostRun();
