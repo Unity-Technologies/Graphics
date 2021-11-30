@@ -1,13 +1,13 @@
 using System;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// A volume component that holds settings for the Split Toning effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Split Toning", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Post-Processing-Split-Toning")]
-    public sealed class SplitToning : VolumeComponent, IPostProcessComponent
+    [Serializable, VolumeComponentMenu("Post-processing/Split Toning")]
+    //[HDRPHelpURLAttribute("Post-Processing-Split-Toning")]
+    public class SplitToning : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
         /// Specifies the color to use for shadows.
@@ -35,6 +35,26 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return shadows != Color.grey
                 || highlights != Color.grey;
+        }
+
+        public bool IsTileCompatible() => true;
+
+        public Type GetNewComponentType()
+        {
+            return typeof(SplitToning);
+        }
+
+        public void CopyToNewComponent(VolumeComponent volumeComponent)
+        {
+            if (volumeComponent is not SplitToning lens)
+                return;
+
+            lens.active = active;
+            lens.displayName = displayName;
+            lens.hideFlags = hideFlags;
+            lens.shadows = shadows;
+            lens.highlights = highlights;
+            lens.balance = balance;
         }
     }
 }
