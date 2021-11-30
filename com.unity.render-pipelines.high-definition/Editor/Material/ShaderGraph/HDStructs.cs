@@ -77,5 +77,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDStructFields.VaryingsMeshToDS.instanceID,
             }
         };
+
+        public static StructDescriptor VertexDescriptionInputsProcedural = new StructDescriptor()
+        {
+            name = "VertexDescriptionInputs",
+            packFields = false,
+            fields = new FieldDescriptor[]
+            {
+                StructFields.VertexDescriptionInputs.TimeParameters,
+                StructFields.VertexDescriptionInputs.VertexID,
+            }
+        };
     }
 }

@@ -19,6 +19,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(1.0f), ShaderStage.Vertex);
             public static BlockFieldDescriptor TessellationDisplacement = new BlockFieldDescriptor(VertexDescription.name, "TessellationDisplacement", "Tessellation Displacement", "VERTEXDESCRIPTION_TESSELLATIONDISPLACEMENT",
                 new Vector3Control(new Vector3(0.0f, 0.0f, 0.0f)), ShaderStage.Vertex);
+            public static BlockFieldDescriptor UV0 = new BlockFieldDescriptor(VertexDescription.name, "uv0", "VERTEXDESCRIPTION_UV0",
+                new Vector4Control(Vector4.zero), ShaderStage.Vertex);
+            public static BlockFieldDescriptor UV1 = new BlockFieldDescriptor(VertexDescription.name, "uv1", "VERTEXDESCRIPTION_UV1",
+                new Vector4Control(Vector4.zero), ShaderStage.Vertex);
+            public static BlockFieldDescriptor UV2 = new BlockFieldDescriptor(VertexDescription.name, "uv2", "VERTEXDESCRIPTION_UV2",
+                new Vector4Control(Vector4.zero), ShaderStage.Vertex);
+            public static BlockFieldDescriptor UV3 = new BlockFieldDescriptor(VertexDescription.name, "uv3", "VERTEXDESCRIPTION_UV3",
+                new Vector4Control(Vector4.zero), ShaderStage.Vertex);
         }
 
         [GenerateBlocks("High Definition Render Pipeline")]

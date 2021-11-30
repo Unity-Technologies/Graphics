@@ -252,8 +252,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Vertex shader
             context.AddBlock(BlockFields.VertexDescription.Position);
             context.AddBlock(BlockFields.VertexDescription.Normal);
-            context.AddBlock(BlockFields.VertexDescription.UV0);
-            context.AddBlock(BlockFields.VertexDescription.UV1);
+            context.AddBlock(HDBlockFields.VertexDescription.UV0);
+            context.AddBlock(HDBlockFields.VertexDescription.UV1);
 
             // Fragment shader
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);

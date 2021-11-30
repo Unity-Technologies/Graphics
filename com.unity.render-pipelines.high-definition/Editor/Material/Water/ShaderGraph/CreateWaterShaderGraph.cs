@@ -17,8 +17,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Vertex shader
                 BlockFields.VertexDescription.Position,
                 BlockFields.VertexDescription.Normal,
-                BlockFields.VertexDescription.UV0,
-                BlockFields.VertexDescription.UV1,
+                HDBlockFields.VertexDescription.UV0,
+                HDBlockFields.VertexDescription.UV1,
 
                 // Fragment shader
                 BlockFields.SurfaceDescription.BaseColor,

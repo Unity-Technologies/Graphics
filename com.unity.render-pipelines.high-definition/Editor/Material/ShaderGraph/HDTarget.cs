@@ -412,7 +412,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { HDStructs.AttributesMeshProcedural },
             { HDStructs.VaryingsMeshToPS },
-            { Structs.VertexDescriptionInputsProcedural },
+            { HDStructs.VertexDescriptionInputsProcedural },
             { Structs.SurfaceDescriptionInputs },
         };
 
