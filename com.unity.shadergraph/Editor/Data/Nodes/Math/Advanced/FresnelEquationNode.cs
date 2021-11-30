@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -29,17 +30,22 @@ namespace UnityEditor.ShaderGraph
 
         const string kFresnelOutputSlotName = "Fresnel";
 
-        int kDotVectorsInputSlotId;
-        int kF0InputSlotId;
-        int kIORSourceInputSlotId;
-        int kIORMediumInputSlotId;
-        int kIORMediumImInputSlotId;
-        int kFresnelOutputSlotId;
+        private enum FresnelSlots
+        {
+            kDotVectorsInputSlotId,
+            kF0InputSlotId,
+            kIORSourceInputSlotId,
+            kIORMediumInputSlotId,
+            kIORMediumKInputSlotId,
+            kFresnelOutputSlotId
+        }
 
+        Vector1MaterialSlot dotInputSlot;
         Vector1MaterialSlot f0InputSlot;
         Vector1MaterialSlot iorSourceInputSlot;
         Vector1MaterialSlot iorMediumInputSlot;
         Vector1MaterialSlot iorMediumKInputSlot;
+        Vector1MaterialSlot fresnelOutputSlot;
 
         [EnumControl("Mode")]
         public FresnelEquationMode fresnelEquationMode
@@ -67,69 +73,54 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            int slotId = 0;
-
-            if (GetSlotProperty(kDotVectorsInputSlotId) != null)
-                RemoveSlot(kDotVectorsInputSlotId);
-            if (GetSlotProperty(kF0InputSlotId) != null)
-                RemoveSlot(kF0InputSlotId);
-            if (GetSlotProperty(kIORSourceInputSlotId) != null)
-                RemoveSlot(kIORSourceInputSlotId);
-            if (GetSlotProperty(kIORMediumInputSlotId) != null)
-                RemoveSlot(kIORMediumInputSlotId);
-            if (GetSlotProperty(kIORMediumImInputSlotId) != null)
-                RemoveSlot(kIORMediumImInputSlotId);
-            if (GetSlotProperty(kFresnelOutputSlotId) != null)
-                RemoveSlot(kFresnelOutputSlotId);
-
+            var addedSlots = new List<int>();
+            dotInputSlot = null;
             f0InputSlot = null;
             iorSourceInputSlot = null;
             iorMediumInputSlot = null;
             iorMediumKInputSlot = null;
+            fresnelOutputSlot = null;
 
-            kDotVectorsInputSlotId = slotId++;
-            AddSlot(new Vector1MaterialSlot(kDotVectorsInputSlotId, kDotVectorsInputSlotName, kDotVectorsInputSlotName, SlotType.Input, 0.0f));
+            dotInputSlot = new Vector1MaterialSlot((int)FresnelSlots.kDotVectorsInputSlotId, kDotVectorsInputSlotName, kDotVectorsInputSlotName, SlotType.Input, 0.0f);
+            AddSlot(dotInputSlot);
+            addedSlots.Add(dotInputSlot.id);
 
             if (m_FresnelEquationMode == FresnelEquationMode.Schlick)
             {
-                kF0InputSlotId = slotId++;
-                f0InputSlot = new Vector1MaterialSlot(kF0InputSlotId, kF0InputSlotName, kF0InputSlotName, SlotType.Input, 0.04f);
+                f0InputSlot = new Vector1MaterialSlot((int)FresnelSlots.kF0InputSlotId, kF0InputSlotName, kF0InputSlotName, SlotType.Input, 0.04f);
                 AddSlot(f0InputSlot);
+                addedSlots.Add(f0InputSlot.id);
             }
             else if (m_FresnelEquationMode == FresnelEquationMode.Dielectric)
             {
-                kIORSourceInputSlotId = slotId++;
-                kIORMediumInputSlotId = slotId++;
-                iorSourceInputSlot = new Vector1MaterialSlot(kIORSourceInputSlotId, kIORSourceInputSlotName, kIORSourceInputSlotName, SlotType.Input, 1.0f);
-                iorMediumInputSlot = new Vector1MaterialSlot(kIORMediumInputSlotId, kIORMediumInputSlotName, kIORMediumInputSlotName, SlotType.Input, 1.5f);
+                iorSourceInputSlot = new Vector1MaterialSlot((int)FresnelSlots.kIORSourceInputSlotId, kIORSourceInputSlotName, kIORSourceInputSlotName, SlotType.Input, 1.0f);
+                iorMediumInputSlot = new Vector1MaterialSlot((int)FresnelSlots.kIORMediumInputSlotId, kIORMediumInputSlotName, kIORMediumInputSlotName, SlotType.Input, 1.5f);
                 AddSlot(iorSourceInputSlot);
+                addedSlots.Add(iorSourceInputSlot.id);
+
                 AddSlot(iorMediumInputSlot);
+                addedSlots.Add(iorMediumInputSlot.id);
             }
             else if (m_FresnelEquationMode == FresnelEquationMode.DielectricGeneric)
             {
-                kIORSourceInputSlotId = slotId++;
-                kIORMediumInputSlotId = slotId++;
-                kIORMediumImInputSlotId = slotId++;
-                iorSourceInputSlot = new Vector1MaterialSlot(kIORSourceInputSlotId, kIORSourceInputSlotName, kIORSourceInputSlotName, SlotType.Input, 1.0f);
-                iorMediumInputSlot = new Vector1MaterialSlot(kIORMediumInputSlotId, kIORMediumInputSlotName, kIORMediumInputSlotName, SlotType.Input, 1.5f);
-                iorMediumKInputSlot = new Vector1MaterialSlot(kIORMediumImInputSlotId, kIORMediumImInputSlotName, kIORMediumImInputSlotName, SlotType.Input, 2.0f);
+                iorSourceInputSlot = new Vector1MaterialSlot((int)FresnelSlots.kIORSourceInputSlotId, kIORSourceInputSlotName, kIORSourceInputSlotName, SlotType.Input, 1.0f);
+                iorMediumInputSlot = new Vector1MaterialSlot((int)FresnelSlots.kIORMediumInputSlotId, kIORMediumInputSlotName, kIORMediumInputSlotName, SlotType.Input, 1.5f);
+                iorMediumKInputSlot = new Vector1MaterialSlot((int)FresnelSlots.kIORMediumKInputSlotId, kIORMediumImInputSlotName, kIORMediumImInputSlotName, SlotType.Input, 2.0f);
                 AddSlot(iorSourceInputSlot);
+                addedSlots.Add(iorSourceInputSlot.id);
+
                 AddSlot(iorMediumInputSlot);
+                addedSlots.Add(iorMediumInputSlot.id);
+
                 AddSlot(iorMediumKInputSlot);
+                addedSlots.Add(iorMediumKInputSlot.id);
             }
 
-            kFresnelOutputSlotId = slotId++;
-            AddSlot(new Vector1MaterialSlot(kFresnelOutputSlotId, kFresnelOutputSlotName, kFresnelOutputSlotName, SlotType.Output, 0.5f));
+            fresnelOutputSlot = new Vector1MaterialSlot((int)FresnelSlots.kFresnelOutputSlotId, kFresnelOutputSlotName, kFresnelOutputSlotName, SlotType.Output, 0.5f);
+            AddSlot(fresnelOutputSlot);
+            addedSlots.Add(fresnelOutputSlot.id);
 
-            RemoveSlotsNameNotMatching(new[]
-            {
-                kDotVectorsInputSlotId,
-                kF0InputSlotId,
-                kIORSourceInputSlotId,
-                kIORMediumInputSlotId,
-                kIORMediumImInputSlotId,
-                kFresnelOutputSlotId
-            });
+            RemoveSlotsNameNotMatching(addedSlots, supressWarnings: true);
         }
 
         string GetFunctionName()
@@ -203,35 +194,35 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            sb.AppendLine("{0} {1};", GetResultType(), GetVariableNameForSlot(kFresnelOutputSlotId));
+            sb.AppendLine("{0} {1};", GetResultType(), GetVariableNameForSlot((int)FresnelSlots.kFresnelOutputSlotId));
             if (m_FresnelEquationMode == FresnelEquationMode.Schlick)
             {
                 sb.AppendLine("{0}({1}, {2}, {3});",
                     GetFunctionName(),
-                    GetVariableNameForSlot(kFresnelOutputSlotId),
-                    GetSlotValue(kDotVectorsInputSlotId, generationMode),
-                    GetSlotValue(kF0InputSlotId, generationMode)
+                    GetVariableNameForSlot(fresnelOutputSlot.id),
+                    GetSlotValue(dotInputSlot.id, generationMode),
+                    GetSlotValue(f0InputSlot.id, generationMode)
                 );
             }
             else if (m_FresnelEquationMode == FresnelEquationMode.Dielectric)
             {
                 sb.AppendLine("{0}({1}, {2}, {3}, {4});",
                     GetFunctionName(),
-                    GetVariableNameForSlot(kFresnelOutputSlotId),
-                    GetSlotValue(kDotVectorsInputSlotId, generationMode),
-                    GetSlotValue(kIORSourceInputSlotId, generationMode),
-                    GetSlotValue(kIORMediumInputSlotId, generationMode)
+                    GetVariableNameForSlot(fresnelOutputSlot.id),
+                    GetSlotValue(dotInputSlot.id, generationMode),
+                    GetSlotValue(iorSourceInputSlot.id, generationMode),
+                    GetSlotValue(iorMediumInputSlot.id, generationMode)
                 );
             }
             else //if (m_FresnelEquationMode == FresnelEquationMode.DielectricGeneric)
             {
                 sb.AppendLine("{0}({1}, {2}, {3}, {4}, {5});",
                     GetFunctionName(),
-                    GetVariableNameForSlot(kFresnelOutputSlotId),
-                    GetSlotValue(kDotVectorsInputSlotId, generationMode),
-                    GetSlotValue(kIORSourceInputSlotId, generationMode),
-                    GetSlotValue(kIORMediumInputSlotId, generationMode),
-                    GetSlotValue(kIORMediumImInputSlotId, generationMode)
+                    GetVariableNameForSlot(fresnelOutputSlot.id),
+                    GetSlotValue(dotInputSlot.id, generationMode),
+                    GetSlotValue(iorSourceInputSlot.id, generationMode),
+                    GetSlotValue(iorMediumInputSlot.id, generationMode),
+                    GetSlotValue(iorMediumKInputSlot.id, generationMode)
                 );
             }
         }
