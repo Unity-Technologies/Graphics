@@ -431,6 +431,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeVolumetricLighting();
             InitializeVolumetricClouds();
             InitializeSubsurfaceScattering();
+            InitializeWaterSystem();
 
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugDisplaySettingsUI.RegisterDebug(HDDebugDisplaySettings.Instance);
@@ -735,6 +736,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ReleaseVolumetricClouds();
             CleanupSubsurfaceScattering();
+            ReleaseWaterSystem();
 
             // For debugging
             MousePositionDebug.instance.Cleanup();
@@ -1119,6 +1121,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 #endif
 
+            // When HDR is active we render UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
+            // for performance reasons otherwise we render UI overlay after all camera
+            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputIsActive();
+
 #if UNITY_2021_1_OR_NEWER
             if (!m_ValidAPI || cameras.Count == 0)
 #else
@@ -1179,6 +1185,18 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_FrameCount = newCount;
                 HDCamera.CleanUnused();
+
+            }
+
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportWater)
+            {
+                // Update the water surfaces
+                var commandBuffer = CommandBufferPool.Get("");
+                UpdateWaterSurfaces(commandBuffer);
+                renderContext.ExecuteCommandBuffer(commandBuffer);
+                renderContext.Submit();
+                commandBuffer.Clear();
+                CommandBufferPool.Release(commandBuffer);
             }
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
