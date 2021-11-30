@@ -107,10 +107,6 @@ namespace UnityEngine.Rendering.Universal
                     if (!RPEnabled)
                         continue;
 
-                    // Empty configure to setup dimensions/targets and whatever data is needed for merging
-                    // We do not execute this at this time, so render targets are still invalid
-                    renderPass.Configure(null, cameraData.cameraTargetDescriptor);
-
                     var rpDesc = InitializeRenderPassDescriptor(cameraData, renderPass);
 
                     Hash128 hash = CreateRenderPassHash(rpDesc, currentHashIndex);
@@ -664,7 +660,7 @@ namespace UnityEngine.Rendering.Universal
         private RenderPassDescriptor InitializeRenderPassDescriptor(CameraData cameraData, ScriptableRenderPass renderPass)
         {
             RenderTextureDescriptor targetRT;
-            if (!renderPass.overrideCameraTarget)
+            if (!renderPass.overrideCameraTarget || (renderPass.colorAttachmentHandle.rt == null && renderPass.depthAttachmentHandle.rt == null))
                 targetRT = cameraData.cameraTargetDescriptor;
             else
                 targetRT = renderPass.colorAttachmentHandle.rt != null ? renderPass.colorAttachmentHandle.rt.descriptor : renderPass.depthAttachmentHandle.rt.descriptor;
