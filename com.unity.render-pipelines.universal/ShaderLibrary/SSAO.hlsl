@@ -208,25 +208,22 @@ half3 PickSamplePointKeijiro(float2 uv, float index)
     return v * lerp(0.1, 1.0, l * l);
 }
 
-void Unity_RandomRange_float(float2 Seed, float Min, float Max, out float Out)
-{
-    float randomno =  frac(sin(dot(Seed, float2(12.9898, 78.233)))*43758.5453);
-    Out = lerp(Min, Max, randomno);
-}
-
 half3 PickSamplePointBlueNoise(float2 uv, float index)
 {
     const float2 positionSS = GetScreenSpacePosition(uv);
-    float nX = InterleavedGradientNoise(positionSS, index + _Time.x * 100.0);
-    float nY = InterleavedGradientNoise(positionSS, index + _Time.y * 100.0);
-    float2 noise = float2(nX, nY);
+    float2 noise = frac(float2(index + _Time.x * 100.0, index + _Time.y * 100.0));
     return SAMPLE_BLUE_NOISE(positionSS * _BlueNoiseTexture_TexelSize.xy + noise);
 }
 
 half3 PickSamplePointOld(float2 uv, float index)
 {
     const float2 positionSS = GetScreenSpacePosition(uv);
-    const half gn = half(InterleavedGradientNoise(positionSS, index));
+
+    #if defined(_OLD_BLUE_NOISE)
+        const half gn = SAMPLE_BLUE_NOISE(positionSS * _BlueNoiseTexture_TexelSize.xy);
+    #else
+        const half gn = half(InterleavedGradientNoise(positionSS, index));
+    #endif
 
     const half u = frac(GetRandomUVForSSAO(half(0.0), index) + gn) * half(2.0) - half(1.0);
     const half theta = (GetRandomUVForSSAO(half(1.0), index) + gn) * half(TWO_PI);

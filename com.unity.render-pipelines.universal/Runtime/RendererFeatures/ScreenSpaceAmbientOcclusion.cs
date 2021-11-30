@@ -51,7 +51,8 @@ namespace UnityEngine.Rendering.Universal
         {
             BlueNoise,
             Keijiro,
-            Old
+            OldWithBlueNoise,
+            Old,
         }
 
         internal enum BlurTypes
@@ -92,6 +93,7 @@ namespace UnityEngine.Rendering.Universal
         private const string k_AOBlueNoiseKeyword = "_BLUE_NOISE";
         private const string k_AOKeijiroKeyword = "_KEIJIRO";
         private const string k_AOOldKeyword = "_OLD";
+        private const string k_AOOldBlueNoiseKeyword = "_OLD_BLUE_NOISE";
         private const string k_OrthographicCameraKeyword = "_ORTHOGRAPHIC";
         private const string k_NormalReconstructionLowKeyword = "_RECONSTRUCT_NORMAL_LOW";
         private const string k_NormalReconstructionMediumKeyword = "_RECONSTRUCT_NORMAL_MEDIUM";
@@ -376,6 +378,7 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.SetKeyword(m_Material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
                 CoreUtils.SetKeyword(m_Material, k_AOBlueNoiseKeyword, false);
                 CoreUtils.SetKeyword(m_Material, k_AOKeijiroKeyword, false);
+                CoreUtils.SetKeyword(m_Material, k_AOOldBlueNoiseKeyword, false);
                 CoreUtils.SetKeyword(m_Material, k_AOOldKeyword, false);
                 switch (m_CurrentSettings.AOAlgorithm)
                 {
@@ -384,6 +387,9 @@ namespace UnityEngine.Rendering.Universal
                         break;
                     case ScreenSpaceAmbientOcclusionSettings.AOMethod.Keijiro:
                         CoreUtils.SetKeyword(m_Material, k_AOKeijiroKeyword, true);
+                        break;
+                    case ScreenSpaceAmbientOcclusionSettings.AOMethod.OldWithBlueNoise:
+                        CoreUtils.SetKeyword(m_Material, k_AOOldBlueNoiseKeyword, true);
                         break;
                     case ScreenSpaceAmbientOcclusionSettings.AOMethod.Old:
                         CoreUtils.SetKeyword(m_Material, k_AOOldKeyword, true);
