@@ -399,7 +399,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.GbufferAttachments[this.GBufferLightingIndex] = colorAttachment;
             this.DepthAttachment = depthAttachment;
 
-            if (this.GbufferFormats == null)
+            if (this.GbufferAttachments == null || this.GbufferFormats == null)
                 this.GbufferFormats = new GraphicsFormat[this.GbufferAttachments.Length];
 
             for (int i = 0; i < this.GbufferAttachments.Length; ++i)
