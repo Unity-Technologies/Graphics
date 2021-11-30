@@ -554,7 +554,7 @@ namespace UnityEngine.Experimental.Rendering
             DrawBakingStates();
 
             EditorGUILayout.EndScrollView();
-            
+
             EditorGUILayout.Space();
             DrawBakeButton();
 
