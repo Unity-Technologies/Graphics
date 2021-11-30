@@ -34,8 +34,8 @@ MonoBehaviour:
   diffuseShadowDenoiserCS: {fileID: 7200000, guid: 9af806eab5889a74dad838edc9b07d07, type: 3}
   gBufferRaytracingRT: {fileID: 4807578003741378534, guid: e4c61a77b91f35845bbb546b848b18e5, type: 3}
   deferredRaytracingCS: {fileID: 7200000, guid: 6e5ef632062bc484f812c7976f450ed1, type: 3}
-  pathTracing: {fileID: 4807578003741378534, guid: c4f4525a058009a409fea974f9ad8d03, type: 3}
-  pathTracingEnvData: {fileID: 7200000, guid: 8ef71a4b666992544ac5575a0e599a68, type: 3}
+  pathTracingRT: {fileID: 4807578003741378534, guid: c4f4525a058009a409fea974f9ad8d03, type: 3}
+  pathTracingSkySamplingDataCS: {fileID: 7200000, guid: 8ef71a4b666992544ac5575a0e599a68, type: 3}
   rayMarchingCS: {fileID: 7200000, guid: 78d9a89700295a4418d0921bf27e1857, type: 3}
   rayBinningCS: {fileID: 7200000, guid: cddcb515ffe9a914893d6d8fc1d85454, type: 3}
   countTracedRays: {fileID: 7200000, guid: e1f3fa867f1dfbd4ab7dd4d39d2b96d8, type: 3}

@@ -35,8 +35,27 @@ TEXTURE2D(_PathTracingSkyPDFTexture);
 TEXTURE2D(_PathTracingSkyCDFTexture);
 TEXTURE2D(_PathTracingSkyMarginalTexture);
 
+float4   _Sizes;                       // xy: camera resolution, zw: sky sampling resolution
+
 // Output(s)
 RW_TEXTURE2D_X(float4, _FrameTexture);
+
+// float2 MapSkyDirectionToUV(float3 dir)
+// {
+//     float theta = acos(-dir.y);
+//     float phi = atan2(-dir.z, -dir.x);
+
+//     return float2(0.5 - phi * INV_TWO_PI, theta * INV_PI);
+// }
+
+// Equiareal variant
+float2 MapSkyDirectionToUV(float3 dir)
+{
+    float cosTheta = dir.y;
+    float phi = atan2(-dir.z, -dir.x);
+
+    return float2(0.5 - phi * INV_TWO_PI, (cosTheta + 1.0) * 0.5);
+}
 
 [shader("miss")]
 void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
@@ -51,6 +70,12 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
 
     bool skyEnabled = _EnvLightSkyEnabled && _RaytracingCameraSkyEnabled;
     float4 missColor = skyEnabled ? _SkyCameraTexture[COORD_TEXTURE2D_X(pathIntersection.pixelCoord)] : _RaytracingCameraClearColor;
+
+    // FIXME
+    float2 uv = MapSkyDirectionToUV(WorldRayDirection());
+    missColor = SAMPLE_TEXTURE2D_LOD(_PathTracingSkyPDFTexture, s_linear_clamp_sampler, uv, 0).x;
+    //missColor /= Luminance(SampleSkyTexture(WorldRayDirection(), 0.0, 0).rgb) * GetCurrentExposureMultiplier();
+
     pathIntersection.value = missColor.rgb * GetInverseCurrentExposureMultiplier();
     pathIntersection.alpha = missColor.a;
 
@@ -186,16 +211,17 @@ void RayGen()
     // Evaluate the ray intersection
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, ray, pathIntersection);
 
-//    _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathIntersection.value, pathIntersection.alpha);
+    _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathIntersection.value, pathIntersection.alpha);
 
-    // FIXME:
-    uint2 pixelResolution = DispatchRaysDimensions().xy;
-    float2 envConversion = float2(512.0 / pixelResolution.x, 256.0 / pixelResolution.y);
-    uint2 envCoord = envConversion * pixelCoord;
-    //float3 envColor = float3(_PathTracingSkySamplingTexture[envCoord].xy * GetInverseCurrentExposureMultiplier(), 0.0);
-    //float3 envColor = _PathTracingSkySamplingTexture[envCoord].x;
-    float3 envColor = _PathTracingSkyCDFTexture[envCoord].x * GetInverseCurrentExposureMultiplier();
-    _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(envColor, 1.0);
+    // // FIXME:
+    // uint2 pixelResolution = DispatchRaysDimensions().xy;
+    // float2 envConversion = float2(_Sizes.z / pixelResolution.x, _Sizes.w / pixelResolution.y);
+    // uint2 envCoord = envConversion * pixelCoord;
+    // //float3 envColor = float3(_PathTracingSkySamplingTexture[envCoord].xy * GetInverseCurrentExposureMultiplier(), 0.0);
+    // //float3 envColor = _PathTracingSkySamplingTexture[envCoord].x;
+    // float3 envColor = _PathTracingSkyPDFTexture[envCoord].x * GetInverseCurrentExposureMultiplier();
+
+    // _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(envColor, 1.0);
 }
 
 // This should never be called, return magenta just in case

@@ -7,7 +7,7 @@
 #define KERNEL_WIDTH 64
 
 // Input(s)
-uint4 _Sizes; // xy: Output width, height
+uint2 _Sizes; // xy: output width, output height
 
 // Output(s)
 RW_TEXTURE2D(float, PDF);
@@ -78,10 +78,19 @@ void ParallelScan(uint i, uint j, uint w, uint iterCount, RW_TEXTURE2D(float, te
     AllMemoryBarrierWithGroupSync();
 }
 
-#pragma kernel ComputeConditionalDensities
+float3 MapUVToSkyDirection(float u, float v)
+{
+    float phi = TWO_PI * (1.0 - u);
+    //float cosTheta = cos((1.0 - v) * PI);
+    float cosTheta = 2.0 * v - 1.0; // Equiareal variant
+
+    return TransformGLtoDX(SphericalToCartesian(phi, cosTheta));
+}
+
+#pragma kernel ComputeCDF
 
 [numthreads(KERNEL_WIDTH, 1, 1)]
-void ComputeConditionalDensities(uint3 dispatchThreadId : SV_DispatchThreadID)
+void ComputeCDF(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     const uint i = dispatchThreadId.x;
     const uint j = dispatchThreadId.y;
@@ -89,15 +98,16 @@ void ComputeConditionalDensities(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     uint iter;
 
+    float v = (j + 0.5) / _Sizes.y;
+    //float sinTheta = sin(v * PI);
+
     for (iter = 0; iter < iterCount; iter++)
     {
         uint idx = i + iter * KERNEL_WIDTH;
         float u = (idx + 0.5) / _Sizes.x;
-        float v = (j + 0.5) / _Sizes.y;
 
-        // This mapping is sine-weighted
-        float3 dir = TransformGLtoDX(SampleSphereUniform(1.0 - v, 1.0 - u));
-        float pdf = Luminance(SampleSkyTexture(dir, 0.0, 0).rgb);
+        float3 dir = MapUVToSkyDirection(u, v);
+        float pdf = Luminance(SampleSkyTexture(dir, 0.0, 0).rgb);// * sinTheta;
 
         PDF[uint2(idx, j)] = pdf;
         CDF[uint2(idx, j)] = pdf;
@@ -120,10 +130,10 @@ void ComputeConditionalDensities(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 }
 
-#pragma kernel ComputeMarginalRowDensities
+#pragma kernel ComputeMarginal
 
 [numthreads(KERNEL_WIDTH, 1, 1)]
-void ComputeMarginalRowDensities(uint3 dispatchThreadId : SV_DispatchThreadID)
+void ComputeMarginal(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     const uint i = dispatchThreadId.x;
     const uint iterCount = _Sizes.y / KERNEL_WIDTH;
@@ -145,37 +155,18 @@ void ComputeMarginalRowDensities(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 }
 
-// #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-// #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-// #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#pragma kernel NormalizePDF
 
-// #pragma kernel KMain
+[numthreads(8, 8, 1)]
+void NormalizePDF(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    const uint i = dispatchThreadId.x;
+    const uint j = dispatchThreadId.y;
 
-// uint4 _Sizes; // xy: Output width, height
+    // Marginal[0, 0] contains the sum of PDF values divided by texture size (width * height)
+    float sum = Marginal[uint2(0, 0)];
 
-// RW_TEXTURE2D_X(float4, _PathTracingSkySamplingTexture);
+    float jacobian = sum > 0.0 ? rcp(sum) / (TWO_PI * PI) : 0.0;
 
-// [numthreads(8, 8, 1)]
-// void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
-// {
-//     uint2 texelCoord = dispatchThreadId.xy;
-
-//     // Convert texel coord to world space direction (Y up)
-//     float2 uv = (texelCoord + 0.5) / _Sizes.xy;
-
-//     float theta = clamp(1.0 - uv.y, 0.0, 1.0) * PI;
-//     float phi = uv.x * TWO_PI;
-
-//     float cosTheta = cos(theta);
-//     float sinTheta = sin(theta);
-//     float cosPhi = cos(phi);
-//     float sinPhi = sin(phi);
-
-//     float jacobian = sinTheta; // * TWO_PI * PI / (_Sizes.x * _Sizes.y);
-
-//     // Fetch corresp. intensity from the sky texture
-//     float3 direction = float3(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi);
-// 	float3 color = _EnvLightSkyEnabled ? Luminance(SampleSkyTexture(direction, 0.0, 0).rgb) * jacobian : 0.0;
-
-//     _PathTracingSkySamplingTexture[COORD_TEXTURE2D_X(texelCoord)] = float4(color, 1.0);
-// }
+    PDF[uint2(i, j)] *= jacobian;
+}

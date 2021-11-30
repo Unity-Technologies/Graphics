@@ -75,6 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif // UNITY_EDITOR
         uint m_CacheLightCount = 0;
         int m_CameraID = 0;
+        int m_SkyHash = -1;
         bool m_RenderSky = true;
 
         TextureHandle m_FrameTexture;       // Stores the per-pixel results of path tracing for one frame
@@ -83,9 +84,9 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle m_SkyCDFTexture;      // Stores latlon sky data (CDF) for importance sampling
         TextureHandle m_SkyMarginalTexture; // Stores latlon sky data (Marginal) for importance sampling
 
-        int m_skySamplingSize; // value used for the latlon sky texture (width = 2*size, height = size)
+        int m_skySamplingSize;     // value used for the latlon sky texture (width = 2*size, height = size)
 
-        void InitPathTracing(RenderGraph renderGraph)
+        void InitPathTracing()
         {
 #if UNITY_EDITOR
             Undo.postprocessModifications += OnUndoRecorded;
@@ -100,11 +101,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             td.name = "PathTracingFrameBuffer";
             td.enableRandomWrite = true;
-            m_FrameTexture = renderGraph.CreateSharedTexture(td);
+            m_FrameTexture = m_RenderGraph.CreateSharedTexture(td);
 
             td.name = "PathTracingSkyBackgroundBuffer";
             td.enableRandomWrite = false;
-            m_SkyBGTexture = renderGraph.CreateSharedTexture(td);
+            m_SkyBGTexture = m_RenderGraph.CreateSharedTexture(td);
 
             td.name = "PathTracingSkySamplingBuffer";
             td.colorFormat = GraphicsFormat.R32_SFloat;
@@ -113,15 +114,15 @@ namespace UnityEngine.Rendering.HighDefinition
             td.useDynamicScale = false;
             td.slices = 1;
             td.sizeMode = TextureSizeMode.Explicit;
-            m_skySamplingSize = 256;//(int) m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize * 2;
+            m_skySamplingSize = (int) m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize * 2;
             td.width = m_skySamplingSize * 2;
             td.height = m_skySamplingSize;
-            m_SkyPDFTexture = renderGraph.CreateSharedTexture(td);
-            m_SkyCDFTexture = renderGraph.CreateSharedTexture(td);
+            m_SkyPDFTexture = m_RenderGraph.CreateSharedTexture(td, true);
+            m_SkyCDFTexture = m_RenderGraph.CreateSharedTexture(td, true);
 
             td.width = m_skySamplingSize;
-            td.height = 1;            
-            m_SkyMarginalTexture = renderGraph.CreateSharedTexture(td);
+            td.height = 1;
+            m_SkyMarginalTexture = m_RenderGraph.CreateSharedTexture(td, true);
         }
 
         void ReleasePathTracing()
@@ -131,6 +132,10 @@ namespace UnityEngine.Rendering.HighDefinition
             Undo.undoRedoPerformed -= OnSceneEdit;
             SceneView.duringSceneGui -= OnSceneGui;
 #endif // UNITY_EDITOR
+
+            m_RenderGraph.ReleaseSharedTexture(m_SkyPDFTexture);
+            m_RenderGraph.ReleaseSharedTexture(m_SkyCDFTexture);
+            m_RenderGraph.ReleaseSharedTexture(m_SkyMarginalTexture);
         }
 
         /// <summary>
@@ -298,6 +303,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 dofParameters;
             public Vector4 tilingParameters;
             public int width, height;
+            public int skySize;
             public RayTracingAccelerationStructure accelerationStructure;
             public HDRaytracingLightCluster lightCluster;
 
@@ -331,6 +337,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.tilingParameters = m_PathTracingSettings.tilingParameters.value;
                 passData.width = hdCamera.actualWidth;
                 passData.height = hdCamera.actualHeight;
+                passData.skySize = m_skySamplingSize;
                 passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.lightCluster = RequestLightCluster();
 
@@ -372,6 +379,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Set the data for the ray miss
                         ctx.cmd.SetRayTracingIntParam(data.shader, HDShaderIDs._RaytracingCameraSkyEnabled, data.cameraData.skyEnabled ? 1 : 0);
+                        ctx.cmd.SetRayTracingVectorParam(data.shader, HDShaderIDs._Sizes, new Vector4(data.width, data.height, data.skySize * 2, data.skySize));
                         ctx.cmd.SetRayTracingVectorParam(data.shader, HDShaderIDs._RaytracingCameraClearColor, data.backgroundColor);
                         ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._SkyCameraTexture, data.skyBG);
                         ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._SkyTexture, data.skyReflection);
@@ -426,6 +434,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader shader;
             public int k0;
             public int k1;
+            public int k2;
             public int size;
             public TextureHandle outputPDF;
             public TextureHandle outputCDF;
@@ -441,8 +450,9 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<RenderSkySamplingPassData>("Render Sky Sampling Data for Path Tracing", out var passData))
             {
                 passData.shader = m_GlobalSettings.renderPipelineRayTracingResources.pathTracingSkySamplingDataCS;
-                passData.k0 = passData.shader.FindKernel("ComputeConditionalDensities");
-                passData.k1 = passData.shader.FindKernel("ComputeMarginalRowDensities");
+                passData.k0 = passData.shader.FindKernel("ComputeCDF");
+                passData.k1 = passData.shader.FindKernel("ComputeMarginal");
+                passData.k2 = passData.shader.FindKernel("NormalizePDF");
                 passData.size = m_skySamplingSize;
                 passData.outputPDF = builder.WriteTexture(m_SkyPDFTexture);
                 passData.outputCDF = builder.WriteTexture(m_SkyCDFTexture);
@@ -451,7 +461,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (RenderSkySamplingPassData data, RenderGraphContext ctx) =>
                     {
-                        ctx.cmd.SetComputeIntParams(data.shader, HDShaderIDs._Sizes, data.size * 2, data.size, 0, 0);
+                        ctx.cmd.SetComputeIntParams(data.shader, HDShaderIDs._Sizes, data.size * 2, data.size);
 
                         ctx.cmd.SetComputeTextureParam(data.shader, data.k0, "PDF", data.outputPDF);
                         ctx.cmd.SetComputeTextureParam(data.shader, data.k0, "CDF", data.outputCDF);
@@ -460,6 +470,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         ctx.cmd.SetComputeTextureParam(data.shader, data.k1, "Marginal", data.outputMarginal);
                         ctx.cmd.DispatchCompute(data.shader, data.k1, 1, 1, 1);
+
+                        ctx.cmd.SetComputeTextureParam(data.shader, data.k2, "PDF", data.outputPDF);
+                        ctx.cmd.SetComputeTextureParam(data.shader, data.k2, "Marginal", data.outputMarginal);
+                        ctx.cmd.DispatchCompute(data.shader, data.k2, data.size * 2 / 8, data.size / 8, 1);
                     });
             }
         }
@@ -512,8 +526,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderSkyBackground(m_RenderGraph, hdCamera, m_SkyBGTexture);
                     m_RenderSky = false;
 
-                    // FIXME: Should not be performed here
-                    RenderSkySamplingData(m_RenderGraph, hdCamera);
+                    if (m_SkyHash != hdCamera.lightingSky.skyParametersHash)
+                    {
+                        RenderSkySamplingData(m_RenderGraph, hdCamera);
+                        m_SkyHash = hdCamera.lightingSky.skyParametersHash;
+                    }
                 }
 
                 RenderPathTracingFrame(m_RenderGraph, hdCamera, camData, m_FrameTexture);
