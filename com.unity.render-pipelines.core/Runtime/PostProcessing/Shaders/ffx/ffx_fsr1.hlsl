@@ -560,16 +560,16 @@ A_STATIC void FsrEasuConOffset(
   AH2 dir2=dir*dir;
   AH1 dirR=dir2.x+dir2.y;
   AP1 zro=dirR<AH1_(1.0/32768.0);
-  dirR=APrxLoRsqH1(dirR);
+  dirR=ARsqH1(dirR);
   dirR=zro?AH1_(1.0):dirR;
   dir.x=zro?AH1_(1.0):dir.x;
   dir*=AH2_(dirR);
   len=len*AH1_(0.5);
   len*=len;
-  AH1 stretch=(dir.x*dir.x+dir.y*dir.y)*APrxLoRcpH1(max(abs(dir.x),abs(dir.y)));
+  AH1 stretch=(dir.x*dir.x+dir.y*dir.y)*ARcpH1(max(abs(dir.x),abs(dir.y)));
   AH2 len2=AH2(AH1_(1.0)+(stretch-AH1_(1.0))*len,AH1_(1.0)+AH1_(-0.5)*len);
   AH1 lob=AH1_(0.5)+AH1_((1.0/4.0-0.04)-0.5)*len;
-  AH1 clp=APrxLoRcpH1(lob);
+  AH1 clp=ARcpH1(lob);
 //------------------------------------------------------------------------------------------------------------------------------
   // FP16 is different, using packed trick to do min and max in same operation.
   AH2 bothR=max(max(AH2(-ijfeR.z,ijfeR.z),AH2(-klhgR.w,klhgR.w)),max(AH2(-ijfeR.y,ijfeR.y),AH2(-klhgR.x,klhgR.x)));
@@ -833,7 +833,7 @@ AF1 sharpness){
   AH1 hL=hB*AH1_(0.5)+(hR*AH1_(0.5)+hG);
   // Noise detection.
   AH1 nz=AH1_(0.25)*bL+AH1_(0.25)*dL+AH1_(0.25)*fL+AH1_(0.25)*hL-eL;
-  nz=ASatH1(abs(nz)*APrxMedRcpH1(AMax3H1(AMax3H1(bL,dL,eL),fL,hL)-AMin3H1(AMin3H1(bL,dL,eL),fL,hL)));
+  nz=ASatH1(abs(nz)*ARcpH1(AMax3H1(AMax3H1(bL,dL,eL),fL,hL)-AMin3H1(AMin3H1(bL,dL,eL),fL,hL)));
   nz=AH1_(-0.5)*nz+AH1_(1.0);
   // Min and max of ring.
   AH1 mn4R=min(AMin3H1(bR,dR,fR),hR);
@@ -860,7 +860,7 @@ AF1 sharpness){
    lobe*=nz;
   #endif
   // Resolve, which needs the medium precision rcp approximation to avoid visible tonality changes.
-  AH1 rcpL=APrxMedRcpH1(AH1_(4.0)*lobe+AH1_(1.0));
+  AH1 rcpL=ARcpH1(AH1_(4.0)*lobe+AH1_(1.0));
   pixR=(lobe*bR+lobe*dR+lobe*hR+lobe*fR+eR)*rcpL;
   pixG=(lobe*bG+lobe*dG+lobe*hG+lobe*fG+eG)*rcpL;
   pixB=(lobe*bB+lobe*dB+lobe*hB+lobe*fB+eB)*rcpL;}
