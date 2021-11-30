@@ -120,7 +120,7 @@ float ApproximateCapsuleOcclusion(
     return ApproximateSphereOcclusion(coneAxis, coneCosTheta, maxDistance, sphereCenter, capsuleRadius);
 }
 
-float EvaluateCapsuleShadow(float3 lightPosOrAxis, bool lightIsPunctual, float lightCosTheta, PositionInputs posInput)
+float EvaluateCapsuleShadow(float3 lightPosOrAxis, bool lightIsPunctual, float lightCosTheta, PositionInputs posInput, uint renderLayer)
 {
     uint sphereCount, sphereStart;
 
@@ -172,75 +172,69 @@ float EvaluateCapsuleShadow(float3 lightPosOrAxis, bool lightIsPunctual, float l
         {
             v_sphereListOffset++;
 
-            float3 centerRWS = s_capsuleData.centerRWS;
-            float radius = s_capsuleData.radius;
-            float3 directionWS = s_capsuleData.directionWS;
-            float range = s_capsuleData.range;
-
-            float occlusion;
-            if (_CapsuleOccluderUseEllipsoid)
+            if (IsMatchingLightLayer(s_capsuleData.lightLayers, renderLayer))
             {
-                // make everything relative to the surface
-                float3 surfaceToLightVec = lightPosOrAxis;
-                if (lightIsPunctual)
-                    surfaceToLightVec -= posInput.positionWS;
-
-                float3 surfaceToCapsuleVec = centerRWS - posInput.positionWS;
-
-                // scale down along the capsule axis to approximate the capsule with a sphere
-                float dirLen = length(directionWS);
-                if (dirLen > 0.01f*radius)
+                float occlusion;
+                if (_CapsuleOccluderUseEllipsoid)
                 {
-                    float3 zAxisDir = directionWS/dirLen;
-                    float zOffsetFactor = dirLen/(radius + dirLen);
+                    // make everything relative to the surface
+                    float3 surfaceToLightVec = lightPosOrAxis;
+                    if (lightIsPunctual)
+                        surfaceToLightVec -= posInput.positionWS;
 
+                    float3 surfaceToCapsuleVec = s_capsuleData.centerRWS - posInput.positionWS;
+
+                    // scale down along the capsule axis to approximate the capsule with a sphere
+                    float3 zAxisDir = s_capsuleData.axisDirWS;
+                    float zOffsetFactor = s_capsuleData.offset/(s_capsuleData.radius + s_capsuleData.offset);
                     surfaceToLightVec -= zAxisDir*(dot(surfaceToLightVec, zAxisDir)*zOffsetFactor);
                     surfaceToCapsuleVec -= zAxisDir*(dot(surfaceToCapsuleVec, zAxisDir)*zOffsetFactor);
-                }
 
-                // consider sphere occlusion of the light cone
-                float3 surfaceToLightDir;
-                float maxDistance = FLT_MAX;
-                if (lightIsPunctual)
-                {
-                    maxDistance = length(surfaceToLightVec);
-                    surfaceToLightDir = surfaceToLightVec/maxDistance;
-                }
-                else
-                    surfaceToLightDir = normalize(surfaceToLightVec);
+                    // consider sphere occlusion of the light cone
+                    float3 surfaceToLightDir;
+                    float maxDistance = FLT_MAX;
+                    if (lightIsPunctual)
+                    {
+                        maxDistance = length(surfaceToLightVec);
+                        surfaceToLightDir = surfaceToLightVec/maxDistance;
+                    }
+                    else
+                        surfaceToLightDir = normalize(surfaceToLightVec);
 
-                // consider sphere occlusion of the light cone
-                occlusion = ApproximateSphereOcclusion(surfaceToLightDir, lightCosTheta, maxDistance, surfaceToCapsuleVec, radius);
-            }
-            else
-            {
-                // make everything relative to the surface
-                float3 surfaceToLightDir;
-                float maxDistance = FLT_MAX;
-                if (lightIsPunctual)
-                {
-                    surfaceToLightDir = lightPosOrAxis - posInput.positionWS;
-                    maxDistance = length(surfaceToLightDir);
-                    surfaceToLightDir /= maxDistance;
+                    // consider sphere occlusion of the light cone
+                    occlusion = ApproximateSphereOcclusion(surfaceToLightDir, lightCosTheta, maxDistance, surfaceToCapsuleVec, s_capsuleData.radius);
                 }
                 else
-                    surfaceToLightDir = lightPosOrAxis;
+                {
+                    // make everything relative to the surface
+                    float3 surfaceToLightDir;
+                    float maxDistance = FLT_MAX;
+                    if (lightIsPunctual)
+                    {
+                        surfaceToLightDir = lightPosOrAxis - posInput.positionWS;
+                        maxDistance = length(surfaceToLightDir);
+                        surfaceToLightDir /= maxDistance;
+                    }
+                    else
+                        surfaceToLightDir = lightPosOrAxis;
 
-                float3 surfaceToCapsule = centerRWS - directionWS - posInput.positionWS;
-                float3 capsuleVec = 2.f*directionWS;
+                    float3 directionWS = s_capsuleData.axisDirWS * s_capsuleData.offset;
+                    float3 surfaceToCapsule = s_capsuleData.centerRWS - directionWS - posInput.positionWS;
+                    float3 capsuleVec = 2.f*directionWS;
 
-                // occlude using closest sphere along this capsule
-                occlusion = ApproximateCapsuleOcclusion(
-                    surfaceToLightDir,
-                    lightCosTheta,
-                    maxDistance,
-                    surfaceToCapsule,
-                    capsuleVec,
-                    radius);
+                    // occlude using closest sphere along this capsule
+                    occlusion = ApproximateCapsuleOcclusion(
+                        surfaceToLightDir,
+                        lightCosTheta,
+                        maxDistance,
+                        surfaceToCapsule,
+                        capsuleVec,
+                        s_capsuleData.radius);
+                }
+
+                float falloff = smoothstep(1.0f, 0.75f, length(posInput.positionWS - s_capsuleData.centerRWS)/s_capsuleData.range);
+                capsuleShadow *= max(1.f - occlusion*falloff, 0.f);
             }
-
-            float falloff = smoothstep(1.0f, 0.75f, length(posInput.positionWS - centerRWS)/range);
-            capsuleShadow *= max(1.f - occlusion*falloff, 0.f);
         }
     }
 

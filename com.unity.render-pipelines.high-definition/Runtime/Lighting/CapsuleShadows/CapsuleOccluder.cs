@@ -20,8 +20,12 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public Vector3 centerRWS;
         public float radius;
-        public Vector3 directionWS;
+        public Vector3 axisDirWS;
+        public float offset;
+        public uint lightLayers;
         public float range;
+        public float pad0;
+        public float pad1;
     }
 
     [ExecuteAlways]
@@ -32,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float radius = 0.1f;
         public float height = 1.0f;
         public float range = 5.0f;
+        public LightLayerEnum lightLayersMask = LightLayerEnum.LightLayerDefault;
 
         internal Matrix4x4 capsuleToWorld
         {
@@ -65,15 +70,17 @@ namespace UnityEngine.Rendering.HighDefinition
             float offset = Mathf.Max(0.0f, 0.5f * height - radius);
 
             Vector3 centerRWS = localToWorld.MultiplyPoint3x4(Vector3.zero) - originWS;
-            Vector3 directionWS = localToWorld.MultiplyVector(offset * Vector3.forward);
+            Vector3 axisDirWS = localToWorld.MultiplyVector(Vector3.forward).normalized;
             float radiusWS = localToWorld.MultiplyVector(radius * Vector3.right).magnitude;
 
             return new CapsuleOccluderData
             {
                 centerRWS = centerRWS,
                 radius = radiusWS,
-                directionWS = directionWS,
+                axisDirWS = axisDirWS,
+                offset = offset,
                 range = range,
+                lightLayers = (uint)lightLayersMask,
             };
         }
     }

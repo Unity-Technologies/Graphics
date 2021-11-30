@@ -95,18 +95,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     OrientedBBox bbox;
                     if (optimiseBoundsForLight)
                     {
-                        // align local X with the capsule axis if possible, otherwise just any ortho direction
+                        // align local X with the capsule axis
                         Vector3 localZ = lightDirection;
-                        Vector3 localX = Vector3.Cross(localZ, data.directionWS).normalized;
-                        if (localX.sqrMagnitude < 0.9f)
-                            localX = Vector3.Cross(localZ, Mathf.Abs(lightDirection.y) < 0.99f ? Vector3.up : Vector3.right).normalized;
+                        Vector3 localX = Vector3.Cross(localZ, data.axisDirWS).normalized;
                         Vector3 localY = Vector3.Cross(localZ, localX);
 
                         // capsule bounds, extended along light direction
                         Vector3 halfExtentLS = new Vector3(
-                            Mathf.Abs(Vector3.Dot(data.directionWS, localX)) + data.radius,
-                            Mathf.Abs(Vector3.Dot(data.directionWS, localY)) + data.radius,
-                            Mathf.Abs(Vector3.Dot(data.directionWS, localZ)) + data.radius);
+                            Mathf.Abs(Vector3.Dot(data.axisDirWS, localX)) * data.offset + data.radius,
+                            Mathf.Abs(Vector3.Dot(data.axisDirWS, localY)) * data.offset + data.radius,
+                            Mathf.Abs(Vector3.Dot(data.axisDirWS, localZ)) * data.offset + data.radius);
                         halfExtentLS.z += data.range;
 
                         // expand by max penumbra

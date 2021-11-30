@@ -7,6 +7,7 @@ using UnityEditorInternal;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [CanEditMultipleObjects]
     [CustomEditor(typeof(CapsuleOccluder))]
     public class CapsuleOccluderEditor : Editor {
         static EditMode.SceneViewEditMode[] s_EditModes = new EditMode.SceneViewEditMode[]{

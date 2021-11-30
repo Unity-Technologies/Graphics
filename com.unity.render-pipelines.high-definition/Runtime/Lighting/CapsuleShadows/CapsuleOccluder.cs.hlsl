@@ -19,8 +19,12 @@ struct CapsuleOccluderData
 {
     float3 centerRWS;
     float radius;
-    float3 directionWS;
+    float3 axisDirWS;
+    float offset;
+    uint lightLayers;
     float range;
+    float pad0;
+    float pad1;
 };
 
 
