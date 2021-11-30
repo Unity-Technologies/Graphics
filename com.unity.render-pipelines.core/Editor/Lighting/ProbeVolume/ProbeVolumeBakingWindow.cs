@@ -264,7 +264,9 @@ namespace UnityEngine.Experimental.Rendering
 
                 foreach (var sceneGUID in GetCurrentBakingSet().sceneGUIDs)
                 {
-                    var data = scene2Data[FindSceneData(sceneGUID).path];
+                    var data = scene2Data.GetValueOrDefault(FindSceneData(sceneGUID).path, null);
+                    if (data == null)
+                        continue;
 
                     var asset = data.GetAssetForState((ProbeVolumeBakingState)i);
                     if (asset == null)
@@ -416,6 +418,8 @@ namespace UnityEngine.Experimental.Rendering
                 sceneData.SyncBakingSetSettings();
                 m_SerializedObject.Update();
             }
+
+            UpdateBakingStatesStatuses();
         }
 
         ProbeVolumeSceneData.BakingSet GetCurrentBakingSet()
