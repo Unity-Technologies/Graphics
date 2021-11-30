@@ -24,6 +24,8 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <typeparam name="T">A valid <see cref="Enum"/></typeparam>
         /// <param name="property">The <see cref="SerializedProperty"/></param>
+        /// <returns>The <see cref="Enum"/> value</returns>
+        /// <code>
         /// <example>
         /// enum MyEnum
         /// {
@@ -34,19 +36,17 @@ namespace UnityEditor.Rendering
         /// {
         ///     public MyEnum theEnum = MyEnum.A;
         /// }
-        /// #if UNITY_EDITOR
         /// [CustomEditor(typeof(MyObject))]
         /// class MyObjectEditor : Editor
         /// {
         ///     public override void OnInspectorGUI()
         ///     {
         ///         Debug.Log($"By enumValueIndex: {(MyEnum)serializedObject.FindProperty("theEnum").enumValueIndex}");         //write the value (MyEnum)(0)
-        ///         Debug.Log($"By GetEnumValue: {(MyEnum)serializedObject.FindProperty("theEnum").GetEnumValue<MyEnum>()}");   //write the value MyEnum.A
+        ///         Debug.Log($"By GetEnumValue: {(MyEnum)serializedObject.FindProperty("theEnum").GetEnumValue&lt;MyEnum&gt;()}");   //write the value MyEnum.A
         ///     }
         /// }
-        /// #endif
         /// </example>
-        /// <returns>The <see cref="Enum"/> value</returns>
+        /// </code>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T GetEnumValue<T>(this SerializedProperty property)
             where T : Enum
@@ -55,6 +55,9 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Helper to get an enum name from a SerializedProperty
         /// </summary>
+        /// <typeparam name="T">A valid <see cref="Enum"/></typeparam>
+        /// <param name="property">The <see cref="SerializedProperty"/></param>
+        /// <returns>The string containing the name of the enum</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string GetEnumName<T>(this SerializedProperty property)
             where T : Enum

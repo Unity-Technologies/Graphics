@@ -693,7 +693,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// OnGUI implementation for ObjectList DebugUIDrawer.
         /// </summary>
-        /// <param name="widget">DebugUI <see cref="DebugUI.Widget">.</param>
+        /// <param name="widget">DebugUI <see cref="DebugUI.Widget"/>.</param>
         /// <param name="state">Debug State associated with the Debug Item.</param>
         /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)

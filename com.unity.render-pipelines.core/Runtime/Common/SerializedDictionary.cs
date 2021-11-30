@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering
     /// <typeparam name="K">The key type</typeparam>
     /// <typeparam name="V">The value</typeparam>
     /// <example>
-    /// public sealed class MyDictionary : SerializedDictionary<KeyType, ValueType> {}
+    /// public sealed class MyDictionary : SerializedDictionary&lt;KeyType, ValueType&gt; {}
     /// </example>
     [Serializable]
     public class SerializedDictionary<K, V> : SerializedDictionary<K, V, K, V>

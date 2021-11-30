@@ -738,6 +738,9 @@ namespace UnityEditor.Rendering
                 }
             }
 
+            /// <summary>
+            /// Dispose of the class
+            /// </summary>
             void IDisposable.Dispose()
             {
                 disabledScope?.Dispose();

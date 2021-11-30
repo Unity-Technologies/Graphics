@@ -231,6 +231,11 @@ namespace UnityEditor.Rendering
             EditorGUI.LabelField(thumbMarkerRect, GetLightUnitTooltip(tooltip, value, m_Descriptor.unitName));
         }
 
+        /// <summary>
+        /// The serialized property for color temperature is stored in the build-in light editor, and we need to use this object to apply the update. 
+        /// </summary>
+        /// <param name="value">The value to update</param>
+        /// <param name="preset">The preset range</param>
         protected virtual void SetValueToPreset(SerializedProperty value, LightUnitSliderUIRange preset)
         {
             m_SerializedObject?.Update();
@@ -261,6 +266,7 @@ namespace UnityEditor.Rendering
         /// <param name="rect">The <see cref="Rect"/> to draw the slider.</param>
         /// <param name="value">The current value, and also returns the modified value.</param>
         /// <param name="sliderRange">The ranges of the slider.</param>
+        /// <param name="_">Not used</param>
         protected virtual void DoSlider(Rect rect, ref float value, Vector2 sliderRange, Vector2 _)
         {
             DoSlider(rect, ref value, sliderRange);
@@ -269,6 +275,9 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Draws a linear slider mapped to the min/max value range. Override this for different slider behavior (texture background, power).
         /// </summary>
+        /// <param name="rect">The <see cref="Rect"/> to draw the slider.</param>
+        /// <param name="value">The current value, and also returns the modified value.</param>
+        /// <param name="sliderRange">The ranges of the slider.</param>
         protected virtual void DoSlider(Rect rect, ref float value, Vector2 sliderRange)
         {
             value = GUI.HorizontalSlider(rect, value, sliderRange.x, sliderRange.y);

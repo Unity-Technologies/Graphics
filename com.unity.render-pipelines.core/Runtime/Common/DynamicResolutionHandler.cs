@@ -280,6 +280,10 @@ namespace UnityEngine.Rendering
             m_CachedSettings = settings;
         }
 
+        /// <summary>
+        /// Gets the resolved scale
+        /// </summary>
+        /// <returns>The resolved scale in form of <see cref="Vector2"/></returns>
         public Vector2 GetResolvedScale()
         {
             if (!m_Enabled || !m_CurrentCameraRequest)

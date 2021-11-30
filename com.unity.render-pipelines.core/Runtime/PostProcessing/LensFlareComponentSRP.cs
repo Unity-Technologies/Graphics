@@ -101,7 +101,7 @@ namespace UnityEngine.Rendering
         /// This is used for directional lights which require to have consistent occlusion radius regardless of the near/farplane configuration.
         /// </summary>
         /// <param name="mainCam">The camera utilized to calculate the occlusion radius</param>
-        /// <return>The value, in world units, of the occlusion angular radius.</return>
+        /// <returns>The value, in world units, of the occlusion angular radius.</returns>
         public float celestialProjectedOcclusionRadius(Camera mainCam)
         {
             float projectedRadius = (float)Math.Tan(sCelestialAngularRadius) * mainCam.farClipPlane;
