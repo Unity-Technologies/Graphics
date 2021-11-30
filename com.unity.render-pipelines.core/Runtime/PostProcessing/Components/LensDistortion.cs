@@ -1,13 +1,13 @@
 using System;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// A volume component that holds settings for the Lens Distortion effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Lens Distortion", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Post-Processing-Lens-Distortion")]
-    public sealed class LensDistortion : VolumeComponent, IPostProcessComponent
+    [Serializable, VolumeComponentMenu("Post-processing/Lens Distortion")]
+    //[HDRPHelpURLAttribute("Post-Processing-Lens-Distortion")]
+    public class LensDistortion : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
         /// Controls the overall strength of the distortion effect.
@@ -47,6 +47,28 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return Mathf.Abs(intensity.value) > 0
                 && (xMultiplier.value > 0f || yMultiplier.value > 0f);
+        }
+
+        public bool IsTileCompatible() => false;
+
+        public Type GetNewComponentType()
+        {
+            return typeof(LensDistortion);
+        }
+
+        public void CopyToNewComponent(VolumeComponent volumeComponent)
+        {
+            if (volumeComponent is not LensDistortion lens)
+                return;
+
+            lens.active = active;
+            lens.displayName = displayName;
+            lens.hideFlags = hideFlags;
+            lens.intensity = intensity;
+            lens.xMultiplier = xMultiplier;
+            lens.yMultiplier = yMultiplier;
+            lens.center = center;
+            lens.scale = scale;
         }
     }
 }
