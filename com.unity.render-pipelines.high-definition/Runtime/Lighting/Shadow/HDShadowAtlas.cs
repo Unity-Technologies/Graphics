@@ -547,6 +547,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal TextureHandle BlurShadows(RenderGraph renderGraph)
         {
+            if (m_ShadowRequests.Count == 0)
+            {
+                return renderGraph.defaultResources.whiteTexture;
+            }
+
             if (m_BlurAlgorithm == BlurAlgorithm.EVSM)
             {
                 return EVSMBlurMoments(renderGraph, m_ShadowMapOutput);

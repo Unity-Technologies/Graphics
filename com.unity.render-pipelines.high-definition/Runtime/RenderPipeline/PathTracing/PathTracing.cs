@@ -112,10 +112,24 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif // UNITY_EDITOR
         }
 
-        internal void ResetPathTracing()
+        /// <summary>
+        /// Resets path tracing accumulation for all cameras.
+        /// </summary>
+        public void ResetPathTracing()
         {
             m_RenderSky = true;
             m_SubFrameManager.Reset();
+        }
+
+        /// <summary>
+        /// Resets path tracing accumulation for a specific camera.
+        /// </summary>
+        /// <param name="hdCamera">Camera for which the accumulation is reset.</param>
+        public void ResetPathTracing(HDCamera hdCamera)
+        {
+            int camID = hdCamera.camera.GetInstanceID();
+            CameraData camData = m_SubFrameManager.GetCameraData(camID);
+            ResetPathTracing(camID, camData);
         }
 
         internal CameraData ResetPathTracing(int camID, CameraData camData)
@@ -135,7 +149,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // focalLength is in mm, so we need to convert to meters. We also want the aperture radius, not diameter, so we divide by two.
             float apertureRadius = (enableDof && hdCamera.physicalParameters.aperture > 0) ? 0.5f * 0.001f * hdCamera.camera.focalLength / hdCamera.physicalParameters.aperture : 0.0f;
 
-            return new Vector4(apertureRadius, dofSettings.focusDistance.value, 0.0f, 0.0f);
+            float focusDistance = (dofSettings.focusDistanceMode.value == FocusDistanceMode.Volume) ? dofSettings.focusDistance.value : hdCamera.physicalParameters.focusDistance;
+
+            return new Vector4(apertureRadius, focusDistance, 0.0f, 0.0f);
         }
 
 #if UNITY_EDITOR
