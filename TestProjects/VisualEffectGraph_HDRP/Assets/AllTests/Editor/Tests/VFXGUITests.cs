@@ -105,19 +105,6 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        private VisualEffectAsset CreateTestAsset(string name)
-        {
-            var filePath = string.Format(testAssetName, name);
-            var directoryPath = Path.GetDirectoryName(filePath);
-            if (!Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
-
-
-            return VisualEffectAssetEditorUtility.CreateNewAsset(filePath);
-        }
-
         private void EditTestAsset()
         {
             var window = EditorWindow.GetWindow<VFXViewWindow>();
@@ -127,12 +114,6 @@ namespace UnityEditor.VFX.Test
             var graph = VFXTestCommon.MakeTemporaryGraph();
             m_ViewController = VFXViewController.GetController(graph.GetResource(), true);
             window.graphView.controller = m_ViewController;
-        }
-
-        private void DestroyTestAsset(string name)
-        {
-            var filePath = string.Format(testAssetName, name);
-            AssetDatabase.DeleteAsset(filePath);
         }
 
         [Test]
