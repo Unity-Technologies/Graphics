@@ -307,7 +307,7 @@ namespace UnityEngine.VFX
                         }
                         else
                         {
-                            //VFX is too late on timeline, we will have to launch simulate
+                            //VFX is too late on timeline (or a bit ahead), we will have to launch simulate
                             //Warning, in that case, event could have been already sent
                             //m_LastEvent status prevents sending twice the same event
                         }
@@ -325,16 +325,24 @@ namespace UnityEngine.VFX
                     else
                         expectedCurrentTime = playableTime - VFXManager.fixedTimeStep;
 
+                    //Sending missed event (in case of VFX ahead)
+                    if (m_LastPlayableTime < actualCurrentTime)
                     {
-                        //1. Process adjustment if actualCurrentTime < expectedCurrentTime
+                        var eventList = GetEventsIndex(chunk, m_LastPlayableTime, actualCurrentTime, m_LastEvent);
+                        foreach (var itEvent in eventList)
+                            ProcessEvent(itEvent, chunk);
+                    }
+
+                    if (actualCurrentTime < expectedCurrentTime)
+                    {
+                        //Process adjustment if actualCurrentTime < expectedCurrentTime
                         var eventList = GetEventsIndex(chunk, actualCurrentTime, expectedCurrentTime, m_LastEvent);
                         var eventCount = eventList.Count();
                         var nextEvent = 0;
 
                         var maxScrubTime = GetMaximumScrubbingTime();
                         var fixedStep = VFXManager.maxDeltaTime;
-                        if (actualCurrentTime < expectedCurrentTime
-                                && expectedCurrentTime - actualCurrentTime > maxScrubTime)
+                        if (expectedCurrentTime - actualCurrentTime > maxScrubTime)
                         {
                             //Choose a bigger time step to reach the actual expected time
                             fixedStep = (float)((expectedCurrentTime - actualCurrentTime) * (double)VFXManager.maxDeltaTime / (double)maxScrubTime);
@@ -359,7 +367,7 @@ namespace UnityEngine.VFX
                                 currentStepCount = (uint)((expectedCurrentTime - actualCurrentTime) / fixedStep);
                                 if (currentStepCount == 0)
                                 {
-                                    //We reached the maximum precision according to fixedStep & no more event
+                                    //We reached the maximum precision according to the current fixedStep & no more event
                                     break;
                                 }
                             }
@@ -374,13 +382,14 @@ namespace UnityEngine.VFX
                     }
 
                     //Sending incoming event
+                    if (actualCurrentTime < playableTime)
                     {
                         var eventList = GetEventsIndex(chunk, actualCurrentTime, playableTime, m_LastEvent);
                         foreach (var itEvent in eventList)
                             ProcessEvent(itEvent, chunk);
                     }
                 }
-                else //No scrubbing
+                else //No scrubbing, only update events
                 {
                     m_Target.pause = false;
                     ProcessNoScrubbingEvents(chunk, m_LastPlayableTime, playableTime);
@@ -450,7 +459,6 @@ namespace UnityEngine.VFX
                 m_ClipState[currentEvent.clipIndex] = false;
             }
 #endif
-
             m_Target.SendEvent(currentEvent.nameId, currentEvent.attribute);
         }
 
