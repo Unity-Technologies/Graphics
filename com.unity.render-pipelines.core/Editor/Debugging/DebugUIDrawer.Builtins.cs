@@ -934,7 +934,7 @@ namespace UnityEditor.Rendering
             return height;
         }
 
-        internal Rect DrawOutline(Rect rect)
+        internal static Rect DrawOutline(Rect rect)
         {
             if (Event.current.type != EventType.Repaint)
                 return rect;

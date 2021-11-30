@@ -11,6 +11,7 @@ using System.Linq;
 using UnityEditor.SceneManagement;
 using UnityEngine.Rendering;
 using System.IO;
+using UnityEditor.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -22,6 +23,7 @@ namespace UnityEngine.Experimental.Rendering
         const int k_TitleTextHeight = 30;
         const string k_SelectedBakingSetKey = "Selected Baking Set";
         const string k_RenameFocusKey = "Baking Set Rename Field";
+        const string k_RenameStateFocusKey = "Baking State Rename Field";
 
         struct SceneData
         {
@@ -44,9 +46,11 @@ namespace UnityEngine.Experimental.Rendering
 
             public static readonly GUIStyle labelRed = new GUIStyle(EditorStyles.label);
 
+            public static readonly Color activeColor = new Color32(0x2C, 0x5D, 0x87, 0xFF);
+
             static Styles()
             {
-                labelRed.normal.textColor = Color.red;
+                labelRed.normal.textColor = new Color(0.8f, 0.2f, 0.0f);
             }
         }
 
@@ -61,8 +65,8 @@ namespace UnityEngine.Experimental.Rendering
         string m_SearchString = "";
         MethodInfo m_DrawHorizontalSplitter;
         [NonSerialized] ReorderableList m_BakingSets = null;
-        [NonSerialized] ReorderableList m_BakingStates = null;
-        BakingStateStatus[] bakingStatesStatuses = null;
+        MultiColumnHeader m_BakingStatesHeader = null;
+        BakingStateStatus[] bakingStatesStatuses = new BakingStateStatus[ProbeReferenceVolume.numBakingStates];
         Vector2 m_LeftScrollPosition;
         Vector2 m_RightScrollPosition;
         ReorderableList m_ScenesInSet;
@@ -200,108 +204,61 @@ namespace UnityEngine.Experimental.Rendering
 
         void InitializeBakingStatesList()
         {
-            m_BakingStates = new ReorderableList(sceneData.bakingStates, typeof(string), false, false, true, true);
-            m_BakingStates.multiSelect = false;
-            m_BakingStates.drawElementCallback = (rect, index, active, focused) =>
+            MultiColumnHeaderState.Column CreateColumn(string name)
             {
-                if (bakingStatesStatuses[index] != BakingStateStatus.Valid)
+                var col = new MultiColumnHeaderState.Column()
                 {
-                    Rect invalidRect = rect;
-                    var label = bakingStatesStatuses[index] == BakingStateStatus.NotBaked ? Styles.emptyLabel : Styles.invalidLabel;
-                    var width = EditorStyles.label.CalcSize(label).x;
-                    invalidRect.xMin = rect.xMax - width;
-                    rect.xMax = invalidRect.xMin;
-                    EditorGUI.LabelField(invalidRect, label, Styles.labelRed);
-                }
+                    canSort = false,
+                    headerTextAlignment = TextAlignment.Center,
+                    headerContent = new GUIContent(name),
+                    allowToggleVisibility = false,
+                };
 
-                string key = k_RenameFocusKey + index;
-                if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
-                    m_RenameSelectedBakingState = false;
-                if (Event.current.type == EventType.MouseDown && Event.current.clickCount == 2)
-                {
-                    if (rect.Contains(Event.current.mousePosition))
-                        m_RenameSelectedBakingState = true;
-                }
-                if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
-                    m_RenameSelectedBakingState = false;
+                GUIStyle style = MultiColumnHeader.DefaultStyles.columnHeaderCenterAligned;
+                style.CalcMinMaxWidth(col.headerContent, out col.width, out float _);
+                col.width = Mathf.Min(col.width, 50f);
+                return col;
+            }
 
-                var name = sceneData.bakingStates[index];
-
-                if (m_RenameSelectedBakingState)
-                {
-                    EditorGUI.BeginChangeCheck();
-                    GUI.SetNextControlName(key);
-                    name = EditorGUI.DelayedTextField(rect, name, EditorStyles.boldLabel);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        m_RenameSelectedBakingState = false;
-                        sceneData.bakingStates[index] = name;
-                    }
-                }
-                else
-                    EditorGUI.LabelField(rect, name, EditorStyles.boldLabel);
-            };
-            m_BakingStates.elementHeightCallback = _ => EditorGUIUtility.singleLineHeight;
-            m_BakingStates.onSelectCallback = (ReorderableList list) => ProbeVolumeSceneData.bakingState = list.index;
-
-            m_BakingStates.onAddCallback = (list) =>
+            var columns = new MultiColumnHeaderState.Column[]
             {
-                Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Added new baking state");
-                sceneData.CreateNewBakingState("New Baking State");
-                m_SerializedObject.Update();
-                ProbeVolumeSceneData.bakingState = list.index;
-                UpdateBakingStatesStatuses();
+                CreateColumn("Baking State"),
+                CreateColumn("Index"),
+                CreateColumn("Status"),
             };
 
-            m_BakingStates.onRemoveCallback = (list) =>
-            {
-                if (m_BakingStates.count == 1)
-                {
-                    EditorUtility.DisplayDialog("Can't delete baking state", "You can't delete the last Baking state. You need to have at least one.", "Ok");
-                    return;
-                }
-                if (EditorUtility.DisplayDialog("Delete the selected baking state?", $"Deleting the baking state will also delete corresponding baked data on disk.\nDo you really want to delete the baking state '{sceneData.bakingStates[list.index]}'?\n\nYou cannot undo the delete assets action.", "Yes", "Cancel"))
-                {
-                    sceneData.RemoveBakingState(list.index);
-                }
-                UpdateBakingStatesStatuses();
-            };
-
-            m_BakingStates.index = Mathf.Clamp(ProbeVolumeSceneData.bakingState, 0, m_BakingStates.count - 1);
-
-            ProbeVolumeSceneData.bakingState = m_BakingStates.index;
+            var state = new MultiColumnHeaderState(columns);
+            m_BakingStatesHeader = new MultiColumnHeader(state) { height = 23 };
+            m_BakingStatesHeader.ResizeToFit();
         }
 
         internal void UpdateBakingStatesStatuses()
         {
             var scenePath = FindSceneData(GetCurrentBakingSet().sceneGUIDs[0]).path;
             var sceneName = Path.GetFileNameWithoutExtension(scenePath);
-            
-            int mostRecentState = 0;
+
+            ProbeVolumeBakingState mostRecentState = ProbeVolumeBakingState.BakingState0;
             var refTime = File.GetLastWriteTime(ProbeVolumeAsset.GetPath(scenePath, sceneName, 0, false));
-            for (int state = 1; state < m_BakingStates.count; state++)
+            for (int state = 1; state < sceneData.bakingStates.Length; state++)
             {
-                var time = File.GetLastWriteTime(ProbeVolumeAsset.GetPath(scenePath, sceneName, state, false));
+                var time = File.GetLastWriteTime(ProbeVolumeAsset.GetPath(scenePath, sceneName, (ProbeVolumeBakingState)state, false));
                 if (time > refTime)
                 {
                     refTime = time;
-                    mostRecentState = state;
+                    mostRecentState = (ProbeVolumeBakingState)state;
                 }
             }
 
             UpdateBakingStatesStatuses(mostRecentState);
         }
 
-        internal void UpdateBakingStatesStatuses(int mostRecentState)
+        internal void UpdateBakingStatesStatuses(ProbeVolumeBakingState mostRecentState)
         {
-            if (bakingStatesStatuses == null || bakingStatesStatuses.Length != m_BakingStates.count)
-                bakingStatesStatuses = new BakingStateStatus[m_BakingStates.count];
-
             var scene2Data = new Dictionary<string, ProbeVolumePerSceneData>();
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 scene2Data[data.gameObject.scene.path] = data;
 
-            for (int i = 0; i < bakingStatesStatuses.Length; i++)
+            for (int i = 0; i < sceneData.bakingStates.Length; i++)
             {
                 bakingStatesStatuses[i] = BakingStateStatus.Valid;
 
@@ -309,14 +266,14 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     var data = scene2Data[FindSceneData(sceneGUID).path];
 
-                    var asset = data.GetAssetForState(i);
+                    var asset = data.GetAssetForState((ProbeVolumeBakingState)i);
                     if (asset == null)
                     {
                         bakingStatesStatuses[i] = BakingStateStatus.NotBaked;
                         break;
                     }
 
-                    if (mostRecentState != i)
+                    if (mostRecentState != (ProbeVolumeBakingState)i)
                     {
                         var mostRecentAsset = data.GetAssetForState(mostRecentState);
                         if (!ProbeVolumeAsset.Compatible(asset, mostRecentAsset))
@@ -510,20 +467,10 @@ namespace UnityEngine.Experimental.Rendering
         {
             EditorGUILayout.BeginVertical(GUILayout.Width(k_LeftPanelSize));
             m_LeftScrollPosition = EditorGUILayout.BeginScrollView(m_LeftScrollPosition, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
-
             var titleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
             EditorGUI.LabelField(titleRect, Styles.bakingSetsTitle, m_SubtitleStyle);
             EditorGUILayout.Space();
             m_BakingSets.DoLayoutList();
-
-            EditorGUILayout.Space();
-            EditorGUILayout.Space();
-
-            titleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
-            EditorGUI.LabelField(titleRect, Styles.bakingStatesTitle, m_SubtitleStyle);
-            EditorGUILayout.Space();
-            m_BakingStates.DoLayoutList();
-
             EditorGUILayout.EndScrollView();
             EditorGUILayout.EndVertical();
         }
@@ -533,6 +480,7 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUILayout.BeginVertical(GUILayout.Width(2));
             m_DrawHorizontalSplitter?.Invoke(null, new object[] { new Rect(k_LeftPanelSize, 20, 2, position.height) });
             EditorGUILayout.EndVertical();
+            EditorGUILayout.Space(1);
         }
 
         void SanitizeScenes()
@@ -551,7 +499,6 @@ namespace UnityEngine.Experimental.Rendering
             var titleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
             EditorGUI.LabelField(titleRect, "Probe Volume Settings", m_SubtitleStyle);
             EditorGUILayout.Space();
-
             SanitizeScenes();
             m_ScenesInSet.DoLayoutList();
 
@@ -598,10 +545,88 @@ namespace UnityEngine.Experimental.Rendering
                 EditorGUILayout.HelpBox("You need to assign at least one scene with probe volumes to configure the baking settings", MessageType.Error, true);
             }
 
-            DrawBakeButton();
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
+            titleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
+            EditorGUI.LabelField(titleRect, Styles.bakingStatesTitle, m_SubtitleStyle);
+            EditorGUILayout.Space();
+
+            DrawBakingStates();
 
             EditorGUILayout.EndScrollView();
+            
+            EditorGUILayout.Space();
+            DrawBakeButton();
+
             EditorGUILayout.EndVertical();
+        }
+
+        void DrawBakingStates()
+        {
+            float height = m_BakingStatesHeader.height + ProbeReferenceVolume.numBakingStates * DebugWindow.Styles.singleRowHeight;
+            var rect = GUILayoutUtility.GetRect(1f, height); rect.width = 450f;
+            rect = EditorGUI.IndentedRect(rect);
+            rect = DebugUIDrawerTable.DrawOutline(rect);
+            var headerRect = new Rect(rect.x, rect.y, rect.width, m_BakingStatesHeader.height);
+            var rowRect = new Rect(rect.x, headerRect.yMax, rect.width, DebugWindow.Styles.singleRowHeight);
+
+            m_BakingStatesHeader.OnGUI(headerRect, 0);
+            for (int i = 0; i < ProbeReferenceVolume.numBakingStates; i++)
+            {
+                rowRect.x = rect.x;
+                rowRect.width = rect.width;
+
+                // Renaming
+                string key = k_RenameStateFocusKey + i;
+                if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
+                    m_RenameSelectedBakingState = false;
+                if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
+                    m_RenameSelectedBakingState = false;
+                if (Event.current.type == EventType.MouseDown && rowRect.Contains(Event.current.mousePosition))
+                {
+                    if (Event.current.clickCount == 1)
+                        ProbeReferenceVolume.instance.bakingState = (ProbeVolumeBakingState)i;
+                    else if (Event.current.clickCount == 2)
+                        m_RenameSelectedBakingState = true;
+                }
+
+                // Active state
+                if (i == (int)ProbeReferenceVolume.instance.bakingState)
+                    EditorGUI.DrawRect(rowRect, Styles.activeColor);
+
+                // Name
+                rowRect.x += 2; // small padding
+                rowRect.width = m_BakingStatesHeader.state.columns[0].width;
+                if (m_RenameSelectedBakingState)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    sceneData.bakingStates[i] = EditorGUI.DelayedTextField(rowRect, sceneData.bakingStates[i], EditorStyles.boldLabel);
+                    if (EditorGUI.EndChangeCheck())
+                        m_RenameSelectedBakingState = false;
+                }
+                else
+                    EditorGUI.LabelField(rowRect, GUIContent.none, EditorGUIUtility.TrTextContent(sceneData.bakingStates[i]));
+
+                // Index
+                rowRect.x += rowRect.width;
+                rowRect.width = m_BakingStatesHeader.state.columns[1].width;
+                EditorGUI.LabelField(rowRect, GUIContent.none, EditorGUIUtility.TrTextContent("State " + i));
+
+                // Status
+                if (bakingStatesStatuses[i] != BakingStateStatus.Valid)
+                {
+                    rowRect.x += rowRect.width;
+                    rowRect.width = m_BakingStatesHeader.state.columns[2].width;
+                    if (bakingStatesStatuses[i] == BakingStateStatus.NotBaked)
+                    {
+                        using (new EditorGUI.DisabledScope(true))
+                            EditorGUI.LabelField(rowRect, Styles.emptyLabel);
+                    }
+                    else
+                        EditorGUI.LabelField(rowRect, Styles.invalidLabel, Styles.labelRed);
+                }
+                rowRect.y += rowRect.height;
+            }
         }
 
         void DrawBakeButton()
@@ -612,7 +637,7 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUI.BeginDisabledGroup(Lightmapping.isRunning);
             if (GUILayout.Button("Load All Scenes In Set", GUILayout.ExpandWidth(true)))
                 LoadScenesInBakingSet(GetCurrentBakingSet());
-            if (GUILayout.Button("Clear Loaded Scene Data"))
+            if (GUILayout.Button("Clear Baked Data"))
                 Lightmapping.Clear();
             EditorGUI.EndDisabledGroup();
             if (Lightmapping.isRunning)
@@ -622,7 +647,7 @@ namespace UnityEngine.Experimental.Rendering
             }
             else
             {
-                if (GUILayout.Button("Generate Lighting", GUILayout.ExpandWidth(true)))
+                if (GUILayout.Button("Generate Lighting", "DropDownButton", GUILayout.ExpandWidth(true)))
                 {
                     var menu = new GenericMenu();
                     menu.AddItem(new GUIContent("Bake the set"), false, () => BakeLightingForSet(GetCurrentBakingSet()));

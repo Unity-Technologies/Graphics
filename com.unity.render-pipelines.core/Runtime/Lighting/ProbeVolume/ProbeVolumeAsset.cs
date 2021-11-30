@@ -38,6 +38,10 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField] internal float minDistanceBetweenProbes;
         [SerializeField] internal int simplificationLevels;
 
+#if UNITY_EDITOR
+        [SerializeField] private int bakingHash;
+#endif
+
         internal int maxSubdivision => simplificationLevels + 1; // we add one for the top subdiv level which is the same size as a cell
         internal float minBrickSize => Mathf.Max(0.01f, minDistanceBetweenProbes * 3.0f);
 
@@ -51,10 +55,10 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
-        public static string GetPath(Scene scene, int state, bool createFolder)
+        public static string GetPath(Scene scene, ProbeVolumeBakingState state, bool createFolder)
             => GetPath(scene.path, scene.name, state, createFolder);
 
-        public static string GetPath(string scenePath, string sceneName, int state, bool createFolder)
+        public static string GetPath(string scenePath, string sceneName, ProbeVolumeBakingState state, bool createFolder)
         {
             const string assetName = "ProbeVolumeData";
 
@@ -63,11 +67,11 @@ namespace UnityEngine.Experimental.Rendering
             if (createFolder && !UnityEditor.AssetDatabase.IsValidFolder(assetPath))
                 UnityEditor.AssetDatabase.CreateFolder(sceneDir, sceneName);
 
-            var fileName = assetName + "-" + state + ".asset";
+            var fileName = assetName + "-" + (int)state + ".asset";
             return Path.Combine(assetPath, fileName);
         }
 
-        public static ProbeVolumeAsset CreateAsset(Scene scene, int state)
+        public static ProbeVolumeAsset CreateAsset(Scene scene, ProbeVolumeBakingState state)
         {
             ProbeVolumeAsset asset = CreateInstance<ProbeVolumeAsset>();
             asset.m_AssetFullPath = GetPath(scene, state, true);
@@ -83,40 +87,28 @@ namespace UnityEngine.Experimental.Rendering
             minDistanceBetweenProbes = profile.minDistanceBetweenProbes;
         }
 
+        internal void ComputeBakingHash()
+        {
+            int hash = maxCellPosition.GetHashCode();
+            hash = hash * 23 + minCellPosition.GetHashCode();
+            hash = hash * 23 + globalBounds.GetHashCode();
+            hash = hash * 23 + bands.GetHashCode();
+            hash = hash * 23 + cellSizeInBricks.GetHashCode();
+            hash = hash * 23 + minDistanceBetweenProbes.GetHashCode();
+            hash = hash * 23 + simplificationLevels.GetHashCode();
+            foreach (var cell in cells)
+                hash += cell.ComputeBakingHash();
+
+            bakingHash = hash;
+        }
+
         internal static bool Compatible(ProbeVolumeAsset a, ProbeVolumeAsset b)
         {
             if (a == null || b == null)
                 return false;
 
-            if (a.maxCellPosition != b.maxCellPosition) return false;
-            if (a.minCellPosition != b.minCellPosition) return false;
-            if (a.globalBounds != b.globalBounds) return false;
-            if (a.bands != b.bands) return false;
-            if (a.cellSizeInBricks != b.cellSizeInBricks) return false;
-            if (a.minDistanceBetweenProbes != b.minDistanceBetweenProbes) return false;
-            if (a.simplificationLevels != b.simplificationLevels) return false;
-            if (a.cells.Count != b.cells.Count) return false;
-            for (int i = 0; i < a.cells.Count; i++)
-            {
-                if (a.cells[i].position != b.cells[i].position) return false;
-                if (a.cells[i].minSubdiv != b.cells[i].minSubdiv) return false;
-                if (a.cells[i].indexChunkCount != b.cells[i].indexChunkCount) return false;
-                if (a.cells[i].shChunkCount != b.cells[i].shChunkCount) return false;
-                if (a.cells[i].bricks.Count != b.cells[i].bricks.Count) return false;
-                if (a.cells[i].probePositions.Length != b.cells[i].probePositions.Length) return false;
-
-                for (int j = 0; j < a.cells[i].bricks.Count; j++)
-                {
-                    if (a.cells[i].bricks[j].position != b.cells[i].bricks[j].position) return false;
-                    if (a.cells[i].bricks[j].subdivisionLevel != b.cells[i].bricks[j].subdivisionLevel) return false;
-                }
-                for (int j = 0; j < a.cells[i].probePositions.Length; j++)
-                {
-                    if (a.cells[i].probePositions[j] != b.cells[i].probePositions[j]) return false;
-                }
-            }
-
-            return true;
+            // Not completely accurate but good enough
+            return a.bakingHash == b.bakingHash;
         }
 #endif
     }

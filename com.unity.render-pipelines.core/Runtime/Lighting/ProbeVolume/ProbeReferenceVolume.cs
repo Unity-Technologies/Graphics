@@ -321,6 +321,46 @@ namespace UnityEngine.Experimental.Rendering
     }
 
     /// <summary>
+    /// Baking States.
+    /// </summary>
+    [Serializable]
+    public enum ProbeVolumeBakingState
+    {
+        /// <summary>State 0</summary>
+        BakingState0,
+        /// <summary>State 1</summary>
+        BakingState1,
+        /// <summary>State 2</summary>
+        BakingState2,
+        /// <summary>State 3</summary>
+        BakingState3,
+        /// <summary>State 4</summary>
+        BakingState4,
+        /// <summary>State 5</summary>
+        BakingState5,
+        /// <summary>State 6</summary>
+        BakingState6,
+        /// <summary>State 7</summary>
+        BakingState7,
+        /// <summary>State 8</summary>
+        BakingState8,
+        /// <summary>State 9</summary>
+        BakingState9,
+        /// <summary>State 10</summary>
+        BakingState10,
+        /// <summary>State 11</summary>
+        BakingState11,
+        /// <summary>State 12</summary>
+        BakingState12,
+        /// <summary>State 13</summary>
+        BakingState13,
+        /// <summary>State 14</summary>
+        BakingState14,
+        /// <summary>State 15</summary>
+        BakingState15,
+    }
+
+    /// <summary>
     /// Number of Spherical Harmonics bands that are used with Probe Volumes
     /// </summary>
     [Serializable]
@@ -351,6 +391,21 @@ namespace UnityEngine.Experimental.Rendering
             public int minSubdiv;
             public int indexChunkCount;
             public int shChunkCount;
+
+            internal int ComputeBakingHash()
+            {
+                int hash = position.GetHashCode();
+                hash = hash * 23 + minSubdiv.GetHashCode();
+                hash = hash * 23 + indexChunkCount.GetHashCode();
+                hash = hash * 23 + shChunkCount.GetHashCode();
+
+                foreach (var brick in bricks)
+                {
+                    hash = hash * 23 + brick.position.GetHashCode();
+                    hash = hash * 23 + brick.subdivisionLevel.GetHashCode();
+                }
+                return hash;
+            }
         }
 
         [DebuggerDisplay("Index = {cell.index} Loaded = {loaded}")]
@@ -610,6 +665,21 @@ namespace UnityEngine.Experimental.Rendering
         public ProbeVolumeSHBands shBands { get { return m_SHBands; } }
 
         internal bool clearAssetsOnVolumeClear = false;
+
+        /// <summary>Delegate for baking state change.</summary>
+        /// <param name="newState">The new baking state.</param>
+        public delegate void BakingStateChangedDelegate(ProbeVolumeBakingState newState);
+        /// <summary>Delegate called when the baking state is changed. </summary>
+        public BakingStateChangedDelegate onBakingStateChanged;
+
+        /// <summary>The currently selected baking state.</summary>
+        public ProbeVolumeBakingState bakingState
+        {
+            get => sceneData.bakingState;
+            set => sceneData.bakingState = value;
+        }
+
+        internal const int numBakingStates = 16;
 
         /// <summary>
         /// Get the memory budget for the Probe Volume system.

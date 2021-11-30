@@ -3,30 +3,22 @@ using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    // TMP to be moved to ProbeReferenceVolume when we define the concept, here it is just to make stuff compile
-    enum ProbeVolumeState
-    {
-        Default = 0,
-        Invalid = 999
-    }
-
     [ExecuteAlways]
     [AddComponentMenu("")] // Hide.
     internal class ProbeVolumePerSceneData : MonoBehaviour, ISerializationCallbackReceiver
     {
-
         [System.Serializable]
         struct SerializableAssetItem
         {
-            [SerializeField] public int state;
+            [SerializeField] public ProbeVolumeBakingState state;
             [SerializeField] public ProbeVolumeAsset asset;
         }
 
-        internal Dictionary<int, ProbeVolumeAsset> assets = new Dictionary<int, ProbeVolumeAsset>();
+        internal Dictionary<ProbeVolumeBakingState, ProbeVolumeAsset> assets = new Dictionary<ProbeVolumeBakingState, ProbeVolumeAsset>();
 
         [SerializeField] List<SerializableAssetItem> serializedAssets;
 
-        [SerializeField] int m_CurrentState = -1; // probably not needed to serialize it
+        ProbeVolumeBakingState m_CurrentState = (ProbeVolumeBakingState)ProbeReferenceVolume.numBakingStates;
 
         /// <summary>
         /// OnAfterDeserialize implementation.
@@ -35,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (serializedAssets == null) return;
 
-            assets = new Dictionary<int, ProbeVolumeAsset>();
+            assets = new Dictionary<ProbeVolumeBakingState, ProbeVolumeAsset>();
             foreach (var assetItem in serializedAssets)
             {
                 assets.Add(assetItem.state, assetItem.asset);
@@ -59,31 +51,27 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        internal void StoreAssetForState(int state, ProbeVolumeAsset asset)
+        internal void StoreAssetForState(ProbeVolumeBakingState state, ProbeVolumeAsset asset)
         {
             assets[state] = asset;
         }
 
-        internal void DeleteAssetForState(int state)
-        {
-            assets.Remove(state);
-        }
-
-        internal ProbeVolumeAsset GetAssetForState(int state) => assets.GetValueOrDefault(state, null);
+        internal ProbeVolumeAsset GetAssetForState(ProbeVolumeBakingState state) => assets.GetValueOrDefault(state, null);
 
         internal void Clear()
         {
+            InvalidateAllAssets();
+
+#if UNITY_EDITOR
             AssetDatabase.StartAssetEditing();
             foreach (var asset in assets)
             {
                 if (asset.Value != null)
-                {
-                    ProbeReferenceVolume.instance.AddPendingAssetRemoval(asset.Value);
                     AssetDatabase.DeleteAsset(ProbeVolumeAsset.GetPath(gameObject.scene, asset.Key, false));
-                }
             }
             AssetDatabase.StopAssetEditing();
             AssetDatabase.Refresh();
+#endif
 
             assets.Clear();
         }
@@ -127,6 +115,8 @@ namespace UnityEngine.Experimental.Rendering
         void OnEnable()
         {
             ProbeReferenceVolume.instance.RegisterPerSceneData(this);
+            // uncomment when scenedata is removed
+            //m_CurrentState = ProbeVolumeSceneData.bakingState;
             QueueAssetLoading();
         }
 
@@ -141,7 +131,7 @@ namespace UnityEngine.Experimental.Rendering
             QueueAssetRemoval();
         }
 
-        public void SetBakingState(int state)
+        public void SetBakingState(ProbeVolumeBakingState state)
         {
             if (state == m_CurrentState)
                 return;

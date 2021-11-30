@@ -170,7 +170,7 @@ namespace UnityEngine.Experimental.Rendering
                 var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(scene);
                 Debug.Assert(profile != null, "Trying to bake a scene without a profile properly set.");
 
-                data.SetBakingState(ProbeVolumeSceneData.bakingState);
+                data.SetBakingState(ProbeReferenceVolume.instance.bakingState);
 
                 if (i == 0)
                 {
@@ -558,8 +558,8 @@ namespace UnityEngine.Experimental.Rendering
             var data2Asset = new Dictionary<ProbeVolumePerSceneData, ProbeVolumeAsset>();
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
             {
-                var asset = ProbeVolumeAsset.CreateAsset(data.gameObject.scene, ProbeVolumeSceneData.bakingState);
-                data.StoreAssetForState(ProbeVolumeSceneData.bakingState, asset);
+                var asset = ProbeVolumeAsset.CreateAsset(data.gameObject.scene, ProbeReferenceVolume.instance.bakingState);
+                data.StoreAssetForState(ProbeReferenceVolume.instance.bakingState, asset);
 
                 scene2Data[data.gameObject.scene] = data;
                 data2Asset[data] = asset;
@@ -590,6 +590,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 var data = pair.Key;
                 var asset = pair.Value;
+                asset.ComputeBakingHash();
 
                 if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
                 {
@@ -608,10 +609,8 @@ namespace UnityEngine.Experimental.Rendering
             UnityEditor.AssetDatabase.Refresh();
             probeRefVolume.clearAssetsOnVolumeClear = false;
 
-            foreach (var data in data2Asset.Keys)
-            {
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 data.QueueAssetLoading();
-            }
 
             // ---- Perform dilation ---
             PerformDilation();
@@ -620,7 +619,7 @@ namespace UnityEngine.Experimental.Rendering
             if (EditorWindow.HasOpenInstances<ProbeVolumeBakingWindow>())
             {
                 var window = (ProbeVolumeBakingWindow)EditorWindow.GetWindow(typeof(ProbeVolumeBakingWindow));
-                window.UpdateBakingStatesStatuses(ProbeVolumeSceneData.bakingState);
+                window.UpdateBakingStatesStatuses(ProbeReferenceVolume.instance.bakingState);
             }
         }
 
