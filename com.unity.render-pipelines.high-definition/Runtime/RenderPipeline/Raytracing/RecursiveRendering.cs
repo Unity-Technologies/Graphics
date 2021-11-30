@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Recursive Rendering Volume Component.
     /// This component setups recursive rendering.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Ray Tracing/Recursive Rendering (Preview)", typeof(HDRenderPipeline))]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Ray Tracing/Recursive Rendering (Preview)", typeof(HDRenderPipelineAsset))]
     [HDRPHelpURLAttribute("Ray-Tracing-Recursive-Rendering")]
     public sealed class RecursiveRendering : VolumeComponent
     {

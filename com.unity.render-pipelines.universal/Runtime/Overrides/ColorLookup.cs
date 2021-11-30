@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// A volume component that holds settings for the color lookup effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Color Lookup", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Color Lookup", typeof(UniversalRenderPipelineAsset))]
     public sealed class ColorLookup : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

@@ -1,8 +1,7 @@
-using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
     [CustomEditor(typeof(Vignette))]
     sealed class VignetteEditor : VolumeComponentEditor

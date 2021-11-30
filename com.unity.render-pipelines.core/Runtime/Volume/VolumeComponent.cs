@@ -57,9 +57,9 @@ namespace UnityEngine.Rendering
             // Make sure that we only allow the class types that inherit from the render pipeline
             foreach (var t in pipelineTypes)
             {
-                if (!typeof(RenderPipeline).IsAssignableFrom(t))
+                if (!typeof(RenderPipelineAsset).IsAssignableFrom(t))
                     throw new Exception(
-                        $"You can only specify types that inherit from {typeof(RenderPipeline)}, please check {t}");
+                        $"You can only specify types that inherit from {typeof(RenderPipelineAsset)}, please check {t}");
             }
 
             this.pipelineTypes = pipelineTypes;

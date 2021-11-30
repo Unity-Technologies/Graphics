@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds Diffusion Profile Overrides.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Material/Diffusion Profile Override", typeof(HDRenderPipeline))]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Material/Diffusion Profile Override", typeof(HDRenderPipelineAsset))]
     [HDRPHelpURLAttribute("Override-Diffusion-Profile")]
     public sealed class DiffusionProfileOverride : VolumeComponent
     {
