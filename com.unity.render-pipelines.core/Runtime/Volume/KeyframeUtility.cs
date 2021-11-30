@@ -22,14 +22,14 @@ namespace UnityEngine.Rendering
     /// curves and reuses them to avoid creating garbage. The number of curves needed is quite small, since curves only need
     /// to be used when interpolating multiple volumes together with different curve parameters. The underlying interp
     /// function isn't allowed to fail, so in the case where we run out of memory we fall back to returning a single keyframe.
-    /// 
+    ///
     /// <example>Example:
     /// <code>
     /// {
     ///     AnimationCurve curve0 = new AnimationCurve();
     ///     curve0.AddKey(new Keyframe(0.0f, 3.0f));
     ///     curve0.AddKey(new Keyframe(4.0f, 2.0f));
-    ///     
+    ///
     ///     AnimationCurve curve1 = new AnimationCurve();
     ///     curve1.AddKey(new Keyframe(0.0f, 0.0f));
     ///     curve1.AddKey(new Keyframe(2.0f, 1.0f));
@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering
                 // same time), but in most cases we will need the worst case number of keys. So allocate the worst case.
                 int maxNumKeys = lhsAndResultCurve.length + rhsCurve.length;
                 int currNumKeys = 0;
-                NativeArray<Keyframe> dstKeys = new NativeArray<Keyframe>(maxNumKeys, Allocator.Temp);
+                var dstKeys = new NativeArray<Keyframe>(maxNumKeys, Allocator.Temp);
 
                 int lhsKeyCurr = 0;
                 int rhsKeyCurr = 0;

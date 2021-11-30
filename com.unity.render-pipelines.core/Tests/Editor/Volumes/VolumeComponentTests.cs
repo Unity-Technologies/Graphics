@@ -250,8 +250,8 @@ namespace UnityEngine.Rendering.Tests
 
         public class AnimationCurveTestPair
         {
-            public int lhsIndex;
-            public int rhsIndex;
+            public AnimationCurve lhsCurve;
+            public AnimationCurve rhsCurve;
             public float t;
             public string testName;
         };
@@ -260,29 +260,29 @@ namespace UnityEngine.Rendering.Tests
         {
             new AnimationCurveTestPair
             {
-                lhsIndex = 0,
-                rhsIndex = 1,
+                lhsCurve = CreateTestCurve(0),
+                rhsCurve = CreateTestCurve(1),
                 t = 0.25f,
                 testName = "CurveTest 1"
             },
             new AnimationCurveTestPair
             {
-                lhsIndex = 1,
-                rhsIndex = 2,
+                lhsCurve = CreateTestCurve(1),
+                rhsCurve = CreateTestCurve(2),
                 t = 0.25f,
                 testName = "CurveTest 2"
             },
             new AnimationCurveTestPair
             {
-                lhsIndex = 0,
-                rhsIndex = 2,
+                lhsCurve = CreateTestCurve(0),
+                rhsCurve = CreateTestCurve(2),
                 t = 0.25f,
                 testName = "CurveTest Same Positions"
             },
             new AnimationCurveTestPair
             {
-                lhsIndex = 0,
-                rhsIndex = 3,
+                lhsCurve = CreateTestCurve(0),
+                rhsCurve = CreateTestCurve(3),
                 t = 0.25f,
                 testName = "CurveTest No Overlap"
             }
@@ -291,8 +291,8 @@ namespace UnityEngine.Rendering.Tests
         [Test, TestCaseSource(nameof(s_AnimationCurveTestPairs))]
         public void RenderInterpolateAnimationCurve(AnimationCurveTestPair testPairData)
         {
-            AnimationCurve lhsCurve = CreateTestCurve(testPairData.lhsIndex);
-            AnimationCurve rhsCurve = CreateTestCurve(testPairData.rhsIndex);
+            AnimationCurve lhsCurve = testPairData.lhsCurve;
+            AnimationCurve rhsCurve = testPairData.rhsCurve;
 
             bool success = TestAnimationCurveInterp(lhsCurve, rhsCurve, testPairData.t, -5.0f, 20.0f, 100, 1e-5f, false);
             if (!success)
