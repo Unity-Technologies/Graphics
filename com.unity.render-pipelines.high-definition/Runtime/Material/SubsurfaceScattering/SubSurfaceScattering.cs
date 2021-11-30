@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// This component setups subsurface scattering for ray-tracing.
     /// </summary>
     [HDRPHelpURLAttribute("Ray-Traced-Subsurface-Scattering")]
-    [Serializable, VolumeComponentMenuForRenderPipeline("Ray Tracing/SubSurface Scattering (Preview)", typeof(HDRenderPipeline))]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Ray Tracing/SubSurface Scattering (Preview)", typeof(HDRenderPipelineAsset))]
     public sealed class SubSurfaceScattering : VolumeComponent
     {
         /// <summary>

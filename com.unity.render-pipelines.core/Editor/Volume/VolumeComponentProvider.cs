@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering
 
         public void CreateComponentTree(List<Element> tree)
         {
-            var currentPipeline = RenderPipelineManager.currentPipeline;
+            var currentPipeline = GraphicsSettings.currentRenderPipeline;
             if (currentPipeline == null)
             {
                 tree.Add(new GroupElement(0, "No SRP in use"));

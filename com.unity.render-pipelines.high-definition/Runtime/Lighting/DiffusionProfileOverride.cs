@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [Serializable, VolumeComponentMenuForRenderPipeline("Material/Diffusion Profile Override", typeof(HDRenderPipeline))]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Material/Diffusion Profile Override", typeof(HDRenderPipelineAsset))]
     [HDRPHelpURLAttribute("Override-Diffusion-Profile")]
     sealed class DiffusionProfileOverride : VolumeComponent
     {

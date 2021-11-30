@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Chromatic Aberration effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Chromatic Aberration", typeof(HDRenderPipeline))]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Chromatic Aberration", typeof(HDRenderPipelineAsset))]
     [HDRPHelpURLAttribute("Post-Processing-Chromatic-Aberration")]
 
     public sealed class ChromaticAberration : VolumeComponentWithQuality, IPostProcessComponent

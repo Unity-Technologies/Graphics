@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Chromatic Aberration", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Chromatic Aberration", typeof(UniversalRenderPipelineAsset))]
     public sealed class ChromaticAberration : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("Use the slider to set the strength of the Chromatic Aberration effect.")]

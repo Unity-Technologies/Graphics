@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Color Lookup", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Color Lookup", typeof(UniversalRenderPipelineAsset))]
     public sealed class ColorLookup : VolumeComponent, IPostProcessComponent
     {
         [Tooltip("A 2D Lookup Texture (LUT) to use for color grading.")]

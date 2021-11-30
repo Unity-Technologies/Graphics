@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering
         SerializedObject m_SerializedObject;
         SerializedProperty m_ComponentsProperty;
 
-        Dictionary<Type, Type> m_EditorTypes; // Component type => Editor type
+        Dictionary<Type, Type> m_EditorTypes; // Component type => (SRP, Editor type)
         List<VolumeComponentEditor> m_Editors;
 
         static Dictionary<Type, string> m_EditorDocumentationURLs;
@@ -102,13 +102,39 @@ namespace UnityEditor.Rendering
                 .Where(
                     t => t.IsDefined(typeof(VolumeComponentEditorAttribute), false)
                     && !t.IsAbstract
-                );
+                ).ToList();
+
+            var currentSrpType =
+                GraphicsSettings.currentRenderPipeline == null
+                    ? null : GraphicsSettings.currentRenderPipeline.GetType();
+
+            // collect all the editor's for the current SRP...
+            var currentSRPeditorTypes = editorTypes.Where(x =>
+                ((VolumeComponentEditorAttribute)
+                    x.GetCustomAttributes(typeof(VolumeComponentEditorAttribute), false)[0]).renderPipelineType == currentSrpType);
 
             // Map them to their corresponding component type
-            foreach (var editorType in editorTypes)
+            foreach (var editorType in currentSRPeditorTypes)
             {
                 var attribute = (VolumeComponentEditorAttribute)editorType.GetCustomAttributes(typeof(VolumeComponentEditorAttribute), false)[0];
                 m_EditorTypes.Add(attribute.componentType, editorType);
+            }
+
+            // if we have an SRP... now fill in the 'null' slots
+            if (currentSrpType != null)
+            {
+                // collect all the editor's for the current SRP...
+                var currentGeneralEditorTypes = editorTypes.Where(x =>
+                    ((VolumeComponentEditorAttribute)
+                        x.GetCustomAttributes(typeof(VolumeComponentEditorAttribute), false)[0]).renderPipelineType == null);
+
+                foreach (var editorType in currentGeneralEditorTypes)
+                {
+                    var attribute = (VolumeComponentEditorAttribute)editorType.GetCustomAttributes(typeof(VolumeComponentEditorAttribute), false)[0];
+
+                    if(!m_EditorTypes.ContainsKey(attribute.componentType))
+                        m_EditorTypes.Add(attribute.componentType, editorType);
+                }
             }
 
             // Create editors for existing components

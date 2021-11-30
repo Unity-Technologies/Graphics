@@ -24,13 +24,17 @@ namespace UnityEditor.Rendering
         /// </summary>
         public readonly Type componentType;
 
+        public readonly Type renderPipelineType;
+
         /// <summary>
         /// Creates a new <see cref="VolumeComponentEditorAttribute"/> instance.
         /// </summary>
         /// <param name="componentType">A type derived from <see cref="VolumeComponent"/></param>
-        public VolumeComponentEditorAttribute(Type componentType)
+        /// <param name="renderPipelineType">If this editor is only valid for a given renderpipeline</param>
+        public VolumeComponentEditorAttribute(Type componentType, Type renderPipelineType = null)
         {
             this.componentType = componentType;
+            this.renderPipelineType = renderPipelineType;
         }
     }
 

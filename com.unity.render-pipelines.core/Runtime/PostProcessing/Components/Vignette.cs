@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// The mode HDRP uses to display the vignette effect.
@@ -22,9 +22,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Vignette effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Vignette", typeof(HDRenderPipeline))]
-    [HDRPHelpURLAttribute("Post-Processing-Vignette")]
-    public sealed class Vignette : VolumeComponent, IPostProcessComponent
+    [Serializable, VolumeComponentMenu("Post-processing/Vignette")]
+    //[HDRPHelpURLAttribute("Post-Processing-Vignette")]
+    public class Vignette : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
         /// Specifies the mode HDRP uses to display the vignette effect.
@@ -89,6 +89,32 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return (mode.value == VignetteMode.Procedural && intensity.value > 0f)
                 || (mode.value == VignetteMode.Masked && opacity.value > 0f && mask.value != null);
+        }
+
+        public bool IsTileCompatible() => true;
+
+        public Type GetNewComponentType()
+        {
+            return typeof(Vignette);
+        }
+
+        public void CopyToNewComponent(VolumeComponent volumeComponent)
+        {
+            if (volumeComponent is not Vignette vg)
+                return;
+
+            vg.active = active;
+            vg.displayName = displayName;
+            vg.hideFlags = hideFlags;
+            vg.mode = mode;
+            vg.color = color;
+            vg.center = center;
+            vg.intensity = intensity;
+            vg.smoothness = smoothness;
+            vg.roundness = roundness;
+            vg.rounded = rounded;
+            vg.mask = mask;
+            vg.opacity = opacity;
         }
     }
 

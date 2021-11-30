@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Visual Environment Volume Component.
     /// This component setups the sky used for rendering as well as the way ambient probe should be computed.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Visual Environment", typeof(HDRenderPipeline))]
+    [Serializable, VolumeComponentMenuForRenderPipeline("Visual Environment", typeof(HDRenderPipelineAsset))]
     [HDRPHelpURLAttribute("Override-Visual-Environment")]
     public sealed class VisualEnvironment : VolumeComponent
     {
