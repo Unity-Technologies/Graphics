@@ -22,10 +22,10 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             {
                 new ()
                 {
-                    fieldName = "Output",
-                    primitive = Registry.Types.GraphType.Primitive.Int,
+                    fieldName = "BaseColor",
+                    primitive = Registry.Types.GraphType.Primitive.Float,
                     height = 1,
-                    length = 1,
+                    length = 3,
                     precision = Registry.Types.GraphType.Precision.Fixed,
                     isFlat = true
                 }
@@ -54,14 +54,6 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
         HeadlessPreviewManager m_PreviewManager = new ();
 
         Registry.Registry m_RegistryInstance = new ();
-
-        PreviewSceneResources previewScene = new PreviewSceneResources();
-
-        // we apply a transform to the test setup, so that the transform matrices are non-trivial
-        Vector3 testPosition = new Vector3(0.24699998f, 0.51900005f, 0.328999996f);
-        Quaternion testRotation = new Quaternion(-0.164710045f, -0.0826543793f, -0.220811233f, 0.957748055f);
-
-        Vector2 m_MasterPreviewSize = new Vector2(128, 128);
 
         [OneTimeSetUp]
         public void Setup()
@@ -96,7 +88,8 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             var renderTarget = DrawToTex(testMaterial.shader);
             try
             {
-                return renderTarget.GetPixel(0, 0) == expectedColor;
+                var outputColor = renderTarget.GetPixel(0, 0);
+                return outputColor == expectedColor;
             }
             catch (Exception e)
             {
@@ -108,10 +101,19 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
         bool DoesMaterialMatchImage(Material testMaterial, Texture expectedImage)
         {
-            // TODO: Verify with Esme the intention of her material-image testing framework
-            // Could just use Graphics.Blit() to compare
-            // Note: use pass=-1 at start
-            return false;
+            var renderTarget = DrawToTex(testMaterial.shader);
+            try
+            {
+                var outputColor = renderTarget.GetPixel(0, 0);
+                var texture = expectedImage as Texture2D;
+                var expectedColor = texture.GetPixel(0, 0);
+                return outputColor == expectedColor;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         [Test]
@@ -142,18 +144,16 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             Assert.IsNotNull(contextNode);
 
             // Connect output of the Add node to the context node - throws exception
-            graphDelta.TryConnect("Add1", "Out", "TestContextDescriptor", "Output", m_RegistryInstance);
-
-            m_PreviewManager.Update();
+            graphDelta.TryConnect("Add1", "Out", "TestContextDescriptor", "BaseColor", m_RegistryInstance);
 
             // Request master preview material once the graph has been setup correctly
-            var masterPreviewMaterial = m_PreviewManager.RequestNodePreviewMaterial("TestContextDescriptor");
-
+            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var shaderMessages);
+            Assert.IsNotNull(masterPreviewMaterial);
             Assert.IsTrue(DoesMaterialMatchColor(masterPreviewMaterial, Color.red));
         }
 
-        // TODO: Same test as above but testing the output texture/image instead of the material
 
+        [Test]
         public void MasterPreview_AddTwoColors()
         {
             // Instantiate a graph
@@ -184,26 +184,52 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             Assert.IsNotNull(contextNode);
 
             // Connect output of the Add node to the context node - throws exception
-            graphDelta.TryConnect("Add1", "Out", "TestContextDescriptor", "Output", m_RegistryInstance);
-
-            m_PreviewManager.Update();
+            graphDelta.TryConnect("Add1", "Out", "TestContextDescriptor", "BaseColor", m_RegistryInstance);
 
             // Request master preview material once the graph has been setup correctly
-            m_PreviewManager.RequestMasterPreviewMaterial(m_MasterPreviewSize, out var masterPreviewMaterial, out var shaderMessages);
-            Assert.IsTrue(DoesMaterialMatchColor(masterPreviewMaterial, Color.yellow));
+            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var shaderMessages);
+            Assert.IsTrue(DoesMaterialMatchColor(masterPreviewMaterial, new Color(1, 1, 0, 1)));
         }
 
+        [Test]
         public void MasterPreview_SubtractTwoColors()
         {
-            // Graph with two Color nodes subtracting Red from Red
-            var assetPath = "Assets/CommonAssets/Graphs/Preview/SubtractTwoColors";
-            var graphHandler = GraphUtil.OpenGraph(assetPath) as IGraphHandler;
+            // Instantiate a graph
+            var graphHandler = GraphUtil.CreateGraph();
+
             m_PreviewManager.SetActiveGraph(graphHandler);
             m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
 
-            //var masterPreviewMaterial = m_PreviewManager.RequestMasterPreviewMaterial();
-            //Assert.IsTrue(DoesMaterialMatchColor(masterPreviewMaterial, Color.black));
+            // Create an add node on the graph
+            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            var nodeWriter = graphHandler.GetNodeWriter("Add1");
+
+            // By default every Add node has vector4 inputs
+
+            // Set the X component of the A input to 1
+            nodeWriter.SetPortField("In1", "c0", 1f);
+
+            // Set the X component of the B input to -1
+            nodeWriter.SetPortField("In2", "c0", -1f);
+
+            // Seems weird we need to cast down for this...
+            var graphDelta = graphHandler as GraphDelta.GraphDelta;
+            // Throws an exception right now
+            graphDelta.SetupContextNodes(new List<Registry.Defs.IContextDescriptor>() { new TestDescriptor() }, m_RegistryInstance);
+
+            // Verify context node is not null
+            var contextNode = graphHandler.GetNodeReader("TestContextDescriptor");
+            Assert.IsNotNull(contextNode);
+
+            // Connect output of the Add node to the context node - throws exception
+            graphDelta.TryConnect("Add1", "Out", "TestContextDescriptor", "BaseColor", m_RegistryInstance);
+
+            // Request master preview material once the graph has been setup correctly
+            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var shaderMessages);
+            Assert.IsTrue(DoesMaterialMatchColor(masterPreviewMaterial, Color.black));
         }
+
+        // TODO: Same test as above but testing the output texture/image instead of the material
 
         public void MasterPreview_MasterPreviewShaderTest()
         {
@@ -223,7 +249,6 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             //      6) Testing if the material render output (graph & node) matches the desired state after making some property changes
             //      7) Testing if a given property exists in the material property block?
             //      8) Testing if a property is at a given value in the MPB after setting the property
-            //
         }
     }
 }

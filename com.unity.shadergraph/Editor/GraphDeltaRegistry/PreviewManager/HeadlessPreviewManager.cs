@@ -48,8 +48,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             public Material material;
             public string shaderString;
             public Texture texture;
-            public bool isRenderOutOfDate;
             public bool isShaderOutOfDate;
+            public bool isRenderOutOfDate;
 
             // Used to control whether the preview should render in 2D/3D/Inherit from upstream nodes
             public PreviewRenderMode currentRenderMode;
@@ -125,9 +125,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         MasterPreviewUserData m_MasterPreviewUserData;
 
-        Vector2 m_MasterPreviewSize = new(400, 400);
+        int m_MasterPreviewWidth => m_MasterPreviewData.renderTexture.width;
+        int m_MasterPreviewHeight => m_MasterPreviewData.renderTexture.height;
 
-        const string k_MasterPreviewName = "MasterPreview";
+        // TODO: Need a way to get the name of the main output context node
+        const string k_MasterPreviewName = "TestContextDescriptor";
 
         bool masterPreviewWasResized = false;
 
@@ -216,7 +218,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 else
                 {
                     var previewData = m_CachedPreviewData[nodeName];
-                    previewData.isRenderOutOfDate = true;
                     previewData.isShaderOutOfDate = true;
 
                     foreach (var downStreamNode in m_GraphHandle.GetDownstreamNodes(sourceNode))
@@ -224,13 +225,13 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                         if (m_CachedPreviewData.TryGetValue(downStreamNode.GetName(), out var downStreamNodeData))
                         {
                             downStreamNodeData.isShaderOutOfDate = true;
-                            downStreamNodeData.isRenderOutOfDate = true;
                         }
 
                         impactedNodes.Add(downStreamNode.GetName());
                     }
                 }
             }
+
             return impactedNodes;
         }
 
@@ -246,16 +247,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 var previewData = m_CachedPreviewData[nodeName];
                 previewData.currentRenderMode = newPreviewMode;
 
-                // Still rendering the preview output
-                if (previewData.isRenderOutOfDate)
-                {
-                    nodeRenderOutput = Texture2D.blackTexture;
-                    errorMessages = null;
-                    return PreviewOutputState.Updating;
-                }
-
                 // Still compiling the preview shader
-                else if (previewData.isShaderOutOfDate)
+                if (previewData.isShaderOutOfDate)
                 {
                     nodeRenderOutput = m_CompilingTexture;
                     errorMessages = null;
@@ -298,28 +291,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 var previewData = m_CachedPreviewData[nodeName];
 
-                // Still rendering the preview output
-                if (previewData.isRenderOutOfDate)
-                {
-                    return null;
-                }
-
                 // Still compiling the preview shader
-                else if (previewData.isShaderOutOfDate)
+                if (previewData.isShaderOutOfDate)
                 {
-                    return null;
-                }
+                    UpdateShaderData(previewData);
 
-                // Ran into error compiling the preview shader
-                else if (previewData.hasShaderError)
-                {
-                    return null;
-                }
+                    string shader = previewData.shaderString;
 
-                // Otherwise, the preview output has been rendered, return material wrapper around it
-                else
-                {
-                    return previewData.material;
+                    // Ran into error compiling the preview shader
+                    return previewData.hasShaderError ? null : previewData.material;
                 }
             }
 
@@ -336,14 +316,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 var previewData = m_CachedPreviewData[nodeName];
 
-                // Still rendering the preview output
-                if (previewData.isRenderOutOfDate)
-                {
-                    return null;
-                }
-
                 // Still compiling the preview shader
-                else if (previewData.isShaderOutOfDate)
+                if (previewData.isShaderOutOfDate)
                 {
                     return null;
                 }
@@ -380,41 +354,34 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// Used to get preview material associated with the final output of the active graph.
         /// </summary>
         /// <returns> Enum value that defines whether the node's render output is ready, currently being updated, or if a shader error was encountered </returns>
-        public PreviewOutputState RequestMasterPreviewMaterial(Vector2 masterPreviewSize, out Material masterPreviewMaterial, out ShaderMessage[] errorMessages)
+        public PreviewOutputState RequestMasterPreviewMaterial(int width, int height, out Material masterPreviewMaterial, out ShaderMessage[] errorMessages)
         {
-            if (masterPreviewSize != m_MasterPreviewSize)
+            errorMessages = null;
+            masterPreviewMaterial = null;
+
+            if (width != m_MasterPreviewWidth || height != m_MasterPreviewHeight)
             {
                 // Master Preview window was resized, need to re-render at new size
-                m_MasterPreviewSize = masterPreviewSize;
-                m_MasterPreviewData.renderTexture.width = Mathf.RoundToInt(masterPreviewSize.x);
-                m_MasterPreviewData.renderTexture.height = Mathf.RoundToInt(masterPreviewSize.y);
-                m_MasterPreviewData.isRenderOutOfDate = true;
+                m_MasterPreviewData.renderTexture.width = height;
+                m_MasterPreviewData.renderTexture.height = width;
                 masterPreviewMaterial = null;
-                errorMessages = null;
                 masterPreviewWasResized = true;
-                return PreviewOutputState.Updating;
-            }
-            else if (m_MasterPreviewData.isRenderOutOfDate)
-            {
-                masterPreviewMaterial = null;
-                errorMessages = null;
                 return PreviewOutputState.Updating;
             }
             else if (m_MasterPreviewData.isShaderOutOfDate)
             {
-                masterPreviewMaterial = null;
-                errorMessages = null;
-                return PreviewOutputState.Updating;
-            }
-            else if (m_MasterPreviewData.hasShaderError)
-            {
-                masterPreviewMaterial = null;
-                errorMessages = m_ShaderMessagesMap[k_MasterPreviewName];
-                return PreviewOutputState.ShaderError;
+                UpdateShaderData(m_MasterPreviewData);
+                m_MasterPreviewData.isShaderOutOfDate = false;
+                if (m_MasterPreviewData.hasShaderError)
+                {
+                    masterPreviewMaterial = null;
+                    errorMessages = m_ShaderMessagesMap[k_MasterPreviewName];
+                    return PreviewOutputState.ShaderError;
+                }
+                masterPreviewMaterial = m_MasterPreviewData.material;
+                return PreviewOutputState.Complete;
             }
 
-            masterPreviewMaterial = null;
-            errorMessages = null;
             return PreviewOutputState.Updating;
         }
 
@@ -436,7 +403,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             }
             else
             {
-                // TODO: Interpreter will also return shader code in the future, can store from there
                 masterPreviewShaderCode = m_MasterPreviewData.shaderString;
                 return PreviewOutputState.Complete;
             }
@@ -444,15 +410,12 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         void AddMasterPreviewData()
         {
-            int sizeX = Mathf.RoundToInt(m_MasterPreviewSize.x);
-            int sizeY = Mathf.RoundToInt(m_MasterPreviewSize.y);
             m_MasterPreviewData = new PreviewData()
             {
                 nodeName = k_MasterPreviewName,
                 renderTexture =
-                    new RenderTexture(sizeX, sizeY, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave },
+                    new RenderTexture(400, 400, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave },
                 isShaderOutOfDate = true,
-                isRenderOutOfDate = true
             };
 
             m_CachedPreviewData.Add(k_MasterPreviewName, m_MasterPreviewData);
@@ -475,8 +438,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         Shader GetMasterPreviewShaderObject()
         {
-            // TODO: Change it so that we are using the context node as the source of output and calling GetShaderForNode() on it
-            string shaderOutput = Interpreter.GetShaderForGraph(m_GraphHandle, m_RegistryInstance);
+            // TODO: Need a way to query the main context node without having a hard name dependence, from GraphDelta
+            var contextNodeReader = m_GraphHandle.GetNodeReader(k_MasterPreviewName);
+            string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance);
             return MakeShader(shaderOutput);
         }
 
@@ -488,7 +452,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 renderTexture =
                     new RenderTexture(200, 200, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave },
                 isShaderOutOfDate = true,
-                isRenderOutOfDate = true
             };
 
             /* TODO: Re-enable when properties are promoted via the shader code generator
@@ -505,151 +468,120 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             return renderData;
         }
 
-        public void Update()
-        {
-            UpdateShaders();
-
-            UpdateRenders();
-        }
-
         private static readonly ProfilerMarker UpdateShadersMarker = new ProfilerMarker("UpdateShaders");
-        void UpdateShaders()
+
+        void UpdateShaderData(PreviewData previewToUpdate)
         {
             using (UpdateShadersMarker.Auto())
             {
-                foreach (var previewData in m_CachedPreviewData.Values)
+                // If master preview
+                if (m_MasterPreviewData == previewToUpdate)
                 {
-                    if(!previewData.isShaderOutOfDate)
-                        continue;
-
-                    // If master preview
-                    if (m_MasterPreviewData == previewData)
-                    {
-                        previewData.shader = GetMasterPreviewShaderObject();
-                    }
-                    else // if node preview
-                    {
-                        var nodeReader = m_GraphHandle.GetNodeReader(previewData.nodeName);
-                        previewData.shader = GetNodeShaderObject(nodeReader);
-                    }
-
-                    Assert.IsNotNull(previewData.shader);
-
-                    previewData.material = new Material(previewData.shader) { hideFlags = HideFlags.HideAndDontSave };
-
-                    if (CheckForErrors(previewData))
-                        previewData.hasShaderError = true;
-
-                    previewData.isShaderOutOfDate = false;
+                    previewToUpdate.shader = GetMasterPreviewShaderObject();
                 }
+                else // if node preview
+                {
+                    var nodeReader = m_GraphHandle.GetNodeReader(previewToUpdate.nodeName);
+                    previewToUpdate.shader = GetNodeShaderObject(nodeReader);
+                }
+
+                Assert.IsNotNull(previewToUpdate.shader);
+
+                previewToUpdate.material = new Material(previewToUpdate.shader) { hideFlags = HideFlags.HideAndDontSave };
+
+                if (CheckForErrors(previewToUpdate))
+                    previewToUpdate.hasShaderError = true;
+
+                previewToUpdate.isShaderOutOfDate = false;
             }
         }
 
-        void UpdateRenders()
+        void UpdateRenderData(PreviewData previewToUpdate)
         {
             int drawPreviewCount = 0;
-            bool renderMasterPreview = false;
 
-            using (var renderList2D = PooledList<PreviewData>.Get())
-            using (var renderList3D = PooledList<PreviewData>.Get())
+            Assert.IsNotNull(previewToUpdate);
+            if (previewToUpdate.isRenderOutOfDate)
             {
-                foreach (var previewData in m_CachedPreviewData.Values)
-                {
-                    Assert.IsNotNull(previewData);
-                    if (previewData.isRenderOutOfDate)
-                    {
-                        if (!previewData.isPreviewEnabled)
-                            continue;
-
-                        // Skip rendering while a preview shader is being compiled (only really a problem when we're doing async)
-                        if (previewData.isShaderOutOfDate)
-                            continue;
-
-                        // we want to render this thing, now categorize what kind of render it is
-                        if (previewData == m_MasterPreviewData)
-                            renderMasterPreview = true;
-                        else if (previewData.currentRenderMode == PreviewRenderMode.Preview2D)
-                            renderList2D.Add(previewData);
-                        else
-                            renderList3D.Add(previewData);
-                        drawPreviewCount++;
-                    }
-                }
-
-                // if we actually don't want to render anything at all, early out here
-                if (drawPreviewCount <= 0)
+                if (!previewToUpdate.isPreviewEnabled)
                     return;
 
-                // TODO: Revisit this when we have global properties, this should be set from the GTF Preview Wrapper
-                var time = Time.realtimeSinceStartup;
-                var timeParameters = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
-                m_PreviewMaterialPropertyBlock.SetVector("_TimeParameters", timeParameters);
+                // Skip rendering while a preview shader is being compiled (only really a problem when we're doing async)
+                if (previewToUpdate.isShaderOutOfDate)
+                    return;
 
-                EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
-
-                m_SceneResources.light0.enabled = true;
-                m_SceneResources.light0.intensity = 1.0f;
-                m_SceneResources.light0.transform.rotation = Quaternion.Euler(50f, 50f, 0);
-                m_SceneResources.light1.enabled = true;
-                m_SceneResources.light1.intensity = 1.0f;
-                m_SceneResources.camera.clearFlags = CameraClearFlags.Color;
-
-                // Render 2D previews
-                m_SceneResources.camera.transform.position = -Vector3.forward * 2;
-                m_SceneResources.camera.transform.rotation = Quaternion.identity;
-                m_SceneResources.camera.orthographicSize = 0.5f;
-                m_SceneResources.camera.orthographic = true;
-
-                foreach (var renderData in renderList2D)
-                    RenderPreview(renderData, m_SceneResources.quad, Matrix4x4.identity);
-
-                // Render 3D previews
-                m_SceneResources.camera.transform.position = -Vector3.forward * 5;
-                m_SceneResources.camera.transform.rotation = Quaternion.identity;
-                m_SceneResources.camera.orthographic = false;
-
-                foreach (var renderData in renderList3D)
-                    RenderPreview(renderData, m_SceneResources.sphere, Matrix4x4.identity);
-
-                // TODO: Revisit this when GetTargetSettings() is implemented
-                //var targetSettings = m_GraphHandle.GetTargetSettings();
-
-                if (renderMasterPreview)
-                {
-                    if (masterPreviewWasResized)
-                    {
-                        if (m_MasterPreviewData.renderTexture != null)
-                            Object.DestroyImmediate(m_MasterPreviewData.renderTexture, true);
-                        m_MasterPreviewData.renderTexture = new RenderTexture((int)m_MasterPreviewSize.x, (int)m_MasterPreviewSize.y, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
-                        m_MasterPreviewData.renderTexture.Create();
-                        m_MasterPreviewData.texture = m_MasterPreviewData.renderTexture;
-                        masterPreviewWasResized = false;
-                    }
-
-                    // TODO: Better understand how we will populate this information from the GTF view model data
-                    var mesh = m_MasterPreviewUserData.serializedMesh.mesh;
-                    var preventRotation = m_MasterPreviewUserData.preventRotation;
-                    if (!mesh)
-                    {
-                        // TODO: Revisit when GetTargetSettings() is implemented
-                        //var useSpritePreview = targetSettings.LastOrDefault(t => t.IsActive())?.prefersSpritePreview ?? false;
-                        var useSpritePreview = false;
-                        mesh = useSpritePreview ? m_SceneResources.quad : m_SceneResources.sphere;
-                        preventRotation = useSpritePreview;
-                    }
-
-                    var previewTransform = preventRotation ? Matrix4x4.identity : Matrix4x4.Rotate(m_MasterPreviewUserData.rotation);
-                    var scale = m_MasterPreviewUserData.scale;
-                    previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
-                    previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
-
-                    RenderPreview(m_MasterPreviewData, mesh, previewTransform);
-                }
+                drawPreviewCount++;
             }
+
+            // TODO: Revisit this when we have global properties, this should be set from the GTF Preview Wrapper
+            var time = Time.realtimeSinceStartup;
+            var timeParameters = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
+            m_PreviewMaterialPropertyBlock.SetVector("_TimeParameters", timeParameters);
+
+            EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
+
+            m_SceneResources.light0.enabled = true;
+            m_SceneResources.light0.intensity = 1.0f;
+            m_SceneResources.light0.transform.rotation = Quaternion.Euler(50f, 50f, 0);
+            m_SceneResources.light1.enabled = true;
+            m_SceneResources.light1.intensity = 1.0f;
+            m_SceneResources.camera.clearFlags = CameraClearFlags.Color;
+
+            // Render 2D previews
+            m_SceneResources.camera.transform.position = -Vector3.forward * 2;
+            m_SceneResources.camera.transform.rotation = Quaternion.identity;
+            m_SceneResources.camera.orthographicSize = 0.5f;
+            m_SceneResources.camera.orthographic = true;
+
+            // Master preview
+            if (previewToUpdate == m_MasterPreviewData)
+            {
+                if (masterPreviewWasResized)
+                {
+                    if (m_MasterPreviewData.renderTexture != null)
+                        Object.DestroyImmediate(m_MasterPreviewData.renderTexture, true);
+                    m_MasterPreviewData.renderTexture = new RenderTexture((int)m_MasterPreviewWidth, (int)m_MasterPreviewHeight, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
+                    m_MasterPreviewData.renderTexture.Create();
+                    m_MasterPreviewData.texture = m_MasterPreviewData.renderTexture;
+                    masterPreviewWasResized = false;
+                }
+
+                // TODO: Better understand how we will populate this information from the GTF view model data
+                var mesh = m_MasterPreviewUserData.serializedMesh.mesh;
+                var preventRotation = m_MasterPreviewUserData.preventRotation;
+                if (!mesh)
+                {
+                    // TODO: Revisit when GetTargetSettings() is implemented
+                    //var useSpritePreview = targetSettings.LastOrDefault(t => t.IsActive())?.prefersSpritePreview ?? false;
+                    var useSpritePreview = false;
+                    mesh = useSpritePreview ? m_SceneResources.quad : m_SceneResources.sphere;
+                    preventRotation = useSpritePreview;
+                }
+
+                var previewTransform = preventRotation ? Matrix4x4.identity : Matrix4x4.Rotate(m_MasterPreviewUserData.rotation);
+                var scale = m_MasterPreviewUserData.scale;
+                previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
+                previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
+
+                RenderPreview(m_MasterPreviewData, mesh, previewTransform);
+            }
+            else // Node previews
+            {
+                if (previewToUpdate.currentRenderMode == PreviewRenderMode.Preview2D)
+                    RenderPreview(previewToUpdate, m_SceneResources.quad, Matrix4x4.identity);
+                else
+                    RenderPreview(previewToUpdate, m_SceneResources.sphere, Matrix4x4.identity);
+            }
+
+            // TODO: Revisit this when GetTargetSettings() is implemented
+            //var targetSettings = m_GraphHandle.GetTargetSettings();
+
+
         }
 
         private static readonly ProfilerMarker RenderPreviewMarker = new ProfilerMarker("RenderPreview");
-        void RenderPreview(PreviewData renderData, Mesh mesh, Matrix4x4 transform/*, PooledList<PreviewProperty> perMaterialPreviewProperties*/)
+
+        void RenderPreview(PreviewData renderData, Mesh mesh, Matrix4x4 transform /*, PooledList<PreviewProperty> perMaterialPreviewProperties*/)
         {
             using (RenderPreviewMarker.Auto())
             {
@@ -738,106 +670,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         void SetValueOnMaterialPropertyBlock(MaterialPropertyBlock materialPropertyBlock, string propertyName, object propertyValue, IPortReader portReader = null)
         {
-            var type = propertyValue.GetType();
 
-            if ((type == typeof(Texture2D) /*|| propertyType == PropertyType.Texture2DArray*/ || type == typeof(Texture3D)))
-            {
-                if (propertyValue == null)
-                {
-                    // there's no way to set the texture back to NULL
-                    // and no way to delete the property either
-                    // so instead we set the propertyValue to what we know the default will be
-                    // (all textures in ShaderGraph default to white)
-
-                    var defaultTextureType = Mock_GetDefaultTextureType(portReader);
-                    switch (defaultTextureType)
-                    {
-                        case DefaultTextureType.White:
-                            materialPropertyBlock.SetTexture(propertyName, Texture2D.whiteTexture);
-                            break;
-                        case DefaultTextureType.Black:
-                            materialPropertyBlock.SetTexture(propertyName, Texture2D.blackTexture);
-                            break;
-                        case DefaultTextureType.NormalMap:
-                            materialPropertyBlock.SetTexture(propertyName, Texture2D.normalTexture);
-                            break;
-                    }
-                }
-                else
-                {
-                    var textureValue = propertyValue as Texture;
-                    materialPropertyBlock.SetTexture(propertyName, textureValue);
-                }
-            }
-            else if (type == typeof(Cubemap))
-            {
-                if (propertyValue == null)
-                {
-                    // there's no Cubemap.whiteTexture, but this seems to work
-                    materialPropertyBlock.SetTexture(propertyName, Texture2D.whiteTexture);
-                }
-                else
-                {
-                    var cubemapValue = propertyValue as Cubemap;
-                    materialPropertyBlock.SetTexture(propertyName, cubemapValue);
-                }
-            }
-            else if (type == typeof(Color))
-            {
-                var colorValue = propertyValue is Color colorVal ? colorVal : default;
-                materialPropertyBlock.SetColor(propertyName, colorValue);
-            }
-            else if (type == typeof(Vector2) || type == typeof(Vector3) || type == typeof(Vector4))
-            {
-                var vector4Value = propertyValue is Vector4 vector4Val ? vector4Val : default;
-                materialPropertyBlock.SetVector(propertyName, vector4Value);
-            }
-            else if (type == typeof(float))
-            {
-                var floatValue = propertyValue is float floatVal ? floatVal : default;
-                materialPropertyBlock.SetFloat(propertyName, floatValue);
-            }
-            else if (type == typeof(Boolean))
-            {
-                var boolValue = propertyValue is Boolean boolVal ? boolVal : default;
-                materialPropertyBlock.SetFloat(propertyName, boolValue ? 1 : 0);
-            }
-            // TODO: How to handle Matrix2/Matrix3 types?
-            // Will probably be registry defined, how will we compare against them?
-            else if (type == typeof(Matrix4x4)/*propertyType == PropertyType.Matrix2 || propertyType == PropertyType.Matrix3 || */)
-            {
-                var matValue = propertyValue is Matrix4x4 matrixValue ? matrixValue : default;
-                materialPropertyBlock.SetMatrix(propertyName, matValue);
-            }
-            else if (type == typeof(Gradient))
-            {
-                var gradientValue = propertyValue as Gradient;
-                materialPropertyBlock.SetFloat(string.Format("{0}_Type", propertyName), (int)gradientValue.mode);
-                materialPropertyBlock.SetFloat(string.Format("{0}_ColorsLength", propertyName), gradientValue.colorKeys.Length);
-                materialPropertyBlock.SetFloat(string.Format("{0}_AlphasLength", propertyName), gradientValue.alphaKeys.Length);
-                for (int i = 0; i < 8; i++)
-                    materialPropertyBlock.SetVector(string.Format("{0}_ColorKey{1}", propertyName, i), i < gradientValue.colorKeys.Length ? GradientUtil.ColorKeyToVector(gradientValue.colorKeys[i]) : Vector4.zero);
-                for (int i = 0; i < 8; i++)
-                    materialPropertyBlock.SetVector(string.Format("{0}_AlphaKey{1}", propertyName, i), i < gradientValue.alphaKeys.Length ? GradientUtil.AlphaKeyToVector(gradientValue.alphaKeys[i]) : Vector2.zero);
-            }
-            // TODO: Virtual textures handling
-            /*else if (type == typeof(VirtualTexture))
-            {
-                // virtual texture assignments are not supported via the material property block, we must assign them to the directly to the material
-            }*/
-        }
-    }
-
-    static class GradientUtil
-    {
-        public static Vector4 ColorKeyToVector(GradientColorKey key)
-        {
-            return new Vector4(key.color.r, key.color.g, key.color.b, key.time);
-        }
-
-        public static Vector2 AlphaKeyToVector(GradientAlphaKey key)
-        {
-            return new Vector2(key.alpha, key.time);
         }
     }
 }
