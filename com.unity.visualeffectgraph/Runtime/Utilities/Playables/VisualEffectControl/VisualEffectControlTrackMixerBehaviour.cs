@@ -161,28 +161,6 @@ namespace UnityEngine.VFX
         uint m_BackupStartSeed;
         Chunk[] m_Chunks;
 
-        static readonly Func<float> s_fnGetMaximumScrubbingTime = GetMaximumScrubbingTimeFunction();
-        private static Func<float> GetMaximumScrubbingTimeFunction()
-        {
-            var property = typeof(VFXManager).GetProperty("maxScrubTime", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-            if (property != null)
-            {
-                return () =>
-                {
-                    return (float)property.GetValue(null);
-                };
-            }
-            return null;
-        }
-
-        public float GetMaximumScrubbingTime()
-        {
-            if (s_fnGetMaximumScrubbingTime != null)
-                return s_fnGetMaximumScrubbingTime();
-
-            return 30.0f;
-        }
-
         private void OnEnterChunk(int currentChunk)
         {
             var chunk = m_Chunks[currentChunk];
@@ -340,7 +318,7 @@ namespace UnityEngine.VFX
                         var eventCount = eventList.Count();
                         var nextEvent = 0;
 
-                        var maxScrubTime = GetMaximumScrubbingTime();
+                        var maxScrubTime = VFXManager.maxScrubTime;
                         var fixedStep = VFXManager.maxDeltaTime;
                         if (expectedCurrentTime - actualCurrentTime > maxScrubTime)
                         {
