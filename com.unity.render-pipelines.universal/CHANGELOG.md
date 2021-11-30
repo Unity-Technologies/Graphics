@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for `RTHandle`.
 - Renderer Features can now use the HelpURLAttribute to specify a documentation URL to be used in the inspector.
 - Added inspector documentation URLs to the SSAO, Decal, and Render Objects renderer features.
+- Added batch mode support for the converters.
 
 ### Changed
 - Converted internal render targets to use `RTHandle` targets instead of `RenderTargetHandle` and `RenderTargetIdentifier`.
@@ -31,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix shadow rendering correctly to work with shader stripping in WebGl. [case 1381881](https://issuetracker.unity3d.com/issues/webgl-urp-mesh-is-not-rendered-in-the-scene-on-webgl-build)
 - VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
 - Fixed inspector documentation URLs for the URP asset and Universal Renderer asset.
+- Fixed material converter not being able to be called in batch mode. [case 1375962]
 
 ## [13.1.1] - 2021-10-04
 
