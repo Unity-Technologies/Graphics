@@ -23,6 +23,10 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _SampleCubemap_04a2e1073f8841e4b38d09d3dbd1efb8_Cube_1:
+        m_Texture: {fileID: 8900000, guid: c1fa3eed37f945f4186dfe729697eeb0, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleCubemap_0789dc0dcd6b4b799baf14f6f4be5c79_Cube_1:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
