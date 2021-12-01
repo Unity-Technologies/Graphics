@@ -130,6 +130,7 @@ namespace UnityEditor.VFX
         // IVFXSubRenderer interface
         public virtual bool hasShadowCasting { get { return castShadows; } }
 
+        public virtual bool isRayTraced { get { return isRaytraced; } }
         protected virtual bool needsExposureWeight { get { return true; } }
 
         private bool hasExposure { get { return needsExposureWeight && subOutput.supportsExposure; } }

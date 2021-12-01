@@ -26,6 +26,8 @@ namespace UnityEditor.VFX
 
         public virtual bool hasMotionVector { get { return false; } } //TODO
 
+        public virtual bool isRayTraced { get { return false; } } //TODO : Handle static mesh for raytracing
+
         int IVFXSubRenderer.vfxSystemSortPriority
         {
             get

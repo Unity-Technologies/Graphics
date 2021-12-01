@@ -914,7 +914,7 @@ namespace UnityEditor.VFX
 
                 if (stripDataIndex != -1 && context.ownedType == VFXDataType.ParticleStrip)
                     bufferMappings.Add(new VFXMapping("stripDataBuffer", stripDataIndex));
-                if (aabbBufferIndex != -1 && context.contextType == VFXContextType.Update)
+                if (aabbBufferIndex != -1 && (context.contextType == VFXContextType.Update || (context is VFXAbstractParticleOutput && (context as VFXAbstractParticleOutput).IsRaytraced())))
                     bufferMappings.Add(new VFXMapping("aabbBuffer", aabbBufferIndex));
 
                 bool hasAttachedStrip = IsAttributeStored(VFXAttribute.StripAlive);
