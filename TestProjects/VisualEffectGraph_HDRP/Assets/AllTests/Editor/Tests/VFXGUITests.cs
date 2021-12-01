@@ -123,6 +123,98 @@ namespace UnityEditor.VFX.Test
         //Avoid the creation of too much blocks in context, it can times out in ApplyChanges
         //If resolved kMaximumBlockPerContext can be replaced by uint.MaxValue
         static readonly uint kMaximumBlockPerContext = 256u;
+
+        public static bool[] kApplyChange = { true, false };
+
+        [UnityTest]
+        public IEnumerator ExperimentCreateAllBlocksTiming([ValueSource(nameof(kApplyChange))] bool applyChanges, [ValueSource(nameof(kApplyChange))] bool blocks)
+        {
+            var referenceBlock = VFXLibrary.GetBlocks().Where(t => t.model is Block.KillSphere).First();
+            var referenceOperator = VFXLibrary.GetOperators().Where(t => t.model is Operator.DistanceToSphere).First();
+            var referenceContext = VFXLibrary.GetContexts().Where(t => t.model is VFXBasicUpdate).First();
+
+            var param = new CreateAllBlockParam()
+            {
+                name = "Experience",
+                destContext = referenceContext
+            };
+
+            var results = new List<(int, double)>();
+
+            int modelCount = 1;
+            while (modelCount < 512)
+            {
+                var watch = new System.Diagnostics.Stopwatch();
+                watch.Start();
+
+                if (modelCount >= 256)
+                    modelCount += 128;
+                else
+                    modelCount *= 2;
+
+                var controller = StartEditTestAsset();
+
+                if (blocks)
+                {
+                    param.blocks = Enumerable.Repeat(referenceBlock, modelCount);
+                    CreateAllBlocksExperiment(controller, param.destContext, param.blocks, applyChanges);
+                }
+                else
+                {
+                    var operators = Enumerable.Repeat(referenceOperator, modelCount);
+                    CreateAllOperatorExperiment(controller, operators, applyChanges);
+                }
+
+                watch.Stop();
+                var stopwatchElapsed = watch.Elapsed;
+                results.Add((modelCount, stopwatchElapsed.TotalMilliseconds));
+
+                //Clean up for next experiment
+                System.GC.Collect();
+                var window = EditorWindow.GetWindow<VFXViewWindow>();
+                window.Close();
+                VFXTestCommon.DeleteAllTemporaryGraph();
+
+                for (int i = 0; i < 8; ++i)
+                    yield return null;
+            }
+
+            var report = new System.Text.StringBuilder();
+            report.AppendFormat("ApplyChange : {0} - {1}", applyChanges, blocks ? "Blocks" : "Operators");
+            report.AppendLine();
+            foreach (var result in results)
+            {
+                report.AppendFormat("{0};{1}", result.Item1, result.Item2);
+                report.AppendLine();
+            }
+            Debug.Log(report);
+        }
+        void CreateAllOperatorExperiment(VFXViewController viewController, IEnumerable<VFXModelDescriptor<VFXOperator>> operators, bool applyChanges)
+        {
+            foreach (var op in operators)
+                viewController.AddVFXOperator(new Vector2(300, 2000), op);
+
+            if (applyChanges)
+                viewController.ApplyChanges();
+        }
+
+        void CreateAllBlocksExperiment(VFXViewController viewController, VFXModelDescriptor<VFXContext> context, IEnumerable<VFXModelDescriptor<VFXBlock>> blocks, bool applyChanges)
+        {
+            var newContext = viewController.AddVFXContext(new Vector2(300, 2000), context);
+            //if (applyChanges) //Needed for retrieving the following contextController
+            viewController.ApplyChanges();
+
+            var contextController = viewController.nodes.Where(t => t is VFXContextController && (t as VFXContextController).model == newContext).First() as VFXContextController;
+            foreach (var block in blocks)
+            {
+                var newBlock = block.CreateInstance();
+                contextController.AddBlock(0, newBlock);
+            }
+
+            if (applyChanges)
+                viewController.ApplyChanges();
+        }
+
         static IEnumerable<CreateAllBlockParam> GenerateCreateBlockParams(VFXContextType type)
         {
             VFXModelDescriptor<VFXContext> destContext;
