@@ -9,10 +9,7 @@ namespace UnityEngine.Rendering.Universal
         protected override ScriptableRenderer Create()
         {
 #if UNITY_EDITOR
-            if (!Application.isPlaying)
-            {
-                ReloadAllNullProperties();
-            }
+            ReloadAllNullProperties();
 #endif
             switch (request.mode)
             {
