@@ -94,26 +94,18 @@ namespace UnityEditor.ShaderGraph
 {
     if (IsPerspectiveProjection())
     {
-        //LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams)
-        //float theEye = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);//ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x).w;
-        //float theEye = LinearEyeDepth(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);
-
-        //float theEye = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);
-        //float theEye = ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP).z*dot(GetViewForwardDir(), GetWorldSpaceNormalizeViewDir(PositionWS));
-        float theEye = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams)/dot(GetViewForwardDir(), GetWorldSpaceNormalizeViewDir(PositionWS));
-
 #if defined(UNITY_REVERSED_Z)
-        Out = theEye - length(PositionWS);
+        Out = length(PositionWS) - LinearEyeDepth(ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V);
 #else
-        Out = length(PositionWS) - theEye;
+        Out = LinearEyeDepth(ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V) - length(PositionWS);
 #endif
     }
     else
     {
 #if defined(UNITY_REVERSED_Z)
-        Out = LinearEyeDepth(ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V) - length(PositionWS);
+        Out = length(PositionWS) - LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);
 #else
-        Out = length(PositionWS) - LinearEyeDepth(ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V);
+        Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams) - length(PositionWS);
 #endif
     }
 }
