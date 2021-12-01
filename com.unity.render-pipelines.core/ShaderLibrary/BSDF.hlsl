@@ -88,7 +88,7 @@ real3 F_Transm_Schlick(real3 f0, real u)
 // Compute the cos of critical angle: cos(asin(eta)) == sqrt(1.0 - eta*eta)
 // eta == IORMedium/IORSource
 // If eta >= 1 the it's an AirMedium interation, otherwise it's MediumAir interation
-real CosCritialAngle(real eta)
+real CosCriticalAngle(real eta)
 {
     return sqrt(max(1.0 - Sq(eta), 0.0));
     // For 1 <= IOR <= 4: Max error: 0.0268594
