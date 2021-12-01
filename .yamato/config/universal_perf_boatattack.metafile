@@ -226,7 +226,7 @@ platforms:
     agents_project:
       default:
         type: Unity::mobile::android
-        image: sdet/gamecode_win10:stable
+        image: mobile/android-execution-r19:stable
         flavor: b1.large
       standalone_build:
         type: Unity::VM
