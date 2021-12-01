@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed edges and ghosting appearing on shadow matte due to the shadow being black outside the range of the light (case 1371441).
 - Fixed the ray tracing fallbacks being broken since an Nvidia Driver Update.
 - Fixed layer lit shader UI.
+- Fixed error thrown when layered lit material has an invalid material type.
 
 ## [13.1.2] - 2021-11-05
 
