@@ -338,31 +338,31 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 if (complexLit)
-                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, blendModePreserveSpecular, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward));
+                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, blendModePreserveSpecular, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward(target)));
                 else
-                    result.passes.Add(LitPasses.Forward(target, workflowMode, blendModePreserveSpecular, CorePragmas.DOTSForward));
+                    result.passes.Add(LitPasses.Forward(target, workflowMode, blendModePreserveSpecular, CorePragmas.DOTSForward(target)));
 
                 if (!complexLit)
                     result.passes.Add(LitPasses.GBuffer(target, workflowMode, blendModePreserveSpecular));
 
                 // cull the shadowcaster pass if we know it will never be used
                 if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced(target)));
 
                 if (target.mayWriteDepth)
-                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced(target)));
 
                 if (complexLit)
-                    result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(LitPasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced(target)));
                 else
-                    result.passes.Add(PassVariant(LitPasses.DepthNormal(target), CorePragmas.DOTSInstanced));
-                result.passes.Add(PassVariant(LitPasses.Meta(target), CorePragmas.DOTSDefault));
+                    result.passes.Add(PassVariant(LitPasses.DepthNormal(target), CorePragmas.DOTSInstanced(target)));
+                result.passes.Add(PassVariant(LitPasses.Meta(target), CorePragmas.DOTSDefault(target)));
                 // Currently neither of these passes (selection/picking) can be last for the game view for
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
-                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DOTSDefault));
-                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DOTSDefault(target)));
+                result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DOTSDefault(target)));
 
-                result.passes.Add(PassVariant(LitPasses._2D(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(LitPasses._2D(target), CorePragmas.DOTSDefault(target)));
 
                 return result;
             }
@@ -385,7 +385,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 if (complexLit)
-                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, blendModePreserveSpecular, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.Forward));
+                    result.passes.Add(LitPasses.ForwardOnly(target, workflowMode, complexLit, blendModePreserveSpecular, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.Forward(target)));
                 else
                     result.passes.Add(LitPasses.Forward(target, workflowMode, blendModePreserveSpecular));
 
@@ -457,10 +457,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
-                    pragmas = pragmas ?? CorePragmas.Forward,     // NOTE: SM 2.0 only GL
+                    pragmas = pragmas ?? CorePragmas.Forward(target),     // NOTE: SM 2.0 only GL
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { LitKeywords.Forward },
-                    includes = LitIncludes.Forward,
+                    includes = LitIncludes.Forward(target),
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -508,7 +508,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     pragmas = pragmas,
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { LitKeywords.Forward },
-                    includes = LitIncludes.Forward,
+                    includes = LitIncludes.Forward(target),
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -549,10 +549,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target, blendModePreserveSpecular),
-                    pragmas = CorePragmas.DOTSGBuffer,
+                    pragmas = CorePragmas.DOTSGBuffer(target),
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { LitKeywords.GBuffer },
-                    includes = LitIncludes.GBuffer,
+                    includes = LitIncludes.GBuffer(target),
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -589,10 +589,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.Meta,
-                    pragmas = CorePragmas.Default,
+                    pragmas = CorePragmas.Default(target),
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { CoreKeywordDescriptors.EditorVisualization },
-                    includes = LitIncludes.Meta,
+                    includes = LitIncludes.Meta(target),
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -625,10 +625,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target),
-                    pragmas = CorePragmas.Instanced,
+                    pragmas = CorePragmas.Instanced(target),
                     defines = new DefineCollection(),
                     keywords = new KeywordCollection(),
-                    includes = LitIncludes._2D,
+                    includes = LitIncludes._2D(target),
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -664,10 +664,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
-                    pragmas = CorePragmas.Instanced,
+                    pragmas = CorePragmas.Instanced(target),
                     defines = new DefineCollection(),
                     keywords = new KeywordCollection(),
-                    includes = CoreIncludes.DepthNormalsOnly,
+                    includes = CoreIncludes.DepthNormalsOnly(target),
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -703,10 +703,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
-                    pragmas = CorePragmas.Instanced,
+                    pragmas = CorePragmas.Instanced(target),
                     defines = new DefineCollection(),
                     keywords = new KeywordCollection(),
-                    includes = CoreIncludes.DepthNormalsOnly,
+                    includes = CoreIncludes.DepthNormalsOnly(target),
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common
@@ -908,55 +908,79 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             const string kLightingMetaPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
             const string k2DPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBR2DPass.hlsl";
 
-            public static readonly IncludeCollection Forward = new IncludeCollection
+            public static IncludeCollection Forward(UniversalTarget target)
             {
-                // Pre-graph
-                { CoreIncludes.CorePregraph },
-                { kShadows, IncludeLocation.Pregraph },
-                { CoreIncludes.ShaderGraphPregraph },
-                { CoreIncludes.DBufferPregraph },
+                var result = new IncludeCollection()
+                {
+                    // Pre-graph
+                    { CoreIncludes.CorePregraph },
+                    { kShadows, IncludeLocation.Pregraph },
+                    { CoreIncludes.ShaderGraphPregraph },
+                    { CoreIncludes.DBufferPregraph },
 
-                // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { kForwardPass, IncludeLocation.Postgraph },
-            };
+                    // Post-graph
+                    { CoreIncludes.CorePostgraph },
+                    { kForwardPass, IncludeLocation.Postgraph },
+                    { CoreIncludes.InstancingProcedural(target) },
+                };
 
-            public static readonly IncludeCollection GBuffer = new IncludeCollection
+                return result;
+            }
+
+            public static IncludeCollection GBuffer(UniversalTarget target)
             {
-                // Pre-graph
-                { CoreIncludes.CorePregraph },
-                { kShadows, IncludeLocation.Pregraph },
-                { CoreIncludes.ShaderGraphPregraph },
-                { CoreIncludes.DBufferPregraph },
+                var result = new IncludeCollection()
+                {
+                    // Pre-graph
+                    { CoreIncludes.CorePregraph },
+                    { kShadows, IncludeLocation.Pregraph },
+                    { CoreIncludes.ShaderGraphPregraph },
+                    { CoreIncludes.DBufferPregraph },
 
-                // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { kGBuffer, IncludeLocation.Postgraph },
-                { kPBRGBufferPass, IncludeLocation.Postgraph },
-            };
+                    // Post-graph
+                    { CoreIncludes.CorePostgraph },
+                    { kGBuffer, IncludeLocation.Postgraph },
+                    { kPBRGBufferPass, IncludeLocation.Postgraph },
+                    { CoreIncludes.InstancingProcedural(target) },
+                };
 
-            public static readonly IncludeCollection Meta = new IncludeCollection
+                return result;
+            }
+
+            public static IncludeCollection Meta(UniversalTarget target)
             {
-                // Pre-graph
-                { CoreIncludes.CorePregraph },
-                { CoreIncludes.ShaderGraphPregraph },
-                { kMetaInput, IncludeLocation.Pregraph },
+                var result = new IncludeCollection()
+                {
+                    // Pre-graph
+                    { CoreIncludes.CorePregraph },
+                    { CoreIncludes.ShaderGraphPregraph },
+                    { kMetaInput, IncludeLocation.Pregraph },
 
-                // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { kLightingMetaPass, IncludeLocation.Postgraph },
-            };
+                    // Post-graph
+                    { CoreIncludes.CorePostgraph },
+                    { CoreIncludes.InstancingProcedural(target) },
+                    { kLightingMetaPass, IncludeLocation.Postgraph },
+                };
 
-            public static readonly IncludeCollection _2D = new IncludeCollection
+                return result;
+            }
+
+            public static IncludeCollection _2D(UniversalTarget target)
             {
-                // Pre-graph
-                { CoreIncludes.CorePregraph },
-                { CoreIncludes.ShaderGraphPregraph },
+                var result = new IncludeCollection()
+                {
+                    // Pre-graph
+                    { CoreIncludes.CorePregraph },
+                    { CoreIncludes.ShaderGraphPregraph },
 
-                // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { k2DPass, IncludeLocation.Postgraph },
-            };
+                    // Post-graph
+                    { CoreIncludes.CorePostgraph },
+                    { CoreIncludes.InstancingProcedural(target) },
+                    { k2DPass, IncludeLocation.Postgraph },
+                };
+
+                return result;
+            }
         }
         #endregion
     }

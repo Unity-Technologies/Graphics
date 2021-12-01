@@ -199,15 +199,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     passes = new PassCollection()
                 };
 
-                result.passes.Add(PassVariant(UnlitPasses.Forward(target), CorePragmas.DOTSForward));
+                result.passes.Add(PassVariant(UnlitPasses.Forward(target), CorePragmas.DOTSForward(target)));
 
                 if (target.mayWriteDepth)
-                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(CorePasses.DepthOnly(target), CorePragmas.DOTSInstanced(target)));
 
-                result.passes.Add(PassVariant(CorePasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced));
+                result.passes.Add(PassVariant(CorePasses.DepthNormalOnly(target), CorePragmas.DOTSInstanced(target)));
 
                 if (target.castShadows || target.allowMaterialOverride)
-                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced));
+                    result.passes.Add(PassVariant(CorePasses.ShadowCaster(target), CorePragmas.DOTSInstanced(target)));
 
                 // Currently neither of these passes (selection/picking) can be last for the game view for
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
@@ -248,7 +248,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.UberSwitchedRenderState(target),
-                    pragmas = CorePragmas.Forward,
+                    pragmas = CorePragmas.Forward(target),
                     defines = new DefineCollection() { CoreDefines.UseFragmentFog },
                     keywords = new KeywordCollection() { UnlitKeywords.UnlitBaseKeywords },
                     includes = UnlitIncludes.Unlit,
@@ -287,10 +287,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                     // Conditional State
                     renderStates = CoreRenderStates.DepthNormalsOnly(target),
-                    pragmas = CorePragmas.Forward,
+                    pragmas = CorePragmas.Forward(target),
                     defines = new DefineCollection(),
                     keywords = new KeywordCollection(),
-                    includes = CoreIncludes.DepthNormalsOnly,
+                    includes = CoreIncludes.DepthNormalsOnly(target),
 
                     // Custom Interpolator Support
                     customInterpolators = CoreCustomInterpDescriptors.Common

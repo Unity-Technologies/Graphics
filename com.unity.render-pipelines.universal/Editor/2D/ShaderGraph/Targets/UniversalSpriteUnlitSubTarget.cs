@@ -111,12 +111,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     generatesPreview = true,
                     passes = new PassCollection
                     {
-                        { SpriteUnlitPasses.Unlit },
+                        { SpriteUnlitPasses.Unlit(target) },
                         // Currently neither of these passes (selection/picking) can be last for the game view for
                         // UI shaders to render correctly. Verify [1352225] before changing this order.
                         { CorePasses._2DSceneSelection(target) },
                         { CorePasses._2DScenePicking(target) },
-                        { SpriteUnlitPasses.Forward },
+                        { SpriteUnlitPasses.Forward(target) },
                     },
                 };
                 return result;
@@ -127,7 +127,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Passes
         static class SpriteUnlitPasses
         {
-            public static PassDescriptor Unlit = new PassDescriptor
+            public static PassDescriptor Unlit(UniversalTarget target)
             {
                 // Definition
                 displayName = "Sprite Unlit",
@@ -150,7 +150,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
-                pragmas = CorePragmas._2DDefault,
+                pragmas = CorePragmas._2DDefault(target),
                 keywords = SpriteUnlitKeywords.Unlit,
                 includes = SpriteUnlitIncludes.Unlit,
 
@@ -158,7 +158,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
-            public static PassDescriptor Forward = new PassDescriptor
+            public static PassDescriptor Forward(UniversalTarget target)
             {
                 // Definition
                 displayName = "Sprite Unlit",
@@ -181,7 +181,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
-                pragmas = CorePragmas._2DDefault,
+                pragmas = CorePragmas._2DDefault(target),
                 keywords = SpriteUnlitKeywords.Unlit,
                 includes = SpriteUnlitIncludes.Unlit,
 

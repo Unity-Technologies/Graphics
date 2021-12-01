@@ -115,13 +115,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     generatesPreview = true,
                     passes = new PassCollection
                     {
-                        { SpriteLitPasses.Lit },
-                        { SpriteLitPasses.Normal },
+                        { SpriteLitPasses.Lit(target) },
+                        { SpriteLitPasses.Normal(target) },
                         // Currently neither of these passes (selection/picking) can be last for the game view for
                         // UI shaders to render correctly. Verify [1352225] before changing this order.
                         { CorePasses._2DSceneSelection(target) },
                         { CorePasses._2DScenePicking(target) },
-                        { SpriteLitPasses.Forward },
+                        { SpriteLitPasses.Forward(target) },
                     },
                 };
                 return result;
@@ -132,7 +132,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Passes
         static class SpriteLitPasses
         {
-            public static PassDescriptor Lit = new PassDescriptor
+            public static PassDescriptor Lit(UniversalTarget target)
             {
                 // Definition
                 displayName = "Sprite Lit",
@@ -155,7 +155,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
-                pragmas = CorePragmas._2DDefault,
+                pragmas = CorePragmas._2DDefault(target),
                 keywords = SpriteLitKeywords.Lit,
                 includes = SpriteLitIncludes.Lit,
 
@@ -163,7 +163,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
-            public static PassDescriptor Normal = new PassDescriptor
+                return result;
+            }
+
+            public static PassDescriptor Normal(UniversalTarget target)
             {
                 // Definition
                 displayName = "Sprite Normal",
@@ -186,14 +189,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
-                pragmas = CorePragmas._2DDefault,
+                pragmas = CorePragmas._2DDefault(target),
                 includes = SpriteLitIncludes.Normal,
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
-            public static PassDescriptor Forward = new PassDescriptor
+                return result;
+            }
+
+            public static PassDescriptor Forward(UniversalTarget target)
             {
                 // Definition
                 displayName = "Sprite Forward",
@@ -217,7 +223,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
-                pragmas = CorePragmas._2DDefault,
+                pragmas = CorePragmas._2DDefault(target),
                 includes = SpriteLitIncludes.Forward,
 
                 // Custom Interpolator Support

@@ -5,6 +5,7 @@ namespace UnityEditor.ShaderGraph
     [GenerationAPI]
     internal enum InstancingOptions
     {
+        ProceduralFunction,
         RenderingLayer,
         NoLightProbe,
         NoLodFade,
@@ -17,6 +18,8 @@ namespace UnityEditor.ShaderGraph
         {
             switch (options)
             {
+                case InstancingOptions.ProceduralFunction:
+                    return "procedural:SetupProcedural";
                 case InstancingOptions.RenderingLayer:
                     return "renderinglayer";
                 case InstancingOptions.NoLightProbe:

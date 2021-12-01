@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -103,6 +104,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #if HAS_VFX_GRAPH
         Toggle m_SupportVFXToggle;
 #endif
+        TextField m_InstancingProceduralIncludeText;
 
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
@@ -140,6 +142,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         bool m_SupportVFX;
+
+        [SerializeField]
+        string m_IntancingProceduralInclude;
 
         internal override bool ignoreCustomInterpolators => false;
         internal override int padCustomInterpolatorLimit => 4;
@@ -244,6 +249,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get => m_CustomEditorGUI;
             set => m_CustomEditorGUI = value;
+        }
+
+        public string intancingProceduralInclude
+        {
+            get => m_IntancingProceduralInclude;
+            set => m_IntancingProceduralInclude = value;
         }
 
         // generally used to know if we need to build a depth pass
@@ -407,6 +418,21 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 }
             }
 #endif
+
+            m_InstancingProceduralIncludeText = new TextField("") { value = intancingProceduralInclude };
+            m_InstancingProceduralIncludeText.RegisterCallback<FocusOutEvent>(s =>
+            {
+                if (Equals(intancingProceduralInclude, m_InstancingProceduralIncludeText.value))
+                    return;
+
+                registerUndo("Change Procedural Function");
+                intancingProceduralInclude = m_InstancingProceduralIncludeText.value;
+                onChange();
+            });
+            bool notExist = !string.IsNullOrEmpty(intancingProceduralInclude) && !File.Exists(intancingProceduralInclude);
+            if (notExist)
+                context.AddHelpBox(MessageType.Info, "The path of 'Instancing Procedural' is wrong");
+            context.AddProperty("Instancing Procedural", m_InstancingProceduralIncludeText, (evt) => { });
         }
 
         // this is a copy of ZTestMode, but hides the "Disabled" option, which is invalid
@@ -645,6 +671,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #endif
         }
 
+        public bool HasInstancingProceduralInclude()
+        {
+            return File.Exists(m_IntancingProceduralInclude);
+        }
+
         [Serializable]
         class UniversalTargetLegacySerialization
         {
@@ -755,10 +786,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.DepthOnly(target),
-                pragmas = CorePragmas.Instanced,
+                pragmas = CorePragmas.Instanced(target),
                 defines = new DefineCollection(),
                 keywords = new KeywordCollection(),
-                includes = CoreIncludes.DepthOnly,
+                includes = CoreIncludes.DepthOnly(target),
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -795,10 +826,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.DepthNormalsOnly(target),
-                pragmas = CorePragmas.Instanced,
+                pragmas = CorePragmas.Instanced(target),
                 defines = new DefineCollection(),
                 keywords = new KeywordCollection(),
-                includes = CoreIncludes.DepthNormalsOnly,
+                includes = CoreIncludes.DepthNormalsOnly(target),
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -835,10 +866,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.DepthNormalsOnly(target),
-                pragmas = CorePragmas.Instanced,
+                pragmas = CorePragmas.Instanced(target),
                 defines = new DefineCollection(),
                 keywords = new KeywordCollection(),
-                includes = CoreIncludes.DepthNormalsOnly,
+                includes = CoreIncludes.DepthNormalsOnly(target),
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -874,10 +905,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.ShadowCaster(target),
-                pragmas = CorePragmas.Instanced,
+                pragmas = CorePragmas.Instanced(target),
                 defines = new DefineCollection(),
                 keywords = new KeywordCollection() { CoreKeywords.ShadowCaster },
-                includes = CoreIncludes.ShadowCaster,
+                includes = CoreIncludes.ShadowCaster(target),
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -912,10 +943,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.SceneSelection(target),
-                pragmas = CorePragmas.Instanced,
+                pragmas = CorePragmas.Instanced(target),
                 defines = new DefineCollection { CoreDefines.SceneSelection, { CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
                 keywords = new KeywordCollection(),
-                includes = CoreIncludes.SceneSelection,
+                includes = CoreIncludes.SceneSelection(target),
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -950,10 +981,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.ScenePicking(target),
-                pragmas = CorePragmas.Instanced,
+                pragmas = CorePragmas.Instanced(target),
                 defines = new DefineCollection { CoreDefines.ScenePicking, { CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
                 keywords = new KeywordCollection(),
-                includes = CoreIncludes.ScenePicking,
+                includes = CoreIncludes.ScenePicking(target),
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -988,10 +1019,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.SceneSelection(target),
-                pragmas = CorePragmas._2DDefault,
+                pragmas = CorePragmas._2DDefault(target),
                 defines = new DefineCollection { CoreDefines.SceneSelection, { CoreKeywordDescriptors.AlphaClipThreshold, 0 } },
                 keywords = new KeywordCollection(),
-                includes = CoreIncludes.ScenePicking,
+                includes = CoreIncludes.ScenePicking(target),
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -1026,10 +1057,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.ScenePicking(target),
-                pragmas = CorePragmas._2DDefault,
+                pragmas = CorePragmas._2DDefault(target),
                 defines = new DefineCollection { CoreDefines.ScenePicking, { CoreKeywordDescriptors.AlphaClipThreshold, 0 } },
                 keywords = new KeywordCollection(),
-                includes = CoreIncludes.SceneSelection,
+                includes = CoreIncludes.SceneSelection(target),
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -1046,6 +1077,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     class CoreBlockMasks
     {
         public static readonly BlockFieldDescriptor[] Vertex = new BlockFieldDescriptor[]
+        {
+            BlockFields.VertexDescription.Position,
+            BlockFields.VertexDescription.Normal,
+            BlockFields.VertexDescription.Tangent,
+        };
+
+        public static readonly BlockFieldDescriptor[] VertexProcedural = new BlockFieldDescriptor[]
         {
             BlockFields.VertexDescription.Position,
             BlockFields.VertexDescription.Normal,
@@ -1304,83 +1342,117 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     #region Pragmas
     static class CorePragmas
     {
-        public static readonly PragmaCollection Default = new PragmaCollection
+        public static PragmaCollection Default(UniversalTarget target)
         {
-            { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
+            var result = new PragmaCollection();
+            result.Add(Pragma.Target(ShaderModel.Target20));
+            result.Add(Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }));
+            result.Add(Pragma.Vertex("vert"));
+            result.Add(Pragma.Fragment("frag"));
 
-        public static readonly PragmaCollection Instanced = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
+            return result;
+        }
 
-        public static readonly PragmaCollection Forward = new PragmaCollection
+        public static PragmaCollection Instanced(UniversalTarget target)
         {
-            { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }) },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.MultiCompileFog },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
+            var result = new PragmaCollection();
+            result.Add(Pragma.Target(ShaderModel.Target20));
+            result.Add(Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }));
+            result.Add(Pragma.MultiCompileInstancing);
+            if (target.HasInstancingProceduralInclude())
+                result.Add(Pragma.InstancingOptions(InstancingOptions.ProceduralFunction));
+            result.Add(Pragma.Vertex("vert"));
+            result.Add(Pragma.Fragment("frag"));
 
-        public static readonly PragmaCollection _2DDefault = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.ExcludeRenderers(new[] { Platform.D3D9 }) },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
+            return result;
+        }
 
-        public static readonly PragmaCollection DOTSDefault = new PragmaCollection
+        public static PragmaCollection Forward(UniversalTarget target)
         {
-            { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
+            var result = new PragmaCollection();
+            result.Add(Pragma.Target(ShaderModel.Target20));
+            result.Add(Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore, Platform.D3D11 }));
+            result.Add(Pragma.MultiCompileFog);
+            result.Add(Pragma.MultiCompileInstancing);
+            if (target.HasInstancingProceduralInclude())
+                result.Add(Pragma.InstancingOptions(InstancingOptions.ProceduralFunction));
+            result.Add(Pragma.InstancingOptions(InstancingOptions.RenderingLayer));
+            result.Add(Pragma.Vertex("vert"));
+            result.Add(Pragma.Fragment("frag"));
 
-        public static readonly PragmaCollection DOTSInstanced = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.DOTSInstancing },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
+            return result;
+        }
 
-        public static readonly PragmaCollection DOTSForward = new PragmaCollection
+        public static PragmaCollection _2DDefault(UniversalTarget target)
         {
-            { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.MultiCompileFog },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            { Pragma.DOTSInstancing },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
+            var result = new PragmaCollection();
+            result.Add(Pragma.Target(ShaderModel.Target20));
+            result.Add(Pragma.ExcludeRenderers(new[] { Platform.D3D9 }));
+            result.Add(Pragma.Vertex("vert"));
+            result.Add(Pragma.Fragment("frag"));
 
-        public static readonly PragmaCollection DOTSGBuffer = new PragmaCollection
+            return result;
+        }
+
+        public static PragmaCollection DOTSDefault(UniversalTarget target)
         {
-            { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.MultiCompileFog },
-            { Pragma.InstancingOptions(InstancingOptions.RenderingLayer) },
-            { Pragma.DOTSInstancing },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
+            var result = new PragmaCollection();
+            result.Add(Pragma.Target(ShaderModel.Target45));
+            result.Add(Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }));
+            result.Add(Pragma.Vertex("vert"));
+            result.Add(Pragma.Fragment("frag"));
+
+            return result;
+        }
+
+        public static PragmaCollection DOTSInstanced(UniversalTarget target)
+        {
+            var result = new PragmaCollection();
+            result.Add(Pragma.Target(ShaderModel.Target45));
+            result.Add(Pragma.ExcludeRenderers(new[] {Platform.GLES, Platform.GLES3, Platform.GLCore}));
+            result.Add(Pragma.MultiCompileInstancing);
+            if (target.HasInstancingProceduralInclude())
+                result.Add(Pragma.InstancingOptions(InstancingOptions.ProceduralFunction));
+            result.Add(Pragma.DOTSInstancing);
+            result.Add(Pragma.Vertex("vert"));
+            result.Add(Pragma.Fragment("frag"));
+
+            return result;
+        }
+
+        public static PragmaCollection DOTSForward(UniversalTarget target)
+        {
+            var result = new PragmaCollection();
+            result.Add(Pragma.Target(ShaderModel.Target45));
+            result.Add(Pragma.ExcludeRenderers(new[] {Platform.GLES, Platform.GLES3, Platform.GLCore}));
+            result.Add(Pragma.MultiCompileFog);
+            result.Add(Pragma.MultiCompileInstancing);
+            if (target.HasInstancingProceduralInclude())
+                result.Add(Pragma.InstancingOptions(InstancingOptions.ProceduralFunction));
+            result.Add(Pragma.InstancingOptions(InstancingOptions.RenderingLayer));
+            result.Add(Pragma.DOTSInstancing);
+            result.Add(Pragma.Vertex("vert"));
+            result.Add(Pragma.Fragment("frag"));
+
+            return result;
+        }
+
+        public static PragmaCollection DOTSGBuffer(UniversalTarget target)
+        {
+            var result = new PragmaCollection();
+            result.Add(Pragma.Target(ShaderModel.Target45));
+            result.Add(Pragma.ExcludeRenderers(new[] {Platform.GLES, Platform.GLES3, Platform.GLCore}));
+            result.Add(Pragma.MultiCompileFog);
+            result.Add(Pragma.MultiCompileInstancing);
+            if (target.HasInstancingProceduralInclude())
+                result.Add(Pragma.InstancingOptions(InstancingOptions.ProceduralFunction));
+            result.Add(Pragma.InstancingOptions(InstancingOptions.RenderingLayer));
+            result.Add(Pragma.DOTSInstancing);
+            result.Add(Pragma.Vertex("vert"));
+            result.Add(Pragma.Fragment("frag"));
+
+            return result;
+        }
     }
     #endregion
 
@@ -1421,65 +1493,103 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kVaryings, IncludeLocation.Postgraph },
         };
 
-        public static readonly IncludeCollection DepthOnly = new IncludeCollection
+        public static IncludeCollection InstancingProcedural(UniversalTarget target)
         {
-            // Pre-graph
-            { CorePregraph },
-            { ShaderGraphPregraph },
+            if (File.Exists(target.intancingProceduralInclude))
+                return new IncludeCollection() { { target.intancingProceduralInclude, IncludeLocation.Postgraph } };
 
-            // Post-graph
-            { CorePostgraph },
-            { kDepthOnlyPass, IncludeLocation.Postgraph },
-        };
+            return null;
+        }
 
-        public static readonly IncludeCollection DepthNormalsOnly = new IncludeCollection
+        public static IncludeCollection DepthOnly(UniversalTarget target)
         {
-            // Pre-graph
-            { CorePregraph },
-            { ShaderGraphPregraph },
+            var result = new IncludeCollection()
+            {
+                // Pre-graph
+                { CorePregraph },
+                { ShaderGraphPregraph },
 
-            // Post-graph
-            { CorePostgraph },
-            { kDepthNormalsOnlyPass, IncludeLocation.Postgraph },
-        };
+                // Post-graph
+                { CorePostgraph },
+                { kDepthOnlyPass, IncludeLocation.Postgraph },
+                { InstancingProcedural(target) },
+            };
 
-        public static readonly IncludeCollection ShadowCaster = new IncludeCollection
+            return result;
+        }
+
+        public static IncludeCollection DepthNormalsOnly(UniversalTarget target)
         {
-            // Pre-graph
-            { CorePregraph },
-            { ShaderGraphPregraph },
+            var result = new IncludeCollection()
+            {
+                // Pre-graph
+                { CorePregraph },
+                { ShaderGraphPregraph },
 
-            // Post-graph
-            { CorePostgraph },
-            { kShadowCasterPass, IncludeLocation.Postgraph },
-        };
+                // Post-graph
+                { CorePostgraph },
+                { kDepthNormalsOnlyPass, IncludeLocation.Postgraph },
+                { InstancingProcedural(target) },
+            };
+
+            return result;
+        }
+
+        public static IncludeCollection ShadowCaster(UniversalTarget target)
+        {
+            var result = new IncludeCollection()
+            {
+                // Pre-graph
+                { CorePregraph },
+                { ShaderGraphPregraph },
+
+                // Post-graph
+                { CorePostgraph },
+                { kShadowCasterPass, IncludeLocation.Postgraph },
+                { InstancingProcedural(target) },
+            };
+
+            return result;
+        }
 
         public static readonly IncludeCollection DBufferPregraph = new IncludeCollection
         {
             { kDBuffer, IncludeLocation.Pregraph },
         };
 
-        public static readonly IncludeCollection SceneSelection = new IncludeCollection
+        public static IncludeCollection SceneSelection(UniversalTarget target)
         {
-            // Pre-graph
-            { CorePregraph },
-            { ShaderGraphPregraph },
+            var result = new IncludeCollection()
+            {
+                // Pre-graph
+                { CorePregraph },
+                { ShaderGraphPregraph },
 
-            // Post-graph
-            { CorePostgraph },
-            { kSelectionPickingPass, IncludeLocation.Postgraph },
-        };
+                // Post-graph
+                { CorePostgraph },
+                { kSelectionPickingPass, IncludeLocation.Postgraph },
+                { InstancingProcedural(target) },
+            };
 
-        public static readonly IncludeCollection ScenePicking = new IncludeCollection
+            return result;
+        }
+
+        public static IncludeCollection ScenePicking(UniversalTarget target)
         {
-            // Pre-graph
-            { CorePregraph },
-            { ShaderGraphPregraph },
+            var result = new IncludeCollection()
+            {
+                // Pre-graph
+                { CorePregraph },
+                { ShaderGraphPregraph },
 
-            // Post-graph
-            { CorePostgraph },
-            { kSelectionPickingPass, IncludeLocation.Postgraph },
-        };
+                // Post-graph
+                { CorePostgraph },
+                { kSelectionPickingPass, IncludeLocation.Postgraph },
+                { InstancingProcedural(target) },
+            };
+
+            return result;
+        }
     }
     #endregion
 
