@@ -10,8 +10,7 @@
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassVelocity.template"),USE_MOTION_VECTORS_PASS}
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassForward.template")}
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
-		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassRaytracing.template")}
-
+		${VFXIncludeRP("Templates/PlanarPrimitive/PassRaytracing.template")}
 	}
 
 }

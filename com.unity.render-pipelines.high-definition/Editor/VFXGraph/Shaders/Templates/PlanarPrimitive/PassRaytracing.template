@@ -33,7 +33,7 @@
                 uint index = PrimitiveIndex();
                 VFXAttributes attributes = (VFXAttributes)0;
                 ${VFXLoadAttributes}
-                rayIntersection.color = attributes.color * 1000;
+                rayIntersection.color = attributes.color * 1000; //needs big multiplicator to be visible, why?
             }
 
             bool RayBoxIntersectionTest(in float3 rayWorldOrigin, in float3 rayWorldDirection, in float3 boxPosWorld, in float3 boxHalfSize, out float outHitT)
@@ -77,7 +77,7 @@
                     attributeData.barycentrics = float2(0.5, 0.5);
                     ReportHit(outHitT, 0, attributeData);
                 }
-                else
+                else // intersection seems to always fail there ^^^^
                 {
                     AttributeData attributeData;
                     attributeData.barycentrics = float2(0.5, 0.5);
