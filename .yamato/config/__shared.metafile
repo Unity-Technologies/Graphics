@@ -393,6 +393,15 @@ platforms:
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
                     utr <UTR_FLAGS>
+        call_utr_android_job:
+          - command: |5-
+                    set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                    git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                    set /p GIT_REVISIONDATE=<revdate.tmp
+                    echo %GIT_REVISIONDATE%
+                    del revdate.tmp
+                    set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
+                    utr <UTR_FLAGS>
         call_utr_without_git:
           - command: utr <UTR_FLAGS>
         unity_downloader_cli:
