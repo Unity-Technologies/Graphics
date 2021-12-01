@@ -36,6 +36,9 @@ The Fabric, Hair and Eye Master Nodes usually require various work from artists 
 
 In the **Eye** Scene, the eye examples use a carefully designed mesh with a particular UV setup at a specific import scale factor. If you want to produce eyes of similar quality, open the eye mesh in 3D modelling software to see how the mesh is contructed and the UVs are setup.
 
+In the Transparency scenes, the examples contain information on how to setup properly transparents in your projects using different rendering methods (Rasterization, Ray Tracing, Path Tracing).
+To take advantage of all the content of this section, a GPU that supports [Ray Tracing](Ray-Tracing-Getting-Started.md) is needed.
+
 ## Lens Flare Samples
 
 ![Lens Flare Samples](Images/LensFlareSamples.png)
