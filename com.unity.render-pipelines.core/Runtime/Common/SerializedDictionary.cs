@@ -47,8 +47,8 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Dictionary that can serialize keys and values as other types
     /// </summary>
-    /// <typeparam name="K">The key</typeparam>
-    /// <typeparam name="V"></typeparam>
+    /// <typeparam name="K">The key type</typeparam>
+    /// <typeparam name="V">The value type</typeparam>
     /// <typeparam name="SK">The type which the key will be serialized for</typeparam>
     /// <typeparam name="SV">The type which the value will be serialized for</typeparam>
     [Serializable]
