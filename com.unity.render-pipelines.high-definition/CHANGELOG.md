@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed for changes of color curves not being applied immediately.
 - Fixed edges and ghosting appearing on shadow matte due to the shadow being black outside the range of the light (case 1371441).
 - Fixed the ray tracing fallbacks being broken since an Nvidia Driver Update.
+- Fixed layer lit shader UI.
 
 ## [13.1.2] - 2021-11-05
 
@@ -73,6 +74,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Optimizations for the physically based depth of field.
+- Volumetric Lighting now uses an ambient probe computed directly on the GPU to avoid latency.
 
 ## [13.1.1] - 2021-10-04
 
