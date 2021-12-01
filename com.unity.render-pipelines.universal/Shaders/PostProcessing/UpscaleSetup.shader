@@ -3,6 +3,7 @@ Shader "Hidden/Universal Render Pipeline/Upscale Setup"
     HLSLINCLUDE
         #pragma multi_compile_local_fragment _ _FXAA
         #pragma multi_compile_local_fragment _ _GAMMA_20
+        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
