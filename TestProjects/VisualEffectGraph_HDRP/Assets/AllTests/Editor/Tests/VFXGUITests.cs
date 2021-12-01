@@ -291,12 +291,11 @@ namespace UnityEditor.VFX.Test
             }
 
             viewController.ApplyChanges();
-            foreach (var newBlock in newBlocks)
-            {
-                Assert.AreEqual(contextController.blockControllers.Where(t => t.model == newBlock).Count(), 1, "Failing Block" + newBlock.name + "in context" + newContext.name);
-                var blockController = contextController.blockControllers.Where(t => t.model == newBlock).FirstOrDefault();
-                Assert.NotNull(blockController);
-            }
+
+            //We are expecting the same list from block controllers than initial block model
+            var intersection = contextController.blockControllers.Select(x => x.model).Intersect(newBlocks);
+            Assert.AreEqual(newBlocks.Count, intersection.Count());
+            Assert.AreEqual(newBlocks.Count, contextController.blockControllers.Count());
 
             return contextController;
         }
