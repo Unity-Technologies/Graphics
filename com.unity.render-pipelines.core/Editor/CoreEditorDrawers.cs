@@ -189,7 +189,7 @@ namespace UnityEditor.Rendering
 
                     // While the highlight is being changed, force the Repaint of the editor
                     if (m_Anim.value > 0.0f)
-                        owner.Repaint();
+                        owner?.Repaint();
                 }
             }
 

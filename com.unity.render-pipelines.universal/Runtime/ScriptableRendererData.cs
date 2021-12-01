@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 #if UNITY_EDITOR
-using System.Linq;
-using UnityEditor;
 #endif
 
 namespace UnityEngine.Rendering.Universal
@@ -17,6 +14,8 @@ namespace UnityEngine.Rendering.Universal
     public abstract class ScriptableRendererData
     {
         public string name;
+
+        internal int index;
         internal bool isInvalidated { get; set; }
 
         /// <summary>

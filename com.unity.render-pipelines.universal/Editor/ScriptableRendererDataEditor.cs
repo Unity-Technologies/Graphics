@@ -1,22 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.Universal
 {
+    [CustomPropertyDrawer(typeof(ScriptableRendererData), true)]
     public class ScriptableRendererDataEditor : PropertyDrawer
     {
-        protected static int index = -1;
-
-        internal static void DrawRenderer(Editor ownerEditor, int index, SerializedProperty serializedProperty)
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            ScriptableRendererDataEditor.index = index;
-            EditorGUILayout.PropertyField(serializedProperty);
-            ScriptableRendererDataEditor.index = -1;
+            //TODO: Fix it like for renderer features.
         }
     }
 }

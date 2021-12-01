@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.Universal
 
         public static readonly CED.IDrawer Inspector = CED.Group(
             CED.AdditionalPropertiesFoldoutGroup(Styles.qualitySettingsText, Expandable.Quality, k_ExpandedState, ExpandableAdditional.Quality, k_AdditionalPropertiesState, DrawQuality, DrawQualityAdditional),
-            CED.FoldoutGroup(Styles.renderersSettingsText, Expandable.Rendering, k_ExpandedState, FoldoutOption.None, RendererOptionMenu, DrawRenderers)
+            CED.FoldoutGroup(Styles.renderersSettingsText, Expandable.Rendering, k_ExpandedState, FoldoutOption.NoSpaceAtEnd, RendererOptionMenu, DrawRenderers)
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             , CED.FoldoutGroup(Styles.adaptivePerformanceText, Expandable.AdaptivePerformance, k_ExpandedState, CED.Group(DrawAdaptivePerformance))
 #endif
@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 for (int i = 0; i < serialized.rendererDataProp.arraySize; i++)
                 {
-                    ScriptableRendererDataEditor.DrawRenderer(ownerEditor, i, serialized.rendererDataProp.GetArrayElementAtIndex(i));
+                    EditorGUILayout.PropertyField(serialized.rendererDataProp.GetArrayElementAtIndex(i));
                 }
                 //urpAssetEditor.rendererList.DoLayoutList();
 

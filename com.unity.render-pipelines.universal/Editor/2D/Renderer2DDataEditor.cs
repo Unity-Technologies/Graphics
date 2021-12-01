@@ -48,12 +48,11 @@ namespace UnityEditor.Rendering.Universal
 
         public SerializedProperty serializedProperty;
 
-        public ExpandedState<ShowUIRenderer2DData, Renderer2DData> k_showUI { get; }
 
-        public SerializedRenderer2DData(SerializedProperty serializedProperty, int index)
+        public SerializedRenderer2DData(SerializedProperty serializedProperty)
         {
             this.serializedProperty = serializedProperty;
-            data = (serializedProperty.serializedObject.targetObject as UniversalRenderPipelineAsset).m_RendererDataList[index] as Renderer2DData;
+            data = serializedProperty.managedReferenceValue as Renderer2DData;
 
             m_WasModified = false;
 
@@ -92,7 +91,7 @@ namespace UnityEditor.Rendering.Universal
 
             rendererFeatureEditor = new ScriptableRendererFeatureEditor(serializedProperty.FindPropertyRelative(nameof(ScriptableRendererData.m_RendererFeatures)));
 
-            k_showUI = new(ShowUIRenderer2DData.General, $"{index}_URP");
+
         }
     }
 
@@ -123,10 +122,9 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent cameraSortingLayerTextureBound = EditorGUIUtility.TrTextContent("Foremost Sorting Layer", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
             public static readonly GUIContent cameraSortingLayerDownsampling = EditorGUIUtility.TrTextContent("Downsampling Method", "Method used to copy _CameraSortingLayersTexture");
         }
+        static ExpandedState<ShowUIRenderer2DData, Renderer2DData> k_showUI = new(ShowUIRenderer2DData.General, $"_URP");
 
         SerializedRenderer2DData serialized;
-        int lastIndex = -1;
-
         void SendModifiedAnalytics(Analytics.IAnalytics analytics)
         {
             if (serialized.m_WasModified)
@@ -143,12 +141,11 @@ namespace UnityEditor.Rendering.Universal
 
         private void Init(SerializedProperty property)
         {
-            if (serialized != null && property != serialized.serializedProperty || lastIndex != index)
-            {
-                OnDestroy();
-                serialized = new SerializedRenderer2DData(property, index);
-                lastIndex = index;
-            }
+            //if (serialized != null && property != serialized.serializedProperty || lastIndex != index)
+            //{
+            OnDestroy();
+            serialized = new SerializedRenderer2DData(property);
+            //}
         }
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -166,8 +163,8 @@ namespace UnityEditor.Rendering.Universal
         {
             EditorGUI.BeginProperty(position, new GUIContent(serialized.name.stringValue), serialized.serializedProperty);
             CED.FoldoutGroup(new GUIContent(serialized.name.stringValue),
-                ShowUIRenderer2DData.All, serialized.k_showUI,
-                FoldoutOption.Boxed, DrawRenderer).Draw(serialized, null);
+                ShowUIRenderer2DData.All, k_showUI,
+                FoldoutOption.NoSpaceAtEnd, DrawRenderer).Draw(serialized, null);
             EditorGUI.EndProperty();
         }
 
@@ -177,19 +174,19 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginChangeCheck();
             CED.Group(
                 CED.FoldoutGroup(Styles.generalHeader,
-                    ShowUIRenderer2DData.General, serialized.k_showUI,
+                    ShowUIRenderer2DData.General, k_showUI,
                     FoldoutOption.SubFoldout, DrawGeneral),
                 CED.FoldoutGroup(Styles.lightRenderTexturesHeader,
-                    ShowUIRenderer2DData.LightingRenderTexture, serialized.k_showUI,
+                    ShowUIRenderer2DData.LightingRenderTexture, k_showUI,
                     FoldoutOption.SubFoldout, DrawLightRenderTextures),
                 CED.FoldoutGroup(Styles.lightBlendStylesHeader,
-                    ShowUIRenderer2DData.LightingBlendStyles, serialized.k_showUI,
+                    ShowUIRenderer2DData.LightingBlendStyles, k_showUI,
                     FoldoutOption.SubFoldout, DrawLightBlendStyles),
                 CED.FoldoutGroup(Styles.cameraSortingLayerDownsampling,
-                    ShowUIRenderer2DData.CameraSortingLayerTexture, serialized.k_showUI,
+                    ShowUIRenderer2DData.CameraSortingLayerTexture, k_showUI,
                     FoldoutOption.SubFoldout, DrawCameraSortingLayerTexture),
                 CED.FoldoutGroup(Styles.rendererFeaturesHeader,
-                    ShowUIRenderer2DData.RendererFeatures, serialized.k_showUI,
+                    ShowUIRenderer2DData.RendererFeatures, k_showUI,
                     FoldoutOption.SubFoldout, DrawRendererFeatures)
             ).Draw(serialized, null);
             if (EditorGUI.EndChangeCheck())

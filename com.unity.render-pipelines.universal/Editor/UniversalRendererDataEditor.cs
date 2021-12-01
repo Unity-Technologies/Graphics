@@ -70,20 +70,18 @@ namespace UnityEditor.Rendering.Universal
 #else
         public static bool s_EnableClusteredUI => false;
 #endif
-        public EditorPrefBoolFlags<EditorUtils.Unit> state;
+
 
 
         public SerializedProperty serializedProperty;
         public UniversalRendererData data;
         public ScriptableRendererFeatureEditor rendererFeatureEditor;
 
-        public ExpandedState<ShowUIUniversalRendererData, UniversalRendererData> k_showUI { get; }
-        public AdditionalPropertiesState<ShowAdditionalUIUniversalRendererData, UniversalRendererData> k_showUIAdditional { get; }
 
-        public SerializedUniversalRendererData(SerializedProperty serializedProperty, int index)
+        public SerializedUniversalRendererData(SerializedProperty serializedProperty)
         {
             this.serializedProperty = serializedProperty;
-            data = (serializedProperty.serializedObject.targetObject as UniversalRenderPipelineAsset).m_RendererDataList[index] as UniversalRendererData;
+            data = (UniversalRendererData)serializedProperty.managedReferenceValue;
 
             name = serializedProperty.FindPropertyRelative(nameof(ScriptableRendererData.name));
             opaqueLayerMask = serializedProperty.FindPropertyRelative("m_OpaqueLayerMask");
@@ -134,10 +132,9 @@ namespace UnityEditor.Rendering.Universal
             mixedLightingSupportedProp = serializedProperty.FindPropertyRelative("m_MixedLightingSupported");
             supportsLightLayers = serializedProperty.FindPropertyRelative("m_SupportsLightLayers");
 
-            string Key = "Universal_Shadow_Setting_Unit:UI_State";
-            state = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
-            k_showUI = new(ShowUIUniversalRendererData.General, $"{index}_URP");
-            k_showUIAdditional = new(0, $"{index}_URP");
+            //state = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
+            //k_showUI = new(ShowUIUniversalRendererData.General, $"{index}_URP");
+            //k_showUIAdditional = new(0, $"{index}_URP");
 
             rendererFeatureEditor = new ScriptableRendererFeatureEditor(serializedProperty.FindPropertyRelative(nameof(ScriptableRendererData.m_RendererFeatures)));
         }
@@ -220,17 +217,23 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent conservativeEnclosingSphere = EditorGUIUtility.TrTextContent("Conservative Enclosing Sphere", "Enable this option to improve shadow frustum culling and prevent Unity from excessively culling shadows in the corners of the shadow cascades. Disable this option only for compatibility purposes of existing projects created in previous Unity versions.");
         }
 
+        const string Key = "Universal_Shadow_Setting_Unit:UI_State";
+        static EditorPrefBoolFlags<EditorUtils.Unit> state = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
+        static ExpandedState<ShowUIUniversalRendererData, UniversalRendererData> k_showUI = new(ShowUIUniversalRendererData.General, $"_URP");
+        static AdditionalPropertiesState<ShowAdditionalUIUniversalRendererData, UniversalRendererData> k_showUIAdditional = new(0, $"_URP");
 
         SerializedUniversalRendererData serialized;
-        int lastIndex = -1;
         private void Init(SerializedProperty property)
         {
-            if (serialized != null && property != serialized.serializedProperty || index != lastIndex)
-            {
-                serialized = new SerializedUniversalRendererData(property, index);
-                lastIndex = index;
-            }
+            int hash = property.GetHashCode();
+            //if (serialized != null && property != serialized.serializedProperty )
+            //{
+            serialized = new SerializedUniversalRendererData(property);//ObjectPool<SerializedUniversalRendererData>((SerializedUniversalRendererData serialized) => SerializedUniversalRendererData.Init(serialized));
+            //}
         }
+
+
+
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             Init(property);
@@ -242,8 +245,8 @@ namespace UnityEditor.Rendering.Universal
         {
             EditorGUI.BeginProperty(position, new GUIContent(serialized.name.stringValue), serialized.serializedProperty);
             CED.AdditionalPropertiesFoldoutGroup(new GUIContent(serialized.name.stringValue),
-                ShowUIUniversalRendererData.All, serialized.k_showUI, ShowAdditionalUIUniversalRendererData.Show, serialized.k_showUIAdditional,
-                DrawRenderer, DrawRendererAdditional, FoldoutOption.Boxed).Draw(serialized, null);
+                ShowUIUniversalRendererData.All, k_showUI, ShowAdditionalUIUniversalRendererData.Show, k_showUIAdditional,
+                DrawRenderer, DrawRendererAdditional, FoldoutOption.NoSpaceAtEnd).Draw(serialized, null);
             EditorGUI.EndProperty();
         }
 
@@ -252,18 +255,18 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel++;
             CED.Group(
                 CED.FoldoutGroup(Styles.generalSettingsText,
-                    ShowUIUniversalRendererData.General, serialized.k_showUI,
+                    ShowUIUniversalRendererData.General, k_showUI,
                     FoldoutOption.SubFoldout, DrawGeneral),
                 CED.AdditionalPropertiesFoldoutGroup(Styles.lightingSettingsText,
-                    ShowUIUniversalRendererData.Lighting, serialized.k_showUI,
-                    (ShowAdditionalUIUniversalRendererData)0, serialized.k_showUIAdditional,
+                    ShowUIUniversalRendererData.Lighting, k_showUI,
+                    (ShowAdditionalUIUniversalRendererData)0, k_showUIAdditional,
                     DrawLighting, DrawLightingAdditional, FoldoutOption.SubFoldout),
                 CED.AdditionalPropertiesFoldoutGroup(Styles.shadowSettingsText,
-                    ShowUIUniversalRendererData.Shadow, serialized.k_showUI,
-                    (ShowAdditionalUIUniversalRendererData)0, serialized.k_showUIAdditional,
+                    ShowUIUniversalRendererData.Shadow, k_showUI,
+                    (ShowAdditionalUIUniversalRendererData)0, k_showUIAdditional,
                     DrawShadows, DrawShadowsAdditional, FoldoutOption.SubFoldout),
                 CED.FoldoutGroup(Styles.rendererFeatureSettingsText,
-                    ShowUIUniversalRendererData.RendererFeatures, serialized.k_showUI,
+                    ShowUIUniversalRendererData.RendererFeatures, k_showUI,
                     FoldoutOption.SubFoldout, DrawRendererFeatures)
             ).Draw(serialized, ownerEditor);
 
@@ -485,10 +488,10 @@ namespace UnityEditor.Rendering.Universal
             if (serialized.shadowCascadeCountProp.intValue != 0)
             {
                 EditorGUI.BeginChangeCheck();
-                unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(Styles.shadowWorkingUnitText, serialized.state.value);
+                unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(Styles.shadowWorkingUnitText, state.value);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    serialized.state.value = unit;
+                    state.value = unit;
                 }
             }
 
