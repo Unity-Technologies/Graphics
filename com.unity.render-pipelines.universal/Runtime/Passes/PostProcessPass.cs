@@ -1479,9 +1479,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                                 Blit(cmd, sourceRtId, m_UpscaledTarget, m_Materials.easu);
 
                                 // RCAS
-                                // RCAS is performed during the final post blit but we set up the parameters here
-                                material.EnableKeyword(ShaderKeywordStrings.Rcas);
-                                FSRUtils.SetRcasConstants(cmd);
+                                // Use the override value if it's available, otherwise use the default.
+                                float sharpness = cameraData.fsrOverrideSharpness ? cameraData.fsrSharpness : FSRUtils.kDefaultSharpnessLinear;
+
+                                // Set up the parameters for the RCAS pass unless the sharpness value indicates that it wont have any effect.
+                                if (cameraData.fsrSharpness > 0.0f)
+                                {
+                                    // RCAS is performed during the final post blit, but we set up the parameters here for better logical grouping.
+                                    material.EnableKeyword(ShaderKeywordStrings.Rcas);
+                                    FSRUtils.SetRcasConstantsLinear(cmd, sharpness);
+                                }
+
+                                // Update the source texture for the next operation
                                 cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_UpscaledTarget);
                                 PostProcessUtils.SetSourceSize(cmd, upscaleRtDesc);
 
