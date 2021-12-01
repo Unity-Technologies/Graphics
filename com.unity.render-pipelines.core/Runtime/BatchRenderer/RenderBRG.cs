@@ -450,25 +450,51 @@ namespace UnityEngine.Rendering
 
             if (cc.viewType == BatchCullingViewType.Light)
             {
-                var direction = cc.localToWorldMatrix.GetColumn(2);
-#if DEBUG_LOG_RECEIVER_PLANES
-                Debug.Log("[OnPerformCulling] light direction= (x=" + direction.x + " y=" + direction.y + " z=" + direction.z + ")");
-#endif
-                for (int i = 0; i < cc.receiverPlaneCount; ++i)
+                if (cc.isOrthographic == 1)
                 {
-                    var plane = cc.cullingPlanes[i + cc.receiverPlaneOffset];
-                    var d = Vector3.Dot(plane.normal, direction);
-
-                    if (d < 0.0)
+                    Vector3 direction = cc.localToWorldMatrix.GetColumn(2);
+#if DEBUG_LOG_RECEIVER_PLANES
+                    Debug.Log("[OnPerformCulling] light direction= (x=" + direction.x + " y=" + direction.y + " z=" + direction.z + ")");
+#endif
+                    for (int i = 0; i < cc.receiverPlaneCount; ++i)
                     {
-                        receiverPlanes[receiverPlaneCount++] = plane;
+                        var plane = cc.cullingPlanes[i + cc.receiverPlaneOffset];
+                        var d = Vector3.Dot(plane.normal, direction);
+
+                        if (d < 0.0)
+                        {
+                            receiverPlanes[receiverPlaneCount++] = plane;
+
+#if DEBUG_LOG_RECEIVER_PLANES 
+                            Debug.Log(
+                                "[OnPerformCulling] back facing receiver plane (direction)=" + i +
+                                " normal(x=" + plane.normal.x + " y=" + plane.normal.y + " z=" + plane.normal.z + ")" +
+                                " dist=" + plane.distance);
+#endif
+                        }
+                    }
+                }
+                else
+                {
+                    var position = cc.localToWorldMatrix.GetPosition();
+#if DEBUG_LOG_RECEIVER_PLANES
+                    Debug.Log("[OnPerformCulling] light position= (x=" + position.x + " y=" + position.y + " z=" + position.z + ")");
+#endif
+                    for (int i = 0; i < cc.receiverPlaneCount; ++i)
+                    {
+                        var plane = cc.cullingPlanes[i + cc.receiverPlaneOffset];
+
+                        if (plane.GetSide(position))
+                        {
+                            receiverPlanes[receiverPlaneCount++] = plane;
 
 #if DEBUG_LOG_RECEIVER_PLANES
-                        Debug.Log(
-                            "[OnPerformCulling] back facing receiver plane=" + i +
-                            " normal(x=" + plane.normal.x + " y=" + plane.normal.y + " z=" + plane.normal.z + ")" +
-                            " dist=" + plane.distance);
+                            Debug.Log(
+                                "[OnPerformCulling] back facing receiver plane (point)=" + i +
+                                " normal(x=" + plane.normal.x + " y=" + plane.normal.y + " z=" + plane.normal.z + ")" +
+                                " dist=" + plane.distance);
 #endif
+                        }
                     }
                 }
             }
@@ -518,7 +544,7 @@ namespace UnityEngine.Rendering
                 drawCommands = cullingOutput.drawCommands
             };
 
-            var jobHandleCulling = cullingJob.Schedule(visibilityLength, 2);
+            var jobHandleCulling = cullingJob.Schedule(visibilityLength, 8);
             var jobHandleOutput = drawOutputJob.Schedule(jobHandleCulling);
 
             return jobHandleOutput;
@@ -677,6 +703,8 @@ namespace UnityEngine.Rendering
             var rendererMaterialInfos = lightmappingData.rendererToMaterialMap;
 
             LightProbesQuery lpq = new LightProbesQuery(Allocator.Temp);
+            bool useFirstMeshForAll = false;    // Hack to help benchmarking different bottlenecks. TODO: Remove!
+            MeshFilter firstMesh = null;
 
             for (int i = 0; i < renderers.Count; i++)
             {
@@ -691,6 +719,12 @@ namespace UnityEngine.Rendering
                 if (!renderer || !meshFilter || !meshFilter.sharedMesh || renderer.enabled == false)
                 {
                     continue;
+                }
+
+                if (useFirstMeshForAll)
+                {
+                    if (firstMesh != null) meshFilter = firstMesh;
+                    firstMesh = meshFilter;
                 }
 
                 m_AddedRenderers.Add(renderer);
@@ -937,13 +971,6 @@ namespace UnityEngine.Rendering
             m_initialized = true;
         }
 
-        void Update()
-        {
-            // TODO: Implement delta update for transforms
-            // https://docs.unity3d.com/ScriptReference/Transform-hasChanged.html
-            // https://docs.unity3d.com/ScriptReference/Jobs.TransformAccess.html
-        }
-
         public void StartTransformsUpdate()
         {
             m_BRGTransformUpdater.StartUpdateJobs();
@@ -999,6 +1026,7 @@ namespace UnityEngine.Rendering
         private CommandBuffer m_gpuCmdBuffer;
 
         public bool EnableDeferredMaterials = false;
+        public bool EnableTransformUpdate = true;
         private GeometryPool m_GlobalGeoPool;
 
         public static GeometryPool FindGlobalGeometryPool()
@@ -1114,28 +1142,31 @@ namespace UnityEngine.Rendering
 
         private void Update()
         {
-            m_gpuCmdBuffer.Clear();
+            if (EnableTransformUpdate)
+            { 
+                m_gpuCmdBuffer.Clear();
 
-            foreach (var sceneBrg in m_Scenes)
-            {
-                if (sceneBrg.Value == null)
-                    continue;
+                foreach (var sceneBrg in m_Scenes)
+                {
+                    if (sceneBrg.Value == null)
+                        continue;
 
-                sceneBrg.Value.StartTransformsUpdate();
+                    sceneBrg.Value.StartTransformsUpdate();
+                }
+
+                int gpuCmds = 0;
+                foreach (var sceneBrg in m_Scenes)
+                {
+                    if (sceneBrg.Value == null)
+                        continue;
+
+                    if (sceneBrg.Value.EndTransformsUpdate(m_gpuCmdBuffer))
+                        ++gpuCmds;
+                }
+
+                if (gpuCmds > 0)
+                    Graphics.ExecuteCommandBuffer(m_gpuCmdBuffer);
             }
-
-            int gpuCmds = 0;
-            foreach (var sceneBrg in m_Scenes)
-            {
-                if (sceneBrg.Value == null)
-                    continue;
-
-                if (sceneBrg.Value.EndTransformsUpdate(m_gpuCmdBuffer))
-                    ++gpuCmds;
-            }
-
-            if (gpuCmds > 0)
-                Graphics.ExecuteCommandBuffer(m_gpuCmdBuffer);
         }
 
         private void OnDestroy()
