@@ -230,7 +230,7 @@ namespace UnityEditor.VFX.Test
 
             var allBlocks = VFXLibrary.GetBlocks().Where(t => t.AcceptParent(destContext.model));
 
-            var batchCount = (uint)allBlocks.Count() / kMaximumBlockPerContext + 1;
+            var batchCount = (uint)Math.Ceiling((double)allBlocks.Count() / kMaximumBlockPerContext);
             for (var batch = 0u; batch < batchCount; batch++)
             {
                 yield return new CreateAllBlockParam()
