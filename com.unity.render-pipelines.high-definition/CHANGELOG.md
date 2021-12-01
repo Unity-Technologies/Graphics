@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed option to force motion blur off when in XR.
 - Fixed edges and ghosting appearing on shadow matte due to the shadow being black outside the range of the light (case 1371441).
 - Fixed default numbder of physically based sky bounce to be 3
+- Fixed layer lit shader UI.
 
 ## [13.1.3] - 2021-11-17
 
