@@ -5,9 +5,41 @@ using Unity.Mathematics;
 using System.Threading;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
+using System;
 
 namespace UnityEngine.Rendering
 {
+    internal struct BRGMatrix : IEquatable<BRGMatrix>
+    {
+        public float4 localToWorld0;
+        public float4 localToWorld1;
+        public float4 localToWorld2;
+
+        public static BRGMatrix FromMatrix4x4(Matrix4x4 m)
+        {
+            return new BRGMatrix
+            {
+                /*  mat4x3 packed like this:
+                      p1.x, p1.w, p2.z, p3.y,
+                      p1.y, p2.x, p2.w, p3.z,
+                      p1.z, p2.y, p3.x, p3.w,
+                      0.0,  0.0,  0.0,  1.0
+                */
+
+                 localToWorld0 = new float4(m.m00, m.m10, m.m20, m.m01),
+                 localToWorld1 = new float4(m.m11, m.m21, m.m02, m.m12),
+                 localToWorld2 = new float4(m.m22, m.m03, m.m13, m.m23)
+            };
+        }
+
+        public bool Equals(BRGMatrix other)
+        {
+            return math.all(
+                (localToWorld0 == other.localToWorld0) &
+                (localToWorld1 == other.localToWorld1) &
+                (localToWorld2 == other.localToWorld2));
+        }
+    }
 
     internal struct BRGTransformUpdater
     {
@@ -16,9 +48,7 @@ namespace UnityEngine.Rendering
         private int m_Length;
         private NativeArray<int> m_Indices;
         private TransformAccessArray m_Transforms;
-        private NativeArray<float3> m_CachedPositions;
-        private NativeArray<quaternion> m_CachedRotations;
-        private NativeArray<float3> m_CachedScales;
+        private NativeArray<BRGMatrix> m_CachedTransforms;
 
         public NativeArray<int> m_UpdateQueueCounter;
         public NativeArray<int> m_TransformUpdateIndexQueue;
@@ -77,9 +107,7 @@ namespace UnityEngine.Rendering
             [ReadOnly]
             public NativeArray<int> inputIndices;
 
-            public NativeArray<float3> cachedPositions;
-            public NativeArray<quaternion> cachedRotations;
-            public NativeArray<float3> cachedScales;
+            public NativeArray<BRGMatrix> cachedTransforms;
 
             [WriteOnly]
             public NativeArray<int> updateQueueCounter;
@@ -101,20 +129,9 @@ namespace UnityEngine.Rendering
 
             public void Execute(int index, TransformAccess transform)
             {
-                bool positionChanged = math.distancesq(transform.position, cachedPositions[index]) > minDistance;
-                if (positionChanged)
-                    cachedPositions[index] = transform.position;
+                var m = BRGMatrix.FromMatrix4x4(transform.localToWorldMatrix);
 
-                bool scalesChanged = math.distancesq(transform.localScale, cachedScales[index]) > minDistance;
-                if (scalesChanged)
-                    cachedScales[index] = transform.localScale;
-
-                quaternion tq = transform.rotation;
-                bool rotationChanged = math.distancesq(tq.value, cachedRotations[index].value) > minDistance;
-                if (rotationChanged)
-                    cachedRotations[index] = tq;
-
-                if (!rotationChanged && !scalesChanged && !positionChanged)
+                if (cachedTransforms[index].Equals(m))
                     return;
 
                 int outputIndex = IncrementCounter();
@@ -126,13 +143,13 @@ namespace UnityEngine.Rendering
                       p1.z, p2.y, p3.x, p3.w,
                       0.0,  0.0,  0.0,  1.0
                 */
-                var m = transform.localToWorldMatrix;
+
                 var mi = transform.worldToLocalMatrix;
                 transformUpdateDataQueue[outputIndex] = new BRGGpuTransformUpdate()
                 {
-                    localToWorld0 = new float4(m.m00, m.m10, m.m20, m.m01),
-                    localToWorld1 = new float4(m.m11, m.m21, m.m02, m.m12),
-                    localToWorld2 = new float4(m.m22, m.m03, m.m13, m.m23),
+                    localToWorld0 = m.localToWorld0,
+                    localToWorld1 = m.localToWorld1,
+                    localToWorld2 = m.localToWorld2,
                     worldToLocal0 = new float4(mi.m00, mi.m10, mi.m20, mi.m01),
                     worldToLocal1 = new float4(mi.m11, mi.m21, mi.m02, mi.m12),
                     worldToLocal2 = new float4(mi.m22, mi.m03, mi.m13, mi.m23),
@@ -163,9 +180,7 @@ namespace UnityEngine.Rendering
             m_Capacity = sBlockSize;
             m_Transforms = new TransformAccessArray(m_Capacity);
             m_Indices = new NativeArray<int>(m_Capacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            m_CachedPositions = new NativeArray<float3>(m_Capacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            m_CachedRotations = new NativeArray<quaternion>(m_Capacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            m_CachedScales = new NativeArray<float3>(m_Capacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            m_CachedTransforms = new NativeArray<BRGMatrix>(m_Capacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             m_TransformUpdateIndexQueue = new NativeArray<int>(m_Capacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             m_TransformUpdateDataQueue = new NativeArray<BRGGpuTransformUpdate>(m_Capacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             m_UpdateQueueCounter = new NativeArray<int>(1, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
@@ -180,9 +195,7 @@ namespace UnityEngine.Rendering
                 m_Capacity += sBlockSize;
                 m_Transforms.ResizeArray(m_Capacity);
                 m_Indices.ResizeArray(m_Capacity);
-                m_CachedPositions.ResizeArray(m_Capacity);
-                m_CachedRotations.ResizeArray(m_Capacity);
-                m_CachedScales.ResizeArray(m_Capacity);
+                m_CachedTransforms.ResizeArray(m_Capacity);
                 m_TransformUpdateIndexQueue.ResizeArray(m_Capacity);
                 m_TransformUpdateDataQueue.ResizeArray(m_Capacity);
                 RecreteGpuBuffers();
@@ -190,9 +203,7 @@ namespace UnityEngine.Rendering
 
             m_Transforms.Add(transformObject);
             m_Indices[m_Length] = instanceIndex;
-            m_CachedPositions[m_Length] = transformObject.position;
-            m_CachedRotations[m_Length] = transformObject.rotation;
-            m_CachedScales[m_Length] = transformObject.localScale;
+            m_CachedTransforms[m_Length] = BRGMatrix.FromMatrix4x4(transformObject.localToWorldMatrix);
 
             m_Length = newLen;
         }
@@ -207,16 +218,13 @@ namespace UnityEngine.Rendering
             {
                 minDistance = System.Single.Epsilon,
                 inputIndices = m_Indices,
-                cachedPositions = m_CachedPositions,
-                cachedRotations = m_CachedRotations,
-                cachedScales = m_CachedScales,
-
+                cachedTransforms = m_CachedTransforms,
                 updateQueueCounter = m_UpdateQueueCounter,
                 transformUpdateIndexQueue = m_TransformUpdateIndexQueue,
                 transformUpdateDataQueue = m_TransformUpdateDataQueue
             };
 
-            m_UpdateTransformsJobHandle = jobData.Schedule(m_Transforms);
+            m_UpdateTransformsJobHandle = jobData.ScheduleReadOnly(m_Transforms, 64);
         }
 
         public bool EndUpdateJobs(CommandBuffer cmdBuffer, int outputByteOffsetL2W, int outputByteOffsetW2L, GraphicsBuffer outputBuffer)
@@ -240,9 +248,7 @@ namespace UnityEngine.Rendering
         {
             m_Transforms.Dispose();
             m_Indices.Dispose();
-            m_CachedPositions.Dispose();
-            m_CachedRotations.Dispose();
-            m_CachedScales.Dispose();
+            m_CachedTransforms.Dispose();
 
             m_UpdateQueueCounter.Dispose();
             m_TransformUpdateIndexQueue.Dispose();
