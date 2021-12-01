@@ -29,14 +29,11 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             #define FSR_INPUT_TEXTURE _SourceTex
             #define FSR_INPUT_SAMPLER sampler_LinearClamp
 
-            // TODO: 16-bit support is currently disabled due to compatibility issues.
-            //       It should be re-enabled once the issues are resolved.
-            /*
             // Only enable 16-bit instructions when the underlying hardware supports them
-            #if HAS_HALF
+            // Note: There are known issues on DX11 drivers so we don't enable 16-bit mode when DX11 is detected
+            #if HAS_HALF && !defined(SHADER_API_D3D11)
                 #define FSR_ENABLE_16BIT 1
             #endif
-            */
 
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/FSRCommon.hlsl"
         #endif
