@@ -823,7 +823,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            ConfigureTarget(m_AdditionalLightsShadowmapHandle, true);
+            ConfigureTarget(m_AdditionalLightsShadowmapHandle);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 

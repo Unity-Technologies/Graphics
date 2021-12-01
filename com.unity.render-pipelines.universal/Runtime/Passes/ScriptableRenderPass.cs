@@ -243,7 +243,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool useNativeRenderPass { get; set; }
 
-        internal bool depthOnly { get; set; }
         // index to track the position in the current frame
         internal int renderPassQueueIndex { get; set; }
 
@@ -299,7 +298,6 @@ namespace UnityEngine.Rendering.Universal
                 GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None,
                 GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None
             };
-            depthOnly = false;
         }
 
         /// <summary>
@@ -492,12 +490,6 @@ namespace UnityEngine.Rendering.Universal
                 m_ColorAttachments[i] = null;
                 m_ColorAttachmentIds[i] = 0;
             }
-        }
-
-        internal void ConfigureTarget(RTHandle colorAttachment, bool depth)
-        {
-            ConfigureTarget(colorAttachment);
-            depthOnly = depth;
         }
 
         /// <summary>
