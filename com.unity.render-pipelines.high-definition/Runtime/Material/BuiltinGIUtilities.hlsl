@@ -5,7 +5,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
 
 // We need to define this before including ProbeVolume.hlsl as that file expects this function to be defined.
-// Explicitly evaluating Ambient Probe is done using a compute buffer directly to avoid frame latency from readback.
+// AmbientProbe Data is fetch directly from a compute buffer to remain on GPU and is preconvolved with clamped cosinus
 real3 EvaluateAmbientProbe(real3 normalWS)
 {
     real4 SHCoefficients[7];

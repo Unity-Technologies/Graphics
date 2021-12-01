@@ -46,7 +46,17 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Checks whether the current state of these settings allows post-processing.
         /// </summary>
-        public virtual bool IsPostProcessingAllowed { get; }
+        public virtual bool IsPostProcessingAllowed
+        {
+            get
+            {
+                // Only enable post-processing if we aren't using certain debug-views.
+                bool postProcessingAllowed = true;
+                foreach (IDebugDisplaySettingsData setting in m_Settings)
+                    postProcessingAllowed &= setting.IsPostProcessingAllowed;
+                return postProcessingAllowed;
+            }
+        }
 
         /// <summary>
         /// Returns true if lighting is active for current state of debug settings.
