@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
-        /// The serialized property for color temperature is stored in the build-in light editor, and we need to use this object to apply the update. 
+        /// The serialized property for color temperature is stored in the build-in light editor, and we need to use this object to apply the update.
         /// </summary>
         /// <param name="value">The value to update</param>
         /// <param name="preset">The preset range</param>
