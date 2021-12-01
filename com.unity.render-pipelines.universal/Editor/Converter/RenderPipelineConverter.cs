@@ -2,6 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("PPv2URPConverters")]
+[assembly: InternalsVisibleTo("Unity.2D.PixelPerfect.Editor")]
 namespace UnityEditor.Rendering.Universal.Converters
 {
     // Might need to change this name before making it public
