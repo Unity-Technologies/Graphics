@@ -183,6 +183,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
+        [SerializeField] bool m_FsrOverrideSharpness = false;
+        [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
         // TODO: Shader Quality Tiers
 
         // Main directional light Settings
@@ -698,6 +700,18 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UpscalingFilter; }
             set { m_UpscalingFilter = value; }
+        }
+
+        public bool fsrOverrideSharpness
+        {
+            get { return m_FsrOverrideSharpness; }
+            set { m_FsrOverrideSharpness = value; }
+        }
+
+        public float fsrSharpness
+        {
+            get { return m_FsrSharpness; }
+            set { m_FsrSharpness = value; }
         }
 
         public LightRenderingMode mainLightRenderingMode

@@ -142,6 +142,8 @@ namespace UnityEngine.Rendering.Universal
         public float renderScale;
         internal ImageScalingMode imageScalingMode;
         internal ImageUpscalingFilter upscalingFilter;
+        internal bool fsrOverrideSharpness;
+        internal float fsrSharpness;
         public bool clearDepth;
         public CameraType cameraType;
         public bool isDefaultViewport;
