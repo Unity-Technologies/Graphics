@@ -1,4 +1,4 @@
-Shader "Universal Render Pipeline/ShaderPassNotSupported"
+Shader "Universal Render Pipeline/MissingDOTSInstancingOn"
 {
     Properties
     {
@@ -27,12 +27,6 @@ Shader "Universal Render Pipeline/ShaderPassNotSupported"
         [HideInInspector] _SampleGI("SampleGI", float) = 0.0 // needed from bakedlit
     }
 
-    HLSLINCLUDE
-
-    #define TRIGGER_SHADER_UNSUPPORTED 1
-
-    ENDHLSL
-
     SubShader
     {
         Tags {"RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="4.5"}
@@ -47,13 +41,7 @@ Shader "Universal Render Pipeline/ShaderPassNotSupported"
             Name "Unlit"
 
             HLSLPROGRAM
-
-            #if TRIGGER_SHADER_UNSUPPORTED
-            #pragma only_renderers ps3 // Attempt to make sure the shader always ends up unsupported
-            #else
             #pragma exclude_renderers gles gles3 glcore
-            #endif
-
             #pragma target 4.5
 
             #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
@@ -64,7 +52,7 @@ Shader "Universal Render Pipeline/ShaderPassNotSupported"
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
+            //#pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile _ DEBUG_DISPLAY

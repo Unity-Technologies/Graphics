@@ -1,4 +1,4 @@
-Shader "HDRP/ShaderPassNotSupported"
+Shader "HDRP/MissingDOTSInstancingOn"
 {
     Properties
     {
@@ -99,9 +99,8 @@ Shader "HDRP/ShaderPassNotSupported"
 
     HLSLINCLUDE
 
-    #define TRIGGER_SHADER_UNSUPPORTED 1
-
     #pragma target 4.5
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -275,7 +274,7 @@ Shader "HDRP/ShaderPassNotSupported"
         Pass
         {
             Name "ForwardOnly"
-            //Tags { "LightMode" = "ForwardOnly" }
+            Tags { "LightMode" = "ForwardOnly" }
 
 
             Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
@@ -294,15 +293,9 @@ Shader "HDRP/ShaderPassNotSupported"
 
             HLSLPROGRAM
 
-            #if TRIGGER_SHADER_UNSUPPORTED
-            #pragma only_renderers ps3 // Attempt to make sure the shader always ends up unsupported
-            #else
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-            #endif
-
             //enable GPU instancing support
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
+            //#pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma multi_compile _ DEBUG_DISPLAY
 
