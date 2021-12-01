@@ -26,9 +26,9 @@ namespace UnityEngine.Rendering
                       0.0,  0.0,  0.0,  1.0
                 */
 
-                 localToWorld0 = new float4(m.m00, m.m10, m.m20, m.m01),
-                 localToWorld1 = new float4(m.m11, m.m21, m.m02, m.m12),
-                 localToWorld2 = new float4(m.m22, m.m03, m.m13, m.m23)
+                localToWorld0 = new float4(m.m00, m.m10, m.m20, m.m01),
+                localToWorld1 = new float4(m.m11, m.m21, m.m02, m.m12),
+                localToWorld2 = new float4(m.m22, m.m03, m.m13, m.m23)
             };
         }
 
