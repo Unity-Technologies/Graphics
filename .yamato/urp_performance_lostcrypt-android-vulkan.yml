@@ -59,7 +59,7 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Lin
 Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_2020.3:
     name: Build URP_Performance_LostCrypt on Android_Vulkan_il2cpp_Linear_performance_playmode_runtime_build_Player on version 2020.3
     agent:
-        type: Unity::VM
+        type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -130,7 +130,7 @@ Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2c
 URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linear_2020.3:
     name: URP_Performance_LostCrypt on Android_Vulkan_performance_build_editmode_il2cpp_Linear on version 2020.3
     agent:
-        type: Unity::VM
+        type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -247,7 +247,7 @@ URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Lin
 Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Performance_LostCrypt on Android_Vulkan_il2cpp_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
+        type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -318,7 +318,7 @@ Build_URP_Performance_LostCrypt_Android_Vulkan_performance_playmode_runtime_il2c
 URP_Performance_LostCrypt_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Performance_LostCrypt on Android_Vulkan_performance_build_editmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
+        type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
