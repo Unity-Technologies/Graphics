@@ -204,7 +204,7 @@ namespace UnityEditor.VFX.Test
             //if (applyChanges) //Needed for retrieving the following contextController
             viewController.ApplyChanges();
 
-            var contextController = viewController.nodes.Where(t => t is VFXContextController && (t as VFXContextController).model == newContext).First() as VFXContextController;
+            var contextController = viewController.nodes.Where(t => t is VFXContextController ctxController && ctxController.model == newContext).First() as VFXContextController;
             foreach (var block in blocks)
             {
                 var newBlock = block.CreateInstance();
