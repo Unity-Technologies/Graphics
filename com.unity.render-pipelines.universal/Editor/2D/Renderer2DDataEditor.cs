@@ -16,16 +16,18 @@ namespace UnityEditor.Rendering.Universal
 
     enum ShowUIRenderer2DData
     {
-        General = 1 << 0,
-        LightingRenderTexture = 1 << 1,
-        LightingBlendStyles = 1 << 2,
-        CameraSortingLayerTexture = 1 << 3,
-        RendererFeatures = 1 << 4,
+        All = 1 << 0,
+        General = 1 << 1,
+        LightingRenderTexture = 1 << 2,
+        LightingBlendStyles = 1 << 3,
+        CameraSortingLayerTexture = 1 << 4,
+        RendererFeatures = 1 << 5,
 
     }
 
     class SerializedRenderer2DData
     {
+        public SerializedProperty name;
         public SerializedProperty HDREmulationScale;
         public SerializedProperty lightRenderTextureScale;
         public SerializedProperty lightBlendStyles;
@@ -41,31 +43,30 @@ namespace UnityEditor.Rendering.Universal
         public ScriptableRendererFeatureEditor rendererFeatureEditor;
 
         public Analytics.Renderer2DAnalytics m_Analytics = Analytics.Renderer2DAnalytics.instance;
-        public Renderer2DData asset;
+        public Renderer2DData data;
         public bool m_WasModified;
 
-        public SerializedObject serializedObject;
-        public Editor ownerEditor;
+        public SerializedProperty serializedProperty;
 
         public ExpandedState<ShowUIRenderer2DData, Renderer2DData> k_showUI { get; }
 
-        public SerializedRenderer2DData(Editor ownerEditor, int index)
+        public SerializedRenderer2DData(SerializedProperty serializedProperty, int index)
         {
-            this.ownerEditor = ownerEditor;
-            serializedObject = ownerEditor.serializedObject;
+            this.serializedProperty = serializedProperty;
+            data = (serializedProperty.serializedObject.targetObject as UniversalRenderPipelineAsset).m_RendererDataList[index] as Renderer2DData;
 
             m_WasModified = false;
-            asset = (Renderer2DData)serializedObject.targetObject;
 
-            HDREmulationScale = serializedObject.FindProperty("m_HDREmulationScale");
-            lightRenderTextureScale = serializedObject.FindProperty("m_LightRenderTextureScale");
-            lightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
-            maxLightRenderTextureCount = serializedObject.FindProperty("m_MaxLightRenderTextureCount");
-            maxShadowRenderTextureCount = serializedObject.FindProperty("m_MaxShadowRenderTextureCount");
+            name = serializedProperty.FindPropertyRelative(nameof(ScriptableRendererData.name));
+            HDREmulationScale = serializedProperty.FindPropertyRelative("m_HDREmulationScale");
+            lightRenderTextureScale = serializedProperty.FindPropertyRelative("m_LightRenderTextureScale");
+            lightBlendStyles = serializedProperty.FindPropertyRelative("m_LightBlendStyles");
+            maxLightRenderTextureCount = serializedProperty.FindPropertyRelative("m_MaxLightRenderTextureCount");
+            maxShadowRenderTextureCount = serializedProperty.FindPropertyRelative("m_MaxShadowRenderTextureCount");
 
-            useCameraSortingLayersTexture = serializedObject.FindProperty("m_UseCameraSortingLayersTexture");
-            cameraSortingLayersTextureBound = serializedObject.FindProperty("m_CameraSortingLayersTextureBound");
-            cameraSortingLayerDownsamplingMethod = serializedObject.FindProperty("m_CameraSortingLayerDownsamplingMethod");
+            useCameraSortingLayersTexture = serializedProperty.FindPropertyRelative("m_UseCameraSortingLayersTexture");
+            cameraSortingLayersTextureBound = serializedProperty.FindPropertyRelative("m_CameraSortingLayersTextureBound");
+            cameraSortingLayerDownsamplingMethod = serializedProperty.FindPropertyRelative("m_CameraSortingLayerDownsamplingMethod");
 
             int numBlendStyles = lightBlendStyles.arraySize;
             lightBlendStylePropsArray = new LightBlendStyleProps[numBlendStyles];
@@ -87,15 +88,15 @@ namespace UnityEditor.Rendering.Universal
                     props.blendFactorAdditive = blendStyleProp.FindPropertyRelative("customBlendFactors.additve");
             }
 
-            useDepthStencilBuffer = serializedObject.FindProperty("m_UseDepthStencilBuffer");
+            useDepthStencilBuffer = serializedProperty.FindPropertyRelative("m_UseDepthStencilBuffer");
 
-            rendererFeatureEditor = new ScriptableRendererFeatureEditor(ownerEditor);
+            rendererFeatureEditor = new ScriptableRendererFeatureEditor(serializedProperty.FindPropertyRelative(nameof(ScriptableRendererData.m_RendererFeatures)));
 
             k_showUI = new(ShowUIRenderer2DData.General, $"{index}_URP");
         }
     }
 
-    [CustomEditor(typeof(Renderer2DData), true)]
+    [CustomPropertyDrawer(typeof(Renderer2DData), false)]
     internal class Renderer2DDataEditor : ScriptableRendererDataEditor
     {
         class Styles
@@ -124,13 +125,13 @@ namespace UnityEditor.Rendering.Universal
         }
 
         SerializedRenderer2DData serialized;
+        int lastIndex = -1;
 
         void SendModifiedAnalytics(Analytics.IAnalytics analytics)
         {
             if (serialized.m_WasModified)
             {
                 Analytics.RendererAssetData modifiedData = new Analytics.RendererAssetData();
-                modifiedData.instance_id = serialized.asset.GetInstanceID();
                 modifiedData.was_create_event = false;
                 modifiedData.blending_layers_count = 0;
                 modifiedData.blending_modes_used = 0;
@@ -138,19 +139,42 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        private new void OnEnable()
+
+
+        private void Init(SerializedProperty property)
         {
-            serialized = new SerializedRenderer2DData(this, 0);
+            if (serialized != null && property != serialized.serializedProperty || lastIndex != index)
+            {
+                OnDestroy();
+                serialized = new SerializedRenderer2DData(property, index);
+                lastIndex = index;
+            }
+        }
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            Init(property);
+            DrawGUI(position);
         }
 
         private void OnDestroy()
         {
-            SendModifiedAnalytics(serialized.m_Analytics);
+            if (serialized != null)
+                SendModifiedAnalytics(serialized.m_Analytics);
         }
 
-        public override void OnInspectorGUI()
+        public void DrawGUI(Rect position)
         {
-            serializedObject.Update();
+            EditorGUI.BeginProperty(position, new GUIContent(serialized.name.stringValue), serialized.serializedProperty);
+            CED.FoldoutGroup(new GUIContent(serialized.name.stringValue),
+                ShowUIRenderer2DData.All, serialized.k_showUI,
+                FoldoutOption.Boxed, DrawRenderer).Draw(serialized, null);
+            EditorGUI.EndProperty();
+        }
+
+        void DrawRenderer(SerializedRenderer2DData serialized, Editor ownerEditor)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
             CED.Group(
                 CED.FoldoutGroup(Styles.generalHeader,
                     ShowUIRenderer2DData.General, serialized.k_showUI,
@@ -167,13 +191,13 @@ namespace UnityEditor.Rendering.Universal
                 CED.FoldoutGroup(Styles.rendererFeaturesHeader,
                     ShowUIRenderer2DData.RendererFeatures, serialized.k_showUI,
                     FoldoutOption.SubFoldout, DrawRendererFeatures)
-            ).Draw(serialized, this);
-
-            serialized.m_WasModified |= serializedObject.hasModifiedProperties;
-            serializedObject.ApplyModifiedProperties();
+            ).Draw(serialized, null);
+            if (EditorGUI.EndChangeCheck())
+            {
+                serialized.m_WasModified |= true;
+            }
+            EditorGUI.indentLevel--;
         }
-
-
 
         private static void DrawGeneral(SerializedRenderer2DData serialized, Editor ownerEditor)
         {

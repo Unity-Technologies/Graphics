@@ -8,10 +8,11 @@ namespace UnityEditor.Rendering.Universal
 
     enum ShowUIUniversalRendererData
     {
-        General = 1 << 0,
-        Lighting = 1 << 1,
-        Shadow = 1 << 2,
-        RendererFeatures = 1 << 3,
+        All = 1 << 0,
+        General = 1 << 1,
+        Lighting = 1 << 2,
+        Shadow = 1 << 3,
+        RendererFeatures = 1 << 4,
     }
     enum ShowAdditionalUIUniversalRendererData
     {
@@ -33,6 +34,8 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty shadowTransparentReceiveProp;
         public SerializedProperty intermediateTextureMode;
 
+
+        public SerializedProperty name { get; }
         public SerializedProperty mainLightRenderingModeProp { get; }
         public SerializedProperty mainLightShadowsSupportedProp { get; }
         public SerializedProperty mainLightShadowmapResolutionProp { get; }
@@ -70,77 +73,78 @@ namespace UnityEditor.Rendering.Universal
         public EditorPrefBoolFlags<EditorUtils.Unit> state;
 
 
+        public SerializedProperty serializedProperty;
+        public UniversalRendererData data;
         public ScriptableRendererFeatureEditor rendererFeatureEditor;
-        public Editor ownerEditor;
-        public SerializedObject serializedObject;
 
         public ExpandedState<ShowUIUniversalRendererData, UniversalRendererData> k_showUI { get; }
         public AdditionalPropertiesState<ShowAdditionalUIUniversalRendererData, UniversalRendererData> k_showUIAdditional { get; }
 
-        public SerializedUniversalRendererData(Editor ownerEditor, int index)
+        public SerializedUniversalRendererData(SerializedProperty serializedProperty, int index)
         {
-            this.ownerEditor = ownerEditor;
-            serializedObject = ownerEditor.serializedObject;
+            this.serializedProperty = serializedProperty;
+            data = (serializedProperty.serializedObject.targetObject as UniversalRenderPipelineAsset).m_RendererDataList[index] as UniversalRendererData;
 
-            opaqueLayerMask = serializedObject.FindProperty("m_OpaqueLayerMask");
-            transparentLayerMask = serializedObject.FindProperty("m_TransparentLayerMask");
-            renderingMode = serializedObject.FindProperty("m_RenderingMode");
-            depthPrimingMode = serializedObject.FindProperty("m_DepthPrimingMode");
-            copyDepthMode = serializedObject.FindProperty("m_CopyDepthMode");
-            accurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
-            clusteredRendering = serializedObject.FindProperty("m_ClusteredRendering");
-            tileSize = serializedObject.FindProperty("m_TileSize");
-            defaultStencilState = serializedObject.FindProperty("m_DefaultStencilState");
-            shaders = serializedObject.FindProperty("shaders");
-            shadowTransparentReceiveProp = serializedObject.FindProperty("m_ShadowTransparentReceive");
-            intermediateTextureMode = serializedObject.FindProperty("m_IntermediateTextureMode");
+            name = serializedProperty.FindPropertyRelative(nameof(ScriptableRendererData.name));
+            opaqueLayerMask = serializedProperty.FindPropertyRelative("m_OpaqueLayerMask");
+            transparentLayerMask = serializedProperty.FindPropertyRelative("m_TransparentLayerMask");
+            renderingMode = serializedProperty.FindPropertyRelative("m_RenderingMode");
+            depthPrimingMode = serializedProperty.FindPropertyRelative("m_DepthPrimingMode");
+            copyDepthMode = serializedProperty.FindPropertyRelative("m_CopyDepthMode");
+            accurateGbufferNormals = serializedProperty.FindPropertyRelative("m_AccurateGbufferNormals");
+            clusteredRendering = serializedProperty.FindPropertyRelative("m_ClusteredRendering");
+            tileSize = serializedProperty.FindPropertyRelative("m_TileSize");
+            defaultStencilState = serializedProperty.FindPropertyRelative("m_DefaultStencilState");
+            shaders = serializedProperty.FindPropertyRelative("shaders");
+            shadowTransparentReceiveProp = serializedProperty.FindPropertyRelative("m_ShadowTransparentReceive");
+            intermediateTextureMode = serializedProperty.FindPropertyRelative("m_IntermediateTextureMode");
 
-            mainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
-            mainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");
-            mainLightShadowmapResolutionProp = serializedObject.FindProperty("m_MainLightShadowmapResolution");
+            mainLightRenderingModeProp = serializedProperty.FindPropertyRelative("m_MainLightRenderingMode");
+            mainLightShadowsSupportedProp = serializedProperty.FindPropertyRelative("m_MainLightShadowsSupported");
+            mainLightShadowmapResolutionProp = serializedProperty.FindPropertyRelative("m_MainLightShadowmapResolution");
 
-            additionalLightsRenderingModeProp = serializedObject.FindProperty("m_AdditionalLightsRenderingMode");
-            additionalLightsPerObjectLimitProp = serializedObject.FindProperty("m_AdditionalLightsPerObjectLimit");
-            additionalLightShadowsSupportedProp = serializedObject.FindProperty("m_AdditionalLightShadowsSupported");
-            additionalLightShadowmapResolutionProp = serializedObject.FindProperty("m_AdditionalLightsShadowmapResolution");
+            additionalLightsRenderingModeProp = serializedProperty.FindPropertyRelative("m_AdditionalLightsRenderingMode");
+            additionalLightsPerObjectLimitProp = serializedProperty.FindPropertyRelative("m_AdditionalLightsPerObjectLimit");
+            additionalLightShadowsSupportedProp = serializedProperty.FindPropertyRelative("m_AdditionalLightShadowsSupported");
+            additionalLightShadowmapResolutionProp = serializedProperty.FindPropertyRelative("m_AdditionalLightsShadowmapResolution");
 
-            additionalLightsShadowResolutionTierLowProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierLow");
-            additionalLightsShadowResolutionTierMediumProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierMedium");
-            additionalLightsShadowResolutionTierHighProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierHigh");
+            additionalLightsShadowResolutionTierLowProp = serializedProperty.FindPropertyRelative("m_AdditionalLightsShadowResolutionTierLow");
+            additionalLightsShadowResolutionTierMediumProp = serializedProperty.FindPropertyRelative("m_AdditionalLightsShadowResolutionTierMedium");
+            additionalLightsShadowResolutionTierHighProp = serializedProperty.FindPropertyRelative("m_AdditionalLightsShadowResolutionTierHigh");
 
-            additionalLightCookieResolutionProp = serializedObject.FindProperty("m_AdditionalLightsCookieResolution");
-            additionalLightCookieFormatProp = serializedObject.FindProperty("m_AdditionalLightsCookieFormat");
+            additionalLightCookieResolutionProp = serializedProperty.FindPropertyRelative("m_AdditionalLightsCookieResolution");
+            additionalLightCookieFormatProp = serializedProperty.FindPropertyRelative("m_AdditionalLightsCookieFormat");
 
-            reflectionProbeBlendingProp = serializedObject.FindProperty("m_ReflectionProbeBlending");
-            reflectionProbeBoxProjectionProp = serializedObject.FindProperty("m_ReflectionProbeBoxProjection");
+            reflectionProbeBlendingProp = serializedProperty.FindPropertyRelative("m_ReflectionProbeBlending");
+            reflectionProbeBoxProjectionProp = serializedProperty.FindPropertyRelative("m_ReflectionProbeBoxProjection");
 
-            shadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
+            shadowDistanceProp = serializedProperty.FindPropertyRelative("m_ShadowDistance");
 
-            shadowCascadeCountProp = serializedObject.FindProperty("m_ShadowCascadeCount");
-            shadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");
-            shadowCascade3SplitProp = serializedObject.FindProperty("m_Cascade3Split");
-            shadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
-            shadowCascadeBorderProp = serializedObject.FindProperty("m_CascadeBorder");
-            shadowDepthBiasProp = serializedObject.FindProperty("m_ShadowDepthBias");
-            shadowNormalBiasProp = serializedObject.FindProperty("m_ShadowNormalBias");
-            softShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
-            conservativeEnclosingSphereProp = serializedObject.FindProperty("m_ConservativeEnclosingSphere");
+            shadowCascadeCountProp = serializedProperty.FindPropertyRelative("m_ShadowCascadeCount");
+            shadowCascade2SplitProp = serializedProperty.FindPropertyRelative("m_Cascade2Split");
+            shadowCascade3SplitProp = serializedProperty.FindPropertyRelative("m_Cascade3Split");
+            shadowCascade4SplitProp = serializedProperty.FindPropertyRelative("m_Cascade4Split");
+            shadowCascadeBorderProp = serializedProperty.FindPropertyRelative("m_CascadeBorder");
+            shadowDepthBiasProp = serializedProperty.FindPropertyRelative("m_ShadowDepthBias");
+            shadowNormalBiasProp = serializedProperty.FindPropertyRelative("m_ShadowNormalBias");
+            softShadowsSupportedProp = serializedProperty.FindPropertyRelative("m_SoftShadowsSupported");
+            conservativeEnclosingSphereProp = serializedProperty.FindPropertyRelative("m_ConservativeEnclosingSphere");
 
 
-            mixedLightingSupportedProp = serializedObject.FindProperty("m_MixedLightingSupported");
-            supportsLightLayers = serializedObject.FindProperty("m_SupportsLightLayers");
+            mixedLightingSupportedProp = serializedProperty.FindPropertyRelative("m_MixedLightingSupported");
+            supportsLightLayers = serializedProperty.FindPropertyRelative("m_SupportsLightLayers");
 
             string Key = "Universal_Shadow_Setting_Unit:UI_State";
             state = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
             k_showUI = new(ShowUIUniversalRendererData.General, $"{index}_URP");
             k_showUIAdditional = new(0, $"{index}_URP");
 
-            rendererFeatureEditor = new ScriptableRendererFeatureEditor(ownerEditor);
+            rendererFeatureEditor = new ScriptableRendererFeatureEditor(serializedProperty.FindPropertyRelative(nameof(ScriptableRendererData.m_RendererFeatures)));
         }
     }
 
-    [CustomEditor(typeof(UniversalRendererData), true)]
-    public class UniversalRendererDataEditor : Editor
+    [CustomPropertyDrawer(typeof(UniversalRendererData), false)]
+    public class UniversalRendererDataEditor : ScriptableRendererDataEditor
     {
         internal static class Styles
         {
@@ -218,16 +222,34 @@ namespace UnityEditor.Rendering.Universal
 
 
         SerializedUniversalRendererData serialized;
-        private void OnEnable()
+        int lastIndex = -1;
+        private void Init(SerializedProperty property)
         {
-            serialized = new SerializedUniversalRendererData(this, 0);
+            if (serialized != null && property != serialized.serializedProperty || index != lastIndex)
+            {
+                serialized = new SerializedUniversalRendererData(property, index);
+                lastIndex = index;
+            }
+        }
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            Init(property);
+            DrawGUI(position);
         }
 
 
-
-        public override void OnInspectorGUI()
+        public void DrawGUI(Rect position)
         {
-            serializedObject.Update();
+            EditorGUI.BeginProperty(position, new GUIContent(serialized.name.stringValue), serialized.serializedProperty);
+            CED.AdditionalPropertiesFoldoutGroup(new GUIContent(serialized.name.stringValue),
+                ShowUIUniversalRendererData.All, serialized.k_showUI, ShowAdditionalUIUniversalRendererData.Show, serialized.k_showUIAdditional,
+                DrawRenderer, DrawRendererAdditional, FoldoutOption.Boxed).Draw(serialized, null);
+            EditorGUI.EndProperty();
+        }
+
+        static void DrawRenderer(SerializedUniversalRendererData serialized, Editor ownerEditor)
+        {
+            EditorGUI.indentLevel++;
             CED.Group(
                 CED.FoldoutGroup(Styles.generalSettingsText,
                     ShowUIUniversalRendererData.General, serialized.k_showUI,
@@ -243,25 +265,27 @@ namespace UnityEditor.Rendering.Universal
                 CED.FoldoutGroup(Styles.rendererFeatureSettingsText,
                     ShowUIUniversalRendererData.RendererFeatures, serialized.k_showUI,
                     FoldoutOption.SubFoldout, DrawRendererFeatures)
-            ).Draw(serialized, this);
+            ).Draw(serialized, ownerEditor);
 
             // Add a "Reload All" button in inspector when we are in developer's mode
             if (EditorPrefs.GetBool("DeveloperMode"))
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(serialized.shaders, true);
-
-                if (GUILayout.Button("Reload All"))
+                if (serialized.shaders.isExpanded)
                 {
-                    var resources = target as UniversalRendererData;
-                    resources.shaders = null;
-                    ResourceReloader.ReloadAllNullIn(target, UniversalRenderPipelineAsset.packagePath);
+                    if (GUILayout.Button("Reload All"))
+                    {
+                        serialized.data.shaders = null;
+                        ResourceReloader.ReloadAllNullIn(serialized.data, UniversalRenderPipelineAsset.packagePath);
+                    }
                 }
+                EditorGUI.indentLevel--;
             }
-            serializedObject.ApplyModifiedProperties();
+            EditorGUI.indentLevel--;
 
         }
-
+        static void DrawRendererAdditional(SerializedUniversalRendererData serialized, Editor ownerEditor) { }
         static void DrawGeneral(SerializedUniversalRendererData serialized, Editor ownerEditor)
         {
             EditorGUI.indentLevel += 2;
@@ -497,7 +521,6 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.conservativeEnclosingSphereProp, Styles.conservativeEnclosingSphere);
             EditorGUI.indentLevel -= 2;
         }
-
 
         static void DrawCascadeSliders(SerializedUniversalRendererData serialized, int splitCount, bool useMetric, float baseMetric)
         {

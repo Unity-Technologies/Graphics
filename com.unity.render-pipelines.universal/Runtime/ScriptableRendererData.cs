@@ -13,8 +13,10 @@ namespace UnityEngine.Rendering.Universal
     /// Class <c>ScriptableRendererData</c> contains resources for a <c>ScriptableRenderer</c>.
     /// <seealso cref="ScriptableRenderer"/>
     /// </summary>
-    public abstract class ScriptableRendererData : ScriptableObject
+    [Serializable]
+    public abstract class ScriptableRendererData
     {
+        public string name;
         internal bool isInvalidated { get; set; }
 
         /// <summary>
@@ -51,13 +53,18 @@ namespace UnityEngine.Rendering.Universal
             get => m_RendererFeatures;
         }
 
+        public ScriptableRendererData()
+        {
+            name = this.GetType().Name;
+        }
+
         /// <summary>
         /// Use SetDirty when changing seeings in the ScriptableRendererData.
         /// It will rebuild the render passes with the new data.
         /// </summary>
         public new void SetDirty()
         {
-            isInvalidated = true;
+            //isInvalidated = true;
         }
 
         internal ScriptableRenderer InternalCreateRenderer()

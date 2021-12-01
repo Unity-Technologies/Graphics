@@ -8,22 +8,15 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [CustomEditor(typeof(ScriptableRendererData), true)]
-    public class ScriptableRendererDataEditor : Editor
+    public class ScriptableRendererDataEditor : PropertyDrawer
     {
-        private ScriptableRendererFeatureEditor m_rendererFeatureEditor;
+        protected static int index = -1;
 
-        protected void OnEnable()
+        internal static void DrawRenderer(Editor ownerEditor, int index, SerializedProperty serializedProperty)
         {
-            m_rendererFeatureEditor = new ScriptableRendererFeatureEditor(this);
-        }
-
-
-        public override void OnInspectorGUI()
-        {
-            serializedObject.Update();
-            m_rendererFeatureEditor.DrawRendererFeatures();
-            serializedObject.ApplyModifiedProperties();
+            ScriptableRendererDataEditor.index = index;
+            EditorGUILayout.PropertyField(serializedProperty);
+            ScriptableRendererDataEditor.index = -1;
         }
     }
 }

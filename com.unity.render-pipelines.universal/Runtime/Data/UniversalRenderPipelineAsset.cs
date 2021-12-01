@@ -79,10 +79,10 @@ namespace UnityEngine.Rendering.Universal
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
         [EditorBrowsable(EditorBrowsableState.Never)]
-        [SerializeField] internal ScriptableRendererData m_RendererData = null;
+        [SerializeReference] internal ScriptableRendererData m_RendererData = null;
 
         // Renderer settings
-        [SerializeField] internal ScriptableRendererData[] m_RendererDataList = new ScriptableRendererData[1];
+        [SerializeReference] internal ScriptableRendererData[] m_RendererDataList = new ScriptableRendererData[1];
         [SerializeField] internal int m_DefaultRendererIndex = 0;
 
         // Quality settings
@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.Universal
             if (rendererData != null)
                 instance.m_RendererDataList[0] = rendererData;
             else
-                instance.m_RendererDataList[0] = CreateInstance<UniversalRendererData>();
+                instance.m_RendererDataList[0] = new UniversalRendererData();
 
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.Universal
                     $"{Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path))}_{suffix}{Path.GetExtension(path)}";
             else
                 dataPath = path;
-            AssetDatabase.CreateAsset(data, dataPath);
+            //AssetDatabase.CreateAsset(data, dataPath);
             ResourceReloader.ReloadAllNullIn(data, packagePath);
             return data;
         }
@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering.Universal
                 case RendererType.UniversalRenderer:
                 default:
                 {
-                    var rendererData = CreateInstance<UniversalRendererData>();
+                    var rendererData = new UniversalRendererData();
                     if (UniversalRenderPipelineGlobalSettings.instance.postProcessData == null)
                         UniversalRenderPipelineGlobalSettings.instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
                     return rendererData;
@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering.Universal
                 // 2D renderer is experimental
                 case RendererType._2DRenderer:
                 {
-                    var rendererData = CreateInstance<Renderer2DData>();
+                    var rendererData = new Renderer2DData();
                     if (UniversalRenderPipelineGlobalSettings.instance.postProcessData == null)
                         UniversalRenderPipelineGlobalSettings.instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
                     return rendererData;
@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 #endif
-
+        /*
         public ScriptableRendererData LoadBuiltinRendererData(RendererType type = RendererType.UniversalRenderer)
         {
 #if UNITY_EDITOR
@@ -216,22 +216,22 @@ namespace UnityEngine.Rendering.Universal
             return m_RendererDataList[0];
 #endif
         }
-
+        */
         protected override RenderPipeline CreatePipeline()
         {
             if (m_RendererDataList == null)
                 m_RendererDataList = new ScriptableRendererData[1];
 
             // If no default data we can't create pipeline instance
-            if (m_RendererDataList[m_DefaultRendererIndex] == null)
+            if (m_RendererDataList[m_DefaultRendererIndex] == null || m_RendererDataList.Length <= 0)
             {
                 // If previous version and current version are miss-matched then we are waiting for the upgrader to kick in
                 if (k_AssetPreviousVersion != k_AssetVersion)
                     return null;
 
-                if (m_RendererDataList[m_DefaultRendererIndex].GetType().ToString()
-                    .Contains("Universal.ForwardRendererData"))
-                    return null;
+                //if (m_RendererDataList[m_DefaultRendererIndex].GetType().ToString()
+                //    .Contains("Universal.ForwardRendererData"))
+                //    return null;
 
                 Debug.LogError(
                     $"Default Renderer is missing, make sure there is a Renderer assigned as the default on the current Universal RP asset:{UniversalRenderPipeline.asset.name}",
@@ -701,12 +701,13 @@ namespace UnityEngine.Rendering.Universal
             }
 
 #if UNITY_EDITOR
-            if (k_AssetPreviousVersion != k_AssetVersion)
-            {
-                EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
-            }
+            //if (k_AssetPreviousVersion != k_AssetVersion)
+            //{
+            //    EditorApplication.delayCall += () => UpgradeAsset(this.GetInstanceID());
+            //}
 #endif
         }
+        /*
 
 #if UNITY_EDITOR
         static void UpgradeAsset(int assetInstanceID)
@@ -742,6 +743,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #endif
+        */
 
         /// <summary>
         /// Check to see if the RendererData list contains valid RendererData references.

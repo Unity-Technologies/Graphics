@@ -1,4 +1,5 @@
 using UnityEditorInternal;
+using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -32,13 +33,12 @@ namespace UnityEditor.Rendering.Universal
             asset = serializedObject.targetObject as UniversalRenderPipelineAsset;
             this.serializedObject = serializedObject;
 
-            requireDepthTextureProp = serializedObject.FindProperty("m_RequireDepthTexture");
-            requireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
-            opaqueDownsamplingProp = serializedObject.FindProperty("m_OpaqueDownsampling");
+            rendererDataProp = serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_RendererDataList));
+            defaultRendererProp = serializedObject.FindProperty(nameof(UniversalRenderPipelineAsset.m_DefaultRendererIndex));
+
 
             hdr = serializedObject.FindProperty("m_SupportsHDR");
             msaa = serializedObject.FindProperty("m_MSAA");
-            renderScale = serializedObject.FindProperty("m_RenderScale");
 
 
             srpBatcher = serializedObject.FindProperty("m_UseSRPBatcher");

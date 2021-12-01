@@ -22,12 +22,10 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedProperty m_rendererFeatures;
         ReorderableList m_rendererFeaturesList;
-        Editor ownerEditor;
 
-        internal ScriptableRendererFeatureEditor(Editor editor)
+        internal ScriptableRendererFeatureEditor(SerializedProperty rendererFeatures)
         {
-            ownerEditor = editor;
-            m_rendererFeatures = ownerEditor.serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatures));
+            m_rendererFeatures = rendererFeatures;
             CreateRendererReorderableList();
         }
 
@@ -38,7 +36,7 @@ namespace UnityEditor.Rendering.Universal
 
         void CreateRendererReorderableList()
         {
-            m_rendererFeaturesList = new ReorderableList(ownerEditor.serializedObject, m_rendererFeatures, true, true, true, true)
+            m_rendererFeaturesList = new ReorderableList(m_rendererFeatures.serializedObject, m_rendererFeatures, true, true, true, true)
             {
                 drawElementCallback = OnDrawElement,
                 drawHeaderCallback = (Rect rect) => { EditorGUI.LabelField(rect, Styles.RendererFeatureOrder); },
@@ -50,7 +48,7 @@ namespace UnityEditor.Rendering.Universal
 
         void OnAddDropdownCallback(Rect rect, ReorderableList reorderableList)
         {
-            ScriptableRendererFeatureSelectionDropdown menu = new ScriptableRendererFeatureSelectionDropdown(m_rendererFeatures, ownerEditor);
+            ScriptableRendererFeatureSelectionDropdown menu = new ScriptableRendererFeatureSelectionDropdown(m_rendererFeatures);
             menu.Show(rect);
         }
 

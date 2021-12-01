@@ -1,3 +1,4 @@
+using System;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
@@ -8,11 +9,8 @@ namespace UnityEditor.Rendering.Universal
     [CustomEditor(typeof(UniversalRenderPipelineAsset)), CanEditMultipleObjects]
     public class UniversalRenderPipelineAssetEditor : Editor
     {
-        SerializedProperty m_RendererDataProp;
-        SerializedProperty m_DefaultRendererProp;
-
-        internal ReorderableList rendererList => m_RendererDataList;
-        ReorderableList m_RendererDataList;
+        //internal ReorderableList rendererList => m_RendererDataList;
+        //ReorderableList m_RendererDataList;
 
         private SerializedUniversalRenderPipelineAsset m_SerializedURPAsset;
 
@@ -26,9 +24,8 @@ namespace UnityEditor.Rendering.Universal
         void OnEnable()
         {
             m_SerializedURPAsset = new SerializedUniversalRenderPipelineAsset(serializedObject);
-            CreateRendererReorderableList();
         }
-
+        /*
         void CreateRendererReorderableList()
         {
             m_RendererDataProp = serializedObject.FindProperty("m_RendererDataList");
@@ -106,7 +103,13 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (GUI.Button(selectRect, index == defaultRenderer ? Styles.rendererDefaultMissingText : Styles.rendererMissingText))
                 {
-                    EditorGUIUtility.ShowObjectPicker<ScriptableRendererData>(null, false, null, index);
+                    TypeCache.TypeCollection rendererDataTypes = TypeCache.GetTypesDerivedFrom<ScriptableRendererData>();
+                    GenericMenu menu = new GenericMenu();
+                    foreach (var rendererDataType in rendererDataTypes)
+                    {
+                        menu.AddItem(new GUIContent(rendererDataType.Name), false, () => asset.m_RendererDataList[index] = (ScriptableRendererData)Activator.CreateInstance(rendererDataType));
+                    }
+                    menu.ShowAsContext();
                 }
             }
 
@@ -116,40 +119,6 @@ namespace UnityEditor.Rendering.Universal
                 m_RendererDataProp.GetArrayElementAtIndex(index).objectReferenceValue = EditorGUIUtility.GetObjectPickerObject();
             }
         }
-
-        void UpdateDefaultRendererValue(int index)
-        {
-            // If the index that is being removed is lower than the default renderer value,
-            // the default prop value needs to be one lower.
-            if (index < m_DefaultRendererProp.intValue)
-            {
-                m_DefaultRendererProp.intValue--;
-            }
-        }
-
-        void UpdateDefaultRendererValue(int prevIndex, int newIndex)
-        {
-            // If we are moving the index that is the same as the default renderer we need to update that
-            if (prevIndex == m_DefaultRendererProp.intValue)
-            {
-                m_DefaultRendererProp.intValue = newIndex;
-            }
-            // If newIndex is the same as default
-            // then we need to know if newIndex is above or below the default index
-            else if (newIndex == m_DefaultRendererProp.intValue)
-            {
-                m_DefaultRendererProp.intValue += prevIndex > newIndex ? 1 : -1;
-            }
-            // If the old index is lower than default renderer and
-            // the new index is higher then we need to move the default renderer index one lower
-            else if (prevIndex < m_DefaultRendererProp.intValue && newIndex > m_DefaultRendererProp.intValue)
-            {
-                m_DefaultRendererProp.intValue--;
-            }
-            else if (newIndex < m_DefaultRendererProp.intValue && prevIndex > m_DefaultRendererProp.intValue)
-            {
-                m_DefaultRendererProp.intValue++;
-            }
-        }
+            */
     }
 }

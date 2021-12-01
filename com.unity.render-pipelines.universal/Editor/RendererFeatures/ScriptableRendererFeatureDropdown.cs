@@ -13,12 +13,11 @@ namespace UnityEditor.Rendering.Universal
     internal class ScriptableRendererFeatureSelectionDropdown : AdvancedDropdown
     {
         SerializedProperty rendererFeatures;
-        Editor ownerEditor;
-        public ScriptableRendererFeatureSelectionDropdown(SerializedProperty rendererFeatures, Editor ownerEditor)
+
+        public ScriptableRendererFeatureSelectionDropdown(SerializedProperty rendererFeatures)
             : base(new AdvancedDropdownState())
         {
             this.rendererFeatures = rendererFeatures;
-            this.ownerEditor = ownerEditor;
             // Adjust the minimum size of the dropdown menu by changing this variable "minimumSize".
             minimumSize = new Vector2(250, 200);
         }
@@ -70,7 +69,7 @@ namespace UnityEditor.Rendering.Universal
             ((ScriptableRendererFeature)instance).name = leaf.Title;
             rendererFeature.managedReferenceValue = instance;
 
-            ownerEditor.serializedObject.ApplyModifiedProperties();
+            rendererFeatures.serializedObject.ApplyModifiedProperties();
         }
     }
 

@@ -10,26 +10,6 @@ namespace UnityEditor.Rendering.Universal
 {
     static class Renderer2DMenus
     {
-        static void Create2DRendererData(Action<Renderer2DData> onCreatedCallback)
-        {
-            var instance = ScriptableObject.CreateInstance<Create2DRendererDataAsset>();
-            instance.onCreated += onCreatedCallback;
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, instance, "New 2D Renderer Data.asset", null, null);
-        }
-
-        class Create2DRendererDataAsset : EndNameEditAction
-        {
-            public event Action<Renderer2DData> onCreated;
-
-            public override void Action(int instanceId, string pathName, string resourceFile)
-            {
-                var instance = UniversalRenderPipelineAsset.CreateRendererAsset(pathName, RendererType._2DRenderer, false) as Renderer2DData;
-                Selection.activeObject = instance;
-
-                onCreated?.Invoke(instance);
-            }
-        }
-
         internal static void PlaceGameObjectInFrontOfSceneView(GameObject go)
         {
             var sceneViews = SceneView.sceneViews;
@@ -177,20 +157,6 @@ namespace UnityEditor.Rendering.Universal
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, UniversalRenderPipelineAsset.CreateInstance<CreateUniversalPipelineAsset>(),
                 "New Universal Render Pipeline Asset.asset", null, null);
-        }
-
-        [MenuItem("Assets/Create/Rendering/URP 2D Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 1)]
-        static void Create2DRendererData()
-        {
-            Renderer2DMenus.Create2DRendererData((instance) =>
-            {
-                Analytics.RendererAssetData modifiedData = new Analytics.RendererAssetData();
-                modifiedData.instance_id = instance.GetInstanceID();
-                modifiedData.was_create_event = true;
-                modifiedData.blending_layers_count = 1;
-                modifiedData.blending_modes_used = 2;
-                Analytics.Renderer2DAnalytics.instance.SendData(Analytics.AnalyticsDataTypes.k_Renderer2DDataString, modifiedData);
-            });
         }
     }
 }

@@ -112,6 +112,9 @@ namespace UnityEngine.Rendering.Universal
         internal int cameraSortingLayerTextureBound => m_CameraSortingLayersTextureBound;
         internal Downsampling cameraSortingLayerDownsamplingMethod => m_CameraSortingLayerDownsamplingMethod;
 
+
+        public Renderer2DData() : base() { }
+
         /// <summary>
         /// Creates the instance of the Renderer2D.
         /// </summary>

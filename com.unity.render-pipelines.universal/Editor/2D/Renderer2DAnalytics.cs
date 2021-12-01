@@ -31,8 +31,6 @@ namespace UnityEditor.Rendering.Universal.Analytics
         [SerializeField]
         public bool was_create_event;
         [SerializeField]
-        public int instance_id;
-        [SerializeField]
         public int blending_layers_count;
         [SerializeField]
         public int blending_modes_used;

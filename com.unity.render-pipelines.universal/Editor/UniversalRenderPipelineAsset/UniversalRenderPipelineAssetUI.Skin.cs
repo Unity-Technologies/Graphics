@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.Universal
 
             // Rendering
             public static GUIContent rendererHeaderText = EditorGUIUtility.TrTextContent("Renderer List", "Lists all the renderers available to this Render Pipeline Asset.");
+            public static GUIContent rendererAddMessage = EditorGUIUtility.TrTextContent("Add Renderer", "Lists all the renderers available to add for this Render Pipeline Asset.");
             public static GUIContent rendererDefaultText = EditorGUIUtility.TrTextContent("Default", "This renderer is currently the default for the render pipeline.");
             public static GUIContent rendererSetDefaultText = EditorGUIUtility.TrTextContent("Set Default", "Makes this renderer the default for the render pipeline.");
             public static GUIContent rendererSettingsText = EditorGUIUtility.TrIconContent("_Menu", "Opens settings for this renderer.");

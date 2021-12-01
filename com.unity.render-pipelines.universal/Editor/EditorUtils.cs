@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.Universal
         {
             CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
             {
-                Selection.activeObject = UniversalRenderPipeline.asset.scriptableRendererData;
+                Selection.activeObject = UniversalRenderPipeline.asset;
                 GUIUtility.ExitGUI();
             });
         }

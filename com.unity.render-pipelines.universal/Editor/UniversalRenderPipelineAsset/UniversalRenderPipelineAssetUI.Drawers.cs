@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -52,9 +53,6 @@ namespace UnityEditor.Rendering.Universal
         public static readonly CED.IDrawer Inspector = CED.Group(
             CED.AdditionalPropertiesFoldoutGroup(Styles.qualitySettingsText, Expandable.Quality, k_ExpandedState, ExpandableAdditional.Quality, k_AdditionalPropertiesState, DrawQuality, DrawQualityAdditional),
             CED.FoldoutGroup(Styles.renderersSettingsText, Expandable.Rendering, k_ExpandedState, FoldoutOption.None, RendererOptionMenu, DrawRenderers)
-        //CED.AdditionalPropertiesFoldoutGroup(Styles.lightingSettingsText, Expandable.Lighting, k_ExpandedState, ExpandableAdditional.Lighting, k_AdditionalPropertiesState, DrawLighting, DrawLightingAdditional),
-        //CED.AdditionalPropertiesFoldoutGroup(Styles.shadowSettingsText, Expandable.Shadows, k_ExpandedState, ExpandableAdditional.Shadows, k_AdditionalPropertiesState, DrawShadows, DrawShadowsAdditional),
-        //CED.AdditionalPropertiesFoldoutGroup(Styles.postProcessingSettingsText, Expandable.PostProcessing, k_ExpandedState, ExpandableAdditional.PostProcessing, k_AdditionalPropertiesState, DrawPostProcessing, DrawPostProcessingAdditional)
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             , CED.FoldoutGroup(Styles.adaptivePerformanceText, Expandable.AdaptivePerformance, k_ExpandedState, CED.Group(DrawAdaptivePerformance))
 #endif
@@ -64,8 +62,11 @@ namespace UnityEditor.Rendering.Universal
         {
             if (ownerEditor is UniversalRenderPipelineAssetEditor urpAssetEditor)
             {
-                EditorGUILayout.Space();
-                urpAssetEditor.rendererList.DoLayoutList();
+                for (int i = 0; i < serialized.rendererDataProp.arraySize; i++)
+                {
+                    ScriptableRendererDataEditor.DrawRenderer(ownerEditor, i, serialized.rendererDataProp.GetArrayElementAtIndex(i));
+                }
+                //urpAssetEditor.rendererList.DoLayoutList();
 
                 if (!serialized.asset.ValidateRendererData(-1))
                     EditorGUILayout.HelpBox(Styles.rendererMissingDefaultMessage.text, MessageType.Error, true);
@@ -74,12 +75,25 @@ namespace UnityEditor.Rendering.Universal
                 else if (!ValidateRendererGraphicsAPIs(serialized.asset, out var unsupportedGraphicsApisMessage))
                     EditorGUILayout.HelpBox(Styles.rendererUnsupportedAPIMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
 
-                //EditorGUILayout.PropertyField(serialized.requireDepthTextureProp, Styles.requireDepthTextureText);
-                //EditorGUILayout.PropertyField(serialized.requireOpaqueTextureProp, Styles.requireOpaqueTextureText);
-                //EditorGUI.BeginDisabledGroup(!serialized.requireOpaqueTextureProp.boolValue);
-                //EditorGUILayout.PropertyField(serialized.opaqueDownsamplingProp, Styles.opaqueDownsamplingText);
-                //EditorGUI.EndDisabledGroup();
+                if (GUILayout.Button(Styles.rendererAddMessage))
+                {
+                    GenericMenu menu = new GenericMenu();
+                    foreach (var rendererType in TypeCache.GetTypesDerivedFrom(typeof(ScriptableRendererData)))
+                    {
+                        var rendererName = new GUIContent(rendererType.Name);
+                        menu.AddItem(rendererName, false, () => SpawnRenderer(serialized, rendererType));
+                    }
+                    menu.ShowAsContext();
+                }
             }
+        }
+
+        static void SpawnRenderer(SerializedUniversalRenderPipelineAsset serialized, Type rendererType)
+        {
+            int index = serialized.rendererDataProp.arraySize;
+            serialized.rendererDataProp.arraySize++;
+            serialized.rendererDataProp.GetArrayElementAtIndex(index).managedReferenceValue = (ScriptableRendererData)Activator.CreateInstance(rendererType);
+            serialized.serializedObject.ApplyModifiedProperties();
         }
 
         static void RendererOptionMenu(Vector2 position)
@@ -148,5 +162,40 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.useAdaptivePerformance, Styles.useAdaptivePerformance);
         }
 #endif
+
+        static void UpdateDefaultRendererValue(SerializedUniversalRenderPipelineAsset serialized, int index)
+        {
+            // If the index that is being removed is lower than the default renderer value,
+            // the default prop value needs to be one lower.
+            if (index < serialized.defaultRendererProp.intValue)
+            {
+                serialized.defaultRendererProp.intValue--;
+            }
+        }
+
+        static void UpdateDefaultRendererValue(SerializedUniversalRenderPipelineAsset serialized, int prevIndex, int newIndex)
+        {
+            // If we are moving the index that is the same as the default renderer we need to update that
+            if (prevIndex == serialized.defaultRendererProp.intValue)
+            {
+                serialized.defaultRendererProp.intValue = newIndex;
+            }
+            // If newIndex is the same as default
+            // then we need to know if newIndex is above or below the default index
+            else if (newIndex == serialized.defaultRendererProp.intValue)
+            {
+                serialized.defaultRendererProp.intValue += prevIndex > newIndex ? 1 : -1;
+            }
+            // If the old index is lower than default renderer and
+            // the new index is higher then we need to move the default renderer index one lower
+            else if (prevIndex < serialized.defaultRendererProp.intValue && newIndex > serialized.defaultRendererProp.intValue)
+            {
+                serialized.defaultRendererProp.intValue--;
+            }
+            else if (newIndex < serialized.defaultRendererProp.intValue && prevIndex > serialized.defaultRendererProp.intValue)
+            {
+                serialized.defaultRendererProp.intValue++;
+            }
+        }
     }
 }

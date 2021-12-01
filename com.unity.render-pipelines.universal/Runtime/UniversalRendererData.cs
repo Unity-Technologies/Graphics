@@ -24,25 +24,6 @@ namespace UnityEngine.Rendering.Universal
     [Serializable, ReloadGroup, ExcludeFromPreset]
     public class UniversalRendererData : ScriptableRendererData, ISerializationCallbackReceiver
     {
-#if UNITY_EDITOR
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
-        internal class CreateUniversalRendererAsset : EndNameEditAction
-        {
-            public override void Action(int instanceId, string pathName, string resourceFile)
-            {
-                var instance = UniversalRenderPipelineAsset.CreateRendererAsset(pathName, RendererType.UniversalRenderer, false) as UniversalRendererData;
-                Selection.activeObject = instance;
-            }
-        }
-
-        [MenuItem("Assets/Create/Rendering/URP Universal Renderer", priority = CoreUtils.Sections.section3 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 2)]
-        static void CreateUniversalRendererData()
-        {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalRendererAsset>(), "New Custom Universal Renderer Data.asset", null, null);
-        }
-
-#endif
-
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
         {
@@ -150,6 +131,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
         [SerializeField] LightCookieFormat m_AdditionalLightsCookieFormat = LightCookieFormat.ColorHigh;
 
+
+        public UniversalRendererData() : base() { }
 
         protected override ScriptableRenderer Create()
         {
