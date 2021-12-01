@@ -95,17 +95,17 @@ namespace UnityEditor.ShaderGraph
     if (IsPerspectiveProjection())
     {
 #if defined(UNITY_REVERSED_Z)
-        Out = length(PositionWS) - LinearEyeDepth(ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V);
-#else
         Out = LinearEyeDepth(ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V) - length(PositionWS);
+#else
+        Out = length(PositionWS) - LinearEyeDepth(ComputeWorldSpacePosition(SceneUV.xy, SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), UNITY_MATRIX_I_VP), UNITY_MATRIX_V);
 #endif
     }
     else
     {
 #if defined(UNITY_REVERSED_Z)
-        Out = length(PositionWS) - LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);
-#else
         Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams) - length(PositionWS);
+#else
+        Out = length(PositionWS) - LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(SceneUV.xy), _ZBufferParams);
 #endif
     }
 }
