@@ -244,14 +244,7 @@ namespace UnityEditor.VFX.Test
 
         static IEnumerable<CreateAllBlockParam> GenerateCreateBlockParams(IEnumerable<VFXContextType> types)
         {
-            foreach (var type in types)
-            {
-                var blocks = GenerateCreateBlockParams(type);
-                foreach (var block in blocks)
-                {
-                    yield return block;
-                }    
-            }
+            return types.SelectMany(t => GenerateCreateBlockParams(t));
         }
 
         static readonly CreateAllBlockParam[] kCreateAllBlockParam = GenerateCreateBlockParams(new []
