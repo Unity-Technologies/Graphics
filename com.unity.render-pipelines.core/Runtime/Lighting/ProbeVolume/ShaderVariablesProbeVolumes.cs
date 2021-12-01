@@ -23,7 +23,11 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Validity based occlusion. It detects occlusion through invalid probes, meaning that occlusion is detected only when probes fall inside geometry. Cheaper than other options, but works only on some specific cases.
         /// </summary>
-        ValidityBased = 1
+        ValidityBased = 1,
+
+        NormalBased = 2,
+        ValidityAndNormalBased = 3,
+
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)APVConstantBufferRegister.GlobalRegister)]

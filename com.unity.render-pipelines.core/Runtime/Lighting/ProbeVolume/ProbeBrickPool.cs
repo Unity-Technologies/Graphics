@@ -409,7 +409,7 @@ namespace UnityEngine.Experimental.Rendering
             int outputByte = 0;
             for (int i = 0; i < 8; ++i)
             {
-                int val = (validity[i] > 1e-6f) ? 0 : 1;
+                int val = (validity[i] > 0.05f) ? 0 : 1;
                 outputByte |= (val << i);
             }
             return outputByte;

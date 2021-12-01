@@ -13,7 +13,8 @@ SAMPLER(s_point_clamp_sampler);
 #endif
 
 // TODO: Remove define when we are sure about what to do with this.
-#define MANUAL_FILTERING 1
+#define MANUAL_FILTERING 0
+
 
 struct APVResources
 {
@@ -104,6 +105,28 @@ float GetValidityWeight(int offset, uint validityMask)
 {
     int mask = 1 << offset;
     return (validityMask & mask) > 0 ? 1 : 0;
+}
+
+float ProbeDistance(uint subdiv)
+{
+    return pow(3, subdiv) * _MinBrickSize / 3.0f;
+}
+
+float3 GetSnappedProbePosition(float3 posWS, uint subdiv)
+{
+    float distBetweenProbes = ProbeDistance(subdiv);
+    float3 dividedPos = posWS / distBetweenProbes;
+    return (dividedPos  - frac(dividedPos)) * distBetweenProbes;
+}
+
+float GetNormalWeight(int3 offset, float3 posWS, float3 sample0Pos, float3 normalWS, int subdiv)
+{
+    // TODO: This can be optimized.
+    float3 samplePos = sample0Pos + offset * ProbeDistance(subdiv);
+    float3 vecToProbe = normalize((samplePos)-posWS);
+    float weight = saturate(dot(vecToProbe, normalWS) - _LeakReductionParams.z);
+    return weight;
+
 }
 
 
@@ -208,7 +231,7 @@ APVResources FillAPVResources()
 
 
 
-bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDirWS, out float3 uvw, out uint subdiv)
+bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDirWS, out float3 uvw, out uint subdiv, out float3 biasedPosWS)
 {
     uvw = 0;
     // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
@@ -216,6 +239,7 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
 
     float4 posWSForSample = float4(posWS + normalWS * _NormalBias
         + viewDirWS * _ViewBias, 1.0);
+    biasedPosWS = posWSForSample.xyz;
 
     uint3 poolDim = (uint3)_PoolDim;
 
@@ -247,13 +271,15 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
     offset *= 3.0 / _PoolDim;                       // convert brick footprint to texels footprint in pool texel space
     uvw += offset;                                  // add the final offset
 
+
     return hasValidUVW;
 }
 
 bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, float3 viewDir, out float3 uvw)
 {
     uint unusedSubdiv;
-    return TryToGetPoolUVWAndSubdiv(apvRes, posWS, normalWS, viewDir, uvw, unusedSubdiv);
+    float3 unusedPos;
+    return TryToGetPoolUVWAndSubdiv(apvRes, posWS, normalWS, viewDir, uvw, unusedSubdiv, unusedPos);
 }
 
 
@@ -342,7 +368,7 @@ void AccumulateSamples(inout APVSample dst, APVSample other, float weight)
 #endif
 }
 
-APVSample ManuallyFilteredSample(APVResources apvRes, float3 uvw)
+APVSample ManuallyFilteredSample(APVResources apvRes, float3 normalWS, float3 posWS, float3 uvw, uint subdiv)
 {
     float3 texCoordFloat = uvw * _PoolDim - .5f;
     int3 texCoordInt = texCoordFloat;
@@ -353,6 +379,8 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 uvw)
     float totalW = 0.0f;
 
     APVSample baseSample;
+
+    float3 positionCentralProbe = GetSnappedProbePosition(posWS, subdiv);
 
 #ifdef PROBE_VOLUMES_L2
     baseSample = LoadAndDecodeAPV(apvRes, texCoordInt);
@@ -379,11 +407,20 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 uvw)
             ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
 
         float validityWeight = GetValidityWeight(i, validityMask);
+
+        if (_LeakReductionParams.x == APVLEAKREDUCTIONMODE_NORMAL_BASED)
+            validityWeight = 1;
+
         if (validityWeight > 0)
         {
             APVSample apvSample = LoadAndDecodeAPV(apvRes, texCoordInt + offset);
-            AccumulateSamples(baseSample, apvSample, trilinearW);
-            totalW += trilinearW;
+            float geoW = GetNormalWeight(offset, posWS, positionCentralProbe, normalWS, subdiv);
+            if (_LeakReductionParams.x == APVLEAKREDUCTIONMODE_VALIDITY_BASED)
+                geoW = 1;
+
+            float finalW = geoW * trilinearW;
+            AccumulateSamples(baseSample, apvSample, finalW);
+            totalW += finalW;
         }
     }
 
@@ -392,19 +429,70 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 uvw)
     return baseSample;
 }
 
+void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, int subdiv, float3 biasedPosWS, inout float3 uvw)
+{
+    //return uvw;
+    float3 texCoordFloat = uvw * _PoolDim - .5f;
+    int3 texCoordInt = texCoordFloat;
+    float3 texFrac = frac(texCoordFloat);
+    float3 oneMinTexFrac = 1.0f - texFrac;
+    uint validityMask = LOAD_TEXTURE3D(apvRes.Validity, texCoordInt).x * 255;
+
+    float3 newFrac = 0.0f;
+    float weights[8] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+    float totalW = 0.0f;
+    int i = 0;
+    float3 positionCentralProbe = GetSnappedProbePosition(biasedPosWS, subdiv);
+
+    for (i = 0; i < 8; ++i)
+    {
+        uint3 offset = GetSampleOffset(i);
+        float trilinearW =
+            ((offset.x == 1) ? texFrac.x : oneMinTexFrac.x) *
+            ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
+            ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
+
+        float validityWeight = max(0.0001f, GetValidityWeight(i, validityMask));
+
+        float geoW = GetNormalWeight(offset, posWS, positionCentralProbe, normalWS, subdiv);
+        if (_LeakReductionParams.x == APVLEAKREDUCTIONMODE_VALIDITY_BASED)
+            geoW = 1;
+        if (_LeakReductionParams.x == APVLEAKREDUCTIONMODE_NORMAL_BASED)
+            validityWeight = 1;
+
+        weights[i] = max(-0.1f, trilinearW * geoW * validityWeight);
+        totalW += weights[i];
+    }
+
+    for (i = 0; i < 8; ++i)
+    {
+        uint3 offset = GetSampleOffset(i);
+        newFrac += (float3)offset * weights[i] * rcp(totalW);
+    }
+
+    uvw = ((texCoordFloat - texFrac + newFrac + 0.5) * rcp(_PoolDim));
+
+}
+
 APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, float3 viewDir)
 {
     APVSample outSample;
 
     float3 pool_uvw;
-    if (TryToGetPoolUVW(apvRes, posWS, biasNormalWS, viewDir, pool_uvw))
+    uint subdiv;
+    float3 biasedPosWS;
+    if (TryToGetPoolUVWAndSubdiv(apvRes, posWS, biasNormalWS, viewDir, pool_uvw, subdiv, biasedPosWS))
     {
 #if MANUAL_FILTERING == 1
-        if (_LeakReductionParams.x == APVLEAKREDUCTIONMODE_VALIDITY_BASED)
-            outSample = ManuallyFilteredSample(apvRes, pool_uvw);
+        if (_LeakReductionParams.x != 0)
+            outSample = ManuallyFilteredSample(apvRes, biasNormalWS, posWS, pool_uvw, subdiv);
         else
             outSample = SampleAPV(apvRes, pool_uvw);
 #else
+        if (_LeakReductionParams.x != 0)
+        {
+            WarpUVWLeakReduction(apvRes, posWS, biasNormalWS, subdiv, biasedPosWS, pool_uvw);
+        }
         outSample = SampleAPV(apvRes, pool_uvw);
 #endif
     }

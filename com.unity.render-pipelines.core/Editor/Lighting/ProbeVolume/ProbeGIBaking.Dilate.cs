@@ -156,6 +156,7 @@ namespace UnityEngine.Experimental.Rendering
             parameters.samplingNoise = 0;
             parameters.leakReductionMode = APVLeakReductionMode.None;
             parameters.occlusionWeightContribution = 0.0f;
+            parameters.normalWeightClamp = 0.0f;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
 
 

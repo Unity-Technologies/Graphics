@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering
         /// A bias alongside the view vector to be applied to the world position when sampling the Probe Volumes data structure. Unit is meters.
         /// </summary>
         [AdditionalProperty, Tooltip("A bias alongside the view vector to be applied to the world position when sampling the Probe Volumes data structure. Unit is meters.")]
-        public ClampedFloatParameter viewBias = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
+        public ClampedFloatParameter viewBias = new ClampedFloatParameter(0.0f, 0.0f, 2.0f);
 
         /// <summary>
         /// Whether to scale the bias for Probe Volumes by the minimum distance between probes.
@@ -54,5 +54,8 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         [AdditionalProperty, Tooltip("Method used to reduce leaks. Validity mode will only find occlusions when a probe is inside an object. Will provide a crude reduction only in some cases.")]
         public APVLeakReductionModeParameter leakReductionMode = new APVLeakReductionModeParameter(APVLeakReductionMode.None);
+
+        public ClampedFloatParameter dotWeightScale = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
+
     }
 }
