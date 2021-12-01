@@ -126,7 +126,7 @@ namespace UnityEditor.VFX.Test
 
         public static bool[] kApplyChange = { true, false };
 
-        [UnityTest]
+        //[UnityTest] Not really a test but helper to profile the controller invalidation.
         public IEnumerator ExperimentCreateAllBlocksTiming([ValueSource(nameof(kApplyChange))] bool applyChanges, [ValueSource(nameof(kApplyChange))] bool blocks)
         {
             var referenceBlock = VFXLibrary.GetBlocks().Where(t => t.model is Block.KillSphere).First();
@@ -135,7 +135,7 @@ namespace UnityEditor.VFX.Test
 
             var param = new CreateAllBlockParam()
             {
-                name = "Experience",
+                name = "Test",
                 destContext = referenceContext
             };
 
@@ -162,7 +162,7 @@ namespace UnityEditor.VFX.Test
                 else
                 {
                     var operators = Enumerable.Repeat(referenceOperator, modelCount);
-                    CreateAllOperatorExperiment(controller, operators, applyChanges);
+                    CreateAllOperatorsExperiment(controller, operators, applyChanges);
                 }
 
                 watch.Stop();
@@ -189,7 +189,7 @@ namespace UnityEditor.VFX.Test
             }
             Debug.Log(report);
         }
-        void CreateAllOperatorExperiment(VFXViewController viewController, IEnumerable<VFXModelDescriptor<VFXOperator>> operators, bool applyChanges)
+        void CreateAllOperatorsExperiment(VFXViewController viewController, IEnumerable<VFXModelDescriptor<VFXOperator>> operators, bool applyChanges)
         {
             foreach (var op in operators)
                 viewController.AddVFXOperator(new Vector2(300, 2000), op);
