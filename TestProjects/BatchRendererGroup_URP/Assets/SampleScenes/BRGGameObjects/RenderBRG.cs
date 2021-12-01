@@ -412,7 +412,6 @@ public unsafe class RenderBRG : MonoBehaviour
     Material m_LoadingMaterial;
 
 #endif
-#endif
 
 
     // Start is called before the first frame update
