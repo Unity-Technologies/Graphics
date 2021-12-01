@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
 - Fixed shader graph errors when disabling the bias on texture samplers.
 - Fixed a shader warning in the volumetric clouds combine file.
+- Fixed layer lit shader UI.
 
 ## [12.1.2] - 2021-10-22
 
