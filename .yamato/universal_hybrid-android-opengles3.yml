@@ -10,8 +10,7 @@
 Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_mono_Linear_2020.3:
     name: Universal_Hybrid on Android_OpenGLES3_Standalone_DOTS_mono_Linear on version 2020.3
     agent:
-        type: Unity::mobile::samsung
-        model: s21-eu
+        type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -86,8 +85,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_mono_Linear_2020.3:
 Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Android_OpenGLES3_Standalone_DOTS_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::mobile::samsung
-        model: s21-eu
+        type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:

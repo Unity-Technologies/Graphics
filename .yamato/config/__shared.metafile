@@ -373,8 +373,7 @@ platforms:
       - android
     agents_project:
       default:
-        type: Unity::mobile::samsung
-        model: s21-eu
+        type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
         flavor: b1.large
       standalone_build:
