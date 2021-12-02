@@ -829,7 +829,7 @@ namespace UnityEngine.Rendering.Universal
                 // Draw Gizmos...
                 if (drawGizmos)
                 {
-                    DrawGizmos(context, camera, GizmoSubset.PreImageEffects, renderingData);
+                    DrawGizmos(context, camera, GizmoSubset.PreImageEffects, renderingData.commandBuffer);
                 }
 
                 // In this block after rendering drawing happens, e.g, post processing, video player capture.
@@ -845,10 +845,10 @@ namespace UnityEngine.Rendering.Universal
 
                 if (drawGizmos)
                 {
-                    DrawGizmos(context, camera, GizmoSubset.PostImageEffects, renderingData);
+                    DrawGizmos(context, camera, GizmoSubset.PostImageEffects, renderingData.commandBuffer);
                 }
 
-                InternalFinishRendering(context, cameraData.resolveFinalTarget, renderingData);
+                InternalFinishRendering(context, cameraData.resolveFinalTarget, ref renderingData);
 
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
@@ -1047,6 +1047,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 var renderPass = m_ActiveRenderPassQueue[currIndex];
                 ExecuteRenderPass(context, renderPass, ref renderingData);
+
+                context.ExecuteCommandBuffer(renderingData.commandBuffer);
+                renderingData.commandBuffer.Clear();
             }
 
             if (submit)
@@ -1591,13 +1594,13 @@ namespace UnityEngine.Rendering.Universal
         internal virtual void EnableSwapBufferMSAA(bool enable) { }
 
         [Conditional("UNITY_EDITOR")]
-        void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset, RenderingData renderingData)
+        void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset, CommandBuffer cmd)
         {
 #if UNITY_EDITOR
             if (!Handles.ShouldRenderGizmos() || camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
                 return;
 
-            CommandBuffer cmd = renderingData.commandBuffer; // CommandBufferPool.Get();
+            //CommandBuffer cmd = renderingData.commandBuffer; // CommandBufferPool.Get();
             using (new ProfilingScope(cmd, Profiling.drawGizmos))
             {
                 context.ExecuteCommandBuffer(cmd);
@@ -1634,7 +1637,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.Clear();
         }
 
-        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget, RenderingData renderingData)
+        void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget, ref RenderingData renderingData)
         {
             CommandBuffer cmd = renderingData.commandBuffer; // CommandBufferPool.Get();
             using (new ProfilingScope(null, Profiling.internalFinishRendering))

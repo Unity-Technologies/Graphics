@@ -81,7 +81,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var cmd = CommandBufferPool.Get();
+            //renderingData.commandBuffer.Clear();
+            var cmd = renderingData.commandBuffer; // CommandBufferPool.Get();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.ColorGradingLUT)))
             {
                 // Fetch all color grading settings
@@ -189,8 +190,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 renderingData.cameraData.xr.StartSinglePass(cmd);
             }
 
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            //context.ExecuteCommandBuffer(cmd);
+            //CommandBufferPool.Release(cmd);
+            //cmd.Clear();
         }
 
         public void Cleanup()

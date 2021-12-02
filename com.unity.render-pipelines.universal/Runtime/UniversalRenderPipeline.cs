@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.Universal
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 
-        internal static CommandBuffer pipelineCommandBuffer = new CommandBuffer();
+        //internal CommandBuffer pipelineCommandBuffer = null;
 
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
@@ -385,7 +385,7 @@ namespace UnityEngine.Rendering.Universal
             // That will orphan ProfilingScope markers as the named CommandBuffer markers are their parents.
             // Resulting in following pattern:
             // exec(cmd.start, scope.start, cmd.end) and exec(cmd.start, scope.end, cmd.end)
-            CommandBuffer cmd = pipelineCommandBuffer; //CommandBufferPool.Get();
+            CommandBuffer cmd = CommandBufferPool.Get();
 
             // TODO: move skybox code from C++ to URP in order to remove the call to context.Submit() inside DrawSkyboxPass
             // Until then, we can't use nested profiling scopes with XR multipass
@@ -416,6 +416,7 @@ namespace UnityEngine.Rendering.Universal
 
                 var cullResults = context.Cull(ref cullingParameters);
                 InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, out var renderingData);
+                renderingData.commandBuffer = cmd;
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 if (asset.useAdaptivePerformance)
@@ -436,8 +437,8 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.xr.EndCamera(cmd, cameraData);
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
-            //CommandBufferPool.Release(cmd);
-            cmd.Clear();
+            CommandBufferPool.Release(cmd);
+            //cmd.Clear();
 
             using (new ProfilingScope(null, Profiling.Pipeline.Context.submit))
             {
@@ -641,7 +642,7 @@ namespace UnityEngine.Rendering.Universal
 
         if (xrActive)
         {
-            CommandBuffer cmd = pipelineCommandBuffer; //CommandBufferPool.Get();
+            CommandBuffer cmd = CommandBufferPool.Get(); // pipelineCommandBuffer; //CommandBufferPool.Get();
             using (new ProfilingScope(cmd, Profiling.Pipeline.XR.mirrorView))
             {
                 m_XRSystem.RenderMirrorView(cmd, baseCamera);
@@ -649,8 +650,8 @@ namespace UnityEngine.Rendering.Universal
 
             context.ExecuteCommandBuffer(cmd);
             context.Submit();
-            //CommandBufferPool.Release(cmd);
-            cmd.Clear();
+            CommandBufferPool.Release(cmd);
+            //cmd.Clear();
         }
 
         m_XRSystem.ReleaseFrame();
@@ -1002,7 +1003,9 @@ namespace UnityEngine.Rendering.Universal
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
             renderingData.postProcessingEnabled = anyPostProcessingEnabled;
 
-            renderingData.commandBuffer = pipelineCommandBuffer;
+            //pipelineCommandBuffer = CommandBufferPool.Get();
+            //renderingData.commandBuffer = pipelineCommandBuffer;
+            renderingData.commandBuffer = null; // initialize after this?
 
             CheckAndApplyDebugSettings(ref renderingData);
         }
