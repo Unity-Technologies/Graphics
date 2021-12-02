@@ -11,11 +11,13 @@ public class RenderRequestTestCamera : MonoBehaviour
 
     private Camera m_Camera;
     private RenderRequestTestTarget[] m_Targets;
+    private Dictionary<RenderRequestTestTarget, bool> m_Failed;
 
     private List<Camera.RenderRequest> m_RenderRequests;
     private const int kRenderTargetDimension = 1024;
     private const GraphicsFormat kVectorFormat = GraphicsFormat.R32G32B32A32_SFloat;
     private const GraphicsFormat kIdFormat = GraphicsFormat.R8G8B8A8_UNorm;
+    private const float kVectorTolerance = 0.1f;
 
     private int2 RenderTargetDimension => new int2(m_Camera.pixelWidth, m_Camera.pixelHeight);
 
@@ -44,6 +46,7 @@ public class RenderRequestTestCamera : MonoBehaviour
         m_Camera = GetComponent<Camera>();
         m_Targets = FindObjectsOfType<RenderRequestTestTarget>();
         m_RenderRequests = new List<Camera.RenderRequest>();
+        m_Failed = new Dictionary<RenderRequestTestTarget, bool>();
 
         Camera.RenderRequest requestPosition = new Camera.RenderRequest(
             Camera.RenderRequestMode.WorldPosition,
@@ -71,6 +74,16 @@ public class RenderRequestTestCamera : MonoBehaviour
         ValidatePosition(readbackPosition);
         ValidateNormal(readbackNormal);
         ValidateObjectId(readbackObjectId);
+
+        UpdateTestText();
+    }
+
+    private void UpdateTestText()
+    {
+        foreach (var t in m_Targets)
+        {
+            t.SetTestText(m_Camera, m_Failed.ContainsKey(t) ? "FAILED" : "OK");
+        }
     }
 
     private void OnGUI()
@@ -88,6 +101,25 @@ public class RenderRequestTestCamera : MonoBehaviour
         }
     }
 
+    private void Validate(RenderRequestTestTarget t, float3 actual, float3 expected, Camera.RenderRequestMode mode)
+    {
+        float diff = math.length(actual - expected);
+        if (diff > kVectorTolerance)
+        {
+            m_Failed[t] = true;
+            Debug.LogError($"Mode {mode} failed for {t}: {actual} vs {expected}, diff {diff}");
+        }
+    }
+
+    private void Validate(RenderRequestTestTarget t, int actual, int expected, Camera.RenderRequestMode mode)
+    {
+        if (actual != expected)
+        {
+            m_Failed[t] = true;
+            Debug.LogError($"Mode {mode} failed for {t}: {actual} vs {expected}");
+        }
+    }
+
     private void ValidatePosition(AsyncGPUReadbackRequest readbackPosition)
     {
         var positions = readbackPosition.GetData<float4>();
@@ -97,7 +129,7 @@ public class RenderRequestTestCamera : MonoBehaviour
             float3 viewportSpacePos = t.ViewportSpacePosition(m_Camera);
             var actualPosition = positions[ReadbackDataIndex(viewportSpacePos)].xyz;
             var expectedPosition = t.ExpectedWorldPosition(m_Camera);
-            Debug.Log($"position {t} {actualPosition} vs {expectedPosition}");
+            Validate(t, actualPosition, expectedPosition, Camera.RenderRequestMode.WorldPosition);
         }
     }
 
@@ -110,7 +142,7 @@ public class RenderRequestTestCamera : MonoBehaviour
             float3 viewportSpacePos = t.ViewportSpacePosition(m_Camera);
             var actualNormal = UnpackNormal(normals[ReadbackDataIndex(viewportSpacePos)].xyz);
             var expectedNormal = t.ExpectedWorldNormal(m_Camera);
-            Debug.Log($"normal {t} {actualNormal} vs {expectedNormal}");
+            Validate(t, actualNormal, expectedNormal, Camera.RenderRequestMode.Normal);
         }
     }
 
@@ -123,7 +155,7 @@ public class RenderRequestTestCamera : MonoBehaviour
             float3 viewportSpacePos = t.ViewportSpacePosition(m_Camera);
             var actualId = objectIds[ReadbackDataIndex(viewportSpacePos)];
             var expectedId = t.ExpectedObjectId();
-            Debug.Log($"id {t} {actualId} vs {expectedId}");
+            Validate(t, actualId, expectedId, Camera.RenderRequestMode.ObjectId);
         }
     }
 
