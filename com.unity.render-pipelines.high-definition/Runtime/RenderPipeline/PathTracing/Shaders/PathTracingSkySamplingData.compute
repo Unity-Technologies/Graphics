@@ -99,8 +99,9 @@ void ComputeCDF(uint3 dispatchThreadId : SV_DispatchThreadID)
         uint idx = i + iter * KERNEL_WIDTH;
         float u = (idx + 0.5) / TEX_WIDTH;
 
+        // No need for a sinTheta term in the PDF when using equiareal mapping
         float3 dir = MapUVToSkyDirection(u, v);
-        float pdf = Luminance(SampleSkyTexture(dir, 0.0, 0).rgb);// * sinTheta;
+        float pdf = Luminance(SampleSkyTexture(dir, 0.0, 0).rgb); // * sinTheta;
 
         PDF[uint2(idx, j)] = pdf;
         CDF[uint2(idx, j)] = pdf;
@@ -144,7 +145,8 @@ void ComputeMarginal(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (i == 0)
     {
         float imgIntegralValue = rowValSum / TEX_HEIGHT;
-        MARGINAL[uint2(0, 0)] = imgIntegralValue;
+        float pdfNormalization = imgIntegralValue > 0.0 ? rcp(imgIntegralValue) / (TWO_PI * PI) : 0.0;
+        MARGINAL[uint2(0, 0)] = pdfNormalization;
     }
 }
 
@@ -153,13 +155,5 @@ void ComputeMarginal(uint3 dispatchThreadId : SV_DispatchThreadID)
 [numthreads(8, 8, 1)]
 void NormalizePDF(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    const uint i = dispatchThreadId.x;
-    const uint j = dispatchThreadId.y;
-
-    // MARGINAL[0, 0] contains the sum of PDF values divided by texture size (width * height)
-    float sum = MARGINAL[uint2(0, 0)];
-
-    float jacobian = sum > 0.0 ? rcp(sum) / (TWO_PI * PI) : 0.0;
-
-    PDF[uint2(i, j)] *= jacobian;
+    PDF[dispatchThreadId.xy] *= MARGINAL[uint2(0, 0)];
 }

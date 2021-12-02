@@ -22,24 +22,6 @@ bool IsSkyEnabled()
     return _EnvLightSkyEnabled && _RaytracingCameraSkyEnabled;;
 }
 
-// Standard latlon mapping
-// float2 MapSkyDirectionToUV(float3 dir)
-// {
-//     float theta = acos(-dir.y);
-//     float phi = atan2(-dir.z, -dir.x);
-
-//     return float2(0.5 - phi * INV_TWO_PI, theta * INV_PI);
-// }
-
-// Standard latlon mapping
-// float3 MapUVToSkyDirection(float u, float v)
-// {
-//     float phi = TWO_PI * (1.0 - u);
-//     float cosTheta = cos((1.0 - v) * PI);
-
-//     return TransformGLtoDX(SphericalToCartesian(phi, cosTheta));
-// }
-
 // Equiareal mapping
 float2 MapSkyDirectionToUV(float3 dir)
 {
@@ -58,6 +40,24 @@ float3 MapUVToSkyDirection(float u, float v)
     return TransformGLtoDX(SphericalToCartesian(phi, cosTheta));
 }
 
+// // Standard latlon mapping
+// float2 MapSkyDirectionToUV(float3 dir)
+// {
+//     float theta = acos(-dir.y);
+//     float phi = atan2(-dir.z, -dir.x);
+
+//     return float2(0.5 - phi * INV_TWO_PI, theta * INV_PI);
+// }
+
+// // Standard latlon mapping
+// float3 MapUVToSkyDirection(float u, float v)
+// {
+//     float phi = TWO_PI * (1.0 - u);
+//     float cosTheta = cos((1.0 - v) * PI);
+
+//     return TransformGLtoDX(SphericalToCartesian(phi, cosTheta));
+// }
+
 float3 MapUVToSkyDirection(float2 uv)
 {
     return MapUVToSkyDirection(uv.x, uv.y);
@@ -65,7 +65,7 @@ float3 MapUVToSkyDirection(float2 uv)
 
 #ifndef COMPUTE_PATH_TRACING_SKY_SAMPLING_DATA
 
-float GetSkyCDFValue(PTSKY_TEXTURE2D(cdf), uint size, uint i, uint j)
+float GetSkyCDF(PTSKY_TEXTURE2D(cdf), uint size, uint i, uint j)
 {
     return i < size ? cdf[uint2(i, j)] : 1.0;
 }
@@ -76,7 +76,7 @@ float SampleSkyCDF(PTSKY_TEXTURE2D(cdf), uint size, uint j, float smp)
     uint i;
     for (i = 0; i < size; i++)
     {
-        valSup = GetSkyCDFValue(cdf, size, i+1, j);
+        valSup = GetSkyCDF(cdf, size, i+1, j);
         if (smp < valSup)
             break;
         valInf = valSup;
@@ -85,19 +85,30 @@ float SampleSkyCDF(PTSKY_TEXTURE2D(cdf), uint size, uint j, float smp)
     return (i + (smp - valInf) / (valSup - valInf)) / size;
 }
 
-float GetSkyPDFValue(float u, float v)
+float GetSkyPDFNormalizationFactor()
 {
-    // Unfiltered
-    // return _PathTracingSkyPDFTexture[uint2(u * _PathTracingSkyTextureWidth, v * _PathTracingSkyTextureHeight)];
-
-    // Filtered
-    return SAMPLE_TEXTURE2D_LOD(_PathTracingSkyPDFTexture, s_linear_clamp_sampler, float2(u, v), 0);
+    return _PathTracingSkyMarginalTexture[uint2(0, 0)];
 }
 
-float GetSkyPDFValue(float2 uv)
+// This relies on the PDF/CDF tables being computed with equiareal mapping
+float GetSkyPDFFromValue(float3 value)
 {
-    return GetSkyPDFValue(uv.x, uv.y);
+    return Luminance(value) * GetSkyPDFNormalizationFactor();
 }
+
+// float GetSkyPDF(float u, float v)
+// {
+//     // Unfiltered
+//     // return _PathTracingSkyPDFTexture[uint2(u * _PathTracingSkyTextureWidth, v * _PathTracingSkyTextureHeight)];
+
+//     // Filtered
+//     return SAMPLE_TEXTURE2D_LOD(_PathTracingSkyPDFTexture, s_linear_clamp_sampler, float2(u, v), 0);
+// }
+
+// float GetSkyPDF(float2 uv)
+// {
+//     return GetSkyPDF(uv.x, uv.y);
+// }
 
 float2 SampleSky(float smpU, float smpV)
 {

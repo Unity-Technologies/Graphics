@@ -190,7 +190,7 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEF
         }
     }
 
-    // Then filter the active distant lights (directional) and sky light
+    // Then filter the active distant lights (directional)
     list.distantCount = 0;
 
     if (withDistant)
@@ -200,9 +200,10 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEF
             if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers) && IsDistantLightActive(_DirectionalLightDatas[i], normal))
                 list.distantIndex[list.distantCount++] = i;
         }
-
-        list.skyCount = IsSkyEnabled() ? 1 : 0;
     }
+
+    // And finally the sky light
+    list.skyCount = withDistant && IsSkyEnabled() ? 1 : 0;
 
     // Compute the weights, used for the lights PDF (we split 50/50 between local and distant+sky)
     list.localWeight = list.localCount ? (list.distantCount + list.skyCount ? 0.5 : 1.0) : 0.0;
@@ -493,7 +494,8 @@ bool SampleLights(LightList lightList,
             float2 uv = SampleSky(inputSample);
             outgoingDir = MapUVToSkyDirection(uv);
             value = SampleSkyTexture(outgoingDir, 0.0, 0).rgb;
-            pdf = GetSkyLightWeight(lightList) * GetSkyPDFValue(uv);
+            //pdf = GetSkyLightWeight(lightList) * GetSkyPDF(uv);
+            pdf = GetSkyLightWeight(lightList) * GetSkyPDFFromValue(value);
 
             shadowOpacity = 1.0;
         }
@@ -584,9 +586,12 @@ void EvaluateLights(LightList lightList,
     // Then sky light
     if (lightList.skyCount)
     {
-        float2 uv = MapSkyDirectionToUV(rayDescriptor.Direction);
-        value += SampleSkyTexture(rayDescriptor.Direction, 0.0, 0).rgb;
-        pdf += GetSkyLightWeight(lightList) * GetSkyPDFValue(uv);
+        float3 skyValue = SampleSkyTexture(rayDescriptor.Direction, 0.0, 0).rgb;
+        value += skyValue;
+
+        //float2 uv = MapSkyDirectionToUV(rayDescriptor.Direction);
+        //pdf += GetSkyLightWeight(lightList) * GetSkyPDF(uv);
+        pdf += GetSkyLightWeight(lightList) * GetSkyPDFFromValue(skyValue);
     }
 }
 
