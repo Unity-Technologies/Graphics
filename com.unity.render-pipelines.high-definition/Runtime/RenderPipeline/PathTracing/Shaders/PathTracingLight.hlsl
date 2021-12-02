@@ -635,12 +635,7 @@ bool GetRectAreaLightInterval(LightData lightData, float3 rayOrigin, float3 rayD
 
 void Sort(inout float x, inout float y)
 {
-    if (x > y)
-    {
-        float tmp = x;
-        x = y;
-        y = tmp;
-    }
+    if (x > y) Swap(x, y);
 }
 
 void GetFrontInterval(float oz, float dz, float t1, float t2, inout float tMin, inout float tMax)

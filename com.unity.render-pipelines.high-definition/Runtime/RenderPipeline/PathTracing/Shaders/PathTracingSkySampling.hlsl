@@ -40,7 +40,7 @@ float3 MapUVToSkyDirection(float u, float v)
     return TransformGLtoDX(SphericalToCartesian(phi, cosTheta));
 }
 
-// // Standard latlon mapping
+// // Standard latlon mapping (for reference)
 // float2 MapSkyDirectionToUV(float3 dir)
 // {
 //     float theta = acos(-dir.y);
@@ -49,7 +49,7 @@ float3 MapUVToSkyDirection(float u, float v)
 //     return float2(0.5 - phi * INV_TWO_PI, theta * INV_PI);
 // }
 
-// // Standard latlon mapping
+// // Standard latlon mapping (for reference)
 // float3 MapUVToSkyDirection(float u, float v)
 // {
 //     float phi = TWO_PI * (1.0 - u);
@@ -67,23 +67,49 @@ float3 MapUVToSkyDirection(float2 uv)
 
 float GetSkyCDF(PTSKY_TEXTURE2D(cdf), uint size, uint i, uint j)
 {
-    return i < size ? cdf[uint2(i, j)] : 1.0;
+    // FIXME ************************************************
+    return i == 0 ? 0.0 : (i < size ? cdf[uint2(i, j)] : 1.0);
 }
 
+// Dichotomic search
 float SampleSkyCDF(PTSKY_TEXTURE2D(cdf), uint size, uint j, float smp)
 {
-    float valSup, valInf = 0.0;
-    uint i;
-    for (i = 0; i < size; i++)
+    uint i = 0, half = size / 2;
+    for (uint offset = half; offset > 0; offset /= 2)
     {
-        valSup = GetSkyCDF(cdf, size, i+1, j);
-        if (smp < valSup)
-            break;
-        valInf = valSup;
+        if (smp < GetSkyCDF(cdf, size, half, j))
+        {
+            // i is already in the right half
+            half -= offset / 2;
+        }
+        else
+        {
+            // i has to move to the other half
+            i += offset;
+            half += offset / 2;
+        }
     }
 
-    return (i + (smp - valInf) / (valSup - valInf)) / size;
+    float cdfInf = GetSkyCDF(cdf, size, i, j);
+    float cdfSup = GetSkyCDF(cdf, size, i + 1, j);
+
+    return (i + (smp - cdfInf) / (cdfSup - cdfInf)) / size;
 }
+
+// // Linear search
+// float SampleSkyCDF(PTSKY_TEXTURE2D(cdf), uint size, uint j, float smp)
+// {
+//     float cdfSup, cdfInf = 0.0;
+//     uint i;
+//     for (i = 0; i < size; i++)
+//     {
+//         cdfSup = GetSkyCDF(cdf, size, i + 1, j);
+//         if (smp < cdfSup)
+//             break;
+//         cdfInf = cdfSup;
+//     }
+//     return (i + (smp - cdfInf) / (cdfSup - cdfInf)) / size;
+// }
 
 float GetSkyPDFNormalizationFactor()
 {
