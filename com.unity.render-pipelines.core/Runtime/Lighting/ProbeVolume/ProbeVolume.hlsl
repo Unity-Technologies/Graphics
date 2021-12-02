@@ -446,11 +446,11 @@ void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, in
             ((offset.y == 1) ? texFrac.y : oneMinTexFrac.y) *
             ((offset.z == 1) ? texFrac.z : oneMinTexFrac.z);
 
-        float validityWeight = max(0.0001f, GetValidityWeight(i, validityMask));
+        float validityWeight = GetValidityWeight(i, validityMask);
 
         float geoW = GetNormalWeight(offset, posWS, positionCentralProbe, normalWS, subdiv);
 
-        weights[i] = max(-0.1f, trilinearW * geoW * validityWeight);
+        weights[i] = max(0.0001f, saturate(trilinearW * geoW * validityWeight));
         totalW += weights[i];
     }
 
