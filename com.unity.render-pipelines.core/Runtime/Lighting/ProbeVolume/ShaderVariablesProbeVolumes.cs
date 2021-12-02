@@ -17,16 +17,14 @@ namespace UnityEngine.Rendering
     public enum APVLeakReductionMode
     {
         /// <summary>
-        /// Nothing special is done to prevent leaking. Cheapest option in terms of cost of sampling.
+        /// Nothing is done to prevent leaking. Cheapest option in terms of cost of sampling.
         /// </summary>
         None = 0,
         /// <summary>
-        /// Validity based occlusion. It detects occlusion through invalid probes, meaning that occlusion is detected only when probes fall inside geometry. Cheaper than other options, but works only on some specific cases.
+        /// The uvw used to sample APV data are warped to try to have invalid probe not contributing to lighting. Also, a geometric weight based on normal at sampling position and vector to probes is used.
+        /// This only modifies the uvw used, but still sample a single time. It is effective in some situations (especially when occluding object contain probes inside) but ineffective in many other.
         /// </summary>
-        ValidityBased = 1,
-
-        NormalBased = 2,
-        ValidityAndNormalBased = 3,
+        ValidityAndNormalBased = 1,
 
     }
 

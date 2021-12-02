@@ -408,15 +408,10 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 normalWS, float3 po
 
         float validityWeight = GetValidityWeight(i, validityMask);
 
-        if (_LeakReductionParams.x == APVLEAKREDUCTIONMODE_NORMAL_BASED)
-            validityWeight = 1;
-
         if (validityWeight > 0)
         {
             APVSample apvSample = LoadAndDecodeAPV(apvRes, texCoordInt + offset);
             float geoW = GetNormalWeight(offset, posWS, positionCentralProbe, normalWS, subdiv);
-            if (_LeakReductionParams.x == APVLEAKREDUCTIONMODE_VALIDITY_BASED)
-                geoW = 1;
 
             float finalW = geoW * trilinearW;
             AccumulateSamples(baseSample, apvSample, finalW);
@@ -431,7 +426,6 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 normalWS, float3 po
 
 void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, int subdiv, float3 biasedPosWS, inout float3 uvw)
 {
-    //return uvw;
     float3 texCoordFloat = uvw * _PoolDim - .5f;
     int3 texCoordInt = texCoordFloat;
     float3 texFrac = frac(texCoordFloat);
@@ -455,10 +449,6 @@ void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, in
         float validityWeight = max(0.0001f, GetValidityWeight(i, validityMask));
 
         float geoW = GetNormalWeight(offset, posWS, positionCentralProbe, normalWS, subdiv);
-        if (_LeakReductionParams.x == APVLEAKREDUCTIONMODE_VALIDITY_BASED)
-            geoW = 1;
-        if (_LeakReductionParams.x == APVLEAKREDUCTIONMODE_NORMAL_BASED)
-            validityWeight = 1;
 
         weights[i] = max(-0.1f, trilinearW * geoW * validityWeight);
         totalW += weights[i];

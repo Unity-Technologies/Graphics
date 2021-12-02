@@ -51,7 +51,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1G_L1Ry, rr.L1_G_ry);
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1B_L1Rz, rr.L1_B_rz);
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResValidity, rr.Validity);
-                    cmdBuffer.SetGlobalTexture(HDShaderIDs._APVPositions, rr.Positions);
 
                     if (refVolume.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {
@@ -110,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.leakReductionMode = hdCamera.camera.cameraType == CameraType.Reflection ? APVLeakReductionMode.None : probeVolumeOptions.leakReductionMode.value;
                 parameters.occlusionWeightContribution = 1.0f;
 
-                parameters.normalWeightClamp = probeVolumeOptions.dotWeightScale.value;
+                parameters.minValidNormalWeight = probeVolumeOptions.minValidDotProductValue.value;
                 ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
             }
         }

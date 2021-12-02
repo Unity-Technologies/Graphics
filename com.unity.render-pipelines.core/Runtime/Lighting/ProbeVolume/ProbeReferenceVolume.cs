@@ -312,8 +312,10 @@ namespace UnityEngine.Experimental.Rendering
         /// Contribution of leak reduction weights.
         /// </summary>
         public float occlusionWeightContribution;
-
-        public float normalWeightClamp;
+        /// <summary>
+        /// The minimum value that dot(N, vectorToProbe) need to have to be considered valid.
+        /// </summary>
+        public float minValidNormalWeight;
 
     }
 
@@ -1331,7 +1333,7 @@ namespace UnityEngine.Experimental.Rendering
             shaderVars._MinBrickSize = MinBrickSize();
             shaderVars._IndexChunkSize = ProbeBrickIndex.kIndexChunkSize;
             shaderVars._CellInMeters = MaxBrickSize();
-            shaderVars._LeakReductionParams = new Vector4((int)parameters.leakReductionMode, parameters.occlusionWeightContribution, parameters.normalWeightClamp, 0.0f);
+            shaderVars._LeakReductionParams = new Vector4((int)parameters.leakReductionMode, parameters.occlusionWeightContribution, parameters.minValidNormalWeight, 0.0f);
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }
