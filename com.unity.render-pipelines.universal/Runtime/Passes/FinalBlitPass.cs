@@ -45,6 +45,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_Source = colorHandle;
         }
 
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            ConfigureTarget(BuiltinRenderTextureType.CurrentActive);
+            ConfigureClear(ClearFlag.None, Color.black);
+        }
+
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
