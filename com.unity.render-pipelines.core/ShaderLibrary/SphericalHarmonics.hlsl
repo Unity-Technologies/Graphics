@@ -148,7 +148,7 @@ void PackSH(RWStructuredBuffer<float4> buffer, float sh[27])
     }
 
     // Quadratic (4/5)
-    for (int c = 0; c < 3; c++)
+    for (c = 0; c < 3; c++)
     {
         buffer[3 + c] = float4(sh[c * 9 + 4], sh[c * 9 + 5], sh[c * 9 + 6] * 3.0f, sh[c * 9 + 7]);
     }
