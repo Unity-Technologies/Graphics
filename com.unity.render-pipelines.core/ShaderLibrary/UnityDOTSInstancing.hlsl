@@ -3,6 +3,10 @@
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 
+#if defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3)
+#define UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
+#endif
+
 #if UNITY_OLD_PREPROCESSOR
 #error DOTS Instancing requires the new shader preprocessor. Please enable Caching Preprocessor in the Editor settings!
 #endif
@@ -126,8 +130,13 @@ for t, c, sz in (
 #define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, var, default_value) LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
 #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, arr, var, default_value) LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
 
-// TODO: Shader feature level to compute only
+#ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
+CBUFFER_START(unity_DOTSInstanceData)
+    float4 unity_DOTSInstanceDataRaw[4096];
+CBUFFER_END
+#else
 ByteAddressBuffer unity_DOTSInstanceData;
+#endif
 
 // The data has to be wrapped inside a struct, otherwise the instancing code path
 // on some platforms does not trigger.
@@ -182,26 +191,62 @@ uint ComputeDOTSInstanceDataAddressOverridden(uint metadata, uint stride)
     return baseAddress + offset;
 }
 
+#ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
+uint DOTSInstanceData_Load(uint address)
+{
+    return asuint(unity_DOTSInstanceDataRaw[address>>2].x);
+}
+uint2 DOTSInstanceData_Load2(uint address)
+{
+    return asuint(unity_DOTSInstanceDataRaw[address>>2].xy);
+}
+uint3 DOTSInstanceData_Load3(uint address)
+{
+    return asuint(unity_DOTSInstanceDataRaw[address>>2].xyz);
+}
+uint4 DOTSInstanceData_Load4(uint address)
+{
+    return asuint(unity_DOTSInstanceDataRaw[address>>2]);
+}
+#else
+uint DOTSInstanceData_Load(uint address)
+{
+    return unity_DOTSInstanceData.Load(address);
+}
+uint2 DOTSInstanceData_Load2(uint address)
+{
+    return unity_DOTSInstanceData.Load2(address);
+}
+uint3 DOTSInstanceData_Load3(uint address)
+{
+    return unity_DOTSInstanceData.Load3(address);
+}
+uint4 DOTSInstanceData_Load4(uint address)
+{
+    return unity_DOTSInstanceData.Load4(address);
+}
+#endif
+
 #define DEFINE_DOTS_LOAD_INSTANCE_SCALAR(type, conv, sizeof_type) \
 type LoadDOTSInstancedData_##type(uint metadata) \
 { \
-    return conv(unity_DOTSInstanceData.Load(ComputeDOTSInstanceDataAddress(metadata, sizeof_type))); \
+    return conv(DOTSInstanceData_Load(ComputeDOTSInstanceDataAddress(metadata, sizeof_type))); \
 } \
 type LoadDOTSInstancedData_##type(type default_value, uint metadata) \
 { \
     return IsDOTSInstancedProperty(metadata) ? \
-        conv(unity_DOTSInstanceData.Load(ComputeDOTSInstanceDataAddress(metadata, sizeof_type))) : default_value; \
+        conv(DOTSInstanceData_Load(ComputeDOTSInstanceDataAddress(metadata, sizeof_type))) : default_value; \
 }
 
 #define DEFINE_DOTS_LOAD_INSTANCE_VECTOR(type, width, conv, sizeof_type) \
 type##width LoadDOTSInstancedData_##type##width(uint metadata) \
 { \
-    return conv(unity_DOTSInstanceData.Load##width(ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width))); \
+    return conv(DOTSInstanceData_Load##width(ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width))); \
 } \
 type##width LoadDOTSInstancedData_##type##width(type##width default_value, uint metadata) \
 { \
     return IsDOTSInstancedProperty(metadata) ? \
-        conv(unity_DOTSInstanceData.Load##width(ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width))) : default_value; \
+        conv(DOTSInstanceData_Load##width(ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width))) : default_value; \
 }
 
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(float, asfloat, 4)
@@ -226,10 +271,10 @@ DEFINE_DOTS_LOAD_INSTANCE_VECTOR(half,  4, half4,   2)
 float4x4 LoadDOTSInstancedData_float4x4(uint metadata)
 {
     uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * 16);
-    float4 p1 = asfloat(unity_DOTSInstanceData.Load4(address + 0 * 16));
-    float4 p2 = asfloat(unity_DOTSInstanceData.Load4(address + 1 * 16));
-    float4 p3 = asfloat(unity_DOTSInstanceData.Load4(address + 2 * 16));
-    float4 p4 = asfloat(unity_DOTSInstanceData.Load4(address + 3 * 16));
+    float4 p1 = asfloat(DOTSInstanceData_Load4(address + 0 * 16));
+    float4 p2 = asfloat(DOTSInstanceData_Load4(address + 1 * 16));
+    float4 p3 = asfloat(DOTSInstanceData_Load4(address + 2 * 16));
+    float4 p4 = asfloat(DOTSInstanceData_Load4(address + 3 * 16));
     return float4x4(
         p1.x, p2.x, p3.x, p4.x,
         p1.y, p2.y, p3.y, p4.y,
@@ -240,9 +285,9 @@ float4x4 LoadDOTSInstancedData_float4x4(uint metadata)
 float4x4 LoadDOTSInstancedData_float4x4_from_float3x4(uint metadata)
 {
     uint address = ComputeDOTSInstanceDataAddress(metadata, 3 * 16);
-    float4 p1 = asfloat(unity_DOTSInstanceData.Load4(address + 0 * 16));
-    float4 p2 = asfloat(unity_DOTSInstanceData.Load4(address + 1 * 16));
-    float4 p3 = asfloat(unity_DOTSInstanceData.Load4(address + 2 * 16));
+    float4 p1 = asfloat(DOTSInstanceData_Load4(address + 0 * 16));
+    float4 p2 = asfloat(DOTSInstanceData_Load4(address + 1 * 16));
+    float4 p3 = asfloat(DOTSInstanceData_Load4(address + 2 * 16));
 
     return float4x4(
         p1.x, p1.w, p2.z, p3.y,
@@ -256,8 +301,8 @@ float2x4 LoadDOTSInstancedData_float2x4(uint metadata)
 {
     uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * 8);
     return float2x4(
-        asfloat(unity_DOTSInstanceData.Load4(address + 0 * 8)),
-        asfloat(unity_DOTSInstanceData.Load4(address + 1 * 8)));
+        asfloat(DOTSInstanceData_Load4(address + 0 * 8)),
+        asfloat(DOTSInstanceData_Load4(address + 1 * 8)));
 }
 
 float4x4 LoadDOTSInstancedData_float4x4(float4x4 default_value, uint metadata)
