@@ -128,6 +128,20 @@ namespace UnityEngine.Rendering
         }
     }
 
+    internal struct BRGInstanceBufferOffsets
+    {
+        public int localToWorld;
+        public int worldToLocal;
+        public int probeOffsetSHAr;
+        public int probeOffsetSHAg;
+        public int probeOffsetSHAb;
+        public int probeOffsetSHBr;
+        public int probeOffsetSHBg;
+        public int probeOffsetSHBb;
+        public int probeOffsetSHC;
+        public int probeOffsetOcclusion;
+    }
+
     struct DeferredMaterialInstance
     {
         public int instanceIndex;
@@ -153,8 +167,7 @@ namespace UnityEngine.Rendering
         private NativeArray<int> m_instanceIndices;
         private NativeArray<int> m_drawIndices;
         private NativeArray<DrawRenderer> m_renderers;
-        private int m_transformVec4InstanceBufferOffsetL2W;
-        private int m_transformVec4InstanceBufferOffsetW2L;
+        private BRGInstanceBufferOffsets m_instanceBufferOffsets;
         private NativeList<DeferredMaterialInstance> m_deferredMaterialInstances;
 
         private LightMaps m_Lightmaps;
@@ -904,8 +917,19 @@ namespace UnityEngine.Rendering
             var worldToLocalOffset = localToWorldOffset + m_renderers.Length * 3;
             var deferredMaterialDataOffset = worldToLocalOffset + m_renderers.Length * 3;
 
-            m_transformVec4InstanceBufferOffsetL2W = localToWorldOffset; //this will be used by the transform updated later.
-            m_transformVec4InstanceBufferOffsetW2L = worldToLocalOffset; //this will be used by the transform updated later.
+            m_instanceBufferOffsets = new BRGInstanceBufferOffsets()
+            {
+                localToWorld = localToWorldOffset,
+                worldToLocal = worldToLocalOffset,
+                probeOffsetSHAr = SHArOffset,
+                probeOffsetSHAg = SHAgOffset,
+                probeOffsetSHAb = SHAbOffset,
+                probeOffsetSHBr = SHBrOffset,
+                probeOffsetSHBg = SHBgOffset,
+                probeOffsetSHBb = SHBbOffset,
+                probeOffsetSHC = SHCOffset,
+                probeOffsetOcclusion = probeOcclusionOffset
+            };
 
             m_instances = new NativeList<DrawInstance>(1024, Allocator.Persistent);
 
@@ -968,7 +992,7 @@ namespace UnityEngine.Rendering
                 vectorBuffer[i * 3 + 1 + worldToLocalOffset] = new Vector4(mi.m11, mi.m21, mi.m02, mi.m12);
                 vectorBuffer[i * 3 + 2 + worldToLocalOffset] = new Vector4(mi.m22, mi.m03, mi.m13, mi.m23);
 
-                m_BRGTransformUpdater.RegisterTransformObject(i, rendererTransform);
+                m_BRGTransformUpdater.RegisterTransformObject(i, rendererTransform, renderer.lightProbeUsage == LightProbeUsage.BlendProbes);
 
                 lpq.CalculateInterpolatedLightAndOcclusionProbe(rendererTransform.position, -1, out var lp,
                     out var probeOcclusion);
@@ -1192,7 +1216,10 @@ namespace UnityEngine.Rendering
 
         public bool EndTransformsUpdate(CommandBuffer cmdBuffer)
         {
-            return m_BRGTransformUpdater.EndUpdateJobs(cmdBuffer, m_transformVec4InstanceBufferOffsetL2W, m_transformVec4InstanceBufferOffsetW2L, m_GPUPersistentInstanceData);
+            return m_BRGTransformUpdater.EndUpdateJobs(
+                cmdBuffer,
+                m_instanceBufferOffsets,
+                m_GPUPersistentInstanceData);
         }
 
         public void Destroy()
