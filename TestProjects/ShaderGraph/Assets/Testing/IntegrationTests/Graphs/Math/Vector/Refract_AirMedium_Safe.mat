@@ -56,7 +56,7 @@ Material:
     m_Floats:
     - _BUILTIN_QueueControl: 0
     - _BUILTIN_QueueOffset: 0
-    - _IOR_Medium: 1.5
+    - _IOR_Medium: 4
     - _IOR_Source: 1
     - _QueueControl: 0
     - _QueueOffset: 0
