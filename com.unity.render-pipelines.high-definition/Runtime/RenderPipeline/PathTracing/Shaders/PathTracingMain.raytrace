@@ -186,7 +186,6 @@ void RayGen()
     // float2 envConversion = float2((float)_PathTracingSkyTextureWidth / pixelResolution.x, (float)_PathTracingSkyTextureHeight / pixelResolution.y);
     // uint2 envCoord = envConversion * pixelCoord;
     // float3 envColor = _PathTracingSkyCDFTexture[envCoord] * GetInverseCurrentExposureMultiplier();
-
     // _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(envColor, 1.0);
 }
 
