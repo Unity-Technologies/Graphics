@@ -53,7 +53,7 @@ void Unity_FresnelEquation_Schlick(out float Fresnel, float cos0, float f0)
 
 void Unity_FresnelEquation_Dielectric(out float3 Fresnel, float cos0, float3 iorSource, float3 iorMedium)
 {
-    FresnelValue = F_FresnelDielectric(IorToFresnel0(iorMedium, iorSource), cos0);
+    FresnelValue = F_FresnelDielectric(iorMedium/iorSource, cos0);
 }
 
 void Unity_FresnelEquation_DielectricGeneric(out float3 Fresnel, float cos0, float3 iorSource, float3 iorMedium, float3 iorMediumK)

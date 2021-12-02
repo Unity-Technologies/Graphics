@@ -116,6 +116,7 @@
         * PBR
             * [Dielectric Specular](Dielectric-Specular-Node)
             * [Metal Reflectance](Metal-Reflectance-Node)
+            * [Fresnel Equation](Fresnel-Equation-Node)
         * Scene
             * [Camera](Camera-Node)
             * [Eye Index](Eye-Index-Node)
@@ -153,7 +154,6 @@
             * [Posterize](Posterize-Node)
             * [Reciprocal](Reciprocal-Node)
             * [Reciprocal Square Root](Reciprocal-Square-Root-Node)
-            * [Refract](Refract-Node)
         * Basic
             * [Add](Add-Node)
             * [Divide](Divide-Node)
@@ -210,6 +210,7 @@
             * [Fresnel Effect](Fresnel-Effect-Node)
             * [Projection](Projection-Node)
             * [Reflection](Reflection-Node)
+            * [Refract](Refract-Node)
             * [Rejection](Rejection-Node)
             * [Rotate About Axis](Rotate-About-Axis-Node)
             * [Sphere Mask](Sphere-Mask-Node)
