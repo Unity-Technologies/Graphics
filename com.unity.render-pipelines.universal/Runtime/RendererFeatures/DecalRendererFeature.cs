@@ -261,7 +261,7 @@ namespace UnityEngine.Rendering.Universal
                 return DecalTechnique.Invalid;
             }
 
-            bool isDeferred = universalRenderer.renderingMode == RenderingMode.Deferred;
+            bool isDeferred = universalRenderer.renderingModeRequested == RenderingMode.Deferred;
             return GetTechnique(isDeferred);
         }
 
@@ -390,7 +390,7 @@ namespace UnityEngine.Rendering.Universal
                     m_DecalDrawForwardEmissiveSystem = new DecalDrawFowardEmissiveSystem(m_DecalEntityManager);
                     m_ForwardEmissivePass = new DecalForwardEmissivePass(m_DecalDrawForwardEmissiveSystem);
 
-                    if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
+                    if (universalRenderer.renderingModeActual == RenderingMode.Deferred)
                     {
                         m_DBufferRenderPass.deferredLights = universalRenderer.deferredLights;
                         m_DBufferRenderPass.deferredLights.DisableFramebufferFetchInput();
@@ -484,7 +484,7 @@ namespace UnityEngine.Rendering.Universal
                 m_DBufferRenderPass.Setup(renderingData.cameraData);
 
                 var universalRenderer = renderer as UniversalRenderer;
-                if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
+                if (universalRenderer.renderingModeActual == RenderingMode.Deferred)
                     m_CopyDepthPass.Setup(
                         renderer.cameraDepthTargetHandle,
                         universalRenderer.m_DepthTexture
