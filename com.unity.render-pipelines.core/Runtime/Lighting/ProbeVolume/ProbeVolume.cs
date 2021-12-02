@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering
         public bool globalVolume = false;
         public Vector3 size = new Vector3(10, 10, 10);
         [HideInInspector, Range(0f, 2f)]
-        public float geometryDistanceOffset = 0.2f;
+        public float geometryDistanceOffset = 0.0f;
 
         public LayerMask objectLayerMask = -1;
 
