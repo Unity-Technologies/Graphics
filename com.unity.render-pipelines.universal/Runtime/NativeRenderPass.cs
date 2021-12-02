@@ -312,7 +312,13 @@ namespace UnityEngine.Rendering.Universal
                     int samples;
                     RenderTargetIdentifier colorAttachmentTarget;
                     // We are not rendering to Backbuffer so we have the RT and the information with it
-                    if (passColorAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
+                    if (usesTargetTexture && IsDepthOnlyRenderTexture(cameraData.targetTexture))
+                    {
+                        currentAttachmentDescriptor = new AttachmentDescriptor(cameraData.targetTexture.depthStencilFormat);
+                        samples = cameraData.targetTexture.descriptor.msaaSamples;
+                        colorAttachmentTarget = new RenderTargetIdentifier(cameraData.targetTexture);
+                    }
+                    else if (passColorAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
                     {
                         currentAttachmentDescriptor = new AttachmentDescriptor(depthOnly ? passColorAttachment.rt.descriptor.depthStencilFormat : passColorAttachment.rt.descriptor.graphicsFormat);
                         samples = passColorAttachment.rt.descriptor.msaaSamples;
@@ -662,7 +668,7 @@ namespace UnityEngine.Rendering.Universal
         {
             RenderTextureDescriptor targetRT;
             if (!renderPass.overrideCameraTarget || (renderPass.colorAttachmentHandle.rt == null && renderPass.depthAttachmentHandle.rt == null))
-                targetRT = cameraData.cameraTargetDescriptor;
+                targetRT = cameraData.targetTexture != null ? cameraData.targetTexture.descriptor : cameraData.cameraTargetDescriptor;
             else
             {
                 var handle = GetFirstAllocedRTHandle(renderPass);
