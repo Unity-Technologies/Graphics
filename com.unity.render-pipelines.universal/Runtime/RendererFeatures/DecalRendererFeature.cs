@@ -261,7 +261,7 @@ namespace UnityEngine.Rendering.Universal
                 return DecalTechnique.Invalid;
             }
 
-            bool isDeferred = universalRenderer.renderingModeRequested == RenderingMode.Deferred;
+            bool isDeferred = universalRenderer.renderingModeActual == RenderingMode.Deferred;
             return GetTechnique(isDeferred);
         }
 
