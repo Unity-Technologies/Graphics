@@ -94,10 +94,8 @@ namespace UnityEngine.Rendering.HighDefinition
             //Update scrolling based on deltaTime
             if (volumeMask != null)
             {
-                textureOffset = (textureScrollingSpeed * time);
                 // Switch from right-handed to left-handed coordinate system.
-                textureOffset.x = -textureOffset.x;
-                textureOffset.y = -textureOffset.y;
+                textureOffset = -(textureScrollingSpeed * time);
             }
         }
 

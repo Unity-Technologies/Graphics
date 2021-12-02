@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine.Serialization;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.U2D;
@@ -116,7 +117,7 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("m_LightVolumeOpacity")]
         [SerializeField] float m_LightVolumeIntensity = 1.0f;
         [SerializeField] bool m_LightVolumeIntensityEnabled = false;
-        [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
+        [SerializeField] int[] m_ApplyToSortingLayers;  // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
 
         [Reload("Textures/2D/Sparkle.png")]
         [SerializeField] Sprite m_LightCookieSprite;
@@ -388,6 +389,12 @@ namespace UnityEngine.Rendering.Universal
 
         private void Awake()
         {
+#if UNITY_EDITOR
+            // Default target sorting layers to "All"
+            if (m_ApplyToSortingLayers == null)
+                m_ApplyToSortingLayers = SortingLayer.layers.Select(x => x.id).ToArray();
+#endif
+
             if (m_LightCookieSprite != null)
             {
                 bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
@@ -414,6 +421,10 @@ namespace UnityEngine.Rendering.Universal
 
         private void LateUpdate()
         {
+#if UNITY_EDITOR
+            Light2DManager.UpdateSortingLayers(ref m_ApplyToSortingLayers);
+#endif
+
             if (m_LightType == LightType.Global)
                 return;
 

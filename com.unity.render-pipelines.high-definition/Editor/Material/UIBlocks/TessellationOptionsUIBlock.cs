@@ -20,7 +20,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly string[] tessellationModeNames = Enum.GetNames(typeof(TessellationMode));
 
-            public static GUIContent tessellationText = new GUIContent("Tessellation Options", "Tessellation options");
             public static GUIContent tessellationFactorText = new GUIContent("Tessellation Factor", "Controls the strength of the tessellation effect. Higher values result in more tessellation. Maximum tessellation factor is 15 on the Xbox One and PS4");
             public static GUIContent tessellationFactorMinDistanceText = new GUIContent("Start Fade Distance", "Sets the distance from the camera at which tessellation begins to fade out.");
             public static GUIContent tessellationFactorMaxDistanceText = new GUIContent("End Fade Distance", "Sets the maximum distance from the Camera where HDRP tessellates triangle. Set to 0 to disable adaptative factor with distance.");
@@ -95,7 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
             tessellationFactorMinDistance.floatValue = Math.Min(tessellationFactorMaxDistance.floatValue, tessellationFactorMinDistance.floatValue);
             materialEditor.ShaderProperty(tessellationFactorTriangleSize, Styles.tessellationFactorTriangleSizeText);
 
-            TessellationModePopup();
+            materialEditor.PopupShaderProperty(tessellationMode, Styles.tessellationModeText, Styles.tessellationModeNames);
             if ((TessellationMode)tessellationMode.floatValue == TessellationMode.Phong)
             {
                 EditorGUI.indentLevel++;
@@ -104,24 +103,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void TessellationModePopup()
-        {
-            EditorGUI.showMixedValue = tessellationMode.hasMixedValue;
-            var mode = (TessellationMode)tessellationMode.floatValue;
-
-            EditorGUI.BeginChangeCheck();
-            mode = (TessellationMode)EditorGUILayout.Popup(Styles.tessellationModeText, (int)mode, Styles.tessellationModeNames);
-            if (EditorGUI.EndChangeCheck())
-            {
-                materialEditor.RegisterPropertyChangeUndo("Tessellation Mode");
-                tessellationMode.floatValue = (float)mode;
-            }
-
-            EditorGUI.showMixedValue = false;
-        }
-
         private void DrawDelayedFloatProperty(MaterialProperty prop, GUIContent content)
         {
+            MaterialEditor.BeginProperty(prop);
+
             Rect position = EditorGUILayout.GetControlRect();
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = prop.hasMixedValue;
@@ -129,6 +114,8 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.showMixedValue = false;
             if (EditorGUI.EndChangeCheck())
                 prop.floatValue = newValue;
+
+            MaterialEditor.EndProperty();
         }
     }
 }

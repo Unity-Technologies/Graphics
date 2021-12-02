@@ -88,11 +88,12 @@ You can use the stack property add Overlay cameras to the stack and they will re
 | -------------------------- | ------------------------------------------------------------ |
 |__Background Type__ |Controls how to initialize the color buffer at the start of this Camera's render loop. For more information, see [the documentation on clearing](cameras-advanced.md#clearing).|
 |&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Skybox_|Initializes the color buffer by clearing to a Skybox. Defaults to a background color if no Skybox is found.|
-|&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Solid Color_|Initializes the color buffer by clearing to a given color.|
+|&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Solid Color_|Initializes the color buffer by clearing to a given color.<br/>If you select this property, Unity shows the following extra property:<br/>__Background__: the Camera clears its color buffer to this color before rendering. |
 |&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Uninitialized_|Does not initialize the color buffer. Choose this option only if your Camera or Camera Stack will draw to every pixel in the color buffer.|
-|__Background__ |The Camera clears its color buffer to this colour before rendering.<br/>This property only appears when you select **Solid Color** from the **Background Type** drop-down.|
-|__Volume Mask__| Use the drop-down to set the Layer Mask that defines which Volumes affect this Camera.|
-|__Volume Trigger__| Assign a Transform that the [Volume](Volumes.md) system uses to handle the position of this Camera. For example, if your application uses a third person view of a character, set this property to the character's Transform. The Camera then uses the post-processing and Scene settings for Volumes that the character enters. If you do not assign a Transform, the Camera uses its own Transform instead.|
+| **Volumes** | The settings in this section define how Volumes affect this Camera. |
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Update&#160;Mode_ | Select how Unity updates Volumes: every frame or when triggered via scripting. In the Editor, Unity updates Volumes every frame when not in the Play mode. |
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Volume&#160;Mask_ | Use the drop-down to set the Layer Mask that defines which Volumes affect this Camera.|
+| &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;_Volume&#160;Trigger_ | Assign a Transform that the [Volume](Volumes.md) system uses to handle the position of this Camera. For example, if your application uses a third person view of a character, set this property to the character's Transform. The Camera then uses the post-processing and Scene settings for Volumes that the character enters. If you do not assign a Transform, the Camera uses its own Transform instead.|
 
 <a name="Output"></a>
 ## Output
