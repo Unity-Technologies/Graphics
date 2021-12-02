@@ -182,7 +182,7 @@ namespace UnityEditor.ShaderGraph
                     }
                     else if (m_FresnelEquationMode == FresnelEquationMode.Dielectric)
                     {
-                        s.AppendLine("FresnelValue = F_FresnelDielectric(IorToFresnel0(iorMedium, iorSource), cos0);");
+                        s.AppendLine("FresnelValue = F_FresnelDielectric(iorMedium/iorSource, cos0);");
                     }
                     else //if (m_FresnelEquationMode == FresnelEquationMode.DielectricGeneric)
                     {
