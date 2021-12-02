@@ -58,6 +58,10 @@ Varyings ShadowPassVertex(Attributes input)
 
 half4 ShadowPassFragment(Varyings input) : SV_TARGET
 {
+#ifdef LOD_FADE_CROSSFADE
+    LODDitheringTransitionURP(input.positionCS.xy, unity_LODFade.x);
+#endif
+
     Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
     return 0;
 }

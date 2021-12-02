@@ -33,6 +33,10 @@ half DepthOnlyFragment(Varyings input) : SV_TARGET
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+#ifdef LOD_FADE_CROSSFADE
+    LODDitheringTransitionURP(input.positionCS.xy, unity_LODFade.x);
+#endif
+
     Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
     return input.positionCS.z;
 }
