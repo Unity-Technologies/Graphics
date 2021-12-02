@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Available tonemapping modes.
@@ -135,9 +135,9 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the Tonemapping effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Tonemapping", typeof(HDRenderPipelineAsset))]
-    [HDRPHelpURLAttribute("Post-Processing-Tonemapping")]
-    public sealed class Tonemapping : VolumeComponent, IPostProcessComponent
+    [Serializable, VolumeComponentMenu("Post-processing/Tonemapping")]
+    //[HDRPHelpURLAttribute("Post-Processing-Tonemapping")]
+    public class Tonemapping : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
         /// Specifies the tonemapping algorithm to use for the color grading process.
@@ -272,13 +272,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
         public bool IsActive()
         {
-            if (mode.value == TonemappingMode.External)
-                return ValidateLUT() && lutContribution.value > 0f;
-
             return mode.value != TonemappingMode.None;
         }
 
-        internal TonemappingMode GetHDRTonemappingMode()
+        public TonemappingMode GetHDRTonemappingMode()
         {
             if (mode.value == TonemappingMode.Custom ||
                 mode.value == TonemappingMode.External)
@@ -291,35 +288,40 @@ namespace UnityEngine.Rendering.HighDefinition
             return mode.value;
         }
 
-        /// <summary>
-        /// Validates the format and size of the LUT texture set in <see cref="lutTexture"/>.
-        /// </summary>
-        /// <returns><c>true</c> if the LUT is valid, <c>false</c> otherwise.</returns>
-        public bool ValidateLUT()
+        public bool IsTileCompatible() => true;
+
+        public Type GetNewComponentType()
         {
-            var hdAsset = HDRenderPipeline.currentAsset;
-            if (hdAsset == null || lutTexture.value == null)
-                return false;
+            return typeof(Tonemapping);
+        }
 
-            if (lutTexture.value.width != hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.lutSize)
-                return false;
+        public void CopyToNewComponent(VolumeComponent volumeComponent)
+        {
+            if (volumeComponent is not Tonemapping tm)
+                return;
 
-            bool valid = false;
-
-            switch (lutTexture.value)
-            {
-                case Texture3D t:
-                    valid |= t.width == t.height
-                        && t.height == t.depth;
-                    break;
-                case RenderTexture rt:
-                    valid |= rt.dimension == TextureDimension.Tex3D
-                        && rt.width == rt.height
-                        && rt.height == rt.volumeDepth;
-                    break;
-            }
-
-            return valid;
+            tm.active = active;
+            tm.displayName = displayName;
+            tm.hideFlags = hideFlags;
+            tm.mode = mode;
+            tm.useFullACES = useFullACES;
+            tm.toeStrength = toeStrength;
+            tm.toeLength = toeLength;
+            tm.shoulderStrength = shoulderStrength;
+            tm.shoulderAngle = shoulderAngle;
+            tm.shoulderLength = shoulderLength;
+            tm.gamma = gamma;
+            tm.lutTexture = lutTexture;
+            tm.lutContribution = lutContribution;
+            tm.neutralHDRRangeReductionMode = neutralHDRRangeReductionMode;
+            tm.acesPreset = acesPreset;
+            tm.fallbackMode = fallbackMode;
+            tm.hueShiftAmount = hueShiftAmount;
+            tm.detectPaperWhite = detectPaperWhite;
+            tm.paperWhite = paperWhite;
+            tm.detectBrightnessLimits = detectBrightnessLimits;
+            tm.minNits = minNits;
+            tm.maxNits = maxNits;
         }
     }
 

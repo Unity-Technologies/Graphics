@@ -4028,10 +4028,59 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle logLut;
         }
 
+        public static bool IsLUTValid(Tonemapping tm)
+        {
+            var hdAsset = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+
+            if (hdAsset == null || tm == null || tm.lutTexture.value == null)
+                return false;
+
+            var lutTexture = tm.lutTexture;
+            if (lutTexture.value.width != hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.lutSize)
+                return false;
+
+            bool valid = false;
+
+            switch (lutTexture.value)
+            {
+                case Texture3D t:
+                    valid |= t.width == t.height
+                             && t.height == t.depth;
+                    break;
+                case RenderTexture rt:
+                    valid |= rt.dimension == TextureDimension.Tex3D
+                             && rt.width == rt.height
+                             && rt.height == rt.volumeDepth;
+                    break;
+            }
+
+            return valid;
+        }
+
+        static bool IsTonemappingActive(Tonemapping tm)
+        {
+            if (tm == null)
+                return false;
+
+            if (!tm.IsActive())
+                return false;
+
+            if (tm.mode == TonemappingMode.External)
+            {
+                if (!IsLUTValid(tm))
+                    return false;
+
+                if (tm.lutContribution.value <= 0f)
+                    return false;
+            }
+            return true;
+        }
+
         internal void PrepareColorGradingParameters(ColorGradingPassData passData)
         {
             passData.tonemappingMode = m_TonemappingFS ? m_Tonemapping.mode.value : TonemappingMode.None;
-            bool tonemappingIsActive = m_Tonemapping.IsActive() && m_TonemappingFS;
+            bool tonemappingIsActive = IsTonemappingActive(m_Tonemapping) && m_TonemappingFS;
+
             if (HDROutputIsActive() && m_TonemappingFS)
             {
                 passData.tonemappingMode = m_Tonemapping.GetHDRTonemappingMode();

@@ -1305,7 +1305,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             else
             {
-                switch (m_Tonemapping.mode.value)
+                var mode = m_Tonemapping.mode.value;
+
+                // if we are on an unsupported mode use neutral mode
+                if (mode != TonemappingMode.None && mode != TonemappingMode.Neutral && mode != TonemappingMode.ACES)
+                    mode = TonemappingMode.Neutral;
+
+                switch (mode)
                 {
                     case TonemappingMode.Neutral: material.EnableKeyword(ShaderKeywordStrings.TonemapNeutral); break;
                     case TonemappingMode.ACES: material.EnableKeyword(ShaderKeywordStrings.TonemapACES); break;
