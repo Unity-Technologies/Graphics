@@ -121,7 +121,7 @@ test_platforms:
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
           - [all]: --testfilter=Low
           - [all]: --player-save-path=playersLow
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
@@ -134,7 +134,7 @@ test_platforms:
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
           - [all]: --testfilter=Medium
           - [all]: --player-save-path=playersMedium
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
@@ -201,7 +201,7 @@ test_platforms:
           - [all]: --performance-project-id=LostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
         flags:
           - [all]: --testfilter=Build
           - [all]: --report-performance-data
@@ -215,7 +215,7 @@ test_platforms:
           - [all]: --performance-project-id=LostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey_android_sdk_root>
         flags:
           - [all]: --testfilter=Build
           - [all]: --report-performance-data
