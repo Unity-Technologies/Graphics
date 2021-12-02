@@ -339,13 +339,10 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
         // Apply the volume/surface pdf
         pathIntersection.value /= pdf;
 
-        if (currentDepth)
-        {
-            // Bias the result (making it too dark), but reduces fireflies a lot
-            float intensity = Luminance(pathIntersection.value) * GetCurrentExposureMultiplier();
-            if (intensity > _RaytracingIntensityClamp)
-                pathIntersection.value *= _RaytracingIntensityClamp / intensity;
-        }
+        // Bias the result (potentially making it slightly darker), but reduces fireflies a lot
+        float intensity = Luminance(pathIntersection.value) * GetCurrentExposureMultiplier();
+        if (intensity > _RaytracingIntensityClamp)
+            pathIntersection.value *= _RaytracingIntensityClamp / intensity;
     }
 }
 

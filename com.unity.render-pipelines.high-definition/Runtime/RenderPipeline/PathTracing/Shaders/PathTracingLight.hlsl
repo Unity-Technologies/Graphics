@@ -493,7 +493,7 @@ bool SampleLights(LightList lightList,
         {
             float2 uv = SampleSky(inputSample);
             outgoingDir = MapUVToSkyDirection(uv);
-            value = SampleSkyTexture(outgoingDir, 0.0, 0).rgb;
+            value = GetSkyValue(outgoingDir);
             //pdf = GetSkyLightWeight(lightList) * GetSkyPDF(uv);
             pdf = GetSkyLightWeight(lightList) * GetSkyPDFFromValue(value);
 
@@ -586,7 +586,7 @@ void EvaluateLights(LightList lightList,
     // Then sky light
     if (lightList.skyCount)
     {
-        float3 skyValue = SampleSkyTexture(rayDescriptor.Direction, 0.0, 0).rgb;
+        float3 skyValue = GetSkyValue(rayDescriptor.Direction);
         value += skyValue;
 
         //float2 uv = MapSkyDirectionToUV(rayDescriptor.Direction);

@@ -90,7 +90,12 @@ float GetSkyPDFNormalizationFactor()
     return _PathTracingSkyMarginalTexture[uint2(0, 0)];
 }
 
-// This relies on the PDF/CDF tables being computed with equiareal mapping
+float3 GetSkyValue(float3 dir)
+{
+    return SampleSkyTexture(dir, 0.0, 0).rgb;
+}
+
+// This PDF approximation is valid only if PDF/CDF tables are computed with equiareal mapping
 float GetSkyPDFFromValue(float3 value)
 {
     return Luminance(value) * GetSkyPDFNormalizationFactor();
