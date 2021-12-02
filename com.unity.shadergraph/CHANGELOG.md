@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.8.0] - 2021-09-20
 
 ### Fixed
-- Fixed ShaderGraph errors caused by very large or very small default values for color or float properties [1313932]
-- Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
+ - Fixed ShaderGraph errors caused by very large or very small default values for color or float properties [1313932]
+ - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
+ - Fixed a ShaderGraph issue where Float properties in Integer mode would not be cast properly in graph previews [1332564]
 
 ## [10.7.0] - 2021-07-02
 
