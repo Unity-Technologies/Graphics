@@ -264,13 +264,15 @@ namespace UnityEngine.Rendering
 #endif
                 for (int activeRange = 0; activeRange < drawRanges.Length; ++activeRange)
                 {
-                    var batchCount = drawRanges[activeRange].drawCount;
+                    var drawRangeInfo = drawRanges[activeRange];
+                    var batchCount = drawRangeInfo.drawCount;
                     for (int activeBatch = 0; activeBatch < batchCount; ++activeBatch)
                     {
-                        var remappedDrawIndex = drawIndices[activeBatch];
+                        var remappedDrawIndex = drawIndices[drawRangeInfo.drawOffset + activeBatch];
                         var instanceCount = drawBatches[remappedDrawIndex].instanceCount;
                         var instanceOffset = drawBatches[remappedDrawIndex].instanceOffset;
 
+                        // Output visible instances to the array
                         for (int i = 0; i < instanceCount; ++i)
                         {
                             var rendererIndex = instanceIndices[instanceOffset + i];
@@ -309,7 +311,7 @@ namespace UnityEngine.Rendering
                     var visibleDrawCount = outBatch - rangeStartIndex;
                     if (visibleDrawCount > 0)
                     {
-                        var rangeKey = drawRanges[activeRange].key;
+                        var rangeKey = drawRangeInfo.key;
                         draws.drawRanges[outRange] = new BatchDrawRange
                         {
                             drawCommandsBegin = (uint)rangeStartIndex,
@@ -387,10 +389,11 @@ namespace UnityEngine.Rendering
 #endif
                 for (int activeRange = 0; activeRange < drawRanges.Length; ++activeRange)
                 {
-                    var batchCount = drawRanges[activeRange].drawCount;
+                    var drawRangeInfo = drawRanges[activeRange];
+                    var batchCount = drawRangeInfo.drawCount;
                     for (int activeBatch = 0; activeBatch < batchCount; ++activeBatch)
                     {
-                        var remappedDrawIndex = drawIndices[activeBatch];
+                        var remappedDrawIndex = drawIndices[drawRangeInfo.drawOffset + activeBatch];
                         var instanceCount = drawBatches[remappedDrawIndex].instanceCount;
                         var instanceOffset = drawBatches[remappedDrawIndex].instanceOffset;
 
@@ -422,6 +425,7 @@ namespace UnityEngine.Rendering
                             sum += v;
                         }
 
+                        // Output visible instances to the array, starting from their visible mask bin offsets
                         for (int i = 0; i < instanceCount; ++i)
                         {
                             var rendererIndex = instanceIndices[instanceOffset + i];
@@ -478,7 +482,7 @@ namespace UnityEngine.Rendering
                     var visibleDrawCount = outBatch - rangeStartIndex;
                     if (visibleDrawCount > 0)
                     {
-                        var rangeKey = drawRanges[activeRange].key;
+                        var rangeKey = drawRangeInfo.key;
                         draws.drawRanges[outRange] = new BatchDrawRange
                         {
                             drawCommandsBegin = (uint)rangeStartIndex,
