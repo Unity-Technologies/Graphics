@@ -61,13 +61,13 @@ When you enable Decal Layers, it increases the build time of your project. This 
 * Increases GPU performance cost.
 * Generates more [Shader Variants](https://docs.unity3d.com/Manual/shader-variants.html).
 
-HDRP renders depth in a Depth Prepass to apply decals to opaque Materials. This increases resource use on the CPU. Only Materials that have the **Receive Decals** property enabled render in the Depth Prepass, unless you force a full Depth Prepass. If you disable a decal with the Decal Layers system, HDRP still renders it in the Depth Prepass. To prevent HDRP from rendering a decal in the Depth Prepass: 
+HDRP renders Material depth in a Depth Prepass to apply decals to opaque Materials. This increases resource use on the CPU. Only Materials that have the **Receive Decals** property enabled render in the Depth Prepass, unless you force a full Depth Prepass. To prevent HDRP from rendering a Material which shouldn't receive Decals in the Depth Prepass: 
 
 1. Open the Material assigned to a Mesh Renderer or Terrain that you do not want to display decals on. 
 
 2. Disable the **Receive Decals** property.
 
-If you use the Decal Layer system to change the **Rendering Layer Mask** of a Mesh Renderer or Terrain, it doesn't have an effect on your application's performance. 
+If you use the Decal Layer system to change the **Rendering Layer Mask** of a Mesh Renderer or Terrain to disable decal, it doesn't have an effect on your application's performance.
 
 ## Additive Normal Blending
 
