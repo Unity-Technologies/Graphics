@@ -1288,6 +1288,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateVolumeAndPhysicalParameters()
         {
+            var previousVolumeAnchor = volumeAnchor;
             volumeAnchor = null;
             volumeLayerMask = -1;
             physicalParameters = null;
@@ -1332,6 +1333,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // No fallback for the physical camera as we can't assume anything in this regard
                         // Kept at null so the exposure will just use the default physical camera values
+                    }
+
+                    // if their was a previously set volumeAnchor for the SceneCamera, use it as an override
+                    if (volumeAnchor == null && previousVolumeAnchor != camera.transform)
+                    {
+                        volumeAnchor = previousVolumeAnchor;
                     }
                 }
             }
