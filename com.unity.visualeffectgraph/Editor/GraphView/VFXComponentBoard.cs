@@ -500,7 +500,9 @@ namespace UnityEditor.VFX.UI
                 m_EventsContainer.Clear();
             m_Events.Clear();
             if (m_DebugUI != null)
-                m_DebugUI.Clear();
+            {
+                m_DebugUI.SetDebugMode(VFXUIDebug.Modes.None, this, true);
+            }
 
             DeleteBoundsRecorder();
             RefreshInitializeErrors();
