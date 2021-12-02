@@ -245,7 +245,7 @@ public class Editmode_BakeRestart_Tests
 
             clearAll();
         }
-    
+
     [Test] // Case1356714
     public void GPULM_ChangeSamplesBetweenBakes_DoesNotFallbackToCPU()
     {
