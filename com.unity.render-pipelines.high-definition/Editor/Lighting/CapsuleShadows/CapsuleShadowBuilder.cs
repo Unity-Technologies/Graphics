@@ -35,12 +35,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // gather up local space bounds for each bone, using vertices with >50% weight
             Bounds[] bounds = new Bounds[boneCount];
             bool[] boundsValid = new bool[boneCount];
+            var vertices = sharedMesh.vertices;
             var bonesPerVertex = sharedMesh.GetBonesPerVertex();
             var boneWeights = sharedMesh.GetAllBoneWeights();
             int boneWeightIndex = 0;
             for (int vertIndex = 0; vertIndex < sharedMesh.vertexCount; ++vertIndex)
             {
-                Vector3 bindPosition = sharedMesh.vertices[vertIndex];
+                Vector3 bindPosition = vertices[vertIndex];
                 int vertBoneCount = bonesPerVertex[vertIndex];
                 for (int vertBoneIndex = 0; vertBoneIndex < vertBoneCount; ++vertBoneIndex)
                 {
