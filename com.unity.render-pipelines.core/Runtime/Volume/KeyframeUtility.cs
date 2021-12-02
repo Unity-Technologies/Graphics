@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering
         /// the first key might have inTangent=3.0f but the actual incoming tangent is 0.0 because the curve is
         /// clamped outside the time domain. So this helper fetches a key, but zeroes out the inTangent of the first
         /// key and the outTangent of the last key.
-        static private Keyframe GetKeyframeAndClampEdge([DisallowNull] Keyframe[] keys, int index)
+        static private Keyframe GetKeyframeAndClampEdge([DisallowNull] NativeArray<Keyframe> keys, int index)
         {
             var lastKeyIndex = keys.Length - 1;
             if (index < 0 || index > lastKeyIndex)
@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering
 
         /// Fetch a key from the keys list. If index<0, then expand the first key backwards to startTime. If index>=keys.length,
         /// then extend the last key to endTime. Keys must be a valid array with at least one element.
-        static private Keyframe FetchKeyFromIndexClampEdge([DisallowNull] Keyframe[] keys, int index, float segmentStartTime, float segmentEndTime)
+        static private Keyframe FetchKeyFromIndexClampEdge([DisallowNull] NativeArray<Keyframe> keys, int index, float segmentStartTime, float segmentEndTime)
         {
             float startTime = Mathf.Min(segmentStartTime, keys[0].time);
             float endTime = Mathf.Max(segmentEndTime, keys[keys.Length - 1].time);
@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering
 
         /// lhsIndex and rhsIndex are the indices in the keys array. The lhsIndex/rhsIndex may be -1, in which it creates a synthetic first key
         /// at startTime, or beyond the length of the array, in which case it creates a synthetic key at endTime.
-        static private Keyframe EvalKeyAtTime([DisallowNull] Keyframe[] keys, int lhsIndex, int rhsIndex, float startTime, float endTime, float currTime)
+        static private Keyframe EvalKeyAtTime([DisallowNull] NativeArray<Keyframe> keys, int lhsIndex, int rhsIndex, float startTime, float endTime, float currTime)
         {
             var lhsKey = KeyframeUtility.FetchKeyFromIndexClampEdge(keys, lhsIndex, startTime, endTime);
             var rhsKey = KeyframeUtility.FetchKeyFromIndexClampEdge(keys, rhsIndex, startTime, endTime);
@@ -213,18 +213,28 @@ namespace UnityEngine.Rendering
 
                 for (int i = 0; i < rhsCurve.length; i++)
                 {
-                    lhsAndResultCurve.AddKey(rhsCurve.keys[i]);
+                    lhsAndResultCurve.AddKey(rhsCurve[i]);
                 }
                 lhsAndResultCurve.postWrapMode = rhsCurve.postWrapMode;
                 lhsAndResultCurve.preWrapMode = rhsCurve.preWrapMode;
             }
             else
             {
-                // Note: If we reached this code, we are guaranteed that both lhsCruve and rhsCurve are valid with at least 1 key
+                // Note: If we reached this code, we are guaranteed that both lhsCurve and rhsCurve are valid with at least 1 key
 
-                // first, figure out the start and end time to include both curves
-                var lhsCurveKeys = lhsAndResultCurve.keys;
-                var rhsCurveKeys = rhsCurve.keys;
+                // create a native array for the temp keys to avoid GC
+                var lhsCurveKeys = new NativeArray<Keyframe>(lhsAndResultCurve.length, Allocator.Temp);
+                var rhsCurveKeys = new NativeArray<Keyframe>(rhsCurve.length, Allocator.Temp);
+
+                for (int i = 0; i < lhsAndResultCurve.length; i++)
+                {
+                    lhsCurveKeys[i] = lhsAndResultCurve[i];
+                }
+
+                for (int i = 0; i < rhsCurve.length; i++)
+                {
+                    rhsCurveKeys[i] = rhsCurve[i];
+                }
 
                 float startTime = Mathf.Min(lhsCurveKeys[0].time, rhsCurveKeys[0].time);
                 float endTime = Mathf.Max(lhsCurveKeys[lhsAndResultCurve.length - 1].time, rhsCurveKeys[rhsCurve.length - 1].time);
