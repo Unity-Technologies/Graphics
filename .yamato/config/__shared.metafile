@@ -373,7 +373,8 @@ platforms:
       - android
     agents_project:
       default:
-        type: Unity::mobile::android
+        type: Unity::mobile::samsung
+        model: s21-eu
         image: mobile/android-execution-r19:stable
         flavor: b1.large
       standalone_build:
@@ -385,7 +386,7 @@ platforms:
         setup_utr:
           - command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
             retries: 2
-        call_utr:
+        call_utr_hikey:
           - command: |5-
                     set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -393,7 +394,14 @@ platforms:
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
                     utr <UTR_FLAGS>
-        call_utr_android_job:
+        call_utr:
+          - command: |5-
+                    git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                    set /p GIT_REVISIONDATE=<revdate.tmp
+                    echo %GIT_REVISIONDATE%
+                    del revdate.tmp
+                    utr <UTR_FLAGS>
+        call_utr_hikey_android_sdk_root:
           - command: |5-
                     set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
