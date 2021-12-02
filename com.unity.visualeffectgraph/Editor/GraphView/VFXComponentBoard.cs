@@ -355,6 +355,7 @@ namespace UnityEditor.VFX.UI
             if (m_BoundsRecorder != null)
             {
                 m_BoundsRecorder.isRecording = false;
+                m_BoundsRecorder.CleanUp();
                 m_BoundsRecorder = null;
             }
         }
