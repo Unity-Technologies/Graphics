@@ -158,7 +158,8 @@ namespace UnityEngine.Rendering.Universal
 
                 ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
 
-                var samples = pass.overrideCameraTarget ? GetFirstAllocedRTHandle(pass).rt.descriptor.msaaSamples : cameraData.targetTexture != null ? cameraData.targetTexture.descriptor.msaaSamples : cameraData.cameraTargetDescriptor.msaaSamples;
+                var samples = pass.overrideCameraTarget ? GetFirstAllocedRTHandle(pass).rt.descriptor.msaaSamples :
+                    (cameraData.targetTexture != null ? cameraData.targetTexture.descriptor.msaaSamples : cameraData.cameraTargetDescriptor.msaaSamples);
 
                 // only override existing non destructive actions
                 for (int i = 0; i < m_FinalColorStoreAction.Length; ++i)
