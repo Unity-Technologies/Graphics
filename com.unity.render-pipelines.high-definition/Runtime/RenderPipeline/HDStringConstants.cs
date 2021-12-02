@@ -602,6 +602,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InvViewportScaleBias = Shader.PropertyToID("_InvViewportScaleBias");
         public static readonly int _PathTracingDoFParameters = Shader.PropertyToID("_PathTracingDoFParameters");
         public static readonly int _PathTracingTilingParameters = Shader.PropertyToID("_PathTracingTilingParameters");
+        public static readonly int _PathTracingSkyTextureWidth = Shader.PropertyToID("_PathTracingSkyTextureWidth");
+        public static readonly int _PathTracingSkyTextureHeight = Shader.PropertyToID("_PathTracingSkyTextureHeight");
         public static readonly int _PathTracingSkyPDFTexture = Shader.PropertyToID("_PathTracingSkyPDFTexture");
         public static readonly int _PathTracingSkyCDFTexture = Shader.PropertyToID("_PathTracingSkyCDFTexture");
         public static readonly int _PathTracingSkyMarginalTexture = Shader.PropertyToID("_PathTracingSkyMarginalTexture");

@@ -1,22 +1,24 @@
-// Adapted from BuildProbabilityTables.compute
+// This implementation is adapted from BuildProbabilityTables.compute
+
+#define COMPUTE_PATH_TRACING_SKY_SAMPLING_DATA
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSkySampling.hlsl"
 
-#define KERNEL_WIDTH 64
+#define KERNEL_WIDTH 64 
 
-// Input(s)
-uint2 _Sizes; // xy: output width, output height
-
-// Output(s)
-RW_TEXTURE2D(float, PDF);
-RW_TEXTURE2D(float, CDF);
-RW_TEXTURE2D(float, Marginal);
+// Make sky data access a little less verbose
+#define PDF        _PathTracingSkyPDFTexture
+#define CDF        _PathTracingSkyCDFTexture
+#define MARGINAL   _PathTracingSkyMarginalTexture
+#define TEX_WIDTH  _PathTracingSkyTextureWidth
+#define TEX_HEIGHT _PathTracingSkyTextureHeight
 
 // Performs a block-level parallel scan.
 // Ref: GPU Gems 3, Chapter 39: "Parallel Prefix Sum (Scan) with CUDA".
-void ParallelScan(uint i, uint j, uint w, uint iterCount, RW_TEXTURE2D(float, temp), out float sum)
+void ParallelScan(uint i, uint j, uint w, uint iterCount, RW_TEXTURE2D(float, buf), out float sum)
 {
     uint offset;
 
@@ -35,7 +37,7 @@ void ParallelScan(uint i, uint j, uint w, uint iterCount, RW_TEXTURE2D(float, te
 
             if (a2 < w)
             {
-                temp[uint2(a2, j)] += temp[uint2(a1, j)];
+                buf[uint2(a2, j)] += buf[uint2(a1, j)];
             }
         }
     }
@@ -43,14 +45,14 @@ void ParallelScan(uint i, uint j, uint w, uint iterCount, RW_TEXTURE2D(float, te
     AllMemoryBarrierWithGroupSync();
 
     // Prevent NaNs arising from the division of 0 by 0.
-    sum = max(temp[uint2(w - 1, j)], FLT_EPS);
+    sum = max(buf[uint2(w - 1, j)], FLT_EPS);
 
     AllMemoryBarrierWithGroupSync();
 
     // The exclusive scan requires the last element to be 0.
     if (i == 0)
     {
-        temp[uint2(w - 1, j)] = 0.0;
+        buf[uint2(w - 1, j)] = 0.0;
     }
 
     // Execute the down-sweep phase.
@@ -68,23 +70,14 @@ void ParallelScan(uint i, uint j, uint w, uint iterCount, RW_TEXTURE2D(float, te
 
             if (a2 < w)
             {
-                float t1 = temp[uint2(a1, j)];
-                temp[uint2(a1, j)] = temp[uint2(a2, j)];
-                temp[uint2(a2, j)] += t1;
+                float t1 = buf[uint2(a1, j)];
+                buf[uint2(a1, j)] = buf[uint2(a2, j)];
+                buf[uint2(a2, j)] += t1;
             }
         }
     }
 
     AllMemoryBarrierWithGroupSync();
-}
-
-float3 MapUVToSkyDirection(float u, float v)
-{
-    float phi = TWO_PI * (1.0 - u);
-    //float cosTheta = cos((1.0 - v) * PI);
-    float cosTheta = 2.0 * v - 1.0; // Equiareal variant
-
-    return TransformGLtoDX(SphericalToCartesian(phi, cosTheta));
 }
 
 #pragma kernel ComputeCDF
@@ -94,17 +87,17 @@ void ComputeCDF(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     const uint i = dispatchThreadId.x;
     const uint j = dispatchThreadId.y;
-    const uint iterCount = _Sizes.x / KERNEL_WIDTH;
+    const uint iterCount = TEX_WIDTH / KERNEL_WIDTH;
 
     uint iter;
 
-    float v = (j + 0.5) / _Sizes.y;
+    float v = (j + 0.5) / TEX_HEIGHT;
     //float sinTheta = sin(v * PI);
 
     for (iter = 0; iter < iterCount; iter++)
     {
         uint idx = i + iter * KERNEL_WIDTH;
-        float u = (idx + 0.5) / _Sizes.x;
+        float u = (idx + 0.5) / TEX_WIDTH;
 
         float3 dir = MapUVToSkyDirection(u, v);
         float pdf = Luminance(SampleSkyTexture(dir, 0.0, 0).rgb);// * sinTheta;
@@ -115,7 +108,7 @@ void ComputeCDF(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float rowValSum;
 
-    ParallelScan(i, j, _Sizes.x, iterCount, CDF, rowValSum);
+    ParallelScan(i, j, TEX_WIDTH, iterCount, CDF, rowValSum);
 
     for (iter = 0; iter < iterCount; iter++)
     {
@@ -125,8 +118,8 @@ void ComputeCDF(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     if (i == 0)
     {
-        float rowIntegralValue = rowValSum / _Sizes.x;
-        Marginal[uint2(j, 0)] = rowIntegralValue;
+        float rowIntegralValue = rowValSum / TEX_WIDTH;
+        MARGINAL[uint2(j, 0)] = rowIntegralValue;
     }
 }
 
@@ -136,22 +129,22 @@ void ComputeCDF(uint3 dispatchThreadId : SV_DispatchThreadID)
 void ComputeMarginal(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     const uint i = dispatchThreadId.x;
-    const uint iterCount = _Sizes.y / KERNEL_WIDTH;
+    const uint iterCount = TEX_HEIGHT / KERNEL_WIDTH;
 
     float rowValSum;
 
-    ParallelScan(i, 0, _Sizes.y, iterCount, Marginal, rowValSum);
+    ParallelScan(i, 0, TEX_HEIGHT, iterCount, MARGINAL, rowValSum);
 
     for (uint iter = 0; iter < iterCount; iter++)
     {
         uint idx = i + iter * KERNEL_WIDTH;
-        Marginal[uint2(idx, 0)] /= rowValSum;
+        MARGINAL[uint2(idx, 0)] /= rowValSum;
     }
 
     if (i == 0)
     {
-        float imgIntegralValue = rowValSum / _Sizes.y;
-        Marginal[uint2(0, 0)] = imgIntegralValue;
+        float imgIntegralValue = rowValSum / TEX_HEIGHT;
+        MARGINAL[uint2(0, 0)] = imgIntegralValue;
     }
 }
 
@@ -163,8 +156,8 @@ void NormalizePDF(uint3 dispatchThreadId : SV_DispatchThreadID)
     const uint i = dispatchThreadId.x;
     const uint j = dispatchThreadId.y;
 
-    // Marginal[0, 0] contains the sum of PDF values divided by texture size (width * height)
-    float sum = Marginal[uint2(0, 0)];
+    // MARGINAL[0, 0] contains the sum of PDF values divided by texture size (width * height)
+    float sum = MARGINAL[uint2(0, 0)];
 
     float jacobian = sum > 0.0 ? rcp(sum) / (TWO_PI * PI) : 0.0;
 

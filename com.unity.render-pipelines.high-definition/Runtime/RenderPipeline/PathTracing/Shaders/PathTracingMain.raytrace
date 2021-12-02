@@ -1,4 +1,4 @@
-// We need N bounces given that we want to support complex light paths
+// Set the max recursion depth to the desired user-facing value + 1
 #pragma max_recursion_depth 11
 
 // HDRP include
@@ -20,42 +20,18 @@
 // Path tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSkySampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
 
 // Input(s)
-float4x4 _PixelCoordToViewDirWS;
-int      _RaytracingCameraSkyEnabled;
-float4   _RaytracingCameraClearColor;
 TEXTURE2D_X(_SkyCameraTexture);
-float4   _PathTracingDoFParameters;    // x: aperture radius, y: focus distance, zw: unused
-float4   _PathTracingTilingParameters; // xy: tile count, zw: current tile index
-
-// FIXME
-TEXTURE2D(_PathTracingSkyPDFTexture);
-TEXTURE2D(_PathTracingSkyCDFTexture);
-TEXTURE2D(_PathTracingSkyMarginalTexture);
-
-float4   _Sizes;                       // xy: camera resolution, zw: sky sampling resolution
+float4x4    _PixelCoordToViewDirWS;
+float4      _RaytracingCameraClearColor;
+float4      _PathTracingDoFParameters;    // x: aperture radius, y: focus distance, zw: unused
+float4      _PathTracingTilingParameters; // xy: tile count, zw: current tile index
 
 // Output(s)
 RW_TEXTURE2D_X(float4, _FrameTexture);
-
-// float2 MapSkyDirectionToUV(float3 dir)
-// {
-//     float theta = acos(-dir.y);
-//     float phi = atan2(-dir.z, -dir.x);
-
-//     return float2(0.5 - phi * INV_TWO_PI, theta * INV_PI);
-// }
-
-// Equiareal variant
-float2 MapSkyDirectionToUV(float3 dir)
-{
-    float cosTheta = dir.y;
-    float phi = atan2(-dir.z, -dir.x);
-
-    return float2(0.5 - phi * INV_TWO_PI, (cosTheta + 1.0) * 0.5);
-}
 
 [shader("miss")]
 void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
@@ -68,12 +44,11 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
         return;
     }
 
-    bool skyEnabled = _EnvLightSkyEnabled && _RaytracingCameraSkyEnabled;
-    float4 missColor = skyEnabled ? _SkyCameraTexture[COORD_TEXTURE2D_X(pathIntersection.pixelCoord)] : _RaytracingCameraClearColor;
+    float4 missColor = IsSkyEnabled() ? _SkyCameraTexture[COORD_TEXTURE2D_X(pathIntersection.pixelCoord)] : _RaytracingCameraClearColor;
 
-    // FIXME
-    float2 uv = MapSkyDirectionToUV(WorldRayDirection());
-    missColor = SAMPLE_TEXTURE2D_LOD(_PathTracingSkyPDFTexture, s_linear_clamp_sampler, uv, 0).x;
+    // // FIXME
+    //float2 uv = MapSkyDirectionToUV(WorldRayDirection());
+    //missColor = SAMPLE_TEXTURE2D_LOD(_PathTracingSkyPDFTexture, s_linear_clamp_sampler, uv, 0).x;
     //missColor /= Luminance(SampleSkyTexture(WorldRayDirection(), 0.0, 0).rgb) * GetCurrentExposureMultiplier();
 
     pathIntersection.value = missColor.rgb * GetInverseCurrentExposureMultiplier();
@@ -117,14 +92,7 @@ void MissLight(inout PathIntersection pathIntersection : SV_RayPayload)
 [shader("miss")]
 void MissMaterial(inout PathIntersection pathIntersection : SV_RayPayload)
 {
-    if ((_RaytracingMaxRecursion - pathIntersection.remainingDepth) < _RaytracingMinRecursion)
-    {
-        pathIntersection.value = 0.0;
-        return;
-    }
-
-    pathIntersection.value = _EnvLightSkyEnabled ? SampleSkyTexture(WorldRayDirection(), 0.0, 0).rgb : 0.0;
-    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value);
+    pathIntersection.value = 0.0;
 }
 
 void ApplyDepthOfField(uint2 pixelCoord, float dotDirection, inout float3 origin, inout float3 direction)
@@ -215,11 +183,9 @@ void RayGen()
 
     // // FIXME:
     // uint2 pixelResolution = DispatchRaysDimensions().xy;
-    // float2 envConversion = float2(_Sizes.z / pixelResolution.x, _Sizes.w / pixelResolution.y);
+    // float2 envConversion = float2((float)_PathTracingSkyTextureWidth / pixelResolution.x, (float)_PathTracingSkyTextureHeight / pixelResolution.y);
     // uint2 envCoord = envConversion * pixelCoord;
-    // //float3 envColor = float3(_PathTracingSkySamplingTexture[envCoord].xy * GetInverseCurrentExposureMultiplier(), 0.0);
-    // //float3 envColor = _PathTracingSkySamplingTexture[envCoord].x;
-    // float3 envColor = _PathTracingSkyPDFTexture[envCoord].x * GetInverseCurrentExposureMultiplier();
+    // float3 envColor = _PathTracingSkyCDFTexture[envCoord] * GetInverseCurrentExposureMultiplier();
 
     // _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(envColor, 1.0);
 }

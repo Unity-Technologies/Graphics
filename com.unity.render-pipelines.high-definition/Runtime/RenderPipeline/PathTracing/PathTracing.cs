@@ -377,20 +377,20 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, data.lightCluster.GetCluster());
                         ctx.cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, data.lightCluster.GetLightDatas());
 
-                        // Set the data for the ray miss
-                        ctx.cmd.SetRayTracingIntParam(data.shader, HDShaderIDs._RaytracingCameraSkyEnabled, data.cameraData.skyEnabled ? 1 : 0);
-                        ctx.cmd.SetRayTracingVectorParam(data.shader, HDShaderIDs._Sizes, new Vector4(data.width, data.height, data.skySize * 2, data.skySize));
+                        // Global sky data
+                        ctx.cmd.SetGlobalInt(HDShaderIDs._RaytracingCameraSkyEnabled, data.cameraData.skyEnabled ? 1 : 0);
+                        ctx.cmd.SetGlobalInt(HDShaderIDs._PathTracingSkyTextureWidth, 2 * data.skySize);
+                        ctx.cmd.SetGlobalInt(HDShaderIDs._PathTracingSkyTextureHeight, data.skySize);
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, data.skyReflection);
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._PathTracingSkyPDFTexture, data.skyPDF);
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._PathTracingSkyCDFTexture, data.skyCDF);
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._PathTracingSkyMarginalTexture, data.skyMarginal);
+
+                        // Further sky-related data for the ray miss
                         ctx.cmd.SetRayTracingVectorParam(data.shader, HDShaderIDs._RaytracingCameraClearColor, data.backgroundColor);
                         ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._SkyCameraTexture, data.skyBG);
-                        ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._SkyTexture, data.skyReflection);
 
-                        // Additional data for path tracing
-
-                        // FIXME
-                        ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._PathTracingSkyPDFTexture, data.skyPDF);
-                        ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._PathTracingSkyCDFTexture, data.skyCDF);
-                        ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._PathTracingSkyMarginalTexture, data.skyMarginal);
-
+                        // Data used in the camera ray generation
                         ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._FrameTexture, data.output);
                         ctx.cmd.SetRayTracingMatrixParam(data.shader, HDShaderIDs._PixelCoordToViewDirWS, data.pixelCoordToViewDirWS);
                         ctx.cmd.SetRayTracingVectorParam(data.shader, HDShaderIDs._PathTracingDoFParameters, data.dofParameters);
@@ -461,18 +461,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (RenderSkySamplingPassData data, RenderGraphContext ctx) =>
                     {
-                        ctx.cmd.SetComputeIntParams(data.shader, HDShaderIDs._Sizes, data.size * 2, data.size);
+                        ctx.cmd.SetComputeIntParam(data.shader, HDShaderIDs._PathTracingSkyTextureWidth, data.size * 2);
+                        ctx.cmd.SetComputeIntParam(data.shader, HDShaderIDs._PathTracingSkyTextureHeight, data.size);
 
-                        ctx.cmd.SetComputeTextureParam(data.shader, data.k0, "PDF", data.outputPDF);
-                        ctx.cmd.SetComputeTextureParam(data.shader, data.k0, "CDF", data.outputCDF);
-                        ctx.cmd.SetComputeTextureParam(data.shader, data.k0, "Marginal", data.outputMarginal);
+                        ctx.cmd.SetComputeTextureParam(data.shader, data.k0, HDShaderIDs._PathTracingSkyPDFTexture, data.outputPDF);
+                        ctx.cmd.SetComputeTextureParam(data.shader, data.k0, HDShaderIDs._PathTracingSkyCDFTexture, data.outputCDF);
+                        ctx.cmd.SetComputeTextureParam(data.shader, data.k0, HDShaderIDs._PathTracingSkyMarginalTexture, data.outputMarginal);
                         ctx.cmd.DispatchCompute(data.shader, data.k0, 1, data.size, 1);
 
-                        ctx.cmd.SetComputeTextureParam(data.shader, data.k1, "Marginal", data.outputMarginal);
+                        ctx.cmd.SetComputeTextureParam(data.shader, data.k1, HDShaderIDs._PathTracingSkyMarginalTexture, data.outputMarginal);
                         ctx.cmd.DispatchCompute(data.shader, data.k1, 1, 1, 1);
 
-                        ctx.cmd.SetComputeTextureParam(data.shader, data.k2, "PDF", data.outputPDF);
-                        ctx.cmd.SetComputeTextureParam(data.shader, data.k2, "Marginal", data.outputMarginal);
+                        ctx.cmd.SetComputeTextureParam(data.shader, data.k2, HDShaderIDs._PathTracingSkyPDFTexture, data.outputPDF);
+                        ctx.cmd.SetComputeTextureParam(data.shader, data.k2, HDShaderIDs._PathTracingSkyMarginalTexture, data.outputMarginal);
                         ctx.cmd.DispatchCompute(data.shader, data.k2, data.size * 2 / 8, data.size / 8, 1);
                     });
             }
@@ -528,6 +529,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (m_SkyHash != hdCamera.lightingSky.skyParametersHash)
                     {
+                        Debug.Log("Sky Update " + m_SkyHash + " " + hdCamera.lightingSky.skyParametersHash);
                         RenderSkySamplingData(m_RenderGraph, hdCamera);
                         m_SkyHash = hdCamera.lightingSky.skyParametersHash;
                     }
