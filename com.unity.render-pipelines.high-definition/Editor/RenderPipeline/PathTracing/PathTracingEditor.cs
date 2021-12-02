@@ -20,6 +20,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
         SerializedDataParameter m_SkyImportanceSampling;
         SerializedDataParameter m_Denoising;
         SerializedDataParameter m_UseAOV;
+        SerializedDataParameter m_Temporal;
 
         public override void OnEnable()
         {
@@ -36,6 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
 #if ENABLE_UNITY_DENOISERS
             m_Denoising = Unpack(o.Find(x => x.denoiser));
             m_UseAOV = Unpack(o.Find(x => x.useAOVs));
+            m_Temporal = Unpack(o.Find(x => x.temporal));
 #endif
         }
 
@@ -71,6 +73,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                             using (new IndentLevelScope())
                             {
                                 PropertyField(m_UseAOV);
+                                PropertyField(m_Temporal);
                             }
                         }
 #endif

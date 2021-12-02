@@ -300,6 +300,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle normalAOV;
             public TextureHandle albedoAOV;
             public TextureHandle motionVectorAOV;
+
+            public bool useAOV;
+            public bool temporal;
         }
 
         unsafe void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, TextureHandle motionVectors, bool needExposure)
@@ -331,8 +334,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.albedoAOV = builder.ReadTexture(albedoAOV);
                 passData.normalAOV = builder.ReadTexture(normalAOV);
                 passData.motionVectorAOV = builder.ReadTexture(motionVectors);
-
-                bool useAOV = m_PathTracingSettings.useAOVs.value;
+                passData.useAOV = m_PathTracingSettings.useAOVs.value;
+                passData.temporal = m_PathTracingSettings.temporal.value;
 
                 builder.SetRenderFunc(
                     (RenderAccumulationPassData data, RenderGraphContext ctx) =>
@@ -373,6 +376,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (camData.currentIteration == (data.subFrameManager.subFrameCount - 1) && camData.denoiser.type != DenoiserType.None)
                         {
                             bool useAsync = false;
+                            bool useAOV = data.useAOV;
 
                             if (!camData.denoiser.denoised)
                             {
@@ -392,7 +396,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 }
                                 else
                                 {
-                                    camData.denoiser.DenoiseRequest(ctx.cmd, history.rt, useAOV ? data.albedoAOV : null, useAOV ? data.normalAOV : null, useAOV ? data.motionVectorAOV : null);
+                                    camData.denoiser.DenoiseRequest(ctx.cmd, history.rt, useAOV ? data.albedoAOV : null, useAOV ? data.normalAOV : null, data.temporal? data.motionVectorAOV : null);
 
                                     ctx.cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationFrameIndex, (int)data.subFrameManager.subFrameCount);
                                     ctx.cmd.DispatchCompute(accumulationShader, data.accumulationKernel, (data.hdCamera.actualWidth + 7) / 8, (data.hdCamera.actualHeight + 7) / 8, data.hdCamera.viewCount);

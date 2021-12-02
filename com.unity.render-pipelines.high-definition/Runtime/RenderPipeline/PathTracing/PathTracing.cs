@@ -94,6 +94,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Enables denoising with albedo and normal AOVs")]
         public BoolParameter useAOVs = new BoolParameter(false);
 
+        [Tooltip("Enables temporally stable denoising")]
+        public BoolParameter temporal = new BoolParameter(false);
+
 
         /// <summary>
         /// Defines if and when sky importance sampling is enabled. It should be turned on for sky models with high contrast and bright spots, and turned off for smooth, uniform skies.
