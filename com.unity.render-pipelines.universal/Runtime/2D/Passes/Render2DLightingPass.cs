@@ -51,6 +51,12 @@ namespace UnityEngine.Rendering.Universal
             m_NeedsDepth = useDepth;
         }
 
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            ConfigureTarget(BuiltinRenderTextureType.CurrentActive);
+            ConfigureClear(ClearFlag.None, Color.black);
+        }
+
         private void GetTransparencySortingMode(Camera camera, ref SortingSettings sortingSettings)
         {
             var mode = m_Renderer2DData.transparencySortMode;
@@ -243,8 +249,8 @@ namespace UnityEngine.Rendering.Universal
                 else
                     initialStoreAction = RenderBufferStoreAction.Store;
                 CoreUtils.SetRenderTarget(cmd,
-                    colorAttachmentHandle, RenderBufferLoadAction.Load, initialStoreAction,
-                    depthAttachmentHandle, RenderBufferLoadAction.Load, initialStoreAction,
+                    colorAttachmentHandle, RenderBufferLoadAction.DontCare, initialStoreAction,
+                    depthAttachmentHandle, RenderBufferLoadAction.DontCare, initialStoreAction,
                     ClearFlag.None, Color.clear);
 
                 for (var i = startIndex; i < startIndex + batchesDrawn; i++)
