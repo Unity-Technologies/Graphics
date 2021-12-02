@@ -10,6 +10,7 @@
 // Always use mips and output separate diffuse buffer.
 // Volumetric output as an option
 #pragma kernel AmbientProbeConvolutionDiffuse KERNEL_NAME=AmbientProbeConvolutionDiffuse OUTPUT_DIFFUSE
+#pragma kernel AmbientProbeConvolutionVolumetric KERNEL_NAME=AmbientProbeConvolutionVolumetric OUTPUT_VOLUMETRIC
 #pragma kernel AmbientProbeConvolutionDiffuseVolumetric KERNEL_NAME=AmbientProbeConvolutionDiffuseVolumetric OUTPUT_VOLUMETRIC OUTPUT_DIFFUSE
 // Ambient probe convolution for clouds.
 // Does not output diffuse and volumetric buffer and does not use input texture mips.

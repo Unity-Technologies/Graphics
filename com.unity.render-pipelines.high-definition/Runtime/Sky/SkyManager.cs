@@ -348,10 +348,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     builder.SetRenderFunc(
                     (SetGlobalSkyDataPassData data, RenderGraphContext ctx) =>
-                    {
-                        data.builtinParameters.commandBuffer = ctx.cmd;
-                        data.skyRenderer.SetGlobalSkyData(ctx.cmd, data.builtinParameters);
-                    });
+                {
+                    data.builtinParameters.commandBuffer = ctx.cmd;
+                    data.skyRenderer.SetGlobalSkyData(ctx.cmd, data.builtinParameters);
+                });
                 }
             }
         }
@@ -706,23 +706,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 builder.SetRenderFunc(
                 (RenderSkyToCubemapPassData data, RenderGraphContext ctx) =>
+            {
+                data.builtinParameters.commandBuffer = ctx.cmd;
+
+                for (int i = 0; i < 6; ++i)
                 {
-                    data.builtinParameters.commandBuffer = ctx.cmd;
+                    data.builtinParameters.pixelCoordToViewDirMatrix = data.facePixelCoordToViewDirMatrices[i];
+                    data.builtinParameters.viewMatrix = data.cameraViewMatrices[i];
+                    data.builtinParameters.colorBuffer = data.output;
+                    data.builtinParameters.depthBuffer = null;
+                    data.builtinParameters.cubemapFace = (CubemapFace)i;
 
-                    for (int i = 0; i < 6; ++i)
-                    {
-                        data.builtinParameters.pixelCoordToViewDirMatrix = data.facePixelCoordToViewDirMatrices[i];
-                        data.builtinParameters.viewMatrix = data.cameraViewMatrices[i];
-                        data.builtinParameters.colorBuffer = data.output;
-                        data.builtinParameters.depthBuffer = null;
-                        data.builtinParameters.cubemapFace = (CubemapFace)i;
-
-                        CoreUtils.SetRenderTarget(ctx.cmd, data.output, ClearFlag.None, 0, (CubemapFace)i);
-                        data.skyRenderer.RenderSky(data.builtinParameters, true, data.includeSunInBaking);
-                        if (data.cloudRenderer != null)
-                            data.cloudRenderer.RenderClouds(data.builtinParameters, true);
-                    }
-                });
+                    CoreUtils.SetRenderTarget(ctx.cmd, data.output, ClearFlag.None, 0, (CubemapFace)i);
+                    data.skyRenderer.RenderSky(data.builtinParameters, true, data.includeSunInBaking);
+                    if (data.cloudRenderer != null)
+                        data.cloudRenderer.RenderClouds(data.builtinParameters, true);
+                }
+            });
 
                 return passData.output;
             }
@@ -1104,9 +1104,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         skyContext.currentUpdateTime = 0.0f;
 
 #if UNITY_EDITOR
-                        // In the editor when we change the sky we want to make the GI dirty so when baking again the new sky is taken into account.
-                        // Changing the hash of the rendertarget allow to say that GI is dirty
-                        renderingContext.skyboxCubemapRT.rt.imageContentsHash = new Hash128((uint)skyHash, 0, 0, 0);
+                            // In the editor when we change the sky we want to make the GI dirty so when baking again the new sky is taken into account.
+                            // Changing the hash of the rendertarget allow to say that GI is dirty
+                            renderingContext.skyboxCubemapRT.rt.imageContentsHash = new Hash128((uint)skyHash, 0, 0, 0);
 #endif
                     }
                 }
