@@ -643,12 +643,13 @@ namespace UnityEngine.Rendering.Universal
         internal static RTHandle GetFirstAllocedRTHandle(ScriptableRenderPass pass)
         {
             for (int i = 0; i < pass.colorAttachmentHandles.Length; ++i)
-                {
-                    if (pass.colorAttachmentHandles[i].rt != null)
-                        return pass.colorAttachmentHandles[i];
-                }
+            {
+                if (pass.colorAttachmentHandles[i].rt != null)
+                    return pass.colorAttachmentHandles[i];
+            }
             return pass.colorAttachmentHandles[0];
         }
+
         internal static bool PassHasInputAttachments(ScriptableRenderPass renderPass)
         {
             return renderPass.m_InputAttachments.Length != 8 || renderPass.m_InputAttachments[0] != null;
