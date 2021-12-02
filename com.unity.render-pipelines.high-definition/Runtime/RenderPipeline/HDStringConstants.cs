@@ -173,6 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DirectionalLightDatas = Shader.PropertyToID("_DirectionalLightDatas");
         public static readonly int _LightDatas = Shader.PropertyToID("_LightDatas");
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
+        public static readonly int _AmbientProbeData = Shader.PropertyToID("_AmbientProbeData");
 
         public static readonly int _ProbeVolumeBounds = Shader.PropertyToID("_ProbeVolumeBounds");
         public static readonly int _ProbeVolumeDatas = Shader.PropertyToID("_ProbeVolumeDatas");
@@ -553,6 +554,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VolumeBounds = Shader.PropertyToID("_VolumeBounds");
         public static readonly int _VolumeData = Shader.PropertyToID("_VolumeData");
         public static readonly int _VolumeMaskAtlas = Shader.PropertyToID("_VolumeMaskAtlas");
+        public static readonly int _VolumeAmbientProbeBuffer = Shader.PropertyToID("_VolumetricAmbientProbeBuffer");
 
         public static readonly int _MaxZMaskTexture = Shader.PropertyToID("_MaxZMaskTexture");
         public static readonly int _DilationWidth = Shader.PropertyToID("_DilationWidth");
