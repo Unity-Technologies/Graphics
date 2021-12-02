@@ -8,9 +8,7 @@
 // UnityEngine.Rendering.APVLeakReductionMode:  static fields
 //
 #define APVLEAKREDUCTIONMODE_NONE (0)
-#define APVLEAKREDUCTIONMODE_VALIDITY_BASED (1)
-#define APVLEAKREDUCTIONMODE_NORMAL_BASED (2)
-#define APVLEAKREDUCTIONMODE_VALIDITY_AND_NORMAL_BASED (3)
+#define APVLEAKREDUCTIONMODE_VALIDITY_AND_NORMAL_BASED (1)
 
 // Generated from UnityEngine.Rendering.ShaderVariablesProbeVolumes
 // PackingRules = Exact
