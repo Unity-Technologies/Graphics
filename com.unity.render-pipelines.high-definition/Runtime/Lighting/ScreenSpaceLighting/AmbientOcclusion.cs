@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_RayLength.value;
                 else
-                    return GetLightingQualitySettings().RTAORayLength[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTAORayLength[(int)quality.value];
             }
             set { m_RayLength.value = value; }
         }
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_SampleCount.value;
                 else
-                    return GetLightingQualitySettings().RTAOSampleCount[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTAOSampleCount[(int)quality.value];
             }
             set { m_SampleCount.value = value; }
         }
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_Denoise.value;
                 else
-                    return GetLightingQualitySettings().RTAODenoise[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTAODenoise[(int)quality.value];
             }
             set { m_Denoise.value = value; }
         }
@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_DenoiserRadius.value;
                 else
-                    return GetLightingQualitySettings().RTAODenoiserRadius[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTAODenoiserRadius[(int)quality.value];
             }
             set { m_DenoiserRadius.value = value; }
         }
@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_StepCount.value;
                 else
-                    return GetLightingQualitySettings().AOStepCount[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().AOStepCount[(int)quality.value];
             }
             set { m_StepCount.value = value; }
         }
@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_FullResolution.value;
                 else
-                    return GetLightingQualitySettings().AOFullRes[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().AOFullRes[(int)quality.value];
             }
             set { m_FullResolution.value = value; }
         }
@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_MaximumRadiusInPixels.value;
                 else
-                    return GetLightingQualitySettings().AOMaximumRadiusPixels[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().AOMaximumRadiusPixels[(int)quality.value];
             }
             set { m_MaximumRadiusInPixels.value = value; }
         }
@@ -177,7 +177,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_BilateralUpsample.value;
                 else
-                    return GetLightingQualitySettings().AOBilateralUpsample[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().AOBilateralUpsample[(int)quality.value];
             }
             set { m_BilateralUpsample.value = value; }
         }
@@ -192,7 +192,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_DirectionCount.value;
                 else
-                    return GetLightingQualitySettings().AODirectionCount[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().AODirectionCount[(int)quality.value];
             }
             set { m_DirectionCount.value = value; }
         }

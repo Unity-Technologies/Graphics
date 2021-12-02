@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     int qualityLevel = (int)quality.value;
-                    return GetLightingQualitySettings().ContactShadowSampleCount[qualityLevel];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().ContactShadowSampleCount[qualityLevel];
                 }
             }
             set { m_SampleCount.value = value; }

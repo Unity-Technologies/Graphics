@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if ((UsesRayTracing() && (UsesRayTracingQualityMode() || !UsesQualitySettings())) || !UsesRayTracing())
                     return m_MinSmoothness.value;
                 else
-                    return GetLightingQualitySettings().RTRMinSmoothness[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTRMinSmoothness[(int)quality.value];
             }
             set { m_MinSmoothness.value = value; }
         }
@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if ((UsesRayTracing() && (UsesRayTracingQualityMode() || !UsesQualitySettings())) || !UsesRayTracing())
                     return m_SmoothnessFadeStart.value;
                 else
-                    return GetLightingQualitySettings().RTRSmoothnessFadeStart[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTRSmoothnessFadeStart[(int)quality.value];
             }
             set { m_SmoothnessFadeStart.value = value; }
         }
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_RayMaxIterations.value;
                 else
-                    return GetLightingQualitySettings().SSRMaxRaySteps[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().SSRMaxRaySteps[(int)quality.value];
             }
             set { m_RayMaxIterations.value = value; }
         }
@@ -178,7 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings() || UsesRayTracingQualityMode())
                     return m_RayLength.value;
                 else
-                    return GetLightingQualitySettings().RTRRayLength[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTRRayLength[(int)quality.value];
             }
             set { m_RayLength.value = value; }
         }
@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings() || UsesRayTracingQualityMode())
                     return m_ClampValue.value;
                 else
-                    return GetLightingQualitySettings().RTRClampValue[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTRClampValue[(int)quality.value];
             }
             set { m_ClampValue.value = value; }
         }
@@ -213,7 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings() || UsesRayTracingQualityMode())
                     return m_Denoise.value;
                 else
-                    return GetLightingQualitySettings().RTRDenoise[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTRDenoise[(int)quality.value];
             }
             set { m_Denoise.value = value; }
         }
@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings() || UsesRayTracingQualityMode())
                     return m_DenoiserRadius.value;
                 else
-                    return GetLightingQualitySettings().RTRDenoiserRadius[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTRDenoiserRadius[(int)quality.value];
             }
             set { m_DenoiserRadius.value = value; }
         }
@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings() || UsesRayTracingQualityMode())
                     return m_AffectSmoothSurfaces.value;
                 else
-                    return GetLightingQualitySettings().RTRSmoothDenoising[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTRSmoothDenoising[(int)quality.value];
             }
             set { m_AffectSmoothSurfaces.value = value; }
         }
@@ -272,7 +272,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_FullResolution.value;
                 else
-                    return GetLightingQualitySettings().RTRFullResolution[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTRFullResolution[(int)quality.value];
             }
             set { m_FullResolution.value = value; }
         }
@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_RayMaxIterationsRT.value;
                 else
-                    return GetLightingQualitySettings().RTRRayMaxIterations[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTRRayMaxIterations[(int)quality.value];
             }
             set { m_RayMaxIterationsRT.value = value; }
         }

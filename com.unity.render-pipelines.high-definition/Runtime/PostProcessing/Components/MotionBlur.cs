@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     int qualityLevel = (int)quality.levelAndOverride.level;
-                    return GetPostProcessingQualitySettings().MotionBlurSampleCount[qualityLevel];
+                    return HDRenderPipelineAsset.GetPostProcessingQualitySettings().MotionBlurSampleCount[qualityLevel];
                 }
             }
             set { m_SampleCount.value = value; }

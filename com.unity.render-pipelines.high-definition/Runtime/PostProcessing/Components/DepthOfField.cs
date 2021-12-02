@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     int qualityLevel = (int)quality.levelAndOverride.level;
-                    return GetPostProcessingQualitySettings().NearBlurSampleCount[qualityLevel];
+                    return HDRenderPipelineAsset.GetPostProcessingQualitySettings().NearBlurSampleCount[qualityLevel];
                 }
             }
             set { m_NearSampleCount.value = value; }
@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     int qualityLevel = (int)quality.levelAndOverride.level;
-                    return GetPostProcessingQualitySettings().NearBlurMaxRadius[qualityLevel];
+                    return HDRenderPipelineAsset.GetPostProcessingQualitySettings().NearBlurMaxRadius[qualityLevel];
                 }
             }
             set { m_NearMaxBlur.value = value; }
@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     int qualityLevel = (int)quality.levelAndOverride.level;
-                    return GetPostProcessingQualitySettings().FarBlurSampleCount[qualityLevel];
+                    return HDRenderPipelineAsset.GetPostProcessingQualitySettings().FarBlurSampleCount[qualityLevel];
                 }
             }
             set { m_FarSampleCount.value = value; }
@@ -205,7 +205,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     int qualityLevel = (int)quality.levelAndOverride.level;
-                    return GetPostProcessingQualitySettings().FarBlurMaxRadius[qualityLevel];
+                    return HDRenderPipelineAsset.GetPostProcessingQualitySettings().FarBlurMaxRadius[qualityLevel];
                 }
             }
             set { m_FarMaxBlur.value = value; }
@@ -225,7 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     int qualityLevel = (int)quality.levelAndOverride.level;
-                    return GetPostProcessingQualitySettings().DoFHighQualityFiltering[qualityLevel];
+                    return HDRenderPipelineAsset.GetPostProcessingQualitySettings().DoFHighQualityFiltering[qualityLevel];
                 }
             }
             set { m_HighQualityFiltering.value = value; }
@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     int qualityLevel = (int)quality.levelAndOverride.level;
-                    return GetPostProcessingQualitySettings().DoFPhysicallyBased[qualityLevel];
+                    return HDRenderPipelineAsset.GetPostProcessingQualitySettings().DoFPhysicallyBased[qualityLevel];
                 }
             }
             set { m_PhysicallyBased.value = value; }
@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     int qualityLevel = (int)quality.levelAndOverride.level;
-                    return GetPostProcessingQualitySettings().DoFResolution[qualityLevel];
+                    return HDRenderPipelineAsset.GetPostProcessingQualitySettings().DoFResolution[qualityLevel];
                 }
             }
             set

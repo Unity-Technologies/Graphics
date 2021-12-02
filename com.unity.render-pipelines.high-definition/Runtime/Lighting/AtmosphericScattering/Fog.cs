@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_FogControlMode.value;
                 else
-                    return GetLightingQualitySettings().Fog_ControlMode[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().Fog_ControlMode[(int)quality.value];
             }
             set { m_FogControlMode.value = value; }
         }
@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_VolumetricFogBudget.value;
                 else
-                    return GetLightingQualitySettings().Fog_Budget[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().Fog_Budget[(int)quality.value];
             }
             set { m_VolumetricFogBudget.value = value; }
         }
@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_ResolutionDepthRatio.value;
                 else
-                    return GetLightingQualitySettings().Fog_DepthRatio[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().Fog_DepthRatio[(int)quality.value];
             }
             set { m_ResolutionDepthRatio.value = value; }
         }

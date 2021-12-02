@@ -1,14 +1,14 @@
 using System;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
     /// <summary>
     /// Serialized version of <see cref="ScalableSetting{T}"/>.
     /// </summary>
-    internal class SerializedScalableSetting
+    public class SerializedScalableSetting
     {
         public SerializedProperty values;
         public SerializedProperty schemaId;
@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
-    internal static class SerializedScalableSettingUI
+    public static class SerializedScalableSettingUI
     {
         /// <summary>
         /// Draw the scalable setting as a single line field with multiple values.

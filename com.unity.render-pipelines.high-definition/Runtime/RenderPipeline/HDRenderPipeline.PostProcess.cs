@@ -4420,6 +4420,15 @@ namespace UnityEngine.Rendering.HighDefinition
             );
         }
 
+        struct HDRPChromaticAberrationOverides : IChromaticAberrationGlobalSettingsProvider
+        {
+            public int GetMaxSamples(int qualityLevel)
+            {
+                return HDRenderPipelineAsset.GetPostProcessingQualitySettings().ChromaticAberrationMaxSamples[qualityLevel];
+            }
+        }
+        readonly static HDRPChromaticAberrationOverides chromaticAberrationOvereides = new();
+
         void PrepareChromaticAberrationParameters(UberPostPassData data, UberPostFeatureFlags flags)
         {
             if ((flags & UberPostFeatureFlags.ChromaticAberration) != UberPostFeatureFlags.ChromaticAberration)
@@ -4457,7 +4466,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             data.spectralLut = spectralLut;
-            data.chromaticAberrationParameters = new Vector4(m_ChromaticAberration.intensity.value * 0.05f, m_ChromaticAberration.maxSamples, 0f, 0f);
+            data.chromaticAberrationParameters = new Vector4(m_ChromaticAberration.intensity.value * 0.05f, m_ChromaticAberration.GetMaxSamples(chromaticAberrationOvereides), 0f, 0f);
         }
 
         void PrepareVignetteParameters(UberPostPassData data, UberPostFeatureFlags flags)

@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     int qualityLevel = (int)quality.levelAndOverride.level;
-                    return GetPostProcessingQualitySettings().BloomRes[qualityLevel];
+                    return HDRenderPipelineAsset.GetPostProcessingQualitySettings().BloomRes[qualityLevel];
                 }
             }
             set { m_Resolution.value = value; }
@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     int qualityLevel = (int)quality.levelAndOverride.level;
-                    return GetPostProcessingQualitySettings().BloomHighQualityPrefiltering[qualityLevel];
+                    return HDRenderPipelineAsset.GetPostProcessingQualitySettings().BloomHighQualityPrefiltering[qualityLevel];
                 }
             }
             set { m_HighQualityPrefiltering.value = value; }
@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     int qualityLevel = (int)quality.levelAndOverride.level;
-                    return GetPostProcessingQualitySettings().BloomHighQualityFiltering[qualityLevel];
+                    return HDRenderPipelineAsset.GetPostProcessingQualitySettings().BloomHighQualityFiltering[qualityLevel];
                 }
             }
             set { m_HighQualityFiltering.value = value; }

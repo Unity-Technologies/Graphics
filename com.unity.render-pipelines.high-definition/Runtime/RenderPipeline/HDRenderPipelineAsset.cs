@@ -222,5 +222,27 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Indicates if virtual texturing is currently enabled for this render pipeline instance.
         /// </summary>
         public bool virtualTexturingEnabled { get { return true; } }
+
+        internal static GlobalPostProcessingQualitySettings GetPostProcessingQualitySettings()
+        {
+            var pipeline = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+            if (pipeline != null)
+            {
+                return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings;
+            }
+            // This shouldn't happen ever.
+            return null;
+        }
+
+        internal static GlobalLightingQualitySettings GetLightingQualitySettings()
+        {
+            var pipeline = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+            if (pipeline != null)
+            {
+                return pipeline.currentPlatformRenderPipelineSettings.lightingQualitySettings;
+            }
+            // This shouldn't happen ever.
+            return null;
+        }
     }
 }

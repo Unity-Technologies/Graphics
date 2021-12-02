@@ -1,7 +1,7 @@
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
     [VolumeParameterDrawer(typeof(ScalableSettingLevelParameter))]
     sealed class ScalableSettingLevelParameterEditor : VolumeParameterDrawer

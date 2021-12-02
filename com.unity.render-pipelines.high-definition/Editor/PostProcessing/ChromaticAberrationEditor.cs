@@ -1,10 +1,9 @@
-using UnityEditor.Rendering;
-using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [VolumeComponentEditor(typeof(ChromaticAberration))]
+    [VolumeComponentEditor(typeof(ChromaticAberration), typeof(HDRenderPipelineAsset))]
     sealed class ChromaticAberrationEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_SpectralLUT;

@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_MaxRaySteps.value;
                 else
-                    return GetLightingQualitySettings().SSGIRaySteps[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().SSGIRaySteps[(int)quality.value];
             }
             set { m_MaxRaySteps.value = value; }
         }
@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_DenoiseSS.value;
                 else
-                    return GetLightingQualitySettings().SSGIDenoise[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().SSGIDenoise[(int)quality.value];
             }
             set { m_DenoiseSS.value = value; }
         }
@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings() || UsesQualityMode())
                     return m_HalfResolutionDenoiserSS.value;
                 else
-                    return GetLightingQualitySettings().SSGIHalfResDenoise[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().SSGIHalfResDenoise[(int)quality.value];
             }
             set { m_HalfResolutionDenoiserSS.value = value; }
         }
@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_DenoiserRadiusSS.value;
                 else
-                    return GetLightingQualitySettings().SSGIDenoiserRadius[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().SSGIDenoiserRadius[(int)quality.value];
             }
             set { m_DenoiserRadiusSS.value = value; }
         }
@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_SecondDenoiserPassSS.value;
                 else
-                    return GetLightingQualitySettings().SSGISecondDenoise[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().SSGISecondDenoise[(int)quality.value];
             }
             set { m_SecondDenoiserPassSS.value = value; }
         }
@@ -176,7 +176,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings() || UsesQualityMode())
                     return m_RayLength.value;
                 else
-                    return GetLightingQualitySettings().RTGIRayLength[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTGIRayLength[(int)quality.value];
             }
             set { m_RayLength.value = value; }
         }
@@ -193,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings() || UsesQualityMode())
                     return m_ClampValue.value;
                 else
-                    return GetLightingQualitySettings().RTGIClampValue[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTGIClampValue[(int)quality.value];
             }
             set { m_ClampValue.value = value; }
         }
@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_FullResolution.value;
                 else
-                    return GetLightingQualitySettings().RTGIFullResolution[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTGIFullResolution[(int)quality.value];
             }
             set { m_FullResolution.value = value; }
         }
@@ -250,7 +250,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings() || UsesQualityMode())
                     return m_Denoise.value;
                 else
-                    return GetLightingQualitySettings().RTGIDenoise[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTGIDenoise[(int)quality.value];
             }
             set { m_Denoise.value = value; }
         }
@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings() || UsesQualityMode())
                     return m_HalfResolutionDenoiser.value;
                 else
-                    return GetLightingQualitySettings().RTGIHalfResDenoise[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTGIHalfResDenoise[(int)quality.value];
             }
             set { m_HalfResolutionDenoiser.value = value; }
         }
@@ -286,7 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings() || UsesQualityMode())
                     return m_DenoiserRadius.value;
                 else
-                    return GetLightingQualitySettings().RTGIDenoiserRadius[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTGIDenoiserRadius[(int)quality.value];
             }
             set { m_DenoiserRadius.value = value; }
         }
@@ -304,7 +304,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings() || UsesQualityMode())
                     return m_SecondDenoiserPass.value;
                 else
-                    return GetLightingQualitySettings().RTGISecondDenoise[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTGISecondDenoise[(int)quality.value];
             }
             set { m_SecondDenoiserPass.value = value; }
         }
@@ -322,7 +322,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings() || UsesQualityMode())
                     return m_MaxMixedRaySteps.value;
                 else
-                    return GetLightingQualitySettings().RTGIRaySteps[(int)quality.value];
+                    return HDRenderPipelineAsset.GetLightingQualitySettings().RTGIRaySteps[(int)quality.value];
             }
             set { m_MaxMixedRaySteps.value = value; }
         }

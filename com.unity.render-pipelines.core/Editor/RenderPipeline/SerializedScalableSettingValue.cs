@@ -1,14 +1,14 @@
 using System;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
     /// <summary>
     /// Serialized version of <see cref="ScalableSettingValue{T}"/>.
     /// </summary>
-    internal class SerializedScalableSettingValue
+    public class SerializedScalableSettingValue
     {
         public SerializedProperty level;
         public SerializedProperty useOverride;
@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
-    internal static class SerializedScalableSettingValueUI
+    public static class SerializedScalableSettingValueUI
     {
         /// <summary>
         /// Draw the level enum popup for a scalable setting value.
