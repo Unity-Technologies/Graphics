@@ -584,7 +584,7 @@ void EvaluateLights(LightList lightList,
     }
 
     // Then sky light
-    if (lightList.skyCount)
+    if (lightList.skyCount && rayDescriptor.TMax >= FLT_INF)
     {
         float3 skyValue = GetSkyValue(rayDescriptor.Direction);
         value += skyValue;
