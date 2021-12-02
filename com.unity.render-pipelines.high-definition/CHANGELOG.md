@@ -4,149 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [14.0.0] - 2021-11-17
-
-### Changed
-- Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
-- Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
-- Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
-- The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
-
-### Fixed
-- Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
-- Fixed Xbox Series X compilation issue with DoF shader
-- Fixed references to reflection probes that wouldn't be cleared when unloading a scene. (case 1357459)
-- Fixed issue with Stacklit raytrace reflection
-- Fixed various issues with using SSR lighting with IBL fallback for Lit shader with clear coat(case 1380351)
-- Fixed stackLit coat screen space reflection and raytrace reflection light hierarchy and IBL fallback
-- Fixed compilation errors from Path Tracing on the PS5 build.
-- Fixed custom shader GUI for material inspector.
-- Fixed custom pass utils Blur and Copy functions in XR.
-- Fixed the ray tracing acceleration structure build marker not being included in the ray tracing stats (case 1379383).
-- Fixed missing information in the tooltip of affects smooth surfaces of the ray traced reflections denoiser (case 1376918).
-- Fixed broken debug views when dynamic resolution was enabled (case 1365368).
-- Fixed shader graph errors when disabling the bias on texture samplers.
-- Fixed flickering / edge aliasing issue when DoF and TAAU or DLSS are enabled (case 1381858).
-- Fixed options to trigger cached shadows updates on light transform changes.
-- Fixed objects belonging to preview scenes being marked as dirty during migration (case 1367204).
-- Fixed interpolation issue with wind orientation (case 1379841).
-- Fixed range fields for depth of field (case 1376609).
-- Fixed exception on DLSS when motion vectors are disabled (case # 1377986).
-- Fixed decal performances when they use different material and the same draw order.
-- Fixed alpha channel display in color picker in Local Volumetric Fog component (the alpha is not used for the fog) (case 1381267).
-- Fixed Nans happening due to volumetric clouds when the pixel color is perfectly black (case 1379185).
-- Fixed for screen space overlay rendered by camera when HDR is disabled.
-- Fixed dirtiness handling in path tracing, when using multiple cameras at once (case 1376940).
-- Fixed taa jitter for after post process materials (case 1380967).
-- Fixed rasterized accumulation motion blur when DoF is enabled (case 1378497).
-- Fixed light mode not available after switching a light to area "Disc" or "Tube" (case 1372588).
-- Fixed CoC size computation when dynamic resolution is enabled
-- Fixed shadow cascade transition not working properly with bias.
-- Fixed broken rendering when duplicating a camera while the Rendering Debugger is opened.
-- Fixed screen space shadow debug view not showing when no shadows is available.
-- Fixed nullref from debug menu in release build (case 1381556).
-- Fixed debug window reset.
-- Fixed camera bridge action in release build (case 1367866).
-- Fixed contact shadow disappearing when shadowmask is used and no non-static object is available.
-- Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
-- Fixed for changes of color curves not being applied immediately.
-- Fixed edges and ghosting appearing on shadow matte due to the shadow being black outside the range of the light (case 1371441).
-- Fixed the ray tracing fallbacks being broken since an Nvidia Driver Update.
-- Fixed layer lit shader UI.
-
-## [13.1.2] - 2021-11-05
-
-### Added
-- Added minimal picking support for DOTS 1.0 (on parity with Hybrid Renderer V2)
-- Implemented an initial version of the HDRP water system.
-
-### Fixed
-- Fixed compilation errors when using Elipse, Rectangle, Polygon, Checkerboard, RoundedPolygon, RoundedRectangle in a ray tracing shader graph (case 1377610).
-- Fixed outdated documentation about supported GPUs for ray tracing (case 1375895).
-- Fixed outdated documentation about recursie ray tracing effects support (case 1374904).
-- Fixed Shadow Matte not appearing in ray tracing effects (case 1364005).
-- Fixed Crash issue when adding an area light on its own.
-- Fixed rendertarget ColorMask in Forward with virtual texturing and transparent motion vectors.
-- Fixed light unit conversion after changing mid gray value.
-- Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
-- Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
-- Fixed Lens Flare visible when being behind a camera with Panini Projection on (case 1370214);
-
-### Changed
-- Optimizations for the physically based depth of field.
-- Volumetric Lighting now uses an ambient probe computed directly on the GPU to avoid latency.
-
-## [13.1.1] - 2021-10-04
-
-### Added
-- Added support for orthographic camera in path tracing.
-- Added public API to edit materials from script at runtime.
-- Added new functions that sample the custom buffer in custom passes (CustomPassSampleCustomColor and CustomPassLoadCustomColor) to handle the RTHandleScale automatically.
-- Added new panels to Rendering Debugger Display Stats panel, displaying improved CPU/GPU frame timings and bottlenecks.
-- Added API to edit diffusion profiles and set IES on lights.
-- Added public API to reset path tracing accumulation, and check its status.
-- Added support for SensorSDK's Lidar and camera models in path tracing.
-
-### Fixed
-- Fixed decal position when created from context menu. (case 1368987)
-- Fixed the clouds not taking properly into account the fog when in distant mode and with a close far plane (case 1367993).
-- Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
-- Fixed selection of light types (point, area, directional) for path-traced Unlit shadow mattes.
-- Fixed precision issues with the scene voxelization for APV, especially with geometry at the origin.
-- Fixed the volumetric clouds debug view not taking into account the exposure and leading to Nans (case 1365054).
-- Fixed area light cookie field to use the same style as the other cookie fields
-- Fixed the dependency between transparent SSR and transparent depth prepass being implicit (case 1365915).
-- Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
-- Fixed the cloudlayer not using depth buffer.
-- Fixed crossfade not working on the HD ST8 ShaderGraph [case 1369586](https://fogbugz.unity3d.com/f/cases/1369586/)
-- Fixed range compression factor being clamped. (case 1365707)
-- Fixed tooltip not showing on labels in ShaderGraphs (1358483).
-- Fix API warnings in Matcap mode on Metal.
-- Fix D3D validation layer errors w.r.t shadow textures when an atlas is not used.
-- Fixed anchor position offset property for the Light Anchor component. (case 1362809)
-- Fixed minor performance issues in SSGI (case 1367144).
-- Fixed scaling issues with dynamic resolution and the CustomPassSampleCameraColor function.
-- Fixed compatibility message not displayed correctly when switching platforms.
-- Fixed support for interleaved tiling in path tracing.
-- Fixed robustness issues with the stacklit material in path tracing (case 1373971).
-- Fixed custom pass injection point not visible in the UI when using the Camera mode.
-- Fixed film grain & dithering when using spatial upscaling methods for DRS.
-- Fixed a regression that was introduced in the diffuse denoiser in a previous PR.
-- Fixed pyramid blur being corrupted when hardware DRS was on (case # 1372245)
-- Fixed sky override layer mask having no effect.
-- Fixed a memory leak in the template tutorial (1374640).
-- Fixed a build-time warning regarding light loop variants (case 1372256).
-- Fixed an infinite import loop of materials when there is no HDMetaData generated by the ShaderGraph.
-- Fixed issue with path traced shadows and layer masks (case 1375638).
-- Fixed Z axis orientation when sampling 3D textures in local volumetric fog.
-- Fixed geometry scale issue with the Eye Shader.
-- Fixed motion vector buffer not accessible from custom passes in the BeforeTransparent, BeforePreRefraction and AfterDepthAndNormal injection points.
-- Fixed the point distribution for the diffuse denoiser sometimes not being properly intialized.
-- Fixed the bad blending between the sun and the clouds (case 1373282).
-- Fixed and optimize distance shadowmask fade.
-
-### Changed
-- Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
-- Changed the max distance for Light Anchors to avoid unstability with high values (case 1362802).
-- PrepareLightsForGPU CPU Light loop performance improvement (40% to 70% faster), utilizing burst and optimized. Utilizing better sorting, distributing work in jobs and improving cache access of light data.
-- In path tracing, camera ray misses now return a null value with Minimum Depth > 1.
-- HD's SpeedTree 8 upgrader now sets up CullModeForward as well.
-- Restructured data under Display Stats panel to use column layout.
-- Added controls for the users to manually feed the ray tracing acceleration structure that should be used for a given camera (case 1370678).
-- Depth of Field is now disabled in orthographic cameras - it was using the hidden perspective settings (case 1372582).
-- Modified HDRP to use common FSR logic from SRP core.
-- Optimized FSR by merging the RCAS logic into the FinalPass shader.
-- Integrate a help box to inform users of the potential dependency to directional lights when baking.
-
 ## [13.1.0] - 2021-09-24
 
 ### Added
 - Added a SG node to get the main directional light direction.
 - Added support for orthographic camera in path tracing.
-- Added public API to edit materials from script at runtime.
-- Added new configuration ShderOptions.FPTLMaxLightCount in ShaderConfig.cs for maximum light count per fine pruned tile.
-- Added support for orthographic camera in path tracing.
-- Support for "Always Draw Dynamic" option for directional light cached shadows.
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
@@ -160,17 +22,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed misleading text and improving the eye scene material samples. (case 1368665)
 - Fixed missing DisallowMultipleComponent annotations in HDAdditionalReflectionData and HDAdditionalLightData (case 1365879).
 - Fixed ambient occlusion strenght incorrectly using GTAOMultiBounce
-- Maximum light count per fine prunned tile (opaque deferred) is now 63 instead of 23.
+- Fixed decal position when created from context menu. (case 1368987)
+- Fixed the clouds not taking properly into account the fog when in distant mode and with a close far plane (case 1367993).
+- Fixed overwriting of preview camera background color. [case 1357004](https://issuetracker.unity3d.com/product/unity/issues/guid/1361557/)
+- Fixed selection of light types (point, area, directional) for path-traced Unlit shadow mattes.
+- Fixed precision issues with the scene voxelization for APV, especially with geometry at the origin.
+- Fixed the volumetric clouds debug view not taking into account the exposure and leading to Nans (case 1365054).
+- Fixed the dependency between transparent SSR and transparent depth prepass being implicit (case 1365915).
+- Fixed area light cookie field to use the same style as the other cookie fields
+- Fixed depth pyramid being incorrect when having multiple cameras (scene view and gameview) and when hardware DRS was activated.
+- Fixed the cloudlayer not using depth buffer.
 
 ## [13.0.0] - 2021-09-01
 
 ### Added
-
-- Added support for HDR output devices.
-- Added option to use full ACES tonemap instead of the approximation.
+- Added public API to edit materials from script at runtime.
 
 ### Fixed
-
 - Fixed impossibility to release the cursor in the template.
 - Fixed assert failure when enabling the probe volume system for the first time.
 - Significantly improved performance of APV probe debug.
@@ -227,9 +95,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved sampling of overlapping point/area lights in path-traced volumetric scattering (case 1358777).
 - Path-traced volumetric scattering now takes fog color into account, adding scattered contribution on top of the non-scattered result (cases 1346105, 1358783).
 - Fixed minor readability issues in the ray tracing code.
-- Optimized color grading LUT building.
-- Made ACEScg the default color space for color grading.
-
 
 ## [12.0.0] - 2021-01-11
 
@@ -704,7 +569,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hair uses GGX LTC for area light specular.
 - Moved invariants outside of loop for a minor CPU speedup in the light loop code.
 - Various improvements to the volumetric clouds.
-- Moved area light's shadow frustum: light's surface no longer passes through the apex, and instead aligns with the 0-offset near plane.
 - Restore old version of the RendererList structs/api for compatibility.
 - Various improvements to SSGI (case 1340851, case 1339297, case 1327919).
 - Changed the NVIDIA install button to the standard FixMeButton.
