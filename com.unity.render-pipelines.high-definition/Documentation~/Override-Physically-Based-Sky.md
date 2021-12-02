@@ -130,6 +130,10 @@ The default values in either mode make it so the planet's surface is at **0** on
 
 * If not in **Spherical Mode**, decrease the **Sea Level**.
 
+## Warmup cost
+
+This sky type requires heavy precomputation to be rendered. Because of this, the first few frames (depending on the *Number of bounces* parameter) are going to take much longer. This needs to be taken into consideration when switching from another sky type to the Physically Based Sky for example as it might produce a noticeable drop in framerate.
+
 ### Reference list
 
 * Bruneton, Eric, and Fabrice Neyret. 2008. “Precomputed Atmospheric Scattering.” *Computer Graphics Forum* 27, no. 4 (2008): 1079–86. https://doi.org/10.1111/j.1467-8659.2008.01245.x.
