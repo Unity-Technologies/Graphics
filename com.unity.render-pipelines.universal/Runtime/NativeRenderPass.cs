@@ -312,13 +312,7 @@ namespace UnityEngine.Rendering.Universal
                     int samples;
                     RenderTargetIdentifier colorAttachmentTarget;
                     // We are not rendering to Backbuffer so we have the RT and the information with it
-                    if (usesTargetTexture && IsDepthOnlyRenderTexture(cameraData.targetTexture))
-                    {
-                        currentAttachmentDescriptor = new AttachmentDescriptor(cameraData.targetTexture.depthStencilFormat);
-                        samples = cameraData.targetTexture.descriptor.msaaSamples;
-                        colorAttachmentTarget = new RenderTargetIdentifier(cameraData.targetTexture);
-                    }
-                    else if (passColorAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
+                    if (passColorAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
                     {
                         currentAttachmentDescriptor = new AttachmentDescriptor(depthOnly ? passColorAttachment.rt.descriptor.depthStencilFormat : passColorAttachment.rt.descriptor.graphicsFormat);
                         samples = passColorAttachment.rt.descriptor.msaaSamples;
@@ -669,7 +663,17 @@ namespace UnityEngine.Rendering.Universal
         {
             RenderTextureDescriptor targetRT;
             if (!renderPass.overrideCameraTarget || (renderPass.colorAttachmentHandle.rt == null && renderPass.depthAttachmentHandle.rt == null))
-                targetRT = cameraData.targetTexture != null ? cameraData.targetTexture.descriptor : cameraData.cameraTargetDescriptor;
+            {
+                targetRT = cameraData.cameraTargetDescriptor;
+
+                // In this case we want to rely on the pixelWidth/Height as the texture could be scaled from a script later and etc.
+                // and it's new dimensions might not be reflected on the targetTexture. This also applies to camera stacks rendering to a target texture.
+                if (cameraData.targetTexture != null)
+                {
+                    targetRT.width = cameraData.pixelWidth;
+                    targetRT.height = cameraData.pixelHeight;
+                }
+            }
             else
             {
                 var handle = GetFirstAllocedRTHandle(renderPass);
