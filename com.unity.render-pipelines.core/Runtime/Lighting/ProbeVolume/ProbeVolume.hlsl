@@ -361,7 +361,7 @@ void AccumulateSamples(inout APVSample dst, APVSample other, float weight)
 #endif
 }
 
-APVSample ManuallyFilteredSample(APVResources apvRes, float3 normalWS, float3 posWS, float3 uvw, uint subdiv)
+APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 normalWS, int subdiv, float3 biasedPosWS, float3 uvw)
 {
     float3 texCoordFloat = uvw * _PoolDim - .5f;
     int3 texCoordInt = texCoordFloat;
@@ -373,7 +373,7 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 normalWS, float3 po
 
     APVSample baseSample;
 
-    float3 positionCentralProbe = GetSnappedProbePosition(posWS, subdiv);
+    float3 positionCentralProbe = GetSnappedProbePosition(biasedPosWS, subdiv);
 
     ZERO_INITIALIZE(APVSample, baseSample);
 
@@ -455,7 +455,7 @@ APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, floa
     {
 #if MANUAL_FILTERING == 1
         if (_LeakReductionParams.x != 0)
-            outSample = ManuallyFilteredSample(apvRes, biasNormalWS, posWS, pool_uvw, subdiv);
+            outSample = ManuallyFilteredSample(apvRes, posWS, biasNormalWS, subdiv, biasedPosWS, pool_uvw);
         else
             outSample = SampleAPV(apvRes, pool_uvw);
 #else
