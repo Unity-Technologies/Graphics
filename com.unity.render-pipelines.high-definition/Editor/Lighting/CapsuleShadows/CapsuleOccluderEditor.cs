@@ -81,6 +81,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [DrawGizmo(GizmoType.Active | GizmoType.Selected | GizmoType.NonSelected | GizmoType.Pickable)]
         static void DrawGizmo(CapsuleOccluder capsule, GizmoType gizmoType)
         {
+            // add an invisible ellipsoid Gizmo just to make this component pickable
+            Gizmos.matrix = capsule.capsuleToWorld * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, Mathf.Max(1.0f, 0.5f*capsule.height/capsule.radius)));
+            Gizmos.color = Color.clear;
+            Gizmos.DrawSphere(Vector3.zero, capsule.radius);
+
             var col = ((gizmoType & GizmoType.Selected) != 0) ? Color.white : Color.green;
             using (new Handles.DrawingScope(capsule.capsuleToWorld))
             {
