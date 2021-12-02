@@ -297,10 +297,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
 
                 Matrix4x4 trs = Matrix4x4.TRS(ProbeReferenceVolume.instance.GetTransform().posWS, ProbeReferenceVolume.instance.GetTransform().rot, Vector3.one);
-
-                // For realtime subdivision, the matrix from ProbeReferenceVolume.instance can be wrong if the profile changed since the last bake
-                if (debugDisplay.realtimeSubdivision)
-                    trs = Matrix4x4.TRS(transform.position, Quaternion.identity, Vector3.one);
+                var oldGizmoMatrix = Gizmos.matrix;
 
                 if (cellGizmo == null)
                     cellGizmo = new MeshGizmo();
@@ -316,6 +313,7 @@ namespace UnityEngine.Experimental.Rendering
                     cellGizmo.AddWireCube(center, Vector3.one * cellSizeInMeters, loaded ? new Color(0, 1, 0.5f, 1) : new Color(1, 0.0f, 0.0f, 1));
                 }
                 cellGizmo.RenderWireframe(Gizmos.matrix, gizmoName: "Brick Gizmo Rendering");
+                Gizmos.matrix = oldGizmoMatrix;
             }
         }
         #endregion
