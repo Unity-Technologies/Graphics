@@ -332,7 +332,53 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static readonly TransformFunction[,] k_TransformFunctions = new TransformFunction[5, 5]   // [from, to]
+        public static void ObjectToHClip(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
+        {
+            switch (xform.type)
+            {
+                case ConversionType.Position:
+                    sb.AddLine(outputVariable, " = TransformObjectToHClip(", inputValue, ");");
+                    break;
+                case ConversionType.Direction:
+                case ConversionType.Normal:
+                    ViaWorld(xform, inputValue, outputVariable, sb);
+                    break;
+            }
+        }
+
+        public static void ViewToHClip(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
+        {
+            switch (xform.type)
+            {
+                case ConversionType.Position:
+                    sb.AddLine(outputVariable, " = TransformWViewToHClip(", inputValue, ");");
+                    break;
+                case ConversionType.Direction:
+                case ConversionType.Normal:
+                    ViaWorld(xform, inputValue, outputVariable, sb);
+                    break;
+            }
+        }
+
+        public static void WorldToHClip(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
+        {
+            switch (xform.type)
+            {
+                case ConversionType.Position:
+                    sb.AddLine(outputVariable, " = TransformWorldToHClip(", inputValue, ");");
+                    break;
+                case ConversionType.Direction:
+                    if (xform.version <= 1)
+                        xform.normalize = true;
+                    sb.AddLine(outputVariable, " = TransformWorldToHClipDir(", inputValue, ", ", xform.NormalizeString(), ");");
+                    break;
+                case ConversionType.Normal:
+                    sb.AddLine(outputVariable, " = TransformWorldToHClipDir(", inputValue, ", ", xform.NormalizeString(), ");");
+                    break;
+            }
+        }
+
+        static readonly TransformFunction[,] k_TransformFunctions = new TransformFunction[6, 6]   // [from, to]
         {
             {   // from CoordinateSpace.Object
                 Identity,               // to CoordinateSpace.Object
@@ -340,6 +386,7 @@ namespace UnityEditor.ShaderGraph
                 ObjectToWorld,          // to CoordinateSpace.World
                 ViaWorld,               // to CoordinateSpace.Tangent
                 ObjectToAbsoluteWorld,  // to CoordinateSpace.AbsoluteWorld
+                ObjectToHClip,          // to CoordinateSpace.Clip
             },
             {   // from CoordinateSpace.View
                 ViaWorld,               // to CoordinateSpace.Object
@@ -347,6 +394,7 @@ namespace UnityEditor.ShaderGraph
                 ViewToWorld,            // to CoordinateSpace.World
                 ViaWorld,               // to CoordinateSpace.Tangent
                 ViaWorld,               // to CoordinateSpace.AbsoluteWorld
+                ViewToHClip,            // to CoordinateSpace.Clip
             },
             {   // from CoordinateSpace.World
                 WorldToObject,          // to CoordinateSpace.Object
@@ -354,6 +402,7 @@ namespace UnityEditor.ShaderGraph
                 Identity,               // to CoordinateSpace.World
                 WorldToTangent,         // to CoordinateSpace.Tangent
                 WorldToAbsoluteWorld,   // to CoordinateSpace.AbsoluteWorld
+                WorldToHClip,           // to CoordinateSpace.Clip
             },
             {   // from CoordinateSpace.Tangent
                 ViaWorld,               // to CoordinateSpace.Object
@@ -361,6 +410,7 @@ namespace UnityEditor.ShaderGraph
                 TangentToWorld,         // to CoordinateSpace.World
                 Identity,               // to CoordinateSpace.Tangent
                 ViaWorld,               // to CoordinateSpace.AbsoluteWorld
+                ViaWorld,               // to CoordinateSpace.Clip
             },
             {   // from CoordinateSpace.AbsoluteWorld
                 ViaWorld,               // to CoordinateSpace.Object
@@ -368,6 +418,15 @@ namespace UnityEditor.ShaderGraph
                 AbsoluteWorldToWorld,   // to CoordinateSpace.World
                 ViaWorld,               // to CoordinateSpace.Tangent
                 Identity,               // to CoordinateSpace.AbsoluteWorld
+                ViaWorld,               // to CoordinateSpace.Clip
+            },
+            {   // from CoordinateSpace.Clip
+                ViaWorld,               // to CoordinateSpace.Object
+                ViaWorld,               // to CoordinateSpace.View
+                AbsoluteWorldToWorld,   // to CoordinateSpace.World
+                ViaWorld,               // to CoordinateSpace.Tangent
+                Identity,               // to CoordinateSpace.AbsoluteWorld
+                Identity,               // to CoordinateSpace.Clip
             }
         };
 
