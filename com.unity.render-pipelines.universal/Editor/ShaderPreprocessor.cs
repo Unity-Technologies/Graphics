@@ -937,6 +937,13 @@ namespace UnityEditor.Rendering.Universal
 
             {
                 ScriptableRenderer renderer = pipelineAsset.GetRenderer(rendererIndex);
+
+                //Workaround: DO NOT MERGE!
+                if (renderer == null)
+                {
+                    return (ShaderFeatures)int.MaxValue;
+                }
+
                 if (renderer is UniversalRenderer)
                 {
                     UniversalRenderer universalRenderer = (UniversalRenderer)renderer;
