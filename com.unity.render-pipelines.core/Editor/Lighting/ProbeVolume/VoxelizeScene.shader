@@ -24,7 +24,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
             #pragma geometry geom
             #pragma fragment frag
             #pragma target 4.5
-            #pragma enable_d3d11_debug_symbols
+            // #pragma enable_d3d11_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             float4x4 unity_ObjectToWorld;
