@@ -844,15 +844,15 @@ namespace UnityEngine.Rendering.Universal
 
             if (cameraData.renderScale == 1.0f)
             {
-                cameraData.imageScaling = ImageScaling.None;
+                cameraData.imageScalingMode = ImageScalingMode.None;
             }
             else if (cameraData.renderScale < 1.0f)
             {
-                cameraData.imageScaling = ImageScaling.Upscaling;
+                cameraData.imageScalingMode = ImageScalingMode.Upscaling;
             }
             else if (cameraData.renderScale > 1.0f)
             {
-                cameraData.imageScaling = ImageScaling.Downscaling;
+                cameraData.imageScalingMode = ImageScalingMode.Downscaling;
             }
 
             // Convert the upscaling filter selection from the pipeline asset into an image upscaling filter

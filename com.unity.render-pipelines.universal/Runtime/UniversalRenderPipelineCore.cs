@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Enumeration that indicates what kind of image scaling is occurring if any
     /// </summary>
-    public enum ImageScaling
+    internal enum ImageScalingMode
     {
         /// No scaling
         None,
@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Enumeration that indicates what kind of upscaling filter is being used
     /// </summary>
-    public enum ImageUpscalingFilter
+    internal enum ImageUpscalingFilter
     {
         /// Bilinear filtering
         Linear,
@@ -137,8 +137,8 @@ namespace UnityEngine.Rendering.Universal
         internal int pixelHeight;
         internal float aspectRatio;
         public float renderScale;
-        public ImageScaling imageScaling;
-        public ImageUpscalingFilter upscalingFilter;
+        internal ImageScalingMode imageScalingMode;
+        internal ImageUpscalingFilter upscalingFilter;
         public bool clearDepth;
         public CameraType cameraType;
         public bool isDefaultViewport;

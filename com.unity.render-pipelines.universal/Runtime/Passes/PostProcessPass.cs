@@ -1397,7 +1397,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
 
-            if (cameraData.imageScaling != ImageScaling.None)
+            if (cameraData.imageScalingMode != ImageScalingMode.None)
             {
                 // Make sure to remove any MSAA and attached depth buffers from the temporary render targets
                 var tempRtDesc = cameraData.cameraTargetDescriptor;
@@ -1418,9 +1418,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_UpscaleSetupTarget);
                 }
 
-                switch (cameraData.imageScaling)
+                switch (cameraData.imageScalingMode)
                 {
-                    case ImageScaling.Upscaling:
+                    case ImageScalingMode.Upscaling:
                     {
                         // In the upscaling case, set material keywords based on the selected upscaling filter
                         switch (cameraData.upscalingFilter)
@@ -1441,7 +1441,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         break;
                     }
 
-                    case ImageScaling.Downscaling:
+                    case ImageScalingMode.Downscaling:
                     {
                         // In the downscaling case, we don't perform any sort of filter override logic since we always want linear filtering
                         // and it's already the default option in the shader.

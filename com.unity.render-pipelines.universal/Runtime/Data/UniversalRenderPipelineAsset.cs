@@ -687,6 +687,11 @@ namespace UnityEngine.Rendering.Universal
             set { m_RenderScale = ValidateRenderScale(value); }
         }
 
+        /// <summary>
+        /// Returns the upscaling filter desired by the user
+        /// Note: Filter selections differ from actual filters in that they may include "meta-filters" such as
+        ///       "Automatic" which resolve to an actual filter at a later time.
+        /// </summary>
         public UpscalingFilterSelection upscalingFilter
         {
             get { return m_UpscalingFilter; }
