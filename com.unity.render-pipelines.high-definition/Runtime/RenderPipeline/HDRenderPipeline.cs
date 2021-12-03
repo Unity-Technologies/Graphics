@@ -37,6 +37,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static bool pipelineSupportsScreenSpaceShadows => GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset hdrpAsset ? hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows : false;
 
+        internal static bool pipelineSupportsHierarchicalVarianceScreenSpaceShadows => GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset hdrpAsset ? hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.supportHierarchicalVarianceScreenSpaceShadows : false;
+
 
         private static Volume s_DefaultVolume = null;
         static VolumeProfile defaultVolumeProfile
@@ -605,6 +607,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // because as there is no shared texture, we need to import textures from the atlasses all the time to avoid
             // having issues with "persisting" textures stomping on each other if they have the same descriptor.
             m_ShadowManager.InitializeNonRenderGraphResources();
+
+            InitializeHierarchicalVarianceScreenSpaceShadows(m_Asset);
 
             EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
 

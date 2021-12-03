@@ -150,6 +150,11 @@ float3 GetShadowPunctual(LightData light, float3 positionRWS, float4 distances, 
     PositionInputs posInput;
     posInput.positionWS = positionRWS;
 
+    float4 positionCS = TransformWorldToHClip(positionRWS);
+    positionCS.xyz /= positionCS.w;
+    posInput.positionNDC = positionCS.xy * 0.5 + 0.5;
+    posInput.positionSS = posInput.positionNDC.xy * _ScreenSize.xy;
+
     BuiltinData unused;
 
     SHADOW_TYPE shadow = EvaluateShadow_Punctual(context, posInput, light, unused, 0, L, distances);

@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent shadowHeader = new GUIContent("Shadows");
             public readonly GUIContent shadowMapSubHeader = new GUIContent("Shadow Map");
             public readonly GUIContent contactShadowsSubHeader = new GUIContent("Contact Shadows");
+            public readonly GUIContent hiearchicalVarianceScreenSpaceShadowsSubHeader = new GUIContent("Hierarchical Variance Screen Space Shadows");
             public readonly GUIContent bakedShadowsSubHeader = new GUIContent("Baked Shadows");
             public readonly GUIContent veryHighShadowQualitySubHeader = new GUIContent("Very High Quality Settings");
             public readonly GUIContent highShadowQualitySubHeader = new GUIContent("High Quality Settings");
@@ -148,6 +149,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent evsmLightLeakBias = new GUIContent("Light Leak Bias", "Increasing this value light leaking, but it eats up a bit of the softness of the shadow.");
             public readonly GUIContent evsmVarianceBias = new GUIContent("Variance Bias", "Variance Bias for EVSM. This is to contrast numerical accuracy issues. ");
             public readonly GUIContent evsmAdditionalBlurPasses = new GUIContent("Blur passes", "Increasing this will increase the softness of the shadow, but it will severely impact performance.");
+            public readonly GUIContent useHierarchicalVarianceScreenSpaceShadows = new GUIContent("Enable", "Reccomended to only use for hero lights like character shadow casters.");
+            public readonly GUIContent hierarchicalVarianceScreenSpaceShadowsPenumbraRadius = new GUIContent("Penumbra Radius", "Controls softness of HVSSS shadows. Parameterized in meters around the light source (think spherical area lights).");
 
             // Very high shadow settings
             public readonly GUIContent lightAngle = new GUIContent("Light Angle");

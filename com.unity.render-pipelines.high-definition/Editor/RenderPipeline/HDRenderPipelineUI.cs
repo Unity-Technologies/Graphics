@@ -373,6 +373,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
             }
 
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.supportHierarchicalVarianceScreenSpaceShadows, Styles.supportHierarchicalVarianceScreenSpaceShadows);
+
             SerializedScalableSettingUI.ValueGUI<bool>(serialized.renderPipelineSettings.lightSettings.useContactShadows, Styles.useContactShadows);
 
             m_ShowDirectionalLightSection = EditorGUILayout.Foldout(m_ShowDirectionalLightSection, Styles.directionalShadowsSubTitle, true);

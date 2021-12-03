@@ -248,6 +248,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras using these Frame Settings render Screen Space Shadows.</summary>
         [FrameSettingsField(1, autoName: ScreenSpaceShadows, customOrderInGroup: 23, tooltip: "When enabled, Cameras using these Frame Settings render Screen Space Shadows (Depends on \"Screen Space Shadows\" in current HDRP Asset). Note that Screen Space Shadows are disabled when MSAA is enabled.")]
         ScreenSpaceShadows = 34,
+        /// <summary>When enabled, Cameras using these Frame Settings render Hierarchical Screen Space Shadows.</summary>
+        [FrameSettingsField(1, autoName: HierarchicalVarianceScreenSpaceShadows, customOrderInGroup: 23, tooltip: "When enabled, Cameras using these Frame Settings render Hierarchical Variance Screen Space Shadows (Depends on \"Hierarchical Variance Screen Space Shadows\" in current HDRP Asset). Note that Hierarchical Variance Screen Space Shadows are disabled when MSAA is enabled.")]
+        HierarchicalVarianceScreenSpaceShadows = 50,
         /// <summary>When enabled, Cameras using these Frame Settings render shadows from Shadow Masks.</summary>
         [FrameSettingsField(1, autoName: Shadowmask, customOrderInGroup: 24, tooltip: "When enabled, Cameras using these Frame Settings render shadows from Shadow Masks (Depends on \"Shadowmask\" in current HDRP Asset).")]
         Shadowmask = 22,
@@ -389,6 +392,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ContactShadows,
                 (uint)FrameSettingsField.Shadowmask,
                 (uint)FrameSettingsField.ScreenSpaceShadows,
+                (uint)FrameSettingsField.HierarchicalVarianceScreenSpaceShadows,
                 (uint)FrameSettingsField.SSR,
                 (uint)FrameSettingsField.SSAO,
                 (uint)FrameSettingsField.SSGI,
@@ -699,6 +703,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool SSRRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.SSRAsync];
         internal bool SSAORunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.SSAOAsync];
         internal bool ContactShadowsRunAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.ContactShadowsAsync];
+        internal bool HiearchicalVarianceScreenSpaceShadowsRunAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute];
         internal bool VolumeVoxelizationRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync];
 
         /// <summary>Override a frameSettings according to a mask.</summary>
@@ -774,6 +779,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Screen space shadows are not compatible with MSAA
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] & !msaa;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.HierarchicalVarianceScreenSpaceShadows] &= renderPipelineSettings.hdShadowInitParams.supportHierarchicalVarianceScreenSpaceShadows && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects] & !msaa;
 
             // No recursive reflections
             bool ssr = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= renderPipelineSettings.supportSSR && !msaa && !preview && temporalAccumulationAllowed;

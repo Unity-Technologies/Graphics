@@ -30,3 +30,9 @@ TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture);
 
 // Indirect Diffuse Texture
 TEXTURE2D_X(_IndirectDiffuseTexture);
+
+#if defined(SHADERPASS)
+#if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING) || (SHADERPASS == SHADERPASS_FORWARD)
+TEXTURE2D_X(_HierarchicalVarianceScreenSpaceShadowsTexture);
+#endif
+#endif

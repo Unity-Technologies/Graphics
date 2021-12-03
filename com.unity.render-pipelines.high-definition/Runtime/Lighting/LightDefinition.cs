@@ -178,9 +178,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   specularDimmer;
         public int     affectDynamicGI;
 
-        public Vector2 padding;
+        public float padding;
         public float   isRayTracedContactShadow;
         public float   boxLightSafeExtent;
+        public int hierarchicalVarianceScreenSpaceShadowsIndex;
     };
 
 

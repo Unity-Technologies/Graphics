@@ -94,6 +94,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle coarseStencilBuffer;
 
             public TextureHandle flagMaskBuffer;
+
+            public TextureHandle depthMomentsPyramidTexture;
+            public TextureHandle hierarchicalVarianceScreenSpaceShadowsTexture;
         }
 
         TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool clear, bool msaa)
@@ -350,6 +353,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                 GenerateDepthPyramid(renderGraph, hdCamera, mip1FromDownsampleForLowResTrans, ref result);
+
+                GenerateDepthMomentsPyramid(renderGraph, hdCamera, mip0AlreadyComputed: false, ref result);
+                ComputeHierarchicalVarianceScreenSpaceShadows(renderGraph, hdCamera, ref result);
+                PushFullScreenDebugTexture(renderGraph, result.hierarchicalVarianceScreenSpaceShadowsTexture, FullScreenDebugMode.HierarchicalVarianceScreenSpaceShadows);
 
                 if (shouldRenderMotionVectorAfterGBuffer)
                 {

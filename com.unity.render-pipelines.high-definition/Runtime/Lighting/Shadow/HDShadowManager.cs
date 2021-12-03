@@ -212,6 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowResolutionPunctual            = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowFilteringQuality              = HDShadowFilteringQuality.Medium,
             supportScreenSpaceShadows           = false,
+            supportHierarchicalVarianceScreenSpaceShadows = false,
             maxScreenSpaceShadowSlots           = 4,
             screenSpaceShadowBufferFormat       = ScreenSpaceShadowFormat.R16G16B16A16,
             maxDirectionalShadowMapResolution   = 2048,
@@ -260,6 +261,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Enable support for screen space shadows.</summary>
         public bool supportScreenSpaceShadows;
+        /// <summary>Enable support for hierarchical variance screen space shadows.</summary>
+        public bool supportHierarchicalVarianceScreenSpaceShadows;
         /// <summary>Maximum number of screen space shadows.</summary>
         public int maxScreenSpaceShadowSlots;
         /// <summary>Format for screen space shadows.</summary>

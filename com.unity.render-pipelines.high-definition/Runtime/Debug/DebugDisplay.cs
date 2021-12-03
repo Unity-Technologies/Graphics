@@ -77,6 +77,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthPyramid,
         /// <summary>Display the final color pyramid for the frame.</summary>
         FinalColorPyramid,
+        /// <summary>Display Hierarchical Variance Screen Space Shadows buffer.</summary>
+        HierarchicalVarianceScreenSpaceShadows,
 
         // Raytracing Only
         /// <summary>Display ray tracing light cluster.</summary>
@@ -129,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display Screen Space Reflections buffer of the previous frame accumulated.</summary>
         ScreenSpaceReflectionsPrev,
         /// <summary>Display Screen Space Reflections buffer of the current frame hit.</summary>
-        ScreenSpaceReflectionsAccum
+        ScreenSpaceReflectionsAccum,
     }
 
     /// <summary>
@@ -638,6 +640,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             data.fullScreenDebugMode = value;
+        }
+
+        public FullScreenDebugMode GetFullScreenDebugMode()
+        {
+            return data.fullScreenDebugMode;
         }
 
         /// <summary>

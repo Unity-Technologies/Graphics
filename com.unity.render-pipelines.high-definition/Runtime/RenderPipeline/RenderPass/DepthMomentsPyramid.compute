@@ -1,0 +1,294 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/ShadowMoments.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+// #pragma enable_d3d11_debug_symbols
+
+#pragma kernel DepthMomentsLinearizeVSM32 DepthMomentsLinearize=DepthMomentsLinearizeVSM32 KERNEL_SIZE=8 _HVSSS_MODE_VSM_32
+#pragma kernel DepthMomentsLinearizeVSM16 DepthMomentsLinearize=DepthMomentsLinearizeVSM16 KERNEL_SIZE=8 _HVSSS_MODE_VSM_16
+#pragma kernel DepthMomentsLinearizeMoments16 DepthMomentsLinearize=DepthMomentsLinearizeMoments16 KERNEL_SIZE=8 _HVSSS_MODE_MOMENTS_16
+
+#pragma kernel DepthMomentsDownsampleVSM32 DepthMomentsDownsample=DepthMomentsDownsampleVSM32 KERNEL_SIZE=8 _HVSSS_MODE_VSM_32
+#pragma kernel DepthMomentsDownsampleVSM16 DepthMomentsDownsample=DepthMomentsDownsampleVSM16 KERNEL_SIZE=8 _HVSSS_MODE_VSM_16
+#pragma kernel DepthMomentsDownsampleMoments16 DepthMomentsDownsample=DepthMomentsDownsampleMoments16 KERNEL_SIZE=8 _HVSSS_MODE_MOMENTS_16
+
+#define HIGH_QUALITY_DOWNSAMPLE_ENABLED
+
+#define KAHAN_SUMMATION_ENABLED
+
+#if defined(_HVSSS_MODE_VSM_16) || defined(_HVSSS_MODE_MOMENTS_16)
+#define DITHER_ENABLED
+#endif
+
+TEXTURE2D_X(_DepthTexture);
+
+#if defined(_HVSSS_MODE_MOMENTS_16)
+RW_TEXTURE2D_X(float4, _DepthMomentsMipChain);
+#else
+RW_TEXTURE2D_X(float2, _DepthMomentsMipChain);
+#endif
+
+CBUFFER_START(cb)
+    float4 _SrcOffsetAndLimit; // {x, y, w - 1, h - 1}
+    float4 _DstOffsetAndLimit; // {x, y, w - 1, h - 1}
+    float4 _HVSSSDepthMinMax;
+    float4 _HVSSSDepthScaleBias;
+CBUFFER_END
+
+float NoiseDitherRemapTriangularDistribution(float v)
+{
+    float orig = v * 2.0 - 1.0;
+    float c0 = 1.0 - sqrt(saturate(1.0 - abs(orig)));
+    return 0.5 + ((orig.x >= 0.0) ? c0.x : -c0.x);
+}
+
+// https://www.shadertoy.com/view/WsfcRj
+// Approximate (conservative) floating point dither.
+float ComputeFQuantumConservativeApproximate32(float f)
+{
+    // return exp2(floor(log2(f)) - float(nbitsMantissa));
+    // Conservatively approximate f's quantum by dropping floor() from the calculation.
+    // return exp2(log2(f) - float(nbitsMantissa));
+    // return f / exp2(float(nbitsMantissa));
+    // return f / exp2(23.0);
+    return f * (1.0 / 8388608.0);
+}
+
+// https://www.shadertoy.com/view/WsfcRj
+// Approximate (conservative) floating point dither.
+float ComputeFQuantumConservativeApproximate16(float f)
+{
+    // return exp2(floor(log2(f)) - float(nbitsMantissa));
+    // Conservatively approximate f's quantum by dropping floor() from the calculation.
+    // return exp2(log2(f) - float(nbitsMantissa));
+    // return f / exp2(float(nbitsMantissa));
+    // return f / exp2(10.0f);
+    return f * (1.0 / 1024.0);
+}
+
+// The size of the dispatch is (DstMipSize / KernelSize).
+[numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
+void DepthMomentsLinearize(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 srcOffset = _SrcOffsetAndLimit.xy;
+    uint2 srcLimit  = _SrcOffsetAndLimit.zw;
+    uint2 dstOffset = _DstOffsetAndLimit.xy;
+    uint2 dstLimit = _DstOffsetAndLimit.zw;
+
+    uint2 dstPixel = dstOffset + dispatchThreadId.xy;
+
+    if (all(dstPixel >= dstOffset) && all(dstPixel <= dstLimit))
+    {
+        uint2 srcPixel = srcOffset + dispatchThreadId.xy;
+
+        float deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, min(srcPixel, srcLimit)).r;
+        float linearDepth = LinearEyeDepth(deviceDepth, _ZBufferParams);
+
+#if defined(_HVSSS_MODE_MOMENTS_16)
+        float4 moments = ShadowMoments_Encode16MSM(saturate(linearDepth * _HVSSSDepthScaleBias.x + _HVSSSDepthScaleBias.y));
+#elif defined(_HVSSS_MODE_VSM_16)
+        float2 moments = ShadowMoments_Encode16VSM(saturate(linearDepth * _HVSSSDepthScaleBias.x + _HVSSSDepthScaleBias.y));
+#elif defined(_HVSSS_MODE_VSM_32)
+        float2 moments = float2(linearDepth, linearDepth * linearDepth);
+#endif
+
+#if defined(DITHER_ENABLED)
+
+#if defined(_HVSSS_MODE_MOMENTS_16)
+        float4 dither = float4(
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 0),
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 1),
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 2),
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 3)
+        );
+        dither = float4(
+            NoiseDitherRemapTriangularDistribution(dither.x),
+            NoiseDitherRemapTriangularDistribution(dither.y),
+            NoiseDitherRemapTriangularDistribution(dither.z),
+            NoiseDitherRemapTriangularDistribution(dither.w)
+        );
+        dither *= 1.0 / (float)((1 << 16) - 1);
+#elif defined(_HVSSS_MODE_VSM_32)
+        float2 dither = float2(
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 0),
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 1)
+        );
+        dither = float2(
+            NoiseDitherRemapTriangularDistribution(dither.x),
+            NoiseDitherRemapTriangularDistribution(dither.y)
+        );
+        dither *= float2(
+            ComputeFQuantumConservativeApproximate32(moments.x),
+            ComputeFQuantumConservativeApproximate32(moments.y)
+        );
+#elif defined(_HVSSS_MODE_VSM_16)
+        float2 dither = float2(
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 0),
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 1)
+        );
+        dither = float2(
+            NoiseDitherRemapTriangularDistribution(dither.x),
+            NoiseDitherRemapTriangularDistribution(dither.y)
+        );
+        dither *= 1.0 / (float)((1 << 16) - 1);
+#endif
+
+        moments = max(0.0, moments + dither);
+#endif
+
+        _DepthMomentsMipChain[COORD_TEXTURE2D_X(dstPixel)] = moments;
+    }
+}
+
+// The size of the dispatch is (DstMipSize / KernelSize).
+[numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
+void DepthMomentsDownsample(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    uint2 srcOffset = _SrcOffsetAndLimit.xy;
+    uint2 srcLimit  = _SrcOffsetAndLimit.zw;
+    uint2 dstOffset = _DstOffsetAndLimit.xy;
+    uint2 dstLimit = _DstOffsetAndLimit.zw;
+
+    uint2 dstPixel = dstOffset + dispatchThreadId.xy;
+    if (all(dstPixel >= dstOffset) && all(dstPixel <= dstLimit))
+    {
+#if defined(HIGH_QUALITY_DOWNSAMPLE_ENABLED)
+        float2 centerSourcePixel = (dispatchThreadId.xy << 1) + float2(1.0, 1.0);
+
+#if defined(_HVSSS_MODE_MOMENTS_16)
+        float4 accumulatedMoments = 0.0;
+        float accumulatedWeight = 0.0; 
+#else
+        float2 accumulatedMoments = 0.0;
+        float accumulatedWeight = 0.0;
+
+#if defined(KAHAN_SUMMATION_ENABLED)
+        float2 accumulatedMomentsCompensation = 0.0;
+        float accumulatedWeightCompensation = 0.0;
+#endif
+#endif
+        for (int x = -2; x < 2; ++x)
+        {
+            for (int y = -2; y < 2; ++y)
+            {
+                float2 sampleSourcePixel = centerSourcePixel + float2(x, y) + 0.5;
+                sampleSourcePixel = clamp(sampleSourcePixel, 0.5, (srcLimit - srcOffset) + 0.5);
+                float2 sampleKernelOffset = sampleSourcePixel - centerSourcePixel;
+                float sharpness = 1.5;
+                float weight = exp2(-sharpness * dot(sampleKernelOffset, sampleKernelOffset));
+                uint2 sampleSourceTexelCoord = (uint2)floor(sampleSourcePixel) + srcOffset;
+                sampleSourceTexelCoord = min(sampleSourceTexelCoord, srcLimit);
+
+#if defined(_HVSSS_MODE_MOMENTS_16)
+                float4 sampleMoments = _DepthMomentsMipChain[COORD_TEXTURE2D_X(sampleSourceTexelCoord)];
+                accumulatedMoments += weight * sampleMoments;
+                accumulatedWeight += weight;
+
+#else
+                float2 sampleMoments = _DepthMomentsMipChain[COORD_TEXTURE2D_X(sampleSourceTexelCoord)].xy;
+#if defined(KAHAN_SUMMATION_ENABLED)
+                float2 accumulatedMomentsY = weight * sampleMoments - accumulatedMomentsCompensation;
+                float2 accumulatedMomentsT = weight * sampleMoments + accumulatedMoments;
+                accumulatedMomentsCompensation = (accumulatedMomentsT - accumulatedMoments) - accumulatedMomentsY;
+                accumulatedMoments = accumulatedMomentsT;
+
+                float accumulatedWeightY = weight - accumulatedWeightCompensation;
+                float accumulatedWeightT = weight + accumulatedWeight;
+                accumulatedWeightCompensation = (accumulatedWeightT - accumulatedWeight) - accumulatedWeightY;
+                accumulatedWeight = accumulatedWeightT;
+#else
+                accumulatedMoments += weight * sampleMoments;
+                accumulatedWeight += weight;
+#endif
+#endif
+            }
+        }
+        float accumulatedWeightNormalization = (accumulatedWeight > 1e-5) ? rcp(accumulatedWeight) : 0.0;
+
+#if defined(_HVSSS_MODE_MOMENTS_16)
+        float4 moments = accumulatedMoments * accumulatedWeightNormalization;
+#else
+        float2 moments = accumulatedMoments * accumulatedWeightNormalization;
+#endif
+
+#else
+        // Upper-left pixel coordinate of quad that this thread will read
+        uint2 srcPixelUL = srcOffset + (dispatchThreadId.xy << 1);
+
+#if defined(_HVSSS_MODE_MOMENTS_16)
+        float4 p00 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(0u, 0u), srcLimit))];
+        float4 p10 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(1u, 0u), srcLimit))];
+        float4 p01 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(0u, 1u), srcLimit))];
+        float4 p11 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(1u, 1u), srcLimit))];
+
+        float4 moments = p00 * 0.25 + p10 * 0.25 + p01 * 0.25 + p11 * 0.25;
+#else
+        float2 p00 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(0u, 0u), srcLimit))].xy;
+        float2 p10 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(1u, 0u), srcLimit))].xy;
+        float2 p01 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(0u, 1u), srcLimit))].xy;
+        float2 p11 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(srcPixelUL + uint2(1u, 1u), srcLimit))].xy;
+
+        float2 moments = p00 * 0.25 + p10 * 0.25 + p01 * 0.25 + p11 * 0.25;
+#endif
+
+#endif
+
+
+#if defined(DITHER_ENABLED)
+
+#if defined(_HVSSS_MODE_MOMENTS_16)
+        float4 dither = float4(
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 0),
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 1),
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 2),
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 3)
+        );
+        dither = float4(
+            NoiseDitherRemapTriangularDistribution(dither.x),
+            NoiseDitherRemapTriangularDistribution(dither.y),
+            NoiseDitherRemapTriangularDistribution(dither.z),
+            NoiseDitherRemapTriangularDistribution(dither.w)
+        );
+        dither *= 1.0 / (float)((1 << 16) - 1);
+#elif defined(_HVSSS_MODE_VSM_32)
+        float2 dither = float2(
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 0),
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 1)
+        );
+        dither = float2(
+            NoiseDitherRemapTriangularDistribution(dither.x),
+            NoiseDitherRemapTriangularDistribution(dither.y)
+        );
+        dither *= float2(
+            ComputeFQuantumConservativeApproximate32(moments.x),
+            ComputeFQuantumConservativeApproximate32(moments.y)
+        );
+#elif defined(_HVSSS_MODE_VSM_16)
+        float2 dither = float2(
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 0),
+            GetBNDSequenceSample(dispatchThreadId.xy, _FrameCount & 7u, 1)
+        );
+        dither = float2(
+            NoiseDitherRemapTriangularDistribution(dither.x),
+            NoiseDitherRemapTriangularDistribution(dither.y)
+        );
+        dither *= 1.0 / (float)((1 << 16) - 1);
+#endif
+
+        moments = max(0.0, moments + dither);
+#endif
+    
+        _DepthMomentsMipChain[COORD_TEXTURE2D_X(dstPixel)] = moments;
+    }
+}

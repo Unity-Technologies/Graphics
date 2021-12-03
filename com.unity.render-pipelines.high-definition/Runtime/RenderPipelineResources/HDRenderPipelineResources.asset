@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b6f86e1523e69a4282e92d393be89a4, type: 3}
   m_Name: HDRenderPipelineResources
   m_EditorClassIdentifier: 
+  m_Version: 4
   shaders:
     defaultPS: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
     debugDisplayLatlongPS: {fileID: 4800000, guid: c1d1d149a043a5349ba367da6c2051ba, type: 3}
@@ -29,6 +30,7 @@ MonoBehaviour:
     colorPyramidPS: {fileID: 4800000, guid: 2fcfb8d92f45e4549b3f0bad5d0654bf, type: 3}
     depthPyramidCS: {fileID: 7200000, guid: 64a553bb564274041906f78ffba955e4, type: 3}
     maxZCS: {fileID: 7200000, guid: e95abf8c7230c344595f41c4dd5ff517, type: 3}
+    depthMomentsPyramidCS: {fileID: 7200000, guid: 0564295d1cfe69a4f92968fcf81058cc, type: 3}
     copyChannelCS: {fileID: 7200000, guid: a4d45eda75e8e474dbe24a31f741f3b4, type: 3}
     screenSpaceReflectionsCS: {fileID: 7200000, guid: d1de9ac7d9016204da289affe9677942, type: 3}
     applyDistortionPS: {fileID: 4800000, guid: 02ae56f4306413c4a96dcf005cde1971, type: 3}
@@ -48,11 +50,12 @@ MonoBehaviour:
     volumetricLightingFilteringCS: {fileID: 7200000, guid: ef9a910d0ec6ebb41ae3f5c7a69daf46, type: 3}
     deferredTilePS: {fileID: 4800000, guid: dedaf4ea0d134ca4aad1d95a558c46e5, type: 3}
     screenSpaceShadowPS: {fileID: 4800000, guid: bfa43a48695613b4ea19c58858ae1a61, type: 3}
+    hierarchicalVarianceScreenSpaceShadowsCS: {fileID: 7200000, guid: be58c9992d3e54644998ddb0e1c3a06f, type: 3}
     probeVolumeAtlasBlitCS: {fileID: 7200000, guid: 07f429bf534edb44eb5a0e4b2c65b108, type: 3}
     probeVolumeAtlasOctahedralDepthBlitCS: {fileID: 7200000, guid: f60c895d3a3061848844b36ccf9e44a9, type: 3}
     probeVolumeAtlasOctahedralDepthConvolveCS: {fileID: 7200000, guid: 7ef71ce05401a4c4081039b475d3b9ee, type: 3}
     debugDisplayProbeVolumePS: {fileID: 4800000, guid: e7c19cfee7a88394fbb53652b9644cc0, type: 3}
-    maskVolumeAtlasBlitCS: {fileID: 0}
+    maskVolumeAtlasBlitCS: {fileID: 7200000, guid: 32a8dd5ba4c147843ab0fcd58505be19, type: 3}
     debugDisplayMaskVolumePS: {fileID: 4800000, guid: 580c729a5de1ee345a24e424a27eab55, type: 3}
     subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1, type: 3}
     combineLightingPS: {fileID: 4800000, guid: 2e37131331fbdca449b1a2bc47a639ca, type: 3}
@@ -62,7 +65,7 @@ MonoBehaviour:
     copyDepthBufferPS: {fileID: 4800000, guid: 42dfcc8fe803ece4096c58630689982f, type: 3}
     blitPS: {fileID: 4800000, guid: 370f7a9cc4e362d488af024d371091e8, type: 3}
     blitColorAndDepthPS: {fileID: 4800000, guid: c6e57f5bdbd2a284a86a3097c03884c8, type: 3}
-    blit3dCS: {fileID: 0}
+    blit3dCS: {fileID: 7200000, guid: 3ea4eeaa8ed4cb24994a594cdc6a4476, type: 3}
     downsampleDepthPS: {fileID: 4800000, guid: 67d6171b0acc6554aad48c845ec7e67f, type: 3}
     upsampleTransparentPS: {fileID: 4800000, guid: 2ad7ce40f0dbaf64dadef1f58d8524d3, type: 3}
     resolveStencilCS: {fileID: 7200000, guid: 65b89cac5f286b043a31bf8041776ee7, type: 3}
@@ -154,17 +157,18 @@ MonoBehaviour:
     customClearPS: {fileID: 4800000, guid: 9cef3686fa32c8840947ed99b561195c, type: 3}
     ssGIDenoiserCS: {fileID: 7200000, guid: a435d803bc32d0845ba1a713b7a1c8b1, type: 3}
     bilateralUpsampleCS: {fileID: 7200000, guid: 68e831c555284d741b985e05369f0e63, type: 3}
-    extractProbeExtraDataCS: {fileID: 0}
-    probePropagationHitsCS: {fileID: 0}
-    probePropagationAxesCS: {fileID: 0}
-    probePropagationCombineCS: {fileID: 0}
-    probeVolumeDebugNeighbors: {fileID: 0}
+    extractProbeExtraDataCS: {fileID: 7200000, guid: 19203dad2f5ebef4fb7985d6708af01b, type: 3}
+    probePropagationClearRadianceCS: {fileID: 7200000, guid: 942bb191f92548845a308ee808696b88, type: 3}
+    probePropagationHitsCS: {fileID: 7200000, guid: 30e9d0263d54e5d4ca3a6ce53e62a816, type: 3}
+    probePropagationAxesCS: {fileID: 7200000, guid: 233a27b4955f7f240943d2379eac2ed0, type: 3}
+    probePropagationCombineCS: {fileID: 7200000, guid: c59380e50ce2b684385c6e9e7e29f847, type: 3}
+    probeVolumeDebugNeighbors: {fileID: 4800000, guid: c1a3ae002ac565940979f7aa1b17b0da, type: 3}
   textures:
     debugFontTex: {fileID: 2800000, guid: a3ad2df0e49aaa341a3b3a80f93b3f66, type: 3}
     colorGradient: {fileID: 2800000, guid: 4ea52e665573c1644bf05dd9b11fd2a4, type: 3}
     matcapTex: {fileID: 2800000, guid: e655445a13b501944a2641ea144edda5, type: 3}
-    debugGrayscaleLuminance: {fileID: 0}
-    debugGrayscaleMunsell: {fileID: 0}
+    debugGrayscaleLuminance: {fileID: 2800000, guid: be6d5afddf0ed184dbaac865363cdd4e, type: 3}
+    debugGrayscaleMunsell: {fileID: 2800000, guid: aa637f063340caa4b9f26e6cadefdba3, type: 3}
     blueNoise16LTex:
     - {fileID: 2800000, guid: efa2ea5416a18da46b64f1266464ffc7, type: 3}
     - {fileID: 2800000, guid: 0330b95d1d741fc4281eac4aec9d2eae, type: 3}
@@ -258,4 +262,3 @@ MonoBehaviour:
     defaultDiffusionProfile: {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e, type: 2}
     emissiveCylinderMesh: {fileID: 2534964839176971238, guid: accb6d90f0d50fe4ca0f68159b4323de, type: 3}
     emissiveQuadMesh: {fileID: 4300000, guid: 1d5a8595286f94f4bb54171d49f473c3, type: 3}
-  m_Version: 4

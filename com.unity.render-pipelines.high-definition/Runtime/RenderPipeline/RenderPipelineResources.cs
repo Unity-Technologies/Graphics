@@ -50,6 +50,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader depthPyramidCS;
             [Reload("Runtime/RenderPipeline/RenderPass/GenerateMaxZ.compute")]
             public ComputeShader maxZCS;
+            [Reload("Runtime/RenderPipeline/RenderPass/DepthMomentsPyramid.compute")]
+            public ComputeShader depthMomentsPyramidCS;
 
             [Reload("Runtime/Core/CoreResources/GPUCopy.compute")]
             public ComputeShader copyChannelCS;
@@ -91,6 +93,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader deferredTilePS;
             [Reload("Runtime/Lighting/Shadow/ScreenSpaceShadows.shader")]
             public Shader screenSpaceShadowPS;
+            [Reload("Runtime/Lighting/Shadow/HierarchicalVarianceScreenSpaceShadows.compute")]
+            public ComputeShader hierarchicalVarianceScreenSpaceShadowsCS;
             [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeAtlasBlit.compute")]
             public ComputeShader probeVolumeAtlasBlitCS;
             [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeAtlasOctahedralDepthBlit.compute")]
