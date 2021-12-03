@@ -149,8 +149,12 @@ public unsafe class BRGSetup : MonoBehaviour
         // Generate a grid of objects...
         int bigDataBufferVector4Count = 4 + itemCount * (3 * 3 + 1);      // 4xfloat4 zero + per instance = { 3x mat4x3, 1x float4 color }
         m_sysmemBuffer = new NativeArray<Vector4>(bigDataBufferVector4Count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-        m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Raw, (int)bigDataBufferVector4Count * 16 / 4, 4);
 
+#if false
+        m_GPUPersistentInstanceData = new ComputeBuffer(1, bigDataBufferVector4Count * 16, ComputeBufferType.Constant);
+#else
+        m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Constant, (int)bigDataBufferVector4Count * 16, 16);
+#endif
         // 64 bytes of zeroes, so loads from address 0 return zeroes. This is a BatchRendererGroup convention.
         int positionOffset = 4;
         m_sysmemBuffer[0] = new Vector4(0, 0, 0, 0);

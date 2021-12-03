@@ -194,19 +194,19 @@ uint ComputeDOTSInstanceDataAddressOverridden(uint metadata, uint stride)
 #ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
 uint DOTSInstanceData_Load(uint address)
 {
-    return asuint(unity_DOTSInstanceDataRaw[address>>2].x);
+    return asuint(unity_DOTSInstanceDataRaw[address>>4].x);
 }
 uint2 DOTSInstanceData_Load2(uint address)
 {
-    return asuint(unity_DOTSInstanceDataRaw[address>>2].xy);
+    return asuint(unity_DOTSInstanceDataRaw[address>>4].xy);
 }
 uint3 DOTSInstanceData_Load3(uint address)
 {
-    return asuint(unity_DOTSInstanceDataRaw[address>>2].xyz);
+    return asuint(unity_DOTSInstanceDataRaw[address>>4].xyz);
 }
 uint4 DOTSInstanceData_Load4(uint address)
 {
-    return asuint(unity_DOTSInstanceDataRaw[address>>2]);
+    return asuint(unity_DOTSInstanceDataRaw[address>>4]);
 }
 #else
 uint DOTSInstanceData_Load(uint address)
