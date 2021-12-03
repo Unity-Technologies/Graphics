@@ -38,7 +38,10 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Runtime/Materials/Lit.mat")]
             public Material lit;
 
-            [Reload("Runtime/Materials/ParticlesLit.mat")]
+            // particleLit is the URP default material for new particle systems.
+            // ParticlesUnlit.mat is closest match to the built-in shader.
+            // This is correct (current 22.2) despite the Lit/Unlit naming conflict.
+            [Reload("Runtime/Materials/ParticlesUnlit.mat")]
             public Material particleLit;
 
             [Reload("Runtime/Materials/TerrainLit.mat")]
