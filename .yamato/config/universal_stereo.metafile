@@ -3,6 +3,7 @@ project:
   folder: UniversalGfxTestStereo
 test_platforms:
   - type: Standalone
+    allow_cache: False
     utr_flags:
       - [all]: compilation-errors-as-warnings
   - type: editmode

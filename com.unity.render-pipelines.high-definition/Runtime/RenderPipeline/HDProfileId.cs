@@ -101,6 +101,10 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricCloudMapGeneration,
         VolumetricCloudsAmbientProbe,
 
+        // Water surface
+        WaterSurfaceSimulation,
+        WaterSurfaceRendering,
+
         // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,
@@ -167,6 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderEVSMShadowMaps,
         RenderEVSMShadowMapsBlur,
         RenderEVSMShadowMapsCopyToAtlas,
+        BlitDirectionalMixedCachedShadowMaps,
         BlitPunctualMixedCachedShadowMaps,
         BlitAreaMixedCachedShadowMaps,
 
@@ -182,6 +187,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Misc
         VolumeUpdate,
         CustomPassVolumeUpdate,
+        OffscreenUIRendering,
 
         // XR
         XRMirrorView,
@@ -232,13 +238,13 @@ namespace UnityEngine.Rendering.HighDefinition
         SetResolutionGroup,
         FinalPost,
         FinalImageHistogram,
+        HDRDebugData,
         CustomPostProcessBeforeTAA,
         CustomPostProcessBeforePP,
         CustomPostProcessAfterPPBlurs,
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
         ContrastAdaptiveSharpen,
-        RobustContrastAdaptiveSharpen,
         EdgeAdaptiveSpatialUpsampling,
         PrepareProbeVolumeList,
         ProbeVolumeDebug,

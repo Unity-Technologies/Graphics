@@ -589,15 +589,13 @@ namespace UnityEngine.Rendering.HighDefinition
             var nrTilesX = (m_MaxCameraWidth + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
             var nrTilesY = (m_MaxCameraHeight + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
             var nrTiles = nrTilesX * nrTilesY * m_MaxViewCount;
-            const int capacityUShortsPerTile = 32;
-            const int dwordsPerTile = (capacityUShortsPerTile + 1) >> 1; // room for 31 lights and a nrLights value.
 
             if (tileAndClusterData.hasTileBuffers)
             {
                 // note that nrTiles include the viewCount in allocation below
                 // Tile buffers
                 passData.output.lightList = builder.WriteComputeBuffer(
-                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * dwordsPerTile * nrTiles, sizeof(uint)) { name = "LightList" }));
+                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * LightDefinitions.s_LightDwordPerFptlTile * nrTiles, sizeof(uint)) { name = "LightList" }));
                 passData.output.tileList = builder.WriteComputeBuffer(
                     renderGraph.CreateComputeBuffer(new ComputeBufferDesc(LightDefinitions.s_NumFeatureVariants * nrTiles, sizeof(uint)) { name = "TileList" }));
                 passData.output.tileFeatureFlags = builder.WriteComputeBuffer(
@@ -1118,7 +1116,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
-            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ScreenSpaceReflection.RayTracingActive(settings);
+            // We can use the ray tracing version of the effect if:
+            // - It is enabled in the frame settings
+            // - It is enabled in the volume
+            // - The RTAS has been build validated
+            // - The RTLightCluster has been validated
+            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing)
+                                            && ScreenSpaceReflection.RayTracingActive(settings)
+                                            && GetRayTracingState() && GetRayTracingClusterState();
             if (usesRaytracedReflections)
             {
                 result = RenderRayTracedReflections(renderGraph, hdCamera,
@@ -1360,11 +1365,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.contactShadowsCS.EnableKeyword("ENABLE_MSAA");
                 }
 
-                passData.rayTracingEnabled = RayTracedContactShadowsRequired();
+                passData.rayTracingEnabled = RayTracedContactShadowsRequired() && GetRayTracingState();
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
                     passData.contactShadowsRTS = m_GlobalSettings.renderPipelineRayTracingResources.contactShadowRayTracingRT;
-                    passData.accelerationStructure = RequestAccelerationStructure();
+                    passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
 
                     passData.actualWidth = hdCamera.actualWidth;
                     passData.actualHeight = hdCamera.actualHeight;

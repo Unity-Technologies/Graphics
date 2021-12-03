@@ -73,7 +73,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         uint  m_CacheMaxIteration = 0;
 #endif // UNITY_EDITOR
-        ulong m_CacheAccelSize = 0;
         uint m_CacheLightCount = 0;
         int m_CameraID = 0;
         bool m_RenderSky = true;
@@ -112,10 +111,24 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif // UNITY_EDITOR
         }
 
-        internal void ResetPathTracing()
+        /// <summary>
+        /// Resets path tracing accumulation for all cameras.
+        /// </summary>
+        public void ResetPathTracing()
         {
             m_RenderSky = true;
             m_SubFrameManager.Reset();
+        }
+
+        /// <summary>
+        /// Resets path tracing accumulation for a specific camera.
+        /// </summary>
+        /// <param name="hdCamera">Camera for which the accumulation is reset.</param>
+        public void ResetPathTracing(HDCamera hdCamera)
+        {
+            int camID = hdCamera.camera.GetInstanceID();
+            CameraData camData = m_SubFrameManager.GetCameraData(camID);
+            ResetPathTracing(camID, camData);
         }
 
         internal CameraData ResetPathTracing(int camID, CameraData camData)
@@ -135,7 +148,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // focalLength is in mm, so we need to convert to meters. We also want the aperture radius, not diameter, so we divide by two.
             float apertureRadius = (enableDof && hdCamera.physicalParameters.aperture > 0) ? 0.5f * 0.001f * hdCamera.camera.focalLength / hdCamera.physicalParameters.aperture : 0.0f;
 
-            return new Vector4(apertureRadius, dofSettings.focusDistance.value, 0.0f, 0.0f);
+            float focusDistance = (dofSettings.focusDistanceMode.value == FocusDistanceMode.Volume) ? dofSettings.focusDistance.value : hdCamera.physicalParameters.focusDistance;
+
+            return new Vector4(apertureRadius, focusDistance, 0.0f, 0.0f);
         }
 
 #if UNITY_EDITOR
@@ -170,7 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private CameraData CheckDirtiness(HDCamera hdCamera, int camID, CameraData camData)
         {
-            // Check camera resolution dirtiness
+            // Check resolution dirtiness
             if (hdCamera.actualWidth != camData.width || hdCamera.actualHeight != camData.height)
             {
                 camData.width = (uint)hdCamera.actualWidth;
@@ -178,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ResetPathTracing(camID, camData);
             }
 
-            // Check camera sky dirtiness
+            // Check sky dirtiness
             bool enabled = (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky);
             if (enabled != camData.skyEnabled)
             {
@@ -186,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ResetPathTracing(camID, camData);
             }
 
-            // Check camera fog dirtiness
+            // Check fog dirtiness
             enabled = Fog.IsFogEnabled(hdCamera);
             if (enabled != camData.fogEnabled)
             {
@@ -194,24 +209,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ResetPathTracing(camID, camData);
             }
 
-            // Check camera matrix dirtiness
-            if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
+            // Check acceleration structure dirtiness
+            ulong accelSize = RequestAccelerationStructure(hdCamera).GetSize();
+            if (accelSize != camData.accelSize)
             {
+                camData.accelSize = accelSize;
                 return ResetPathTracing(camID, camData);
             }
 
             // Check materials dirtiness
-            if (GetMaterialDirtiness())
+            if (GetMaterialDirtiness(hdCamera))
             {
-                ResetMaterialDirtiness();
+                ResetMaterialDirtiness(hdCamera);
                 ResetPathTracing();
                 return camData;
             }
 
             // Check light or geometry transforms dirtiness
-            if (GetTransformDirtiness())
+            if (GetTransformDirtiness(hdCamera))
             {
-                ResetTransformDirtiness();
+                ResetTransformDirtiness(hdCamera);
                 ResetPathTracing();
                 return camData;
             }
@@ -224,15 +241,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 return camData;
             }
 
-            // Check geometry dirtiness
-            ulong accelSize = RequestAccelerationStructure().GetSize();
-            if (accelSize != m_CacheAccelSize)
+            // Check camera matrix dirtiness
+            if (hdCamera.mainViewConstants.nonJitteredViewProjMatrix != (hdCamera.mainViewConstants.prevViewProjMatrix))
             {
-                m_CacheAccelSize = accelSize;
-                ResetPathTracing();
+                return ResetPathTracing(camID, camData);
             }
 
-            // If the camera has changed, re-render the sky texture
+            // If nothing but the camera has changed, re-render the sky texture
             if (camID != m_CameraID)
             {
                 m_RenderSky = true;
@@ -266,13 +281,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle output;
             public TextureHandle sky;
+
+#if ENABLE_SENSOR_SDK
+            public Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays;
+#endif
         }
 
         TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, in CameraData cameraData, TextureHandle pathTracingBuffer, TextureHandle skyBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<RenderPathTracingData>("Render PathTracing", out var passData))
             {
+#if ENABLE_SENSOR_SDK
+                passData.pathTracingShader = hdCamera.pathTracingShaderOverride ? hdCamera.pathTracingShaderOverride : m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
+                passData.prepareDispatchRays = hdCamera.prepareDispatchRays;
+#else
                 passData.pathTracingShader = m_GlobalSettings.renderPipelineRayTracingResources.pathTracing;
+#endif
                 passData.cameraData = cameraData;
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
                 passData.backgroundColor = hdCamera.backgroundColorHDR;
@@ -282,7 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.tilingParameters = m_PathTracingSettings.tilingParameters.value;
                 passData.width = hdCamera.actualWidth;
                 passData.height = hdCamera.actualHeight;
-                passData.accelerationStructure = RequestAccelerationStructure();
+                passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.lightCluster = RequestLightCluster();
 
                 passData.shaderVariablesRaytracingCB = m_ShaderVariablesRayTracingCB;
@@ -330,6 +354,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracingDoFParameters, data.dofParameters);
                         ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracingTilingParameters, data.tilingParameters);
 
+#if ENABLE_SENSOR_SDK
+                        // SensorSDK can do its own camera rays generation
+                        data.prepareDispatchRays?.Invoke(ctx.cmd);
+#endif
                         // Run the computation
                         ctx.cmd.DispatchRays(data.pathTracingShader, "RayGen", (uint)data.width, (uint)data.height, 1);
                     });
@@ -398,7 +426,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_HDRP_DXR_TESTS_DEFINE
             if (Application.isPlaying)
+            {
+                camData.ResetIteration();
                 m_SubFrameManager.subFrameCount = 1;
+            }
 #endif
 
             if (camData.currentIteration < m_SubFrameManager.subFrameCount)
