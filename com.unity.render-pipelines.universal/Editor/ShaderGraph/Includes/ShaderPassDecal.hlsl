@@ -184,10 +184,8 @@ void Frag(PackedVaryings packedInput,
     half angleFadeFactor = 1.0;
 
 #ifdef _DECAL_LAYERS
-    //float4 renderingLayers = LoadSceneRenderingLayer(input.positionCS.xy);
-    //uint meshRenderingLayers = uint(renderingLayers.r * 255.0);
 #ifdef _RENDER_PASS_ENABLED
-    uint meshRenderingLayers = UnpackInt(LOAD_FRAMEBUFFER_INPUT(GBUFFER4, input.positionCS.xy), 16);
+    uint meshRenderingLayers = UnpackInt(LOAD_FRAMEBUFFER_INPUT(GBUFFER4, input.positionCS.xy), 16); // TODO: Add decode rendering layer function
 #else
     uint meshRenderingLayers = LoadSceneRenderingLayer(input.positionCS.xy);
 #endif

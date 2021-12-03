@@ -14,15 +14,10 @@ float SampleSceneRenderingLayer(float2 uv)
 
 uint LoadSceneRenderingLayer(uint2 uv)
 {
+    // TODO: Investigate faster solution instead of packing
     //uv.y = _ScreenSize.y - uv.y;
     float encodedValue = LOAD_TEXTURE2D_X(_CameraDecalLayersTexture, uv).r;
-    return UnpackInt(encodedValue, 16);// uint(encodedValue * 65025.5);
+    //return uint(encodedValue * 65025.5);
+    return UnpackInt(encodedValue, 16);// TODO: Expose as property the bits value
 }
-
-/*uint LoadSceneDecalLayer(uint2 uv)
-{
-    //uv.y = _ScreenSize.y - uv.y;
-    float encodedValue = LOAD_TEXTURE2D_X(_CameraDecalLayersTexture, uv).r;
-    return uint(encodedValue * 65025.5);
-}*/
 #endif

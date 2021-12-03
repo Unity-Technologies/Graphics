@@ -608,7 +608,7 @@ namespace UnityEditor.Rendering.Universal
                 materialChanged = EditorGUI.EndChangeCheck();
 
                 bool decalLayerEnabled = false;
-                //if (hdrp != null)
+                // TODO: Add check if decal layers enabled in any renderer for current urp
                 {
                     decalLayerEnabled = true;
                     using (new EditorGUI.DisabledScope(!decalLayerEnabled))

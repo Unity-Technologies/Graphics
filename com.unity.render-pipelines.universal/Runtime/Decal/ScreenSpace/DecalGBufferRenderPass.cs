@@ -44,32 +44,27 @@ namespace UnityEngine.Rendering.Universal
             m_DeferredLights = deferredLights;
         }
 
-        //public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor) // todo find out why on camera setup fails here
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             if (m_DeferredLights.UseRenderPass)
             {
-                //if (m_GbufferAttachments == null)
                 m_GbufferAttachments = new RTHandle[]
                 {
-                        m_DeferredLights.GbufferAttachments[0], m_DeferredLights.GbufferAttachments[1],
-                        m_DeferredLights.GbufferAttachments[2], m_DeferredLights.GbufferAttachments[3]
+                    m_DeferredLights.GbufferAttachments[0], m_DeferredLights.GbufferAttachments[1],
+                    m_DeferredLights.GbufferAttachments[2], m_DeferredLights.GbufferAttachments[3]
                 };
-
-                //m_GbufferAttachments = m_DeferredLights.GbufferAttachmentIdentifiers;
 
                 if (m_DecalLayers)
                 {
                     var deferredInputAttachments = new RTHandle[]
                     {
-                        //m_DeferredLights.DepthCopyTexture,
                         m_DeferredLights.GbufferAttachments[m_DeferredLights.GbufferDepthIndex],
                         m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferRenderingLayers],
                     };
 
                     var deferredInputIsTransient = new bool[]
                     {
-                        true, false, // todo
+                        true, false, // TODO: Make rendering layers transient
                     };
 
                     ConfigureInputAttachments(deferredInputAttachments, deferredInputIsTransient);
@@ -78,7 +73,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     var deferredInputAttachments = new RTHandle[]
                     {
-                        //m_DeferredLights.DepthCopyTexture,
                         m_DeferredLights.GbufferAttachments[m_DeferredLights.GbufferDepthIndex],
                     };
 
@@ -92,16 +86,11 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                //m_GbufferAttachments = m_DeferredLights.GbufferAttachmentIdentifiers;
-
-                //if (m_GbufferAttachments == null)
                 m_GbufferAttachments = new RTHandle[]
                 {
                         m_DeferredLights.GbufferAttachments[0], m_DeferredLights.GbufferAttachments[1],
                         m_DeferredLights.GbufferAttachments[2], m_DeferredLights.GbufferAttachments[3]
                 };
-                if (m_DeferredLights.GbufferAttachments[0].rt == null)
-                    Debug.Assert(m_DeferredLights.GbufferAttachments[0].rt != null);
             }
 
             ConfigureTarget(m_GbufferAttachments, m_DeferredLights.DepthAttachmentHandle);

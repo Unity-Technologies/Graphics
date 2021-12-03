@@ -1323,7 +1323,8 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    // Todo: investigate performance cost of this
+                    // TODO: investigate performance cost of this
+                    // As alternative we would need a way to check if rts are not going to be used as shader resource
                     bool colorAttachmentCheck = false;
                     for (int i = 0; i < m_ActiveColorAttachments.Length; i++)
                     {
@@ -1333,8 +1334,6 @@ namespace UnityEngine.Rendering.Universal
                             break;
                         }
                     }
-
-                    //colorAttachmentCheck = false;
 
                     // Only setup render target if current render pass attachments are different from the active ones
                     if (colorAttachmentCheck || passColorAttachment.nameID != m_ActiveColorAttachments[0] || passDepthAttachment.nameID != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None ||

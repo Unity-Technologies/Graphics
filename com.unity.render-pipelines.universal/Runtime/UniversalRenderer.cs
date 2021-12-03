@@ -410,7 +410,7 @@ namespace UnityEngine.Rendering.Universal
             bool renderingLayerProvidesRenderObjectPass = renderPassInputs.requiresRenderingLayer &&
                 !renderPassInputs.requiresNormalsTexture && m_RenderingMode == RenderingMode.Forward;
 
-            // todo: investigate the order of call, had to change because of requiresRenderingLayer
+            // TODO: investigate the order of call, had to change because of requiresRenderingLayer
             if (m_DeferredLights != null)
             {
                 m_DeferredLights.UseDecalLayers = renderPassInputs.requiresRenderingLayer;
@@ -1208,22 +1208,6 @@ namespace UnityEngine.Rendering.Universal
                     RenderingUtils.ReAllocateIfNeeded(ref m_CameraDepthAttachment, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
                     cmd.SetGlobalTexture(m_CameraDepthAttachment.name, m_CameraDepthAttachment.nameID);
                 }
-            }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-        }
-
-        void CreateDecalLayerRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool primedDepth)
-        {
-            CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(null, Profiling.createCameraRenderTarget))
-            {
-                var desc = descriptor;
-                desc.graphicsFormat = GraphicsFormat.R16_UNorm;
-                desc.depthBufferBits = 0;
-                //desc.msaaSamples = primedDepth ? m_RendererMSAASamples : 1;
-                RenderingUtils.ReAllocateIfNeeded(ref m_DecalLayersTexture, desc, FilterMode.Point);
             }
 
             context.ExecuteCommandBuffer(cmd);
