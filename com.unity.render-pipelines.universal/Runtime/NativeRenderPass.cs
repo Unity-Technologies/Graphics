@@ -312,7 +312,7 @@ namespace UnityEngine.Rendering.Universal
                     int samples;
                     RenderTargetIdentifier colorAttachmentTarget;
                     // We are not rendering to Backbuffer so we have the RT and the information with it
-                    if (passColorAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
+                    if (passColorAttachment != k_CameraTarget)
                     {
                         currentAttachmentDescriptor = new AttachmentDescriptor(depthOnly ? passColorAttachment.rt.descriptor.depthStencilFormat : passColorAttachment.rt.descriptor.graphicsFormat);
                         samples = passColorAttachment.rt.descriptor.msaaSamples;
