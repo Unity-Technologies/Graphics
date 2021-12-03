@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 
@@ -144,6 +145,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MRT2 = new RenderTargetIdentifier[2];
             m_ResetHistory = true;
             base.useNativeRenderPass = false;
+
         }
 
         public void Cleanup() => m_Materials.Cleanup();
@@ -474,6 +476,28 @@ namespace UnityEngine.Rendering.Universal.Internal
                     DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), usePanini, paniniDistance, paniniCropToFit);
                 }
             }
+
+            // Custom post processing resolution
+            // needs for loop and iterate through the added custom PP volume components
+            // For now hardcoded single one
+            CustomPostProcessVolumeComponent customPP;// = customPPparentVolume as CustomPostProcessVolumeComponent;
+
+            foreach (var componentInStack in VolumeManager.instance.stack.GetAllVolumeComponents())
+            {
+                customPP = componentInStack as CustomPostProcessVolumeComponent;
+                if (customPP != null)
+                {
+                    customPP.Setup();
+                }
+                if (customPP != null && customPP.IsActive())
+                {
+
+                    customPP.Render(cameraData.camera, cmd, GetSource(), GetDestination());
+                }
+            }
+
+            // TODO - this gets overriten by further FinalPass
+
 
             // Combined post-processing stack
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.UberPostProcess)))
@@ -1445,6 +1469,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             public readonly Material uber;
             public readonly Material finalPass;
             public readonly Material lensFlareDataDriven;
+
+            public readonly List<Material> customPostProcessors;
 
             public MaterialLibrary(PostProcessData data)
             {

@@ -1,0 +1,39 @@
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+using System;
+
+[Serializable, VolumeComponentMenu("Post-processing/Custom/#NAME#")]
+public sealed class #SCRIPTNAME# : CustomPostProcessVolumeComponent
+{
+    [Tooltip("Controls the intensity of the effect.")]
+    public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
+
+    Material m_Material;
+
+    public bool IsActive() => m_Material != null && intensity.value > 0f;
+
+    // Do not forget to add this post process in the Custom Post Process Orders list (Project Settings > Graphics > HDRP Settings).
+    //public override CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.AfterPostProcess;
+
+    const string kShaderName = "Hidden/Shader/#SCRIPTNAME#";
+
+    public override void Setup()
+    {
+        if (Shader.Find(kShaderName) != null)
+            m_Material = new Material(Shader.Find(kShaderName));
+        else
+            Debug.LogError($"Unable to find shader '{kShaderName}'. Post Process Volume #NAME# is unable to load.");
+    }
+
+    public override void Render(Camera camera, CommandBuffer cmd, RTHandle source, RTHandle destination)
+    {
+        if (m_Material == null)
+            return;
+
+        m_Material.SetFloat("_Intensity", intensity.value);
+        m_Material.SetTexture("_InputTexture", source.rt);
+        cmd.Blit(source.rt, destination.rt, m_Material, 0);
+    }
+
+}

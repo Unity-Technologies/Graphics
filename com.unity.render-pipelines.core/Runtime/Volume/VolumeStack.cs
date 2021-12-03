@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityEngine.Rendering
 {
@@ -57,6 +58,17 @@ namespace UnityEngine.Rendering
         {
             components.TryGetValue(type, out var comp);
             return comp;
+        }
+
+        public List<VolumeComponent> GetAllVolumeComponents()
+        {
+            List<VolumeComponent> result = new List<VolumeComponent>();
+            foreach (var volcomp in components.ToList())
+            {
+                result.Add(volcomp.Value);
+            }
+
+            return result;
         }
 
         /// <summary>
