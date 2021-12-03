@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering
         int m_CurrentHashCode;
         void RefreshEditors()
         {
-            if (m_Editors.Count > 0)
+            if (m_Editors.Any())
             {
                 // Disable all editors first
                 foreach (var editor in m_Editors)
