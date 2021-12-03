@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.Universal
                     camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Right, cameraData.GetProjectionMatrix(1));
                     camera.SetStereoViewMatrix(Camera.StereoscopicEye.Right, cameraData.GetViewMatrix(1));
 
-                    CommandBuffer cmd = CommandBufferPool.Get();
+                    CommandBuffer cmd = renderingData.commandBuffer; // CommandBufferPool.Get();
 
                     // Use legacy stereo instancing mode to have legacy XR code path configured
                     cmd.SetSinglePassStereo(SystemInfo.supportsMultiview ? SinglePassStereoMode.Multiview : SinglePassStereoMode.Instancing);
@@ -56,10 +56,10 @@ namespace UnityEngine.Rendering.Universal
 
                     // Disable Legacy XR path
                     cmd.SetSinglePassStereo(SinglePassStereoMode.None);
-                    context.ExecuteCommandBuffer(cmd);
+                    //context.ExecuteCommandBuffer(cmd);
                     // We do not need to submit here due to special handling of stereo matrices in core.
                     // context.Submit();
-                    CommandBufferPool.Release(cmd);
+                    //CommandBufferPool.Release(cmd);
 
                     camera.ResetStereoProjectionMatrices();
                     camera.ResetStereoViewMatrices();
