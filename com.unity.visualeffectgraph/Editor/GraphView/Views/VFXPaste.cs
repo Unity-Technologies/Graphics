@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.VFX;
 
 using NodeID = System.UInt32;
 
@@ -47,7 +47,23 @@ namespace UnityEditor.VFX.UI
             s_Instance.PasteBlocks(viewController, (data as SerializableGraph).operators, targetModelContext, targetIndex, blocksInTheSameOrder);
         }
 
-        private static bool CanPasteNode(Node node, string openedAssetPath)
+        static bool CanPasteSubgraph(VisualEffectSubgraph subgraph, string openedAssetPath)
+        {
+            var path = AssetDatabase.GetAssetPath(subgraph);
+            if (path == openedAssetPath)
+            {
+                return false;
+            }
+
+            var resource = VisualEffectResource.GetResourceAtPath(path);
+            var controller = new VFXViewController(resource);
+
+            return controller.graph.children
+                .OfType<VFXSubgraphOperator>()
+                .All(x => CanPasteSubgraph(x.subgraph, openedAssetPath));
+        }
+
+        static bool CanPasteNode(Node node, string openedAssetPath)
         {
             var subgraphType = typeof(VisualEffectSubgraph);
             return node.settings
@@ -55,8 +71,9 @@ namespace UnityEditor.VFX.UI
                 .All(x =>
                     {
                         var obj = x.value.Get<VisualEffectSubgraph>();
-                        var path = AssetDatabase.GetAssetPath(obj);
-                        return path != openedAssetPath;
+                        //var path = AssetDatabase.GetAssetPath(obj);
+                        // Check if the copied node does not contains the destination graph to prevent recursion
+                        return CanPasteSubgraph(obj, openedAssetPath);
                     }
                 );
         }
