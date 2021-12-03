@@ -229,8 +229,7 @@ namespace UnityEngine.Rendering.Universal
                 display.disableLegacyRenderer = true;
 
                 // FR
-                display.foveatedRenderingLevel = 0.5f;
-                //display.foveatedRenderingLevel = Mathf.Cos(Time.realtimeSinceStartup * Mathf.PI);
+                display.foveatedRenderingLevel = 1.0f;
                 //display.foveatedRenderingFlags = XRDisplaySubsystem.FoveatedRenderingFlags.GazeAllowed;
                 // FR
 
