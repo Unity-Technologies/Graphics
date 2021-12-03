@@ -1,12 +1,18 @@
-using System.Reflection;
+using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.Rendering.HighDefinition;
+using System.Reflection;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.Rendering.HighDefinition
 {
-    [Title("Input", "Scene", "Scene Depth Difference")]
-    sealed class SceneDepthDifferenceNode : CodeFunctionNode, IMayRequireDepthTexture, IMayRequireScreenPosition, IMayRequirePosition
+    [SRPFilter(typeof(HDRenderPipeline))]
+    [Title("Input", "Scene", "High Definition Render Pipeline", "Scene Depth Difference")]
+    sealed class HDSceneDepthDifferenceNode : CodeFunctionNode, IMayRequireDepthTexture, IMayRequireScreenPosition, IMayRequirePosition
     {
         [SerializeField]
         private DepthSamplingMode m_DepthSamplingMode = DepthSamplingMode.Linear01;
@@ -25,7 +31,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public SceneDepthDifferenceNode()
+        public HDSceneDepthDifferenceNode()
         {
             name = "Scene Depth Difference";
             synonyms = new string[] { "zbuffer", "zdepth", "difference" };
@@ -122,9 +128,9 @@ namespace UnityEditor.ShaderGraph
             return true;
         }
 
-        Internal.NeededCoordinateSpace IMayRequirePosition.RequiresPosition(ShaderStageCapability stageCapability)
+        NeededCoordinateSpace IMayRequirePosition.RequiresPosition(ShaderStageCapability stageCapability)
         {
-            return Internal.NeededCoordinateSpace.World;
+            return NeededCoordinateSpace.World;
         }
     }
 }

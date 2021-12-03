@@ -7,6 +7,8 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 
+namespace UnityEditor.Rendering.HighDefinition
+{
     enum RefractMode
     {
         CriticalAngle,

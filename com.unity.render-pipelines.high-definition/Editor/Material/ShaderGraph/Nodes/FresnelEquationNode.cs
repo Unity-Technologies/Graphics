@@ -1,9 +1,11 @@
-using System.Reflection;
+using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -14,6 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         DielectricGeneric
     };
 
+    [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Math", "Advanced", "High Definition Render Pipeline", "Fresnel Equation")]
     class HDFresnelEquationNode : AbstractMaterialNode
         , IGeneratesBodyCode
