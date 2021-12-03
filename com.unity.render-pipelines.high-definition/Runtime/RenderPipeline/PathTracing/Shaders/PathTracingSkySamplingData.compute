@@ -141,7 +141,7 @@ void ComputeMarginal(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (i == 0)
     {
         float imgIntegralValue = rowValSum / TEX_HEIGHT;
-        float pdfNormalization = imgIntegralValue > 0.0 ? rcp(imgIntegralValue) / (TWO_PI * PI) : 0.0;
+        float pdfNormalization = imgIntegralValue > 0.0 ? rcp(imgIntegralValue) * 0.25 * INV_PI : 0.0;
         MARGINAL[uint2(0, 0)] = pdfNormalization;
     }
 }
