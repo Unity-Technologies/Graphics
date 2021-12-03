@@ -30,8 +30,6 @@ Material:
     m_Ints: []
     m_Floats:
     - _Baked_Ambient_Occlusion: 0.338
-    - _Opacity_Fading: 0.162
-    - _Opacity_Threshold: 0.74
     - _RECALCULATE_CARD_NORMALS: 1
     m_Colors:
     - _Length_Color: {r: 0.6886792, g: 0.43000898, b: 0.22522837, a: 1}
