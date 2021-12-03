@@ -395,6 +395,7 @@ platforms:
                     utr <UTR_FLAGS>
         call_utr:
           - command: |5-
+                    set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%

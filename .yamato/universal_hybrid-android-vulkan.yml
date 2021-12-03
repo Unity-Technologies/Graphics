@@ -29,6 +29,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_2020.3:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
@@ -66,6 +67,7 @@ Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_2020.3:
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
       -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
@@ -104,6 +106,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_CUSTOM-REVISION:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
          retries: 2
       -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
@@ -141,6 +144,7 @@ Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_CUSTOM-REVISIO
       -  command: unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
          retries: 2
       -  command: |5-
+                set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
                 echo %GIT_REVISIONDATE%
