@@ -11,6 +11,7 @@ namespace UnityEditor.Rendering.Universal
         {
             public static GUIContent Technique = EditorGUIUtility.TrTextContent("Technique", "This option determines what method is used for rendering decals.");
             public static GUIContent MaxDrawDistance = EditorGUIUtility.TrTextContent("Max Draw Distance", "Maximum global draw distance of decals.");
+            public static GUIContent DecalLayers = EditorGUIUtility.TrTextContent("Decal Layers", "When enabled, URP allocates Shader variants and memory to the decals layers buffer. This allows you to use decal layers in this Renderer.");
             public static GUIContent SurfaceData = EditorGUIUtility.TrTextContent("Surface Data", "Allows specifying which decals surface data should be blended with surfaces.");
             public static GUIContent NormalBlend = EditorGUIUtility.TrTextContent("Normal Blend", "Controls the quality of normal reconstruction. The higher the value the more accurate normal reconstruction and the cost on performance.");
             public static GUIContent UseGBuffer = EditorGUIUtility.TrTextContent("Use GBuffer", "Uses traditional GBuffer decals, if renderer is set to deferred. Support only base color, normal and emission. Ignored when using forward rendering.");
@@ -18,6 +19,7 @@ namespace UnityEditor.Rendering.Universal
 
         private SerializedProperty m_Technique;
         private SerializedProperty m_MaxDrawDistance;
+        private SerializedProperty m_DecalLayers;
         private SerializedProperty m_DBufferSettings;
         private SerializedProperty m_DBufferSurfaceData;
         private SerializedProperty m_ScreenSpaceSettings;
@@ -33,6 +35,7 @@ namespace UnityEditor.Rendering.Universal
             SerializedProperty settings = serializedObject.FindProperty("m_Settings");
             m_Technique = settings.FindPropertyRelative("technique");
             m_MaxDrawDistance = settings.FindPropertyRelative("maxDrawDistance");
+            m_DecalLayers = settings.FindPropertyRelative("decalLayers");
             m_DBufferSettings = settings.FindPropertyRelative("dBufferSettings");
             m_DBufferSurfaceData = m_DBufferSettings.FindPropertyRelative("surfaceData");
             m_ScreenSpaceSettings = settings.FindPropertyRelative("screenSpaceSettings");
@@ -67,6 +70,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             EditorGUILayout.PropertyField(m_MaxDrawDistance, Styles.MaxDrawDistance);
+            EditorGUILayout.PropertyField(m_DecalLayers, Styles.DecalLayers);
         }
 
         private void ValidateGraphicsApis()

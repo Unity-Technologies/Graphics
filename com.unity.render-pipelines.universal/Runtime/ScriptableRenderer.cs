@@ -1323,8 +1323,21 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
+                    // Todo: investigate performance cost of this
+                    bool colorAttachmentCheck = false;
+                    for (int i = 0; i < m_ActiveColorAttachments.Length; i++)
+                    {
+                        if (renderPass.colorAttachments[i] != m_ActiveColorAttachments[i])
+                        {
+                            colorAttachmentCheck = true;
+                            break;
+                        }
+                    }
+
+                    //colorAttachmentCheck = false;
+
                     // Only setup render target if current render pass attachments are different from the active ones
-                    if (passColorAttachment.nameID != m_ActiveColorAttachments[0] || passDepthAttachment.nameID != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None ||
+                    if (colorAttachmentCheck || passColorAttachment.nameID != m_ActiveColorAttachments[0] || passDepthAttachment.nameID != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None ||
                         renderPass.colorStoreActions[0] != m_ActiveColorStoreActions[0] || renderPass.depthStoreAction != m_ActiveDepthStoreAction)
                     {
                         if (passColorAttachment.useRTHandle && passDepthAttachment.useRTHandle)

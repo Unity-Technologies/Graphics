@@ -10,6 +10,9 @@
 #define RENDERING_LIGHT_LAYERS_MASK (255)
 #define RENDERING_LIGHT_LAYERS_MASK_SHIFT (0)
 #define DEFAULT_LIGHT_LAYERS (RENDERING_LIGHT_LAYERS_MASK >> RENDERING_LIGHT_LAYERS_MASK_SHIFT)
+#define RENDERING_DECAL_LAYERS_MASK (65280)
+#define RENDERING_DECAL_LAYERS_MASK_SHIFT (8)
+#define DEFAULT_DECAL_LAYERS (RENDERING_DECAL_LAYERS_MASK >> RENDERING_DECAL_LAYERS_MASK_SHIFT)
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"

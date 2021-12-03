@@ -24,6 +24,8 @@ namespace UnityEngine.Rendering.Universal
         private int m_DBufferCount;
         private ProfilingSampler m_ProfilingSampler;
 
+        private bool m_DecalLayers;
+
         private RTHandle m_DBufferDepth;
         private RTHandle m_CameraDepthTexture;
         private RTHandle m_CameraDepthAttachment;
@@ -36,16 +38,21 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle cameraDepthTexture => m_CameraDepthTexture;
         internal RTHandle cameraDepthAttachment => m_CameraDepthAttachment;
 
-        public DBufferRenderPass(Material dBufferClear, DBufferSettings settings, DecalDrawDBufferSystem drawSystem)
+        public DBufferRenderPass(Material dBufferClear, DBufferSettings settings, DecalDrawDBufferSystem drawSystem, bool decalLayers)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingPrePasses + 1;
-            ConfigureInput(ScriptableRenderPassInput.Normal); // Require depth
+
+            var scriptableRenderPassInput = ScriptableRenderPassInput.Normal;
+            if (decalLayers)
+                scriptableRenderPassInput |= ScriptableRenderPassInput.RenderingLayer;
+            ConfigureInput(scriptableRenderPassInput);
 
             m_DrawSystem = drawSystem;
             m_Settings = settings;
             m_DBufferClear = dBufferClear;
             m_ProfilingSampler = new ProfilingSampler("DBuffer Render");
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
+            m_DecalLayers = decalLayers;
 
             m_ShaderTagIdList = new List<ShaderTagId>();
             m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DBufferMesh));
@@ -58,7 +65,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_DBufferDepth = RTHandles.Alloc(s_DBufferDepthName, name: s_DBufferDepthName);
             m_CameraDepthTexture = RTHandles.Alloc("_CameraDepthTexture", name: "_CameraDepthTexture");
-            m_CameraDepthAttachment = RTHandles.Alloc("_CameraDepthAttachment", name: "_CameraDepthAttachment");
+            //m_CameraDepthAttachment = RTHandles.Alloc("_CameraDepthAttachment", name: "_CameraDepthAttachment");
         }
 
         public void Dispose()
@@ -68,6 +75,11 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthAttachment.Release();
             foreach (var handle in dBufferColorHandles)
                 handle.Release();
+        }
+
+        public void Setup(RTHandle depthTextureHandle)
+        {
+            m_CameraDepthAttachment = depthTextureHandle;
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -133,14 +145,20 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+                // todo this should be set by depth normal prepass
                 if (isDeferred)
                 {
                     cmd.SetGlobalTexture("_CameraNormalsTexture", deferredLights.GbufferAttachmentIdentifiers[deferredLights.GBufferNormalSmoothnessIndex]);
+
+                    //if (m_DecalLayers)
+                    //    cmd.SetGlobalTexture("_CameraDecalLayersTexture", deferredLights.GbufferAttachmentIdentifiers[deferredLights.GBufferRenderingLayers]);
                 }
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT1, m_Settings.surfaceData == DecalSurfaceData.Albedo);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT2, m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DBufferMRT3, m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMAOS);
+
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, m_DecalLayers);
 
                 // TODO: This should be replace with mrt clear once we support it
                 // Clear render targets

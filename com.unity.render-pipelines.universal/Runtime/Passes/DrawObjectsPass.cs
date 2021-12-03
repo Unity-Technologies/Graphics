@@ -21,6 +21,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_UseDepthPriming;
 
+        RTHandle[] m_ColorTargetIndentifiers;
+        RTHandle m_DepthTargetIndentifiers;
+
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
         public DrawObjectsPass(string profilerTag, ShaderTagId[] shaderTagIds, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
@@ -42,6 +45,31 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_RenderStateBlock.mask = RenderStateMask.Stencil;
                 m_RenderStateBlock.stencilState = stencilState;
             }
+        }
+
+        public void Setup()
+        {
+            m_ColorTargetIndentifiers = null;
+            m_DepthTargetIndentifiers = null;
+        }
+
+        public void Setup(RTHandle[] colorAttachments, RTHandle depthAttachment)
+        {
+            m_ColorTargetIndentifiers = colorAttachments;
+            m_DepthTargetIndentifiers = depthAttachment;
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            if (m_ColorTargetIndentifiers == null)
+            {
+                // Todo configure reset function here
+                ConfigureTarget(-1, -1);
+                overrideCameraTarget = false;
+                return;
+            }
+            ConfigureTarget(m_ColorTargetIndentifiers, m_DepthTargetIndentifiers);
+            //ConfigureClear(ClearFlag.None, Color.black); // todo?
         }
 
         public DrawObjectsPass(string profilerTag, bool opaque, RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference)
@@ -93,6 +121,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
                     : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
+
+                CoreUtils.SetKeyword(cmd, "_DECAL_LAYERS", this.m_ColorTargetIndentifiers != null);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();

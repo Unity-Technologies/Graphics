@@ -16,16 +16,23 @@ namespace UnityEngine.Rendering.Universal
         private List<ShaderTagId> m_ShaderTagIdList;
         private DecalDrawScreenSpaceSystem m_DrawSystem;
         private DecalScreenSpaceSettings m_Settings;
+        private bool m_DecalLayers;
+        //RenderTargetIdentifier m_ColorTargetIndentifiers;
 
-        public DecalScreenSpaceRenderPass(DecalScreenSpaceSettings settings, DecalDrawScreenSpaceSystem drawSystem)
+        public DecalScreenSpaceRenderPass(DecalScreenSpaceSettings settings, DecalDrawScreenSpaceSystem drawSystem, bool decalLayers)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
-            ConfigureInput(ScriptableRenderPassInput.Depth); // Require depth
+
+            var scriptableRenderPassInput = ScriptableRenderPassInput.Depth; // Require depth
+            if (decalLayers)
+                scriptableRenderPassInput |= ScriptableRenderPassInput.RenderingLayer;
+            ConfigureInput(scriptableRenderPassInput);
 
             m_DrawSystem = drawSystem;
             m_Settings = settings;
             m_ProfilingSampler = new ProfilingSampler("Decal Screen Space Render");
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
+            m_DecalLayers = decalLayers;
 
             m_ShaderTagIdList = new List<ShaderTagId>();
 
@@ -34,6 +41,19 @@ namespace UnityEngine.Rendering.Universal
             else
                 m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalScreenSpaceMesh));
         }
+
+        /*public void Setup(RenderTargetIdentifier colorAttachments)
+        {
+            m_ColorTargetIndentifiers = colorAttachments;
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            // todo
+            // here to break pass in case of decal layers
+            ConfigureTarget(m_ColorTargetIndentifiers);
+            ConfigureClear(ClearFlag.None, Color.black);
+        }*/
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -51,6 +71,8 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendLow, m_Settings.normalBlend == DecalNormalBlend.Low);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendMedium, m_Settings.normalBlend == DecalNormalBlend.Medium);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendHigh, m_Settings.normalBlend == DecalNormalBlend.High);
+
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, m_DecalLayers);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -73,6 +95,8 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendLow, false);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendMedium, false);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalNormalBlendHigh, false);
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.DecalLayers, false);
+
         }
     }
 }

@@ -193,7 +193,13 @@ Varyings LitPassVertex(Attributes input)
 }
 
 // Used in Standard (Physically Based) shader
-half4 LitPassFragment(Varyings input) : SV_Target
+void LitPassFragment(
+    Varyings input
+    , out half4 outColor : SV_Target0
+#ifdef _DECAL_LAYERS
+    , out float4 outDecalLayer : SV_Target1
+#endif
+)
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -223,7 +229,12 @@ half4 LitPassFragment(Varyings input) : SV_Target
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, _Surface);
 
-    return color;
+    outColor = color;
+
+#ifdef _DECAL_LAYERS
+    uint renderingLayers = GetMeshRenderingLayer();
+    outDecalLayer = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
+#endif
 }
 
 #endif

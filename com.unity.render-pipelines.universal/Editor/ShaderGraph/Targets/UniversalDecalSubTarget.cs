@@ -928,17 +928,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     definition = KeywordDefinition.MultiCompile,
                     scope = KeywordScope.Global,
                 };
+
+                public static readonly KeywordDescriptor DecalLayers = new KeywordDescriptor()
+                {
+                    displayName = "Decal Layers",
+                    referenceName = "_DECAL_LAYERS",
+                    type = KeywordType.Boolean,
+                    definition = KeywordDefinition.MultiCompile,
+                    scope = KeywordScope.Global,
+                };
             }
 
             public static KeywordCollection DBufferMesh = new KeywordCollection
             {
                 { CoreKeywordDescriptors.DBuffer },
+                { Descriptors.DecalLayers },
                 { Descriptors.LodCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
             };
 
             public static KeywordCollection DBufferProjector = new KeywordCollection
             {
                 { CoreKeywordDescriptors.DBuffer },
+                { Descriptors.DecalLayers },
             };
 
             public static readonly KeywordCollection ScreenSpaceMesh = new KeywordCollection
@@ -954,6 +965,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsShadowmask },
                 { CoreKeywordDescriptors.ClusteredRendering },
                 { Descriptors.DecalsNormalBlend },
+                { Descriptors.DecalLayers },
                 { Descriptors.LodCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
             };
 
@@ -965,6 +977,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.ClusteredRendering },
                 { Descriptors.DecalsNormalBlend },
+                { Descriptors.DecalLayers },
             };
 
             public static readonly KeywordCollection GBufferMesh = new KeywordCollection
@@ -977,6 +990,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { Descriptors.DecalsNormalBlend },
+                { Descriptors.DecalLayers },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
                 { CoreKeywordDescriptors.RenderPassEnabled },
                 { Descriptors.LodCrossFade, new FieldCondition(Fields.LodCrossFade, true) },
@@ -987,6 +1001,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.MainLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { Descriptors.DecalsNormalBlend },
+                { Descriptors.DecalLayers },
                 { CoreKeywordDescriptors.GBufferNormalsOct },
                 { CoreKeywordDescriptors.RenderPassEnabled },
             };

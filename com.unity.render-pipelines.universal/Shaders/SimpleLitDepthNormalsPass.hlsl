@@ -55,7 +55,13 @@ Varyings DepthNormalsVertex(Attributes input)
     return output;
 }
 
-half4 DepthNormalsFragment(Varyings input) : SV_TARGET
+void DepthNormalsFragment(
+    Varyings input
+    , out half4 outNormalWS : SV_Target0
+#ifdef _DECAL_LAYERS
+    , out float4 outDecalLayer : SV_Target1
+#endif
+)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -66,7 +72,7 @@ half4 DepthNormalsFragment(Varyings input) : SV_TARGET
         float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
         float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
         half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-        return half4(packedNormalWS, 0.0);
+        outNormalWS = half4(packedNormalWS, 0.0);
     #else
         float2 uv = input.uv;
 
@@ -78,7 +84,12 @@ half4 DepthNormalsFragment(Varyings input) : SV_TARGET
         #endif
 
         normalWS = NormalizeNormalPerPixel(normalWS);
-        return half4(normalWS, 0.0);
+        outNormalWS = half4(normalWS, 0.0);
+    #endif
+
+    #ifdef _DECAL_LAYERS
+        uint renderingLayers = GetMeshRenderingLayer();
+        outDecalLayer = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
     #endif
 }
 

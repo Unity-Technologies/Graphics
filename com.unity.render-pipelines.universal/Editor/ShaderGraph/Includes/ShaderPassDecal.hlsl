@@ -36,6 +36,10 @@
 #define DECAL_LOAD_NORMAL
 #endif
 
+#ifdef _DECAL_LAYERS
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareRenderingLayerTexture.hlsl"
+#endif
+
 #if defined(DECAL_LOAD_NORMAL)
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
 #endif
@@ -178,6 +182,18 @@ void Frag(PackedVaryings packedInput,
     Varyings input = UnpackVaryings(packedInput);
 
     half angleFadeFactor = 1.0;
+
+#ifdef _DECAL_LAYERS
+    //float4 renderingLayers = LoadSceneRenderingLayer(input.positionCS.xy);
+    //uint meshRenderingLayers = uint(renderingLayers.r * 255.0);
+#ifdef _RENDER_PASS_ENABLED
+    uint meshRenderingLayers = UnpackInt(LOAD_FRAMEBUFFER_INPUT(GBUFFER4, input.positionCS.xy), 16);
+#else
+    uint meshRenderingLayers = LoadSceneRenderingLayer(input.positionCS.xy);
+#endif
+    uint decalRenderingLayer = uint(UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayerMaskFromDecal)) << 8;
+    clip((meshRenderingLayers & decalRenderingLayer) != 0 ? 1 : -1);
+#endif
 
 #if defined(DECAL_PROJECTOR)
 #if UNITY_REVERSED_Z

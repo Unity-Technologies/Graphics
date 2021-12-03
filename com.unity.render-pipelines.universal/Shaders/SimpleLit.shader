@@ -264,6 +264,10 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
 
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile _ _DECAL_LAYERS
+
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing

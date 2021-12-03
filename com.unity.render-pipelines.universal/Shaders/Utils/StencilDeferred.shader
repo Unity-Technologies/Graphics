@@ -262,7 +262,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         #ifdef _LIGHT_LAYERS
         float4 renderingLayers = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_point_clamp_sampler, screen_uv, 0);
-        uint meshRenderingLayers = uint(renderingLayers.r * 255.5);
+        //uint meshRenderingLayers = uint(renderingLayers.r * 65535.2) & 0x000000FF;
+        uint meshRenderingLayers = UnpackInt(renderingLayers.r, 16);
+
         #else
         uint meshRenderingLayers = DEFAULT_LIGHT_LAYERS;
         #endif
@@ -515,6 +517,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
+#pragma enable_d3d11_debug_symbols
 
             #pragma multi_compile_fragment _DEFERRED_STENCIL
             #pragma multi_compile _DIRECTIONAL

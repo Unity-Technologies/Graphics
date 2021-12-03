@@ -22,6 +22,21 @@ uint GetMeshRenderingLightLayer()
     #endif
 }
 
+uint GetMeshRenderingDecalLayer()
+{
+#ifdef _DECAL_LAYERS
+    return (asuint(unity_RenderingLayer.x) & RENDERING_DECAL_LAYERS_MASK) >> RENDERING_DECAL_LAYERS_MASK_SHIFT;
+#else
+    return DEFAULT_DECAL_LAYERS;
+#endif
+}
+
+float EncodeMeshRenderingLayer(uint renderingLayer)
+{
+    //return (renderingLayer & 0x0000FFFF) / (255.0 * 255.0); // todo expose as property
+    return PackInt(renderingLayer, 16);
+}
+
 // Abstraction over Light shading data.
 struct Light
 {

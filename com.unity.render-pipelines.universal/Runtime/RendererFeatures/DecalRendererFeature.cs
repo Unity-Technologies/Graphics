@@ -61,6 +61,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public DecalTechniqueOption technique = DecalTechniqueOption.Automatic;
         public float maxDrawDistance = 1000f;
+        public bool decalLayers = false;
         public DBufferSettings dBufferSettings;
         public DecalScreenSpaceSettings screenSpaceSettings;
     }
@@ -372,7 +373,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 case DecalTechnique.ScreenSpace:
                     m_DecalDrawScreenSpaceSystem = new DecalDrawScreenSpaceSystem(m_DecalEntityManager);
-                    m_ScreenSpaceDecalRenderPass = new DecalScreenSpaceRenderPass(m_ScreenSpaceSettings, intermediateRendering ? m_DecalDrawScreenSpaceSystem : null);
+                    m_ScreenSpaceDecalRenderPass = new DecalScreenSpaceRenderPass(m_ScreenSpaceSettings,
+                        intermediateRendering ? m_DecalDrawScreenSpaceSystem : null, m_Settings.decalLayers);
                     break;
 
                 case DecalTechnique.GBuffer:
@@ -380,13 +382,14 @@ namespace UnityEngine.Rendering.Universal
                     m_DeferredLights = universalRenderer.deferredLights;
 
                     m_DrawGBufferSystem = new DecalDrawGBufferSystem(m_DecalEntityManager);
-                    m_GBufferRenderPass = new DecalGBufferRenderPass(m_ScreenSpaceSettings, intermediateRendering ? m_DrawGBufferSystem : null);
+                    m_GBufferRenderPass = new DecalGBufferRenderPass(m_ScreenSpaceSettings,
+                        intermediateRendering ? m_DrawGBufferSystem : null, m_Settings.decalLayers);
                     break;
 
                 case DecalTechnique.DBuffer:
                     m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, m_CopyDepthMaterial);
                     m_DecalDrawDBufferSystem = new DecalDrawDBufferSystem(m_DecalEntityManager);
-                    m_DBufferRenderPass = new DBufferRenderPass(m_DBufferClearMaterial, m_DBufferSettings, m_DecalDrawDBufferSystem);
+                    m_DBufferRenderPass = new DBufferRenderPass(m_DBufferClearMaterial, m_DBufferSettings, m_DecalDrawDBufferSystem, m_Settings.decalLayers);
 
                     m_DecalDrawForwardEmissiveSystem = new DecalDrawFowardEmissiveSystem(m_DecalEntityManager);
                     m_ForwardEmissivePass = new DecalForwardEmissivePass(m_DecalDrawForwardEmissiveSystem);
@@ -394,7 +397,7 @@ namespace UnityEngine.Rendering.Universal
                     if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
                     {
                         m_DBufferRenderPass.deferredLights = universalRenderer.deferredLights;
-                        m_DBufferRenderPass.deferredLights.DisableFramebufferFetchInput();
+                        //m_DBufferRenderPass.deferredLights.DisableFramebufferFetchInput();
                     }
                     break;
             }
@@ -459,6 +462,7 @@ namespace UnityEngine.Rendering.Universal
             switch (m_Technique)
             {
                 case DecalTechnique.ScreenSpace:
+                    //m_ScreenSpaceDecalRenderPass.Setup(renderer.cameraColorTarget); // todo throws warnining for depth
                     renderer.EnqueuePass(m_ScreenSpaceDecalRenderPass);
                     break;
                 case DecalTechnique.GBuffer:
@@ -484,10 +488,13 @@ namespace UnityEngine.Rendering.Universal
             {
                 var universalRenderer = renderer as UniversalRenderer;
                 if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
+                {
                     m_CopyDepthPass.Setup(
                         renderer.cameraDepthTargetHandle,
                         universalRenderer.m_DepthTexture
                     );
+                    m_DBufferRenderPass.Setup(renderer.cameraDepthTargetHandle);
+                }
                 else
                 {
                     m_CopyDepthPass.Setup(

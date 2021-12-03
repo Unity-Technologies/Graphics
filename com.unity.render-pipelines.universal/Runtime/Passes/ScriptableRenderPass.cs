@@ -19,7 +19,10 @@ namespace UnityEngine.Rendering.Universal
         Depth = 1 << 0,
         Normal = 1 << 1,
         Color = 1 << 2,
-        Motion = 1 << 3
+        Motion = 1 << 3,
+        RenderingLayer = 1 << 4,
+        DecalLayers = 1 << 5,
+        LightLayers = 1 << 6,
     }
 
     // Note: Spaced built-in events so we can add events in between them
@@ -725,6 +728,21 @@ namespace UnityEngine.Rendering.Universal
             var renderer = data.cameraData.renderer;
 
             Blit(cmd, renderer.cameraColorTargetHandle, renderer.GetCameraColorFrontBuffer(cmd), material, passIndex);
+            renderer.SwapColorBuffer(cmd);
+        }
+
+        /// <summary>
+        /// Add a blit command to the context for execution. This applies the material to the color target.
+        /// </summary>
+        /// <param name="cmd">Command buffer to record command for execution.</param>
+        /// <param name="source">Source texture or target identifier to blit from.</param>
+        /// <param name="material">Material to use.</param>
+        /// <param name="passIndex">Shader pass to use. Default is 0.</param>
+        public void Blit(CommandBuffer cmd, ref RenderingData data, RenderTargetIdentifier source, Material material, int passIndex = 0)
+        {
+            var renderer = data.cameraData.renderer;
+
+            Blit(cmd, source, renderer.GetCameraColorFrontBuffer(cmd), material, passIndex);
             renderer.SwapColorBuffer(cmd);
         }
 

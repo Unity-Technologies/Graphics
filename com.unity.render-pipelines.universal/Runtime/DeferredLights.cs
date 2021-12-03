@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             else if (index == GBufferShadowMask) // Optional: shadow mask is outputed in mixed lighting subtractive mode for non-static meshes only
                 return GraphicsFormat.R8G8B8A8_UNorm;
             else if (index == GBufferRenderingLayers) // Optional: rendering layers is outputed when light layers are enabled (subset of rendering layers)
-                return GraphicsFormat.R8_UNorm;
+                return GraphicsFormat.R16_UNorm;
             else
                 return GraphicsFormat.None;
         }
@@ -161,13 +161,17 @@ namespace UnityEngine.Rendering.Universal.Internal
         // This may return different values depending on what lights are rendered for a given frame.
         internal bool UseShadowMask { get { return this.MixedLightingSetup != MixedLightingSetup.None; } }
         //
-        internal bool UseRenderingLayers { get { return UniversalRenderPipeline.asset.supportsLightLayers; } }
+        internal bool UseRenderingLayers { get { return UniversalRenderPipeline.asset.supportsLightLayers || UseDecalLayers; } }
+        //
+        internal bool UseDecalLayers { get; set; }
         //
         internal bool UseRenderPass { get; set; }
         //
         internal bool HasDepthPrepass { get; set; }
         //
         internal bool HasNormalPrepass { get; set; }
+        //
+        internal bool HasRenderingLayerPrepass { get; set; }
         // This is an overlay camera being rendered.
         internal bool IsOverlay { get; set; }
         // Not all platforms support R8G8B8A8_SNorm, so we need to check for the support and force accurate GBuffer normals and relevant shader variants
@@ -302,6 +306,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
                     // This should be moved to a more global scope when framebuffer fetch is introduced to more passes
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.RenderPassEnabled, this.UseRenderPass && renderingData.cameraData.cameraType == CameraType.Game);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightLayers, UseRenderingLayers);
                 }
 
                 context.ExecuteCommandBuffer(cmd);
@@ -387,6 +392,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             AdditionalLightsShadowCasterPass additionalLightsShadowCasterPass,
             bool hasDepthPrepass,
             bool hasNormalPrepass,
+            bool hasRenderingLayerPrepass,
             RTHandle depthCopyTexture,
             RTHandle depthAttachment,
             RTHandle colorAttachment)
@@ -394,6 +400,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
             this.HasDepthPrepass = hasDepthPrepass;
             this.HasNormalPrepass = hasNormalPrepass;
+            this.HasRenderingLayerPrepass = hasRenderingLayerPrepass;
 
             this.DepthCopyTexture = depthCopyTexture;
 

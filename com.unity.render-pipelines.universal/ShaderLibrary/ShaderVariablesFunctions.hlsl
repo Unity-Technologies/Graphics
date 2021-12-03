@@ -417,4 +417,9 @@ float2 GetNormalizedScreenSpaceUV(float4 positionCS)
     #define UnityStereoTransformScreenSpaceTex(uv) uv
 #endif // defined(UNITY_SINGLE_PASS_STEREO)
 
+uint GetMeshRenderingLayer()
+{
+    return asuint(unity_RenderingLayer.x);
+}
+
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED

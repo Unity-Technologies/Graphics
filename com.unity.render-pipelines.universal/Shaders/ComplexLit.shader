@@ -246,6 +246,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT // forward-only variant
+            #pragma multi_compile _ _DECAL_LAYERS
 
             //--------------------------------------
             // GPU Instancing
