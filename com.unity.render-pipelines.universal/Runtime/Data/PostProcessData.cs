@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal
             public Shader LensFlareDataDrivenPS;
 
             [Reload("Shaders/PostProcessing/UpscaleSetup.shader")]
-            public Shader upscaleSetupPs;
+            public Shader upscaleSetupPS;
 
             [Reload("Shaders/PostProcessing/UberPost.shader")]
             public Shader uberPostPS;
