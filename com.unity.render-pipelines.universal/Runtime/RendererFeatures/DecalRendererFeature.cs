@@ -393,12 +393,6 @@ namespace UnityEngine.Rendering.Universal
 
                     m_DecalDrawForwardEmissiveSystem = new DecalDrawFowardEmissiveSystem(m_DecalEntityManager);
                     m_ForwardEmissivePass = new DecalForwardEmissivePass(m_DecalDrawForwardEmissiveSystem);
-
-                    if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
-                    {
-                        m_DBufferRenderPass.deferredLights = universalRenderer.deferredLights;
-                        //m_DBufferRenderPass.deferredLights.DisableFramebufferFetchInput();
-                    }
                     break;
             }
 
@@ -489,14 +483,17 @@ namespace UnityEngine.Rendering.Universal
                 var universalRenderer = renderer as UniversalRenderer;
                 if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
                 {
+                    m_DBufferRenderPass.Setup(renderingData.cameraData, renderer.cameraDepthTargetHandle);
+
                     m_CopyDepthPass.Setup(
                         renderer.cameraDepthTargetHandle,
                         universalRenderer.m_DepthTexture
                     );
-                    m_DBufferRenderPass.Setup(renderer.cameraDepthTargetHandle);
                 }
                 else
                 {
+                    m_DBufferRenderPass.Setup(renderingData.cameraData);
+
                     m_CopyDepthPass.Setup(
                         universalRenderer.m_DepthTexture,
                         m_DBufferRenderPass.dBufferDepth

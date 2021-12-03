@@ -704,6 +704,8 @@ namespace UnityEngine.Rendering.Universal
 
                 CommandBuffer cmd = CommandBufferPool.Get();
                 cmd.SetGlobalTexture(normalsTexture.name, normalsTexture.nameID);
+                if (this.actualRenderingMode == RenderingMode.Deferred) // TODO: Clean this up
+                    cmd.SetGlobalTexture("_CameraNormalsTexture", normalsTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
