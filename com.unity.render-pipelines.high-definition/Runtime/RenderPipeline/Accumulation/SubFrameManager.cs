@@ -376,16 +376,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (camData.currentIteration == (data.subFrameManager.subFrameCount - 1) && camData.denoiser.type != DenoiserType.None)
                         {
                             bool useAsync = false;
-                            bool useAOV = data.useAOV;
 
                             if (!camData.denoiser.denoised)
                             {
                                 camData.denoiser.denoised = true;
                                 m_SubFrameManager.SetCameraData(camID, camData);
 
-                                camData.denoiser.DenoiseRequest(ctx.cmd, "beauty", history.rt);
+                                camData.denoiser.DenoiseRequest(ctx.cmd, "color", history.rt);
 
-                                if (useAOV)
+                                if (data.useAOV)
                                 {
                                     camData.denoiser.DenoiseRequest(ctx.cmd, "albedo", data.albedoAOV);
                                     camData.denoiser.DenoiseRequest(ctx.cmd, "normal", data.normalAOV);
@@ -404,7 +403,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
 
                             // if denoised frame is ready, blit it
-                            if (useAsync && camData.denoiser.QueryAsyncDenoiseRequest())
+                            if (useAsync && camData.denoiser.QueryCompletion())
                             {
                                 camData.denoiser.GetResults(ctx.cmd, history.rt);
                             }
