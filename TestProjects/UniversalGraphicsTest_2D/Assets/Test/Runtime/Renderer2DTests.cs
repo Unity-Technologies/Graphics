@@ -72,7 +72,7 @@ class Renderer2DTests
     }
 
     [Test]
-    public void BaseRendererUsesDepthAttachmentOfColorTextureIfNoDepthTextureCreated()
+    public void BaseRendererUsesSeparateDepthAttachmentFromColorTextureIfNoDepthStencilRequested()
     {
         m_BaseCameraData.renderPostProcessing = true;   // This will make the renderer create color texture.
 
@@ -82,7 +82,7 @@ class Renderer2DTests
 
         Assert.IsTrue(baseRenderer.createColorTexture);
 
-        Assert.IsFalse(baseRenderer.createDepthTexture);
+        Assert.IsTrue(baseRenderer.createDepthTexture);
     }
 
     [Test]

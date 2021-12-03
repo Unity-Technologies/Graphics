@@ -10,6 +10,9 @@ namespace UnityEditor.Rendering
     /// </summary>
     public class LightUnitSlider
     {
+        /// <summary>
+        /// The <see cref="SerializedObject"/> that contains a <see cref="Light"/>
+        /// </summary>
         protected SerializedObject m_SerializedObject;
 
         static class SliderConfig
@@ -22,25 +25,48 @@ namespace UnityEditor.Rendering
             public const float k_KnobSize = 10;
         }
 
+        /// <summary>
+        /// The styles to be used on sliders
+        /// </summary>
         protected static class SliderStyles
         {
+            /// <summary> A <see cref="GUIStyle"/> with "IconButton" </summary>
             public static GUIStyle k_IconButton = new GUIStyle("IconButton");
+            /// <summary> A <see cref="GUIStyle"/> with "ColorPickerSliderBackground" </summary>
             public static GUIStyle k_TemperatureBorder = new GUIStyle("ColorPickerSliderBackground");
+            /// <summary> A <see cref="GUIStyle"/> with "ColorPickerHorizThumb" </summary>
             public static GUIStyle k_TemperatureThumb = new GUIStyle("ColorPickerHorizThumb");
         }
 
+        /// <summary>
+        /// The <see cref="LightUnitSliderUIDescriptor"/>
+        /// </summary>
         protected readonly LightUnitSliderUIDescriptor m_Descriptor;
 
+        /// <summary>
+        /// Constructor with a <see cref="LightUnitSliderUIDescriptor"/>
+        /// </summary>
+        /// <param name="descriptor">The <see cref="LightUnitSliderUIDescriptor"/></param>
         public LightUnitSlider(LightUnitSliderUIDescriptor descriptor)
         {
             m_Descriptor = descriptor;
         }
 
+        /// <summary>
+        /// Modifies the <see cref="SerializedObject"/> for this Light slider
+        /// </summary>
+        /// <param name="serialized"></param>
         public void SetSerializedObject(SerializedObject serialized)
         {
             m_SerializedObject = serialized;
         }
 
+        /// <summary>
+        /// Draws the slider in a given <see cref="Rect"/>
+        /// </summary>
+        /// <param name="rect">The <see cref="Rect"/> to draw the slider into</param>
+        /// <param name="value">The <see cref="SerializedProperty"/> with the property serialized</param>
+        /// <param name="floatValue">The float value modified by the slider GUI</param>
         public virtual void Draw(Rect rect, SerializedProperty value, ref float floatValue)
         {
             BuildRects(rect, out var sliderRect, out var iconRect);
@@ -205,6 +231,11 @@ namespace UnityEditor.Rendering
             EditorGUI.LabelField(thumbMarkerRect, GetLightUnitTooltip(tooltip, value, m_Descriptor.unitName));
         }
 
+        /// <summary>
+        /// The serialized property for color temperature is stored in the build-in light editor, and we need to use this object to apply the update.
+        /// </summary>
+        /// <param name="value">The value to update</param>
+        /// <param name="preset">The preset range</param>
         protected virtual void SetValueToPreset(SerializedProperty value, LightUnitSliderUIRange preset)
         {
             m_SerializedObject?.Update();
@@ -215,6 +246,13 @@ namespace UnityEditor.Rendering
             m_SerializedObject?.ApplyModifiedProperties();
         }
 
+        /// <summary>
+        /// Gets the tooltip
+        /// </summary>
+        /// <param name="baseTooltip">The base tooltip</param>
+        /// <param name="value">The value</param>
+        /// <param name="unit">The units</param>
+        /// <returns>A well formed tooltip on a <see cref="GUIContent"/></returns>
         protected virtual GUIContent GetLightUnitTooltip(string baseTooltip, float value, string unit)
         {
             var formatValue = value < 100 ? $"{value:n}" : $"{value:n0}";
@@ -222,7 +260,14 @@ namespace UnityEditor.Rendering
             return new GUIContent(string.Empty, tooltip);
         }
 
-        protected virtual void DoSlider(Rect rect, ref float value, Vector2 sliderRange, Vector2 valueRange)
+        /// <summary>
+        /// Draws the slider
+        /// </summary>
+        /// <param name="rect">The <see cref="Rect"/> to draw the slider.</param>
+        /// <param name="value">The current value, and also returns the modified value.</param>
+        /// <param name="sliderRange">The ranges of the slider.</param>
+        /// <param name="_">Not used</param>
+        protected virtual void DoSlider(Rect rect, ref float value, Vector2 sliderRange, Vector2 _)
         {
             DoSlider(rect, ref value, sliderRange);
         }
@@ -230,6 +275,9 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Draws a linear slider mapped to the min/max value range. Override this for different slider behavior (texture background, power).
         /// </summary>
+        /// <param name="rect">The <see cref="Rect"/> to draw the slider.</param>
+        /// <param name="value">The current value, and also returns the modified value.</param>
+        /// <param name="sliderRange">The ranges of the slider.</param>
         protected virtual void DoSlider(Rect rect, ref float value, Vector2 sliderRange)
         {
             value = GUI.HorizontalSlider(rect, value, sliderRange.x, sliderRange.y);
@@ -238,6 +286,13 @@ namespace UnityEditor.Rendering
         // Remaps value in the domain { Min0, Max0 } to { Min1, Max1 } (by default, normalizes it to (0, 1).
         static float Remap(float v, float x0, float y0, float x1 = 0f, float y1 = 1f) => x1 + (v - x0) * (y1 - x1) / (y0 - x0);
 
+        /// <summary>
+        /// Maps a light unit value onto the slider. Keeps in sync placement of markers and tooltips with the slider power.
+        /// Override this in case of non-linear slider.
+        /// </summary>
+        /// <param name="value">The value to get the position at</param>
+        /// <param name="valueRange">The ranges of the values</param>
+        /// <returns>The position</returns>
         protected virtual float GetPositionOnSlider(float value, Vector2 valueRange)
         {
             return GetPositionOnSlider(value);
@@ -247,6 +302,8 @@ namespace UnityEditor.Rendering
         /// Maps a light unit value onto the slider. Keeps in sync placement of markers and tooltips with the slider power.
         /// Override this in case of non-linear slider.
         /// </summary>
+        /// <param name="value">The value to get the position</param>
+        /// <returns>The position on the slider</returns>
         protected virtual float GetPositionOnSlider(float value)
         {
             return Remap(value, m_Descriptor.sliderRange.x, m_Descriptor.sliderRange.y);
