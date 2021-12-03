@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed default numbder of physically based sky bounce to be 3
 - Fixed layer lit shader UI.
 - Fixed error thrown when layered lit material has an invalid material type.
+- Fixed a warning because of a null texture in the lens flare pass.
 
 ## [13.1.3] - 2021-11-17
 
