@@ -3239,7 +3239,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
                     passData.viewport = postProcessViewportSize;
                     passData.hdCamera = hdCamera;
-                    passData.depthBuffer = depthBuffer;
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.occlusion = builder.ReadTexture(occlusionHandle);
 
                     TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Lens Flare Destination");
