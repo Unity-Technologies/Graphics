@@ -359,6 +359,8 @@ namespace UnityEngine.Rendering.Universal
                     }
                     PostProcessUtils.SetSourceSize(cmd, m_AOPassDescriptor);
 
+                    cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Off);
+
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1, ShaderPasses.AO);
 
