@@ -738,12 +738,10 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="source">Source texture or target identifier to blit from.</param>
         /// <param name="material">Material to use.</param>
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>
-        public void Blit(CommandBuffer cmd, ref RenderingData data, RenderTargetIdentifier source, Material material, int passIndex = 0)
+        public void Blit(CommandBuffer cmd, ref RenderingData data, RTHandle source, Material material, int passIndex = 0)
         {
             var renderer = data.cameraData.renderer;
-
-            Blit(cmd, source, renderer.GetCameraColorFrontBuffer(cmd), material, passIndex);
-            renderer.SwapColorBuffer(cmd);
+            Blit(cmd, source, renderer.cameraColorTargetHandle, material, passIndex);
         }
 
         /// <summary>
