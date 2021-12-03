@@ -6,7 +6,8 @@ using UnityEngine;
 namespace UnityEditor.Rendering.Universal
 {
     /// <summary>
-    /// Used for Converting in Batch Mode.
+    /// Enum for filtering the list of converters in batch mode./>
+    /// See also <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId, List{UnityEditor.Rendering.Universal.ConverterId}, UnityEditor.Rendering.Universal.ConverterFilter)"/>.)
     /// </summary>
     public enum ConverterFilter
     {
@@ -15,7 +16,8 @@ namespace UnityEditor.Rendering.Universal
     }
 
     /// <summary>
-    /// Used for Converting in Batch Mode.
+    /// Enum for which container to run in batch mode./>
+    /// See also <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId)"/>.)
     /// </summary>
     public enum ConverterContainerId
     {
@@ -25,7 +27,8 @@ namespace UnityEditor.Rendering.Universal
     }
 
     /// <summary>
-    /// Used for Converting in Batch Mode.
+    /// Enum for which converter to run in batch mode./>
+    /// See also <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId, List{UnityEditor.Rendering.Universal.ConverterId}, UnityEditor.Rendering.Universal.ConverterFilter)"/>.)
     /// </summary>
     public enum ConverterId
     {
@@ -78,7 +81,7 @@ namespace UnityEditor.Rendering.Universal
         }
 
         /// <summary>
-        /// The method that will be run when converting assets in batch mode.
+        /// Call this method to run all the converters in a specific container in batch mode.
         /// </summary>
         /// <param name="containerName">The name of the container which will be batched. All Converters in this Container will run if prerequisites are met.</param>
         public static void RunInBatchMode(ConverterContainerId containerName)
@@ -91,7 +94,7 @@ namespace UnityEditor.Rendering.Universal
         }
 
         /// <summary>
-        /// The method that will be run when converting the assets in batch mode.
+        /// Call this method to run a specific list of converters in a specific container in batch mode.
         /// </summary>
         /// <param name="containerName">The name of the container which will be batched.</param>
         /// <param name="converterList">The list of converters that will be either included or excluded from batching. These converters need to be part of the passed in container for them to run.</param>
@@ -99,7 +102,7 @@ namespace UnityEditor.Rendering.Universal
         public static void RunInBatchMode(ConverterContainerId containerName, List<ConverterId> converterList, ConverterFilter converterFilter)
         {
             Type containerType = GetContainerType(containerName);
-            List<Type> converterTypes = new List<Type>();
+            List<Type> converterTypes = new List<Type>(converterList.Count);
             foreach (ConverterId typeName in converterList)
             {
                 var converterType = GetConverterType(typeName);
@@ -117,13 +120,13 @@ namespace UnityEditor.Rendering.Universal
 
         internal static void RunInBatchMode(Type containerName, List<Type> converterList, ConverterFilter converterFilter)
         {
-            List<RenderPipelineConverter> convertersToBatch = new List<RenderPipelineConverter>();
-            // This is just a temp to deal with the Include and Exclude enum
-            List<RenderPipelineConverter> tempConvertersToBatch = new List<RenderPipelineConverter>();
-
-            Debug.Log($"Batch Mode:\nContainer named: {containerName}");
+            Debug.Log($"Converter Batch Mode: {containerName}");
             var container = (RenderPipelineConverterContainer)Activator.CreateInstance(containerName);
             List<RenderPipelineConverter> converters = GetConvertersInContainer(container);
+
+            List<RenderPipelineConverter> convertersToBatch = new List<RenderPipelineConverter>(converters.Count);
+            // This is just a temp to deal with the Include and Exclude enum
+            List<RenderPipelineConverter> tempConvertersToBatch = new List<RenderPipelineConverter>(converters.Count);
 
             if (converterFilter == ConverterFilter.Inclusive)
             {
