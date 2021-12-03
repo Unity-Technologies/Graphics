@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the ray tracing fallbacks being broken since an Nvidia Driver Update.
 - Fixed layer lit shader UI.
 - Fixed a warning because of a null texture in the lens flare pass.
+- Fixed a nullref when enabling raycount without ray tracing.
 
 ## [13.1.2] - 2021-11-05
 
