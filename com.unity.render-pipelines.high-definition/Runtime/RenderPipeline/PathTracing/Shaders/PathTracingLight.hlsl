@@ -586,8 +586,11 @@ void EvaluateLights(LightList lightList,
     if (lightList.skyCount && rayDescriptor.TMax >= FLT_INF)
     {
         float3 skyValue = GetSkyValue(rayDescriptor.Direction);
-        value += skyValue;
         pdf += GetSkyLightWeight(lightList) * GetSkyPDFFromValue(skyValue);
+#ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
+        ApplyFogAttenuation(rayDescriptor.Origin, rayDescriptor.Direction, skyValue);
+#endif
+        value += skyValue;
     }
 }
 
