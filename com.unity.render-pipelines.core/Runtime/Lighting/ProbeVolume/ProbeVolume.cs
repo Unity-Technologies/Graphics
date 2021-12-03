@@ -17,8 +17,10 @@ namespace UnityEngine.Experimental.Rendering
     {
         public bool globalVolume = false;
         public Vector3 size = new Vector3(10, 10, 10);
-        [HideInInspector, Range(0f, 2f)]
-        public float geometryDistanceOffset = 0.0f;
+        [HideInInspector, Min(0)]
+        public bool overrideMinRendererVolumeSize = false;
+        [HideInInspector, Min(0)]
+        public float minRendererVolumeSize = 0.1f;
 
         public LayerMask objectLayerMask = -1;
 
@@ -115,7 +117,9 @@ namespace UnityEngine.Experimental.Rendering
                 hash = hash * 23 + overridesSubdivLevels.GetHashCode();
                 hash = hash * 23 + highestSubdivLevelOverride.GetHashCode();
                 hash = hash * 23 + lowestSubdivLevelOverride.GetHashCode();
-                hash = hash * 23 + geometryDistanceOffset.GetHashCode();
+                hash = hash * 23 + overrideMinRendererVolumeSize.GetHashCode();
+                if (overrideMinRendererVolumeSize)
+                    hash = hash * 23 + minRendererVolumeSize.GetHashCode();
                 hash = hash * 23 + objectLayerMask.GetHashCode();
             }
 

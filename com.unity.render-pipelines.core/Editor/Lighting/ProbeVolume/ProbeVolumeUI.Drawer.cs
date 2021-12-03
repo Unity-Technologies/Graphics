@@ -208,7 +208,14 @@ namespace UnityEditor.Experimental.Rendering
 
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(serialized.objectLayerMask, Styles.s_ObjectLayerMask);
-            EditorGUILayout.PropertyField(serialized.geometryDistanceOffset, Styles.s_GeometryDistanceOffset);
+
+            EditorGUILayout.PropertyField(serialized.overrideMinRendererVolumeSize, Styles.s_OverrideMinRendererVolumeSize);
+            if (serialized.overrideMinRendererVolumeSize.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(serialized.minRendererVolumeSize, Styles.s_MinRendererVolumeSize);
+                EditorGUI.indentLevel--;
+            }
             EditorGUI.indentLevel--;
         }
     }

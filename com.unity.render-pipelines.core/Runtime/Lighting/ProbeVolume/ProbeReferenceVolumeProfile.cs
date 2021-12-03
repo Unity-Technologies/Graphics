@@ -50,6 +50,12 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public float cellSizeInMeters => (float)cellSizeInBricks * minBrickSize;
 
+        /// <summary>
+        /// Specifies the minimum bounding box volume of renderers to consider placing probes around.
+        /// </summary>
+        [Min(0)]
+        public float minRendererVolumeSize = 0.1f;
+
         void OnEnable()
         {
             if (version != CoreUtils.GetLastEnumValue<Version>())
@@ -79,6 +85,7 @@ namespace UnityEngine.Experimental.Rendering
         SerializedProperty m_CellSize;
         SerializedProperty m_MinDistanceBetweenProbes;
         SerializedProperty m_SimplificationLevels;
+        SerializedProperty m_MinRendererVolumeSize;
         ProbeReferenceVolumeProfile profile => target as ProbeReferenceVolumeProfile;
 
         static class Styles
@@ -88,6 +95,7 @@ namespace UnityEngine.Experimental.Rendering
             public static readonly string simplificationLevelsHighWarning = "High simplification levels have a big memory overhead, they are not recommended except for testing purposes.";
             public static readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Distance Between Probes", "The minimal distance between two probes in meters.");
             public static readonly GUIContent indexDimensions = new GUIContent("Index Dimensions", "The dimensions of the index buffer.");
+            public static readonly GUIContent minRendererVolumeSize = new GUIContent("Minimum Renderer Volume Size", "Specifies the minimum bounding box volume of renderers to consider placing probes around.");
         }
 
         void OnEnable()
@@ -95,6 +103,7 @@ namespace UnityEngine.Experimental.Rendering
             m_CellSize = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.cellSizeInBricks));
             m_MinDistanceBetweenProbes = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.minDistanceBetweenProbes));
             m_SimplificationLevels = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.simplificationLevels));
+            m_MinRendererVolumeSize = serializedObject.FindProperty(nameof(ProbeReferenceVolumeProfile.minRendererVolumeSize));
         }
 
         public override void OnInspectorGUI()
@@ -109,6 +118,8 @@ namespace UnityEngine.Experimental.Rendering
             }
             EditorGUILayout.PropertyField(m_MinDistanceBetweenProbes, Styles.minDistanceBetweenProbes);
             EditorGUILayout.HelpBox($"The distance between probes will fluctuate between : {profile.minDistanceBetweenProbes}m and {profile.cellSizeInMeters / 3.0f}m", MessageType.Info);
+            
+            EditorGUILayout.PropertyField(m_MinRendererVolumeSize, Styles.minRendererVolumeSize);
 
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();

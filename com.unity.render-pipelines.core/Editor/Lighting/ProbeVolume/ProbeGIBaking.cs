@@ -732,9 +732,18 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         var go = renderer.component.gameObject;
                         int rendererLayerMask = 1 << go.layer;
+                        renderer.volume.CalculateCenterAndSize(out _, out var rendererBoundsSize);
+                        float rendererBoundsVolume = rendererBoundsSize.x * rendererBoundsSize.y * rendererBoundsSize.z;
 
                         foreach (var probeVolume in overlappingProbeVolumes)
                         {
+                            // Skip renderers that have a smaller volume than the min volume size from the profile or probe volume component
+                            float minRendererBoundingBoxSize = ctx.profile.minRendererVolumeSize;
+                            if (probeVolume.component.overrideMinRendererVolumeSize)
+                                minRendererBoundingBoxSize = probeVolume.component.minRendererVolumeSize;
+                            if (rendererBoundsVolume < minRendererBoundingBoxSize)
+                                continue;
+
                             if (ProbeVolumePositioning.OBBIntersect(renderer.volume, probeVolume.volume)
                                 && ProbeVolumePositioning.OBBIntersect(renderer.volume, cell.volume))
                             {
