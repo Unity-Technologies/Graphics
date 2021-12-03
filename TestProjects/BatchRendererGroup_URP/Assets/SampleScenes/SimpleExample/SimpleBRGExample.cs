@@ -88,7 +88,10 @@ public class SimpleBRGExample : MonoBehaviour
         m_MaterialID = m_BRG.RegisterMaterial(material);
 
         // Create the buffer that holds our instance data
-        m_InstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Raw,
+        var target = GraphicsBuffer.Target.Raw;
+        if (SystemInfo.graphicsDeviceType is GraphicsDeviceType.OpenGLCore or GraphicsDeviceType.OpenGLES3)
+            target |= GraphicsBuffer.Target.Constant;
+        m_InstanceData = new GraphicsBuffer(target,
             BufferCountForInstances(kBytesPerInstance, kNumInstances, kExtraBytes),
             sizeof(int));
 
