@@ -106,6 +106,8 @@ namespace UnityEngine.Rendering.Universal
         public RenderTexture targetTexture;
         public RenderTextureDescriptor cameraTargetDescriptor;
         internal Rect pixelRect;
+        internal Vector4 screenSizeOverride;
+        internal Vector4 screenCoordScaleBias;
         internal int pixelWidth;
         internal int pixelHeight;
         internal float aspectRatio;
@@ -312,6 +314,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int orthoParams = Shader.PropertyToID("unity_OrthoParams");
 
         public static readonly int screenSize = Shader.PropertyToID("_ScreenSize");
+        public static readonly int screenCoordScaleBias = Shader.PropertyToID("_ScreenCoordScaleBias");
+        public static readonly int screenSizeOverride = Shader.PropertyToID("_ScreenSizeOverride");
 
         public static readonly int viewMatrix = Shader.PropertyToID("unity_MatrixV");
         public static readonly int projectionMatrix = Shader.PropertyToID("glstate_matrix_projection");
