@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.normalAOV = builder.ReadTexture(normalAOV);
                 passData.motionVectorAOV = builder.ReadTexture(motionVectors);
                 passData.useAOV = m_PathTracingSettings.useAOVs.value;
-                passData.temporal = m_PathTracingSettings.temporal.value;
+                passData.temporal = m_PathTracingSettings.temporal.value && hdCamera.camera.cameraType == CameraType.Game;
 
                 builder.SetRenderFunc(
                     (RenderAccumulationPassData data, RenderGraphContext ctx) =>
@@ -369,7 +369,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_UNITY_DENOISERS
                         camData.denoiser.type = m_PathTracingSettings.denoiser.value;
-                        camData.denoiser.useAOV = m_PathTracingSettings.useAOVs.value;
+                        //camData.denoiser.useAOV = m_PathTracingSettings.useAOVs.value;
 
                         RTHandle history = data.history;
 
@@ -381,32 +381,32 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (!camData.denoiser.denoised)
                             {
                                 camData.denoiser.denoised = true;
-                                camData.denoiser.temporal = hdCamera.camera.cameraType == CameraType.Game;
                                 m_SubFrameManager.SetCameraData(camID, camData);
 
-                                // make a new denoising request
-                                if (useAsync)
-                                {
-                                    camData.denoiser.AsyncDenoiseRequest(ctx.cmd, "beauty", history.rt);
-                                    if (useAOV)
-                                    {
-                                        camData.denoiser.AsyncDenoiseRequest(ctx.cmd, "albedo", data.albedoAOV);
-                                        camData.denoiser.AsyncDenoiseRequest(ctx.cmd, "normal", data.normalAOV);
-                                    }
-                                }
-                                else
-                                {
-                                    camData.denoiser.DenoiseRequest(ctx.cmd, history.rt, useAOV ? data.albedoAOV : null, useAOV ? data.normalAOV : null, data.temporal? data.motionVectorAOV : null);
+                                camData.denoiser.DenoiseRequest(ctx.cmd, "beauty", history.rt);
 
-                                    ctx.cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationFrameIndex, (int)data.subFrameManager.subFrameCount);
-                                    ctx.cmd.DispatchCompute(accumulationShader, data.accumulationKernel, (data.hdCamera.actualWidth + 7) / 8, (data.hdCamera.actualHeight + 7) / 8, data.hdCamera.viewCount);
+                                if (useAOV)
+                                {
+                                    camData.denoiser.DenoiseRequest(ctx.cmd, "albedo", data.albedoAOV);
+                                    camData.denoiser.DenoiseRequest(ctx.cmd, "normal", data.normalAOV);
+                                }
+
+                                if (data.temporal)
+                                {
+                                    camData.denoiser.DenoiseRequest(ctx.cmd, "flow", data.motionVectorAOV);
+                                }
+
+                                if (!useAsync)
+                                {
+                                    camData.denoiser.WaitForCompletion();
+                                    camData.denoiser.GetResults(ctx.cmd, history.rt);
                                 }
                             }
 
                             // if denoised frame is ready, blit it
                             if (useAsync && camData.denoiser.QueryAsyncDenoiseRequest())
                             {
-                                camData.denoiser.UpdateTexture(ctx.cmd, history.rt);
+                                camData.denoiser.GetResults(ctx.cmd, history.rt);
                             }
                         }
 #endif
