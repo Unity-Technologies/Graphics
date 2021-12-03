@@ -22,7 +22,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Added ShaderGraph import warning to old nodes and properties, and ability to dismiss the warning if old behavior is desired.
  - Added normal transforms to the Transform node
  - Added an automatically generated material subasset on ShaderGraphs.
- - Adding Refract Node (https://jira.unity3d.com/browse/HDRP-1599)
 
 ### Changed
  - Changed the title suffix on old nodes and properties rom "Deprecated" to "Legacy".
