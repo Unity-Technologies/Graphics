@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering
 
             EditorGUILayout.Space();
             if (m_ComponentList.hasHiddenVolumeComponents)
-                EditorGUILayout.HelpBox("There are Volume Components that are hidden in this asset because they are incompatible with the current active render pipeline. Change the active Render Pipeline to see them.", MessageType.Info);
+                EditorGUILayout.HelpBox("There are Volume Components that are hidden in this asset because they are incompatible with the current active Render Pipeline. Change the active Render Pipeline to see them.", MessageType.Info);
 
             serializedObject.ApplyModifiedProperties();
         }
