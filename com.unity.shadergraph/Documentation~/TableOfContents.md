@@ -124,6 +124,7 @@
             * [Object](Object-Node)
             * [Scene Color](Scene-Color-Node)
             * [Scene Depth](Scene-Depth-Node)
+            * [Scene Depth Difference](Scene-Depth-Difference-Node)
             * [Screen](Screen-Node)
         * Texture
             * [Calculate Level Of Detail Texture 2D Node](Calculate-Level-Of-Detail-Texture-2D-Node)
