@@ -93,8 +93,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         // RTHandle alias for _TempTarget2
         RTHandle m_TempTarget2 = RTHandles.Alloc(ShaderConstants._TempTarget2);
 
-        // RTHandle used as a temporary target when operations need to be performed before upscaling
-        RTHandle m_UpscaleSetupTarget;
+        // RTHandle used as a temporary target when operations need to be performed before image scaling
+        RTHandle m_ScalingSetupTarget;
 
         Material m_BlitMaterial;
 
@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Dispose()
         {
-            m_UpscaleSetupTarget?.Release();
+            m_ScalingSetupTarget?.Release();
         }
 
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, bool resolveToScreen, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
@@ -1404,18 +1404,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                 tempRtDesc.msaaSamples = 1;
                 tempRtDesc.depthBufferBits = 0;
 
-                m_Materials.upscaleSetup.shaderKeywords = null;
+                m_Materials.scalingSetup.shaderKeywords = null;
 
                 // When FXAA is enabled in scaled renders, we execute it in a separate blit since it's not designed to be used in
                 // situations where the input and output resolutions do not match.
                 if (isFxaaEnabled)
                 {
-                    m_Materials.upscaleSetup.EnableKeyword(ShaderKeywordStrings.Fxaa);
+                    m_Materials.scalingSetup.EnableKeyword(ShaderKeywordStrings.Fxaa);
 
-                    RenderingUtils.ReAllocateIfNeeded(ref m_UpscaleSetupTarget, tempRtDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_UpscaleSetupTexture");
-                    Blit(cmd, m_Source, m_UpscaleSetupTarget, m_Materials.upscaleSetup);
+                    RenderingUtils.ReAllocateIfNeeded(ref m_ScalingSetupTarget, tempRtDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_ScalingSetupTexture");
+                    Blit(cmd, m_Source, m_ScalingSetupTarget, m_Materials.scalingSetup);
 
-                    cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_UpscaleSetupTarget);
+                    cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_ScalingSetupTarget);
                 }
 
                 switch (cameraData.imageScalingMode)
@@ -1506,7 +1506,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public readonly Material cameraMotionBlur;
             public readonly Material paniniProjection;
             public readonly Material bloom;
-            public readonly Material upscaleSetup;
+            public readonly Material scalingSetup;
             public readonly Material uber;
             public readonly Material finalPass;
             public readonly Material lensFlareDataDriven;
@@ -1520,7 +1520,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cameraMotionBlur = Load(data.shaders.cameraMotionBlurPS);
                 paniniProjection = Load(data.shaders.paniniProjectionPS);
                 bloom = Load(data.shaders.bloomPS);
-                upscaleSetup = Load(data.shaders.upscaleSetupPS);
+                scalingSetup = Load(data.shaders.scalingSetupPS);
                 uber = Load(data.shaders.uberPostPS);
                 finalPass = Load(data.shaders.finalPostPassPS);
                 lensFlareDataDriven = Load(data.shaders.LensFlareDataDrivenPS);
@@ -1550,7 +1550,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.Destroy(cameraMotionBlur);
                 CoreUtils.Destroy(paniniProjection);
                 CoreUtils.Destroy(bloom);
-                CoreUtils.Destroy(upscaleSetup);
+                CoreUtils.Destroy(scalingSetup);
                 CoreUtils.Destroy(uber);
                 CoreUtils.Destroy(finalPass);
             }

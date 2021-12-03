@@ -1,4 +1,4 @@
-Shader "Hidden/Universal Render Pipeline/Upscale Setup"
+Shader "Hidden/Universal Render Pipeline/Scaling Setup"
 {
     HLSLINCLUDE
         #pragma multi_compile_local_fragment _ _FXAA
@@ -32,7 +32,7 @@ Shader "Hidden/Universal Render Pipeline/Upscale Setup"
     ENDHLSL
 
     ///
-    /// Upscale Setup Shader
+    /// Scaling Setup Shader
     ///
     /// This shader is used to perform any operations that need to place before image scaling occurs.
     /// It is not expected to be executed unless image scaling is active.
@@ -51,7 +51,7 @@ Shader "Hidden/Universal Render Pipeline/Upscale Setup"
 
         Pass
         {
-            Name "UpscaleSetup"
+            Name "ScalingSetup"
 
             HLSLPROGRAM
                 #pragma vertex FullscreenVert
