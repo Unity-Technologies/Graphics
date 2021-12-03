@@ -393,7 +393,7 @@ platforms:
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
                     utr <UTR_FLAGS>
-        call_utr_android_job:
+        call_utr_hikey_android_sdk_root:
           - command: |5-
                     set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                     git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
