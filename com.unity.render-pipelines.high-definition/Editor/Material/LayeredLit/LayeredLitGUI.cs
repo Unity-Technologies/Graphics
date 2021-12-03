@@ -159,12 +159,22 @@ namespace UnityEditor.Rendering.HighDefinition
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupMaterialKeywordsAndPass(Material material)
         {
+            MaterialId materialId = material.GetMaterialId();
+            if (material.HasProperty(kMaterialID))
+            {
+                if (materialId != MaterialId.LitStandard && materialId != MaterialId.LitSSS && materialId != MaterialId.LitTranslucent)
+                {
+                    materialId = MaterialId.LitStandard;
+                    material.SetFloat(kMaterialID, (float)materialId);
+                }
+            }
+
             BaseLitGUI.SetupBaseLitKeywords(material);
             BaseLitGUI.SetupBaseLitMaterialPass(material);
             SetupLayersMappingKeywords(material);
             bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
                                     : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
-            BaseLitGUI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
+            BaseLitGUI.SetupStencil(material, receiveSSR, materialId == MaterialId.LitSSS);
 
             if (material.HasProperty(kAddPrecomputedVelocity))
             {
