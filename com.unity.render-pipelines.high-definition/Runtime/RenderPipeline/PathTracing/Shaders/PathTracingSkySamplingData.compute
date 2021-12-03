@@ -10,7 +10,6 @@
 #define KERNEL_WIDTH 64 
 
 // Make sky data access a little less verbose
-#define PDF        _PathTracingSkyPDFTexture
 #define CDF        _PathTracingSkyCDFTexture
 #define MARGINAL   _PathTracingSkyMarginalTexture
 #define TEX_WIDTH  _PathTracingSkyTextureWidth
@@ -101,10 +100,7 @@ void ComputeCDF(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         // No need for a sinTheta term in the PDF when using equiareal mapping
         float3 dir = MapUVToSkyDirection(u, v);
-        float pdf = Luminance(SampleSkyTexture(dir, 0.0, 0).rgb); // * sinTheta;
-
-        PDF[uint2(idx, j)] = pdf;
-        CDF[uint2(idx, j)] = pdf;
+        CDF[uint2(idx, j)] = Luminance(SampleSkyTexture(dir, 0.0, 0).rgb); // * sinTheta;
     }
 
     float rowValSum;
@@ -148,12 +144,4 @@ void ComputeMarginal(uint3 dispatchThreadId : SV_DispatchThreadID)
         float pdfNormalization = imgIntegralValue > 0.0 ? rcp(imgIntegralValue) / (TWO_PI * PI) : 0.0;
         MARGINAL[uint2(0, 0)] = pdfNormalization;
     }
-}
-
-#pragma kernel NormalizePDF
-
-[numthreads(8, 8, 1)]
-void NormalizePDF(uint3 dispatchThreadId : SV_DispatchThreadID)
-{
-    PDF[dispatchThreadId.xy] *= MARGINAL[uint2(0, 0)];
 }

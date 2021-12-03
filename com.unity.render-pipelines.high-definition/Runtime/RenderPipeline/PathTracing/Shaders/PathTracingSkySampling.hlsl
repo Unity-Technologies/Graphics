@@ -8,7 +8,6 @@
 #define PTSKY_TEXTURE2D(name) Texture2D<float> name // FIXME
 #endif
 
-PTSKY_TEXTURE2D(_PathTracingSkyPDFTexture);
 PTSKY_TEXTURE2D(_PathTracingSkyCDFTexture);
 PTSKY_TEXTURE2D(_PathTracingSkyMarginalTexture);
 
@@ -65,60 +64,40 @@ float3 MapUVToSkyDirection(float2 uv)
 
 #ifndef COMPUTE_PATH_TRACING_SKY_SAMPLING_DATA
 
-float GetSkyCDF(PTSKY_TEXTURE2D(cdf), uint size, uint i, uint j)
+float GetSkyCDF(PTSKY_TEXTURE2D(cdf), uint i, uint j)
 {
-    // FIXME ************************************************
-    return i == 0 ? 0.0 : (i < size ? cdf[uint2(i, j)] : 1.0);
+    return cdf[uint2(i, j)];
 }
 
 // Dichotomic search
 float SampleSkyCDF(PTSKY_TEXTURE2D(cdf), uint size, uint j, float smp)
 {
-    uint i = 0, half = size / 2;
-    for (uint offset = half; offset > 0; offset /= 2)
+    uint i = 0;
+    for (uint half = size >> 1, offset = half; offset > 0; offset >>= 1)
     {
-        if (smp < GetSkyCDF(cdf, size, half, j))
+        if (smp < GetSkyCDF(cdf, half, j))
         {
             // i is already in the right half
-            half -= offset / 2;
+            half -= offset >> 1;
         }
         else
         {
             // i has to move to the other half
             i += offset;
-            half += offset / 2;
+            half += offset >> 1;
         }
     }
 
-    float cdfInf = GetSkyCDF(cdf, size, i, j);
-    float cdfSup = GetSkyCDF(cdf, size, i + 1, j);
+    // MarginalTexture[0] stores the PDF normalization factor, so we need a test on i == 0
+    float cdfInf = i > 0 ? GetSkyCDF(cdf, i, j) : 0.0;
+    float cdfSup = i < size ? GetSkyCDF(cdf, i + 1, j) : 1.0;
 
     return (i + (smp - cdfInf) / (cdfSup - cdfInf)) / size;
 }
 
-// // Linear search
-// float SampleSkyCDF(PTSKY_TEXTURE2D(cdf), uint size, uint j, float smp)
-// {
-//     float cdfSup, cdfInf = 0.0;
-//     uint i;
-//     for (i = 0; i < size; i++)
-//     {
-//         cdfSup = GetSkyCDF(cdf, size, i + 1, j);
-//         if (smp < cdfSup)
-//             break;
-//         cdfInf = cdfSup;
-//     }
-//     return (i + (smp - cdfInf) / (cdfSup - cdfInf)) / size;
-// }
-
 float GetSkyPDFNormalizationFactor()
 {
     return _PathTracingSkyMarginalTexture[uint2(0, 0)];
-}
-
-float3 GetSkyValue(float3 dir)
-{
-    return SampleSkyTexture(dir, 0.0, 0).rgb;
 }
 
 // This PDF approximation is valid only if PDF/CDF tables are computed with equiareal mapping
@@ -127,19 +106,10 @@ float GetSkyPDFFromValue(float3 value)
     return Luminance(value) * GetSkyPDFNormalizationFactor();
 }
 
-// float GetSkyPDF(float u, float v)
-// {
-//     // Unfiltered
-//     // return _PathTracingSkyPDFTexture[uint2(u * _PathTracingSkyTextureWidth, v * _PathTracingSkyTextureHeight)];
-
-//     // Filtered
-//     return SAMPLE_TEXTURE2D_LOD(_PathTracingSkyPDFTexture, s_linear_clamp_sampler, float2(u, v), 0);
-// }
-
-// float GetSkyPDF(float2 uv)
-// {
-//     return GetSkyPDF(uv.x, uv.y);
-// }
+float3 GetSkyValue(float3 dir)
+{
+    return SampleSkyTexture(dir, 0.0, 0).rgb;
+}
 
 float2 SampleSky(float smpU, float smpV)
 {
