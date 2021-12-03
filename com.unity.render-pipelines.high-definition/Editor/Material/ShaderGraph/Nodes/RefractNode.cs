@@ -1,19 +1,21 @@
-using System.Reflection;
+using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEditor.ShaderGraph
-{
     enum RefractMode
     {
         CriticalAngle,
         Safe
     };
 
-    [Title("Math", "Vector", "Refract")]
-    class RefractNode : AbstractMaterialNode
+    [SRPFilter(typeof(HDRenderPipeline))]
+    [Title("Math", "Vector", "High Definition Render Pipeline", "Refract")]
+    class HDRefractNode : AbstractMaterialNode
         , IGeneratesBodyCode
         , IGeneratesFunction
     {
@@ -34,6 +36,8 @@ namespace UnityEditor.ShaderGraph
         const int kIntensityOutputSlotId = 5;
         const string kIntensityOutputSlotName = "Intensity";
 
+        public override string documentationURL => Documentation.GetPageLink("Refract-Node");
+
         [EnumControl("Mode")]
         public RefractMode refractMode
         {
@@ -48,7 +52,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public RefractNode()
+        public HDRefractNode()
         {
             name = "Refract";
             synonyms = new string[] { "refract", "warp", "bend", "distort" };

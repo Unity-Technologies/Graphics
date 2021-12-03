@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using System.Collections.Generic;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.Rendering.HighDefinition
 {
     enum FresnelEquationMode
     {
@@ -14,8 +14,8 @@ namespace UnityEditor.ShaderGraph
         DielectricGeneric
     };
 
-    [Title("Math", "Advanced", "Fresnel Equation")]
-    class FresnelEquationNode : AbstractMaterialNode
+    [Title("Math", "Advanced", "High Definition Render Pipeline", "Fresnel Equation")]
+    class HDFresnelEquationNode : AbstractMaterialNode
         , IGeneratesBodyCode
         , IGeneratesFunction
     {
@@ -29,6 +29,8 @@ namespace UnityEditor.ShaderGraph
         const string kIORMediumImInputSlotName = "IOR Medium K";
 
         const string kFresnelOutputSlotName = "Fresnel";
+
+        public override string documentationURL => Documentation.GetPageLink("Fresnel-Equation-Node");
 
         private enum FresnelSlots
         {
@@ -62,7 +64,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public FresnelEquationNode()
+        public HDFresnelEquationNode()
         {
             name = "Fresnel Equation";
             synonyms = new string[] { "fresnel", "schlick", "metal", "dielectric", "tir", "reflection", "critical" };
