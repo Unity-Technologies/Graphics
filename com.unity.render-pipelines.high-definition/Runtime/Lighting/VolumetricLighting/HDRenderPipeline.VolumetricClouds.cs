@@ -6,7 +6,6 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         // Intermediate values for ambient probe evaluation
-        Vector4[] m_PackedCoeffsClouds;
         ZonalHarmonicsL2 m_PhaseZHClouds;
 
         // Cloud preset maps
@@ -57,7 +56,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // Allocate the buffers for ambient probe evaluation
-            m_PackedCoeffsClouds = new Vector4[7];
             m_PhaseZHClouds = new ZonalHarmonicsL2();
             m_PhaseZHClouds.coeffs = new float[3];
 
@@ -624,13 +622,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVector, TextureHandle volumetricLighting, TextureHandle maxZMask)
+        TextureHandle RenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle motionVector, TextureHandle volumetricLighting, TextureHandle maxZMask)
         {
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
             // If the current volume does not enable the feature, quit right away.
             if (!HasVolumetricClouds(hdCamera, in settings))
-                return;
+                return renderGraph.defaultResources.whiteTextureXR;
 
             // Make sure the volumetric clouds are animated properly
             UpdateVolumetricClouds(hdCamera, in settings);
@@ -640,16 +638,20 @@ namespace UnityEngine.Rendering.HighDefinition
             bool accumulationClouds = cameraType == TVolumetricCloudsCameraType.Default || cameraType == TVolumetricCloudsCameraType.PlanarReflection;
             bool fullResolutionClouds = cameraType == TVolumetricCloudsCameraType.BakedReflection;
 
+            TextureHandle result;
             if (accumulationClouds)
             {
-                RenderVolumetricClouds_Accumulation(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
+                result = RenderVolumetricClouds_Accumulation(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
                 // Make sure to mark the history frame index validity.
                 PropagateVolumetricCloudsHistoryValidity(hdCamera, settings.localClouds.value);
             }
             else if (fullResolutionClouds)
-                RenderVolumetricClouds_FullResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
+                result = RenderVolumetricClouds_FullResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
             else
-                RenderVolumetricClouds_LowResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
+                result = RenderVolumetricClouds_LowResolution(renderGraph, hdCamera, cameraType, colorBuffer, depthPyramid, motionVector, volumetricLighting, maxZMask);
+
+            // Return the scattering and transmittance
+            return result;
         }
 
         void PreRenderVolumetricClouds(RenderGraph renderGraph, HDCamera hdCamera)

@@ -19,11 +19,12 @@ namespace UnityEngine.Rendering
         bool m_RuntimeUiWasVisibleLastFrame = false;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         static void RuntimeInit()
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (DebugManager.instance.enableRuntimeUI)
                 EnableRuntime();
+#endif
         }
 
         internal static void SetEnabled(bool enabled)

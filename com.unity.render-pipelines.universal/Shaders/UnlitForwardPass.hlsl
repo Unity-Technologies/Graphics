@@ -100,6 +100,7 @@ half4 UnlitPassFragment(Varyings input) : SV_Target
     half alpha = texColor.a * _BaseColor.a;
 
     AlphaDiscard(alpha, _Cutoff);
+    color = AlphaModulate(color, alpha);
 
     InputData inputData;
     InitializeInputData(input, inputData);
@@ -109,17 +110,6 @@ half4 UnlitPassFragment(Varyings input) : SV_Target
     ApplyDecalToBaseColor(input.positionCS, color);
 #endif
 
-    #if defined(_FOG_FRAGMENT)
-        #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
-        float viewZ = -input.fogCoord;
-        float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
-        half fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
-        #else
-        half fogFactor = 0;
-        #endif
-    #else
-    half fogFactor = input.fogCoord;
-    #endif
     half4 finalColor = UniversalFragmentUnlit(inputData, color, alpha);
 
 #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
@@ -128,6 +118,17 @@ half4 UnlitPassFragment(Varyings input) : SV_Target
     finalColor.rgb *= aoFactor.directAmbientOcclusion;
 #endif
 
+#if defined(_FOG_FRAGMENT)
+#if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+    float viewZ = -input.fogCoord;
+    float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
+    half fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
+#else
+    half fogFactor = 0;
+#endif
+#else
+    half fogFactor = input.fogCoord;
+#endif
     finalColor.rgb = MixFog(finalColor.rgb, fogFactor);
 
     return finalColor;

@@ -285,6 +285,7 @@ float EvalShadow_CascadedDepth_Blend_SplitIndex(HDShadowContext shadowContext, T
         positionWS = basePositionWS + sd.cacheTranslationDelta.xyz;
 
         /* normal based bias */
+        float worldTexelSize = sd.worldTexelSize;
         float3 orig_pos = positionWS;
         float3 normalBias = EvalShadow_NormalBias(sd.worldTexelSize, sd.normalBias, normalWS);
         positionWS += normalBias;
@@ -303,6 +304,11 @@ float EvalShadow_CascadedDepth_Blend_SplitIndex(HDShadowContext shadowContext, T
             if (alpha > 0.0)
             {
                 LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
+
+                // We need to modify the bias as the world texel size changes between splits and an update is needed.
+                float biasModifier = (sd.worldTexelSize / worldTexelSize);
+                normalBias *= biasModifier;
+
                 float3 evaluationPosWS = basePositionWS + sd.cacheTranslationDelta.xyz + normalBias;
                 float3 posNDC;
                 posTC = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, evaluationPosWS, posNDC, false);
