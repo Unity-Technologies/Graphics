@@ -31,6 +31,18 @@ Shader "Hidden/Universal Render Pipeline/Upscale Setup"
 
     ENDHLSL
 
+    ///
+    /// Upscale Setup Shader
+    ///
+    /// This shader is used to perform any operations that need to place before image scaling occurs.
+    /// It is not expected to be executed unless image scaling is active.
+    ///
+    /// Supported Operations:
+    ///
+    /// FXAA
+    /// The FXAA shader does not support mismatched input and output dimensions so it must be run before any image
+    /// scaling takes place.
+    ///
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
