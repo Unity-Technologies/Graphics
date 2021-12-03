@@ -7,7 +7,7 @@ Shader "Hidden/Universal Render Pipeline/DrawRenderingLayer"
 
         Pass
         {
-            Name "DrawRenderingLayer"
+            Name "DrawRenderingLayers"
             ZTest Always
             ZWrite Off
             Cull Off
@@ -16,13 +16,13 @@ Shader "Hidden/Universal Render Pipeline/DrawRenderingLayer"
             #pragma vertex FullscreenVert
             #pragma fragment Fragment
             #pragma multi_compile _ _USE_DRAW_PROCEDURAL
-#pragma enable_d3d11_debug_symbols
+            #pragma enable_d3d11_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareRenderingLayerTexture.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
-            float4 _RenderingLayerColors[32];
+            float4 _RenderingLayersColors[32];
 
             half4 Fragment(Varyings input) : SV_Target
             {
@@ -32,8 +32,7 @@ Shader "Hidden/Universal Render Pipeline/DrawRenderingLayer"
                 uint sceneRenderingLayer = LoadSceneRenderingLayer(positionSS);
                 uint renderingLayerColorIndex = clamp(log2(sceneRenderingLayer + 1), 0, 31);
 
-                //return sceneRenderingLayer == 1 ? 1 : 0;
-                return _RenderingLayerColors[renderingLayerColorIndex];
+                return _RenderingLayersColors[renderingLayerColorIndex];
             }
             ENDHLSL
         }

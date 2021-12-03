@@ -1,22 +1,24 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.Rendering.Universal.Internal;
 
-public class RenderingLayerTestFeature : ScriptableRendererFeature
+public class DrawRenderingLayersFeature : ScriptableRendererFeature
 {
-    private class RequestRenderingLayerPass : ScriptableRenderPass
+    private class DrawRenderingLayersPass : ScriptableRenderPass
     {
         private ProfilingSampler m_ProfilingSampler;
-        private RenderTargetHandle m_Target;
+        private RTHandle m_TestRenderingLayersTextureHandle;
 
-        public RequestRenderingLayerPass(RenderPassEvent renderPassEvent)
+        public DrawRenderingLayersPass()
         {
-            m_ProfilingSampler = new ProfilingSampler("Draw Rendering Layer");
+            m_ProfilingSampler = new ProfilingSampler("Draw Rendering Layers");
             this.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
-            m_Target.Init("_RenderingLayerTestTexture");
+        }
+
+        public void Setup(RTHandle renderingLayerTestTextureHandle)
+        {
+            m_TestRenderingLayersTextureHandle = renderingLayerTestTextureHandle;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -24,18 +26,17 @@ public class RenderingLayerTestFeature : ScriptableRendererFeature
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                Blit(cmd, ref renderingData, m_Target.Identifier(), null);
+                Blit(cmd, ref renderingData, m_TestRenderingLayersTextureHandle, null);
             }
 
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
             CommandBufferPool.Release(cmd);
-
         }
     }
 
-    private class DrawRenderingLayerPass : ScriptableRenderPass
+    private class DrawRenderingLayersPrePass : ScriptableRenderPass
     {
         private static class ShaderPropertyId
         {
@@ -44,32 +45,29 @@ public class RenderingLayerTestFeature : ScriptableRendererFeature
 
         private Material m_Material;
         private ProfilingSampler m_ProfilingSampler;
-        private RenderTargetHandle m_Target;
+        private RTHandle m_ColoredRenderingLayersTextureHandle;
         private Vector4[] m_RenderingLayerColors = new Vector4[32];
 
-        public DrawRenderingLayerPass(RenderPassEvent renderPassEvent)
+        public DrawRenderingLayersPrePass(RenderPassEvent renderPassEvent)
         {
             ConfigureInput(ScriptableRenderPassInput.RenderingLayer);
-            m_ProfilingSampler = new ProfilingSampler("Draw Rendering Layer");
+            m_ProfilingSampler = new ProfilingSampler("Rendering Layers PrePass");
             this.renderPassEvent = renderPassEvent;
-            m_Target.Init("_RenderingLayerTestTexture");
         }
 
-        public void Setup(Material material)
+        public void Setup(RTHandle renderingLayerTestTextureHandle, Material material)
         {
+            m_ColoredRenderingLayersTextureHandle = renderingLayerTestTextureHandle;
+
             m_Material = material;
 
             for (int i = 0; i < 32; i++)
                 m_RenderingLayerColors[i] = Color.HSVToRGB(i / 32f, 1, 1);
-
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            var desc = renderingData.cameraData.cameraTargetDescriptor;
-            desc.msaaSamples = 1;
-            cmd.GetTemporaryRT(m_Target.id, desc);
-            ConfigureTarget(m_Target.Identifier());
+            ConfigureTarget(m_ColoredRenderingLayersTextureHandle);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -77,8 +75,6 @@ public class RenderingLayerTestFeature : ScriptableRendererFeature
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                //Blit(cmd, ref renderingData, 0, m_Material);
-
                 Render(cmd, renderingData.cameraData);
             }
 
@@ -88,14 +84,9 @@ public class RenderingLayerTestFeature : ScriptableRendererFeature
             CommandBufferPool.Release(cmd);
         }
 
-        public override void OnCameraCleanup(CommandBuffer cmd)
-        {
-            cmd.ReleaseTemporaryRT(m_Target.id);
-        }
-
         private void Render(CommandBuffer cmd, in CameraData cameraData)
         {
-            cmd.SetGlobalVectorArray("_RenderingLayerColors", m_RenderingLayerColors);
+            cmd.SetGlobalVectorArray("_RenderingLayersColors", m_RenderingLayerColors);
 
             cmd.SetGlobalVector(ShaderPropertyId.scaleBias, new Vector4(1, 1, 0, 0));
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -117,7 +108,7 @@ public class RenderingLayerTestFeature : ScriptableRendererFeature
         }
     }
 
-    private const string k_ShaderName = "Hidden/Universal Render Pipeline/DrawRenderingLayer";
+    private const string k_ShaderName = "Hidden/Universal Render Pipeline/DrawRenderingLayers";
 
     [SerializeField]
     private Shader m_Shader;
@@ -126,16 +117,23 @@ public class RenderingLayerTestFeature : ScriptableRendererFeature
     private RenderPassEvent m_Event = RenderPassEvent.AfterRenderingPrePasses;
 
     private Material m_Material;
-    private DrawRenderingLayerPass m_DrawRenderingLayerPass;
-    private RequestRenderingLayerPass m_RequestRenderingLayerPass;
+    private DrawRenderingLayersPrePass m_DrawRenderingLayerPass;
+    private DrawRenderingLayersPass m_RequestRenderingLayerPass;
+
+    private RTHandle m_ColoredRenderingLayersTextureHandle;
 
     /// <inheritdoc/>
     public override void Create()
     {
-        m_DrawRenderingLayerPass = new DrawRenderingLayerPass(m_Event);
-        m_RequestRenderingLayerPass = new RequestRenderingLayerPass(m_Event);
+        m_DrawRenderingLayerPass = new DrawRenderingLayersPrePass(m_Event);
+        m_RequestRenderingLayerPass = new DrawRenderingLayersPass();
 
         GetMaterial();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        m_ColoredRenderingLayersTextureHandle?.Release();
     }
 
     private bool GetMaterial()
@@ -161,9 +159,16 @@ public class RenderingLayerTestFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
+        var desc = renderingData.cameraData.cameraTargetDescriptor;
+        desc.msaaSamples = 1;
+        desc.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_SRGB;
+        desc.depthBufferBits = 0;
+        RenderingUtils.ReAllocateIfNeeded(ref m_ColoredRenderingLayersTextureHandle, desc, name: "_ColoredRenderingLayersTexture");
+
         Assert.IsNotNull(m_Material);
-        m_DrawRenderingLayerPass.Setup(m_Material);
+        m_DrawRenderingLayerPass.Setup(m_ColoredRenderingLayersTextureHandle, m_Material);
         renderer.EnqueuePass(m_DrawRenderingLayerPass);
+        m_RequestRenderingLayerPass.Setup(m_ColoredRenderingLayersTextureHandle);
         renderer.EnqueuePass(m_RequestRenderingLayerPass);
     }
 }
