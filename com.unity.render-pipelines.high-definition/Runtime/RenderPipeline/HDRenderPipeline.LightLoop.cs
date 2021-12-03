@@ -20,9 +20,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle    ssgiLightingBuffer;
             public TextureHandle    contactShadowsBuffer;
             public TextureHandle    screenspaceShadowBuffer;
+            public TextureHandle hierarchicalVarianceScreenSpaceShadowsTexture;
         }
 
-        static LightingBuffers ReadLightingBuffers(in LightingBuffers buffers, RenderGraphBuilder builder)
+        static LightingBuffers ReadLightingBuffers(in LightingBuffers buffers, TextureHandle hierarchicalVarianceScreenSpaceShadowsTexture, RenderGraphBuilder builder)
         {
             var result = new LightingBuffers();
             // We only read those buffers because sssBuffer and diffuseLightingBuffer our just output of the lighting process, not inputs.
@@ -31,6 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
             result.ssgiLightingBuffer = builder.ReadTexture(buffers.ssgiLightingBuffer);
             result.contactShadowsBuffer = builder.ReadTexture(buffers.contactShadowsBuffer);
             result.screenspaceShadowBuffer = builder.ReadTexture(buffers.screenspaceShadowBuffer);
+            result.hierarchicalVarianceScreenSpaceShadowsTexture = builder.ReadTexture(hierarchicalVarianceScreenSpaceShadowsTexture);
 
             return result;
         }
@@ -42,6 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._IndirectDiffuseTexture, buffers.ssgiLightingBuffer);
             cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, buffers.contactShadowsBuffer);
             cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, buffers.screenspaceShadowBuffer);
+            cmd.SetGlobalTexture(HDShaderIDs._HierarchicalVarianceScreenSpaceShadowsTexture, buffers.hierarchicalVarianceScreenSpaceShadowsTexture);
         }
 
         class BuildGPULightListPassData
@@ -301,7 +304,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 in LightingBuffers          lightingBuffers,
                                                 in GBufferOutput            gbuffer,
                                                 in ShadowResult             shadowResult,
-                                                in BuildGPULightListOutput  lightLists)
+                                                in BuildGPULightListOutput  lightLists,
+                                                TextureHandle hiearchicalVarianceScreenSpaceShadowsTexture)
         {
             if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred ||
                 !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
@@ -326,7 +330,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.depthTexture = builder.ReadTexture(depthPyramidTexture);
 
-                passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, builder);
+                passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, hiearchicalVarianceScreenSpaceShadowsTexture, builder);
 
                 passData.lightLayersTextureIndex = gbuffer.lightLayersTextureIndex;
                 passData.shadowMaskTextureIndex = gbuffer.shadowMaskTextureIndex;

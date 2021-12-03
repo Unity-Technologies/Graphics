@@ -177,9 +177,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult);
 
-                var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
+                var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput, prepassOutput.hierarchicalVarianceScreenSpaceShadowsTexture);
 
-                RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, gpuLightListOutput, prepassOutput.depthBuffer, vtFeedbackBuffer, shadowResult, prepassOutput.dbuffer, cullingResults);
+                RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, gpuLightListOutput, prepassOutput.depthBuffer, vtFeedbackBuffer, shadowResult, prepassOutput.dbuffer, cullingResults, prepassOutput.hierarchicalVarianceScreenSpaceShadowsTexture);
 
                 // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph culling to avoid doing the rest of the frame for nothing
                 if (aovRequest.isValid)
@@ -563,7 +563,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     TextureHandle               vtFeedbackBuffer,
                                     ShadowResult                shadowResult,
                                     DBufferOutput               dbuffer,
-                                    CullingResults              cullResults)
+                                    CullingResults              cullResults,
+                                    TextureHandle hierarchicalVarianceScreenSpaceShadowsTexture)
         {
             bool debugDisplay = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled();
 
@@ -599,7 +600,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 passData.dbuffer = ReadDBuffer(dbuffer, builder);
-                passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, builder);
+                passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, hierarchicalVarianceScreenSpaceShadowsTexture, builder);
 
                 builder.SetRenderFunc(
                 (ForwardOpaquePassData data, RenderGraphContext context) =>

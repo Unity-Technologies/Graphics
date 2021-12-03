@@ -50,6 +50,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty useCustomSpotLightShadowCone;
         public SerializedProperty customSpotLightShadowCone;
         public SerializedProperty useScreenSpaceShadows;
+        public SerializedProperty useHierarchicalVarianceScreenSpaceShadows;
+        public SerializedProperty hierarchicalVarianceScreenSpaceShadowsPenumbraRadius;
         public SerializedProperty interactsWithSky;
         public SerializedProperty angularDiameter;
         public SerializedProperty flareSize;
@@ -368,6 +370,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 useCustomSpotLightShadowCone = o.Find("m_UseCustomSpotLightShadowCone");
                 customSpotLightShadowCone = o.Find("m_CustomSpotLightShadowCone");
                 useScreenSpaceShadows = o.Find("m_UseScreenSpaceShadows");
+                useHierarchicalVarianceScreenSpaceShadows = o.Find("m_UseHierarchicalVarianceScreenSpaceShadows");
+                hierarchicalVarianceScreenSpaceShadowsPenumbraRadius = o.Find("m_HierarchicalVarianceScreenSpaceShadowsPenumbraRadius");
                 interactsWithSky = o.Find("m_InteractsWithSky");
                 angularDiameter = o.Find("m_AngularDiameter");
                 flareSize = o.Find("m_FlareSize");

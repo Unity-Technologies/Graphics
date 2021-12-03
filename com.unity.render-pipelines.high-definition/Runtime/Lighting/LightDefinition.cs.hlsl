@@ -122,9 +122,10 @@ struct LightData
     float diffuseDimmer;
     float specularDimmer;
     int affectDynamicGI;
-    float2 padding;
+    float padding;
     float isRayTracedContactShadow;
     float boxLightSafeExtent;
+    int hierarchicalVarianceScreenSpaceShadowsIndex;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.EnvLightData

@@ -387,4 +387,18 @@ float3 GetScreenSpaceColorShadow(PositionInputs posInput, int shadowIndex)
     return (SCREEN_SPACE_COLOR_SHADOW_FLAG & shadowIndex) ? res.xyz : res.xxx;
 }
 
+float GetHierarchicalVarianceScreenSpaceShadow(PositionInputs posInput, uint shadowIndex)
+{
+#if defined(SHADERPASS)
+#if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING) || (SHADERPASS == SHADERPASS_FORWARD)
+    uint channel = shadowIndex & 0x3;
+    return LOAD_TEXTURE2D_X(_HierarchicalVarianceScreenSpaceShadowsTexture, posInput.positionSS)[channel];
+#else
+    return 1.0;
+#endif
+#else
+    return 1.0;
+#endif
+}
+
 #endif // UNITY_LIGHT_LOOP_DEF_INCLUDED

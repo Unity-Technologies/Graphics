@@ -1113,6 +1113,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DebugBlitMaterial);
             CoreUtils.Destroy(m_DebugDisplayProbeVolumeMaterial);
             CoreUtils.Destroy(m_DebugDisplayMaskVolumeMaterial);
+
+            m_HierarchicalVarianceScreenSpaceShadowsData.Clear(float.MaxValue, -float.MaxValue);
         }
 
         void LightLoopNewRender()
@@ -1765,6 +1767,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 // use -1 to say that we don't use shadow mask
                 lightData.shadowMaskSelector.x = -1.0f;
                 lightData.nonLightMappedOnly = 0;
+            }
+
+            lightData.hierarchicalVarianceScreenSpaceShadowsIndex = -1;
+            if ((gpuLightType == GPULightType.Point) || (gpuLightType == GPULightType.Spot))
+            {
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.HierarchicalVarianceScreenSpaceShadows)
+                    && additionalLightData.useHierarchicalVarianceScreenSpaceShadows)
+                {
+                    float lightDepthVS = Vector3.Dot(hdCamera.camera.transform.forward, lightData.positionRWS - hdCamera.camera.transform.position);
+                    lightData.hierarchicalVarianceScreenSpaceShadowsIndex = m_HierarchicalVarianceScreenSpaceShadowsData.Push(lightData.positionRWS, lightDepthVS, lightData.range);
+                }
             }
         }
 
@@ -2619,6 +2632,38 @@ namespace UnityEngine.Rendering.HighDefinition
             return sortCount;
         }
 
+        private class HierarchicalVarianceScreenSpaceShadowsData
+        {
+            public int count = 0;
+            public Vector3[] positionsWS = new Vector3[4];
+            public float[] ranges = new float[4];
+            public float depthMin = float.MaxValue;
+            public float depthMax = -float.MaxValue;
+
+            public void Clear(float clipNear, float clipFar)
+            {
+                count = 0;
+                depthMin = clipNear;
+                depthMax = clipFar;
+            }
+
+            public int Push(Vector3 lightPositionWS, float lightDepthVS, float lightRange)
+            {
+                if (count >= 4) { return -1; }
+                positionsWS[count] = lightPositionWS;
+                ranges[count] = lightRange;
+                int channelIndex = count;
+                ++count;
+
+                depthMin = Mathf.Clamp(lightDepthVS - lightRange, depthMin, depthMax);
+                depthMax = Mathf.Clamp(lightDepthVS + lightRange, depthMin, depthMax);
+
+                return channelIndex;
+            }
+        }
+
+        private HierarchicalVarianceScreenSpaceShadowsData m_HierarchicalVarianceScreenSpaceShadowsData = new HierarchicalVarianceScreenSpaceShadowsData();
+
         void PrepareGPULightdata(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults, int processedLightCount)
         {
             Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
@@ -3126,6 +3171,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_CurrentScreenSpaceShadowData[i].lightDataIndex = -1;
                     m_CurrentScreenSpaceShadowData[i].valid = false;
                 }
+
+                m_HierarchicalVarianceScreenSpaceShadowsData.Clear(hdCamera.camera.nearClipPlane, hdCamera.camera.farClipPlane);
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
                 if (cullResults.visibleLights.Length != 0)

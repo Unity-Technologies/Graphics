@@ -45,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
             BakedShadow = 1 << 7,
             ShadowQuality = 1 << 8,
             CelestialBody = 1 << 9,
+            HierarchicalVarianceScreenSpaceShadows = 1 << 10
         }
 
         enum AdvancedMode
@@ -135,7 +136,9 @@ namespace UnityEditor.Rendering.HighDefinition
                                 CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Low, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.lowShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLowShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => serialized.type != HDLightType.Area,
-                                    CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent)
+                                    CED.FoldoutGroup(s_Styles.contactShadowsSubHeader, Expandable.ContactShadow, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawContactShadowsContent)),
+                                CED.Conditional((serialized, owner) => serialized.type == HDLightType.Point || serialized.type == HDLightType.Spot,
+                                    CED.FoldoutGroup(s_Styles.hiearchicalVarianceScreenSpaceShadowsSubHeader, Expandable.HierarchicalVarianceScreenSpaceShadows, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawHierarchicalVarianceScreenSpaceShadowsContent)
                                 )
                             ),
                             CED.noop //will only add parameter in first sub header
@@ -1259,6 +1262,24 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(serialized.rayTracedContactShadow, s_Styles.rayTracedContactShadow);
                 EditorGUI.indentLevel--;
+            }
+        }
+
+        static void DrawHierarchicalVarianceScreenSpaceShadowsContent(SerializedHDLight serialized, Editor owner)
+        {
+            HDLightType lightType = serialized.type;
+
+            // For the moment, we only support hierarchical variance screen space shadows for point and spot lights. Might be interesting to extend to area lights (but not a priority).
+            if ((lightType == HDLightType.Point) || (lightType == HDLightType.Spot) && HDRenderPipeline.pipelineSupportsHierarchicalVarianceScreenSpaceShadows)
+            {
+                EditorGUILayout.PropertyField(serialized.useHierarchicalVarianceScreenSpaceShadows, s_Styles.useHierarchicalVarianceScreenSpaceShadows);
+
+                using (new EditorGUI.DisabledScope(!serialized.useHierarchicalVarianceScreenSpaceShadows.boolValue))
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(serialized.hierarchicalVarianceScreenSpaceShadowsPenumbraRadius, s_Styles.hierarchicalVarianceScreenSpaceShadowsPenumbraRadius);
+                    EditorGUI.indentLevel--;
+                }
             }
         }
 

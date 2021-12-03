@@ -700,6 +700,37 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // Flag that tells us if the shadow should be screen space
+        [SerializeField]
+        bool m_UseHierarchicalVarianceScreenSpaceShadows = false;
+
+        public bool useHierarchicalVarianceScreenSpaceShadows
+        {
+            get => m_UseHierarchicalVarianceScreenSpaceShadows;
+            set
+            {
+                if (m_UseHierarchicalVarianceScreenSpaceShadows == value)
+                    return;
+
+                m_UseHierarchicalVarianceScreenSpaceShadows = value;
+            }
+        }
+
+        [SerializeField]
+        float m_HierarchicalVarianceScreenSpaceShadowsPenumbraRadius = 0.01f;
+
+        public float hierarchicalVarianceScreenSpaceShadowsPenumbraRadius
+        {
+            get => m_HierarchicalVarianceScreenSpaceShadowsPenumbraRadius;
+            set
+            {
+                if (m_HierarchicalVarianceScreenSpaceShadowsPenumbraRadius == value)
+                    return;
+
+                m_HierarchicalVarianceScreenSpaceShadowsPenumbraRadius = value;
+            }
+        }
+
         // Directional lights only.
         [SerializeField, FormerlySerializedAs("interactsWithSky")]
         bool m_InteractsWithSky = true;

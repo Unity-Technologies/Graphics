@@ -473,7 +473,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SrcScaleBias = Shader.PropertyToID("_SrcScaleBias");
         public static readonly int _SrcUvLimits = Shader.PropertyToID("_SrcUvLimits");
         public static readonly int _DstOffset         = Shader.PropertyToID("_DstOffset");
+        public static readonly int _DstOffsetAndLimit = Shader.PropertyToID("_DstOffsetAndLimit");
+        public static readonly int _LODCurrentAndNextAndMax = Shader.PropertyToID("_LODCurrentAndNextAndMax");
         public static readonly int _DepthMipChain = Shader.PropertyToID("_DepthMipChain");
+        public static readonly int _DepthMomentsMipChain = Shader.PropertyToID("_DepthMomentsMipChain");
+        public static readonly int _DepthMomentsMipChainSize = Shader.PropertyToID("_DepthMomentsMipChainSize");
 
         public static readonly int _VBufferDensity                    = Shader.PropertyToID("_VBufferDensity");
         public static readonly int _VBufferLighting                   = Shader.PropertyToID("_VBufferLighting");
@@ -976,6 +980,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DissolveOccludersAspectScale = Shader.PropertyToID("_DissolveOccludersAspectScale");
         public static readonly int _DissolveOccludersFadeHeight = Shader.PropertyToID("_DissolveOccludersFadeHeight");
         // custom-end
+
+        public static readonly int _HVSSSSourceTexture = Shader.PropertyToID("_HVSSSSourceTexture");
+        public static readonly int _HVSSSDestinationTexture = Shader.PropertyToID("_HVSSSDestinationTexture");
+        public static readonly int _HVSSSLightPositionWS = Shader.PropertyToID("_HVSSSLightPositionWS");
+        public static readonly int _HierarchicalVarianceScreenSpaceShadowsTexture = Shader.PropertyToID("_HierarchicalVarianceScreenSpaceShadowsTexture");
+        public static readonly int _HVSSSCascadeRaymarchDistancePixelsStartEnd = Shader.PropertyToID("_HVSSSCascadeRaymarchDistancePixelsStartEnd");
+        public static readonly int _HVSSSDepthMinMax = Shader.PropertyToID("_HVSSSDepthMinMax");
+        public static readonly int _HVSSSDepthScaleBias = Shader.PropertyToID("_HVSSSDepthScaleBias");
+        public static readonly int _HVSSSThickness = Shader.PropertyToID("_HVSSSThickness");
+        public static readonly int _HVSSSRaymarchLODBiasMinMax = Shader.PropertyToID("_HVSSSRaymarchLODBiasMinMax");
+        public static readonly int _HVSSSDitherMode = Shader.PropertyToID("_HVSSSDitherMode");
     }
 
     // Shared material property names

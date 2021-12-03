@@ -56,25 +56,49 @@ float4 ShadowMoments_Encode16MSM( float depth )
 {
     float dsq = depth * depth;
     float4 moments = { depth, dsq, depth * dsq, dsq * dsq };
-    float4x4 mat = { - 2.07224649  ,  13.7948857237,  0.105877704 ,   9.7924062118,
-                      32.23703778  , -59.4683975703, -1.9077466311, -33.7652110555,
-                     -68.571074599 ,  82.0359750338,  9.3496555107,  47.9456096605,
-                      39.3703274134, -35.364903257 , -6.6543490743, -23.9728048165 };
 
-    float4 optimized     = mul( moments, mat );
-           optimized[0] += 0.035955884801;
+    // float4x4 mat = { - 2.07224649  ,  13.7948857237,  0.105877704 ,   9.7924062118,
+    //                   32.23703778  , -59.4683975703, -1.9077466311, -33.7652110555,
+    //                  -68.571074599 ,  82.0359750338,  9.3496555107,  47.9456096605,
+    //                   39.3703274134, -35.364903257 , -6.6543490743, -23.9728048165 };
 
-    return optimized;
+    // float4 optimized     = mul( moments, mat );
+    //        optimized[0] += 0.035955884801;
+    // return optimized;
+
+    // Use the similarly precise, but more optimial space from:
+    // https://www.jcgt.org/published/0006/01/03/
+    moments.xz = mul(moments.xz, float2x2(1.5, sqrt(3.0) * 0.5, -2.0, -sqrt(3.0) * 2.0 / 9.0)) + 0.5;
+    moments.yw = mul(moments.yw, float2x2(4.0, 0.5, -4.0, 0.5));
+    return moments;
+}
+
+float2x2 ComputeFloat2x2Inverse(float2x2 A)
+{
+    float2x2 C;
+
+    float det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
+    C[0][0] = A[1][1];
+    C[0][1] = -A[0][1];
+    C[1][0] = -A[1][0];
+    C[1][1] = A[0][0];
+
+    return C / det;
 }
 
 float4 ShadowMoments_Decode16MSM( float4 moments )
 {
-    moments[0] -= 0.035955884801;
-    float4x4 mat = { 0.2227744146,  0.1549679261,  0.1451988946,  0.163127443,
-                     0.0771972861,  0.1394629426,  0.2120202157,  0.2591432266,
-                     0.7926986636,  0.7963415838,  0.7258694464,  0.6539092497,
-                     0.0319417555, -0.1722823173, -0.2758014811, -0.3376131734 };
-    return mul( moments, mat );
+    // moments[0] -= 0.035955884801;
+    // float4x4 mat = { 0.2227744146,  0.1549679261,  0.1451988946,  0.163127443,
+    //                  0.0771972861,  0.1394629426,  0.2120202157,  0.2591432266,
+    //                  0.7926986636,  0.7963415838,  0.7258694464,  0.6539092497,
+    //                  0.0319417555, -0.1722823173, -0.2758014811, -0.3376131734 };
+    // return mul( moments, mat );
+
+    moments.xz = mul(moments.xz - 0.5, float2x2(-1.0 / 3.0, -0.75, sqrt(3.0), 0.75 * sqrt(3.0)));
+    moments.yw = mul(moments.yw, float2x2(0.125, -0.125, 1.0, 1.0));
+    moments = lerp(moments, float4(0.0, 0.628, 0.0, 0.628), 6e-2);
+    return moments;
 }
 
 // Note: Don't call this with all moments being equal or 0.0, otherwise this code degenerates into lots of +/-inf calculations
@@ -132,5 +156,32 @@ float ShadowMoments_SolveDelta4MSM( float3 z, float4 b, float lightLeakBias)
     float attenuation = saturate( (b[1] - b[0] + (b[2] - b[0] - (zFree + 1.0) * (b[1] - b[0])) * (zFree - w1Factor - z[0]) / (z[0] * (z[0] - zFree))) / (zFree - w1Factor) + 1.0 - b[0] );
 
     return saturate( ((1.0 - attenuation) - lightLeakBias) / (1.0 - lightLeakBias) );
+}
+
+// https://momentsingraphics.de/Media/I3D2015/MomentShadowMapping.pdf
+// Optimized Moment Quantization: Proposition 6
+float2 ShadowMoments_Encode16VSM(float depth)
+{
+    float dsq = depth * depth;
+    float2 moments = { depth, dsq };
+    float2x2 mat = { 1.0, 4.0,
+                     0.0, -4.0 };
+
+    moments = mul(moments, mat);
+
+    return moments;
+}
+
+float2 ShadowMoments_Decode16VSM(float2 moments)
+{
+    float2x2 mat = { 1.0, 0.0,
+                     4.0, -4.0 };
+
+    float2x2 matInverse = { 1.0, 1.0,
+                            0.0, -0.25 };
+
+    moments = mul(moments, matInverse);
+
+    return moments;
 }
 #endif
