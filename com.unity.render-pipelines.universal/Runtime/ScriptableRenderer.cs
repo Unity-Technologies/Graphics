@@ -224,8 +224,7 @@ namespace UnityEngine.Rendering.Universal
             // Calculate a bias value which corrects the mip lod selection logic when image scaling is active.
             // We clamp this value to 0.0 or less to make sure we don't end up reducing image detail in the downsampling case.
             float mipBias = Math.Min((float)-Math.Log(cameraWidth / scaledCameraWidth, 2.0f), 0.0f);
-            cmd.SetGlobalFloat(ShaderPropertyId.globalMipBias, mipBias);
-            cmd.SetGlobalFloat(ShaderPropertyId.globalMipBiasPow2, Mathf.Pow(2.0f, mipBias));
+            cmd.SetGlobalVector(ShaderPropertyId.globalMipBias, new Vector2(mipBias, Mathf.Pow(2.0f, mipBias)));
 
             //Set per camera matrices.
             SetCameraMatrices(cmd, ref cameraData, true);
