@@ -494,7 +494,6 @@ bool SampleLights(LightList lightList,
             float2 uv = SampleSky(inputSample);
             outgoingDir = MapUVToSkyDirection(uv);
             value = GetSkyValue(outgoingDir);
-            //pdf = GetSkyLightWeight(lightList) * GetSkyPDF(uv);
             pdf = GetSkyLightWeight(lightList) * GetSkyPDFFromValue(value);
 
             shadowOpacity = 1.0;
@@ -588,9 +587,6 @@ void EvaluateLights(LightList lightList,
     {
         float3 skyValue = GetSkyValue(rayDescriptor.Direction);
         value += skyValue;
-
-        //float2 uv = MapSkyDirectionToUV(rayDescriptor.Direction);
-        //pdf += GetSkyLightWeight(lightList) * GetSkyPDF(uv);
         pdf += GetSkyLightWeight(lightList) * GetSkyPDFFromValue(skyValue);
     }
 }
