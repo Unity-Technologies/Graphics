@@ -7,13 +7,13 @@ namespace UnityEngine.Rendering.Universal
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
         {
-            [Reload("Shaders/Autodesk Interactive/AutodeskInteractive.shadergraph")]
+            [Reload("Shaders/AutodeskInteractive/AutodeskInteractive.shadergraph")]
             public Shader autodeskInteractivePS;
 
-            [Reload("Shaders/Autodesk Interactive/AutodeskInteractiveTransparent.shadergraph")]
+            [Reload("Shaders/AutodeskInteractive/AutodeskInteractiveTransparent.shadergraph")]
             public Shader autodeskInteractiveTransparentPS;
 
-            [Reload("Shaders/Autodesk Interactive/AutodeskInteractiveMasked.shadergraph")]
+            [Reload("Shaders/AutodeskInteractive/AutodeskInteractiveMasked.shadergraph")]
             public Shader autodeskInteractiveMaskedPS;
 
             [Reload("Shaders/Terrain/TerrainDetailLit.shader")]
