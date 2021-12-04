@@ -738,6 +738,9 @@ namespace UnityEditor.Rendering
                 }
             }
 
+            /// <summary>
+            /// Dispose of the class
+            /// </summary>
             void IDisposable.Dispose()
             {
                 disabledScope?.Dispose();
@@ -777,6 +780,9 @@ namespace UnityEditor.Rendering
                 EditorGUIUtility.labelWidth -= m_Offset;
             }
 
+            /// <summary>
+            /// Closes the scope
+            /// </summary>
             protected override void CloseScope()
             {
                 EditorGUIUtility.labelWidth += m_Offset;
