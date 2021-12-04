@@ -269,6 +269,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ClearDepth = true;
         [SerializeField] bool m_AllowXRRendering = true;
 
+        [SerializeField] bool m_UseScreenCoordOverride;
         [SerializeField] Vector4 m_ScreenSizeOverride;
         [SerializeField] Vector4 m_ScreenCoordScaleBias;
 
@@ -610,6 +611,14 @@ namespace UnityEngine.Rendering.Universal
             set => m_AllowXRRendering = value;
         }
 
+        /// <summary>
+        /// Returns true if the camera uses Screen Coordinates Override.
+        /// </summary>
+        public bool useScreenCoordOverride
+        {
+            get => m_UseScreenCoordOverride;
+            set => m_UseScreenCoordOverride = value;
+        }
 
         /// <summary>
         /// Screen size used when Screen Coords Override is active.

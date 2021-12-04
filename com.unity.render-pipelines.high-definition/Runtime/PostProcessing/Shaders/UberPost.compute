@@ -9,7 +9,7 @@
 
 #pragma kernel Uber
 
-#pragma multi_compile _ USING_SCREEN_COORD_OVERRIDE
+#pragma multi_compile _ SCREEN_COORD_OVERRIDE
 #pragma multi_compile _ CHROMATIC_ABERRATION
 #pragma multi_compile _ VIGNETTE
 #pragma multi_compile _ LENS_DISTORTION

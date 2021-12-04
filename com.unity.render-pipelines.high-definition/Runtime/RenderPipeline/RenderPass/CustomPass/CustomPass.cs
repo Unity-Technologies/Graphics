@@ -224,6 +224,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var customPass = data.customPass;
 
+                        ScreenCoordOverrideUtils.SetKeyword(ctx.cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenCoordOverride));
+
                         ctx.cmd.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)customPass.injectionPoint);
                         if (customPass.currentRenderTarget.colorBufferRG.IsValid() && customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
                             ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);

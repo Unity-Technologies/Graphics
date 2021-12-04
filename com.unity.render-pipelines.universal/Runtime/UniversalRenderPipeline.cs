@@ -887,6 +887,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.renderer = asset.scriptableRenderer;
+                cameraData.useScreenCoordOverride = false;
                 cameraData.screenSizeOverride = cameraData.pixelRect.size;
                 cameraData.screenCoordScaleBias = k_IndentityScaleBias;
             }
@@ -899,6 +900,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = additionalCameraData.requiresDepthTexture;
                 cameraData.requiresOpaqueTexture = additionalCameraData.requiresColorTexture;
                 cameraData.renderer = additionalCameraData.scriptableRenderer;
+                cameraData.useScreenCoordOverride = additionalCameraData.useScreenCoordOverride;
                 cameraData.screenSizeOverride = additionalCameraData.screenSizeOverride;
                 cameraData.screenCoordScaleBias = additionalCameraData.screenCoordScaleBias;
             }
@@ -910,6 +912,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = settings.supportsCameraDepthTexture;
                 cameraData.requiresOpaqueTexture = settings.supportsCameraOpaqueTexture;
                 cameraData.renderer = asset.scriptableRenderer;
+                cameraData.useScreenCoordOverride = false;
                 cameraData.screenSizeOverride = cameraData.pixelRect.size;
                 cameraData.screenCoordScaleBias = k_IndentityScaleBias;
             }

@@ -39,7 +39,7 @@ float2 NccToNdc(float2 xy, float4 screenCoordScaleBias)
     return xy;
 }
 
-#if defined(USING_SCREEN_COORD_OVERRIDE)
+#if defined(SCREEN_COORD_OVERRIDE)
     #define SCREEN_COORD_APPLY_SCALEBIAS(xy)          ScreenCoordApplyScaleBias(xy, _ScreenCoordScaleBias)
     #define SCREEN_COORD_REMOVE_SCALEBIAS(xy)         ScreenCoordRemoveScaleBias(xy, _ScreenCoordScaleBias)
     #define SCREEN_SIZE_OVERRIDE                     _ScreenSizeOverride

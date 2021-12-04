@@ -106,6 +106,7 @@ namespace UnityEngine.Rendering.Universal
         public RenderTexture targetTexture;
         public RenderTextureDescriptor cameraTargetDescriptor;
         internal Rect pixelRect;
+        internal bool useScreenCoordOverride;
         internal Vector4 screenSizeOverride;
         internal Vector4 screenCoordScaleBias;
         internal int pixelWidth;
