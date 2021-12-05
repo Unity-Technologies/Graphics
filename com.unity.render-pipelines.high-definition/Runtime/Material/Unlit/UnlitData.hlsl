@@ -30,7 +30,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Builtin Data
     ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
-    builtinData.opacity = alpha;
+    builtinData.opacity = lerp(_AlphaRemapMin, _AlphaRemapMax, alpha);
 
 #ifdef _ALPHATEST_ON
     // Used for sharpening by alpha to mask
