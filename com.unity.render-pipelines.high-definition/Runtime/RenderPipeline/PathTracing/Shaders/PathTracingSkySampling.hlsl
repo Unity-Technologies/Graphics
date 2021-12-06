@@ -14,11 +14,11 @@ PTSKY_TEXTURE2D(_PathTracingSkyMarginalTexture);
 uint _PathTracingSkyTextureWidth;
 uint _PathTracingSkyTextureHeight;
 
-int  _RaytracingCameraSkyEnabled;
+int  _PathTracingCameraSkyEnabled;
 
 bool IsSkyEnabled()
 {
-    return _EnvLightSkyEnabled && _RaytracingCameraSkyEnabled;;
+    return _EnvLightSkyEnabled && _PathTracingCameraSkyEnabled;
 }
 
 // Equiareal mapping
@@ -77,12 +77,12 @@ float SampleSkyCDF(PTSKY_TEXTURE2D(cdf), uint size, uint j, float smp)
     {
         if (smp < GetSkyCDF(cdf, half, j))
         {
-            // i is already in the right half
+            // i is already in the right half (lower one)
             half -= offset >> 1;
         }
         else
         {
-            // i has to move to the other half
+            // i has to move to the other half (upper one)
             i += offset;
             half += offset >> 1;
         }

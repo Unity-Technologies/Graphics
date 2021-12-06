@@ -377,7 +377,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, data.lightCluster.GetLightDatas());
 
                         // Global sky data
-                        ctx.cmd.SetGlobalInt(HDShaderIDs._RaytracingCameraSkyEnabled, data.cameraData.skyEnabled ? 1 : 0);
+                        ctx.cmd.SetGlobalInt(HDShaderIDs._PathTracingCameraSkyEnabled, data.cameraData.skyEnabled ? 1 : 0);
                         ctx.cmd.SetGlobalInt(HDShaderIDs._PathTracingSkyTextureWidth, 2 * data.skySize);
                         ctx.cmd.SetGlobalInt(HDShaderIDs._PathTracingSkyTextureHeight, data.skySize);
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, data.skyReflection);
@@ -385,7 +385,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._PathTracingSkyMarginalTexture, data.skyMarginal);
 
                         // Further sky-related data for the ray miss
-                        ctx.cmd.SetRayTracingVectorParam(data.shader, HDShaderIDs._RaytracingCameraClearColor, data.backgroundColor);
+                        ctx.cmd.SetRayTracingVectorParam(data.shader, HDShaderIDs._PathTracingCameraClearColor, data.backgroundColor);
                         ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._SkyCameraTexture, data.skyBG);
 
                         // Data used in the camera ray generation

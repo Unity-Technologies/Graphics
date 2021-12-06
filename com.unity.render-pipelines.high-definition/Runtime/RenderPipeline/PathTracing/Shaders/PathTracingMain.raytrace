@@ -26,7 +26,7 @@
 // Input(s)
 TEXTURE2D_X(_SkyCameraTexture);
 float4x4    _PixelCoordToViewDirWS;
-float4      _RaytracingCameraClearColor;
+float4      _PathTracingCameraClearColor;
 float4      _PathTracingDoFParameters;    // x: aperture radius, y: focus distance, zw: unused
 float4      _PathTracingTilingParameters; // xy: tile count, zw: current tile index
 
@@ -49,7 +49,7 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
         return;
     }
 
-    float4 missColor = IsSkyEnabled() ? GetSkyCameraValue(pathIntersection.pixelCoord) : _RaytracingCameraClearColor;
+    float4 missColor = IsSkyEnabled() ? GetSkyCameraValue(pathIntersection.pixelCoord) : _PathTracingCameraClearColor;
 
     pathIntersection.value = missColor.rgb * GetInverseCurrentExposureMultiplier();
     pathIntersection.alpha = missColor.a;
