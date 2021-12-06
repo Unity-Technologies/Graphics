@@ -349,11 +349,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             ctx.cmd.SetGlobalVectorArray(HDShaderIDs._ShadowFrustumPlanes, shadowRequest.frustumPlanes);
 
-                            // TODO: remove this execute when DrawShadows will use a CommandBuffer
-                            ctx.renderContext.ExecuteCommandBuffer(ctx.cmd);
-                            ctx.cmd.Clear();
-
-                            ctx.renderContext.DrawShadows(ref data.shadowDrawSettings);
+                            var rl = ctx.renderContext.CreateShadowRendererList(ref data.shadowDrawSettings);
+                            // TODO: add all lists to list and PrepareRendererListsAsync outside loop (once shadow async prepare lands)
+                            ctx.cmd.DrawRendererList(rl);
                         }
                         ctx.cmd.SetGlobalFloat(HDShaderIDs._ZClip, 1.0f);   // Re-enable zclip globally
                         ctx.cmd.SetGlobalDepthBias(0.0f, 0.0f);             // Reset depth bias.

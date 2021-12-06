@@ -18,7 +18,7 @@ using UnityEngine.Rendering.VirtualTexturing;
 #endif
 
 // Resove the ambiguity in the RendererList name (pick the in-engine version)
-using RendererList = UnityEngine.Rendering.RendererUtils.RendererList;
+using RendererList = UnityEngine.Rendering.RendererList;
 using RendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDesc;
 
 
