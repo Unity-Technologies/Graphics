@@ -7,14 +7,18 @@ using UnityEditor;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Volume debug settings.
+    /// The volume settings
     /// </summary>
+    /// <typeparam name="T">A <see cref="MonoBehaviour"/> with <see cref="IAdditionalData"/></typeparam>
     public abstract class VolumeDebugSettings<T> : IVolumeDebugSettings
         where T : MonoBehaviour, IAdditionalData
     {
         /// <summary>Current volume component to debug.</summary>
         public int selectedComponent { get; set; } = 0;
 
+        /// <summary>
+        /// The current selected camera index
+        /// </summary>
         protected int m_SelectedCameraIndex = 0;
 
         /// <summary>Selected camera index.</summary>
@@ -102,6 +106,9 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// The list of the additional camera datas
+        /// </summary>
         protected static List<T> additionalCameraDatas { get; private set; } = new List<T>();
 
         /// <summary>
