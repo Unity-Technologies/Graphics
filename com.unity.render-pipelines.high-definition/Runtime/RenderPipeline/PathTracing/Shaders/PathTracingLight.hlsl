@@ -203,7 +203,7 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEF
     }
 
     // And finally the sky light
-    list.skyCount = withDistant && IsSkyEnabled() ? 1 : 0;
+    list.skyCount = withDistant && IsSkyEnabled() && IsSkySamplingEnabled() ? 1 : 0;
 
     // Compute the weights, used for the lights PDF (we split 50/50 between local and distant+sky)
     list.localWeight = list.localCount ? (list.distantCount + list.skyCount ? 0.5 : 1.0) : 0.0;
@@ -880,7 +880,7 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
         }
     }
 
-    uint lightCount = localCount + _DirectionalLightCount + (IsSkyEnabled() ? 1 : 0);
+    uint lightCount = localCount + _DirectionalLightCount + (IsSkyEnabled() && IsSkySamplingEnabled() ? 1 : 0);
 
     return lightCount ? float(localCount) / lightCount : -1.0;
 }

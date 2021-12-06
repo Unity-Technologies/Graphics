@@ -179,6 +179,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector4(apertureRadius, focusDistance, 0.0f, 0.0f);
         }
 
+        private bool IsSkySamplingEnabled(HDCamera hdCamera)
+        {
+            // We only want to importance-sample HDRIs (and not gradient or physically-based skies)
+            var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
+            return visualEnvironment.skyType.value == (int)SkyType.HDRI;
+        }
+
 #if UNITY_EDITOR
 
         private void OnSceneEdit()
@@ -335,7 +342,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.tilingParameters = m_PathTracingSettings.tilingParameters.value;
                 passData.width = hdCamera.actualWidth;
                 passData.height = hdCamera.actualHeight;
-                passData.skySize = m_skySamplingSize;
+                passData.skySize = IsSkySamplingEnabled(hdCamera) ? m_skySamplingSize : 0;
                 passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.lightCluster = RequestLightCluster();
 
@@ -440,7 +447,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Prepares data (CDF) to be able to importance sample the sky afterwards
         void RenderSkySamplingData(RenderGraph renderGraph, HDCamera hdCamera)
         {
-            if (!m_GlobalSettings.renderPipelineRayTracingResources.pathTracingSkySamplingDataCS)
+            if (!m_GlobalSettings.renderPipelineRayTracingResources.pathTracingSkySamplingDataCS || !IsSkySamplingEnabled(hdCamera))
                 return;
 
             using (var builder = renderGraph.AddRenderPass<RenderSkySamplingPassData>("Render Sky Sampling Data for Path Tracing", out var passData))

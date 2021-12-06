@@ -14,13 +14,6 @@ PTSKY_TEXTURE2D(_PathTracingSkyMarginalTexture);
 uint _PathTracingSkyTextureWidth;
 uint _PathTracingSkyTextureHeight;
 
-int  _PathTracingCameraSkyEnabled;
-
-bool IsSkyEnabled()
-{
-    return _EnvLightSkyEnabled && _PathTracingCameraSkyEnabled;
-}
-
 // Equiareal mapping
 float2 MapSkyDirectionToUV(float3 dir)
 {
@@ -63,6 +56,16 @@ float3 MapUVToSkyDirection(float2 uv)
 }
 
 #ifndef COMPUTE_PATH_TRACING_SKY_SAMPLING_DATA
+
+bool IsSkyEnabled()
+{
+    return _EnvLightSkyEnabled;
+}
+
+bool IsSkySamplingEnabled()
+{
+    return _PathTracingSkyTextureWidth;
+}
 
 float GetSkyCDF(PTSKY_TEXTURE2D(cdf), uint i, uint j)
 {

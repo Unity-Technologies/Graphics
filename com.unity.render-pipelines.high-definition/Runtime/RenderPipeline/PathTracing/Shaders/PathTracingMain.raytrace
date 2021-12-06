@@ -26,6 +26,7 @@
 // Input(s)
 TEXTURE2D_X(_SkyCameraTexture);
 float4x4    _PixelCoordToViewDirWS;
+int         _PathTracingCameraSkyEnabled;
 float4      _PathTracingCameraClearColor;
 float4      _PathTracingDoFParameters;    // x: aperture radius, y: focus distance, zw: unused
 float4      _PathTracingTilingParameters; // xy: tile count, zw: current tile index
@@ -35,7 +36,7 @@ RW_TEXTURE2D_X(float4, _FrameTexture);
 
 float4 GetSkyCameraValue(uint2 xy)
 {
-    return _SkyCameraTexture[COORD_TEXTURE2D_X(xy)];
+    return IsSkyEnabled() && _PathTracingCameraSkyEnabled ? _SkyCameraTexture[COORD_TEXTURE2D_X(xy)] : _PathTracingCameraClearColor;
 }
 
 [shader("miss")]
@@ -49,7 +50,7 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
         return;
     }
 
-    float4 missColor = IsSkyEnabled() ? GetSkyCameraValue(pathIntersection.pixelCoord) : _PathTracingCameraClearColor;
+    float4 missColor = GetSkyCameraValue(pathIntersection.pixelCoord);
 
     pathIntersection.value = missColor.rgb * GetInverseCurrentExposureMultiplier();
     pathIntersection.alpha = missColor.a;
@@ -92,7 +93,14 @@ void MissLight(inout PathIntersection pathIntersection : SV_RayPayload)
 [shader("miss")]
 void MissMaterial(inout PathIntersection pathIntersection : SV_RayPayload)
 {
-    pathIntersection.value = 0.0;
+    if (IsSkySamplingEnabled() || (_RaytracingMaxRecursion - pathIntersection.remainingDepth) < _RaytracingMinRecursion)
+    {
+        pathIntersection.value = 0.0;
+        return;
+    }
+
+    pathIntersection.value = IsSkyEnabled() ? GetSkyValue(WorldRayDirection()) : 0.0;
+    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value);
 }
 
 void ApplyDepthOfField(uint2 pixelCoord, float dotDirection, inout float3 origin, inout float3 direction)
