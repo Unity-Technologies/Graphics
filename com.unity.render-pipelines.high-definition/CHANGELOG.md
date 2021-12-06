@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
 - Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
 - The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
+- Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
