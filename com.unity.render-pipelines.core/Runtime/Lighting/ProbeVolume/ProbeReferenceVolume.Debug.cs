@@ -3,12 +3,27 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
+    /// <summary>
+    /// Modes for Debugging Probes
+    /// </summary>
     [GenerateHLSL]
     public enum DebugProbeShadingMode
     {
+        /// <summary>
+        /// Based on Spherical Harmonics
+        /// </summary>
         SH,
+        /// <summary>
+        /// Based on validity
+        /// </summary>
         Validity,
+        /// <summary>
+        /// Based on validity over a dilation threshold
+        /// </summary>
         ValidityOverDilationThreshold,
+        /// <summary>
+        /// Based on size
+        /// </summary>
         Size
     }
 
@@ -58,8 +73,9 @@ namespace UnityEngine.Experimental.Rendering
         internal Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>> realtimeSubdivisionInfo = new Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>>();
 
         /// <summary>
-        /// Render Probe Volume related debug
+        ///  Render Probe Volume related debug
         /// </summary>
+        /// <param name="camera">The <see cref="Camera"/></param>
         public void RenderDebug(Camera camera)
         {
             if (camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)
