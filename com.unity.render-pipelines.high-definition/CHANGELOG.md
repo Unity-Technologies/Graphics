@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed contact shadow disappearing when shadowmask is used and no non-static object is available.
 - Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
 - Fixed for changes of color curves not being applied immediately.
-- Fix for unsupported material properties show when rendering pass is Low Resolution.
+- Fixed unsupported material properties show when rendering pass is Low Resolution.
 
 ## [13.1.2] - 2021-11-05
 
