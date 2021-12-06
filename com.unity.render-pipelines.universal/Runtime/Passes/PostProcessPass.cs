@@ -99,6 +99,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         // RTHandle used as a temporary target when operations need to be performed after upscaling
         RTHandle m_UpscaledTarget;
 
+        // True if there are passes that will run after post processing logic and before final post
+        bool m_hasExternalPostPasses;
+
         Material m_BlitMaterial;
 
         public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
@@ -160,7 +163,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_UpscaledTarget?.Release();
         }
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, bool resolveToScreen, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, bool resolveToScreen, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion, bool hasExternalPostPasses)
         {
             m_Descriptor = baseDescriptor;
             m_Descriptor.useMipMap = false;
@@ -174,9 +177,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ResolveToScreen = resolveToScreen;
             m_Destination = k_CameraTarget;
             m_UseSwapBuffer = true;
+            m_hasExternalPostPasses = hasExternalPostPasses;
         }
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, RTHandle destination, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RTHandle source, RTHandle destination, in RTHandle depth, in RTHandle internalLut, bool hasFinalPass, bool enableSRGBConversion, bool hasExternalPostPasses)
         {
             m_Descriptor = baseDescriptor;
             m_Descriptor.useMipMap = false;
@@ -189,9 +193,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_HasFinalPass = hasFinalPass;
             m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
             m_UseSwapBuffer = false;
+            m_hasExternalPostPasses = hasExternalPostPasses;
         }
 
-        public void SetupFinalPass(in RTHandle source, bool useSwapBuffer = false)
+        public void SetupFinalPass(in RTHandle source, bool useSwapBuffer = false, bool hasExternalPostPasses = true)
         {
             m_Source = source;
             m_Destination = k_CameraTarget;
@@ -199,6 +204,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_HasFinalPass = false;
             m_EnableSRGBConversionIfNeeded = true;
             m_UseSwapBuffer = useSwapBuffer;
+            m_hasExternalPostPasses = hasExternalPostPasses;
         }
 
         /// <inheritdoc/>
@@ -513,6 +519,22 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (RequireSRGBConversionBlitToBackBuffer(cameraData))
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
+
+                // When we're running FSR upscaling and there's no passes after this (including the FXAA pass), we can safely perform color conversion as part of uber post
+
+                // When FSR is active, we're required to provide it with input in a perceptual color space. Ideally, we can just do the color conversion as part of UberPost
+                // since FSR will *usually* be executed right after it. Unfortunately, there are a couple of situations where this is not true:
+                // 1. It's possible for users to add their own passes between UberPost and FinalPost. When user passes are present, we're unable to perform the conversion
+                //    here since it'd change the color space that the passes operate in which could lead to incorrect results.
+                // 2. When FXAA is enabled with FSR, FXAA is moved to an earlier pass to ensure that FSR sees fully anti-aliased input. The moved FXAA pass sits between
+                //    UberPost and FSR so we can no longer perform color conversion here without affecting other passes.
+                bool doEarlyFsrColorConversion = (!m_hasExternalPostPasses                                                                                           &&
+                                                  (((cameraData.imageScaling == ImageScaling.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR)) &&
+                                                   (cameraData.antialiasing != AntialiasingMode.FastApproximateAntialiasing)));
+                if (doEarlyFsrColorConversion)
+                {
+                    m_Materials.uber.EnableKeyword(ShaderKeywordStrings.Gamma20);
+                }
 
                 if (m_UseFastSRGBLinearConversion)
                 {
@@ -1406,10 +1428,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // FSR is only considered "enabled" when we're performing upscaling. (downscaling uses a linear filter unconditionally)
                 bool isFsrEnabled = ((cameraData.imageScaling == ImageScaling.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
 
+                bool doLateFsrColorConversion = (isFsrEnabled && (isFxaaEnabled || m_hasExternalPostPasses));
+
                 // When FXAA is enabled in scaled renders, we execute it in a separate blit since it's not designed to be used in
                 // situations where the input and output resolutions do not match.
-                // When FSR is active we perform color conversion as part of the setup blit.
-                bool isSetupRequired = (isFxaaEnabled || isFsrEnabled);
+                // When FSR is active and we didn't perform color conversion earlier, we do it now as part of the setup blit.
+                bool isSetupRequired = (isFxaaEnabled || doLateFsrColorConversion);
 
                 // Make sure to remove any MSAA and attached depth buffers from the temporary render targets
                 var tempRtDesc = cameraData.cameraTargetDescriptor;
@@ -1427,7 +1451,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         m_Materials.upscaleSetup.EnableKeyword(ShaderKeywordStrings.Fxaa);
                     }
 
-                    if (isFsrEnabled)
+                    if (doLateFsrColorConversion)
                     {
                         m_Materials.upscaleSetup.EnableKeyword(ShaderKeywordStrings.Gamma20);
                     }
