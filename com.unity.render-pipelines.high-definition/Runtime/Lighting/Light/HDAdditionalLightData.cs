@@ -1979,6 +1979,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public delegate Matrix4x4 CustomViewCallback(Matrix4x4 lightLocalToWorldMatrix);
+        public CustomViewCallback CustomViewCallbackEvent;
+
         void OnDestroy()
         {
             if (lightIdxForCachedShadows >= 0) // If it is within the cached system we need to evict it.
@@ -2224,6 +2227,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         out shadowRequest.view, out invViewProjection, out shadowRequest.projection,
                         out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
                     );
+					if (CustomViewCallbackEvent != null)
+                    {
+						shadowRequest.view = CustomViewCallbackEvent(visibleLight.localToWorldMatrix);
+					}
                     break;
                 case HDLightType.Directional:
                     UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, shadowIndex, lightIndex, cameraPos, shadowRequest, out invViewProjection);
