@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added new DebugUI widget types: ProgressBarValue and ValueTuple
 - Added common support code for FSR.
 - Added new `RenderPipelineGlobalSettingsProvider` to help adding a settings panel for editing global settings.
+- Added blending for curves in post processing volumes.
 
 ## [13.1.0] - 2021-09-24
 
