@@ -9,10 +9,11 @@
 
 #undef SHADEROPTIONS_CAMERA_RELATIVE_RENDERING
 
+// Define the correct matrices
 #ifndef UNITY_DOTS_INSTANCING_ENABLED
 
-#undef unity_MatrixPreviousM
 #undef unity_ObjectToWorld
+#undef unity_MatrixPreviousM
 
 #undef UNITY_MATRIX_M
 #define UNITY_MATRIX_M unity_ObjectToWorld
@@ -28,7 +29,6 @@
 
 #endif
 
-// Define the correct matrices
 #undef unity_MatrixVP
 float4x4 unity_MatrixV;
 float4x4 unity_MatrixVP;
