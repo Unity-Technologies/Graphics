@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine.Profiling;
 
+
 namespace UnityEngine.Rendering.Universal
 {
     internal class Render2DLightingPass : ScriptableRenderPass, IRenderPass2D
@@ -167,7 +168,10 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
+                var rl = context.CreateRendererList(ref param);
+                context.PrepareRendererListsAsync(new List<RendererList> { rl });
+                cmd.DrawRendererList(rl);
             }
         }
 

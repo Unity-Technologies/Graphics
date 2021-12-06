@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
+
 namespace UnityEngine.Rendering.Universal
 {
     internal class DecalPreviewPass : ScriptableRenderPass
@@ -25,13 +26,14 @@ namespace UnityEngine.Rendering.Universal
             SortingCriteria sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags;
             DrawingSettings drawingSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
 
+            var param = new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings);
+            var rl = context.CreateRendererList(ref param);
+            context.PrepareRendererListsAsync(new List<RendererList> { rl });
+
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
-                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings);
+                cmd.DrawRendererList(rl);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

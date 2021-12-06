@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
+using RendererList = UnityEngine.Rendering.RendererList;
+
 namespace UnityEngine.Rendering.Universal
 {
     internal static class RendererLighting
@@ -506,11 +508,12 @@ namespace UnityEngine.Rendering.Universal
                 else
                     CoreUtils.SetRenderTarget(cmd, pass.rendererData.normalsRenderTarget, RenderBufferLoadAction.DontCare, storeAction, clearFlag, k_NormalClearColor);
 
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
                 drawSettings.SetShaderPassName(0, k_NormalsRenderingPassName);
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+
+                var param = new RendererListParams(renderingData.cullResults, drawSettings, filterSettings);
+                var rl = context.CreateRendererList(ref param);
+                context.PrepareRendererListsAsync(new List<RendererList> { rl });
+                cmd.DrawRendererList(rl);
             }
         }
 

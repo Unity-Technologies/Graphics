@@ -1,3 +1,5 @@
+using UnityEngine.Rendering.RendererUtils;
+
 namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
@@ -30,6 +32,42 @@ namespace UnityEngine.Rendering.Universal
                     return;
                 }
             }
+
+            RendererList rl;
+
+            if (cameraData.xr.enabled)
+            {
+                // Setup Legacy XR buffer states
+                if (cameraData.xr.singlePassEnabled)
+                {
+                    rl = context.CreateSkyboxRendererList(camera,
+                        cameraData.GetProjectionMatrix(0), cameraData.GetViewMatrix(0),
+                        cameraData.GetProjectionMatrix(1),cameraData.GetViewMatrix(1));
+
+                }
+                else
+                {
+                    rl = context.CreateSkyboxRendererList(camera, cameraData.GetProjectionMatrix(0), cameraData.GetViewMatrix(0));
+                }
+            }
+            else
+                rl = context.CreateSkyboxRendererList(camera);
+
+
+            var cmd = CommandBufferPool.Get();
+
+            if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
+                cmd.SetSinglePassStereo(SystemInfo.supportsMultiview ? SinglePassStereoMode.Multiview : SinglePassStereoMode.Instancing);
+
+            cmd.DrawRendererList(rl);
+
+            if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
+                cmd.SetSinglePassStereo(SinglePassStereoMode.None);
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+
+            #if false
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             // XRTODO: Remove this code once Skybox pass is moved to SRP land.
@@ -82,8 +120,9 @@ namespace UnityEngine.Rendering.Universal
             else
 #endif
             {
-                context.DrawSkybox(camera);
+              //  context.DrawSkybox(camera);
             }
+            #endif
         }
     }
 }

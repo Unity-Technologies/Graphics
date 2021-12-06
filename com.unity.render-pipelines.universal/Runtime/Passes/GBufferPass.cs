@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
@@ -138,7 +139,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(m_ShaderTagValues, Allocator.Temp);
                 NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(m_RenderStateBlocks, Allocator.Temp);
 
-                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, universalMaterialTypeTag, false, tagValues, stateBlocks);
+
+                var param = new RendererListParams(renderingData.cullResults, drawingSettings, m_FilteringSettings)
+                {
+                    tagValues =  tagValues,
+                    stateBlocks = stateBlocks
+                };
+
+                var rl = context.CreateRendererList(ref param);
+                context.PrepareRendererListsAsync(new List<RendererList> { rl });
+                gbufferCommands.DrawRendererList(rl);
 
                 tagValues.Dispose();
                 stateBlocks.Dispose();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using RendererList = UnityEngine.Rendering.RendererList;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -73,10 +74,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var drawSettings = CreateDrawingSettings(this.shaderTagIds, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
 
-                ref CameraData cameraData = ref renderingData.cameraData;
-                Camera camera = cameraData.camera;
-
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
+                var param = new RendererListParams(renderingData.cullResults, drawSettings, m_FilteringSettings);
+                var rl = context.CreateRendererList(ref param);
+                context.PrepareRendererListsAsync(new List<RendererList> { rl });
+                cmd.DrawRendererList(rl);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
