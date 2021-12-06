@@ -2,9 +2,9 @@
 
 Path tracing is a ray tracing algorithm that sends rays from the Camera and, when a ray hits a reflective or refractive surface, recurses the process until it reaches a light source. The series of rays from the Camera to the Light form a "path".
 
-It enables HDRP to compute many different effects (such as hard or soft shadows, mirror or glossy reflections and refractions, and indirect illumination) in one single unified process.
+It enables HDRP to compute various effects (such as hard or soft shadows, mirror or glossy reflections and refractions, and indirect illumination) in a single unified process.
 
-A notable downside to path tracing is noise. However, noise vanishes as more paths accumulate, and eventually converges toward a clean image. For more information about path tracing limitations in HDRP, see [Unsupported features of path tracing](Ray-Tracing-Getting-Started.md#unsupported-features-of-path-tracing).
+A notable downside to path tracing is noise. Noise vanishes as more paths accumulate and converges toward a clean image. For more information about path tracing limitations in HDRP, see [Unsupported features of path tracing](Ray-Tracing-Getting-Started.md#unsupported-features-of-path-tracing).
 
 ![](Images/RayTracingPathTracing1.png)
 
@@ -52,37 +52,67 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 **Minimum Depth** set to 2, **Maximum Depth** set to 2: indirect lighting only (1 bounce)
 
-## Materials parameterization
+## Setting path tracing parameters for Materials
 
-Some phenomena like refraction, absorption in transmissive objects, or subsurface scattering, can be expressed more naturally in a path tracing setting than in its rasterized counterpart, and as such require less material parameters (e.g. additional thickness information, expected shape of the refractive object, ...). For that reason, some parameters have no effect in path tracing, while others bear a slightly different meaning.
+Path tracing in HDRP makes your scene appear more realistic. To do this, path tracing implements more precise light transport simulations than rasterization. The result is more realistic effects, especially for:
 
-### Refraction model
+- Light refraction in transmissive objects.
+- Light absorption in transmissive objects.
+- Subsurface scattering.
 
-In the Lit family of materials, when the surface type is set to *Transparent*, you can select between *None*, *Box*, *Sphere* or *Thin* refraction models.
+Rasterization uses separate methods to approximate lighting effects, which require multiple Material parameters. Path tracing computes all lighting effects and how light interacts with Materials at the same time, which means Materials in your scene need fewer Material parameters.
 
-For path tracing, the distinction between *Box* or *Sphere* makes no sense (as rays can intersect the real objects in the scene), and both effectively carry the common meaning of a *thick* mode, to be used on solid objects represented by a closed surface. On the other hand, *Thin* conveys the same idea as its rasterized version, and *None* is a special case of thin refractive surface, hardcoded to be fully smooth to simulate alpha blending. Additionally, transparent surfaces should be *Double-Sided*, so that they get intersected from both sides, and normal mode should be selected appropriately for each situation, as described right below.
+Some parameters have no effect when you use path tracing, and path tracing also changes how a Lit Material’s refraction model behaves. For more information, see [Refraction models](#refraction-models).
 
-| Refraction model  | Path tracing meaning                              | Surface sidedness                                 |
-|-------------------|---------------------------------------------------|---------------------------------------------------|
-| *Box* or *Sphere* | *Thick* object (e.g magnifying paperweight)       | Double sided, with *None* normal mode             |
-| *Thin*            | *Thin* object (e.g soap bubble or window)         | Double sided, with *Flip* or *Mirror* normal mode |
-| *None*            | *Thin* object, with smoothness = 1 and no Fresnel | Double sided, with *Flip* or *Mirror* normal mode |
+## How to enable path tracing on a Material
 
-The reason why normal mode should be set to *None* for *thick* objects, is that we want the intersection with a front normal to represent entering the medium (say, from air into glass), but also the back normal to represent leaving it.
+Path tracing only works on [Lit materials](Lit-Shader.md).
 
-### Subsurface scattering
+For path tracing to appear on a Lit Material, configure the following settings (pictured below): 
 
-In path tracing, the *Transmission* option of subsurface scattering will only take effect if the surface is also set to be *Double-Sided* (any normal mode will do), in which case it will receive light from both sides.
+1. Set the [**Surface type]**(Surface-Type.md) property to **Transparent** (A)**.**
+2. Set the surface Material to **Double-Sided** (C)**.**
 
-Here is an example of a sheet of fabric, lit from below by a point light:
+For surface types that represent solid objects like a crystal ball, set the **Normal mode** to **None** (C). This allows the ray to intersect with a front [normal](https://en.wikipedia.org/wiki/Normal_(geometry)) to represent entering the medium (for example, from air into glass), and then back normal to represent leaving it.
+
+![Surface_Options](Images/Surface_Options.png)
+
+<a name="refraction-models"></a>
+
+## How path tracing affects refraction models
+
+Path tracing changes the way refraction models on a Lit Material behave. 
+
+To change the type of refraction model a Lit Material uses, in the **Transparency Inputs** section, select a model from the **Refraction model** dropdown, displayed in the following image:
+
+![Refraction_model](C:\Users\Vic Cooper\Documents\GitHub\Graphics\com.unity.render-pipelines.high-definition\Documentation~\Images\Refraction_model.png)
+
+The following table describes how each refraction model behaves when you enable path tracing:
+
+| **Refraction model**   | **Path tracing behavior**                                    | **Compatible Surface sides**                                 |
+| ---------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **Box** and **Sphere** | A surface type that represents thick objects like a paperweight or a crystal ball.When you enable path tracing, the **Box** and **Sphere** models behave in the same way. Rays can intersect the GameObjects in the scene and HDRP does not need to approximate transparent surfaces | This refraction model is compatible with a double-sided Material that has its **Normal mode** set to **None**. |
+| **Thin**               | A thin surface type with [infinitesimal](<https://en.wikipedia.org/wiki/Infinitesimal>) thickness. Select this for thin, window-like surfaces.  When you enable path tracing, the behavior of the **Thin** refraction model behaves the same as in rasterization. | This refraction model is compatible with a double-sided Material that has its **Normal mode** set to  **Flip** or **Mirror**. |
+| **None**               | A thin, refractive surface hardcoded to be smooth to simulate alpha blending. When you enable path tracing, the behavior of the **None** refraction model behaves the same as in rasterization. | This refraction model is compatible with a double-sided Material that has its **Normal mode** set to  **Flip** or **Mirror**. |
+
+### Path tracing and subsurface scattering
+
+To use [subsurface scattering's](Subsurface-Scattering.md) **Transmission** property (A) with path tracing:
+
+1. Open the **Surface Options** window.
+2. Enable the **Double-Sided** property (B). 
+
+![Surface_Options_B](Images/Surface_Options_B.png)
+
+The following example images display a sheet of fabric lit from below by a point light. The first image shows a single-sided surface, and the second shows a double-sided surface:
 
 ![](Images/Path-traced-SSS-Single-sided.png)
 
-Single-sided or no Transmission
+A single-sided surface with no transmission.
 
 ![](Images/Path-traced-SSS-Double-sided.png)
 
-Double-sided + Transmission
+A double-sided surface with transmission.
 
 ### Hair
 
