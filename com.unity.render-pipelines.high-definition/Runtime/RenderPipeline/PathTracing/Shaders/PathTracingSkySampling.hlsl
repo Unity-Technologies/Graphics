@@ -4,8 +4,7 @@
 #ifdef COMPUTE_PATH_TRACING_SKY_SAMPLING_DATA
 #define PTSKY_TEXTURE2D(name) RW_TEXTURE2D(float, name)
 #else
-//#define PTSKY_TEXTURE2D(name) TEXTURE2D(name)
-#define PTSKY_TEXTURE2D(name) Texture2D<float> name // FIXME
+#define PTSKY_TEXTURE2D(name) TEXTURE2D(name)
 #endif
 
 PTSKY_TEXTURE2D(_PathTracingSkyCDFTexture);
