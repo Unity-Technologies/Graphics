@@ -6,9 +6,9 @@ using UnityEngine;
 namespace UnityEditor.Rendering.Universal
 {
     /// <summary>
-    /// Enum for filtering the list of converters in batch mode./>
-    /// See also <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId, List{UnityEditor.Rendering.Universal.ConverterId}, UnityEditor.Rendering.Universal.ConverterFilter)"/>.)
+    /// Filter for the list of converters used in batch mode.
     /// </summary>
+    /// <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId, List{UnityEditor.Rendering.Universal.ConverterId}, UnityEditor.Rendering.Universal.ConverterFilter)"/>.)
     public enum ConverterFilter
     {
         Inclusive,
@@ -16,9 +16,9 @@ namespace UnityEditor.Rendering.Universal
     }
 
     /// <summary>
-    /// Enum for which container to run in batch mode./>
-    /// See also <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId)"/>.)
+    /// The container to run in batch mode.
     /// </summary>
+    /// <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId)"/>.)
     public enum ConverterContainerId
     {
         BuiltInToURP,
@@ -27,9 +27,9 @@ namespace UnityEditor.Rendering.Universal
     }
 
     /// <summary>
-    /// Enum for which converter to run in batch mode./>
-    /// See also <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId, List{UnityEditor.Rendering.Universal.ConverterId}, UnityEditor.Rendering.Universal.ConverterFilter)"/>.)
+    /// The converter to run in batch mode.
     /// </summary>
+    /// <seealso cref="Converters.RunInBatchMode(UnityEditor.Rendering.Universal.ConverterContainerId, List{UnityEditor.Rendering.Universal.ConverterId}, UnityEditor.Rendering.Universal.ConverterFilter)"/>.)
     public enum ConverterId
     {
         Material,
