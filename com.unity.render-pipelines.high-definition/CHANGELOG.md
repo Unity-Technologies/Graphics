@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a warning because of a null texture in the lens flare pass.
 - Fixed a nullref when enabling raycount without ray tracing.
 - Fixed error thrown when layered lit material has an invalid material type.
+- Fixed rendering in the editor when an incompatible API is added (case 1384634).
 
 ## [13.1.2] - 2021-11-05
 
