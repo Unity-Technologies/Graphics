@@ -665,22 +665,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.GenerateMips(dest);
         }
 
-        internal void RenderSkyOnlyToCubemap(CommandBuffer commandBuffer, RTHandle outputCubemap, bool includeSunInBaking, SkyRenderer skyRenderer)
-        {
-            for (int i = 0; i < 6; ++i)
-            {
-                m_BuiltinParameters.commandBuffer = commandBuffer;
-                m_BuiltinParameters.pixelCoordToViewDirMatrix = m_facePixelCoordToViewDirMatrices[i];
-                m_BuiltinParameters.viewMatrix = m_CameraRelativeViewMatrices[i];
-                m_BuiltinParameters.colorBuffer = outputCubemap;
-                m_BuiltinParameters.depthBuffer = null;
-                m_BuiltinParameters.cubemapFace = (CubemapFace)i;
-
-                CoreUtils.SetRenderTarget(m_BuiltinParameters.commandBuffer, outputCubemap, ClearFlag.None, 0, (CubemapFace)i);
-                skyRenderer.RenderSky(m_BuiltinParameters, true, includeSunInBaking);
-            }
-        }
-
         class RenderSkyToCubemapPassData
         {
             public BuiltinSkyParameters builtinParameters = new BuiltinSkyParameters();
@@ -697,6 +681,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<RenderSkyToCubemapPassData>("RenderSkyToCubemap", out var passData, ProfilingSampler.Get(HDProfileId.RenderSkyToCubemap)))
             {
                 m_BuiltinParameters.CopyTo(passData.builtinParameters);
+                passData.builtinParameters.skySettings = skyContext.skySettings;
                 passData.skyRenderer = skyContext.skyRenderer;
                 passData.cloudRenderer = renderCloudLayers ? skyContext.cloudRenderer : null;
                 passData.cameraViewMatrices = m_CameraRelativeViewMatrices;
@@ -706,23 +691,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 builder.SetRenderFunc(
                 (RenderSkyToCubemapPassData data, RenderGraphContext ctx) =>
-            {
-                data.builtinParameters.commandBuffer = ctx.cmd;
-
-                for (int i = 0; i < 6; ++i)
                 {
-                    data.builtinParameters.pixelCoordToViewDirMatrix = data.facePixelCoordToViewDirMatrices[i];
-                    data.builtinParameters.viewMatrix = data.cameraViewMatrices[i];
-                    data.builtinParameters.colorBuffer = data.output;
-                    data.builtinParameters.depthBuffer = null;
-                    data.builtinParameters.cubemapFace = (CubemapFace)i;
+                    data.builtinParameters.commandBuffer = ctx.cmd;
 
-                    CoreUtils.SetRenderTarget(ctx.cmd, data.output, ClearFlag.None, 0, (CubemapFace)i);
-                    data.skyRenderer.RenderSky(data.builtinParameters, true, data.includeSunInBaking);
-                    if (data.cloudRenderer != null)
-                        data.cloudRenderer.RenderClouds(data.builtinParameters, true);
-                }
-            });
+                    for (int i = 0; i < 6; ++i)
+                    {
+                        data.builtinParameters.pixelCoordToViewDirMatrix = data.facePixelCoordToViewDirMatrices[i];
+                        data.builtinParameters.viewMatrix = data.cameraViewMatrices[i];
+                        data.builtinParameters.colorBuffer = data.output;
+                        data.builtinParameters.depthBuffer = null;
+                        data.builtinParameters.cubemapFace = (CubemapFace)i;
+
+                        CoreUtils.SetRenderTarget(ctx.cmd, data.output, ClearFlag.None, 0, (CubemapFace)i);
+                        data.skyRenderer.RenderSky(data.builtinParameters, true, data.includeSunInBaking);
+                        if (data.cloudRenderer != null)
+                            data.cloudRenderer.RenderClouds(data.builtinParameters, true);
+                    }
+                });
 
                 return passData.output;
             }
