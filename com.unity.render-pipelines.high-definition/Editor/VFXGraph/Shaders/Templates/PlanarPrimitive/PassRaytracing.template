@@ -66,9 +66,10 @@
             void IntersectionShader()
             {
                 AABB particleAABB = aabbBuffer[PrimitiveIndex()];
-                float3 aabbPos = (particleAABB.boxMin + particleAABB.boxMax) * 0.5f - _WorldSpaceCameraPos;
-                float3 aabbSize = particleAABB.boxMax - particleAABB.boxMin;
-
+                float3 boxMin = TransformObjectToWorld(particleAABB.boxMin);
+                float3 boxMax = TransformObjectToWorld(particleAABB.boxMax); //Works for non rotated effects
+                float3 aabbPos = (boxMin + boxMax) * 0.5f;
+                float3 aabbSize = boxMax - boxMin;
                 float outHitT = 0;
 
                 if (RayBoxIntersectionTest(WorldRayOrigin(), WorldRayDirection(), aabbPos, aabbSize * 0.5, outHitT))
@@ -76,12 +77,6 @@
                     AttributeData attributeData;
                     attributeData.barycentrics = float2(0.5, 0.5);
                     ReportHit(outHitT, 0, attributeData);
-                }
-                else // intersection seems to always fail there ^^^^
-                {
-                    AttributeData attributeData;
-                    attributeData.barycentrics = float2(0.5, 0.5);
-                    ReportHit(0.0f, 0, attributeData);
                 }
             }
             ENDHLSL
