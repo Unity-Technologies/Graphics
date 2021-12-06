@@ -32,7 +32,11 @@ Extra_Lightmapping_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    dependencies: []
+    dependencies:
+      -  path: .yamato/lightmapping-osx_apple_silicon-metal.yml#Lightmapping_OSX_Apple_Silicon_Metal_editmode_mono_Linear_trunk
+         rerun: on_new_revision
+      -  path: .yamato/lightmapping-osx_apple_silicon-metal.yml#Lightmapping_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk
+         rerun: on_new_revision
 Lightmapping_trunk:
     name: Lightmapping on trunk
     variables:
@@ -70,7 +74,11 @@ Extra_Lightmapping_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
-    dependencies: []
+    dependencies:
+      -  path: .yamato/lightmapping-osx_apple_silicon-metal.yml#Lightmapping_OSX_Apple_Silicon_Metal_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/lightmapping-osx_apple_silicon-metal.yml#Lightmapping_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION
+         rerun: on_new_revision
 Lightmapping_CUSTOM-REVISION:
     name: Lightmapping on CUSTOM-REVISION
     variables:
