@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unsupported material properties show when rendering pass is Low Resolution.
 - Fixed FOV change when enabling physical camera.
 - Fixed spot light shadows near plane
+- Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
 
 ## [13.1.3] - 2021-11-17
 
