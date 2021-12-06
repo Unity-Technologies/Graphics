@@ -1,7 +1,7 @@
 Shader "Hidden/Universal Render Pipeline/Edge Adaptive Spatial Upsampling"
 {
     HLSLINCLUDE
-        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
+        #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
@@ -39,6 +39,9 @@ Shader "Hidden/Universal Render Pipeline/Edge Adaptive Spatial Upsampling"
 
     ENDHLSL
 
+    /// Shader that performs the EASU (upscaling) component of the two part FidelityFX Super Resolution technique
+    /// The second part of the technique (RCAS) is handled in the FinalPost shader
+    /// Note: This shader requires shader target 4.5 because it relies on texture gather instructions
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}

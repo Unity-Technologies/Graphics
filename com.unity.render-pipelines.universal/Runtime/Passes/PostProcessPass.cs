@@ -1582,7 +1582,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 paniniProjection = Load(data.shaders.paniniProjectionPS);
                 bloom = Load(data.shaders.bloomPS);
                 upscaleSetup = Load(data.shaders.upscaleSetupPs);
-                easu = Load(data.shaders.easuPs);
+                easu = Load(data.shaders.easuPS);
                 uber = Load(data.shaders.uberPostPS);
                 finalPass = Load(data.shaders.finalPostPassPS);
                 lensFlareDataDriven = Load(data.shaders.LensFlareDataDrivenPS);

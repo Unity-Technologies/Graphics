@@ -102,6 +102,8 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
 
     ENDHLSL
 
+    /// Standard FinalPost shader variant with support for FSR
+    /// Note: FSR requires shader target 4.5 because it relies on texture gather instructions
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
@@ -120,7 +122,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         }
     }
 
-    // Fallback shader with no support for FSR
+    /// Fallback version of FinalPost shader which lacks support for FSR
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
