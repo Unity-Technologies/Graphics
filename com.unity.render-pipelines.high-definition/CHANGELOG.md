@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
 - The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
 - Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
+- Enabled Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
