@@ -27,6 +27,10 @@ namespace UnityEditor.Rendering
         Editor m_Editor;
         RenderPipelineGlobalSettings renderPipelineSettings => GraphicsSettings.GetSettingsForRenderPipeline<TRenderPipeline>();
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="v">The path of the settings</param>
         public RenderPipelineGlobalSettingsProvider(string v)
             : base(v, SettingsScope.Project)
         {
@@ -79,11 +83,15 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Creates a new <see cref="RenderPipelineGlobalSettings"/> asset
         /// </summary>
+        /// <param name="useProjectSettingsFolder">If the asset should be created on the project settings folder</param>
+        /// <param name="activateAsset">if the asset should be shown on the inspector</param>
         protected abstract void Create(bool useProjectSettingsFolder, bool activateAsset);
 
         /// <summary>
         /// Clones the <see cref="RenderPipelineGlobalSettings"/> asset
         /// </summary>
+        /// <param name="src">The <see cref="RenderPipelineGlobalSettings"/> to clone.</param>
+        /// <param name="activateAsset">if the asset should be shown on the inspector.</param>
         protected abstract void Clone(RenderPipelineGlobalSettings src, bool activateAsset);
 
         /// <summary>
