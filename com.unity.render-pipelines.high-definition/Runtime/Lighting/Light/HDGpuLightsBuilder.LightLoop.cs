@@ -268,7 +268,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Raise the ray tracing flag in case the light is ray traced
                     if (willRenderRtShadows)
+                    {
                         lightData.screenSpaceShadowIndex |= (int)LightDefinitions.s_RayTracedScreenSpaceShadowFlag;
+                        // If we are rendering ray traced shadows we disable shadow mask.
+                        lightData.shadowMaskSelector.x = -1.0f;
+                    }
 
                     m_ScreenSpaceShadowChannelSlot++;
                     m_ScreenSpaceShadowsUnion.Add(additionalLightData);
