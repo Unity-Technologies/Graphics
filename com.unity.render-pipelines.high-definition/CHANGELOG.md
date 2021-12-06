@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
 - Fixed FOV change when enabling physical camera.
 - Fixed spot light shadows near plane
+- Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
 
 ## [12.1.2] - 2021-10-22
 
