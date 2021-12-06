@@ -304,10 +304,10 @@ namespace UnityEditor.Rendering
 
             EditorGUIUtility.labelWidth = labelWidth;
         }
-
         /// <summary>
         /// Draw a multiple field property
         /// </summary>
+        /// <typeparam name="T">A valid <see cref="struct"/></typeparam>
         /// <param name="label">Label of the whole</param>
         /// <param name="labels">The labels mapping the values</param>
         /// <param name="values">The values to be displayed</param>
@@ -714,7 +714,6 @@ namespace UnityEditor.Rendering
         /// <param name="contextAction">The context action</param>
         /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
         /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
-        /// <returns>return the state of the foldout header</returns>
         public static void DrawSectionHeader(GUIContent title, string documentationURL = null, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
         {
             var backgroundRect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(1f, 17f));
