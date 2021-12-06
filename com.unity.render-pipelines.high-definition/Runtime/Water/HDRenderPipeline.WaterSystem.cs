@@ -3,12 +3,26 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    // Enum that defines the sets of resolution at which the water simulation can be evaluated
+    /// <summary>
+    /// Enum that defines the sets of resolution at which the water simulation can be evaluated
+    /// </summary>
     public enum WaterSimulationResolution
     {
+        /// <summary>
+        /// The water simulation will be ran at a resolution of 64x64 samples per band.
+        /// </summary>
         Low64 = 64,
+        /// <summary>
+        /// The water simulation will be ran at a resolution of 128x128 samples per band.
+        /// </summary>
         Medium128 = 128,
+        /// <summary>
+        /// The water simulation will be ran at a resolution of 256x256 samples per band.
+        /// </summary>
         High256 = 256,
+        /// <summary>
+        /// The water simulation will be ran at a resolution of 512x512 samples per band.
+        /// </summary>
         Ultra512 = 512
     }
 
@@ -280,13 +294,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Function that guesses the maximal wave height from the wind speed
-        static public float MaximumWaveHeightFunction(float windSpeed)
+        static internal float MaximumWaveHeightFunction(float windSpeed)
         {
             return 1.0f - Mathf.Exp(-k_PhillipsWindFalloffCoefficient * windSpeed * windSpeed);
         }
 
         // Function that loops thought all the current waves and computes the maximal wave height
-        public float ComputeMaximumWaveHeight(Vector4 normalizedWaveAmplitude, float waterWindSpeed, int numBands)
+        internal float ComputeMaximumWaveHeight(Vector4 normalizedWaveAmplitude, float waterWindSpeed, int numBands)
         {
             float maxiumumWaveHeight = 0.01f;
             for (int i = 0; i < numBands; ++i)
@@ -297,7 +311,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return maxiumumWaveHeight;
         }
 
-        static public float MaximumWindForPatch(float patchSize)
+        static internal float MaximumWindForPatch(float patchSize)
         {
             float a = Mathf.Sqrt(-1.0f / Mathf.Log(0.999f * 0.999f));
             float b = (0.001f * Mathf.PI * 2.0f) / patchSize;
