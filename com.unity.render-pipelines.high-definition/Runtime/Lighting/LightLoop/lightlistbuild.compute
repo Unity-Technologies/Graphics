@@ -400,18 +400,18 @@ int GetCoarseLightIndex(int l, int iNrCoarseLights)
 
 groupshared uint s_lightVolumesCache[LIGHT_LIST_MAX_COARSE_ENTRIES];
 
-void StoreLightVolumeCache(int lightIndex, int coarseIndex, uint volumeType)
+void StoreLightVolumeCache(int lightIndex, int coarseIndex, int volumeType)
 {
     // 3 bits for the volume type, in case we have a corrupted one we can early out of the switch statement.
     // 29 bits for a coarse light index.
-    s_lightVolumesCache[lightIndex] = (volumeType & 0x7) | (uint)(coarseIndex << 3);
+    s_lightVolumesCache[lightIndex] = (uint)(volumeType & 0x7) | (uint)(coarseIndex << 3);
 }
 
-void LoadLightVolumeCache(int lightIndex, out int coarseIndex, out uint volumeType)
+void LoadLightVolumeCache(int lightIndex, out int coarseIndex, out int volumeType)
 {
-    int data = s_lightVolumesCache[lightIndex];
-    coarseIndex = data >> 3;
-    volumeType = (uint)(data & 0x7);
+    uint data = s_lightVolumesCache[lightIndex];
+    coarseIndex = (int)(data >> 3);
+    volumeType = (int)(data & 0x7);
 }
 
 // initializes ldsNrLightsFinal with the number of accepted lights.
@@ -434,7 +434,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
     if (threadID < (uint)iNrCoarseLights)
     {
         int idxCoarse = GetCoarseLightIndex((int)threadID, iNrCoarseLights);
-        uint uLightVolume = _LightVolumeData[idxCoarse].lightVolume;
+        int uLightVolume = (int)_LightVolumeData[idxCoarse].lightVolume;
         StoreLightVolumeCache(threadID, idxCoarse, uLightVolume);
     }
 
@@ -447,7 +447,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
     for (; l < iNrCoarseLights; ++l)
     {
         int idxCoarse;
-        uint uLightVolume;
+        int uLightVolume;
         LoadLightVolumeCache(l, idxCoarse, uLightVolume);
         bool lightValid = false;
         if (uLightVolume == LIGHTVOLUMETYPE_CONE)
