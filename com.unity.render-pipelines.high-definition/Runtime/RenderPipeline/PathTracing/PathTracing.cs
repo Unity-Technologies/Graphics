@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
             td.useDynamicScale = false;
             td.slices = 1;
             td.sizeMode = TextureSizeMode.Explicit;
-            m_skySamplingSize = (int) m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize * 2;
+            m_skySamplingSize = (int)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.skyReflectionSize * 2;
             td.width = m_skySamplingSize * 2;
             td.height = m_skySamplingSize;
             m_SkyCDFTexture = m_RenderGraph.CreateSharedTexture(td, true);
