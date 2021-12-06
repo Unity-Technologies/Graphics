@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.Universal
 
                 ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
 
-                var samples = pass.overrideCameraTarget ? GetFirstAllocedRTHandle(pass).rt.descriptor.msaaSamples :
+                var samples = pass.overrideCameraTarget ? GetFirstAllocatedRTHandle(pass).rt.descriptor.msaaSamples :
                     (cameraData.targetTexture != null ? cameraData.targetTexture.descriptor.msaaSamples : cameraData.cameraTargetDescriptor.msaaSamples);
 
                 // only override existing non destructive actions
@@ -312,7 +312,8 @@ namespace UnityEngine.Rendering.Universal
                     int samples;
                     RenderTargetIdentifier colorAttachmentTarget;
                     // We are not rendering to Backbuffer so we have the RT and the information with it
-                    if (passColorAttachment != k_CameraTarget)
+                    // while also creating a new RenderTargetIdentifier to ignore the current depth slice (which might get bypassed in XR setup eventually)
+                    if (new RenderTargetIdentifier(passColorAttachment.nameID, 0, 0) != BuiltinRenderTextureType.CameraTarget)
                     {
                         currentAttachmentDescriptor = new AttachmentDescriptor(depthOnly ? passColorAttachment.rt.descriptor.depthStencilFormat : passColorAttachment.rt.descriptor.graphicsFormat);
                         samples = passColorAttachment.rt.descriptor.msaaSamples;
@@ -634,7 +635,7 @@ namespace UnityEngine.Rendering.Universal
             return array.Length - 1;
         }
 
-        internal static RTHandle GetFirstAllocedRTHandle(ScriptableRenderPass pass)
+        internal static RTHandle GetFirstAllocatedRTHandle(ScriptableRenderPass pass)
         {
             for (int i = 0; i < pass.colorAttachmentHandles.Length; ++i)
             {
@@ -676,7 +677,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                var handle = GetFirstAllocedRTHandle(renderPass);
+                var handle = GetFirstAllocatedRTHandle(renderPass);
                 targetRT = handle.rt != null ? handle.rt.descriptor : renderPass.depthAttachmentHandle.rt.descriptor;
             }
 
