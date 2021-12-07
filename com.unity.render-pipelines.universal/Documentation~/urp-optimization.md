@@ -1,4 +1,4 @@
-# Optimization
+# Optimization and debugging
 
 This section contains information related to optimization and debugging.
 
