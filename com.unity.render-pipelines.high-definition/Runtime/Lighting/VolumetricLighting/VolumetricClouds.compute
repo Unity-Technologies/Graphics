@@ -1573,7 +1573,7 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
 
     // Compute the position of the shadow plane
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
-    float3 shadowCookieCenterWS = float3(_WorldSpaceShadowCenter.x, _ShadowPlaneOffset, _WorldSpaceShadowCenter.y) + t * _SunDirection.xyz;
+    float3 shadowCookieCenterWS = float3(_WorldSpaceShadowCenter.x, _ShadowPlaneOffset, _WorldSpaceShadowCenter.z) + t * _SunDirection.xyz;
 #else
     float3 shadowCookieCenterWS = t * _SunDirection.xyz;
 #endif
@@ -1612,6 +1612,10 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
             // Compute the cloud density
             CloudProperties cloudProperties;
             EvaluateCloudProperties(positionWS, 0.0, 0.0, true, true, cloudProperties);
+
+            // Apply the camera fade it to match the clouds perceived by the camera
+            cloudProperties.density = DensityFadeIn(cloudProperties.density, length(positionWS - _WorldSpaceShadowCenter.xyz));
+
             if (cloudProperties.density > CLOUD_DENSITY_TRESHOLD)
             {
                 // Apply the extinction
