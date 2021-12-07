@@ -52,8 +52,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.graphicsFormat = isDepth ? GraphicsFormat.D32_SFloat_S8_UInt : GraphicsFormat.R32_SFloat;
             descriptor.msaaSamples = 1;
 #if UNITY_EDITOR
-			// This is a temporary workaround for Editor as not setting any depth here
-			// would lead to overwriting depth in certain scenarios (mostly reproducable while running DX11 tests)
+            // This is a temporary workaround for Editor as not setting any depth here
+            // would lead to overwriting depth in certain scenarios (mostly reproducable while running DX11 tests)
             ConfigureTarget(destination, destination);
 #else
             ConfigureTarget(destination);
