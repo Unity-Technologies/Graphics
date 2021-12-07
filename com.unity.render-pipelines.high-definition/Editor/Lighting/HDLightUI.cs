@@ -1152,6 +1152,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (lightType != HDLightType.Directional)
                     EditorGUILayout.Slider(serialized.shadowNearPlane, HDShadowUtils.k_MinShadowNearPlane, HDShadowUtils.k_MaxShadowNearPlane, s_Styles.shadowNearPlane);
 
+                bool fullShadowMask = false;
                 if (serialized.settings.isMixed)
                 {
                     bool enabled = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportShadowMask;
@@ -1165,10 +1166,12 @@ namespace UnityEditor.Rendering.HighDefinition
                             EditorGUI.BeginChangeCheck();
                             ShadowmaskMode shadowmask = serialized.nonLightmappedOnly.boolValue ? ShadowmaskMode.Shadowmask : ShadowmaskMode.DistanceShadowmask;
                             shadowmask = (ShadowmaskMode)EditorGUI.EnumPopup(nonLightmappedOnlyRect, s_Styles.nonLightmappedOnly, shadowmask);
+                            fullShadowMask = shadowmask == ShadowmaskMode.Shadowmask;
+
                             if (EditorGUI.EndChangeCheck())
                             {
                                 Undo.RecordObjects(owner.targets, "Light Update Shadowmask Mode");
-                                serialized.nonLightmappedOnly.boolValue = shadowmask == ShadowmaskMode.Shadowmask;
+                                serialized.nonLightmappedOnly.boolValue = fullShadowMask;
                                 foreach (Light target in owner.targets)
                                     target.lightShadowCasterMode = shadowmask == ShadowmaskMode.Shadowmask ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
                             }
@@ -1187,28 +1190,31 @@ namespace UnityEditor.Rendering.HighDefinition
                     bool isPunctual = lightType == HDLightType.Point || (lightType == HDLightType.Spot && serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Cone);
                     if (isPunctual || (lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
                     {
-                        EditorGUILayout.PropertyField(serialized.useRayTracedShadows, s_Styles.useRayTracedShadows);
-                        if (serialized.useRayTracedShadows.boolValue)
+                        using (new EditorGUI.DisabledScope(fullShadowMask))
                         {
-                            if (hdrp != null && lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle
-                                && (hdrp.currentPlatformRenderPipelineSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly))
-                                EditorGUILayout.HelpBox("Ray traced area light shadows are approximated for the Lit shader when not in deferred mode.", MessageType.Warning);
+                            EditorGUILayout.PropertyField(serialized.useRayTracedShadows, s_Styles.useRayTracedShadows);
+                            if (serialized.useRayTracedShadows.boolValue)
+                            {
+                                if (hdrp != null && lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle
+                                    && (hdrp.currentPlatformRenderPipelineSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly))
+                                    EditorGUILayout.HelpBox("Ray traced area light shadows are approximated for the Lit shader when not in deferred mode.", MessageType.Warning);
 
-                            EditorGUI.indentLevel++;
+                                EditorGUI.indentLevel++;
 
-                            // We only support semi transparent shadows for punctual lights
-                            if (isPunctual)
-                                EditorGUILayout.PropertyField(serialized.semiTransparentShadow, s_Styles.semiTransparentShadow);
+                                // We only support semi transparent shadows for punctual lights
+                                if (isPunctual)
+                                    EditorGUILayout.PropertyField(serialized.semiTransparentShadow, s_Styles.semiTransparentShadow);
 
-                            EditorGUILayout.PropertyField(serialized.numRayTracingSamples, s_Styles.numRayTracingSamples);
-                            EditorGUILayout.PropertyField(serialized.filterTracedShadow, s_Styles.denoiseTracedShadow);
-                            EditorGUI.indentLevel++;
-                            EditorGUILayout.PropertyField(serialized.filterSizeTraced, s_Styles.denoiserRadius);
-                            // We only support distance based filtering if we have a punctual light source (point or spot)
-                            if (isPunctual)
-                                EditorGUILayout.PropertyField(serialized.distanceBasedFiltering, s_Styles.distanceBasedFiltering);
-                            EditorGUI.indentLevel--;
-                            EditorGUI.indentLevel--;
+                                EditorGUILayout.PropertyField(serialized.numRayTracingSamples, s_Styles.numRayTracingSamples);
+                                EditorGUILayout.PropertyField(serialized.filterTracedShadow, s_Styles.denoiseTracedShadow);
+                                EditorGUI.indentLevel++;
+                                EditorGUILayout.PropertyField(serialized.filterSizeTraced, s_Styles.denoiserRadius);
+                                // We only support distance based filtering if we have a punctual light source (point or spot)
+                                if (isPunctual)
+                                    EditorGUILayout.PropertyField(serialized.distanceBasedFiltering, s_Styles.distanceBasedFiltering);
+                                EditorGUI.indentLevel--;
+                                EditorGUI.indentLevel--;
+                            }
                         }
                     }
                 }
@@ -1219,7 +1225,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.useScreenSpaceShadows, s_Styles.useScreenSpaceShadows);
                     if (HDRenderPipeline.assetSupportsRayTracing)
                     {
-                        using (new EditorGUI.DisabledScope(!serialized.useScreenSpaceShadows.boolValue))
+                        bool showRayTraced = serialized.useScreenSpaceShadows.boolValue && fullShadowMask;
+                        using (new EditorGUI.DisabledScope(showRayTraced))
                         {
                             EditorGUI.indentLevel++;
                             EditorGUILayout.PropertyField(serialized.useRayTracedShadows, s_Styles.useRayTracedShadows);
