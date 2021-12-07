@@ -300,6 +300,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public bool useInputTexture;
             public bool useOutputTexture;
+
+            public LocalKeyword inputKeyword;
+            public LocalKeyword outputKeyword;
         }
 
         void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, HDCameraFrameHistoryType historyType, bool needExposure)
@@ -312,15 +315,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.subFrameManager = m_SubFrameManager;
                 passData.needExposure = needExposure;
                 passData.hdCamera = hdCamera;
-                passData.accumulationCS.shaderKeywords = null;
-                if (useInputTexture)
-                    passData.accumulationCS.EnableKeyword("INPUT_FROM_FRAME_TEXTURE");
-
-                if (outputTexture.IsValid())
-                {
-                    passData.accumulationCS.EnableKeyword("WRITE_TO_OUTPUT_TEXTURE");
-                    passData.output = builder.WriteTexture(outputTexture);
-                }
+                passData.inputKeyword = new LocalKeyword(passData.accumulationCS, "INPUT_FROM_FRAME_TEXTURE");
+                passData.outputKeyword = new LocalKeyword(passData.accumulationCS, "WRITE_TO_OUTPUT_TEXTURE");
 
                 TextureHandle history = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)historyType)
                     ?? hdCamera.AllocHistoryFrameRT((int)historyType, PathTracingHistoryBufferAllocatorFunction, 1));
@@ -329,6 +325,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.history = builder.WriteTexture(history);
                 passData.useOutputTexture = outputTexture.IsValid();
                 passData.useInputTexture = useInputTexture;
+
+                Assertions.Assert.IsTrue(history.IsValid());
+
+                if (outputTexture.IsValid())
+                    passData.output = builder.WriteTexture(outputTexture);
 
                 builder.SetRenderFunc(
                     (RenderAccumulationPassData data, RenderGraphContext ctx) =>
@@ -339,31 +340,39 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (!accumulationShader)
                             return;
 
+                        accumulationShader.shaderKeywords = null;
+                        if (data.useInputTexture)
+                            ctx.cmd.EnableKeyword(accumulationShader, passData.inputKeyword);
+                        else
+                            ctx.cmd.DisableKeyword(accumulationShader, passData.inputKeyword);
+
+                        if (data.useOutputTexture)
+                            ctx.cmd.EnableKeyword(accumulationShader, passData.outputKeyword);
+                        else
+                            ctx.cmd.DisableKeyword(accumulationShader, passData.outputKeyword);
+
                         // Get the per-camera data
                         int camID = data.hdCamera.camera.GetInstanceID();
                         Vector4 frameWeights = data.subFrameManager.ComputeFrameWeights(camID);
                         CameraData camData = data.subFrameManager.GetCameraData(camID);
-
-                        RTHandle input = data.input;
-                        RTHandle output = data.output;
 
                         // Accumulate the path tracing results
                         ctx.cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationFrameIndex, (int)camData.currentIteration);
                         ctx.cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNumSamples, (int)data.subFrameManager.subFrameCount);
                         ctx.cmd.SetComputeTextureParam(accumulationShader, data.accumulationKernel, HDShaderIDs._AccumulatedFrameTexture, data.history);
 
-                        if (passData.useOutputTexture)
-                            ctx.cmd.SetComputeTextureParam(accumulationShader, data.accumulationKernel, HDShaderIDs._CameraColorTextureRW, output);
+                        if (data.useOutputTexture)
+                            ctx.cmd.SetComputeTextureParam(accumulationShader, data.accumulationKernel, HDShaderIDs._CameraColorTextureRW, data.output);
 
                         if (data.useInputTexture)
-                            ctx.cmd.SetComputeTextureParam(accumulationShader, data.accumulationKernel, HDShaderIDs._FrameTexture, input);
+                            ctx.cmd.SetComputeTextureParam(accumulationShader, data.accumulationKernel, HDShaderIDs._FrameTexture, data.input);
 
                         ctx.cmd.SetComputeVectorParam(accumulationShader, HDShaderIDs._AccumulationWeights, frameWeights);
                         ctx.cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNeedsExposure, data.needExposure ? 1 : 0);
                         ctx.cmd.DispatchCompute(accumulationShader, data.accumulationKernel, (data.hdCamera.actualWidth + 7) / 8, (data.hdCamera.actualHeight + 7) / 8, data.hdCamera.viewCount);
 
                         // Increment the iteration counter, if we haven't converged yet
-                        if (passData.useOutputTexture && camData.currentIteration < data.subFrameManager.subFrameCount)
+                        if (data.useOutputTexture && camData.currentIteration < data.subFrameManager.subFrameCount)
                         {
                             camData.currentIteration++;
                             data.subFrameManager.SetCameraData(camID, camData);

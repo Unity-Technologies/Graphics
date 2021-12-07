@@ -573,6 +573,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 clearBuffer = true,
                 clearColor = Color.black,
                 enableRandomWrite = true,
+                useMipMap = false,
+                autoGenerateMips = false,
                 name = "Path traced AOV buffer"
             };
             var motionVector = renderGraph.CreateTexture(aovDesc);
@@ -637,7 +639,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (denoise && m_PathTracingSettings.useAOVs.value)
             {
                 RenderAccumulation(m_RenderGraph, hdCamera, albedo, TextureHandle.nullHandle, HDCameraFrameHistoryType.AlbedoAOV, true);
-
                 RenderAccumulation(m_RenderGraph, hdCamera, normal, TextureHandle.nullHandle, HDCameraFrameHistoryType.NormalAOV, true);
             }
 
