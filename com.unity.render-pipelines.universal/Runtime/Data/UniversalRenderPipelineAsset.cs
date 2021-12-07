@@ -691,18 +691,31 @@ namespace UnityEngine.Rendering.Universal
             set { m_RenderScale = ValidateRenderScale(value); }
         }
 
+        /// <summary>
+        /// Image filter requested by the user for upscaling operations
+        /// </summary>
         public UpscalingFilterSelection upscalingFilter
         {
             get { return m_UpscalingFilter; }
             set { m_UpscalingFilter = value; }
         }
 
+        /// <summary>
+        /// If this property is set to true, the value from the fsrSharpness property will control the intensity of the
+        /// sharpening filter associated with FidelityFX Super Resolution.
+        /// </summary>
         public bool fsrOverrideSharpness
         {
             get { return m_FsrOverrideSharpness; }
             set { m_FsrOverrideSharpness = value; }
         }
 
+        /// <summary>
+        /// Controls the intensity of the sharpening filter associated with FidelityFX Super Resolution.
+        /// A value of 1.0 produces maximum sharpness while a value of 0.0 disables the sharpening filter entirely.
+        ///
+        /// Note: This value only has an effect when the fsrOverrideSharpness property is set to true.
+        /// </summary>
         public float fsrSharpness
         {
             get { return m_FsrSharpness; }
