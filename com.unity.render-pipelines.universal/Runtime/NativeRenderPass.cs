@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.Universal
 
                     renderPass.renderPassQueueIndex = i;
 
-                    bool RPEnabled = renderPass.useNativeRenderPass && isRenderPassEnabled;
+                    bool RPEnabled = IsRenderPassEnabled(renderPass);
                     if (!RPEnabled)
                         continue;
 
