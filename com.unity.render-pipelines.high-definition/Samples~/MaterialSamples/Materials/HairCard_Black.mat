@@ -112,13 +112,13 @@ Material:
     - _Going_Grey: 0
     - _Length_Smoothness: 0.7
     - _MaxRadius: 0.006
-    - _MaxSmoothness: 0.768
+    - _MaxSmoothness: 0.75
     - _MinRadius: 0.002
-    - _MinSmoothness: 0.622
-    - _Opacity_Fading: 0.076
-    - _Opacity_Threshold: 0.737
+    - _MinSmoothness: 0.6
+    - _Opacity_Fading: 0.1
+    - _Opacity_Threshold: 0.75
     - _OpaqueCullMode: 2
-    - _Per_Strand_Hue_Variation: 0.1
+    - _Per_Strand_Hue_Variation: 0.05
     - _Per_Strand_Smoothness_Variation: 0.147
     - _RECALCULATE_CARD_NORMALS: 1
     - _RIBBON_HAIR: 1
@@ -170,7 +170,7 @@ Material:
     m_Colors:
     - _DoubleSidedConstants: {r: 1, g: 1, b: 1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _Length_Color: {r: 0.05660379, g: 0.046813823, b: 0.046813823, a: 1}
+    - _Length_Color: {r: 0.09433961, g: 0.07624301, b: 0.07624301, a: 1}
     - _Root_Color: {r: 0.1137255, g: 0.09411766, b: 0.09019608, a: 1}
     - _Tiling: {r: 1, g: 10, b: 0, a: 0}
     - _Tip_Color: {r: 0.20784315, g: 0.08627451, b: 0.07058824, a: 1}

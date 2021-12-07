@@ -7,9 +7,9 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: HairCard_Red
-  m_Shader: {fileID: -6465566751694194690, guid: e11d5421cda40b14dae6c72e99f321bd, type: 3}
-  m_Parent: {fileID: 2100000, guid: 844d33723f1ed7443a8283fa63af58d0, type: 2}
+  m_Name: HairApproximate_Dyed
+  m_Shader: {fileID: -6465566751694194690, guid: 452117e708c72f24fa9b5793b2f47e43, type: 3}
+  m_Parent: {fileID: 2100000, guid: ebd9ab92ea9ac85468e68a3367a0bc3b, type: 2}
   m_ModifiedSerializedProperties: 0
   m_ShaderKeywords: _ALPHATEST_ON _CONSERVATIVE_DEPTH_OFFSET _DEPTHOFFSET_ON _DISABLE_SSR_TRANSPARENT
     _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT _RECALCULATE_CARD_NORMALS _SURFACE_TYPE_TRANSPARENT
@@ -19,30 +19,24 @@ Material:
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap:
+    MotionVector: User
     RenderType: Transparent
   disabledShaderPasses:
   - TransparentDepthPostpass
   - TransparentBackface
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Ambient_Occlusion: 0.498
-    - _Baked_Ambient_Occlusion: 0.733
-    - _Per_Strand_Hue_Variation: 0.014
-    - _RECALCULATE_CARD_NORMALS: 1
-    - _Root_Distance: 0.367
-    - _Root_Fade: 0.328
-    - _Tip_Distance: 0.54
-    - _Tip_Fade: 0.643
+    - _Specular: 0.4
     m_Colors:
-    - _Length_Color: {r: 0.7075472, g: 0.17429607, b: 0, a: 1}
-    - _Root_Color: {r: 0.13207549, g: 0.063378535, b: 0.049424466, a: 1}
-    - _Tip_Color: {r: 0.76470596, g: 0.22352943, b: 0.098039225, a: 1}
+    - _Length_Color: {r: 1, g: 0.20719805, b: 0, a: 1}
+    - _Tip_Color: {r: 0.097465515, g: 0, b: 1, a: 1}
   m_BuildTextureStacks: []
---- !u!114 &261093737092741532
+--- !u!114 &8458752296236005614
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}

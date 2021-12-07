@@ -29,11 +29,11 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Going_Grey: 0.3
+    - _Going_Grey: 0.44
     - _Per_Strand_Smoothness_Variation: 0.338
     - _RECALCULATE_CARD_NORMALS: 1
-    - _Tip_Distance: 0.572
-    - _Tip_Fade: 0.48
+    - _Tip_Distance: 0.544
+    - _Tip_Fade: 1
     m_Colors:
     - _Length_Color: {r: 0.16037738, g: 0.090601645, b: 0.061528422, a: 1}
     - _Tip_Color: {r: 0.5, g: 0.4661345, b: 0.45597482, a: 1}
