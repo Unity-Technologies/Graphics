@@ -67,8 +67,8 @@ namespace UnityEngine.Experimental.Rendering
             if (createFolder && !UnityEditor.AssetDatabase.IsValidFolder(assetPath))
                 UnityEditor.AssetDatabase.CreateFolder(sceneDir, sceneName);
 
-            var fileName = assetName + "-" + (int)state + ".asset";
-            return Path.Combine(assetPath, fileName);
+            var fileName = state == 0 ? assetName : assetName + "-" + (int)state;
+            return Path.Combine(assetPath, fileName + ".asset");
         }
 
         public static ProbeVolumeAsset CreateAsset(Scene scene, ProbeVolumeBakingState state)

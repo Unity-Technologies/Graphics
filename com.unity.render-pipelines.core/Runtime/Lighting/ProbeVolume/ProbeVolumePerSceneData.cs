@@ -115,9 +115,10 @@ namespace UnityEngine.Experimental.Rendering
         void OnEnable()
         {
             ProbeReferenceVolume.instance.RegisterPerSceneData(this);
-            // uncomment when scenedata is removed
-            //m_CurrentState = ProbeVolumeSceneData.bakingState;
-            QueueAssetLoading();
+            // Currently the baking state is serialized in the sceneData, so we queue asset loading when it gets loaded
+            // If we could do it from here that would be better though
+            //m_CurrentState = ProbeReferenceVolume.instance.bakingState;
+            //QueueAssetLoading();
         }
 
         void OnDisable()

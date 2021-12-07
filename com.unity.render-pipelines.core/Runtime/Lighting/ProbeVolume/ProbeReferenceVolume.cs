@@ -737,6 +737,8 @@ namespace UnityEngine.Experimental.Rendering
             if (sceneData != null)
             {
                 UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneData.OnSceneSaved;
+                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                    data.SetBakingState(sceneData.bakingState);
             }
             AdditionalGIBakeRequestsManager.instance.Init();
 #endif
