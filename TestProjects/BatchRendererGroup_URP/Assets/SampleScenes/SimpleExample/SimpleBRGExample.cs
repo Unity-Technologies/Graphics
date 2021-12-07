@@ -31,6 +31,9 @@ public class SimpleBRGExample : MonoBehaviour
     private const int kExtraBytes = kSizeOfMatrix * 2;
     private const int kNumInstances = 3;
 
+    // Offset should be divisible by 64, 48 and 16
+    private const int kGLESDebugOffset = 3 * 1024 * 1024 + 192;
+
     // Unity provided shaders such as Universal Render Pipeline/Lit expect
     // unity_ObjectToWorld and unity_WorldToObject in a special packed 48 byte
     // format when the DOTS_INSTANCING_ON keyword is enabled.
@@ -72,6 +75,9 @@ public class SimpleBRGExample : MonoBehaviour
     // amount of ints for our data.
     int BufferCountForInstances(int bytesPerInstance, int numInstances, int extraBytes = 0)
     {
+        // Use a large buffer to test GLES
+        return 32 * 1024 * 1024;
+
         // Round byte counts to int multiples
         bytesPerInstance = (bytesPerInstance + sizeof(int) - 1) / sizeof(int) * sizeof(int);
         extraBytes = (extraBytes + sizeof(int) - 1) / sizeof(int) * sizeof(int);
@@ -144,12 +150,13 @@ public class SimpleBRGExample : MonoBehaviour
         uint byteAddressObjectToWorld = kSizeOfPackedMatrix * 2;
         uint byteAddressWorldToObject = byteAddressObjectToWorld + kSizeOfPackedMatrix * kNumInstances;
         uint byteAddressColor = byteAddressWorldToObject + kSizeOfPackedMatrix * kNumInstances;
+        uint byteAddressZero = 0;
 
         // Upload our instance data to the GraphicsBuffer, from where the shader can load them.
-        m_InstanceData.SetData(zero, 0, 0, 1);
-        m_InstanceData.SetData(objectToWorld, 0, (int)(byteAddressObjectToWorld / kSizeOfPackedMatrix), objectToWorld.Length);
-        m_InstanceData.SetData(worldToObject, 0, (int)(byteAddressWorldToObject / kSizeOfPackedMatrix), worldToObject.Length);
-        m_InstanceData.SetData(colors, 0, (int)(byteAddressColor / kSizeOfFloat4), colors.Length);
+        m_InstanceData.SetData(zero, 0, (int)((byteAddressZero + kGLESDebugOffset) / 64), 1);
+        m_InstanceData.SetData(objectToWorld, 0, (int)((byteAddressObjectToWorld + kGLESDebugOffset) / kSizeOfPackedMatrix), objectToWorld.Length);
+        m_InstanceData.SetData(worldToObject, 0, (int)((byteAddressWorldToObject + kGLESDebugOffset)  / kSizeOfPackedMatrix), worldToObject.Length);
+        m_InstanceData.SetData(colors, 0, (int)((byteAddressColor + kGLESDebugOffset)  / kSizeOfFloat4), colors.Length);
 
         // Set up metadata values to point to the instance data. Set the most significant bit 0x80000000 in each,
         // which instructs the shader that the data is an array with one value per instance, indexed by the instance index.
@@ -166,7 +173,7 @@ public class SimpleBRGExample : MonoBehaviour
         // Finally, create a batch for our instances, and make the batch use the GraphicsBuffer with our
         // instance data, and the metadata values that specify where the properties are. Note that
         // we do not need to pass any batch size here.
-        m_BatchID = m_BRG.AddBatch(metadata, m_InstanceData.bufferHandle);
+        m_BatchID = m_BRG.AddBatch(metadata, m_InstanceData.bufferHandle, kGLESDebugOffset);
     }
 
     // We need to dispose our GraphicsBuffer and BatchRendererGroup when our script is no longer used,
