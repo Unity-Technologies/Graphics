@@ -616,7 +616,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
 
-            if (camData.currentIteration < m_SubFrameManager.subFrameCount)
+            bool renderPathTracing = camData.currentIteration < m_SubFrameManager.subFrameCount;
+            if (renderPathTracing)
             {
                 // Keep a sky texture around, that we compute only once per accumulation (except when recording, with potential camera motion blur)
                 if (m_RenderSky || m_SubFrameManager.isRecording)
@@ -636,13 +637,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_UNITY_DENOISERS
             bool denoise = m_PathTracingSettings.denoiser.value != DenoiserType.None;
-            if (denoise && m_PathTracingSettings.useAOVs.value)
+            if (renderPathTracing && denoise && m_PathTracingSettings.useAOVs.value)
             {
                 RenderAccumulation(m_RenderGraph, hdCamera, albedo, TextureHandle.nullHandle, HDCameraFrameHistoryType.AlbedoAOV, true);
                 RenderAccumulation(m_RenderGraph, hdCamera, normal, TextureHandle.nullHandle, HDCameraFrameHistoryType.NormalAOV, true);
             }
 
-            if (denoise && m_PathTracingSettings.temporal.value)
+            if (renderPathTracing && denoise && m_PathTracingSettings.temporal.value)
             {
                 RenderAccumulation(m_RenderGraph, hdCamera, motionVector, TextureHandle.nullHandle, HDCameraFrameHistoryType.MotionVectorAOV, true);
             }

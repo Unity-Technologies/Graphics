@@ -322,14 +322,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     ?? hdCamera.AllocHistoryFrameRT((int)historyType, PathTracingHistoryBufferAllocatorFunction, 1));
 
                 passData.input = builder.ReadTexture(inputTexture);
-                passData.history = builder.WriteTexture(history);
+                passData.history = builder.ReadWriteTexture(history);
                 passData.useOutputTexture = outputTexture.IsValid();
                 passData.useInputTexture = useInputTexture;
 
-                Assertions.Assert.IsTrue(history.IsValid());
-
                 if (outputTexture.IsValid())
-                    passData.output = builder.WriteTexture(outputTexture);
+                    passData.output = builder.ReadWriteTexture(outputTexture);
 
                 builder.SetRenderFunc(
                     (RenderAccumulationPassData data, RenderGraphContext ctx) =>
