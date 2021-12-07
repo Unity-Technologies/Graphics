@@ -31,7 +31,7 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Going_Grey: 0.443
+    - _Going_Grey: 0.55
     - _Specular: 0.3
     - _Tip_Distance: 0.463
     - _Tip_Fade: 1

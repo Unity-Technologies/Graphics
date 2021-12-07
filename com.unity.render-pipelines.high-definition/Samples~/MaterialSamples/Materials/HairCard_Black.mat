@@ -50,11 +50,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _AlphaDepth:
-        m_Texture: {fileID: 2800000, guid: 0cc1e485a4da98743955bf4df1fd5c6a, type: 3}
+        m_Texture: {fileID: 2800000, guid: e793cee1081509742aeccad4b3f20023, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Masks:
-        m_Texture: {fileID: 2800000, guid: e3560d9e3efed664fab086de968ccedd, type: 3}
+        m_Texture: {fileID: 2800000, guid: 90f9510c5abe671408314d014b0924cc, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_4adae90930c444c9a4e1cdcce51a7545_Texture_1:
