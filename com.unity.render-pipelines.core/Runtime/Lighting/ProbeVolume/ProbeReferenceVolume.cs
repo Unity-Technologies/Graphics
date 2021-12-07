@@ -280,12 +280,21 @@ namespace UnityEngine.Experimental.Rendering
         /// The shader used to visualize the probes in the debug view.
         /// </summary>
         public Shader probeDebugShader;
+        /// <summary>
+        /// The <see cref="ProbeVolumeSceneData"/>
+        /// </summary>
         public ProbeVolumeSceneData sceneData;
+        /// <summary>
+        /// The <see cref="ProbeVolumeSHBands"/>
+        /// </summary>
         public ProbeVolumeSHBands shBands;
         /// <summary>True if APV should support streaming of cell data.</summary>
         public bool supportStreaming;
     }
 
+    /// <summary>
+    /// Struct holiding the <see cref="ProbeVolume"/> shading parameters
+    /// </summary>
     public struct ProbeVolumeShadingParameters
     {
         /// <summary>
@@ -662,6 +671,9 @@ namespace UnityEngine.Experimental.Rendering
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
         ProbeVolumeSHBands m_SHBands;
 
+        /// <summary>
+        /// The <see cref="ProbeVolumeSHBands"/>
+        /// </summary>
         public ProbeVolumeSHBands shBands { get { return m_SHBands; } }
 
         internal bool clearAssetsOnVolumeClear = false;
@@ -750,6 +762,7 @@ namespace UnityEngine.Experimental.Rendering
         /// It is important to keep in mind that this is not used by the system for anything else but book-keeping,
         /// the SRP is still responsible to disable anything Probe volume related on SRP side.
         /// </summary>
+        /// <param name="srpEnablesPV">The value of the new enabled</param>
         public void SetEnableStateFromSRP(bool srpEnablesPV)
         {
             m_EnabledBySRP = srpEnablesPV;
@@ -790,7 +803,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Get approximate video memory impact, in bytes, of the system.
         /// </summary>
-        /// <returns>An approximation of the video memory impact, in bytes, of the system<returns>
+        /// <returns>An approximation of the video memory impact, in bytes, of the system</returns>
         public int GetVideoMemoryCost()
         {
             if (!m_ProbeReferenceVolumeInit)

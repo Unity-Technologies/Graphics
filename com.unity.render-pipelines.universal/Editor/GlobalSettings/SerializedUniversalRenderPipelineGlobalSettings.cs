@@ -1,7 +1,5 @@
-using UnityEngine;
-using System.Linq;
-using UnityEngine.Rendering.Universal;
 using System.Collections.Generic;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
