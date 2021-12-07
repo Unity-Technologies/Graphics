@@ -3606,7 +3606,8 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.volumetricFadeDistance = m_VolumetricFadeDistance;
             lightRenderData.includeForRayTracing = m_IncludeForRayTracing;
             lightRenderData.useScreenSpaceShadows = m_UseScreenSpaceShadows;
-            lightRenderData.useRayTracedShadows = m_UseRayTracedShadows;
+            // If we are pure shadowmask, we disable raytraced shadows.
+            lightRenderData.useRayTracedShadows = !nonLightmappedOnly && m_UseRayTracedShadows;
             lightRenderData.colorShadow = m_ColorShadow;
             lightRenderData.lightDimmer = m_LightDimmer;
             lightRenderData.volumetricDimmer = m_VolumetricDimmer;
