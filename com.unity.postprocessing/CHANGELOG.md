@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fix missing XR warnings for XR non-friendly effects when using XR plugins (case 1328062)
 
-## [3.1.2] - 2021-02-06
+## [3.2.1] - 2021-11-15
+
+
+## [3.2.0] - 2021-11-15
 
 ### Fixed
 - Catch thrown errors in `PostProcessEffectRenderer`, preventing resources allocation leaks and crash (case 1221972)

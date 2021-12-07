@@ -6,6 +6,8 @@
 #pragma kernel VoxelizeProbeVolumeData
 #pragma kernel Subdivide
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
 // #pragma enable_d3d11_debug_symbols
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"

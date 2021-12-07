@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.directionalShadowSample = m_RaytracingDirectionalShadowSample;
 
                 // Grab the acceleration structure for the target camera
-                passData.accelerationStructure = RequestAccelerationStructure();
+                passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.screenSpaceShadowCS = m_ScreenSpaceShadowsCS;
                 passData.screenSpaceShadowRT = m_ScreenSpaceShadowsRT;
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
@@ -258,12 +258,12 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
         {
             // Should we be executing anything really?
-            bool screenSpaceShadowRequired = m_CurrentSunLightAdditionalLightData != null && m_CurrentSunLightAdditionalLightData.WillRenderScreenSpaceShadow();
+            bool screenSpaceShadowRequired = m_CurrentSunLightAdditionalLightData != null && (m_CurrentSunShadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderScreenSpaceShadow) != 0;
 
             // Render directional screen space shadow if required
             if (screenSpaceShadowRequired)
             {
-                bool rayTracedDirectionalRequired = m_CurrentSunLightAdditionalLightData.WillRenderRayTracedShadow();
+                bool rayTracedDirectionalRequired = (m_CurrentSunShadowMapFlags & HDProcessedVisibleLightsBuilder.ShadowMapFlags.WillRenderRayTracedShadow) != 0 && GetRayTracingState();
                 // If the shadow is flagged as ray traced, we need to evaluate it completely
                 if (rayTracedDirectionalRequired)
                     RenderRayTracedDirectionalScreenSpaceShadow(renderGraph, hdCamera, depthBuffer, normalBuffer, motionVectorsBuffer, historyValidityBuffer, rayCountTexture, screenSpaceShadowArray);

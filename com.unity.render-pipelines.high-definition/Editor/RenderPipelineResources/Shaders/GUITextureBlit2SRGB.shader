@@ -5,6 +5,7 @@ Shader "Hidden/GUITextureBlit2SRGB" {
         _Color("Multiplicative color", Color) = (1.0, 1.0, 1.0, 1.0)
     }
     SubShader {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass {
             ZTest Always Cull Off ZWrite Off
 

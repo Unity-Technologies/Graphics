@@ -478,8 +478,12 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile_fragment _ LIGHTMAP_ON
-            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
+            // 'Optimize Mesh Data' strip away attribute uv1/uv2 without the keyword set on the vertex stage.
+            #pragma multi_compile _ LIGHTMAP_ON
+            // Both DIRLIGHTMAP_COMBINED and DYNAMICLIGHTMAP_ON must have vertex frequency to be able to include UV2 in player
+            // If DIRLIGHTMAP_COMBINED isn't define, then DYNAMICLIGHTMAP_ON will not. This is hardcoded in C++
+            // For ShaderGraph we don't have this issue as UV2 are always included.
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
@@ -747,7 +751,8 @@ Shader "HDRP/Lit"
             Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
             ZWrite [_ZWrite]
             Cull Front
-            ColorMask [_ColorMaskTransparentVel] 1
+            ColorMask [_ColorMaskTransparentVelOne] 1
+            ColorMask [_ColorMaskTransparentVelTwo] 2
             ZTest [_ZTestTransparent]
 
             HLSLPROGRAM
@@ -761,8 +766,8 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile_fragment _ LIGHTMAP_ON
-            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
@@ -829,7 +834,10 @@ Shader "HDRP/Lit"
             ZTest [_ZTestDepthEqualForOpaque]
             ZWrite [_ZWrite]
             Cull [_CullModeForward]
-            ColorMask [_ColorMaskTransparentVel] 1
+            // Not possible to control the render target with a variable
+            // Depending on virtual texturing, motion vector buffer can be bound on either SV_Target1 or SV_Target2
+            ColorMask [_ColorMaskTransparentVelOne] 1
+            ColorMask [_ColorMaskTransparentVelTwo] 2
 
             HLSLPROGRAM
 
@@ -842,8 +850,8 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile_fragment _ LIGHTMAP_ON
-            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
@@ -1013,7 +1021,13 @@ Shader "HDRP/Lit"
             // multi compile that allows us to strip the recursive code
             #pragma multi_compile _ MULTI_BOUNCE_INDIRECT
 
-            // We use the low shadow maps for raytracing
+            // If you need to change this, be sure to read this comment.
+            // For raytracing we decided to force the shadow quality to low.
+            // - The performance is the first reason, given that it may happen during the ray tracing stage for indirect or in a non-tiled context for deferred
+            // we want to save that cost as it may increase signfiicantly the cost..
+            // - The second reason is that some filtering modes require the screen space position (at the moment you read this comment high and ultra high), which we cannot provide
+            // in a ray tracing context.
+            // In addition to that, we intentionally disabled dithering for the ray tracing case as it requires the screen space position.
             #define SHADOW_LOW
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
@@ -1056,7 +1070,13 @@ Shader "HDRP/Lit"
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
 
-            // We use the low shadow maps for raytracing
+            // If you need to change this, be sure to read this comment.
+            // For raytracing we decided to force the shadow quality to low.
+            // - The performance is the first reason, given that it may happen during the ray tracing stage for indirect or in a non-tiled context for deferred
+            // we want to save that cost as it may increase signfiicantly the cost..
+            // - The second reason is that some filtering modes require the screen space position (at the moment you read this comment high and ultra high), which we cannot provide
+            // in a ray tracing context.
+            // In addition to that, we intentionally disabled dithering for the ray tracing case as it requires the screen space position.
             #define SHADOW_LOW
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
@@ -1193,6 +1213,11 @@ Shader "HDRP/Lit"
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile _ SENSORSDK_OVERRIDE_REFLECTANCE
+
+            #ifdef SENSORSDK_OVERRIDE_REFLECTANCE
+                #define SENSORSDK_ENABLE_LIDAR
+            #endif
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 

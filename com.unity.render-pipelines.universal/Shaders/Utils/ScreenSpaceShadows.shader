@@ -56,15 +56,14 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
             deviceDepth = deviceDepth * 2.0 - 1.0;
 #endif
 
-            float3 wpos = ComputeWorldSpacePosition(input.uv.xy, deviceDepth, unity_MatrixInvVP);
-
             //Fetch shadow coordinates for cascade.
+            float3 wpos = ComputeWorldSpacePosition(input.uv.xy, deviceDepth, unity_MatrixInvVP);
             float4 coords = TransformWorldToShadowCoord(wpos);
 
             // Screenspace shadowmap is only used for directional lights which use orthogonal projection.
-            ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
-            half4 shadowParams = GetMainLightShadowParams();
-            return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), coords, shadowSamplingData, shadowParams, false);
+            half realtimeShadow = MainLightRealtimeShadow(coords);
+
+            return realtimeShadow;
         }
 
         ENDHLSL

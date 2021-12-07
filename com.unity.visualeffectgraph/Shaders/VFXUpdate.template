@@ -1,4 +1,5 @@
 #pragma kernel CSMain
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
@@ -75,7 +76,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 				indirectBuffer[indirectIndex] = index;
 #endif
 
-#if HAS_STRIPS			
+#if HAS_STRIPS
 				uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
 				InterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE, stripData.stripIndex), relativeIndexInStrip);
 				InterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE, stripData.stripIndex), relativeIndexInStrip);
@@ -93,13 +94,13 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if USE_DEAD_LIST && VFX_USE_STRIPALIVE_CURRENT
         else if (attributes.stripAlive)
         {
-            if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, index) == ~1) // Attached strip is no longer alive, recycle the particle 
+            if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, index) == ~1) // Attached strip is no longer alive, recycle the particle
             {
                 uint deadIndex = deadListOut.IncrementCounter();
 				deadListOut[deadIndex] = index;
                 attributes.stripAlive = false;
                 ${VFXStoreAttributes:{stripAlive}}
-            }            
+            }
         }
 #endif
 #else
@@ -124,7 +125,12 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #endif
 #if VFX_COMPUTE_BOUNDS
 		${VFXLoadSize}
-		InitReduction(attributes, size3, tid);
+#if VFX_WORLD_SPACE
+        ${VFXLoadParameter:{worldToLocal}}
+#else
+        float4x4 worldToLocal = (float4x4)0;
+#endif
+		InitReduction(attributes, size3, tid, worldToLocal);
 #endif
 
 	}

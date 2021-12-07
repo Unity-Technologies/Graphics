@@ -12,6 +12,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalQuad.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 
 // How many lights (at most) do we support at one given shading point
 // FIXME: hardcoded limits are evil, this LightList should instead be put together in C#
@@ -109,7 +110,9 @@ bool IsDistantLightActive(DirectionalLightData lightData, float3 normal)
     return dot(normal, lightData.forward) <= sin(lightData.angularDiameter * 0.5);
 }
 
-LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEFAULT_LIGHT_LAYERS, bool withLocal = true, bool withDistant = true)
+LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEFAULT_LIGHT_LAYERS,
+                          bool withPoint = true, bool withArea = true, bool withDistant = true,
+                          float3 lightPosition = FLT_MAX)
 {
     LightList list;
     uint i;
@@ -118,53 +121,70 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEF
     list.localCount = 0;
     list.localPointCount = 0;
 
-if (withLocal)
-{
-    uint localPointCount, localCount;
+    if (withPoint || withArea)
+    {
+        uint localPointCount, localCount;
 
 #ifdef USE_LIGHT_CLUSTER
-    if (PointInsideCluster(position))
-    {
-        list.cellIndex = GetClusterCellIndex(position);
-        localPointCount = GetPunctualLightClusterCellCount(list.cellIndex);
-        localCount = GetAreaLightClusterCellCount(list.cellIndex);
-    }
-    else
-    {
-        localPointCount = 0;
-        localCount = 0;
-    }
+        if (PointInsideCluster(position))
+        {
+            list.cellIndex = GetClusterCellIndex(position);
+            localPointCount = GetPunctualLightClusterCellCount(list.cellIndex);
+            localCount = GetAreaLightClusterCellCount(list.cellIndex);
+        }
+        else
+        {
+            localPointCount = 0;
+            localCount = 0;
+        }
 #else
-    localPointCount = _PunctualLightCountRT;
-    localCount = _PunctualLightCountRT + _AreaLightCountRT;
+        localPointCount = _PunctualLightCountRT;
+        localCount = _PunctualLightCountRT + _AreaLightCountRT;
 #endif
 
-    // First point lights (including spot lights)
-    for (i = 0; i < localPointCount && list.localPointCount < MAX_LOCAL_LIGHT_COUNT; i++)
-    {
-#ifdef USE_LIGHT_CLUSTER
-        const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
-#else
-        const LightData lightData = _LightDatasRT[i];
-#endif
+        // Do we have an imposed local light (identificed by position), for volumetric scattering?
+        bool forceLightPosition = (lightPosition.x != FLT_MAX);
 
-        if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsPointLightActive(lightData, position, normal))
-            list.localIndex[list.localPointCount++] = i;
+        // First point lights (including spot lights)
+        if (withPoint)
+        {
+            for (i = 0; i < localPointCount && list.localPointCount < MAX_LOCAL_LIGHT_COUNT; i++)
+            {
+    #ifdef USE_LIGHT_CLUSTER
+                const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
+    #else
+                const LightData lightData = _LightDatasRT[i];
+    #endif
+
+                if (forceLightPosition && any(lightPosition - lightData.positionRWS))
+                    continue;
+
+                if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsPointLightActive(lightData, position, normal))
+                    list.localIndex[list.localPointCount++] = i;
+            }
+
+            list.localCount = list.localPointCount;
+        }
+
+        // Then rect area lights
+        if (withArea)
+        {
+            for (i = localPointCount; i < localCount && list.localCount < MAX_LOCAL_LIGHT_COUNT; i++)
+            {
+    #ifdef USE_LIGHT_CLUSTER
+                const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
+    #else
+                const LightData lightData = _LightDatasRT[i];
+    #endif
+
+                if (forceLightPosition && any(lightPosition - lightData.positionRWS))
+                    continue;
+
+                if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsRectAreaLightActive(lightData, position, normal))
+                    list.localIndex[list.localCount++] = i;
+            }
+        }
     }
-
-    // Then rect area lights
-    for (list.localCount = list.localPointCount; i < localCount && list.localCount < MAX_LOCAL_LIGHT_COUNT; i++)
-    {
-#ifdef USE_LIGHT_CLUSTER
-        const LightData lightData = FetchClusterLightIndex(list.cellIndex, i);
-#else
-        const LightData lightData = _LightDatasRT[i];
-#endif
-
-        if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsRectAreaLightActive(lightData, position, normal))
-            list.localIndex[list.localCount++] = i;
-    }
-}
 
     // Then filter the active distant lights (directional)
     list.distantCount = 0;
@@ -318,6 +338,11 @@ float3 GetAreaEmission(LightData lightData, float centerU, float centerV, float 
     return emission;
 }
 
+float3 GetLightTransmission(float3 transmission, float shadowOpacity)
+{
+    return lerp(float3(1.0, 1.0, 1.0), transmission, shadowOpacity);
+}
+
 bool SampleLights(LightList lightList,
                   float3 inputSample,
                   float3 position,
@@ -326,7 +351,8 @@ bool SampleLights(LightList lightList,
               out float3 outgoingDir,
               out float3 value,
               out float pdf,
-              out float dist)
+              out float dist,
+              out float shadowOpacity)
 {
     if (!GetLightCount(lightList))
         return false;
@@ -395,7 +421,15 @@ bool SampleLights(LightList lightList,
         }
 
         if (isVolume)
+        {
             value *= lightData.volumetricLightDimmer;
+            shadowOpacity = lightData.volumetricShadowDimmer;
+        }
+        else
+        {
+            value *= lightData.lightDimmer;
+            shadowOpacity = lightData.shadowDimmer;
+        }
 
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
         ApplyFogAttenuation(position, outgoingDir, dist, value);
@@ -426,7 +460,15 @@ bool SampleLights(LightList lightList,
         dist = FLT_INF;
 
         if (isVolume)
+        {
             value *= lightData.volumetricLightDimmer;
+            shadowOpacity = lightData.volumetricShadowDimmer;
+        }
+        else
+        {
+            value *= lightData.lightDimmer;
+            shadowOpacity = lightData.shadowDimmer;
+        }
 
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
         ApplyFogAttenuation(position, outgoingDir, value);
@@ -673,12 +715,62 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
     return tMin < tMax;
 }
 
-float GetLocalLightsInterval(float3 rayOrigin, float3 rayDirection, out float tMin, out float tMax)
+// This function has been deprecated in favor of PickLocalLightInterval() right below
+// float GetLocalLightsInterval(float3 rayOrigin, float3 rayDirection, out float tMin, out float tMax)
+// {
+//     tMin = FLT_MAX;
+//     tMax = 0.0;
+
+//     float tLightMin, tLightMax;
+
+//     // First process point lights
+//     uint i = 0, n = _PunctualLightCountRT, localCount = 0;
+//     for (; i < n; i++)
+//     {
+//         if (GetPointLightInterval(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax))
+//         {
+//             tMin = min(tMin, tLightMin);
+//             tMax = max(tMax, tLightMax);
+//             localCount++;
+//         }
+//     }
+
+//     // Then area lights
+//     n += _AreaLightCountRT;
+//     for (; i < n; i++)
+//     {
+//         if (GetRectAreaLightInterval(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax))
+//         {
+//             tMin = min(tMin, tLightMin);
+//             tMax = max(tMax, tLightMax);
+//             localCount++;
+//         }
+//     }
+
+//     uint lightCount = localCount + _DirectionalLightCount;
+
+//     return lightCount ? float(localCount) / lightCount : -1.0;
+// }
+
+float GetLocalLightWeight(LightData lightData, float3 rayOrigin, float3 rayDirection, float tMin, float tMax)
+{
+    float tDist = clamp(dot(lightData.positionRWS - rayOrigin, rayDirection), tMin, tMax);
+    float3 vDist = rayOrigin + tDist * rayDirection - lightData.positionRWS;
+
+    // By offsetting the square distance by 1.0, we reduce the range of the weight to ]0.0,  1.0],
+    // while avoiding a singularity when distance goes towards 0.0.
+    float distSq = 1.0 + Length2(vDist);
+
+    return rcp(distSq);
+}
+
+float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float inputSample, out float3 lightPosition, out float lightWeight, out float tMin, out float tMax)
 {
     tMin = FLT_MAX;
     tMax = 0.0;
 
     float tLightMin, tLightMax;
+    float wLight, wSum = 0.0;
 
     // First process point lights
     uint i = 0, n = _PunctualLightCountRT, localCount = 0;
@@ -686,9 +778,31 @@ float GetLocalLightsInterval(float3 rayOrigin, float3 rayDirection, out float tM
     {
         if (GetPointLightInterval(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax))
         {
-            tMin = min(tMin, tLightMin);
-            tMax = max(tMax, tLightMax);
-            localCount++;
+            wLight = GetLocalLightWeight(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax);
+
+            if (wLight > 0.0)
+            {
+                wSum += wLight;
+                wLight /= wSum;
+
+                if (inputSample < wLight)
+                {
+                    lightPosition = _LightDatasRT[i].positionRWS;
+                    lightWeight = wLight;
+                    tMin = tLightMin;
+                    tMax = tLightMax;
+
+                    inputSample = RescaleSampleUnder(inputSample, wLight);
+                }
+                else
+                {
+                    lightWeight *= 1.0 - wLight;
+
+                    inputSample = RescaleSampleOver(inputSample, wLight);
+                }
+
+                localCount++;
+            }
         }
     }
 
@@ -698,9 +812,31 @@ float GetLocalLightsInterval(float3 rayOrigin, float3 rayDirection, out float tM
     {
         if (GetRectAreaLightInterval(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax))
         {
-            tMin = min(tMin, tLightMin);
-            tMax = max(tMax, tLightMax);
-            localCount++;
+            wLight = GetLocalLightWeight(_LightDatasRT[i], rayOrigin, rayDirection, tLightMin, tLightMax);
+
+            if (wLight > 0.0)
+            {
+                wSum += wLight;
+                wLight /= wSum;
+
+                if (inputSample < wLight)
+                {
+                    lightPosition = _LightDatasRT[i].positionRWS;
+                    lightWeight = wLight;
+                    tMin = tLightMin;
+                    tMax = tLightMax;
+
+                    inputSample = RescaleSampleUnder(inputSample, wLight);
+                }
+                else
+                {
+                    lightWeight *= 1.0 - wLight;
+
+                    inputSample = RescaleSampleOver(inputSample, wLight);
+                }
+
+                localCount++;
+            }
         }
     }
 
@@ -709,9 +845,9 @@ float GetLocalLightsInterval(float3 rayOrigin, float3 rayDirection, out float tM
     return lightCount ? float(localCount) / lightCount : -1.0;
 }
 
-LightList CreateLightList(float3 position, bool sampleLocalLights)
+LightList CreateLightList(float3 position, bool sampleLocalLights, float3 lightPosition = FLT_MAX)
 {
-    return CreateLightList(position, 0.0, DEFAULT_LIGHT_LAYERS, sampleLocalLights, !sampleLocalLights);
+    return CreateLightList(position, 0.0, DEFAULT_LIGHT_LAYERS, sampleLocalLights, sampleLocalLights, !sampleLocalLights, lightPosition);
 }
 
 #endif // UNITY_PATH_TRACING_LIGHT_INCLUDED

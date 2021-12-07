@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     mat.shader = litShader;
                     // We remove all keyword already present
                     CoreEditorUtils.RemoveMaterialKeywords(mat);
-                    LitGUI.SetupLitKeywordsAndPass(mat);
+                    LitAPI.ValidateMaterial(mat);
                     EditorUtility.SetDirty(mat);
                 }
                 else if (mat.shader.name == "HDRP/LayeredLitTessellation")
@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     mat.shader = layeredLitShader;
                     // We remove all keyword already present
                     CoreEditorUtils.RemoveMaterialKeywords(mat);
-                    LayeredLitGUI.SetupLayeredLitKeywordsAndPass(mat);
+                    LayeredLitAPI.ValidateMaterial(mat);
                     EditorUtility.SetDirty(mat);
                 }
             }

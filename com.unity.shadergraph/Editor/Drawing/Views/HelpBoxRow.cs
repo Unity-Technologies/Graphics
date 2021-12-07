@@ -47,7 +47,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             hierarchy.Add(container);
         }
 
-        public static VisualElement TryGetDeprecatedHelpBoxRow(string deprecatedTypeName, Action upgradeAction, string deprecationText = null, string buttonText = null, string labelText = null, MessageType messageType = MessageType.Warning)
+        public static VisualElement CreateVariantLimitHelpBox(int currentVariantCount, int maxVariantCount)
+        {
+            var messageType = MessageType.Error;
+            HelpBoxRow help = new HelpBoxRow(messageType);
+            var label = new Label("Variant limit exceeded: Hover for more info")
+            {
+                tooltip = ShaderKeyword.kVariantLimitWarning,
+                name = "message-" + (messageType == MessageType.Warning ? "warn" : "info")
+            };
+            help.Add(label);
+            return help;
+        }
+
+        public static VisualElement TryGetDeprecatedHelpBoxRow(string deprecatedTypeName, Action upgradeAction, Action dismissAction, string deprecationText = null, string buttonText = null, string labelText = null, MessageType messageType = MessageType.Warning)
         {
             if (deprecationText == null)
             {
@@ -61,25 +74,37 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             if (labelText == null)
             {
-                labelText = "DEPRECATED: Hover for info";
+                labelText = $"The {deprecatedTypeName} has new updates. This version maintains the old behavior. " +
+                    $"If you update a {deprecatedTypeName}, you can use Undo to change it back. See the {deprecatedTypeName} " +
+                    $"documentation for more information.";
             }
 
             Button upgradeButton = new Button(upgradeAction) { text = buttonText, tooltip = deprecationText };
-            if (!ShaderGraphPreferences.allowDeprecatedBehaviors || messageType == MessageType.Info)
+            Button dismissButton = null;
+            if (dismissAction != null)
+                dismissButton = new Button(dismissAction) { text = "Dismiss" };
+
+            if (dismissAction != null)
             {
                 HelpBoxRow help = new HelpBoxRow(messageType);
                 var label = new Label(labelText)
                 {
-                    tooltip = deprecationText,
+                    tooltip = labelText,
                     name = "message-" + (messageType == MessageType.Warning ? "warn" : "info")
                 };
                 help.Add(label);
                 help.contentContainer.Add(upgradeButton);
+                if (dismissButton != null)
+                    help.contentContainer.Add(dismissButton);
                 return help;
             }
             else
             {
-                return upgradeButton;
+                var box = new VisualElement();
+                box.Add(upgradeButton);
+                if (dismissButton != null)
+                    box.Add(dismissButton);
+                return box;
             }
         }
     }

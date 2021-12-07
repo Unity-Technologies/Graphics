@@ -384,6 +384,9 @@ namespace UnityEditor.ShaderGraph
             return new ConditionalField[]
             {
                 new ConditionalField(StructFields.VertexDescriptionInputs.ScreenPosition,                               requirements.requiresScreenPosition),
+                new ConditionalField(StructFields.VertexDescriptionInputs.NDCPosition,                                  requirements.requiresNDCPosition),
+                new ConditionalField(StructFields.VertexDescriptionInputs.PixelPosition,                                requirements.requiresPixelPosition),
+
                 new ConditionalField(StructFields.VertexDescriptionInputs.VertexColor,                                  requirements.requiresVertexColor),
 
                 new ConditionalField(StructFields.VertexDescriptionInputs.ObjectSpaceNormal,                            (requirements.requiresNormal & NeededCoordinateSpace.Object) > 0),
@@ -439,6 +442,9 @@ namespace UnityEditor.ShaderGraph
             return new ConditionalField[]
             {
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.ScreenPosition,                              requirements.requiresScreenPosition),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.NDCPosition,                                 requirements.requiresNDCPosition),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.PixelPosition,                               requirements.requiresPixelPosition),
+
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.VertexColor,                                 requirements.requiresVertexColor),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.FaceSign,                                    requirements.requiresFaceSign),
 
@@ -561,11 +567,28 @@ namespace UnityEditor.ShaderGraph
 
             switch (convertToType)
             {
+                case ConcreteSlotValueType.Boolean:
+                    switch (convertFromType)
+                    {
+                        case ConcreteSlotValueType.Vector1:
+                            return string.Format("((bool) {0})", rawOutput);
+                        case ConcreteSlotValueType.Vector2:
+                        case ConcreteSlotValueType.Vector3:
+                        case ConcreteSlotValueType.Vector4:
+                            return string.Format("((bool) {0}.x)", rawOutput);
+                        default:
+                            return kErrorString;
+                    }
                 case ConcreteSlotValueType.Vector1:
-                    return string.Format("({0}).x", rawOutput);
+                    if (convertFromType == ConcreteSlotValueType.Boolean)
+                        return string.Format("(($precision) {0})", rawOutput);
+                    else
+                        return string.Format("({0}).x", rawOutput);
                 case ConcreteSlotValueType.Vector2:
                     switch (convertFromType)
                     {
+                        case ConcreteSlotValueType.Boolean:
+                            return string.Format("((($precision) {0}).xx)", rawOutput);
                         case ConcreteSlotValueType.Vector1:
                             return string.Format("({0}.xx)", rawOutput);
                         case ConcreteSlotValueType.Vector3:
@@ -577,6 +600,8 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Vector3:
                     switch (convertFromType)
                     {
+                        case ConcreteSlotValueType.Boolean:
+                            return string.Format("((($precision) {0}).xxx)", rawOutput);
                         case ConcreteSlotValueType.Vector1:
                             return string.Format("({0}.xxx)", rawOutput);
                         case ConcreteSlotValueType.Vector2:
@@ -589,6 +614,8 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Vector4:
                     switch (convertFromType)
                     {
+                        case ConcreteSlotValueType.Boolean:
+                            return string.Format("((($precision) {0}).xxxx)", rawOutput);
                         case ConcreteSlotValueType.Vector1:
                             return string.Format("({0}.xxxx)", rawOutput);
                         case ConcreteSlotValueType.Vector2:
@@ -746,6 +773,12 @@ namespace UnityEditor.ShaderGraph
                 if (requirements.requiresScreenPosition)
                     sb.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
 
+                if (requirements.requiresNDCPosition)
+                    sb.AppendLine("float2 {0};", ShaderGeneratorNames.NDCPosition);
+
+                if (requirements.requiresPixelPosition)
+                    sb.AppendLine("float2 {0};", ShaderGeneratorNames.PixelPosition);
+
                 if (requirements.requiresFaceSign)
                     sb.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
 
@@ -786,6 +819,12 @@ namespace UnityEditor.ShaderGraph
 
             if (requirements.requiresScreenPosition)
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.ScreenPosition} = IN.{ShaderGeneratorNames.ScreenPosition};");
+
+            if (requirements.requiresNDCPosition)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.NDCPosition} = IN.{ShaderGeneratorNames.NDCPosition};");
+
+            if (requirements.requiresPixelPosition)
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.PixelPosition} = IN.{ShaderGeneratorNames.PixelPosition};");
 
             if (requirements.requiresFaceSign)
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.FaceSign} = IN.{ShaderGeneratorNames.FaceSign};");

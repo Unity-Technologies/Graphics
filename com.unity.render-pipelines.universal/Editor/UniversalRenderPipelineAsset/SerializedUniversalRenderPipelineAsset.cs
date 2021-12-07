@@ -45,8 +45,8 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty shadowCascadeBorderProp { get; }
         public SerializedProperty shadowDepthBiasProp { get; }
         public SerializedProperty shadowNormalBiasProp { get; }
-
         public SerializedProperty softShadowsSupportedProp { get; }
+        public SerializedProperty conservativeEnclosingSphereProp { get; }
 
         public SerializedProperty srpBatcher { get; }
         public SerializedProperty supportsDynamicBatching { get; }
@@ -61,8 +61,9 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty colorGradingLutSize { get; }
         public SerializedProperty useFastSRGBLinearConversion { get; }
 
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
         public SerializedProperty useAdaptivePerformance { get; }
-
+#endif
         public UniversalRenderPipelineAsset asset { get; }
         public SerializedObject serializedObject { get; }
 
@@ -111,6 +112,7 @@ namespace UnityEditor.Rendering.Universal
             shadowDepthBiasProp = serializedObject.FindProperty("m_ShadowDepthBias");
             shadowNormalBiasProp = serializedObject.FindProperty("m_ShadowNormalBias");
             softShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
+            conservativeEnclosingSphereProp = serializedObject.FindProperty("m_ConservativeEnclosingSphere");
 
             srpBatcher = serializedObject.FindProperty("m_UseSRPBatcher");
             supportsDynamicBatching = serializedObject.FindProperty("m_SupportsDynamicBatching");
@@ -128,8 +130,9 @@ namespace UnityEditor.Rendering.Universal
 
             useFastSRGBLinearConversion = serializedObject.FindProperty("m_UseFastSRGBLinearConversion");
 
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             useAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");
-
+#endif
             string Key = "Universal_Shadow_Setting_Unit:UI_State";
             state = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
         }

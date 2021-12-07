@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle atlasTexture;
         }
 
-        public void BlitCachedIntoAtlas(RenderGraph renderGraph, HDCachedShadowAtlas cachedAtlas, Material blitMaterial, string passName, HDProfileId profileID)
+        public void BlitCachedIntoAtlas(RenderGraph renderGraph, TextureHandle cachedAtlasTexture, int cachedAtlasSize, Material blitMaterial, string passName, HDProfileId profileID)
         {
             if (m_MixedRequestsPendingBlits.Count > 0)
             {
@@ -190,9 +190,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.requestsWaitingBlits = m_MixedRequestsPendingBlits;
                     passData.blitMaterial = blitMaterial;
-                    passData.cachedShadowAtlasSize = new Vector2Int(cachedAtlas.width, cachedAtlas.height);
-                    passData.sourceCachedAtlas = builder.ReadTexture(cachedAtlas.GetOutputTexture(renderGraph));
-                    passData.atlasTexture = builder.WriteTexture(GetOutputTexture(renderGraph));
+                    passData.cachedShadowAtlasSize = new Vector2Int(cachedAtlasSize, cachedAtlasSize);
+                    passData.sourceCachedAtlas = builder.ReadTexture(cachedAtlasTexture);
+                    passData.atlasTexture = builder.WriteTexture(GetShadowMapDepthTexture(renderGraph));
 
                     builder.SetRenderFunc(
                         (BlitCachedShadowPassData data, RenderGraphContext ctx) =>

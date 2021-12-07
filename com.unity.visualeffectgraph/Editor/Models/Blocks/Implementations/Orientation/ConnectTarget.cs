@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Orientation")]
+    [VFXInfo(category = "Attribute/orientation")]
     class ConnectTarget : VFXBlock
     {
         public enum OrientMode

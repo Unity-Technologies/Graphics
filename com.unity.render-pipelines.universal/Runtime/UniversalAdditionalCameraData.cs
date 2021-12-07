@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.Universal
     {
         Off,
         On,
+        [InspectorName("Use settings from Render Pipeline Asset")]
         UsePipelineSettings,
     }
 
@@ -387,6 +388,35 @@ namespace UnityEngine.Rendering.Universal
             if (removedCamsCount != 0)
             {
                 Debug.LogWarning(name + ": " + removedCamsCount + " camera overlay" + (removedCamsCount > 1 ? "s" : "") + " no longer exists and will be removed from the camera stack.");
+            }
+        }
+
+        void OnEnable()
+        {
+            RegisterDebug();
+        }
+
+        void OnDisable()
+        {
+            UnRegisterDebug();
+        }
+
+        bool m_IsDebugRegistered = false;
+        void RegisterDebug()
+        {
+            if (!m_IsDebugRegistered)
+            {
+                UniversalRenderPipelineVolumeDebugSettings.RegisterCamera(this);
+                m_IsDebugRegistered = true;
+            }
+        }
+
+        void UnRegisterDebug()
+        {
+            if (m_IsDebugRegistered)
+            {
+                UniversalRenderPipelineVolumeDebugSettings.UnRegisterCamera(this);
+                m_IsDebugRegistered = false;
             }
         }
 

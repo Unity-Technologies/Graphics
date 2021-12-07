@@ -499,6 +499,21 @@ void FillCloudUpscaleNeighborhoodData(int2 groupThreadId, int subRegionIdx, out 
     neighborhoodData.lowWeightC = _DistanceBasedWeights[subRegionIdx * 3 + 2].x;
 }
 
+float EvaluateFinalTransmittance(float3 color, float transmittance)
+{
+    // Due to the high intensity of the sun, we often need apply the transmittance in a tonemapped space
+    // As we only produce one transmittance, we evaluate the approximation on the luminance of the color
+    float luminance = Luminance(color);
+
+    // Apply the tone mapping and then the transmittance
+    float resultLuminance = luminance / (1.0 + luminance) * transmittance;
+
+    // reverse the tone mapping
+    resultLuminance = resultLuminance / (1.0 - resultLuminance);
+
+    // This approach only makes sense if the color is not black
+    return (luminance > 0.0 && _ImprovedTransmittanceBlend == 1) ? resultLuminance / luminance : transmittance;
+}
 #endif // REAL_TIME_VOLUMETRIC_CLOUDS
 
 #endif // VOLUMETRIC_CLOUD_UTILITIES_H

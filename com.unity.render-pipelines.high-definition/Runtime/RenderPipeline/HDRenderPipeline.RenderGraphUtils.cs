@@ -68,6 +68,15 @@ namespace UnityEngine.Rendering.HighDefinition
             if (CoreUtils.IsSceneFilteringEnabled())
                 clearColor.a = 0.0f;
 
+            // Get the background color from preferences if preview camera
+#if UNITY_EDITOR
+            if (HDUtils.IsRegularPreviewCamera(hdCamera.camera) && hdCamera.camera.clearFlags != CameraClearFlags.SolidColor)
+            {
+                return CoreRenderPipelinePreferences.previewBackgroundColor;
+            }
+#endif
+
+
             return clearColor;
         }
 

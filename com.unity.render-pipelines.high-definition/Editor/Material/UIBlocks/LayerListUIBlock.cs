@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -154,7 +155,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 foreach (var mat in materials)
                 {
-                    LayeredLitGUI.SetupLayeredLitKeywordsAndPass(mat);
+                    LayeredLitAPI.ValidateMaterial(mat);
                 }
 
                 // SaveAssetsProcessor the referenced material in the users data

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.Rendering.HighDefinition;
 
-// Include material common properties names
+using static UnityEngine.Rendering.HighDefinition.HDRenderQueue;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -123,6 +123,15 @@ namespace UnityEditor.Rendering.HighDefinition
         Front = CullMode.Front,
     }
 
+    /// <summary>Emissive Intensity Unit</summary>
+    public enum EmissiveIntensityUnit
+    {
+        /// <summary>Nits</summary>
+        Nits,
+        /// <summary>EV100</summary>
+        EV100,
+    }
+
     internal static class MaterialExtension
     {
         public static SurfaceType GetSurfaceType(this Material material)
@@ -190,18 +199,298 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(this Material material)
+        public static DisplacementMode GetFilteredDisplacementMode(this Material material, DisplacementMode displacementMode)
         {
-            const string kEmissiveColorLDR = "_EmissiveColorLDR";
-            const string kEmissiveColor = "_EmissiveColor";
-            const string kEmissiveIntensity = "_EmissiveIntensity";
-
-            if (material.HasProperty(kEmissiveColorLDR) && material.HasProperty(kEmissiveIntensity) && material.HasProperty(kEmissiveColor))
+            if (material.HasProperty(kTessellationMode))
             {
-                Color emissiveColorLDRLinear = material.GetColor(kEmissiveColor) / material.GetFloat(kEmissiveIntensity);
-                Color emissiveColorLDR = new Color(Mathf.LinearToGammaSpace(emissiveColorLDRLinear.r), Mathf.LinearToGammaSpace(emissiveColorLDRLinear.g), Mathf.LinearToGammaSpace(emissiveColorLDRLinear.b));
-                material.SetColor(kEmissiveColorLDR, emissiveColorLDR);
+                if (displacementMode == DisplacementMode.Pixel || displacementMode == DisplacementMode.Vertex)
+                    return DisplacementMode.None;
             }
+            else
+            {
+                if (displacementMode == DisplacementMode.Tessellation)
+                    return DisplacementMode.None;
+            }
+            return displacementMode;
+        }
+    }
+}
+
+namespace UnityEngine.Rendering.HighDefinition
+{
+    /// <summary>
+    /// Utility class for setting properties, keywords and passes on a material to ensure it is in a valid state for rendering with HDRP.
+    /// </summary>
+    public static partial class HDMaterial
+    {
+        //enum representing all shader and shadergraph that we expose to user
+        internal enum ShaderID
+        {
+            Lit,
+            LitTesselation,
+            LayeredLit,
+            LayeredLitTesselation,
+            Unlit,
+            Decal,
+            TerrainLit,
+            AxF,
+            Count_Standard,
+            SG_Unlit = Count_Standard,
+            SG_Lit,
+            SG_Hair,
+            SG_Fabric,
+            SG_StackLit,
+            SG_Decal,
+            SG_Eye,
+            SG_Water,
+            Count_All,
+            Count_ShaderGraph = Count_All - Count_Standard,
+            SG_External = -1, // material packaged outside of HDRP
+        }
+
+        // exposed shader, for reference while searching the ShaderID
+        internal static readonly string[] s_ShaderPaths =
+        {
+            "HDRP/Lit",
+            "HDRP/LitTessellation",
+            "HDRP/LayeredLit",
+            "HDRP/LayeredLitTessellation",
+            "HDRP/Unlit",
+            "HDRP/Decal",
+            "HDRP/TerrainLit",
+            "HDRP/AxF",
+        };
+
+        // list of methods for resetting keywords
+        internal delegate void MaterialResetter(Material material);
+        internal static Dictionary<ShaderID, MaterialResetter> k_PlainShadersMaterialResetters = new Dictionary<ShaderID, MaterialResetter>()
+        {
+            { ShaderID.Lit, LitAPI.ValidateMaterial },
+            { ShaderID.LitTesselation, LitAPI.ValidateMaterial },
+            { ShaderID.LayeredLit,  LayeredLitAPI.ValidateMaterial },
+            { ShaderID.LayeredLitTesselation, LayeredLitAPI.ValidateMaterial },
+            { ShaderID.Unlit, UnlitAPI.ValidateMaterial },
+            { ShaderID.Decal, DecalAPI.ValidateMaterial },
+            { ShaderID.TerrainLit, TerrainLitAPI.ValidateMaterial },
+            { ShaderID.AxF, AxFAPI.ValidateMaterial },
+
+            { ShaderID.SG_Unlit, ShaderGraphAPI.ValidateUnlitMaterial },
+            { ShaderID.SG_Lit, ShaderGraphAPI.ValidateLightingMaterial },
+            { ShaderID.SG_Hair, ShaderGraphAPI.ValidateLightingMaterial },
+            { ShaderID.SG_Fabric, ShaderGraphAPI.ValidateLightingMaterial },
+            { ShaderID.SG_StackLit, ShaderGraphAPI.ValidateLightingMaterial },
+            { ShaderID.SG_Decal, ShaderGraphAPI.ValidateDecalMaterial },
+            { ShaderID.SG_Eye, ShaderGraphAPI.ValidateLightingMaterial }
+        };
+
+        /// <summary>
+        /// Setup properties, keywords and passes on a material to ensure it is in a valid state for rendering with HDRP. This function is only for materials using HDRP Shaders.
+        /// </summary>
+        /// <param name="material">The target material.</param>
+        /// <returns>False if the material doesn't have an HDRP Shader.</returns>
+        public static bool ValidateMaterial(Material material)
+        {
+            var shaderName = material.shader.name;
+            var index = Array.FindIndex(s_ShaderPaths, m => m == shaderName);
+            if (index == -1)
+                return false;
+
+            k_PlainShadersMaterialResetters.TryGetValue((ShaderID)index, out var resetter);
+            if (resetter == null)
+                return false;
+
+            material.shaderKeywords = null;
+            resetter(material);
+            return true;
+        }
+    }
+
+    public static partial class HDMaterial
+    {
+        /// <summary>Rendering Pass</summary>
+        public enum RenderingPass
+        {
+            /// <summary>Before Refraction. Only for transparent materials</summary>
+            BeforeRefraction,
+            /// <summary>Default</summary>
+            Default,
+            /// <summary>After Post Process</summary>
+            AfterPostProcess,
+            /// <summary>Low Resolution. Only for transparent materials</summary>
+            LowResolution,
+        }
+
+        static RenderQueueType RenderingPassToQueue(RenderingPass pass, bool isTransparent)
+        {
+            switch (pass)
+            {
+                case RenderingPass.Default:
+                    return isTransparent ? RenderQueueType.Transparent : RenderQueueType.Opaque;
+                case RenderingPass.AfterPostProcess:
+                    return isTransparent ? RenderQueueType.AfterPostprocessTransparent : RenderQueueType.AfterPostProcessOpaque;
+
+                case RenderingPass.BeforeRefraction:
+                    return isTransparent ? RenderQueueType.PreRefraction : RenderQueueType.Opaque;
+                case RenderingPass.LowResolution:
+                    return isTransparent ? RenderQueueType.LowTransparent : RenderQueueType.Opaque;
+
+                default:
+                    return RenderQueueType.Unknown;
+            }
+        }
+
+        /// <summary>Set the Rendering Pass on Lit, Unlit and Shadergraph shaders.</summary>
+        /// <param name="material">The material to change.</param>
+        /// <param name="value">The rendering pass to set.</param>
+        public static void SetRenderingPass(Material material, RenderingPass value)
+        {
+            bool isTransparent = (SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent;
+            var type = RenderingPassToQueue(value, isTransparent);
+
+            int sortingPriority = material.HasProperty(kTransparentSortPriority) ? (int)material.GetFloat(kTransparentSortPriority) : 0;
+            bool alphaClipping = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
+            bool receiveDecals = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;
+            material.renderQueue = ChangeType(type, sortingPriority, alphaClipping, receiveDecals);
+        }
+
+        /// <summary>Set the Emissive Color on Lit, Unlit and Decal shaders.</summary>
+        /// <param name="material">The material to change.</param>
+        /// <param name="value">The emissive color. In LDR if the material uses a separate emissive intensity value, in HDR otherwise.</param>
+        public static void SetEmissiveColor(Material material, Color value)
+        {
+            if (material.GetFloat(kUseEmissiveIntensity) > 0.0f)
+            {
+                material.SetColor(kEmissiveColorLDR, value);
+                material.SetColor(kEmissiveColor, value.linear * material.GetFloat(kEmissiveIntensity));
+            }
+            else
+            {
+                if (material.HasProperty(kEmissiveColorHDR))
+                    material.SetColor(kEmissiveColorHDR, value);
+                material.SetColor(kEmissiveColor, value);
+            }
+        }
+
+        /// <summary>Set to true to use a separate LDR color and intensity value for the emission color. Compatible with Lit, Unlit and Decal shaders.</summary>
+        /// <param name="material">The material to change.</param>
+        /// <param name="value">True to use separate color and intensity values.</param>
+        public static void SetUseEmissiveIntensity(Material material, bool value)
+        {
+            material.SetFloat(kUseEmissiveIntensity, value ? 1.0f : 0.0f);
+            if (value)
+                material.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
+            else if (material.HasProperty(kEmissiveColorHDR))
+                material.SetColor(kEmissiveColor, material.GetColor(kEmissiveColorHDR));
+        }
+
+        /// <summary>Returns wether the material uses separate color and intensity values on Lit, Unlit and Decal shaders.</summary>
+        /// <param name="material">The material to change.</param>
+        /// <returns>True if the material uses separate color and intensity values.</returns>
+        public static bool GetUseEmissiveIntensity(Material material)
+        {
+            return material.GetFloat(kUseEmissiveIntensity) > 0.0f;
+        }
+
+        /// <summary>Set the Emissive Intensity on Lit, Unlit and Decal shaders. If the material doesn't use emissive intensity, this won't have any effect.</summary>
+        /// <param name="material">The material to change.</param>
+        /// <param name="intensity">The emissive intensity.</param>
+        /// <param name="unit">The unit of the intensity parameter.</param>
+        public static void SetEmissiveIntensity(Material material, float intensity, EmissiveIntensityUnit unit)
+        {
+            if (unit == EmissiveIntensityUnit.EV100)
+                intensity = LightUtils.ConvertEvToLuminance(intensity);
+            material.SetFloat(kEmissiveIntensity, intensity);
+            material.SetFloat(kEmissiveIntensityUnit, (float)unit);
+            if (material.GetFloat(kUseEmissiveIntensity) > 0.0f)
+                material.SetColor(kEmissiveColor, material.GetColor(kEmissiveColorLDR).linear * intensity);
+        }
+
+        /// <summary>Set Alpha Clipping on Lit and Unlit shaders.</summary>
+        /// <param name="material">The material to change.</param>
+        /// <param name="value">True to enable alpha clipping.</param>
+        public static void SetAlphaClipping(Material material, bool value)
+        {
+            material.SetFloat(kAlphaCutoffEnabled, value ? 1.0f : 0.0f);
+            material.SetupBaseUnlitKeywords();
+        }
+
+        /// <summary>Set Alpha Cutoff on Lit and Unlit shaders.</summary>
+        /// <param name="material">The material to change.</param>
+        /// <param name="cutoff">The alpha cutoff value between 0 and 1.</param>
+        public static void SetAlphaCutoff(Material material, float cutoff)
+        {
+            material.SetFloat(kAlphaCutoff, cutoff);
+            material.SetFloat(kCutoff, cutoff);
+        }
+
+        /// <summary>Set the Diffusion profile on Lit shaders.</summary>
+        /// <param name="material">The material to change.</param>
+        /// <param name="profile">The Diffusion Profile Asset.</param>
+        public static void SetDiffusionProfile(Material material, DiffusionProfileSettings profile)
+        {
+            float hash = profile != null ? HDShadowUtils.Asfloat(profile.profile.hash) : 0;
+            material.SetFloat(HDShaderIDs._DiffusionProfileHash, hash);
+
+#if UNITY_EDITOR
+            SetDiffusionProfileAsset(material, profile, HDShaderIDs._DiffusionProfileAsset);
+#endif
+        }
+
+        /// <summary>Set a Diffusion profile on a Shader Graph material.</summary>
+        /// <param name="material">The material to change.</param>
+        /// <param name="profile">The Diffusion Profile Asset.</param>
+        /// <param name="referenceName">The reference name of the Diffusion Profile property in the Shader Graph.</param>
+        public static void SetDiffusionProfileShaderGraph(Material material, DiffusionProfileSettings profile, string referenceName)
+        {
+            float hash = profile != null ? HDShadowUtils.Asfloat(profile.profile.hash) : 0;
+            material.SetFloat(referenceName, hash);
+
+#if UNITY_EDITOR
+            SetDiffusionProfileAsset(material, profile, Shader.PropertyToID(referenceName + "_Asset"));
+#endif
+        }
+
+#if UNITY_EDITOR
+        internal static void SetDiffusionProfileAsset(Material material, DiffusionProfileSettings profile, int assetPropertyId, int index = 0)
+        {
+            Vector4 guid = Vector3.zero;
+            if (profile != null)
+                guid = HDUtils.ConvertGUIDToVector4(UnityEditor.AssetDatabase.AssetPathToGUID(UnityEditor.AssetDatabase.GetAssetPath(profile)));
+            material.SetVector(assetPropertyId, guid);
+
+            var externalRefs = MaterialExternalReferences.GetMaterialExternalReferences(material);
+            externalRefs.SetDiffusionProfileReference(index, profile);
+        }
+
+        /// <summary>Get the Diffusion profile on Lit shaders.</summary>
+        /// <param name="material">The material to access.</param>
+        /// <returns>The Diffusion Profile Asset.</returns>
+        public static DiffusionProfileSettings GetDiffusionProfile(Material material)
+        {
+            return GetDiffusionProfileAsset(material, HDShaderIDs._DiffusionProfileAsset);
+        }
+
+        /// <summary>Get the Diffusion profile on a Shader Graph material.</summary>
+        /// <param name="material">The material to access.</param>
+        /// <returns>The Diffusion Profile Asset.</returns>
+        public static DiffusionProfileSettings GetDiffusionProfileShaderGraph(Material material)
+        {
+            return GetDiffusionProfileAsset(material, HDShaderIDs._DiffusionProfileAsset);
+        }
+
+        internal static DiffusionProfileSettings GetDiffusionProfileAsset(Material material, int assetPropertyId)
+        {
+            string guid = HDUtils.ConvertVector4ToGUID(material.GetVector(assetPropertyId));
+            return UnityEditor.AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(UnityEditor.AssetDatabase.GUIDToAssetPath(guid));
+        }
+#endif
+
+        // this will work on ALL shadergraph-built shaders, in memory or asset based
+        // duplicated from GraphUtil.cs in shadergraph package, because it's not available outside the editor
+        internal static bool IsShaderGraph(Material material)
+        {
+            var shaderGraphTag = material.GetTag("ShaderGraphShader", false, null);
+            return !string.IsNullOrEmpty(shaderGraphTag);
         }
     }
 }

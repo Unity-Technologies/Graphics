@@ -20,6 +20,8 @@
 #pragma kernel ChooseDirectionTriangleOnly
 #pragma kernel SurfaceClosing
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
+
 #include "Packages/com.unity.visualeffectgraph/Shaders/SDFBaker/SdfUtils.hlsl"
 
 StructuredBuffer<uint> indices;

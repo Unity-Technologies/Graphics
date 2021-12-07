@@ -89,20 +89,20 @@ namespace UnityEditor.VFX.UI
 
         void PasteBlocks(VFXView view, ref SerializableGraph serializableGraph, List<VFXNodeController> nodesInTheSameOrder)
         {
-            var selectedContexts = view.selection.OfType<VFXContextUI>();
-            var selectedBlocks = view.selection.OfType<VFXBlockUI>();
+            var selectedContexts = view.selection.OfType<VFXContextUI>().ToArray();
+            var selectedBlocks = view.selection.OfType<VFXBlockUI>().ToArray();
 
             VFXBlockUI targetBlock = null;
-            VFXContextUI targetContext = null;
+            VFXContextUI targetContext;
 
-            if (selectedBlocks.Count() > 0)
+            if (selectedBlocks.Any())
             {
                 targetBlock = selectedBlocks.OrderByDescending(t => t.context.controller.model.GetIndex(t.controller.model)).First();
                 targetContext = targetBlock.context;
             }
-            else if (selectedContexts.Count() == 1)
+            else if (selectedContexts.Length == 1)
             {
-                targetContext = selectedContexts.First();
+                targetContext = selectedContexts[0];
             }
             else
             {
@@ -110,31 +110,28 @@ namespace UnityEditor.VFX.UI
                 return;
             }
 
-            VFXContext targetModelContext = targetContext.controller.model;
-
-            int targetIndex = -1;
-            if (targetBlock != null)
+            using (new VFXContextUI.GrowContext(targetContext))
             {
-                targetIndex = targetModelContext.GetIndex(targetBlock.controller.model) + 1;
+                VFXContext targetModelContext = targetContext.controller.model;
+
+                int targetIndex = -1;
+                if (targetBlock != null)
+                {
+                    targetIndex = targetModelContext.GetIndex(targetBlock.controller.model) + 1;
+                }
+
+                List<VFXBlockController> blockControllers = nodesInTheSameOrder != null ? new List<VFXBlockController>() : null;
+
+                PasteBlocks(view.controller, serializableGraph.operators, targetModelContext, targetIndex, blockControllers);
+
+                nodesInTheSameOrder?.AddRange(blockControllers);
+                targetModelContext.Invalidate(VFXModel.InvalidationCause.kStructureChanged);
             }
 
+            view.ClearSelection();
 
-            List<VFXBlockController> blockControllers = nodesInTheSameOrder != null ? new List<VFXBlockController>() : null;
-
-            targetIndex = PasteBlocks(view.controller, serializableGraph.operators, targetModelContext, targetIndex, blockControllers);
-
-            if (nodesInTheSameOrder != null)
-                nodesInTheSameOrder.AddRange(blockControllers.Cast<VFXNodeController>());
-
-            targetModelContext.Invalidate(VFXModel.InvalidationCause.kStructureChanged);
-
-            if (view != null)
-            {
-                view.ClearSelection();
-
-                foreach (var uiBlock in targetContext.Query().OfType<VFXBlockUI>().Where(t => m_NodesInTheSameOrder.Any(u => u.model == t.controller.model)).ToList())
-                    view.AddToSelection(uiBlock);
-            }
+            foreach (var uiBlock in targetContext.Query().OfType<VFXBlockUI>().Where(t => m_NodesInTheSameOrder.Any(u => u.model == t.controller.model)).ToList())
+                view.AddToSelection(uiBlock);
         }
 
         private int PasteBlocks(VFXViewController viewController, Node[] blocks, VFXContext targetModelContext, int targetIndex, List<VFXBlockController> blocksInTheSameOrder = null)
@@ -697,6 +694,10 @@ namespace UnityEditor.VFX.UI
                         serializableGraph.contexts[i].dataIndex >= 0)
                     {
                         var data = serializableGraph.datas[serializableGraph.contexts[i].dataIndex];
+
+                        //At this stage, the context has the VFXGraph as its parent, so it can create a properly parented VFXData
+                        contextController.model.SetDefaultData(false);
+
                         VFXData targetData = contextController.model.GetData();
                         if (targetData != null)
                         {

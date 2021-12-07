@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _FogColorMode;
         public float _GlobalMipBias;
         public float _GlobalMipBiasPow2;
-        public float _Pad2;
+        public float _Pad0;
         public Vector4 _MipFogParameters;
         public Vector4 _HeightFogBaseScattering;
         public float _HeightFogBaseExtinction;
@@ -138,8 +138,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _GlobalFogAnisotropy;
         public int _VolumetricFilteringEnabled;
         public Vector2 _HeightFogExponents; // { 1/H, H }
-        public float _Pad4;
-        public float _Pad5;
+        public int _FogDirectionalOnly;
+        public float _Pad1;
 
         // VBuffer
         public Vector4 _VBufferViewportSize;           // { w, h, 1/w, 1/h }

@@ -9,8 +9,8 @@
 GLOBAL_CBUFFER_START(ShaderVariablesProbeVolumes, b5)
     float3 _PoolDim;
     float _ViewBias;
-    float _PVSamplingNoise;
     float3 _MinCellPosition;
+    float _PVSamplingNoise;
     float3 _CellIndicesDim;
     float _CellInMeters;
     float _CellInMinBricks;

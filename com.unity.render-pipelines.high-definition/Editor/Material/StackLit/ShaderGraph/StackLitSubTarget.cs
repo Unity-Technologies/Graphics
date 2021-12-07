@@ -1,15 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
-using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
-using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
-using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
+
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 using static UnityEditor.Rendering.HighDefinition.HDFields;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -30,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
-        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_StackLit;
+        protected override ShaderID shaderID => ShaderID.SG_StackLit;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "StackLit SubShader", "");
         protected override string raytracingInclude => CoreIncludes.kStackLitRaytracing;
         protected override string pathtracingInclude => CoreIncludes.kStackLitPathtracing;

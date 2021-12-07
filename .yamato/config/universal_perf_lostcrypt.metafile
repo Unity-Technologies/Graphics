@@ -17,7 +17,6 @@ reuse_blocks:
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
 
-
     - [iPhone_Metal, OSX_Metal]: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
     - [iPhone_Metal, OSX_Metal]: brew install unity-config
 
@@ -29,24 +28,27 @@ reuse_blocks:
     - [Linux_Vulkan]: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
     - [Linux_Vulkan]: sudo apt update
     - [Linux_Vulkan]: sudo apt install -y unity-config
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add testable com.unity.cli-project-setup  --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
+
+    - [all]: unity-config settings project-path TestProjects/2d-sara
+    - [all]: unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
+    - [all]: unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
+    - [all]: unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
+    - [all]: unity-config project add dependency com.unity.addressables@1.16.7
+    - [all]: unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2
+    - [all]: unity-config project add dependency com.unity.test-framework@1.1.29
+    - [all]: unity-config project add dependency com.unity.test-framework.performance@2.4.0
+    - [all]: unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
+    - [all]: unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
+    - [all]: unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
+    - [all]: unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+    - [all]: unity-config project add testable com.unity.cli-project-setup
+    - [all]: unity-config project add testable com.unity.test.performance.runtimesettings
+    - [all]: unity-config project add testable com.unity.test.metadata-manager
+    - [all]: unity-config project add testable com.unity.testing.graphics-performance
+    - [all]: unity-config project add testable com.unity.render-pipelines.core
+    - [all]: unity-config project add testable unity.graphictests.performance.universal
+    - [all]: unity-config project set project-update false
+
   perf_utr_flags:
     - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
     - [all]: --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity"
@@ -60,12 +62,12 @@ reuse_blocks:
     - [all]: --category=URP
 
 
-
 test_platforms:
   - type: Standalone
     name: performance_playmode_runtime
     allow_cache: False
     commands:
+      - [OSX_Metal]: <shared.platform.commands.setup_remote_ssh_keys_for_github_cds>
       - [OSX_Metal]: <reuse_blocks.unity_config>
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken_hikey>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
@@ -79,6 +81,16 @@ test_platforms:
           - [iPhone_Metal,  Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersLow
           - [OSX_Metal]: --testfilter=Low
           - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
       - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - [all]: --report-performance-data
@@ -92,6 +104,16 @@ test_platforms:
           - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersMedium
           - [OSX_Metal]: --testfilter=Medium
           - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
       - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - [all]: --report-performance-data
@@ -104,6 +126,16 @@ test_platforms:
           - [Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersHigh
           - [OSX_Metal]: --testfilter=High
           - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
 
     commands_build:
@@ -116,8 +148,8 @@ test_platforms:
           retries: 2
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
-      - [Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
-      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
@@ -131,7 +163,7 @@ test_platforms:
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
           - [all]: --player-save-path=playersLow
-      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan, ]: <shared.platform.commands.call_utr>
+      - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan, ]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
@@ -145,7 +177,7 @@ test_platforms:
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
           - [all]: --player-save-path=playersMedium
-      - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
+      - [Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
@@ -158,6 +190,7 @@ test_platforms:
     name: performance_playmode_editor
     allow_cache: False
     commands:
+      - [OSX_Metal]: <shared.platform.commands.setup_remote_ssh_keys_for_github_cds>
       - <reuse_blocks.unity_config>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
@@ -168,6 +201,16 @@ test_platforms:
           - [all]: --performance-project-id=LostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
       - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - [all]: --report-performance-data
@@ -180,6 +223,16 @@ test_platforms:
           - [all]: --performance-project-id=LostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
       - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - [all]: --report-performance-data
@@ -196,6 +249,7 @@ test_platforms:
     name: performance_build_editmode
     allow_cache: False
     commands:
+      - [OSX_Metal]: <shared.platform.commands.setup_remote_ssh_keys_for_github_cds>
       - <reuse_blocks.unity_config>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
@@ -207,6 +261,16 @@ test_platforms:
           - [all]: --performance-project-id=LostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
       - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - [all]: --testfilter=Build
@@ -221,6 +285,16 @@ test_platforms:
           - [all]: --performance-project-id=LostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
+        env_vars:
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
+          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
+          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
+          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
+          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
+          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
+          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
+          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
+          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
       - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - [all]: --testfilter=Build
@@ -281,11 +355,11 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
       performance_build_editmode:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
   - name: iPhone
     apis:
@@ -352,6 +426,15 @@ jobs:
           - performance_playmode_runtime
           - performance_playmode_editor
           - performance_build_editmode
+      - platform: OSX
+        api: Metal
+        build_config: mono
+        color_space: Linear
+        test_platforms:
+          # https://fogbugz.unity3d.com/f/cases/1375124/
+          # - performance_playmode_runtime
+          # - performance_playmode_editor
+          - performance_build_editmode
       - platform: Android
         api: OpenGLES3
         build_config: il2cpp
@@ -371,5 +454,5 @@ jobs:
         build_config: il2cpp
         color_space: Linear
         test_platforms:
-          - performance_playmode_runtime
+          #- performance_playmode_runtime https://fogbugz.unity3d.com/f/cases/1372763/
           - performance_build_editmode

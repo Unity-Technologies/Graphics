@@ -7,6 +7,9 @@ namespace UnityEngine.Rendering
     /// </summary>
     public enum APVConstantBufferRegister
     {
+        /// <summary>
+        /// Global register
+        /// </summary>
         GlobalRegister = 5
     }
 
@@ -16,8 +19,8 @@ namespace UnityEngine.Rendering
         public Vector3 _PoolDim;
         public float _ViewBias;
 
-        public float _PVSamplingNoise;
         public Vector3 _MinCellPosition;
+        public float _PVSamplingNoise;
 
         public Vector3 _CellIndicesDim;
         public float _CellInMeters;
