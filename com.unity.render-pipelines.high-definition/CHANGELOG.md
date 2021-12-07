@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRP build issues with DOTS_INSTANCING_ON shader variant.
 - Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
 - Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
+- Fixed flipped UV for directional light cookie on PBR Sky (case 1382656).
 
 ## [13.1.2] - 2021-11-05
 
