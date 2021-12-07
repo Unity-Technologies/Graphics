@@ -22,6 +22,14 @@ namespace UnityEngine.Rendering.Universal
         Motion = 1 << 3
     }
 
+    internal enum ReadOnlyDepthStencil
+    {
+        None = 0,
+        Depth = 1 << 0,
+        Stencil = 1 << 1,
+        Both = Depth | Stencil
+    }
+
     // Note: Spaced built-in events so we can add events in between them
     // We need to leave room as we sort render passes based on event.
     // Users can also inject render pass events in a specific point by doing RenderPassEvent + offset
@@ -252,6 +260,8 @@ namespace UnityEngine.Rendering.Universal
         internal GraphicsFormat[] renderTargetFormat { get; set; }
 
         internal bool m_UsesRTHandles;
+
+        internal ReadOnlyDepthStencil readOnlyDepthStencil = ReadOnlyDepthStencil.None;
         RTHandle[] m_ColorAttachments;
         RenderTargetIdentifier[] m_ColorAttachmentIds;
         internal RTHandle[] m_InputAttachments = new RTHandle[8];

@@ -435,6 +435,9 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
+                var readOnlyDepth = (renderPass.readOnlyDepthStencil & ReadOnlyDepthStencil.Depth) != 0;
+                var readOnlyStencil = (renderPass.readOnlyDepthStencil & ReadOnlyDepthStencil.Stencil) != 0;
+
                 if (validPassCount == 1 || currentMergeablePasses[0] == currentPassIndex) // Check if it's the first pass
                 {
                     if (PassHasInputAttachments(renderPass))
@@ -443,8 +446,7 @@ namespace UnityEngine.Rendering.Universal
                     context.BeginRenderPass(rpDesc.w, rpDesc.h, Math.Max(rpDesc.samples, 1), attachments,
                         useDepth ? (!depthOnly ? validColorBuffersCount : 0) : -1);
                     attachments.Dispose();
-
-                    context.BeginSubPass(attachmentIndices);
+                    context.BeginSubPass(attachmentIndices, readOnlyDepth, readOnlyStencil);
 
                     m_LastBeginSubpassPassIndex = currentPassIndex;
                 }
@@ -453,23 +455,26 @@ namespace UnityEngine.Rendering.Universal
                     // Regarding input attachments, currently we always recreate a new subpass if it contains input attachments
                     // This might not the most optimal way though and it should be investigated in the future
                     // Whether merging subpasses with matching input attachments is a more viable option
-                    if (!AreAttachmentIndicesCompatible(m_ActiveRenderPassQueue[m_LastBeginSubpassPassIndex], m_ActiveRenderPassQueue[currentPassIndex]))
+                    if (!AreAttachmentIndicesCompatible(m_ActiveRenderPassQueue[m_LastBeginSubpassPassIndex], m_ActiveRenderPassQueue[currentPassIndex])
+                    || (m_ActiveRenderPassQueue[m_LastBeginSubpassPassIndex].readOnlyDepthStencil != m_ActiveRenderPassQueue[currentPassIndex].readOnlyDepthStencil))
                     {
                         context.EndSubPass();
+
                         if (PassHasInputAttachments(m_ActiveRenderPassQueue[currentPassIndex]))
-                            context.BeginSubPass(attachmentIndices, m_ActiveRenderPassQueue[currentPassIndex].m_InputAttachmentIndices);
+                            context.BeginSubPass(attachmentIndices, m_ActiveRenderPassQueue[currentPassIndex].m_InputAttachmentIndices, readOnlyDepth, readOnlyStencil);
                         else
-                            context.BeginSubPass(attachmentIndices);
+                            context.BeginSubPass(attachmentIndices, readOnlyDepth, readOnlyStencil);
 
                         m_LastBeginSubpassPassIndex = currentPassIndex;
                     }
                     else if (PassHasInputAttachments(m_ActiveRenderPassQueue[currentPassIndex]))
                     {
                         context.EndSubPass();
-                        context.BeginSubPass(attachmentIndices, m_ActiveRenderPassQueue[currentPassIndex].m_InputAttachmentIndices);
+                        context.BeginSubPass(attachmentIndices, m_ActiveRenderPassQueue[currentPassIndex].m_InputAttachmentIndices, readOnlyDepth, readOnlyStencil);
 
                         m_LastBeginSubpassPassIndex = currentPassIndex;
                     }
+
                 }
 
                 attachmentIndices.Dispose();
