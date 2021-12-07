@@ -62,6 +62,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
 - Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
 
+### Added
+- Added a Layer Mask in the Probe Volume Settings window to filter which renderers to consider when placing the probes.
+
 ## [13.1.2] - 2021-11-05
 
 ### Added
