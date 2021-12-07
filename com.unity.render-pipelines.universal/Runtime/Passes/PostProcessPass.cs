@@ -528,7 +528,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 //    here since it'd change the color space that the passes operate in which could lead to incorrect results.
                 // 2. When FXAA is enabled with FSR, FXAA is moved to an earlier pass to ensure that FSR sees fully anti-aliased input. The moved FXAA pass sits between
                 //    UberPost and FSR so we can no longer perform color conversion here without affecting other passes.
-                bool doEarlyFsrColorConversion = (!m_hasExternalPostPasses                                                                                           &&
+                bool doEarlyFsrColorConversion = (!m_hasExternalPostPasses &&
                                                   (((cameraData.imageScaling == ImageScaling.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR)) &&
                                                    (cameraData.antialiasing != AntialiasingMode.FastApproximateAntialiasing)));
                 if (doEarlyFsrColorConversion)
