@@ -386,6 +386,10 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
+                else
+                {
+                    m_DisplayedResource = null;
+                }
             }
 
             if (VFXViewModificationProcessor.assetMoved)
