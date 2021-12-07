@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering.Universal
             bool copyDepthAfterTransparents = m_CopyDepthMode == CopyDepthMode.AfterTransparents;
 
             m_CopyDepthPass = new CopyDepthPass(copyDepthAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
-            m_CopyDepthPass.m_CopyResolvedDepth = RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled) && copyDepthAfterTransparents;
+            m_CopyDepthPass.m_CopyResolvedDepth = RenderingUtils.MultisampleDepthResolveSupported() && copyDepthAfterTransparents;
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
@@ -361,6 +361,16 @@ namespace UnityEngine.Rendering.Universal
                     DebugHandler.ResetDebugRenderTarget();
                 }
             }
+        }
+
+        bool IsDepthPrimingEnabled()
+        {
+            return (m_DepthPrimingRecommended && m_DepthPrimingMode == DepthPrimingMode.Auto) || (m_DepthPrimingMode == DepthPrimingMode.Forced);
+        }
+
+        bool IsGLESDevice()
+        {
+            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
         }
 
         /// <inheritdoc />
@@ -506,7 +516,7 @@ namespace UnityEngine.Rendering.Universal
             if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan)
                 createColorTexture |= createDepthTexture;
 #endif
-            bool useDepthPriming = (m_DepthPrimingRecommended && m_DepthPrimingMode == DepthPrimingMode.Auto) || (m_DepthPrimingMode == DepthPrimingMode.Forced);
+            bool useDepthPriming = IsDepthPrimingEnabled();
             useDepthPriming &= requiresDepthPrepass && (createDepthTexture || createColorTexture) && m_RenderingMode == RenderingMode.Forward && (cameraData.renderType == CameraRenderType.Base || cameraData.clearDepth);
 
             if (useRenderPassEnabled || useDepthPriming)
@@ -744,7 +754,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
                 // handle multisample depth resolve by setting the appropriate store actions if supported
-                if (requiresDepthCopyPass && cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled))
+                if (requiresDepthCopyPass && cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported())
                 {
                     bool isCopyDepthAfterTransparent = m_CopyDepthPass.renderPassEvent == RenderPassEvent.AfterRenderingTransparents;
 
@@ -837,7 +847,7 @@ namespace UnityEngine.Rendering.Universal
                     transparentPassDepthStoreAction = RenderBufferStoreAction.Store;
 
                     // handle depth resolve on platforms supporting it
-                    if (cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled))
+                    if (cameraTargetDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported())
                         transparentPassDepthStoreAction = RenderBufferStoreAction.Resolve;
                 }
 
@@ -1093,9 +1103,24 @@ namespace UnityEngine.Rendering.Universal
                     var depthDescriptor = descriptor;
                     depthDescriptor.useMipMap = false;
                     depthDescriptor.autoGenerateMips = false;
-                    depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
+                    depthDescriptor.bindMS = false;
 
-                    if (depthDescriptor.msaaSamples > 1 && RenderingUtils.MultisampleDepthResolveSupported(useRenderPassEnabled) && m_CopyDepthMode == CopyDepthMode.AfterTransparents)
+                    bool hasMSAA = depthDescriptor.msaaSamples > 1 && (SystemInfo.supportsMultisampledTextures != 0);
+
+                    // if MSAA is enabled and we are not resolving depth, which we only do if the CopyDepthPass is AfterTransparents,
+                    // then we want to bind the multisampled surface.
+                    if (hasMSAA)
+                    {
+                        // if depth priming is enabled the copy depth primed pass is meant to do the MSAA resolve, so we want to bind the MS surface
+                        if (IsDepthPrimingEnabled())
+                            depthDescriptor.bindMS = true;
+                        else
+                            depthDescriptor.bindMS = !(RenderingUtils.MultisampleDepthResolveSupported() && m_CopyDepthMode == CopyDepthMode.AfterTransparents);
+                    }
+
+                    // binding MS surfaces is not supported by the GLES backend, and it won't be fixed after investigating
+                    // the high performance impact of potential fixes, which would make it more expensive than depth prepass (fogbugz 1339401 for more info)
+                    if (IsGLESDevice())
                         depthDescriptor.bindMS = false;
 
                     depthDescriptor.graphicsFormat = GraphicsFormat.None;
@@ -1180,8 +1205,8 @@ namespace UnityEngine.Rendering.Universal
 
             bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
 
-            // copying depth on GLES3 is giving invalid results. Needs investigation (Fogbugz issue 1339401)
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
+            // copying depth on GLES3 is giving invalid results. This won't be fixed by the driver team because it would introduce performance issues (more info in the Fogbugz issue 1339401 comments)
+            if (IsGLESDevice())
                 return false;
 
             return supportsDepthCopy || msaaDepthResolve;
