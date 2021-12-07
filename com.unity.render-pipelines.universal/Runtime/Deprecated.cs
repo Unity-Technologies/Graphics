@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
             throw new NotSupportedException(k_ErrorMessage);
         }
 
-        internal override RenderTargetIdentifier GetCameraColorFrontBuffer(CommandBuffer cmd)
+        internal override RTHandle GetCameraColorFrontBuffer(CommandBuffer cmd)
         {
             throw new NotImplementedException();
         }
@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering.Universal
         [EditorBrowsable(EditorBrowsableState.Never)]
         public RenderTargetIdentifier cameraDepth
         {
-            get => m_CameraDepthTarget;
+            get => m_CameraDepthTarget.nameID;
         }
     }
 }

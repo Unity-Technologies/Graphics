@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Registers a <see cref="MaterialHeaderScopeItem"/> into the list
         /// </summary>
+        /// <typeparam name="TEnum">A valid <see cref="struct"/> and <see cref="IConvertible"/></typeparam>
         /// <param name="title"><see cref="GUIContent"/> The title of the scope</param>
         /// <param name="expandable">The mask identifying the scope</param>
         /// <param name="action">The action that will be drawn if the scope is expanded</param>

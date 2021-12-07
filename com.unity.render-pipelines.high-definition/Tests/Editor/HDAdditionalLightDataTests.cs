@@ -93,24 +93,38 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [Test]
         public void HDLightUtils_IESProfileAPI()
         {
-            IESObject ies = (IESObject)AssetDatabase.LoadAssetAtPath("Assets/GraphicTests/Scenes/2x_Lighting/2010_IES_Cookies/IES/1.ies", typeof(IESObject));
-            Assert.IsNotNull(ies, "IES profile not found");
+            string assetPath = "Assets/HDLightUtils_IESProfileAPI_profile.asset";
+
+            IESObject ies = ScriptableObject.CreateInstance(typeof(IESObject)) as IESObject;
+            AssetDatabase.CreateAsset(ies, assetPath);
+
+            var texture1 = new Cubemap(2, TextureFormat.ARGB32, false) { name = "profile-Cube-IES", hideFlags = HideFlags.None };
+            var texture2 = new Texture2D(2, 2, TextureFormat.ARGB32, false) { name = "profile-2D-IES", hideFlags = HideFlags.None };
+
+            AssetDatabase.AddObjectToAsset(texture1, assetPath);
+            AssetDatabase.AddObjectToAsset(texture2, assetPath);
+            AssetDatabase.SaveAssets();
 
             GameObject lightGameObject = new GameObject("Light");
             var additional = lightGameObject.AddHDLight(HDLightTypeAndShape.BoxSpot);
 
             HDLightUtils.SetIESProfile(additional.legacyLight, ies);
-            Assert.AreEqual(ies, HDLightUtils.GetIESProfile(additional.legacyLight));
 
             Assert.AreEqual(additional.IESSpot, additional.IESTexture);
+            Assert.AreEqual(texture2, additional.IESTexture);
+            Assert.AreEqual(ies, HDLightUtils.GetIESProfile(additional.legacyLight));
 
             additional.type = HDLightType.Point;
 
             Assert.AreEqual(additional.IESPoint, additional.IESTexture);
+            Assert.AreEqual(texture1, additional.IESTexture);
+            Assert.AreEqual(ies, HDLightUtils.GetIESProfile(additional.legacyLight));
 
             additional.type = HDLightType.Directional;
             Assert.IsNull(additional.IESTexture);
             Assert.IsNull(HDLightUtils.GetIESProfile(additional.legacyLight));
+
+            AssetDatabase.DeleteAsset(assetPath);
         }
     }
 }

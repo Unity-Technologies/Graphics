@@ -307,6 +307,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
             m_ActiveSubTarget.value.target = this;
+
+            // OnAfterMultiDeserialize order is not guaranteed to be hierarchical (target->subtarget).
+            // Update active subTarget (only, since the target is shared and non-active subTargets could override active settings)
+            // after Target has been deserialized and target <-> subtarget references are intact.
+            m_ActiveSubTarget.value.OnAfterParentTargetDeserialized();
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -697,7 +702,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pass.defines.Add(CoreKeywordDescriptors.AlphaTestOn, 1);
         }
 
-        internal static void AddTargetSurfaceControlsToPass(ref PassDescriptor pass, UniversalTarget target)
+        internal static void AddTargetSurfaceControlsToPass(ref PassDescriptor pass, UniversalTarget target, bool blendModePreserveSpecular = false)
         {
             // the surface settings can either be material controlled or target controlled
             if (target.allowMaterialOverride)
@@ -705,15 +710,21 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // setup material control of via keyword
                 pass.keywords.Add(CoreKeywordDescriptors.SurfaceTypeTransparent);
                 pass.keywords.Add(CoreKeywordDescriptors.AlphaPremultiplyOn);
+                pass.keywords.Add(CoreKeywordDescriptors.AlphaModulateOn);
             }
             else
             {
                 // setup target control via define
                 if (target.surfaceType == SurfaceType.Transparent)
+                {
                     pass.defines.Add(CoreKeywordDescriptors.SurfaceTypeTransparent, 1);
 
-                if (target.alphaMode == AlphaMode.Premultiply)
-                    pass.defines.Add(CoreKeywordDescriptors.AlphaPremultiplyOn, 1);
+                    // alpha premultiply in shader only needed when alpha is different for diffuse & specular
+                    if ((target.alphaMode == AlphaMode.Alpha || target.alphaMode == AlphaMode.Additive) && blendModePreserveSpecular)
+                        pass.defines.Add(CoreKeywordDescriptors.AlphaPremultiplyOn, 1);
+                    else if (target.alphaMode == AlphaMode.Multiply)
+                        pass.defines.Add(CoreKeywordDescriptors.AlphaModulateOn, 1);
+                }
             }
 
             AddAlphaClipControlToPass(ref pass, target);
@@ -1158,7 +1169,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
         // used by lit/unlit subtargets
-        public static RenderStateCollection UberSwitchedRenderState(UniversalTarget target)
+        public static RenderStateCollection UberSwitchedRenderState(UniversalTarget target, bool blendModePreserveSpecular = false)
         {
             if (target.allowMaterialOverride)
                 return MaterialControlledRenderState;
@@ -1187,21 +1198,27 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     result.Add(RenderState.Blend(Blend.One, Blend.Zero));
                 }
                 else
+                {
+                    // Lift alpha multiply from ROP to shader in preserve spec for different diffuse and specular blends.
+                    Blend blendSrcRGB = blendModePreserveSpecular ? Blend.One : Blend.SrcAlpha;
+
                     switch (target.alphaMode)
                     {
                         case AlphaMode.Alpha:
-                            result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
+                            result.Add(RenderState.Blend(blendSrcRGB, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
                             break;
                         case AlphaMode.Premultiply:
                             result.Add(RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha));
                             break;
                         case AlphaMode.Additive:
-                            result.Add(RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One));
+                            result.Add(RenderState.Blend(blendSrcRGB, Blend.One, Blend.One, Blend.One));
                             break;
                         case AlphaMode.Multiply:
-                            result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero));
+                            result.Add(RenderState.Blend(Blend.DstColor, Blend.Zero, Blend.Zero, Blend.One)); // Multiply RGB only, keep A
                             break;
                     }
+                }
+
 
                 return result;
             }
@@ -1554,6 +1571,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = ShaderKeywordStrings._ALPHAPREMULTIPLY_ON,
             referenceName = ShaderKeywordStrings._ALPHAPREMULTIPLY_ON,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
+        public static readonly KeywordDescriptor AlphaModulateOn = new KeywordDescriptor()
+        {
+            displayName = ShaderKeywordStrings._ALPHAMODULATE_ON,
+            referenceName = ShaderKeywordStrings._ALPHAMODULATE_ON,
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,

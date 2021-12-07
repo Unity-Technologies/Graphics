@@ -1,10 +1,10 @@
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
+
 
 using Action = System.Action;
 
-using FloatField = UnityEditor.VFX.UI.VFXLabeledField<UnityEditor.UIElements.FloatField, float>;
+using FloatField = UnityEditor.VFX.UI.VFXLabeledField<UnityEngine.UIElements.FloatField, float>;
 namespace UnityEditor.VFX.UI
 {
     abstract class VFXVectorNField<T> : VFXControl<T>

@@ -1,0 +1,38 @@
+packages:
+  - name: core
+    path: com.unity.render-pipelines.core
+  - name: hdrp
+    path: com.unity.render-pipelines.high-definition
+  - name: hdrp_config
+    path: com.unity.render-pipelines.high-definition-config
+  - name: urp
+    path: com.unity.render-pipelines.universal
+  - name: shadergraph
+    path: com.unity.shadergraph
+  - name: vfx_graph
+    path: com.unity.visualeffectgraph
+
+---
+
+{% for package in packages %}
+find_missing_docs_{{ package.name }}:
+  name: Find missing docs - {{ package.name }}
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+  commands:
+    - git clone git@github.cds.internal.unity3d.com:unity/gfx-sdet-tools.git gfx-sdet-tools
+    - python gfx-sdet-tools/FindMissingDocs/find_missing_docs.py --root-path {{ package.path }}
+  artifacts:
+    missing_docs:
+      paths:
+        - missing-docs.txt
+{% endfor %}
+
+find_missing_docs_all_packages:
+  name: Find missing docs - all packages
+  dependencies:
+    {% for package in packages %}
+    - .yamato/_find_missing_docs.yml#find_missing_docs_{{ package.name }}
+    {% endfor %}
