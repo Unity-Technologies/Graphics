@@ -104,12 +104,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (!handle.IsValid())
                 return null;
 
-            var resource = GetTextureResource(handle.handle).graphicsResource;
+            var texResource = GetTextureResource(handle.handle);
+            var resource = texResource.graphicsResource;
             if (resource == null)
             {
                 if (handle.fallBackResource != TextureHandle.nullHandle.handle)
                     return GetTextureResource(handle.fallBackResource).graphicsResource;
-                else
+                else if (!texResource.imported)
                     throw new InvalidOperationException("Trying to use a texture that was already released or not yet created. Make sure you declare it for reading in your pass or you don't read it before it's been written to at least once.");
             }
 
