@@ -80,7 +80,7 @@ struct DirectionalLightData
     float distanceFromCamera;
     float angularDiameter;
     float flareFalloff;
-    float enableCapsuleShadows;
+    float capsuleShadowRange;
     float3 flareTint;
     float flareSize;
     float3 surfaceTint;
@@ -121,7 +121,7 @@ struct LightData
     int contactShadowMask;
     float diffuseDimmer;
     float specularDimmer;
-    float enableCapsuleShadows;
+    float capsuleShadowRange;
     float2 padding;
     float isRayTracedContactShadow;
     float boxLightSafeExtent;

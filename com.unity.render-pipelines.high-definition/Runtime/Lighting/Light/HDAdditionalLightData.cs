@@ -1541,7 +1541,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_EnableCapsuleShadows = value;
                 if (lightEntity.valid)
-                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).enableCapsuleShadows = m_EnableCapsuleShadows;
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).capsuleShadowRange = m_EnableCapsuleShadows ? m_CapsuleShadowRange : 0.0f;
+            }
+        }
+
+        [SerializeField]
+        float m_CapsuleShadowRange = 5.0f;
+        /// <summary>
+        /// Controls if we want to cast capsule shadows.
+        /// </summary>
+        public float capsuleShadowRange
+        {
+            get => m_CapsuleShadowRange;
+            set
+            {
+                if (m_CapsuleShadowRange == value)
+                    return;
+
+                m_CapsuleShadowRange = value;
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).capsuleShadowRange = m_EnableCapsuleShadows ? m_CapsuleShadowRange : 0.0f;
             }
         }
 
@@ -3650,7 +3669,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.surfaceTint = m_SurfaceTint;
             lightRenderData.shadowTint = m_ShadowTint;
             lightRenderData.flareTint = m_FlareTint;
-            lightRenderData.enableCapsuleShadows = m_EnableCapsuleShadows;
+            lightRenderData.capsuleShadowRange = m_EnableCapsuleShadows ? m_CapsuleShadowRange : 0.0f;
         }
 
         internal void CreateHDLightRenderEntity(bool autoDestroy = false)

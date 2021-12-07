@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float distanceFromCamera;      // -1 -> no sky interaction
         public float angularDiameter;         // Units: radians
         public float flareFalloff;
-        public float enableCapsuleShadows;
+        public float capsuleShadowRange; // 0 if no capsule shadows
 
         public Vector3 flareTint;
         public float flareSize;               // Units: radians
@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int contactShadowMask;       // negative if unused (TODO: 16 bit)
         public float diffuseDimmer;
         public float specularDimmer;
-        public float enableCapsuleShadows;
+        public float capsuleShadowRange; // 0 if no capsule shadows
 
         public Vector2 padding;
         public float isRayTracedContactShadow;

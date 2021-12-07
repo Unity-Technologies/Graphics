@@ -22,9 +22,9 @@ struct CapsuleOccluderData
     float3 axisDirWS;
     float offset;
     uint lightLayers;
-    float range;
     float pad0;
     float pad1;
+    float pad2;
 };
 
 

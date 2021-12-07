@@ -23,9 +23,9 @@ namespace UnityEngine.Rendering
         public Vector3 axisDirWS;
         public float offset;
         public uint lightLayers;
-        public float range;
         public float pad0;
         public float pad1;
+        public float pad2;
     }
 
     /// <summary>Light Layers.</summary>
@@ -61,7 +61,6 @@ namespace UnityEngine.Rendering
         public Quaternion rotation = Quaternion.identity;
         public float radius = 0.1f;
         public float height = 1.0f;
-        public float range = 5.0f;
         public CapsuleOccluderLightLayer lightLayersMask = CapsuleOccluderLightLayer.LightLayerDefault;
 
         public Matrix4x4 capsuleToWorld
@@ -105,7 +104,6 @@ namespace UnityEngine.Rendering
                 radius = radiusWS,
                 axisDirWS = axisDirWS,
                 offset = offset,
-                range = range,
                 lightLayers = (uint)lightLayersMask,
             };
         }

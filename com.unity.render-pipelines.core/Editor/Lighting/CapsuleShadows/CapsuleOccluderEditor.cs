@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering
         };
         static GUIContent[] s_EditModesContent;
 
-        SerializedProperty m_Center, m_Rotation, m_Radius, m_Height, m_Range;
+        SerializedProperty m_Center, m_Rotation, m_Radius, m_Height;
 
         private void OnEnable()
         {
@@ -25,7 +25,6 @@ namespace UnityEngine.Rendering
             m_Rotation = serializedObject.FindProperty("rotation");
             m_Radius = serializedObject.FindProperty("radius");
             m_Height = serializedObject.FindProperty("height");
-            m_Range = serializedObject.FindProperty("range");
 
             if (s_EditModesContent == null)
             {
@@ -162,12 +161,6 @@ namespace UnityEngine.Rendering
                 position = Handles.Slider(position, -Vector3.forward, handleScale * HandleUtility.GetHandleSize(position), Handles.DotHandleCap, 0.5f);
                 if (EditorGUI.EndChangeCheck())
                     m_Height.floatValue = -2.0f * position.z;
-
-                Handles.matrix = t.transform.localToWorldMatrix;
-                EditorGUI.BeginChangeCheck();
-                float range = Handles.RadiusHandle(Quaternion.identity, t.center, t.range);
-                if (EditorGUI.EndChangeCheck())
-                    m_Range.floatValue = range;
             }
 
             serializedObject.ApplyModifiedProperties();

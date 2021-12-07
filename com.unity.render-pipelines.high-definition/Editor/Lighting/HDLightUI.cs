@@ -1363,6 +1363,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawCapsuleShadowsContent(SerializedHDLight serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.enableCapsuleShadows, s_Styles.enableCapsuleShadows);
+            EditorGUILayout.PropertyField(serialized.capsuleShadowRange, s_Styles.capsuleShadowRange);
         }
 
         static void DrawBakedShadowsContent(SerializedHDLight serialized, Editor owner)

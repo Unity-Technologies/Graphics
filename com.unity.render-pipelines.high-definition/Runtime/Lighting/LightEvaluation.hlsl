@@ -306,10 +306,10 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
 #endif
 
 #ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
-    if (light.enableCapsuleShadows != 0.f)
+    if (light.capsuleShadowRange != 0.f)
     {
         float cosTheta = cos(0.5f * light.angularDiameter);
-        float capsuleShadow = EvaluateCapsuleShadow(-light.forward, false, cosTheta, posInput, builtinData.renderingLayers);
+        float capsuleShadow = EvaluateCapsuleShadow(-light.forward, false, cosTheta, light.capsuleShadowRange, posInput, builtinData.renderingLayers);
         shadow *= capsuleShadow;
     }
 #endif
@@ -498,12 +498,12 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
 #endif
 
 #ifndef LIGHT_EVALUATION_NO_CAPSULE_SHADOWS
-    if (light.enableCapsuleShadows != 0.f)
+    if (light.capsuleShadowRange != 0.f)
     {
         float radius = light.size.x;
         float sinTheta = radius/length(posInput.positionWS - light.positionRWS);
         float cosTheta = sqrt(max(1.f - sinTheta*sinTheta, 0.f));
-        float capsuleShadow = EvaluateCapsuleShadow(light.positionRWS, true, cosTheta, posInput, builtinData.renderingLayers);
+        float capsuleShadow = EvaluateCapsuleShadow(light.positionRWS, true, cosTheta, light.capsuleShadowRange, posInput, builtinData.renderingLayers);
         shadow *= capsuleShadow;
     }
 #endif

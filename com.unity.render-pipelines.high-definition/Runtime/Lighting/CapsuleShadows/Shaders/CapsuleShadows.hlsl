@@ -120,7 +120,13 @@ float ApproximateCapsuleOcclusion(
     return ApproximateSphereOcclusion(coneAxis, coneCosTheta, maxDistance, sphereCenter, capsuleRadius);
 }
 
-float EvaluateCapsuleShadow(float3 lightPosOrAxis, bool lightIsPunctual, float lightCosTheta, PositionInputs posInput, uint renderLayer)
+float EvaluateCapsuleShadow(
+    float3 lightPosOrAxis,
+    bool lightIsPunctual,
+    float lightCosTheta,
+    float shadowRange,
+    PositionInputs posInput,
+    uint renderLayer)
 {
     uint sphereCount, sphereStart;
 
@@ -232,7 +238,7 @@ float EvaluateCapsuleShadow(float3 lightPosOrAxis, bool lightIsPunctual, float l
                         s_capsuleData.radius);
                 }
 
-                float falloff = smoothstep(1.0f, 0.75f, length(posInput.positionWS - s_capsuleData.centerRWS)/s_capsuleData.range);
+                float falloff = smoothstep(1.0f, 0.75f, length(posInput.positionWS - s_capsuleData.centerRWS)/shadowRange);
                 capsuleShadow *= max(1.f - occlusion*falloff, 0.f);
             }
         }

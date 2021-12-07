@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Color surfaceTint;
         public Color shadowTint;
         public Color flareTint;
-        public bool enableCapsuleShadows;
+        public float capsuleShadowRange;
     }
 
     //Class representing a rendering side database of lights in the world

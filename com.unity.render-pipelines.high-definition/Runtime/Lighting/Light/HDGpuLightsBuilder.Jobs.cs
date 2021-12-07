@@ -339,7 +339,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightData.nonLightMappedOnly = 0;
                 }
 
-                lightData.enableCapsuleShadows = lightRenderData.enableCapsuleShadows ? 1.0f : 0.0f;
+                lightData.capsuleShadowRange = lightRenderData.capsuleShadowRange;
             }
 
 #if DEBUG
@@ -688,7 +688,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.flareTint = (Vector3)(Vector4)lightRenderData.flareTint;
                 lightData.surfaceTint = (Vector3)(Vector4)lightRenderData.surfaceTint;
 
-                lightData.enableCapsuleShadows = lightRenderData.enableCapsuleShadows ? 1.0f : 0.0f;
+                lightData.capsuleShadowRange = lightRenderData.capsuleShadowRange;
 
                 if (useCameraRelativePosition)
                     lightData.positionRWS -= cameraPos;

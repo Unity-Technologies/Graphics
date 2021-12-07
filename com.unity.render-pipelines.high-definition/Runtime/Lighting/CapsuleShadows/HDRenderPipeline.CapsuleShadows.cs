@@ -48,6 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool optimiseBoundsForLight = false;
             Vector3 lightDirection = Vector3.zero;
             float lightHalfAngle = 0.0f;
+            float maxRange = 0.0f;
             for (int i = 0; i < cullResults.visibleLights.Length; ++i)
             {
                 VisibleLight visibleLight = cullResults.visibleLights[i];
@@ -60,6 +61,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDAdditionalLightData lightData = lightEntities.hdAdditionalLightData[dataIndex];
                 if (lightData.enableCapsuleShadows)
                 {
+                    maxRange = Mathf.Max(maxRange, lightData.capsuleShadowRange);
+
                     if (light.type == LightType.Directional && !optimiseBoundsForLight)
                     {
                         // optimise for this light, continue checking through the visible list
@@ -105,10 +108,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             Mathf.Abs(Vector3.Dot(data.axisDirWS, localX)) * data.offset + data.radius,
                             Mathf.Abs(Vector3.Dot(data.axisDirWS, localY)) * data.offset + data.radius,
                             Mathf.Abs(Vector3.Dot(data.axisDirWS, localZ)) * data.offset + data.radius);
-                        halfExtentLS.z += data.range;
+                        halfExtentLS.z += maxRange;
 
                         // expand by max penumbra
-                        float penumbraSize = Mathf.Tan(lightHalfAngle) * data.range;
+                        float penumbraSize = Mathf.Tan(lightHalfAngle) * maxRange;
                         halfExtentLS.x += penumbraSize;
                         halfExtentLS.y += penumbraSize;
 
@@ -120,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     else
                     {
-                        float length = 2.0f * data.range;
+                        float length = 2.0f * maxRange;
                         bbox = new OrientedBBox(
                             Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
                     }
