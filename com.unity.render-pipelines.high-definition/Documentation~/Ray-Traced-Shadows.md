@@ -31,6 +31,8 @@ Finally, to make HDRP process ray-traced shadows for your Directional, Point, or
 2. Also in the Shadow Map foldout, enable Ray-Traced Shadows. For Directional Lights, you need to enable Screen Space Shadows to access this property.
 3. To change the behavior of the shadows, edit the properties under Ray-Traced Shadows.
 
+If a light is has **Shadowmask Mode** set to **Shadowmask**, then ray traced shadows will not be rendered and shadow masks will be used instead.
+
 <a name="DirectionalLight"></a>
 
 ## Directional Light
