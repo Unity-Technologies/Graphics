@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _EarthRadius;
         // Intensity of the water caustics
         public float _CausticsIntensity;
-        
+
         // Scale of the current water mask
         public Vector2 _WaterMaskScale;
         // Offset of the current water mask
