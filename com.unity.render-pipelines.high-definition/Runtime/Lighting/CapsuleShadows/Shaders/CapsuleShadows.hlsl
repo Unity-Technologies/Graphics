@@ -1,7 +1,7 @@
 #ifndef CAPSULE_SHADOWS_DEF
 #define CAPSULE_SHADOWS_DEF
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/CapsuleShadows/CapsuleOccluder.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/CapsuleShadows/CapsuleOccluder.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;

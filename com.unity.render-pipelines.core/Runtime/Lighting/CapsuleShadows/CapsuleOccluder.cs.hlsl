@@ -4,7 +4,7 @@
 
 #ifndef CAPSULEOCCLUDER_CS_HLSL
 #define CAPSULEOCCLUDER_CS_HLSL
-// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesCapsuleOccluders
+// Generated from UnityEngine.Rendering.ShaderVariablesCapsuleOccluders
 // PackingRules = Exact
 CBUFFER_START(ShaderVariablesCapsuleOccluders)
     int _CapsuleOccluderCount;
@@ -13,7 +13,7 @@ CBUFFER_START(ShaderVariablesCapsuleOccluders)
     int _CapsuleOccluderPad1;
 CBUFFER_END
 
-// Generated from UnityEngine.Rendering.HighDefinition.CapsuleOccluderData
+// Generated from UnityEngine.Rendering.CapsuleOccluderData
 // PackingRules = Exact
 struct CapsuleOccluderData
 {

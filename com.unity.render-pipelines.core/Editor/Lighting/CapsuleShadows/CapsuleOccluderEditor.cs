@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 using UnityEditorInternal;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(CapsuleOccluder))]

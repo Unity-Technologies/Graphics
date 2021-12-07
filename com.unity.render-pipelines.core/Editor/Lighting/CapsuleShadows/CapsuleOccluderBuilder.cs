@@ -3,18 +3,18 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
-    public class CapsuleShadowBuilder : ScriptableWizard
+    public class CapsuleOccluderBuilder : ScriptableWizard
     {
         public SkinnedMeshRenderer skinnedMesh; // TODO: list?
         public float minimumLength = 0.15f;
         public float radiusScale = 0.8f;
 
-        [MenuItem("GameObject/Rendering/Capsule Shadows...")]
+        [MenuItem("GameObject/Rendering/Capsule Occluders...")]
         static void CreateWizard()
         {
-            ScriptableWizard.DisplayWizard<CapsuleShadowBuilder>("Create Capsule Shadows");
+            ScriptableWizard.DisplayWizard<CapsuleOccluderBuilder>("Create Capsule Occluders");
         }
 
         void OnWizardUpdate()

@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
-    class CapsuleOccluderManager
+    public class CapsuleOccluderManager
     {
         static private CapsuleOccluderManager s_Instance = null;
 
         private List<CapsuleOccluder> m_Occluders = null;
 
-        internal List<CapsuleOccluder> occluders
+        public List<CapsuleOccluder> occluders
         {
             get
             {
