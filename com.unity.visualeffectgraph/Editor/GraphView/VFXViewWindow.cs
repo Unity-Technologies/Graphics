@@ -57,7 +57,7 @@ namespace UnityEditor.VFX.UI
 
         public static VFXViewWindow GetWindow(VisualEffectAsset vfxAsset, bool createIfNeeded = false)
         {
-            return GetWindowLambda(x => x.m_DisplayedResource?.asset == vfxAsset, createIfNeeded, true);
+            return GetWindowLambda(x => x.displayedResource?.asset == vfxAsset, createIfNeeded, true);
         }
 
         public static VFXViewWindow GetWindow(VFXGraph vfxGraph, bool createIfNeeded = false, bool show = true)
