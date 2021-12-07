@@ -191,6 +191,7 @@ CBUFFER_START(UnityPerFrame)
     float4x4 unity_MatrixV;
     float4x4 unity_MatrixInvV;
     float4x4 unity_MatrixVP;
+    float4x4 unity_MatrixPrevVP;
     float4 unity_StereoScaleOffset;
     int unity_StereoEyeIndex;
 #endif
