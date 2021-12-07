@@ -50,6 +50,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 private const string k_Name = nameof(ScriptableRenderPass);
                 public static readonly ProfilingSampler configure = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderPass.Configure)}");
+
+                public static readonly ProfilingSampler setRenderPassAttachments = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderer.SetRenderPassAttachments)}");
             }
         }
 
@@ -742,6 +744,16 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // Sort the render pass queue
                     SortStable(m_ActiveRenderPassQueue);
+
+                }
+
+                using (new ProfilingScope(null, Profiling.RenderPass.configure))
+                {
+                    foreach (var pass in activeRenderPassQueue)
+                        pass.Configure(cmd, cameraData.cameraTargetDescriptor);
+
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
                 }
 
                 SetupNativeRenderPassFrameData(cameraData, useRenderPassEnabled);
@@ -1069,15 +1081,8 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
 
             // Track CPU only as GPU markers for this scope were "too noisy".
-            using (new ProfilingScope(null, Profiling.RenderPass.configure))
-            {
-                if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
-                    ConfigureNativeRenderPass(cmd, renderPass, cameraData);
-                else
-                    renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
-
+            using (new ProfilingScope(null, Profiling.RenderPass.setRenderPassAttachments))
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);
-            }
 
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);

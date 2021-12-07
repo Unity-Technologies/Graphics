@@ -45,7 +45,6 @@ namespace UnityEngine.Rendering.Universal
         {
             public static readonly ProfilingSampler setMRTAttachmentsList = new ProfilingSampler($"NativeRenderPass {nameof(SetNativeRenderPassMRTAttachmentList)}");
             public static readonly ProfilingSampler setAttachmentList = new ProfilingSampler($"NativeRenderPass {nameof(SetNativeRenderPassAttachmentList)}");
-            public static readonly ProfilingSampler configure = new ProfilingSampler($"NativeRenderPass {nameof(ConfigureNativeRenderPass)}");
             public static readonly ProfilingSampler execute = new ProfilingSampler($"NativeRenderPass {nameof(ExecuteNativeRenderPass)}");
             public static readonly ProfilingSampler setupFrameData = new ProfilingSampler($"NativeRenderPass {nameof(SetupNativeRenderPassFrameData)}");
         }
@@ -371,28 +370,6 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // attachment was already present
                         pass.m_ColorAttachmentIndices[0] = existingAttachmentIndex;
-                    }
-                }
-            }
-        }
-
-        internal void ConfigureNativeRenderPass(CommandBuffer cmd, ScriptableRenderPass renderPass, CameraData cameraData)
-        {
-            using (new ProfilingScope(null, Profiling.configure))
-            {
-                int currentPassIndex = renderPass.renderPassQueueIndex;
-                Hash128 currentPassHash = m_PassIndexToPassHash[currentPassIndex];
-                int[] currentMergeablePasses = m_MergeableRenderPassesMap[currentPassHash];
-
-                // If it's the first pass, configure the whole merge block
-                if (currentMergeablePasses.First() == currentPassIndex)
-                {
-                    foreach (var passIdx in currentMergeablePasses)
-                    {
-                        if (passIdx == -1)
-                            break;
-                        ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
-                        pass.Configure(cmd, cameraData.cameraTargetDescriptor);
                     }
                 }
             }
