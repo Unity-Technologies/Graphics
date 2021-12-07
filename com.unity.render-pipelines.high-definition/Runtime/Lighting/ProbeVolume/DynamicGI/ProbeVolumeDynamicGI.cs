@@ -75,6 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private ComputeShader _PropagationCombineShader = null;
 
         private Vector4[] _sortedAxisLookups;
+        private ComputeBuffer _sortedAxisLookupsV2;
         private ProbeVolumeSimulationRequest[] _probeVolumeSimulationRequests;
 
         private const int MAX_SIMULATIONS_PER_FRAME = 128;
@@ -131,7 +132,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 new Vector4( 0, -s_2DDiagonal, -s_2DDiagonal, s_2DDiagonalDist),
             };
 
-            _sortedAxisLookups = new Vector4[s_NeighborAxis.Length * s_NeighborAxis.Length];
+            int sortedAxisLookupLength = (s_NeighborAxis.Length * s_NeighborAxis.Length);
+            _sortedAxisLookups = new Vector4[sortedAxisLookupLength];
+            ProbeVolume.EnsureBuffer<NeighbourAxisLookup>(ref _sortedAxisLookupsV2, sortedAxisLookupLength);
+
             _probeVolumeSimulationRequests = new ProbeVolumeSimulationRequest[MAX_SIMULATIONS_PER_FRAME];
         }
 
@@ -420,6 +424,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             RTHandles.Release(dummyColor);
 #endif
+            ProbeVolume.CleanupBuffer(_sortedAxisLookupsV2);
         }
 
 
@@ -602,6 +607,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             PrecomputeAxisCacheLookup(giSettings.propagationSharpness.value);
             cmd.SetComputeVectorArrayParam(shader, "_SortedNeighborAxis", _sortedAxisLookups);
+            cmd.SetComputeBufferParam(shader, kernel, "_SortedNeighborAxisV2", _sortedAxisLookupsV2);
+            cmd.SetComputeIntParam(shader, "_SortedNeighborAxisV2Count", _sortedAxisLookupsV2.count);
             CoreUtils.SetKeyword(shader, "PREVIOUS_RADIANCE_CACHE_INVALID", previousRadianceCacheInvalid);
 
             int numHits = probeVolume.propagationBuffers.neighbors.count;
@@ -751,12 +758,18 @@ namespace UnityEngine.Rendering.HighDefinition
                         var sgWeight = SGEvaluateFromDirection(1, sgSharpness, neighborDirection, axis);
                         sgWeight /= neighborDirection.w * neighborDirection.w;
                         _sortedAxisLookups[sortedAxisStart + neighborIndex] = new Vector4(sgWeight, neighborIndex, 0, 0);
+
+                        // TODO-BD: Set _sortedAxisLookupsV2
+                        // s_NeighborAxis - maps to _RayAxis
+                        // neighborDirection var is already here
                     }
 
                     fixed (Vector4* sortedAxisPtr = &_sortedAxisLookups[sortedAxisStart])
                     {
                         CoreUnsafeUtils.QuickSort<AxisVector4>(s_NeighborAxis.Length, sortedAxisPtr);
                     }
+
+                    // TODO-BD: Set _sortedAxisLookupsV2 quicksort
                 }
 
                 _sortedAxisSharpness = sgSharpness;
@@ -832,6 +845,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 return diff < 0 ? 1 : diff > 0 ? -1 : 0;
             }
         }
+
+        [Serializable] // TODO-BD
+        internal struct NeighbourAxisLookup : IComparable<NeighbourAxisLookup>
+        {
+            public int index;
+            public float sgWeight;
+            public Vector3 neighbourDirection;
+
+            public NeighbourAxisLookup(int index, float sgWeight, Vector3 neighbourDirection)
+            {
+                this.index = index;
+                this.sgWeight = sgWeight;
+                this.neighbourDirection = neighbourDirection;
+            }
+
+            public int CompareTo(NeighbourAxisLookup other)
+            {
+                float diff = sgWeight - other.sgWeight;
+                return diff < 0 ? 1 : diff > 0 ? -1 : 0;
+            }
+        };
 
     }
 
