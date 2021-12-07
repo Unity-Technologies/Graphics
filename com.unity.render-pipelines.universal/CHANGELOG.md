@@ -6,12 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.8.0] - 2021-07-23
 
+### Added
+- Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
+
 ### Fixed
 - Fixed an issue where 2D Renderer was generating garbage in editor.
 - Fixed an issue where soft particles were rendered opaque on OpenGL. [case 1226288](https://issuetracker.unity3d.com/issues/urp-objects-that-are-using-soft-particles-are-rendered-opaque-when-opengl-is-used)
 - Fixed multi-edit for UniversalRenderPipelineAsset.
 - Fixed artifacts in Speed Tree 8 billboard LODs due to SpeedTree LOD smoothing/crossfading [case 1348407]
 - Drawing order of SRPDefaultUnlit is now the same as the Built-in Render Pipeline. [case 1325883](https://issuetracker.unity3d.com/product/unity/issues/guid/1325883/)
+- Fixed an issue with MSAA falling back to the incorrect value when sample count 2 is not supported on some Android GPUs.
 
 ## [7.7.0] - 2021-04-28
 
