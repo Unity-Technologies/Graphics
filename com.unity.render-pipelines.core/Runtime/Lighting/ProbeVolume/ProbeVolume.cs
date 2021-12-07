@@ -26,10 +26,10 @@ namespace UnityEngine.Experimental.Rendering
         public Vector3 size = new Vector3(10, 10, 10);
 
         /// <summary>
-        /// Override the minimum renderer bounding box volume size.
+        /// Override the renderer filters.
         /// </summary>
         [HideInInspector, Min(0)]
-        public bool overrideMinRendererVolumeSize = false;
+        public bool overrideRendererFilters = false;
 
         /// <summary>
         /// The minimum renderer bounding box volume size. This value is used to discard small renderers when the overrideMinRendererVolumeSize is enabled.
@@ -145,10 +145,12 @@ namespace UnityEngine.Experimental.Rendering
                 hash = hash * 23 + overridesSubdivLevels.GetHashCode();
                 hash = hash * 23 + highestSubdivLevelOverride.GetHashCode();
                 hash = hash * 23 + lowestSubdivLevelOverride.GetHashCode();
-                hash = hash * 23 + overrideMinRendererVolumeSize.GetHashCode();
-                if (overrideMinRendererVolumeSize)
+                hash = hash * 23 + overrideRendererFilters.GetHashCode();
+                if (overrideRendererFilters)
+                {
                     hash = hash * 23 + minRendererVolumeSize.GetHashCode();
-                hash = hash * 23 + objectLayerMask.GetHashCode();
+                    hash = hash * 23 + objectLayerMask.GetHashCode();
+                }
             }
 
             return hash;

@@ -148,8 +148,10 @@ namespace UnityEditor.Experimental.Rendering
 
             EditorGUI.BeginDisabledGroup(!hasProfile);
             var rect = EditorGUILayout.GetControlRect(true);
+            EditorGUI.indentLevel++;
             EditorGUI.BeginProperty(rect, Styles.s_HighestSubdivLevel, serialized.highestSubdivisionLevelOverride);
             EditorGUI.BeginProperty(rect, Styles.s_LowestSubdivLevel, serialized.lowestSubdivisionLevelOverride);
+            EditorGUI.indentLevel--;
 
             // Round min and max subdiv
             int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
@@ -206,17 +208,14 @@ namespace UnityEditor.Experimental.Rendering
 
             EditorGUILayout.LabelField("Geometry Settings", EditorStyles.boldLabel);
 
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(serialized.objectLayerMask, Styles.s_ObjectLayerMask);
-
-            EditorGUILayout.PropertyField(serialized.overrideMinRendererVolumeSize, Styles.s_OverrideMinRendererVolumeSize);
-            if (serialized.overrideMinRendererVolumeSize.boolValue)
+            EditorGUILayout.PropertyField(serialized.overrideRendererFilters, Styles.s_OverrideRendererFilters);
+            if (serialized.overrideRendererFilters.boolValue)
             {
                 EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(serialized.objectLayerMask, Styles.s_ObjectLayerMask);
                 EditorGUILayout.PropertyField(serialized.minRendererVolumeSize, Styles.s_MinRendererVolumeSize);
                 EditorGUI.indentLevel--;
             }
-            EditorGUI.indentLevel--;
         }
     }
 }
