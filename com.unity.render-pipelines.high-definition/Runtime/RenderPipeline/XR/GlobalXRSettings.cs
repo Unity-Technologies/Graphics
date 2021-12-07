@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering
             singlePass = true,
             occlusionMesh = true,
             cameraJitter = false,
-            allowMotionBlur = true
+            allowMotionBlur = false
         };
 
         /// <summary>Use single pass.</summary>
