@@ -15,20 +15,48 @@ namespace UnityEngine.Experimental.Rendering
     [AddComponentMenu("Light/Probe Volume (Experimental)")]
     public class ProbeVolume : MonoBehaviour
     {
+        /// <summary>
+        /// If is a global bolume
+        /// </summary>
         public bool globalVolume = false;
+
+        /// <summary>
+        /// The size
+        /// </summary>
         public Vector3 size = new Vector3(10, 10, 10);
+
+        /// <summary>
+        /// Override the minimum renderer bounding box volume size.
+        /// </summary>
         [HideInInspector, Min(0)]
         public bool overrideMinRendererVolumeSize = false;
+
+        /// <summary>
+        /// The minimum renderer bounding box volume size. This value is used to discard small renderers when the overrideMinRendererVolumeSize is enabled.
+        /// </summary>
         [HideInInspector, Min(0)]
         public float minRendererVolumeSize = 0.1f;
 
+        /// <summary>
+        /// The <see cref="LayerMask"/>
+        /// </summary>
         public LayerMask objectLayerMask = -1;
 
-
+        /// <summary>
+        /// The lowest subdivision level override
+        /// </summary>
         [HideInInspector]
         public int lowestSubdivLevelOverride = 0;
+
+        /// <summary>
+        /// The highest subdivision level override
+        /// </summary>
         [HideInInspector]
         public int highestSubdivLevelOverride = -1;
+
+        /// <summary>
+        /// If the subdivision levels need to be overriden
+        /// </summary>
         [HideInInspector]
         public bool overridesSubdivLevels = false;
 
