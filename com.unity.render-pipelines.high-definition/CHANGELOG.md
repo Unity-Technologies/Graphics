@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
 - Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
 - The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
-- Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
@@ -57,6 +56,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a warning because of a null texture in the lens flare pass.
 - Fixed a nullref when enabling raycount without ray tracing.
 - Fixed error thrown when layered lit material has an invalid material type.
+- Fixed HDRP build issues with DOTS_INSTANCING_ON shader variant.
+- Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
+- Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
 
 ## [13.1.2] - 2021-11-05
 
