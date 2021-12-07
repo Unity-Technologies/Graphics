@@ -126,11 +126,7 @@ namespace UnityEditor.Rendering
         }
 
         [MenuItem("Window/Analysis/Rendering Debugger", priority = 10005)]
-        static void Init()
-        {
-            var window = GetWindow<DebugWindow>();
-            window.titleContent = Styles.windowTitle;
-        }
+        static void Init() => GetWindow<DebugWindow>();
 
         [MenuItem("Window/Analysis/Rendering Debugger", validate = true)]
         static bool ValidateMenuItem()
@@ -144,6 +140,8 @@ namespace UnityEditor.Rendering
                 OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
 
             open = true;
+
+            titleContent = Styles.windowTitle;
 
             DebugManager.instance.refreshEditorRequested = false;
 
