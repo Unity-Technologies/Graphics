@@ -74,14 +74,7 @@ float3 ClampValue(float3 value)
 
 void WriteAOVs(inout PathIntersection pathIntersection, SurfaceData surfaceData, BuiltinData builtinData, float3 positionWS)
 {
-    float3 albedo = 0.0;
-
-#ifdef DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR
-    bool foo;
-    GetGeneratedSurfaceDataDebug(DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR, surfaceData, albedo, foo);
-#endif
-
-    SetAlbedo(pathIntersection, albedo);
+    SetAlbedo(pathIntersection, surfaceData.baseColor);
     SetNormal(pathIntersection, surfaceData.normalWS);
 
     // Compute motion vector
