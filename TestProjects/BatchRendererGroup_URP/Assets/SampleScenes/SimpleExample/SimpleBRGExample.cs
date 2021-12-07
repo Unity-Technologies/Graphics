@@ -15,10 +15,12 @@ public class SimpleBRGExample : MonoBehaviour
     // Set this to a suitable Material via the Inspector, such as a default material that
     // uses Universal Render Pipeline/Lit
     public Material material;
+    public ComputeShader memcpy;
 
     private BatchRendererGroup m_BRG;
 
     private GraphicsBuffer m_InstanceData;
+    private GraphicsBuffer m_CopySrc;
     private BatchID m_BatchID;
     private BatchMeshID m_MeshID;
     private BatchMaterialID m_MaterialID;
@@ -32,6 +34,7 @@ public class SimpleBRGExample : MonoBehaviour
     private const int kNumInstances = 3;
 
     // Offset should be divisible by 64, 48 and 16
+    private const int kGLESDebugBufferSize = 32 * 1024 * 1024;
     private const int kGLESDebugOffset = 3 * 1024 * 1024 + 192;
 
     // Unity provided shaders such as Universal Render Pipeline/Lit expect
@@ -75,9 +78,6 @@ public class SimpleBRGExample : MonoBehaviour
     // amount of ints for our data.
     int BufferCountForInstances(int bytesPerInstance, int numInstances, int extraBytes = 0)
     {
-        // Use a large buffer to test GLES
-        return 32 * 1024 * 1024;
-
         // Round byte counts to int multiples
         bytesPerInstance = (bytesPerInstance + sizeof(int) - 1) / sizeof(int) * sizeof(int);
         extraBytes = (extraBytes + sizeof(int) - 1) / sizeof(int) * sizeof(int);
@@ -97,8 +97,12 @@ public class SimpleBRGExample : MonoBehaviour
         var target = GraphicsBuffer.Target.Raw;
         if (SystemInfo.graphicsDeviceType is GraphicsDeviceType.OpenGLCore or GraphicsDeviceType.OpenGLES3)
             target |= GraphicsBuffer.Target.Constant;
-        m_InstanceData = new GraphicsBuffer(target,
+
+        m_CopySrc = new GraphicsBuffer(target,
             BufferCountForInstances(kBytesPerInstance, kNumInstances, kExtraBytes),
+            sizeof(int));
+        m_InstanceData = new GraphicsBuffer(target,
+            kGLESDebugBufferSize / sizeof(int),
             sizeof(int));
 
         // Place one zero matrix at the start of the instance data buffer, so loads from address 0 will return zero
@@ -153,10 +157,17 @@ public class SimpleBRGExample : MonoBehaviour
         uint byteAddressZero = 0;
 
         // Upload our instance data to the GraphicsBuffer, from where the shader can load them.
-        m_InstanceData.SetData(zero, 0, (int)((byteAddressZero + kGLESDebugOffset) / 64), 1);
-        m_InstanceData.SetData(objectToWorld, 0, (int)((byteAddressObjectToWorld + kGLESDebugOffset) / kSizeOfPackedMatrix), objectToWorld.Length);
-        m_InstanceData.SetData(worldToObject, 0, (int)((byteAddressWorldToObject + kGLESDebugOffset)  / kSizeOfPackedMatrix), worldToObject.Length);
-        m_InstanceData.SetData(colors, 0, (int)((byteAddressColor + kGLESDebugOffset)  / kSizeOfFloat4), colors.Length);
+        m_CopySrc.SetData(zero, 0, 0, 1);
+        m_CopySrc.SetData(objectToWorld, 0, (int)((byteAddressObjectToWorld + 0) / kSizeOfPackedMatrix), objectToWorld.Length);
+        m_CopySrc.SetData(worldToObject, 0, (int)((byteAddressWorldToObject + 0)  / kSizeOfPackedMatrix), worldToObject.Length);
+        m_CopySrc.SetData(colors, 0, (int)((byteAddressColor + 0)  / kSizeOfFloat4), colors.Length);
+
+        int dstSize = m_CopySrc.count * m_CopySrc.stride;
+        memcpy.SetBuffer(0, "src", m_CopySrc);
+        memcpy.SetBuffer(0, "dst", m_InstanceData);
+        memcpy.SetInt("dstOffset", kGLESDebugOffset);
+        memcpy.SetInt("dstSize", dstSize);
+        memcpy.Dispatch(0, dstSize / (64 * 4) + 1, 1, 1);
 
         // Set up metadata values to point to the instance data. Set the most significant bit 0x80000000 in each,
         // which instructs the shader that the data is an array with one value per instance, indexed by the instance index.
@@ -181,6 +192,7 @@ public class SimpleBRGExample : MonoBehaviour
     // BatchRendererGroup are automatically disposed when disposing the BatchRendererGroup.
     private void OnDisable()
     {
+        m_CopySrc.Dispose();
         m_InstanceData.Dispose();
         m_BRG.Dispose();
     }
