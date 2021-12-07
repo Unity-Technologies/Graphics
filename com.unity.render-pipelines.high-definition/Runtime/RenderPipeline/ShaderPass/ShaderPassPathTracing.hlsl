@@ -72,7 +72,7 @@ float3 ClampValue(float3 value)
     return intensity > _RaytracingIntensityClamp ? value * _RaytracingIntensityClamp / intensity : value;
 }
 
-void WriteAOVs(inout PathIntersection pathIntersection, SurfaceData surfaceData, BuiltinData builtinData)
+void WriteAOVs(inout PathIntersection pathIntersection, SurfaceData surfaceData, BuiltinData builtinData, float3 positionWS)
 {
     float3 albedo = 0.0;
 
@@ -83,6 +83,13 @@ void WriteAOVs(inout PathIntersection pathIntersection, SurfaceData surfaceData,
 
     SetAlbedo(pathIntersection, albedo);
     SetNormal(pathIntersection, surfaceData.normalWS);
+
+    // Compute motion vector
+    float3 prevPosWS = mul(unity_MatrixPreviousM, float4(positionWS, 1.0)).xyz;
+    float4 prevClipPos = mul(UNITY_MATRIX_PREV_VP, prevPosWS);
+    prevClipPos.xy /= prevClipPos.w;
+    float2 prevFramePos = (prevClipPos.xy * 0.5 + 0.5) * (_ScreenSize.xy - float2(1, 1));
+    pathIntersection.motionVector = prevFramePos;
 }
 
 // Function responsible for surface scattering
@@ -298,7 +305,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
     if (currentDepth == 0)
     {
-        WriteAOVs(pathIntersection, surfaceData, builtinData);
+        WriteAOVs(pathIntersection, surfaceData, builtinData, posInput.positionWS);
     }
 }
 

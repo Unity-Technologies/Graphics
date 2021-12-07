@@ -297,45 +297,38 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle input;
             public TextureHandle output;
             public TextureHandle history;
-            public TextureHandle normalAOV;
-            public TextureHandle albedoAOV;
-            public TextureHandle motionVectorAOV;
 
-            public bool useAOV;
-            public bool temporal;
+            public bool useInputTexture;
+            public bool useOutputTexture;
         }
 
-        unsafe void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, TextureHandle motionVectors, bool needExposure)
+        void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, HDCameraFrameHistoryType historyType, bool needExposure)
         {
             using (var builder = renderGraph.AddRenderPass<RenderAccumulationPassData>("Render Accumulation", out var passData))
             {
-                // Grab the history buffer
-                TextureHandle history = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
-                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1));
-
-                TextureHandle albedoAOV = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AlbedoAOV)
-                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AlbedoAOV, PathTracingHistoryBufferAllocatorFunction, 1));
-
-                TextureHandle normalAOV = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.NormalAOV)
-                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.NormalAOV, PathTracingHistoryBufferAllocatorFunction, 1));
-
-                bool inputFromRadianceTexture = !inputTexture.Equals(outputTexture);
+                bool useInputTexture = !inputTexture.Equals(outputTexture);
                 passData.accumulationCS = m_Asset.renderPipelineResources.shaders.accumulationCS;
                 passData.accumulationKernel = passData.accumulationCS.FindKernel("KMain");
                 passData.subFrameManager = m_SubFrameManager;
                 passData.needExposure = needExposure;
                 passData.hdCamera = hdCamera;
                 passData.accumulationCS.shaderKeywords = null;
-                if (inputFromRadianceTexture)
+                if (useInputTexture)
                     passData.accumulationCS.EnableKeyword("INPUT_FROM_FRAME_TEXTURE");
+
+                if (outputTexture.IsValid())
+                {
+                    passData.accumulationCS.EnableKeyword("WRITE_TO_OUTPUT_TEXTURE");
+                    passData.output = builder.WriteTexture(outputTexture);
+                }
+
+                TextureHandle history = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)historyType)
+                    ?? hdCamera.AllocHistoryFrameRT((int)historyType, PathTracingHistoryBufferAllocatorFunction, 1));
+
                 passData.input = builder.ReadTexture(inputTexture);
-                passData.output = builder.WriteTexture(outputTexture);
                 passData.history = builder.WriteTexture(history);
-                passData.albedoAOV = builder.ReadTexture(albedoAOV);
-                passData.normalAOV = builder.ReadTexture(normalAOV);
-                passData.motionVectorAOV = builder.ReadTexture(motionVectors);
-                passData.useAOV = m_PathTracingSettings.useAOVs.value;
-                passData.temporal = m_PathTracingSettings.temporal.value && hdCamera.camera.cameraType == CameraType.Game;
+                passData.useOutputTexture = outputTexture.IsValid();
+                passData.useInputTexture = useInputTexture;
 
                 builder.SetRenderFunc(
                     (RenderAccumulationPassData data, RenderGraphContext ctx) =>
@@ -358,65 +351,119 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationFrameIndex, (int)camData.currentIteration);
                         ctx.cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNumSamples, (int)data.subFrameManager.subFrameCount);
                         ctx.cmd.SetComputeTextureParam(accumulationShader, data.accumulationKernel, HDShaderIDs._AccumulatedFrameTexture, data.history);
-                        ctx.cmd.SetComputeTextureParam(accumulationShader, data.accumulationKernel, HDShaderIDs._CameraColorTextureRW, output);
-                        if (!input.Equals(output))
-                        {
+
+                        if (passData.useOutputTexture)
+                            ctx.cmd.SetComputeTextureParam(accumulationShader, data.accumulationKernel, HDShaderIDs._CameraColorTextureRW, output);
+
+                        if (data.useInputTexture)
                             ctx.cmd.SetComputeTextureParam(accumulationShader, data.accumulationKernel, HDShaderIDs._FrameTexture, input);
-                        }
+
                         ctx.cmd.SetComputeVectorParam(accumulationShader, HDShaderIDs._AccumulationWeights, frameWeights);
                         ctx.cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNeedsExposure, data.needExposure ? 1 : 0);
                         ctx.cmd.DispatchCompute(accumulationShader, data.accumulationKernel, (data.hdCamera.actualWidth + 7) / 8, (data.hdCamera.actualHeight + 7) / 8, data.hdCamera.viewCount);
 
-#if ENABLE_UNITY_DENOISERS
-                        camData.denoiser.type = m_PathTracingSettings.denoiser.value;
-                        //camData.denoiser.useAOV = m_PathTracingSettings.useAOVs.value;
-
-                        RTHandle history = data.history;
-
-                        if (camData.currentIteration == (data.subFrameManager.subFrameCount - 1) && camData.denoiser.type != DenoiserType.None)
-                        {
-                            bool useAsync = false;
-
-                            if (!camData.denoiser.denoised)
-                            {
-                                camData.denoiser.denoised = true;
-                                m_SubFrameManager.SetCameraData(camID, camData);
-
-                                camData.denoiser.DenoiseRequest(ctx.cmd, "color", history.rt);
-
-                                if (data.useAOV)
-                                {
-                                    camData.denoiser.DenoiseRequest(ctx.cmd, "albedo", data.albedoAOV);
-                                    camData.denoiser.DenoiseRequest(ctx.cmd, "normal", data.normalAOV);
-                                }
-
-                                if (data.temporal)
-                                {
-                                    camData.denoiser.DenoiseRequest(ctx.cmd, "flow", data.motionVectorAOV);
-                                }
-
-                                if (!useAsync)
-                                {
-                                    camData.denoiser.WaitForCompletion();
-                                    camData.denoiser.GetResults(ctx.cmd, history.rt);
-                                }
-                            }
-
-                            // if denoised frame is ready, blit it
-                            if (useAsync && camData.denoiser.QueryCompletion())
-                            {
-                                camData.denoiser.GetResults(ctx.cmd, history.rt);
-                            }
-                        }
-#endif
-
                         // Increment the iteration counter, if we haven't converged yet
-                        if (camData.currentIteration < data.subFrameManager.subFrameCount)
+                        if (passData.useOutputTexture && camData.currentIteration < data.subFrameManager.subFrameCount)
                         {
                             camData.currentIteration++;
                             data.subFrameManager.SetCameraData(camID, camData);
                         }
                     });
+            }
+        }
+
+        class RenderDenoisePassData
+        {
+            public TextureHandle color;
+            public TextureHandle normalAOV;
+            public TextureHandle albedoAOV;
+            public TextureHandle motionVectorAOV;
+            public SubFrameManager subFrameManager;
+
+            public int camID;
+            public bool useAOV;
+            public bool temporal;
+        }
+
+        void RenderDenoisePass(RenderGraph renderGraph, HDCamera hdCamera)
+        {
+            using (var builder = renderGraph.AddRenderPass<RenderDenoisePassData>("Denoise Pass", out var passData))
+            {
+                passData.subFrameManager = m_SubFrameManager;
+
+                // Grab the history buffer
+                TextureHandle history = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
+                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1));
+
+                passData.color = builder.WriteTexture(history);
+                passData.useAOV = m_PathTracingSettings.useAOVs.value;
+                passData.temporal = m_PathTracingSettings.temporal.value && hdCamera.camera.cameraType == CameraType.Game;
+                passData.camID = hdCamera.camera.GetInstanceID();
+
+                if (m_PathTracingSettings.useAOVs.value)
+                {
+                    TextureHandle albedoHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AlbedoAOV)
+                        ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AlbedoAOV, PathTracingHistoryBufferAllocatorFunction, 1));
+
+                    TextureHandle normalHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.NormalAOV)
+                        ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.NormalAOV, PathTracingHistoryBufferAllocatorFunction, 1));
+
+                    passData.albedoAOV = builder.ReadTexture(albedoHistory);
+                    passData.normalAOV = builder.ReadTexture(normalHistory);
+                }
+
+                if (m_PathTracingSettings.temporal.value)
+                {
+                    TextureHandle motionVectorHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.MotionVectorAOV)
+                        ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.MotionVectorAOV, PathTracingHistoryBufferAllocatorFunction, 1));
+                    passData.motionVectorAOV = builder.ReadTexture(motionVectorHistory);
+                }
+
+                builder.SetRenderFunc(
+                (RenderDenoisePassData data, RenderGraphContext ctx) =>
+                {
+#if ENABLE_UNITY_DENOISERS
+                    CameraData camData = data.subFrameManager.GetCameraData(data.camID);
+
+                    camData.denoiser.type = m_PathTracingSettings.denoiser.value;
+
+                    if (camData.currentIteration == (data.subFrameManager.subFrameCount) && camData.denoiser.type != DenoiserType.None)
+                    {
+                        bool useAsync = false;
+
+                        if (!camData.denoiser.denoised)
+                        {
+                            camData.denoiser.denoised = true;
+                            m_SubFrameManager.SetCameraData(data.camID, camData);
+
+                            camData.denoiser.DenoiseRequest(ctx.cmd, "color", data.color);
+
+                            if (data.useAOV)
+                            {
+                                camData.denoiser.DenoiseRequest(ctx.cmd, "albedo", data.albedoAOV);
+                                camData.denoiser.DenoiseRequest(ctx.cmd, "normal", data.normalAOV);
+                            }
+
+                            if (data.temporal)
+                            {
+                                camData.denoiser.DenoiseRequest(ctx.cmd, "flow", data.motionVectorAOV);
+                            }
+
+                            if (!useAsync)
+                            {
+                                camData.denoiser.WaitForCompletion();
+                                camData.denoiser.GetResults(ctx.cmd, data.color);
+                            }
+                        }
+
+                        // if denoised frame is ready, blit it
+                        if (useAsync && camData.denoiser.QueryCompletion())
+                        {
+                            camData.denoiser.GetResults(ctx.cmd, data.color);
+                        }
+                    }
+#endif
+                });
             }
         }
     }

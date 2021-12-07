@@ -35,6 +35,7 @@ float4      _PathTracingTilingParameters; // xy: tile count, zw: current tile in
 RW_TEXTURE2D_X(float4, _FrameTexture);
 RW_TEXTURE2D_X(float4, _AlbedoAOV);
 RW_TEXTURE2D_X(float4, _NormalAOV);
+RW_TEXTURE2D_X(float4, _MotionVectorAOV);
 
 float4 GetCameraMissValue(uint2 xy)
 {
@@ -206,6 +207,7 @@ void RayGen()
     pathIntersection.remainingDepth = _RaytracingMaxRecursion;
     pathIntersection.pixelCoord = tiledPixelCoord;
     pathIntersection.maxRoughness = 0.0;
+    pathIntersection.motionVector = jitteredPixelCoord.xy;
 
     // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
     pathIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle / min(tileCount.x, tileCount.y);
@@ -217,6 +219,9 @@ void RayGen()
     _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathIntersection.value, pathIntersection.alpha);
     _AlbedoAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(GetAlbedo(pathIntersection), 1.0);
     _NormalAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(GetNormal(pathIntersection), 1.0);
+
+    float2 mv = jitteredPixelCoord.xy - pathIntersection.motionVector;
+    _MotionVectorAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(mv.x, mv.y, 0, 1.0);
 }
 
 // This should never be called, return magenta just in case

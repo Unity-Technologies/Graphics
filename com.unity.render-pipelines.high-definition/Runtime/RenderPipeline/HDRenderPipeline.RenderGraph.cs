@@ -139,8 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (hdCamera.viewCount == 1)
                     {
-                        var motionVectors = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) ? prepassOutput.resolvedMotionVectorsBuffer : m_RenderGraph.defaultResources.blackTextureXR;
-                        colorBuffer = RenderPathTracing(m_RenderGraph, hdCamera, colorBuffer, motionVectors);
+                        colorBuffer = RenderPathTracing(m_RenderGraph, hdCamera, colorBuffer);
                     }
                     else
                     {
@@ -261,8 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     bool accumulateInPost = m_PostProcessEnabled && m_DepthOfField.IsActive();
                     if (!accumulateInPost && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
                     {
-                        var motionVectors = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) ? prepassOutput.resolvedMotionVectorsBuffer : m_RenderGraph.defaultResources.blackTextureXR;
-                        RenderAccumulation(m_RenderGraph, hdCamera, colorBuffer, colorBuffer, motionVectors, false);
+                        RenderAccumulation(m_RenderGraph, hdCamera, colorBuffer, colorBuffer, HDCameraFrameHistoryType.PathTracing, false);
                     }
 
                     // Render gizmos that should be affected by post processes

@@ -383,13 +383,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle albedoAOV;
             public TextureHandle normalAOV;
+            public TextureHandle motionVectorAOV;
             
 #if ENABLE_SENSOR_SDK
             public Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays;
 #endif
         }
 
-        void RenderPathTracingFrame(RenderGraph renderGraph, HDCamera hdCamera, in CameraData cameraData, TextureHandle pathTracingBuffer)
+        void RenderPathTracingFrame(RenderGraph renderGraph, HDCamera hdCamera, in CameraData cameraData, TextureHandle pathTracingBuffer, TextureHandle albedo, TextureHandle normal, TextureHandle motionVector)
         {
             using (var builder = renderGraph.AddRenderPass<RenderPathTracingData>("Render Path Tracing Frame", out var passData))
             {
@@ -429,11 +430,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.output = builder.WriteTexture(pathTracingBuffer);
 
-                passData.albedoAOV = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AlbedoAOV)
-                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AlbedoAOV, PathTracingHistoryBufferAllocatorFunction, 1));
+                passData.albedoAOV = builder.WriteTexture(albedo);
 
-                passData.normalAOV = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.NormalAOV)
-                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.NormalAOV, PathTracingHistoryBufferAllocatorFunction, 1));
+                passData.normalAOV = builder.WriteTexture(normal);
+
+                passData.motionVectorAOV = builder.WriteTexture(motionVector);
 
                 builder.SetRenderFunc(
                     (RenderPathTracingData data, RenderGraphContext ctx) =>
@@ -480,6 +481,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // AOVs
                         ctx.cmd.SetRayTracingTextureParam(data.pathTracingShader, HDShaderIDs._AlbedoAOV, data.albedoAOV);
                         ctx.cmd.SetRayTracingTextureParam(data.pathTracingShader, HDShaderIDs._NormalAOV, data.normalAOV);
+                        ctx.cmd.SetRayTracingTextureParam(data.pathTracingShader, HDShaderIDs._MotionVectorAOV, data.motionVectorAOV);
 
                         // Run the computation
                         ctx.cmd.DispatchRays(data.shader, "RayGen", (uint)data.width, (uint)data.height, 1);
@@ -544,6 +546,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (RenderSkySamplingPassData data, RenderGraphContext ctx) =>
                     {
+                        data.skyManager.RenderSky(data.hdCamera, data.sunLight, data.colorBuffer, data.depthTexture, data.debugDisplaySettings, context.cmd);
                         ctx.cmd.SetComputeIntParam(data.shader, HDShaderIDs._PathTracingSkyTextureWidth, data.size * 2);
                         ctx.cmd.SetComputeIntParam(data.shader, HDShaderIDs._PathTracingSkyTextureHeight, data.size);
 
@@ -561,6 +564,20 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle motionVectors)
         {
             m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
+
+            TextureDesc aovDesc = new TextureDesc(hdCamera.actualWidth, hdCamera.actualHeight, true, true)
+            {
+                colorFormat = GraphicsFormat.R32G32B32A32_SFloat,
+                bindTextureMS = false,
+                msaaSamples = MSAASamples.None,
+                clearBuffer = true,
+                clearColor = Color.black,
+                enableRandomWrite = true,
+                name = "Path traced AOV buffer"
+            };
+            var motionVector = renderGraph.CreateTexture(aovDesc);
+            var albedo = renderGraph.CreateTexture(aovDesc);
+            var normal = renderGraph.CreateTexture(aovDesc);
 
             // Check the validity of the state before moving on with the computation
             if (!m_GlobalSettings.renderPipelineRayTracingResources.pathTracingRT || !m_PathTracingSettings.enable.value)
@@ -612,10 +629,27 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                RenderPathTracingFrame(m_RenderGraph, hdCamera, camData, m_FrameTexture);
+                RenderPathTracing(m_RenderGraph, hdCamera, camData, m_FrameTexture, albedo, normal, motionVector);
             }
 
-            RenderAccumulation(m_RenderGraph, hdCamera, m_FrameTexture, colorBuffer, motionVectors, true);
+#if ENABLE_UNITY_DENOISERS
+            bool denoise = m_PathTracingSettings.denoiser.value != DenoiserType.None;
+            if (denoise && m_PathTracingSettings.useAOVs.value)
+            {
+                RenderAccumulation(m_RenderGraph, hdCamera, albedo, TextureHandle.nullHandle, HDCameraFrameHistoryType.AlbedoAOV, true);
+
+                RenderAccumulation(m_RenderGraph, hdCamera, normal, TextureHandle.nullHandle, HDCameraFrameHistoryType.NormalAOV, true);
+            }
+
+            if (denoise && m_PathTracingSettings.temporal.value)
+            {
+                RenderAccumulation(m_RenderGraph, hdCamera, motionVector, TextureHandle.nullHandle, HDCameraFrameHistoryType.MotionVectorAOV, true);
+            }
+#endif
+            // Color should be accumulated after AOVs (order is important)
+            RenderAccumulation(m_RenderGraph, hdCamera, m_FrameTexture, colorBuffer, HDCameraFrameHistoryType.PathTracing, true);
+
+            RenderDenoisePass(m_RenderGraph, hdCamera);
 
             return colorBuffer;
         }

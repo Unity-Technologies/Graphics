@@ -640,6 +640,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _PathTracingSkyMarginalTexture = Shader.PropertyToID("_PathTracingSkyMarginalTexture");
         public static readonly int _AlbedoAOV = Shader.PropertyToID("_AlbedoAOV");
         public static readonly int _NormalAOV = Shader.PropertyToID("_NormalAOV");
+        public static readonly int _MotionVectorAOV = Shader.PropertyToID("_MotionVectorAOV");
 
         // Light Cluster
         public static readonly int _LightDatasRT = Shader.PropertyToID("_LightDatasRT");

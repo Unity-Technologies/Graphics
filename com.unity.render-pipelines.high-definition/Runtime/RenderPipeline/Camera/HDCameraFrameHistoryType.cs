@@ -51,8 +51,10 @@ namespace UnityEngine.Rendering.HighDefinition
         ScreenSpaceReflectionAccumulation,
         /// <summary>Path traced Albedo AOV.</summary>
         AlbedoAOV,
-        /// <summary>Path traced Albedo AOV.</summary>
+        /// <summary>Path traced Normal AOV.</summary>
         NormalAOV,
+        /// <summary>Path traced motion vecotr AOV.</summary>
+        MotionVectorAOV,
         /// <summary>Number of history buffers.</summary>
         Count // TODO: Obsolete
     }
