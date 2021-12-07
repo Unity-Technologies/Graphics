@@ -4,7 +4,7 @@ The High Definition Render Pipeline (HDRP) includes the following ways to create
 
 - Use a Decal Mesh and manually position the decal.
 
-- Use the [Decal Projector](Decal-Projector.md) component to project the decal. 
+- Use the [Decal Projector](Decal-Projector.md) component to project the decal.
 
 To use these methods, you need to create a decal Material. A decal Material is a Material that uses the [Decal Shader](Decal-Shader.md) or [Decal Master Stack](master-stack-decal.md). You can then place or project your decal Material into a Scene.
 
@@ -12,11 +12,11 @@ To use these methods, you need to create a decal Material. A decal Material is a
 
 ## Decal Layers
 
-HDRP includes Decal Layers that you can use to specify which Materials a decal affects based on which layer you assign it to. 
+HDRP includes Decal Layers that you can use to specify which Materials a decal affects based on which layer you assign it to.
 
 ### Enabling Decal Layers
 
-To use Decal Layers, enable them in your Project’s [HDRP Asset](HDRP-Asset.md).  To do this: 
+To use Decal Layers, enable them in your Project’s [HDRP Asset](HDRP-Asset.md).  To do this:
 1. Navigate to the **Project** window and open your HDRP Asset.
 2. In the Inspector, open the **Decals** dropdown.
 3. Enable the  **Layers**  checkbox.
@@ -42,7 +42,7 @@ When you enable Decal Layers, a Decal only affects a Mesh Renderer or Terrain if
 1. Click on a Decal Projector in the Hierarchy or the Scene view to view it in the Inspector.
 2. Use the **Decal Layer** property drop-down to select which Decal Layers this Decal Projector affects.
 4. Click on a Mesh Renderer or Terrain in the Hierarchy or the Scene view to view it in the Inspector.
-5. Use the **Rendering Layer Mask** drop-down (See [MeshRenderer](https://docs.unity3d.com/Manual/class-MeshRenderer.html) for GameObjects or [OtherSettings](https://docs.unity3d.com/Manual/terrain-OtherSettings.html) for Terrain) to select which Decal Layers affect this Mesh Renderer or Terrain. 
+5. Use the **Rendering Layer Mask** drop-down (See [MeshRenderer](https://docs.unity3d.com/Manual/class-MeshRenderer.html) for GameObjects or [OtherSettings](https://docs.unity3d.com/Manual/terrain-OtherSettings.html) for Terrain) to select which Decal Layers affect this Mesh Renderer or Terrain.
 
 ### Renaming Decal Layers
 
@@ -61,9 +61,9 @@ When you enable Decal Layers, it increases the build time of your project. This 
 * Increases GPU performance cost.
 * Generates more [Shader Variants](https://docs.unity3d.com/Manual/shader-variants.html).
 
-HDRP renders Material depth in a Depth Prepass to apply decals to opaque Materials. This increases resource use on the CPU. Only Materials that have the **Receive Decals** property enabled render in the Depth Prepass, unless you force a full Depth Prepass. To prevent HDRP from rendering a Material which shouldn't receive Decals in the Depth Prepass: 
+HDRP renders Material depth in a Depth Prepass to apply decals to opaque Materials. This increases resource use on the CPU. Only Materials that have the **Receive Decals** property enabled render in the Depth Prepass, unless you force a full Depth Prepass. To prevent HDRP from rendering a Material which shouldn't receive Decals in the Depth Prepass:
 
-1. Open the Material assigned to a Mesh Renderer or Terrain that you do not want to display decals on. 
+1. Open the Material assigned to a Mesh Renderer or Terrain that you do not want to display decals on.
 
 2. Disable the **Receive Decals** property.
 
@@ -90,16 +90,16 @@ To remove this angle constraint on the normal at the cost of a higher memory usa
 
 ## Limitations
 
-- A Decal Projector can only affect transparent Materials when you use the [Decal Shader](Decal-Shader.md). 
+- A Decal Projector can only affect transparent Materials when you use the [Decal Shader](Decal-Shader.md).
 
 - The Decal Shader does not support emissive on Transparent Materials and does support Decal Layers.
 
-- Decal Meshes can only affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal Master Stack](master-stack-decal.md). 
+- Decal Meshes can only affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal Master Stack](master-stack-decal.md).
 
 - Decal Meshes do not support Decal Layers.
 
 ### Migration of data previous to Unity 2020.2
 
-When you convert a project from 2020.2, Mesh renderers and Terrain do not receive any decals by default. 
+When you convert a project from 2020.2, Mesh renderers and Terrain do not receive any decals by default.
 
-This is because, before Unity 2020.2, the default value for the **Rendering Layer Mask** for new Mesh Renderers and Terrain doesn't include Decal Layer flags. 
+This is because, before Unity 2020.2, the default value for the **Rendering Layer Mask** for new Mesh Renderers and Terrain doesn't include Decal Layer flags.
