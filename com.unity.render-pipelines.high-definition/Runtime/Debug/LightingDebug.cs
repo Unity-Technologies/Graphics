@@ -127,14 +127,24 @@ namespace UnityEngine.Rendering.HighDefinition
                         case SpotLightShape.Box: return (mode & DebugLightFilterMode.DirectSpotBox) != 0;
                         case SpotLightShape.Cone: return (mode & DebugLightFilterMode.DirectSpotCone) != 0;
                         case SpotLightShape.Pyramid: return (mode & DebugLightFilterMode.DirectSpotPyramid) != 0;
-                        default: throw new ArgumentOutOfRangeException(nameof(spotLightShape));
+                        default:
+#if DEBUG
+                            throw new ArgumentOutOfRangeException(nameof(spotLightShape));
+#else
+                            return false;
+#endif
                     }
                 }
                 case GPULightType.Tube: return (mode & DebugLightFilterMode.DirectTube) != 0;
                 case GPULightType.Point: return (mode & DebugLightFilterMode.DirectPunctual) != 0;
                 case GPULightType.Rectangle: return (mode & DebugLightFilterMode.DirectRectangle) != 0;
                 case GPULightType.Directional: return (mode & DebugLightFilterMode.DirectDirectional) != 0;
-                default: throw new ArgumentOutOfRangeException(nameof(gpuLightType));
+                default:
+#if DEBUG
+                    throw new ArgumentOutOfRangeException(nameof(gpuLightType));
+#else
+                    return false;
+#endif
             }
         }
 
