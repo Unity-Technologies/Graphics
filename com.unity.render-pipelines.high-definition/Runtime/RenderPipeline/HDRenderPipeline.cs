@@ -912,6 +912,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShaderVariablesGlobalCB._ReflectionLightingMultiplier = indirectLightingController.reflectionLightingMultiplier.value;
             m_ShaderVariablesGlobalCB._ReflectionLightingLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? indirectLightingController.GetReflectionLightingLayers() : uint.MaxValue;
 
+            m_ShaderVariablesGlobalCB._AmbientProbeMultiplier = indirectLightingController.ambientProbeLightingMultiplier.value;
+            m_ShaderVariablesGlobalCB._SkyReflectionMultiplier = indirectLightingController.skyReflectionMultiplier.value;
+
             m_ShaderVariablesGlobalCB._OffScreenRendering = 0;
             m_ShaderVariablesGlobalCB._OffScreenDownsampleFactor = 1;
             m_ShaderVariablesGlobalCB._ReplaceDiffuseForIndirect = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReplaceDiffuseForIndirect) ? 1.0f : 0.0f;

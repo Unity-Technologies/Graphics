@@ -468,8 +468,8 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray, float3 entryEvalua
     environmentLight.sunDirection = _SunDirection.xyz;
     environmentLight.sunColor0 = _SunLightColor.xyz * GetCurrentExposureMultiplier();
     environmentLight.sunColor1 = environmentLight.sunColor0;
-    environmentLight.ambientTermTop = _AmbientProbeTop.xyz * GetCurrentExposureMultiplier();
-    environmentLight.ambientTermBottom = _AmbientProbeBottom.xyz * GetCurrentExposureMultiplier();
+    environmentLight.ambientTermTop = _AmbientProbeTop.xyz * GetCurrentExposureMultiplier() * _AmbientProbeMultiplier;
+    environmentLight.ambientTermBottom = _AmbientProbeBottom.xyz * GetCurrentExposureMultiplier() * _AmbientProbeMultiplier;
 
     // evaluate the attenuation at both points (entrance and exit of the cloud layer)
     EvaluateSunColorAttenuation(entryEvaluationPointWS, environmentLight.sunDirection, environmentLight.sunColor0);

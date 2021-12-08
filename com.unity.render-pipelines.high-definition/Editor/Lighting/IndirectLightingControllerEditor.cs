@@ -16,6 +16,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_ReflectionProbeIntensityMultiplier;
 
+        SerializedDataParameter m_AmbientProbeMultiplier;
+        SerializedDataParameter m_SkyReflectionMultiplier;
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<IndirectLightingController>(serializedObject);
@@ -27,6 +30,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ReflectionLightingLayers = Unpack(o.Find(x => x.reflectionLightingLayers));
 
             m_ReflectionProbeIntensityMultiplier = Unpack(o.Find(x => x.reflectionProbeIntensityMultiplier));
+
+            m_AmbientProbeMultiplier = Unpack(o.Find(x => x.ambientProbeLightingMultiplier));
+            m_SkyReflectionMultiplier = Unpack(o.Find(x => x.skyReflectionMultiplier));
         }
 
         public override void OnInspectorGUI()
@@ -43,6 +49,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_ReflectionLightingLayers, EditorGUIUtility.TrTextContent("Reflection Lighting Layers", "Sets the light layer mask for reflected specular lighting. Only matching RenderingLayers on Mesh will get affected by the multiplier."));
             }
             PropertyField(m_ReflectionProbeIntensityMultiplier, EditorGUIUtility.TrTextContent("Reflection/Planar Probe Intensity Multiplier", "Sets the intensity multiplier for Reflection/Planar Probes."));
+
+            PropertyField(m_AmbientProbeMultiplier, EditorGUIUtility.TrTextContent("Ambient Probe Multiplier", "Sets the multiplier for lighting from ambient probe.\nIt is applied on top of the Indirect Diffuse Lighting Multiplier."));
+            PropertyField(m_SkyReflectionMultiplier, EditorGUIUtility.TrTextContent("Sky Reflection Multiplier", "Sets the multiplier for reflected specular lighting from sky only.\nIt is applied on top of the Reflection Lighting Multiplier."));
         }
     }
 }

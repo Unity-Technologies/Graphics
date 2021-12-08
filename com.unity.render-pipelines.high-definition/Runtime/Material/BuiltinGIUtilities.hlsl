@@ -17,7 +17,7 @@ real3 EvaluateAmbientProbe(real3 normalWS)
     SHCoefficients[5] = _AmbientProbeData[5];
     SHCoefficients[6] = _AmbientProbeData[6];
 
-    return SampleSH9(SHCoefficients, normalWS);
+    return SampleSH9(SHCoefficients, normalWS) * _AmbientProbeMultiplier;
 }
 
 real3 EvaluateLightProbe(real3 normalWS)

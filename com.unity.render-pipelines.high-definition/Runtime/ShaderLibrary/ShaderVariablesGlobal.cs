@@ -195,6 +195,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _ReflectionLightingMultiplier;
         public uint _ReflectionLightingLayers;
 
+        public float _AmbientProbeMultiplier;
+        public float _SkyReflectionMultiplier;
+        public float _Pad2;
+        public float _Pad3;
+
         public float _MicroShadowOpacity;
         public uint _EnableProbeVolumes;
         public uint _ProbeVolumeCount;

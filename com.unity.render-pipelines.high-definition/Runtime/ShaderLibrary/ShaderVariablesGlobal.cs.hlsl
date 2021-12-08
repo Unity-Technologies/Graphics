@@ -106,6 +106,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _IndirectDiffuseLightingLayers;
     float _ReflectionLightingMultiplier;
     uint _ReflectionLightingLayers;
+    float _AmbientProbeMultiplier;
+    float _SkyReflectionMultiplier;
+    float _Pad2;
+    float _Pad3;
     float _MicroShadowOpacity;
     uint _EnableProbeVolumes;
     uint _ProbeVolumeCount;

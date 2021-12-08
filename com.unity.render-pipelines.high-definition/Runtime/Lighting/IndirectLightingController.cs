@@ -25,6 +25,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serialization.FormerlySerializedAs("indirectSpecularIntensity")]
         public MinFloatParameter reflectionProbeIntensityMultiplier = new MinFloatParameter(1.0f, 0.0f);
 
+        /// <summary>Ambient probe multiplier.</summary>
+        public MinFloatParameter ambientProbeLightingMultiplier = new MinFloatParameter(1.0f, 0.0f);
+        /// <summary>Sky Reflection multiplier.</summary>
+        public MinFloatParameter skyReflectionMultiplier = new MinFloatParameter(1.0f, 0.0f);
+
         /// <summary>
         /// Returns a mask of reflection lighting layers as uint and handle the case of Everything as being 0xFF and not -1
         /// </summary>
