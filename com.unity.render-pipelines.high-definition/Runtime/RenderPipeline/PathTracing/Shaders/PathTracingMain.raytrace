@@ -36,7 +36,7 @@ RW_TEXTURE2D_X(float4, _FrameTexture);
 
 float4 GetSkyCameraValue(uint2 xy)
 {
-    return IsSkyEnabled() && _PathTracingCameraSkyEnabled ? _SkyCameraTexture[COORD_TEXTURE2D_X(xy)] : _PathTracingCameraClearColor;
+    return IsSkyEnabled() && _PathTracingCameraSkyEnabled ? _SkyCameraTexture[COORD_TEXTURE2D_X(xy)] : _PathTracingCameraClearColor * GetInverseCurrentExposureMultiplier();
 }
 
 [shader("miss")]
@@ -52,7 +52,7 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
 
     float4 missColor = GetSkyCameraValue(pathIntersection.pixelCoord);
 
-    pathIntersection.value = missColor.rgb * GetInverseCurrentExposureMultiplier();
+    pathIntersection.value = missColor.rgb;
     pathIntersection.alpha = missColor.a;
 
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value, pathIntersection.alpha);

@@ -427,9 +427,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.skyManager = m_SkyManager;
 
                 builder.SetRenderFunc(
-                    (RenderSkyPassData data, RenderGraphContext context) =>
+                    (RenderSkyPassData data, RenderGraphContext ctx) =>
                     {
-                        data.skyManager.RenderSky(data.hdCamera, data.sunLight, data.colorBuffer, data.depthTexture, data.debugDisplaySettings, context.cmd);
+                        // Override the exposure texture, as we need a neutral value for this render
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, m_EmptyExposureTexture);
+
+                        data.skyManager.RenderSky(data.hdCamera, data.sunLight, data.colorBuffer, data.depthTexture, data.debugDisplaySettings, ctx.cmd);
+
+                        // Restore the regular exposure texture
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, GetExposureTexture(hdCamera));
                     });
             }
         }
