@@ -578,7 +578,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     // SampleSH9() evaluates the 3-band SH in a given direction.
     // The probe is already pre-convolved with the phase function.
     // Note: anisotropic, no jittering.
-    float3 probeInScatteredRadiance = EvaluateVolumetricAmbientProbe(ray.centerDirWS);
+    float3 probeInScatteredRadiance = EvaluateVolumetricAmbientProbe(ray.centerDirWS) * _AmbientProbeMultiplier;
 
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;

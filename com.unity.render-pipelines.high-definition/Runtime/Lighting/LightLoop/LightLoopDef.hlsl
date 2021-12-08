@@ -62,7 +62,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.influencePositionRWS = float3(0.0, 0.0, 0.0);
 
     output.weight = 1.0;
-    output.multiplier = _EnableSkyReflection.x != 0 ? 1.0 : 0.0;
+    output.multiplier = (_EnableSkyReflection.x != 0 ? 1.0 : 0.0) * _SkyReflectionMultiplier;
     output.roughReflections = 1.0;
     output.distanceBasedRoughness = 0.0;
 
