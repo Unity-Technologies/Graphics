@@ -1319,7 +1319,17 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var keyword in keywords)
             {
-                collector.AddShaderKeyword(keyword);
+                var currentKeyword = keyword;
+                //VFX doesn't support shader keyword (yet)
+                if (generationMode == GenerationMode.VFX && keyword.isExposed)
+                {
+                    //TODOPAUL, alternatively ignore it and handle custom define in additional command ?
+                    //See also https://unity.slack.com/archives/C3KQ4UD6V/p1638975568233000 (there is an issue with default value in SG, it can't work right now)
+                    currentKeyword = (ShaderKeyword)currentKeyword.Copy();
+                    currentKeyword.overrideReferenceName = keyword.referenceName;
+                    currentKeyword.keywordDefinition = KeywordDefinition.Predefined;
+                }
+                collector.AddShaderKeyword(currentKeyword);
             }
 
             // Alwways calculate permutations when collecting
