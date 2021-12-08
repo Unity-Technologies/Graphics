@@ -617,6 +617,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_CameraColorTarget = new RTHandleRenderTargetIdentifierCompat { fallback = colorTarget };
             m_CameraDepthTarget = new RTHandleRenderTargetIdentifierCompat { fallback = depthTarget };
+            CheckColorAndDepthTargetsDimensions();
         }
 
         /// <summary>
@@ -628,6 +629,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_CameraColorTarget = new RTHandleRenderTargetIdentifierCompat { handle = colorTarget };
             m_CameraDepthTarget = new RTHandleRenderTargetIdentifierCompat { handle = depthTarget };
+            CheckColorAndDepthTargetsDimensions();
         }
 
         [Obsolete("Use RTHandles for colorTarget, depthTarget and resolveTarget")]
@@ -636,6 +638,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraColorTarget = new RTHandleRenderTargetIdentifierCompat { fallback = colorTarget };
             m_CameraDepthTarget = new RTHandleRenderTargetIdentifierCompat { fallback = depthTarget };
             m_CameraResolveTarget = new RTHandleRenderTargetIdentifierCompat { fallback = resolveTarget };
+            CheckColorAndDepthTargetsDimensions();
         }
 
         internal void ConfigureCameraTarget(RTHandle colorTarget, RTHandle depthTarget, RTHandle resolveTarget)
@@ -643,6 +646,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraColorTarget = new RTHandleRenderTargetIdentifierCompat { handle = colorTarget };
             m_CameraDepthTarget = new RTHandleRenderTargetIdentifierCompat { handle = depthTarget };
             m_CameraResolveTarget = new RTHandleRenderTargetIdentifierCompat { handle = resolveTarget };
+            CheckColorAndDepthTargetsDimensions();
         }
 
         // This should be removed when early camera color target assignment is removed.
@@ -650,12 +654,15 @@ namespace UnityEngine.Rendering.Universal
         internal void ConfigureCameraColorTarget(RenderTargetIdentifier colorTarget)
         {
             m_CameraColorTarget = new RTHandleRenderTargetIdentifierCompat { fallback = colorTarget };
+            CheckColorAndDepthTargetsDimensions();
         }
 
+        // TODO Suspect (should be removed)
         // This should be removed when early camera color target assignment is removed.
         internal void ConfigureCameraColorTarget(RTHandle colorTarget)
         {
             m_CameraColorTarget = new RTHandleRenderTargetIdentifierCompat { handle = colorTarget };
+            CheckColorAndDepthTargetsDimensions();
         }
 
         /// <summary>
@@ -1041,6 +1048,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_CameraColorTarget = new RTHandleRenderTargetIdentifierCompat { fallback = BuiltinRenderTextureType.CameraTarget };
             m_CameraDepthTarget = new RTHandleRenderTargetIdentifierCompat { fallback = BuiltinRenderTextureType.CameraTarget };
+            CheckColorAndDepthTargetsDimensions();
         }
 
         void ExecuteBlock(int blockIndex, in RenderBlocks renderBlocks,
@@ -1404,6 +1412,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void SetRenderTarget(CommandBuffer cmd, RTHandle colorAttachment, RTHandle depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
+            CheckColorAndDepthTargetsDimensions(colorAttachment, depthAttachment);
+
             m_ActiveColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
                 m_ActiveColorAttachments[i] = 0;
@@ -1463,8 +1473,40 @@ namespace UnityEngine.Rendering.Universal
                 depthAttachment, depthLoadAction, depthStoreAction, clearFlag, clearColor);
         }
 
+        static bool CheckColorAndDepthTargetsDimensions(RTHandle colorAttachment, RTHandle depthAttachment)
+        {
+            if (colorAttachment != null &&
+                depthAttachment != null &&
+                depthAttachment.rt != null &&
+                depthAttachment.rt != null &&
+                (colorAttachment.rt.descriptor.width != depthAttachment.rt.descriptor.width ||
+                    colorAttachment.rt.descriptor.height != depthAttachment.rt.descriptor.height))
+            {
+                Debug.Log("Color and depth targets dimensions do not match.");
+                return false;
+            }
+
+            return true;
+        }
+
+        void CheckColorAndDepthTargetsDimensions()
+        {
+            var colorHandle = m_CameraColorTarget.handle;
+            var depthHandle = m_CameraDepthTarget.handle;
+
+            if (colorHandle != null && depthHandle != null)
+            {
+                if (!CheckColorAndDepthTargetsDimensions(colorHandle, depthHandle))
+                {
+                    Debug.Log("Current renderer target.");
+                }
+            }
+        }
+
         internal static void SetRenderTarget(CommandBuffer cmd, RTHandle colorAttachment, RTHandle depthAttachment, ClearFlag clearFlag, Color clearColor, RenderBufferStoreAction colorStoreAction, RenderBufferStoreAction depthStoreAction)
         {
+            CheckColorAndDepthTargetsDimensions(colorAttachment, depthAttachment);
+
             m_ActiveColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
                 m_ActiveColorAttachments[i] = 0;
@@ -1550,6 +1592,8 @@ namespace UnityEngine.Rendering.Universal
             ClearFlag clearFlags,
             Color clearColor)
         {
+            CheckColorAndDepthTargetsDimensions(colorAttachment, depthAttachment);
+
             // XRTODO: Revisit the logic. Why treat CameraTarget depth specially?
             if (depthAttachment.nameID == BuiltinRenderTextureType.CameraTarget)
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
