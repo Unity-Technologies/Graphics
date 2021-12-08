@@ -121,10 +121,10 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     // Check if we want to compute direct and emissive lighting for current depth
     bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
 
+#ifndef SHADER_UNLIT
+
     // Compute the bsdf data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
-
-#ifndef SHADER_UNLIT
 
     // Override the geometric normal (otherwise, it is merely the non-mapped smooth normal)
     // Also make sure that it is in the same hemisphere as the shading normal (which may have been flipped)
@@ -246,7 +246,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
 #else // SHADER_UNLIT
 
-    pathIntersection.value = computeDirect ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
+    pathIntersection.value = computeDirect ? surfaceData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
 
     // Apply shadow matte if requested
     #ifdef _ENABLE_SHADOW_MATTE
