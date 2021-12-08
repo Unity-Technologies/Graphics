@@ -692,23 +692,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 builder.SetRenderFunc(
                 (RenderSkyToCubemapPassData data, RenderGraphContext ctx) =>
-        {
-            data.builtinParameters.commandBuffer = ctx.cmd;
+                {
+                    data.builtinParameters.commandBuffer = ctx.cmd;
 
-            for (int i = 0; i < 6; ++i)
-            {
-                data.builtinParameters.pixelCoordToViewDirMatrix = data.facePixelCoordToViewDirMatrices[i];
-                data.builtinParameters.viewMatrix = data.cameraViewMatrices[i];
-                data.builtinParameters.colorBuffer = data.output;
-                data.builtinParameters.depthBuffer = null;
-                data.builtinParameters.cubemapFace = (CubemapFace)i;
+                    for (int i = 0; i < 6; ++i)
+                    {
+                        data.builtinParameters.pixelCoordToViewDirMatrix = data.facePixelCoordToViewDirMatrices[i];
+                        data.builtinParameters.viewMatrix = data.cameraViewMatrices[i];
+                        data.builtinParameters.colorBuffer = data.output;
+                        data.builtinParameters.depthBuffer = null;
+                        data.builtinParameters.cubemapFace = (CubemapFace)i;
 
-                CoreUtils.SetRenderTarget(ctx.cmd, data.output, ClearFlag.None, 0, (CubemapFace)i);
-                data.skyRenderer.RenderSky(data.builtinParameters, true, data.includeSunInBaking);
-                if (data.cloudRenderer != null)
-                    data.cloudRenderer.RenderClouds(data.builtinParameters, true);
-            }
-        });
+                        CoreUtils.SetRenderTarget(ctx.cmd, data.output, ClearFlag.None, 0, (CubemapFace)i);
+                        data.skyRenderer.RenderSky(data.builtinParameters, true, data.includeSunInBaking);
+                        if (data.cloudRenderer != null)
+                            data.cloudRenderer.RenderClouds(data.builtinParameters, true);
+                    }
+                });
 
                 return passData.output;
             }
