@@ -29,11 +29,6 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             #define FSR_INPUT_TEXTURE _SourceTex
             #define FSR_INPUT_SAMPLER sampler_LinearClamp
 
-            // Enable 16-bit instructions when the underlying hardware supports them
-            #if REAL_IS_HALF
-                #define FSR_ENABLE_16BIT 1
-            #endif
-
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/FSRCommon.hlsl"
         #endif
 
