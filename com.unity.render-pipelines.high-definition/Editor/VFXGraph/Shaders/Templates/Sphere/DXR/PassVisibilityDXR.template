@@ -11,24 +11,30 @@
 
             // This pass is used by the sphere primitive
             #define RAY_TRACING_SPHERE_PRIMITIVE
-            
+
             #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
             #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
 
             // Global includes
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 
             // Need to override the macros for ray tracing
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
+            // VFX includes
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXCommon.hlsl"
+            #include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl"
+            
             // Material includes
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/RayTracingProcedural.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+
+            ${VFXGeneratedBlockFunction}
 
             [shader("closesthit")]
             void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
@@ -40,6 +46,26 @@
 
                 // TODO: Previous AABB for motion vector estimation
                 rayIntersection.velocity = 0;
+            }
+
+            [shader("intersection")]
+            void IntersectionShader()
+            {
+                UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
+                
+                VFXAttributes attributes;
+                ZERO_INITIALIZE(VFXAttributes, attributes);
+                
+                // Index needs to be available in the context for the attribute load to work
+                uint index = PrimitiveIndex();
+
+                // Load the VFX attributes that we need for this
+                ${VFXLoadAttributes}
+                ${VFXProcessBlocks}
+                ${VFXLoadSize}
+
+                // Execute the matching intersection code
+                IntersectPrimitive(attributes, size3);
             }
             ENDHLSL
         }
