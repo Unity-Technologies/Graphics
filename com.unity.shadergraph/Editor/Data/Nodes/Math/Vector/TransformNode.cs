@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
@@ -296,10 +297,7 @@ namespace UnityEditor.ShaderGraph
 
         public NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability)
         {
-            return new[]
-            {
-                new NeededTransform(conversion.from.ToNeededCoordinateSpace(), conversion.to.ToNeededCoordinateSpace())
-            };
+            return spaceTransform.RequiresTransform.ToArray();
         }
     }
 }
