@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed XR support in CoreUtils.DrawFullscreen function.
+- Fixed unnecessary memory allocation inside FSR's RCAS shader constants helper function.
+
+### Changed
+- Removed FSR_ENABLE_16BIT option from FSRCommon.hlsl. The 16-bit FSR implementation is now automatically enabled when supported by the target platform.
 
 ### Changed
 - Removed FSR_ENABLE_16BIT option from FSRCommon.hlsl. The 16-bit FSR implementation is now automatically enabled when supported by the target platform.
