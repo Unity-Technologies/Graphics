@@ -116,6 +116,12 @@ MonoBehaviour:
   reflectionProbeIntensityMultiplier:
     m_OverrideState: 1
     m_Value: 0.17
+  ambientProbeLightingMultiplier:
+    m_OverrideState: 1
+    m_Value: 10
+  skyReflectionMultiplier:
+    m_OverrideState: 1
+    m_Value: 3.57
 --- !u!114 &-3471740029480354604
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -427,7 +433,7 @@ MonoBehaviour:
     m_Value: 0
   skyAmbientMode:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   windOrientation:
     m_OverrideState: 1
     m_Value: 0
