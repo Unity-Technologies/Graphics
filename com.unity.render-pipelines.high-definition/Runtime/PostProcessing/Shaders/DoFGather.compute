@@ -43,12 +43,12 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     centerSample.CoC = GetCoCRadius(posInputs.positionSS);
 
     int tileClass = GetTileClass(posInputs.positionSS);
-    if (ResScale != 1.0 && tileClass != FAST_DEFOCUS_TILE)
-    {
-        // Early exit: these tiles will be computed at full res in the combine pass
-        _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = (CTYPE)centerSample.color;
-        return;
-    }
+    //if (ResScale != 1.0 && tileClass != FAST_DEFOCUS_TILE)
+    //{
+        //// Early exit: these tiles will be computed at full res in the combine pass
+        //_OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = (CTYPE)centerSample.color;
+        //return;
+    //}
 
     DoFTile tileData;
     LoadTileData(posInputs.positionSS, centerSample, NumRings, tileData);

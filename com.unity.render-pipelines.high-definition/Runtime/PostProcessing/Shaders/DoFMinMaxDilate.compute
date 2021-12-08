@@ -7,7 +7,7 @@
 #pragma kernel KMain
 
 TEXTURE2D_X(_InputTexture);
-RW_TEXTURE2D_X(float4, _OutputTexture);
+RW_TEXTURE2D_X(float, _OutputTexture);
 
 // min-max tile size
 #define TILE_RES  8u
@@ -31,19 +31,21 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    float4 tileInfo = _InputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+    //float4 tileInfo = _InputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+    float cocVal = _InputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)].x;
 
     int2 startIndex = max((int2)dispatchThreadId.xy - int2(1, 1), int2(0, 0));
-    int2 endIndex =  min((int2)dispatchThreadId.xy + int2(1, 1), _PostProcessScreenSize.xy / TILE_RES - int2(1, 1));
+    int2 endIndex =  min((int2)dispatchThreadId.xy + int2(1, 1), _PostProcessScreenSize.xy - int2(1, 1));
 
     for (int i = startIndex.x; i <= endIndex.x; i++)
     {
         for (int j = startIndex.y; j <= endIndex.y; j++)
         {
-            float4 tile = LOAD_TEXTURE2D_X(_InputTexture, int2(i, j));
-            DilateTile(tileInfo, tile);
+            float cocSample = LOAD_TEXTURE2D_X(_InputTexture, int2(i, j)).x;
+            if (cocSample < 0.0)
+                cocVal = min(cocVal, cocSample);
         }
     }
 
-    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = tileInfo;
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = cocVal;
 }

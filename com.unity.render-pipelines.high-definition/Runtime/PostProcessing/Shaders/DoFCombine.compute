@@ -60,15 +60,18 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 #ifdef ENABLE_ALPHA
         ComposeAlpha(output, centerSample.color.xyz, outAlpha);
 #endif
+        //output.xyz = float3(0,0,0);
     }
     else if (tileClass == FAST_DEFOCUS_TILE)
     {
         float2 uv = ClampAndScaleUVPostProcessTextureForPoint((posInputs.positionSS + 0.5) * _PostProcessScreenSize.zw);
         output = SAMPLE_TEXTURE2D_X_LOD(_InputNearTexture, s_linear_clamp_sampler, uv, 0.0).CTYPE_SWIZZLE;
+        //output.xyz = float3(0,0,0);
     }
     else
     {
         output = GetColorSample(posInputs.positionSS, 0);
+        //output.xyz = float3(0,0,0);
     }
 
     // Helper function to visualize tile types in case it is needed for debugging

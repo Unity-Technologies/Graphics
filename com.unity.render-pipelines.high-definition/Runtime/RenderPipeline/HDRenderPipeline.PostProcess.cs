@@ -2784,6 +2784,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldDilate)))
             {
+                //  Min Max CoC tile dilation
+                {
+                    int scaledWidth = (dofParameters.viewportSize.x  + 7) / 8;
+                    int scaledHeight = (dofParameters.viewportSize.y + 7) / 8;
+                    cs = dofParameters.pbDoFDilateCS;
+                    kernel = dofParameters.pbDoFDilateKernel;
+
+                    int iterations = (int)Mathf.Max(Mathf.Ceil(cocLimit.y / dofParameters.minMaxCoCTileSize), 1.0f);
+
+                    var cocDilatePing = fullresCoC;
+                    var cocDilatePong = minMaxCoCPong;
+                    for (int pass = 0; pass < 8 * iterations; ++pass)
+                    {
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, cocDilatePing, 0);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, cocDilatePong, 0);
+                        cmd.DispatchCompute(cs, kernel, scaledWidth, scaledHeight, dofParameters.camera.viewCount);
+                        CoreUtils.Swap(ref cocDilatePing, ref cocDilatePong);
+                    }
+
+                    fullresCoC = cocDilatePing;
+                }
+
                 int tileSize = dofParameters.minMaxCoCTileSize;
                 int tx = ((dofParameters.viewportSize.x / tileSize) + 7) / 8;
                 int ty = ((dofParameters.viewportSize.y / tileSize) + 7) / 8;
@@ -2798,20 +2820,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.DispatchCompute(cs, kernel, tx, ty, dofParameters.camera.viewCount);
                 }
 
-                //  Min Max CoC tile dilation
-                {
-                    cs = dofParameters.pbDoFDilateCS;
-                    kernel = dofParameters.pbDoFDilateKernel;
-
-                    int iterations = (int)Mathf.Max(Mathf.Ceil(cocLimit.y / dofParameters.minMaxCoCTileSize), 1.0f);
-                    for (int pass = 0; pass < iterations; ++pass)
-                    {
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, minMaxCoCPing, 0);
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, minMaxCoCPong, 0);
-                        cmd.DispatchCompute(cs, kernel, tx, ty, dofParameters.camera.viewCount);
-                        CoreUtils.Swap(ref minMaxCoCPing, ref minMaxCoCPong);
-                    }
-                }
             }
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldGatherNear)))
@@ -3073,8 +3081,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.pingNearRGB = builder.CreateTransientTexture(new TextureDesc(scaler, IsDynamicResUpscaleTargetEnabled(), true)
                         { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
 
-                        passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(scaler, IsDynamicResUpscaleTargetEnabled(), true)
-                        { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
+                        //passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(scaler, IsDynamicResUpscaleTargetEnabled(), true)
+                        //{ colorFormat = GraphicsFormat.R16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
+                        passData.pongNearRGB = builder.ReadWriteTexture(GetPostprocessOutputHandle(renderGraph, "Full res CoC2", k_CoCFormat, false));
 
                         builder.SetRenderFunc(
                             (DepthofFieldData data, RenderGraphContext ctx) =>

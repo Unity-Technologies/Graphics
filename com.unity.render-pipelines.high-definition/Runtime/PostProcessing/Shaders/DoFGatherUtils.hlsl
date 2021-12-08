@@ -21,7 +21,7 @@ TEXTURE2D_X(_TileList);
 #define PER_TILE_BG_FG_CLASSIFICATION
 #define PHYSICAL_WEIGHTS
 #define FORCE_POINT_SAMPLING
-//#define USE_BLUE_NOISE
+#define USE_BLUE_NOISE
 
 // ============== RNG Utils ==================== //
 
@@ -323,8 +323,8 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
                 }
 
             const float borderFudgingFactor = 9;
-            float layerBorder = min(0, tileData.layerBorder - borderFudgingFactor * r2);
-            AccumulateSampleData(sampleData, centerSample, sampleRadius, borderRadius, layerBorder, false, bgRingData, bgAccumData);
+            float layerBorder = 0;//min(0, tileData.layerBorder - borderFudgingFactor * r2);
+            AccumulateSampleData(sampleData, centerSample, sampleRadius, borderRadius, layerBorder, true, bgRingData, bgAccumData);
             AccumulateSampleData(sampleData, centerSample, sampleRadius, borderRadius, layerBorder, true, fgRingData, fgAccumData);
         }
 
@@ -344,9 +344,14 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
     float correctSamples = scaleFactor * (tileData.numSamples * tileData.numSamples);
 
     // Now blend the bg and fg layes
-    float fgAlpha = saturate(2 * fgAccumData.color.w * rcp(GetSampleWeight(normCoC)) * rcp(correctSamples));
+    float fgAlpha = saturate(1.0 * fgAccumData.color.w * rcp(GetSampleWeight(normCoC)) * rcp(correctSamples));
+    fgAlpha = pow(fgAlpha, 0.5);
     color = bgAccumData.color * (1.0 - fgAlpha) + fgAlpha * fgAccumData.color;
     alpha = bgAccumData.alpha * (1.0 - fgAlpha) + fgAlpha * fgAccumData.alpha;
+
+    //float layerBorder = min(0, tileData.layerBorder);
+    //float w = 1.0 - saturate(centerSample.CoC - layerBorder);
+    //color.xyz *= lerp(float3(1,0,0), float3(1,1,1), w);
 }
 
 int GetTileClass(float2 sampleTC)
