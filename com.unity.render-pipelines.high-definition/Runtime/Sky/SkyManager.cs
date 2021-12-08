@@ -195,6 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static readonly int s_AmbientProbeOutputBufferParam = Shader.PropertyToID("_AmbientProbeOutputBuffer");
         static readonly int s_VolumetricAmbientProbeOutputBufferParam = Shader.PropertyToID("_VolumetricAmbientProbeOutputBuffer");
         static readonly int s_DiffuseAmbientProbeOutputBufferParam = Shader.PropertyToID("_DiffuseAmbientProbeOutputBuffer");
+        static readonly int s_ScratchBufferParam = Shader.PropertyToID("_ScratchBuffer");
         static readonly int s_AmbientProbeInputCubemap = Shader.PropertyToID("_AmbientProbeInputCubemap");
         static readonly int s_FogParameters = Shader.PropertyToID("_FogParameters");
         int m_ComputeAmbientProbeKernel;
@@ -721,6 +722,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer ambientProbeResult;
             public ComputeBuffer diffuseAmbientProbeResult;
             public ComputeBuffer volumetricAmbientProbeResult;
+            public ComputeBufferHandle scratchBuffer;
             public Vector4 fogParameters;
             public Action<AsyncGPUReadbackRequest> callback;
         }
@@ -739,6 +741,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.ambientProbeResult = ambientProbeResult;
                 passData.diffuseAmbientProbeResult = diffuseAmbientProbeResult;
                 passData.volumetricAmbientProbeResult = volumetricAmbientProbeResult;
+                passData.scratchBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(27, sizeof(uint))); // L2 = 9 channel per component
                 passData.fogParameters = fog != null ? new Vector4(fog.globalLightProbeDimmer.value, fog.anisotropy.value, 0.0f, 0.0f) : Vector4.zero;
                 passData.callback = callback;
 
@@ -746,6 +749,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (UpdateAmbientProbePassData data, RenderGraphContext ctx) =>
                 {
                     ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_AmbientProbeOutputBufferParam, data.ambientProbeResult);
+                    ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_ScratchBufferParam, data.scratchBuffer);
                     ctx.cmd.SetComputeTextureParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_AmbientProbeInputCubemap, data.skyCubemap);
                     if (data.diffuseAmbientProbeResult != null)
                         ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_DiffuseAmbientProbeOutputBufferParam, data.diffuseAmbientProbeResult);
