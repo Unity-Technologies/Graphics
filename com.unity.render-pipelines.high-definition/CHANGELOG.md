@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed build warnings due to the exception in burst code (case 1382827).
 - Fixed SpeedTree graph compatibility by removing custom interpolators.
 - Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
+- Fixed FOV change when enabling physical camera.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
