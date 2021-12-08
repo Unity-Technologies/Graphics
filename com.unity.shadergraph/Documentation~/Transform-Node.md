@@ -199,4 +199,3 @@ float3 _Transform_Out = In;
 ```
 float3 _Transform_Out = TransformWorldToHClip(GetCameraRelativePositionWS(In));
 ```
-
