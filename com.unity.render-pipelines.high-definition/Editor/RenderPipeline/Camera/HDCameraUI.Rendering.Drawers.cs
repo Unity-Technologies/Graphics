@@ -98,9 +98,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.indentLevel--;
 #endif
 
-                    EditorGUI.indentLevel++;
-                    Drawer_Draw_FSR_Section(p, owner);
-                    EditorGUI.indentLevel--;
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        Drawer_Draw_FSR_Section(p, owner);
+                    }
                 }
             }
 
@@ -167,9 +168,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     bool overrideSharpness = p.fsrOverrideSharpness.boolValue;
                     if (overrideSharpness)
                     {
-                        EditorGUI.indentLevel++;
-                        EditorGUILayout.PropertyField(p.fsrSharpness, HDRenderPipelineUI.Styles.fsrSharpnessText);
-                        --EditorGUI.indentLevel;
+                        using (new EditorGUI.IndentLevelScope())
+                        {
+                            EditorGUILayout.PropertyField(p.fsrSharpness, HDRenderPipelineUI.Styles.fsrSharpnessText);
+                        }
                     }
                 }
             }

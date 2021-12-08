@@ -598,17 +598,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool isFsrEnabled = (currentUpscaleFilter == DynamicResUpscaleFilter.EdgeAdaptiveScalingUpres);
                 if (isFsrEnabled)
                 {
-                    ++EditorGUI.indentLevel;
-
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.fsrOverrideSharpness, Styles.fsrOverrideSharpness);
-
-                    // We put the FSR sharpness override value behind a top-level override checkbox so we can tell when the user intends to use a custom value rather than the default.
-                    if (serialized.renderPipelineSettings.dynamicResolutionSettings.fsrOverrideSharpness.boolValue)
+                    using (new EditorGUI.IndentLevelScope())
                     {
-                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.fsrSharpness, Styles.fsrSharpnessText);
-                    }
+                        EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.fsrOverrideSharpness, Styles.fsrOverrideSharpness);
 
-                    --EditorGUI.indentLevel;
+                        // We put the FSR sharpness override value behind a top-level override checkbox so we can tell when the user intends to use a custom value rather than the default.
+                        if (serialized.renderPipelineSettings.dynamicResolutionSettings.fsrOverrideSharpness.boolValue)
+                        {
+                            using (new EditorGUI.IndentLevelScope())
+                            {
+                                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.fsrSharpness, Styles.fsrSharpnessText);
+                            }
+                        }
+                    }
                 }
 
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.dynamicResolutionSettings.useMipBias, Styles.useMipBias);

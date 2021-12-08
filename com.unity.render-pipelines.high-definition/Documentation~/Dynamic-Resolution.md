@@ -103,7 +103,7 @@ HDRP provides the following upscale filter methods:
 | ------------------------------------ | ------------------------------------------------------------ |
 | Catmull-Rom                          | Catmull-Rom uses four bilinear samples. This uses the least resources, but it can cause blurry images after HDRP performs the upscaling step.<br/><br/> Catmull-Rom has no dependencies and runs at the end of the post-processing pipeline. |
 | Contrast Adaptive Sharpen (CAS)      | Contrast Adaptive Sharpen (CAS) uses **FidelityFX (CAS) AMD™**. This method produces a sharp image with an aggressive sharpening step. Do not use this option when the dynamic resolution screen percentage is less than 50%. For information about FidelityFX and Contrast Adaptive Sharpening, see[ AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).<br/><br/> Contrast Adaptive Sharpen (CAS) has no dependencies and runs at the end of the post-processing pipeline. |
-| FidelityFX Super Resolution 1.0      | FidelityFX Super Resolution 1.0 uses a spatial super-resolution method that balances quality and performance. For more information, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).<br/><br/> FidelityFX Super Resolution 1.0 has no dependencies and runs at the end of the post-processing pipeline.<br />FidelityFX Super Resolution 1.0 also runs when at 100% resolution as it can have beneficial sharpening effects. |
+| FidelityFX Super Resolution 1.0      | FidelityFX Super Resolution 1.0 uses a spatial super-resolution method that balances quality and performance. For more information, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).<br/><br/> FidelityFX Super Resolution 1.0 has no dependencies and runs at the end of the post-processing pipeline.<br />FidelityFX Super Resolution 1.0 also runs when at 100% resolution as it can have beneficial sharpening effects.  <br />For more information, see the section [Notes on FidelityFX Super Resolution 1.0](Dynamic-Resolution.md#notes-on-fidelityfx-super-resolution-1.0-(FSR))|
 | Temporal Anti-Aliasing (TAA) Upscale | Temporal Anti-Aliasing (TAA) Upscale uses temporal integration to produce a sharp image. Unity performs this method alongside the normal anti-aliasing.<br />HDRP executes this upscale filter before post processing and at the same time as the TAA step. This means you can only use the TAA anti-aliasing method. This filter is not compatible with other anti-aliasing methods. <br /><br/>Temporal Anti-Aliasing (TAA) Upscale performs antialiasing on each frame. This means that it also runs when you enable Dynamic Resolution, even when the screen percentage is at 100% resolution. <br />For more information, see the section [Notes on TAA Upscale](Dynamic-Resolution.md#Notes). |
 
 ## Overriding upscale options with code
@@ -126,3 +126,17 @@ Any option that can control TAA also controls TAA Upscaling. However, the source
 - Speed rejection can produce an image that appears to have a low resolution at lower screen percentages. This is because the speed rejection threshold can reduce the influence of the history buffer in favor of the current frame.
 
 - You can compensate for this low resolution source image by setting the [Camera's](HDRP-Camera.md) **TAA Sharpen Strength** setting to higher values.
+
+<a name="FSR_Notes"></a>
+
+## Notes on FidelityFX Super Resolution 1.0 (FSR)
+
+The intensity of the sharpening filter used by FSR can be controlled using the **FSR Sharpness** setting. This setting is available as a global pipeline asset override, but it can also be adjusted at a per-camera level if desired. A value of 1.0 yields maximum sharpness and a value of 0.0 disables the sharpening filter entirely.
+
+### Pipeline Asset Override
+![FSR Sharpness Asset](Images/DynamicRes_FSR_Sharpness_Asset.png)
+
+### Per-Camera Override
+![FSR Sharpness Camera](Images/DynamicRes_FSR_Sharpness_Camera.png)
+
+> This setting is **not visible** in the editor until the **Override FSR Sharpness** checkbox is checked. The checkbox itself is **also not visible** unless the default  default upscaling filter is set to FSR.
