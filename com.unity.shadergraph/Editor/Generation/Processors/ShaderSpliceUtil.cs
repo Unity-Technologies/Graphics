@@ -346,6 +346,8 @@ namespace UnityEditor.ShaderGraph
                             passedPermutations.Select(i => i.permutationIndex).ToList()
                         );
                         result.AppendLine(ifdefs);
+
+                        //Append the rest of the line
                         var content = predicate.s;
                         if (ContainsCommand(content, nonwhitespace, endLine))
                         {
