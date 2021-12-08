@@ -14,7 +14,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 {
     float2 unlitColorMapUv = TRANSFORM_TEX(input.texCoord0.xy, _UnlitColorMap);
     surfaceData.color = SAMPLE_TEXTURE2D(_UnlitColorMap, sampler_UnlitColorMap, unlitColorMapUv).rgb * _UnlitColor.rgb;
-    float alpha = SAMPLE_TEXTURE2D(_UnlitColorMap, sampler_UnlitColorMap, unlitColorMapUv).a * _UnlitColor.a;
+    float alpha = SAMPLE_TEXTURE2D(_UnlitColorMap, sampler_UnlitColorMap, unlitColorMapUv).a;
+    alpha = lerp(_AlphaRemapMin, _AlphaRemapMax, alpha);
+    alpha *= _UnlitColor.a;
 
     // The shader graph can require to export the geometry normal. We thus need to initialize this variable
     surfaceData.normalWS = 0.0;
@@ -30,7 +32,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Builtin Data
     ZERO_BUILTIN_INITIALIZE(builtinData); // No call to InitBuiltinData as we don't have any lighting
-    builtinData.opacity = lerp(_AlphaRemapMin, _AlphaRemapMax, alpha);
+    builtinData.opacity = alpha;
 
 #ifdef _ALPHATEST_ON
     // Used for sharpening by alpha to mask
