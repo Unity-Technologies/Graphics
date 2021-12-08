@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="rayValues">Specifes which ray count value should be returned.</param>
         /// <returns>The approximated ray count for a frame</returns>
-        public uint GetRaysPerFrame(RayCountValues rayValues) { return m_RayCountManager.GetRaysPerFrame(rayValues); }
+        public uint GetRaysPerFrame(RayCountValues rayValues) { return m_RayCountManager != null ? m_RayCountManager.GetRaysPerFrame(rayValues) : 0; }
 
         // Renderer Bake configuration can vary depends on if shadow mask is enabled or no
         PerObjectData m_CurrentRendererConfigurationBakedLighting = HDUtils.k_RendererConfigurationBakedLighting;
@@ -347,6 +347,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             VirtualTexturing.Streaming.SetGPUCacheSettings(gpuCacheSettings);
+
+            colorMaskTransparentVel = HDShaderIDs._ColorMaskTransparentVelTwo;
+            colorMaskAdditionalTarget = HDShaderIDs._ColorMaskTransparentVelOne;
+#else
+            colorMaskTransparentVel = HDShaderIDs._ColorMaskTransparentVelOne;
+            colorMaskAdditionalTarget = HDShaderIDs._ColorMaskTransparentVelTwo;
 #endif
 
             // Initial state of the RTHandle system.
@@ -423,8 +429,10 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeVolumetricLighting();
             InitializeVolumetricClouds();
             InitializeSubsurfaceScattering();
+            InitializeWaterSystem();
 
             m_DebugDisplaySettings.RegisterDebug();
+            m_DebugDisplaySettingsUI.RegisterDebug(HDDebugDisplaySettings.Instance);
 #if UNITY_EDITOR
             // We don't need the debug of Scene View at runtime (each camera have its own debug settings)
             // All scene view will share the same FrameSettings for now as sometimes Dispose is called after
@@ -559,8 +567,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 overridesMaximumLODLevel = true
                 ,
                 overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings
-                ,
-                overrideShadowmaskMessage = "\nThe Shadowmask Mode used at run time can be found in the Shadows section of Light component."
                 ,
                 overridesRealtimeReflectionProbes = true // Don't display the real time reflection probes checkbox UI in Quality Settings
                 ,
@@ -721,12 +727,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             ReleaseRayTracingManager();
+            m_DebugDisplaySettingsUI.UnregisterDebug();
             m_DebugDisplaySettings.UnregisterDebug();
 
             CleanupLightLoop();
 
             ReleaseVolumetricClouds();
             CleanupSubsurfaceScattering();
+            ReleaseWaterSystem();
 
             // For debugging
             MousePositionDebug.instance.Cleanup();
@@ -873,7 +881,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 UpdateShaderVariablesRaytracingCB(hdCamera, cmd);
 
                 // This one is not in a constant buffer because it's only used as a parameter for some shader's render states. It's not actually used inside shader code.
-                cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, (int)ColorWriteMask.All);
+                cmd.SetGlobalInt(colorMaskTransparentVel, (int)ColorWriteMask.All);
+                cmd.SetGlobalInt(colorMaskAdditionalTarget, (int)ColorWriteMask.All);
             }
         }
 
@@ -1110,6 +1119,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 #endif
 
+            // When HDR is active we render UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
+            // for performance reasons otherwise we render UI overlay after all camera
+            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputIsActive();
+
 #if UNITY_2021_1_OR_NEWER
             if (!m_ValidAPI || cameras.Count == 0)
 #else
@@ -1170,6 +1183,18 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_FrameCount = newCount;
                 HDCamera.CleanUnused();
+
+            }
+
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportWater)
+            {
+                // Update the water surfaces
+                var commandBuffer = CommandBufferPool.Get("");
+                UpdateWaterSurfaces(commandBuffer);
+                renderContext.ExecuteCommandBuffer(commandBuffer);
+                renderContext.Submit();
+                commandBuffer.Clear();
+                CommandBufferPool.Release(commandBuffer);
             }
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
@@ -2096,13 +2121,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Configure all the keywords
                 ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
 
-                // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
-                // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
-                if (!m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
-                    UpdateSkyEnvironment(hdCamera, renderContext, cmd);
-                else
-                    cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTextureArray);
-
                 VFXCameraXRSettings cameraXRSettings;
                 cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
                 cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
@@ -2589,11 +2607,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PreImageEffects);
                 renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PostImageEffects);
             }
-        }
-
-        void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            m_SkyManager.UpdateEnvironment(hdCamera, renderContext, GetMainLight(), cmd);
         }
 
         /// <summary>

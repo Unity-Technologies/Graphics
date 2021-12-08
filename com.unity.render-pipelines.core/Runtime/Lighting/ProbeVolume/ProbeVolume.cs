@@ -1,7 +1,3 @@
-using System;
-using UnityEngine.Serialization;
-using UnityEditor.Experimental;
-using Unity.Collections;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
@@ -19,18 +15,42 @@ namespace UnityEngine.Experimental.Rendering
     [AddComponentMenu("Light/Probe Volume (Experimental)")]
     public class ProbeVolume : MonoBehaviour
     {
+        /// <summary>
+        /// If is a global bolume
+        /// </summary>
         public bool globalVolume = false;
+
+        /// <summary>
+        /// The size
+        /// </summary>
         public Vector3 size = new Vector3(10, 10, 10);
+
+        /// <summary>
+        /// Geometry distance offset
+        /// </summary>
         [HideInInspector, Range(0f, 2f)]
         public float geometryDistanceOffset = 0.2f;
 
+        /// <summary>
+        /// The <see cref="LayerMask"/>
+        /// </summary>
         public LayerMask objectLayerMask = -1;
 
-
+        /// <summary>
+        /// The lowest subdivision level override
+        /// </summary>
         [HideInInspector]
         public int lowestSubdivLevelOverride = 0;
+
+        /// <summary>
+        /// The highest subdivision level override
+        /// </summary>
         [HideInInspector]
         public int highestSubdivLevelOverride = -1;
+
+        /// <summary>
+        /// If the subdivision levels need to be overriden
+        /// </summary>
         [HideInInspector]
         public bool overridesSubdivLevels = false;
 
@@ -39,6 +59,7 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField] internal Matrix4x4 cachedTransform;
         [SerializeField] internal int cachedHashCode;
 
+#if UNITY_EDITOR
         /// <summary>
         /// Returns the extents of the volume.
         /// </summary>
@@ -48,7 +69,6 @@ namespace UnityEngine.Experimental.Rendering
             return size;
         }
 
-#if UNITY_EDITOR
         internal void UpdateGlobalVolume(Scene scene)
         {
             if (gameObject.scene != scene) return;
@@ -126,8 +146,6 @@ namespace UnityEngine.Experimental.Rendering
             return hash;
         }
 
-#endif
-
         internal float GetMinSubdivMultiplier()
         {
             float maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
@@ -145,6 +163,8 @@ namespace UnityEngine.Experimental.Rendering
         // other non-hidden component related to APV.
         #region APVGizmo
 
+        static List<ProbeVolume> sProbeVolumeInstances = new();
+
         MeshGizmo brickGizmos;
         MeshGizmo cellGizmo;
 
@@ -156,23 +176,19 @@ namespace UnityEngine.Experimental.Rendering
             cellGizmo = null;
         }
 
-        void OnDestroy()
+        void OnEnable()
         {
-            DisposeGizmos();
+            sProbeVolumeInstances.Add(this);
         }
 
         void OnDisable()
         {
+            sProbeVolumeInstances.Remove(this);
             DisposeGizmos();
         }
-#if UNITY_EDITOR
 
         // Only the first PV of the available ones will draw gizmos.
-        bool IsResponsibleToDrawGizmo()
-        {
-            var pvList = GameObject.FindObjectsOfType<ProbeVolume>();
-            return this == pvList[0];
-        }
+        bool IsResponsibleToDrawGizmo() => sProbeVolumeInstances.Count > 0 && sProbeVolumeInstances[0] == this;
 
         internal bool ShouldCullCell(Vector3 cellPosition, Vector3 originWS = default(Vector3))
         {
@@ -218,7 +234,6 @@ namespace UnityEngine.Experimental.Rendering
                     return;
                 cellSizeInMeters = profile.cellSizeInMeters;
             }
-
 
             if (debugDisplay.drawBricks)
             {
@@ -327,8 +342,8 @@ namespace UnityEngine.Experimental.Rendering
                 cellGizmo.RenderWireframe(Gizmos.matrix, gizmoName: "Brick Gizmo Rendering");
             }
         }
-
-#endif
         #endregion
+
+#endif // UNITY_EDITOR
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline

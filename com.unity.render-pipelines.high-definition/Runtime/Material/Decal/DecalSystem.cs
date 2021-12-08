@@ -492,7 +492,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CachedFadeFactor[index] = data.fadeFactor;
                 m_CachedDecalLayerMask[index] = data.decalLayerMask;
 
+                UpdateCachedDrawOrder();
+
                 UpdateJobArrays(index, decalProjector);
+            }
+
+            public void UpdateCachedDrawOrder()
+            {
+                if (this.m_Material.HasProperty(HDShaderIDs._DrawOrder))
+                {
+                    m_CachedDrawOrder = this.m_Material.GetInt(HDShaderIDs._DrawOrder);
+                }
+                else
+                {
+                    m_CachedDrawOrder = 0;
+                }
             }
 
             // Update memory allocation and assign decal handle, then update cached data
@@ -821,20 +835,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            public int DrawOrder
-            {
-                get
-                {
-                    if (this.m_Material.HasProperty(HDShaderIDs._DrawOrder))
-                    {
-                        return this.m_Material.GetInt(HDShaderIDs._DrawOrder);
-                    }
-                    else
-                    {
-                        return 0;
-                    }
-                }
-            }
+            public int DrawOrder => m_CachedDrawOrder;
 
             private List<Matrix4x4[]> m_DecalToWorld = new List<Matrix4x4[]>();
             private List<Matrix4x4[]> m_NormalToWorld = new List<Matrix4x4[]>();
@@ -845,6 +846,7 @@ namespace UnityEngine.Rendering.HighDefinition
             private int m_NumResults = 0;
             private int m_InstanceCount = 0;
             private int m_DecalsCount = 0;
+            private int m_CachedDrawOrder = 0;
             private Vector2[] m_CachedDrawDistances = new Vector2[kDecalBlockSize]; // x - draw distance, y - fade scale
             private Vector2[] m_CachedAngleFade = new Vector2[kDecalBlockSize]; // x - scale fade, y - bias fade
             private Vector4[] m_CachedUVScaleBias = new Vector4[kDecalBlockSize]; // xy - scale, zw bias
@@ -1100,10 +1102,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DecalSetsRenderList.Clear();
             foreach (var pair in m_DecalSets)
             {
+                pair.Value.UpdateCachedDrawOrder();
+
                 if (pair.Value.IsDrawn())
                 {
                     int insertIndex = 0;
-                    while ((insertIndex < m_DecalSetsRenderList.Count) && (pair.Value.DrawOrder >= m_DecalSetsRenderList[insertIndex].DrawOrder))
+                    while ((insertIndex < m_DecalSetsRenderList.Count) && (pair.Value.DrawOrder > m_DecalSetsRenderList[insertIndex].DrawOrder))
                     {
                         insertIndex++;
                     }

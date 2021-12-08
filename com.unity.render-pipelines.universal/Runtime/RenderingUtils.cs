@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Experimental.Rendering;
@@ -206,8 +207,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         internal static void Blit(CommandBuffer cmd,
-            RenderTargetIdentifier source,
-            RenderTargetIdentifier destination,
+            RTHandle source,
+            RTHandle destination,
             Material material,
             int passIndex = 0,
             bool useDrawProcedural = false,
@@ -223,14 +224,13 @@ namespace UnityEngine.Rendering.Universal
                 Vector4 scaleBiasRt = new Vector4(1, 1, 0, 0);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
-                cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
-                    colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
+                CoreUtils.SetRenderTarget(cmd, destination, colorLoadAction, colorStoreAction, ClearFlag.None, Color.clear);
                 cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
             }
             else
             {
-                cmd.SetRenderTarget(destination, colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
-                cmd.Blit(source, BuiltinRenderTextureType.CurrentActive, material, passIndex);
+                CoreUtils.SetRenderTarget(cmd, destination, colorLoadAction, colorStoreAction, ClearFlag.None, Color.clear);
+                cmd.Blit(source.nameID, BuiltinRenderTextureType.CurrentActive, material, passIndex);
             }
         }
 
@@ -335,6 +335,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="colorBuffers"></param>
         /// <returns></returns>
+        [Obsolete("Use RTHandles for colorBuffers")]
         internal static uint GetValidColorBufferCount(RenderTargetIdentifier[] colorBuffers)
         {
             uint nonNullColorBuffers = 0;
@@ -350,11 +351,41 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Return the number of items in colorBuffers actually referring to an existing RenderTarget
+        /// </summary>
+        /// <param name="colorBuffers"></param>
+        /// <returns></returns>
+        internal static uint GetValidColorBufferCount(RTHandle[] colorBuffers)
+        {
+            uint nonNullColorBuffers = 0;
+            if (colorBuffers != null)
+            {
+                foreach (var identifier in colorBuffers)
+                {
+                    if (identifier != null && identifier.nameID != 0)
+                        ++nonNullColorBuffers;
+                }
+            }
+            return nonNullColorBuffers;
+        }
+
+        /// <summary>
         /// Return true if colorBuffers is an actual MRT setup
         /// </summary>
         /// <param name="colorBuffers"></param>
         /// <returns></returns>
+        [Obsolete("Use RTHandles for colorBuffers")]
         internal static bool IsMRT(RenderTargetIdentifier[] colorBuffers)
+        {
+            return GetValidColorBufferCount(colorBuffers) > 1;
+        }
+
+        /// <summary>
+        /// Return true if colorBuffers is an actual MRT setup
+        /// </summary>
+        /// <param name="colorBuffers"></param>
+        /// <returns></returns>
+        internal static bool IsMRT(RTHandle[] colorBuffers)
         {
             return GetValidColorBufferCount(colorBuffers) > 1;
         }
@@ -460,6 +491,154 @@ namespace UnityEngine.Rendering.Universal
 
             // Should we also check if the format has stencil and check stencil resolve capability only in that case?
             return SystemInfo.supportsMultisampleResolveDepth && SystemInfo.supportsMultisampleResolveStencil;
+        }
+
+        /// <summary>
+        /// Return true if handle does not match descriptor
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null)</param>
+        /// <param name="descriptor">Descriptor for the RTHandle to match</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <param name="scaled">Check if the RTHandle has auto scaling enabled if not, check the widths and heights</param>
+        /// <returns></returns>
+        internal static bool RTHandleNeedsReAlloc(
+            RTHandle handle,
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode,
+            TextureWrapMode wrapMode,
+            bool isShadowMap,
+            int anisoLevel,
+            float mipMapBias,
+            string name,
+            bool scaled)
+        {
+            if (handle == null || handle.rt == null)
+                return true;
+            if (handle.useScaling != scaled)
+                return true;
+            if (!scaled && (handle.rt.width != descriptor.width || handle.rt.height != descriptor.height))
+                return true;
+            return
+                handle.rt.descriptor.depthBufferBits != descriptor.depthBufferBits ||
+                (handle.rt.descriptor.depthBufferBits == (int)DepthBits.None && !isShadowMap && handle.rt.descriptor.graphicsFormat != descriptor.graphicsFormat) ||
+                handle.rt.descriptor.dimension != descriptor.dimension ||
+                handle.rt.descriptor.enableRandomWrite != descriptor.enableRandomWrite ||
+                handle.rt.descriptor.useMipMap != descriptor.useMipMap ||
+                handle.rt.descriptor.autoGenerateMips != descriptor.autoGenerateMips ||
+                handle.rt.descriptor.msaaSamples != descriptor.msaaSamples ||
+                handle.rt.descriptor.bindMS != descriptor.bindMS ||
+                handle.rt.descriptor.useDynamicScale != descriptor.useDynamicScale ||
+                handle.rt.descriptor.memoryless != descriptor.memoryless ||
+                handle.rt.filterMode != filterMode ||
+                handle.rt.wrapMode != wrapMode ||
+                handle.rt.anisoLevel != anisoLevel ||
+                handle.rt.mipMapBias != mipMapBias ||
+                handle.name != name;
+        }
+
+        /// <summary>
+        /// Re-allocate fixed-size RTHandle if it is not allocated or doesn't match the descriptor
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null)</param>
+        /// <param name="descriptor">Descriptor for the RTHandle to match</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns></returns>
+        public static bool ReAllocateIfNeeded(
+            ref RTHandle handle,
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            bool isShadowMap = false,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = "")
+        {
+            if (RTHandleNeedsReAlloc(handle, descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name, false))
+            {
+                handle?.Release();
+                handle = RTHandles.Alloc(descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Re-allocate dynamically resized RTHandle if it is not allocated or doesn't match the descriptor
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null)</param>
+        /// <param name="scaleFactor">Constant scale for the RTHandle size computation.</param>
+        /// <param name="descriptor">Descriptor for the RTHandle to match</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns>If the RTHandle should be re-allocated</returns>
+        public static bool ReAllocateIfNeeded(
+            ref RTHandle handle,
+            Vector2 scaleFactor,
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            bool isShadowMap = false,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = "")
+        {
+            var usingConstantScale = handle != null && handle.useScaling && handle.scaleFactor == scaleFactor;
+            if (!usingConstantScale || RTHandleNeedsReAlloc(handle, descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name, true))
+            {
+                handle?.Release();
+                handle = RTHandles.Alloc(scaleFactor, descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Re-allocate dynamically resized RTHandle if it is not allocated or doesn't match the descriptor
+        /// </summary>
+        /// <param name="handle">RTHandle to check (can be null)</param>
+        /// <param name="scaleFunc">Function used for the RTHandle size computation.</param>
+        /// <param name="descriptor">Descriptor for the RTHandle to match</param>
+        /// <param name="filterMode">Filtering mode of the RTHandle.</param>
+        /// <param name="wrapMode">Addressing mode of the RTHandle.</param>
+        /// <param name="isShadowMap">Set to true if the depth buffer should be used as a shadow map.</param>
+        /// <param name="anisoLevel">Anisotropic filtering level.</param>
+        /// <param name="mipMapBias">Bias applied to mipmaps during filtering.</param>
+        /// <param name="name">Name of the RTHandle.</param>
+        /// <returns>If an allocation was done</returns>
+        public static bool ReAllocateIfNeeded(
+            ref RTHandle handle,
+            ScaleFunc scaleFunc,
+            in RenderTextureDescriptor descriptor,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            bool isShadowMap = false,
+            int anisoLevel = 1,
+            float mipMapBias = 0,
+            string name = "")
+        {
+            var usingScaleFunction = handle != null && handle.useScaling && handle.scaleFactor == Vector2.zero;
+            if (!usingScaleFunction || RTHandleNeedsReAlloc(handle, descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name, true))
+            {
+                handle?.Release();
+                handle = RTHandles.Alloc(scaleFunc, descriptor, filterMode, wrapMode, isShadowMap, anisoLevel, mipMapBias, name);
+                return true;
+            }
+
+            return false;
         }
     }
 }

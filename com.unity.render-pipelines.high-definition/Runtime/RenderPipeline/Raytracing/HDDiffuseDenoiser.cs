@@ -9,21 +9,21 @@ namespace UnityEngine.Rendering.HighDefinition
         // Resources used for the de-noiser
         ComputeShader m_DiffuseDenoiser;
 
-        HDRenderPipeline m_RenderPipeline;
+        // Runtime Initialization data
+        bool m_DenoiserInitialized;
+        Texture2D m_OwnenScrambledTexture;
+        ComputeBuffer m_PointDistribution;
 
         // Kernels that may be required
         int m_BilateralFilterSingleKernel;
         int m_BilateralFilterColorKernel;
         int m_GatherSingleKernel;
         int m_GatherColorKernel;
-        ComputeBuffer m_PointDistribution;
 
         public void Init(HDRenderPipelineRuntimeResources rpResources, HDRenderPipeline renderPipeline)
         {
             // Keep track of the resources
             m_DiffuseDenoiser = rpResources.shaders.diffuseDenoiserCS;
-
-            m_RenderPipeline = renderPipeline;
 
             // Grab all the kernels we'll eventually need
             m_BilateralFilterSingleKernel = m_DiffuseDenoiser.FindKernel("BilateralFilterSingle");
@@ -31,12 +31,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GatherSingleKernel = m_DiffuseDenoiser.FindKernel("GatherSingle");
             m_GatherColorKernel = m_DiffuseDenoiser.FindKernel("GatherColor");
 
-            // Generate the point distribution
-            int m_GeneratePointDistributionKernel = m_DiffuseDenoiser.FindKernel("GeneratePointDistribution");
+            // Data required for the online initialization
+            m_DenoiserInitialized = false;
+            m_OwnenScrambledTexture = rpResources.textures.owenScrambledRGBATex;
             m_PointDistribution = new ComputeBuffer(16 * 2 * 4, sizeof(float));
-            m_DiffuseDenoiser.SetTexture(m_GeneratePointDistributionKernel, HDShaderIDs._OwenScrambledRGTexture, rpResources.textures.owenScrambledRGBATex);
-            m_DiffuseDenoiser.SetBuffer(m_GeneratePointDistributionKernel, "_PointDistributionRW", m_PointDistribution);
-            m_DiffuseDenoiser.Dispatch(m_GeneratePointDistributionKernel, 1, 1, 1);
         }
 
         public void Release()
@@ -52,6 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int viewCount;
 
             // Denoising parameters
+            public bool needInit;
             public float pixelSpreadTangent;
             public float kernelSize;
             public bool halfResolutionFilter;
@@ -67,6 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle pointDistribution;
             public ComputeShader diffuseDenoiserCS;
 
+            public Texture2D owenScrambledTexture;
             public TextureHandle depthStencilBuffer;
             public TextureHandle normalBuffer;
             public TextureHandle noisyBuffer;
@@ -91,7 +91,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Cannot run in async
                 builder.EnableAsyncCompute(false);
 
-                // Fetch all the resources
+                // Initialization data
+                passData.needInit = !m_DenoiserInitialized;
+                m_DenoiserInitialized = true;
+                passData.owenScrambledTexture = m_OwnenScrambledTexture;
+
                 // Camera parameters
                 if (denoiserParams.fullResolutionInput)
                 {
@@ -110,7 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.kernelSize = denoiserParams.kernelSize;
                 passData.halfResolutionFilter = denoiserParams.halfResolutionFilter;
                 passData.jitterFilter = denoiserParams.jitterFilter;
-                passData.frameIndex = m_RenderPipeline.RayTracingFrameIndex(hdCamera);
+                passData.frameIndex = HDRenderPipeline.RayTracingFrameIndex(hdCamera);
                 passData.fullResolutionInput = denoiserParams.fullResolutionInput;
 
                 // Kernels
@@ -130,6 +134,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (DiffuseDenoiserPassData data, RenderGraphContext ctx) =>
                     {
+                        // Generate the point distribution if needed (this is only ran once)
+                        if (passData.needInit)
+                        {
+                            int m_GeneratePointDistributionKernel = data.diffuseDenoiserCS.FindKernel("GeneratePointDistribution");
+                            ctx.cmd.SetComputeTextureParam(data.diffuseDenoiserCS, m_GeneratePointDistributionKernel, HDShaderIDs._OwenScrambledRGTexture, data.owenScrambledTexture);
+                            ctx.cmd.SetComputeBufferParam(data.diffuseDenoiserCS, m_GeneratePointDistributionKernel, "_PointDistributionRW", data.pointDistribution);
+                            ctx.cmd.DispatchCompute(data.diffuseDenoiserCS, m_GeneratePointDistributionKernel, 1, 1, 1);
+                        }
+
                         // Evaluate the dispatch parameters
                         int areaTileSize = 8;
                         int numTilesX = (data.texWidth + (areaTileSize - 1)) / areaTileSize;

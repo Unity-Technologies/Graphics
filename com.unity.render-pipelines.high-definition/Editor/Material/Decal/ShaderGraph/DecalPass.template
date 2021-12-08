@@ -56,8 +56,6 @@ Pass
 
     $splice(GraphDefines)
 
-    $splice(HybridV1InjectedBuiltinProperties)
-
     // -- Properties used by ScenePickingPass
     #ifdef SCENEPICKINGPASS
     float4 _SelectionID;

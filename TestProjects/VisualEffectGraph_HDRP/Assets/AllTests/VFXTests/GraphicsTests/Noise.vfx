@@ -81,12 +81,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -357,7 +360,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &114512514798047786
 MonoBehaviour:
@@ -1502,12 +1505,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -1809,12 +1815,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -2116,12 +2125,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -2424,12 +2436,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -2732,12 +2747,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -3040,12 +3058,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -3320,12 +3341,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -3627,12 +3651,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -3934,12 +3961,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -4241,12 +4271,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -4548,12 +4581,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -5242,7 +5278,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615090
 MonoBehaviour:
@@ -5336,12 +5372,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -6860,12 +6899,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -7167,12 +7209,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -7474,12 +7519,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -7781,12 +7829,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -8088,12 +8139,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 1
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -8941,7 +8995,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615436
 MonoBehaviour:
@@ -9025,12 +9079,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -9858,7 +9915,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615510
 MonoBehaviour:
@@ -10238,12 +10295,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -11338,7 +11398,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615623
 MonoBehaviour:
@@ -11903,12 +11963,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -12431,7 +12494,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615680
 MonoBehaviour:
@@ -12933,12 +12996,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -13904,7 +13970,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615793
 MonoBehaviour:
@@ -14532,12 +14598,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []
@@ -15060,7 +15129,7 @@ MonoBehaviour:
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
-  boundsSettingMode: 1
+  boundsMode: 1
   m_Space: 0
 --- !u!114 &8926484042661615843
 MonoBehaviour:
@@ -15625,12 +15694,15 @@ MonoBehaviour:
   useSoftParticle: 0
   vfxSystemSortPriority: 0
   sort: 0
+  sortMode: 0
+  revertSorting: 0
   indirectDraw: 0
   computeCulling: 0
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
   flipbookLayout: 0
+  needsOwnSort: 0
   shaderGraph: {fileID: 0}
   materialSettings:
     m_PropertyNames: []

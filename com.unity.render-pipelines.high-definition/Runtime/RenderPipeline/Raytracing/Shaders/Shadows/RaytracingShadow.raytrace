@@ -537,20 +537,22 @@ void RayGenShadowSegmentSingle()
     // Read the ray distance
     float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
 
-    // If the distance is negative, it means the rays is a visible intersection.
-    if (rayDistance < 0.0)
+    // Fetch the ray direction
+    float4 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord);
+
+    // Read the previous integration value
+    float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
+
+    // If we are inside the light (spot or point), we consider that we have no occlusion and end the execution.
+    if (rayDistance < 0.0 || rayDirection.w == -2.0)
     {
         // Read the previous value and add one
-        float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
         _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + 1.0 / (float)_RaytracingNumSamples;
         _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = 1.0;
         return;
     }
 
-    // Fetch the ray direction
-    float4 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord);
-
-    // If the PDF is negative, means the ray means a hit (no need to shoot it)
+    // If this point doesn't see the light, we set it to black
     if (rayDirection.w < 0.0) return;
 
     // Make sure it is taken into account in the ray counters
@@ -595,7 +597,6 @@ void RayGenShadowSegmentSingle()
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
 
     // Add the contribution of this sample
-    float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
     float previousVelocityValue = _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)].x;
     float previousDistanceValue = _RaytracingDistanceBufferRW[COORD_TEXTURE2D_X(currentPixelCoord)].x;
     
@@ -626,20 +627,23 @@ void RayGenSemiTransparentShadowSegmentSingle()
     // Read the ray distance
     float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
 
-    // If the distance is negative, it means the rays is a visible intersection.
-    if (rayDistance < 0.0)
-    {
-        // Read the previous value and add one
-        float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
-        _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + 1.0 / (float)_RaytracingNumSamples;
-        return;
-    }
-
     // Fetch the ray direction
     float4 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord);
 
-    // If the PDF is negative, means the ray means a hit (no need to shoot it)
-    if (rayDirection.w < 0.0) return;
+    // Read the previous integration value
+    float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
+
+    // If we are inside the light (spot or point), we consider that we have no occlusion and end the execution.
+    if (rayDistance < 0.0 || rayDirection.w == -2.0)
+    {
+        // Read the previous value and add one
+        _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + 1.0 / (float)_RaytracingNumSamples;
+        _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = 1.0;
+        return;
+    }
+
+    // If this point doesn't see the light, we set it to black
+    if (rayDirection.w <= 0.0) return;
 
     // Make sure it is taken into account in the ray counters
     if (_RayCountEnabled > 0)
@@ -698,7 +702,6 @@ void RayGenSemiTransparentShadowSegmentSingle()
     }
 
     // Add the contribution of this sample
-    float previousValue = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)];
     float previousVelocityValue = _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)].x;
     float previousDistanceValue = _RaytracingDistanceBufferRW[COORD_TEXTURE2D_X(currentPixelCoord)].x;
     _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = previousValue + Luminance(rayIntersection.color) / (float)_RaytracingNumSamples;
