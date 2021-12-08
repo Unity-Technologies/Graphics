@@ -18,6 +18,8 @@
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXCommon.hlsl"
             #include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl"
+            #define SHADER_STAGE_RAY_TRACING
+            ${VFXGeneratedBlockFunction}
 
             struct AABB
             {
@@ -33,7 +35,9 @@
                 uint index = PrimitiveIndex();
                 VFXAttributes attributes = (VFXAttributes)0;
                 ${VFXLoadAttributes}
-                rayIntersection.color = attributes.color * 1000; //needs big multiplicator to be visible, why?
+                //rayIntersection.color = attributes.color * 1000; //needs big multiplicator to be visible, why?
+                rayIntersection.color = float3(attributeData.barycentrics * 100, 0.0f); //needs big multiplicator to be visible, why?
+
             }
 
             bool RayBoxIntersectionTest(in float3 rayWorldOrigin, in float3 rayWorldDirection, in float3 boxPosWorld, in float3 boxHalfSize, out float outHitT)
@@ -62,20 +66,82 @@
                 return true;
             }
 
+
+             bool RayPlaneIntersection(in float3 rayObjectOrigin, in float3 rayObjectDirection, in float3 planeNormal, in float3 planeOrigin, out float outHitT, out float3 hitPoint)
+            {
+               outHitT = dot((planeOrigin - rayObjectOrigin), planeNormal)/dot(rayObjectDirection, planeNormal);
+               if(outHitT < 0.0f)
+               {
+                    hitPoint = float3(0,0,0);
+                    return false;
+               }
+               else
+               {
+                    hitPoint = rayObjectOrigin + outHitT * rayObjectDirection;
+               }
+               return true;
+            }
+            bool RayQuadIntersection(in float3 rayObjectOrigin, in float3 rayObjectDirection, in float4x4 elementToVFX, in float4x4 vfxToElement, in float3 size3, out float outHitT, out float2 uv)
+            {
+                float3 hitPoint = float3(0,0,0);
+                float3 planeNormal = -elementToVFX._m02_m12_m22;
+                float3 planeOrigin = elementToVFX._m03_m13_m23;
+                if(RayPlaneIntersection(rayObjectOrigin, rayObjectDirection, planeNormal, planeOrigin, outHitT, hitPoint))
+                {
+                    //float3 hitPointTrans = (hitPoint - planeOrigin);
+                    uv = mul(vfxToElement, float4(hitPoint,1.0f)).xy + 0.5f;
+                    if(any(uv < 0.0f) || any(uv > 1.0f) )
+                        return false;
+                    return true;
+                }
+                return false;
+            }
+
+
+
+
             [shader("intersection")]
             void IntersectionShader()
             {
-                AABB particleAABB = aabbBuffer[PrimitiveIndex()];
+                uint index = PrimitiveIndex();
+
+                AABB particleAABB = aabbBuffer[index];
                 float3 boxMin = TransformObjectToWorld(particleAABB.boxMin);
                 float3 boxMax = TransformObjectToWorld(particleAABB.boxMax); //Works for non rotated effects
                 float3 aabbPos = (boxMin + boxMax) * 0.5f;
                 float3 aabbSize = boxMax - boxMin;
                 float outHitT = 0;
+                float2 uv = float2(0,0);
 
-                if (RayBoxIntersectionTest(WorldRayOrigin(), WorldRayDirection(), aabbPos, aabbSize * 0.5, outHitT))
+		        VFXAttributes attributes = (VFXAttributes)0;
+	            ${VFXLoadAttributes}
+	            ${VFXProcessBlocks}
+	            ${VFXLoadSize}
+
+
+                const float4x4 elementToVFX = GetElementToVFXMatrix(
+		            attributes.axisX,
+		            attributes.axisY,
+		            attributes.axisZ,
+		            float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+		            float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+		            size3,
+		            attributes.position);
+
+                const float4x4 vfxToElement = GetVFXToElementMatrix(
+		            attributes.axisX,
+		            attributes.axisY,
+		            attributes.axisZ,
+		            float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+		            float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+		            size3,
+		            attributes.position);
+
+                //if (RayBoxIntersectionTest(WorldRayOrigin(), WorldRayDirection(), aabbPos, aabbSize * 0.5, outHitT))
+                if (RayQuadIntersection(ObjectRayOrigin(), ObjectRayDirection(), elementToVFX, vfxToElement, size3, outHitT, uv))
                 {
                     AttributeData attributeData;
-                    attributeData.barycentrics = float2(0.5, 0.5);
+                    attributeData.barycentrics = uv;
                     ReportHit(outHitT, 0, attributeData);
                 }
             }

@@ -108,6 +108,15 @@ float3x3 GetVFXToViewRotMatrix() { return mul(VFXGetWorldToViewRotMatrix(), (flo
 float3 GetViewVFXPosition() { return mul(VFXGetWorldToObjectMatrix(), float4(VFXGetViewWorldPosition(), 1.0f)).xyz; }
 #endif
 
+float3 GetViewOrRayDirection()
+{
+#if defined(SHADER_STAGE_RAY_TRACING)
+    return ObjectRayDirection();
+#else
+    return GetVFXToViewRotMatrix()[2];
+#endif
+}
+
 #define VFX_SAMPLER(name) GetVFXSampler(name,sampler##name)
 
 float4 SampleTexture(VFXSampler2D s, float2 coords)

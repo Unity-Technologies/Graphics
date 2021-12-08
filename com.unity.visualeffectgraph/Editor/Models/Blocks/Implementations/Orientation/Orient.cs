@@ -28,6 +28,7 @@ namespace UnityEditor.VFX.Block
             AlongVelocity, // non strips only
             CustomZ, // strips only
             CustomY, // strips only
+            FaceCameraPlaneOrRay, //Can be merged with FaceCameraPlane maybe? In case the user specifically wanted camera and not ray.
         }
 
         public enum AxesPair
@@ -61,6 +62,7 @@ namespace UnityEditor.VFX.Block
                 if (hasStrips)
                 {
                     yield return (int)Mode.FaceCameraPlane;
+                    yield return (int)Mode.FaceCameraPlaneOrRay;
                     yield return (int)Mode.FixedAxis;
                     yield return (int)Mode.AlongVelocity;
                 }
@@ -87,7 +89,7 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Write);
                 yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Write);
                 yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Write);
-                if (mode != Mode.Advanced && mode != Mode.FaceCameraPlane)
+                if (mode != Mode.Advanced && (mode != Mode.FaceCameraPlane && mode != Mode.FaceCameraPlaneOrRay))
                     yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                 if (mode == Mode.AlongVelocity)
                     yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.Read);
@@ -152,15 +154,25 @@ namespace UnityEditor.VFX.Block
             {
                 switch (mode)
                 {
+                    case Mode.FaceCameraPlaneOrRay:
                     case Mode.FaceCameraPlane:
                         if (canTestStrips && hasStrips)
                             throw new NotImplementedException("This orient mode (FaceCameraPlane) is not available for strips");
+                        string sourceCode = @"
+float3x3 viewRot = GetVFXToViewRotMatrix();";
 
-                        return @"
-float3x3 viewRot = GetVFXToViewRotMatrix();
+                        if (mode == Mode.FaceCameraPlane)
+                            sourceCode += @"
 axisX = viewRot[0].xyz;
 axisY = viewRot[1].xyz;
-axisZ = -viewRot[2].xyz;
+axisZ =  -viewRot[2].xyz;";
+                        else
+                            sourceCode += @"
+
+axisZ = GetViewOrRayDirection();
+axisX = VFXSafeNormalizedCross(viewRot[1].xyz, axisZ, float3(1,0,0));
+axisY = cross(axisZ,axisX) ;";
+                        return sourceCode + @"
 #if VFX_LOCAL_SPACE // Need to remove potential scale in local transform
 axisX = normalize(axisX);
 axisY = normalize(axisY);
@@ -333,6 +345,7 @@ axisY = cross(axisZ, axisX);
             if (hasStrips)
                 hasInvalidMode =
                     mode == Mode.FaceCameraPlane ||
+                    mode == Mode.FaceCameraPlaneOrRay ||
                     mode == Mode.FixedAxis ||
                     mode == Mode.AlongVelocity;
             else
