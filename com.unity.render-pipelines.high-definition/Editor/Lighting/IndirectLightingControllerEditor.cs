@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_ReflectionLightingLayers, EditorGUIUtility.TrTextContent("Reflection Lighting Layers", "Sets the light layer mask for reflected specular lighting. Only matching RenderingLayers on Mesh will get affected by the multiplier."));
             }
             PropertyField(m_ReflectionProbeIntensityMultiplier, EditorGUIUtility.TrTextContent("Reflection/Planar Probe Intensity Multiplier", "Sets the intensity multiplier for Reflection/Planar Probes."));
-            PropertyField(m_SkyReflectionMultiplier, EditorGUIUtility.TrTextContent("Sky Reflection Multiplier", "Sets the multiplier for reflected specular lighting from sky only.\nIt is applied on top of the Reflection Lighting Multiplier."));
+            PropertyField(m_SkyReflectionMultiplier, EditorGUIUtility.TrTextContent("Sky Reflection Fallback Multiplier", "Sets the multiplier for reflected specular lighting from sky only.\nIt is applied on top of the Reflection Lighting Multiplier."));
 
             PropertyField(m_AmbientProbeMultiplier, EditorGUIUtility.TrTextContent("Ambient Probe Multiplier", "Sets the multiplier for lighting from ambient probe.\nIt is applied on top of the Indirect Diffuse Lighting Multiplier."));
         }
