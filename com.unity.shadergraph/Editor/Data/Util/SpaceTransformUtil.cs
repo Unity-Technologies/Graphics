@@ -377,13 +377,16 @@ namespace UnityEditor.ShaderGraph
 
         internal static IEnumerable<NeededTransform> ComputeTransformRequirement(SpaceTransform xform)
         {
-            //Implicit always needed transform
-            yield return new NeededTransform(xform.from.ToNeededCoordinateSpace(), xform.to.ToNeededCoordinateSpace());
-
-            //ViaWorld & ObjectToAbsoluteWorld are also using the intermediate world space
             var func = k_TransformFunctions[(int)xform.from, (int)xform.to];
             if (func == ViaWorld || func == ObjectToAbsoluteWorld)
+            {
                 yield return new NeededTransform(xform.from.ToNeededCoordinateSpace(), NeededCoordinateSpace.World);
+                yield return new NeededTransform(NeededCoordinateSpace.World, xform.to.ToNeededCoordinateSpace());
+            }
+            else
+            {
+                yield return new NeededTransform(xform.from.ToNeededCoordinateSpace(), xform.to.ToNeededCoordinateSpace());
+            }
         }
 
         public static void GenerateTransformCodeStatement(SpaceTransform xform, string inputValue, string outputVariable, ShaderStringBuilder sb)
