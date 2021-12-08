@@ -4,4 +4,4 @@ In the High Definition Render Pipeline (HDRP), some features work differently be
 
 ## Directional Light Surface Texture
 
-Directional Lights can set a surface texture in the Celestial Body section of the Inspector for use by the Physically Based Sky. From HDRP 2022.2, the texture is flipped on the x axis when displayed by the Physically Based Sky to fix display.
+While Physically Based Sky is used, Directional lights can have a surface texture, located in section Celestial Body. The orientation of the texture was incorrect, in HDRP 14 it is fixed by flipping UVs on the x axis. When upgrading a project, suns texture might need to be flipped.
