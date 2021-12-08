@@ -15,9 +15,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public enum WaterGeometryType
         {
-            // The water surface will be rendered as a procedural quad.
+            /// <summary>
+            /// The water surface will be rendered as a procedural quad.
+            /// </summary>
             Quad,
-            // The water will be rendered with a mesh provided by the user.
+            /// <summary>
+            /// The water will be rendered with a mesh provided by the user.
+            /// </summary>
             Custom
         }
 
