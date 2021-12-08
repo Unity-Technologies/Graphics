@@ -220,7 +220,7 @@ void RayGen()
     _AlbedoAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(GetAlbedo(pathIntersection), 1.0);
     _NormalAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(GetNormal(pathIntersection), 1.0);
 
-    float2 mv = jitteredPixelCoord.xy - pathIntersection.motionVector;
+    float2 mv = pathIntersection.motionVector - jitteredPixelCoord.xy;
     _MotionVectorAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(mv.x, mv.y, 0, 1.0);
 }
 

@@ -88,8 +88,11 @@ void WriteAOVs(inout PathIntersection pathIntersection, SurfaceData surfaceData,
     float3 prevPosWS = mul(unity_MatrixPreviousM, float4(positionWS, 1.0)).xyz;
     float4 prevClipPos = mul(UNITY_MATRIX_PREV_VP, prevPosWS);
     prevClipPos.xy /= prevClipPos.w;
-    float2 prevFramePos = (prevClipPos.xy * 0.5 + 0.5) * (_ScreenSize.xy - float2(1, 1));
-    pathIntersection.motionVector = prevFramePos;
+    prevClipPos.y = -prevClipPos.y;
+    float2 prevFramePos = (prevClipPos.xy * 0.5 + 0.5) * _ScreenSize.xy;
+
+    if (prevFramePos.x > 0 && prevFramePos.y > 0 && prevFramePos.x < _ScreenSize.x && prevFramePos.y < _ScreenSize.z)
+        pathIntersection.motionVector = prevFramePos;
 }
 
 // Function responsible for surface scattering

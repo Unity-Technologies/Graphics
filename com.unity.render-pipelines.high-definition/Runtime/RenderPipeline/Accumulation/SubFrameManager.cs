@@ -401,6 +401,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderDenoisePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle outputTexture)
         {
+#if ENABLE_UNITY_DENOISERS
             using (var builder = renderGraph.AddRenderPass<RenderDenoisePassData>("Denoise Pass", out var passData))
             {
                 passData.blitAndExposeCS = m_Asset.renderPipelineResources.shaders.blitAndExposeCS;
@@ -445,7 +446,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (RenderDenoisePassData data, RenderGraphContext ctx) =>
                 {
-#if ENABLE_UNITY_DENOISERS
                     CameraData camData = data.subFrameManager.GetCameraData(data.camID);
 
                     camData.denoiser.type = m_PathTracingSettings.denoiser.value;
@@ -490,9 +490,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             camData.denoiser.GetResults(ctx.cmd, data.color);
                         }
                     }
-#endif
                 });
             }
         }
+#endif
     }
 }
