@@ -46,7 +46,7 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
 
     bool skyEnabled = _EnvLightSkyEnabled && _RaytracingCameraSkyEnabled;
     float4 missColor = skyEnabled ? _SkyCameraTexture[COORD_TEXTURE2D_X(pathIntersection.pixelCoord)] : _RaytracingCameraClearColor;
-    pathIntersection.value = missColor.rgb * GetInverseCurrentExposureMultiplier();
+    pathIntersection.value = missColor.rgb;
     pathIntersection.alpha = missColor.a;
 
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value, pathIntersection.alpha);
