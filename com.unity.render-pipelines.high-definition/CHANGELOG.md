@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
 - Fixed unsupported material properties show when rendering pass is Low Resolution.
 - Fixed FOV change when enabling physical camera.
+- Fixed spot light shadows near plane
 
 ## [13.1.3] - 2021-11-17
 
