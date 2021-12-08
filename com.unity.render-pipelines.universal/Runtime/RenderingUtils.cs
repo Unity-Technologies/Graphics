@@ -486,6 +486,11 @@ namespace UnityEngine.Rendering.Universal
         // TODO: remove useRenderPassEnabled parameter when depth resolve support is added to RenderPass (URP-1009)
         internal static bool MultisampleDepthResolveSupported(bool useRenderPassEnabled)
         {
+            // TODO: Bug workaround for MacOS driver that causes depth to render as wireframe. (URP-1299)
+#if UNITY_EDITOR_OSX
+                return false;
+#endif
+
             if (useRenderPassEnabled)
                 return false;
 

@@ -919,7 +919,6 @@ namespace UnityEngine.Rendering.Universal
             if (isOverlayCamera)
             {
                 cameraData.requiresOpaqueTexture = false;
-                //cameraData.postProcessingRequiresDepthTexture = false;
             }
 
             Matrix4x4 projectionMatrix = camera.projectionMatrix;
