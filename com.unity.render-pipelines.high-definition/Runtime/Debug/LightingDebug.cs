@@ -107,9 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
     static class DebugLightHierarchyExtensions
     {
 
-#if DEBUG
        [IgnoreWarning(1370)] //Ignore throwing exception warning on burst..
-#endif
         public static bool IsEnabledFor(
             this DebugLightFilterMode mode,
             GPULightType gpuLightType,
@@ -128,11 +126,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         case SpotLightShape.Cone: return (mode & DebugLightFilterMode.DirectSpotCone) != 0;
                         case SpotLightShape.Pyramid: return (mode & DebugLightFilterMode.DirectSpotPyramid) != 0;
                         default:
-#if DEBUG
                             throw new ArgumentOutOfRangeException(nameof(spotLightShape));
-#else
-                            return false;
-#endif
                     }
                 }
                 case GPULightType.Tube: return (mode & DebugLightFilterMode.DirectTube) != 0;
@@ -140,11 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 case GPULightType.Rectangle: return (mode & DebugLightFilterMode.DirectRectangle) != 0;
                 case GPULightType.Directional: return (mode & DebugLightFilterMode.DirectDirectional) != 0;
                 default:
-#if DEBUG
                     throw new ArgumentOutOfRangeException(nameof(gpuLightType));
-#else
-                    return false;
-#endif
             }
         }
 
