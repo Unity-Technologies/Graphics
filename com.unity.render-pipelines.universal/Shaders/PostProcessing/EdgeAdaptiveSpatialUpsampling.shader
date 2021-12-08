@@ -14,9 +14,8 @@ Shader "Hidden/Universal Render Pipeline/Edge Adaptive Spatial Upsampling"
         #define FSR_INPUT_TEXTURE _SourceTex
         #define FSR_INPUT_SAMPLER sampler_LinearClamp
 
-        // Only enable 16-bit instructions when the underlying hardware supports them
-        // Note: There are known issues on DX11 drivers so we don't enable 16-bit mode when DX11 is detected
-        #if HAS_HALF && !defined(SHADER_API_D3D11)
+        // Enable 16-bit instructions when the underlying hardware supports them
+        #if REAL_IS_HALF
             #define FSR_ENABLE_16BIT 1
         #endif
 
