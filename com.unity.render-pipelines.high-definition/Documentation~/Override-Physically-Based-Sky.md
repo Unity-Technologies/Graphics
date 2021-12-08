@@ -133,8 +133,20 @@ The default values in either mode make it so the planet's surface is at **0** on
 ## Warmup cost
 
 This sky type requires heavy precomputation to be rendered. Because of this, the first few frames (depending on the *Number of bounces* parameter) are going to take much longer. This needs to be taken into consideration when switching from another sky type to the Physically Based Sky for example as it might produce a noticeable drop in framerate.
-This also applies when interpolating between two different Physically Based Skies with different sets of parameters by using the volume system. By doing this, Unity is forced to restart the precomputation every frame as long as interpolation is happening causing noticeable drop in framerate. To avoid that, it is recommended to only rely on a single set of parameters for a particular scene and use the sun light direction and intensity to attain the desired result.
-Here is the list of parameters that will cause to restart precomputation upon change: Type, Planetary Radius, Ground Tint, Air Maximum Altitude, Air Density, Air Tint, Aerosol Maximum Altitude, Aerosol Density, Aerosol Tint, Aerosol Anisotropy, Number of Bounces.
+This also applies when HDRP uses the volume system to interpolate between two different Physically Based Skies with different sets of parameters. To do this, HDRP restarts the precomputation every frame in which it performs interpolation. This causes a noticeable drop in framerate. To avoid this, use a single set of Physically Based Sky parameters for a scene and change the sun light direction and intensity to achieve the result you want.
+
+HDRP restarts precomputation when you change the following parameters:
+- Type
+- Planetary Radius
+- Ground Tint
+- Air Maximum Altitude
+- Air Density
+- Air Tint
+- Aerosol Maximum Altitude
+- Aerosol Density
+- Aerosol Tint
+- Aerosol Anisotropy
+- Number of Bounces
 
 ### Reference list
 
