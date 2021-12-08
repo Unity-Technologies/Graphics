@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
 - Fixed Xbox Series X compilation issue with DoF shader
+- Fixed SpeedTree graph compatibility by removing custom interpolators.
 
 ## [12.1.2] - 2021-10-22
 
