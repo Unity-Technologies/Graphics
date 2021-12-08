@@ -126,7 +126,11 @@ namespace UnityEditor.Rendering
         }
 
         [MenuItem("Window/Analysis/Rendering Debugger", priority = 10005)]
-        static void Init() => GetWindow<DebugWindow>();
+        static void Init()
+        {
+            var window = GetWindow<DebugWindow>();
+            window.titleContent = Styles.windowTitle;
+        }
 
         [MenuItem("Window/Analysis/Rendering Debugger", validate = true)]
         static bool ValidateMenuItem()
@@ -140,8 +144,6 @@ namespace UnityEditor.Rendering
                 OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
 
             open = true;
-
-            titleContent = EditorGUIUtility.TrTextContent(Styles.windowTitle);
 
             DebugManager.instance.refreshEditorRequested = false;
 
@@ -545,7 +547,7 @@ namespace UnityEditor.Rendering
         {
             public static float s_DefaultLabelWidth = 0.5f;
 
-            public static string windowTitle { get; } = "Rendering Debugger";
+            public static GUIContent windowTitle { get; } = EditorGUIUtility.TrTextContent("Rendering Debugger");
 
             public static GUIContent resetButtonContent { get; } = EditorGUIUtility.TrTextContent("Reset");
 
