@@ -70,15 +70,15 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
     SurfaceDescription surfaceDescription = BuildSurfaceDescription(unpacked);
 
-    #if _SURFACE_TYPE_TRANSPARENT
+    #if defined(_SURFACE_TYPE_TRANSPARENT)
         half surfaceType = 1.0;
     #else
         half surfaceType = 0.0;
     #endif
 
-    #if _ALPHATEST_ON
+    #if defined(_ALPHATEST_ON)
         half alpha = AlphaClip(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
-    #elif _SURFACE_TYPE_TRANSPARENT
+    #elif defined(_SURFACE_TYPE_TRANSPARENT)
         half alpha = surfaceDescription.Alpha;
     #else
         half alpha = 1;

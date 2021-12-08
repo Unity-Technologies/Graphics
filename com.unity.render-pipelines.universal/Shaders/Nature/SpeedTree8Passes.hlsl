@@ -378,7 +378,10 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
 
     half alpha = diffuse.a * input.interpolated.color.a;
-    AlphaDiscard(alpha, 0.3333);
+
+#if defined(_ALPHATEST_ON)
+    AlphaClip(alpha, 0.3333);
+#endif
 
     half3 albedo = diffuse.rgb;
     half3 emission = 0;
@@ -506,7 +509,10 @@ half4 SpeedTree8FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
 
     half alpha = diffuse.a * input.color.a;
-    AlphaDiscard(alpha, 0.3333);
+
+#if defined(_ALPHATEST_ON)
+    AlphaClip(alpha, 0.3333);
+#endif
 
     #if defined(SCENESELECTIONPASS)
         // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
@@ -570,7 +576,10 @@ half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Ta
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
 
     half alpha = diffuse.a * input.interpolated.color.a;
-    AlphaDiscard(alpha, 0.3333);
+
+#if defined(_ALPHATEST_ON)
+    AlphaClip(alpha, 0.3333);
+#endif
 
     // normal
     #if defined(EFFECT_BUMP)

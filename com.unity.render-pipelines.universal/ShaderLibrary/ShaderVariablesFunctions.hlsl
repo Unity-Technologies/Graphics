@@ -176,16 +176,6 @@ half AlphaClip(half alpha, half cutoff)
 }
 #endif
 
-void AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
-{
-#if defined(_ALPHATEST_ON)
-    if (IsAlphaDiscardEnabled() && !IsAlphaToMaskEnabled())
-    {
-        clip(alpha - (cutoff + offset));
-    }
-#endif
-}
-
 half OutputAlpha(half alpha, half surfaceType = half(0.0))
 {
     #if defined(_ALPHATEST_ON)

@@ -179,7 +179,10 @@ inline void InitializeSimpleLitSurfaceData(GrassVertexOutput input, out SurfaceD
     half4 diffuseAlpha = SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex));
     half3 diffuse = diffuseAlpha.rgb * input.color.rgb;
 
+#if defined(_ALPHATEST_ON)
     half alpha = AlphaClip(diffuseAlpha.a, _Cutoff);
+#endif
+
     alpha *= input.color.a;
 
     outSurfaceData = (SurfaceData)0;
