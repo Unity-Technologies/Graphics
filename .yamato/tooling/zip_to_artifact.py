@@ -4,6 +4,8 @@ import re
 import json
 import argparse
 from os import path, getcwd, listdir
+from unityparser import UnityDocument
+import random
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -42,7 +44,7 @@ if __name__ == "__main__":
                     test_name = line_data["testName"]
                     asset_path = line_data["m_filePath"]
                     should_update_image = "True"
-                else:
+                else:  # Plain text write
                     test_name, asset_path, should_update_image = line.split(",")
 
                 test_name = re.search(f'{test_name}_.*(?=_)', asset_path).group(0)
@@ -58,13 +60,19 @@ if __name__ == "__main__":
                                                 "ShaderGraphTestAssets", test_name + ".asset")
                     if extra_logs:
                         print("Adding " + test_name)
-                    # z.write(actual_img_path, reference_img_path)  # Write ActualImage to zip
-                    # if path.exists(actual_img_path + ".meta"):  # Meta file doesn't always exist, check
-                    #     z.write(actual_img_path + ".meta", reference_img_path + ".meta")
-                    # if path.exists(test_asset_path):
-                    #     z.write(test_asset_path)
+                    z.write(actual_img_path, reference_img_path)  # Write ActualImage to zip
+                    if path.exists(actual_img_path + ".meta"):  # Meta file doesn't always exist, check
+                        z.write(actual_img_path + ".meta", reference_img_path + ".meta")
+                    if path.exists(test_asset_path):
+                        # Updates the hash of all materials in the test asset to a random # with 8-10 digits
+                        doc = UnityDocument.load_yaml(test_asset_path)
+                        for mat in doc.entry.testMaterial:
+                            mat["hash"] = random.randint(10000000, 9999999999)
+                            if extra_logs:
+                                print(mat["hash"])
+                        doc.dump_yaml()
+                        z.write(test_asset_path)
                     elif extra_logs:
                         print("Could not find test asset to copy")
-                        # TODO: Flip updated bit on test asset
                 elif extra_logs:
                     print(test_name + " doesn't need to be updated")
