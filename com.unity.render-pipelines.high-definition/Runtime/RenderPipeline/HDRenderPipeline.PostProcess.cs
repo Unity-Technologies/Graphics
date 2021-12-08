@@ -2795,7 +2795,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var cocDilatePing = fullresCoC;
                     var cocDilatePong = minMaxCoCPong;
-                    for (int pass = 0; pass < 8 * iterations; ++pass)
+                    //HACK: multiplying with some fudge factor so we get a thicker dilation.
+                    // in practice we want a proper single pass dilation algorithm, like jump flood.
+                    for (int pass = 0; pass < 4 * iterations; ++pass)
                     {
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, cocDilatePing, 0);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, cocDilatePong, 0);
