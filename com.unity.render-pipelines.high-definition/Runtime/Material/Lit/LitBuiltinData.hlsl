@@ -47,7 +47,9 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
     #endif
 
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
+    bool objectSpaceMapping = false;
     #ifndef LAYERED_LIT_SHADER
+    objectSpaceMapping = _ObjectSpaceUVMappingEmissive;
     ComputeLayerTexCoord(
     #else
     ComputeLayerTexCoord0(
@@ -55,7 +57,7 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
                             input.texCoord0.xy, input.texCoord1.xy, input.texCoord2.xy, input.texCoord3.xy, _UVMappingMaskEmissive, _UVMappingMaskEmissive,
                             _EmissiveColorMap_ST.xy, _EmissiveColorMap_ST.zw, float2(0.0, 0.0), float2(0.0, 0.0), 1.0, false,
                             input.positionRWS, _TexWorldScaleEmissive,
-                            mappingType, layerTexCoord);
+                            mappingType, objectSpaceMapping, layerTexCoord);
 
     #ifndef LAYERED_LIT_SHADER
     UVMapping emissiveMapMapping = layerTexCoord.base;
