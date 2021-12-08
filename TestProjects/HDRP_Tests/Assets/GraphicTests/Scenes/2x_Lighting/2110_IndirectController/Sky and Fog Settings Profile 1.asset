@@ -88,40 +88,6 @@ MonoBehaviour:
   directionalLightsOnly:
     m_OverrideState: 0
     m_Value: 0
---- !u!114 &-6620406791799670961
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f034cba68ab55e046ae1445a42f18c0e, type: 3}
-  m_Name: IndirectLightingController
-  m_EditorClassIdentifier: 
-  active: 1
-  indirectDiffuseLightingMultiplier:
-    m_OverrideState: 1
-    m_Value: 3.8
-  indirectDiffuseLightingLayers:
-    m_OverrideState: 1
-    m_Value: 191
-  reflectionLightingMultiplier:
-    m_OverrideState: 1
-    m_Value: 6.98
-  reflectionLightingLayers:
-    m_OverrideState: 1
-    m_Value: 191
-  reflectionProbeIntensityMultiplier:
-    m_OverrideState: 1
-    m_Value: 0.17
-  ambientProbeLightingMultiplier:
-    m_OverrideState: 1
-    m_Value: 10
-  skyReflectionMultiplier:
-    m_OverrideState: 1
-    m_Value: 3.57
 --- !u!114 &-3471740029480354604
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -410,7 +376,7 @@ MonoBehaviour:
   - {fileID: 1056458954984228501}
   - {fileID: -9203360106115524789}
   - {fileID: -761647664624790743}
-  - {fileID: -6620406791799670961}
+  - {fileID: 9134312759287197193}
   - {fileID: -3471740029480354604}
 --- !u!114 &1056458954984228501
 MonoBehaviour:
@@ -443,3 +409,37 @@ MonoBehaviour:
   fogType:
     m_OverrideState: 1
     m_Value: 0
+--- !u!114 &9134312759287197193
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f034cba68ab55e046ae1445a42f18c0e, type: 3}
+  m_Name: IndirectLightingController
+  m_EditorClassIdentifier: 
+  active: 1
+  indirectDiffuseLightingMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+  indirectDiffuseLightingLayers:
+    m_OverrideState: 0
+    m_Value: 255
+  reflectionLightingMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+  reflectionLightingLayers:
+    m_OverrideState: 0
+    m_Value: 255
+  reflectionProbeIntensityMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+  ambientProbeLightingMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+  skyReflectionMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
