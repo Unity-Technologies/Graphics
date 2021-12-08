@@ -446,7 +446,7 @@ namespace UnityEngine.Experimental.Rendering
         void OpenProbeVolumeDebugPanel()
         {
             var debugPanel = GetWindow<DebugWindow>();
-            window.titleContent = DebugWindow.Styles.windowTitle;
+            debugPanel.titleContent = DebugWindow.Styles.windowTitle;
             debugPanel.Show();
             var index = DebugManager.instance.FindPanelIndex(ProbeReferenceVolume.k_DebugPanelName);
             if (index != -1)
