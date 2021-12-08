@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a warning because of a null texture in the lens flare pass.
 - Fixed a nullref when enabling raycount without ray tracing.
 - Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
+- Fixed FOV change when enabling physical camera.
 
 ## [12.1.2] - 2021-10-22
 
