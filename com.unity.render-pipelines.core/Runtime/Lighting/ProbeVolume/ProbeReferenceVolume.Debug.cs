@@ -314,7 +314,7 @@ namespace UnityEngine.Experimental.Rendering
                 Vector4[] texels = new Vector4[kProbesPerBatch];
                 float[] validity = new float[kProbesPerBatch];
                 float[] relativeSize = new float[kProbesPerBatch];
-                Vector4[] offsets = cell.offsetVectors.Length > 0 ? new Vector4[kProbesPerBatch] : null;
+                Vector4[] offsets = cell.offsetVectors?.Length > 0 ? new Vector4[kProbesPerBatch] : null;
 
                 List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
                 List<Matrix4x4> offsetBuffer = new List<Matrix4x4>();
