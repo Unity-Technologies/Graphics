@@ -589,9 +589,52 @@ namespace UnityEditor.VFX
             return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
         }
 
-        public bool NeedsAabbBuffer()
+        public bool NeedsSharedAabbBuffer()
         {
+            //TODO : can lead to useless computation if all outputs have a transform
             return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.IsRaytraced());
+        }
+
+        private void PrepareAABBBuffers(out List<VFXAbstractParticleOutput> outputsSharingAABB,
+            out Dictionary<VFXAbstractParticleOutput, int> outputsOwningAABB,
+            out int sharedAabbBufferIndex,
+            ref List<VFXMapping> systemBufferMappings,
+            ref List<VFXGPUBufferDesc> outBufferDescs)
+        {
+            outputsSharingAABB = new List<VFXAbstractParticleOutput>();
+            outputsOwningAABB = new Dictionary<VFXAbstractParticleOutput, int>();
+            List<VFXAbstractParticleOutput> listOutputsOwningAABB = new List<VFXAbstractParticleOutput>();
+
+            sharedAabbBufferIndex = -1;
+            var rayTracedOutputs = compilableOwners.OfType<VFXAbstractParticleOutput>().Where(o => o.IsRaytraced()).ToArray();
+            if (rayTracedOutputs.Length == 0)
+                return;
+            foreach (var output in rayTracedOutputs)
+            {
+                foreach (var attrib in VFXAttribute.AllAttributePositional)
+                {
+                    if (IsCurrentAttributeWritten(attrib, output))
+                    {
+                        listOutputsOwningAABB.Add(output);
+                        break;
+                    }
+                }
+                outputsSharingAABB.Add(output);
+            }
+
+            int sharedAABBCount = outputsSharingAABB.Count;
+            if (sharedAABBCount > 0)
+            {
+                sharedAabbBufferIndex = outBufferDescs.Count;
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 24 }); //6 floats
+                systemBufferMappings.Add(new VFXMapping("aabbBuffer", sharedAabbBufferIndex));
+            }
+            foreach (var output in listOutputsOwningAABB)
+            {
+                int bufferIndex = outBufferDescs.Count;
+                outputsOwningAABB.Add(output, bufferIndex);
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 24 }); //6 floats
+            }
         }
 
         public bool NeedsGlobalSort()
@@ -855,13 +898,12 @@ namespace UnityEditor.VFX
                 }
             }
 
-            int aabbBufferIndex = -1;
-            if (NeedsAabbBuffer())
-            {
-                aabbBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 24 }); //6 floats
-                systemBufferMappings.Add(new VFXMapping("aabbBuffer", aabbBufferIndex));
-            }
+            PrepareAABBBuffers(out List<VFXAbstractParticleOutput> outputsSharingAABB,
+                out Dictionary<VFXAbstractParticleOutput, int> outputsOwningAABB,
+                out int sharedAabbBufferIndex,
+                ref systemBufferMappings,
+                ref outBufferDescs);
+
 
             var taskDescs = new List<VFXEditorTaskDesc>();
             var bufferMappings = new List<VFXMapping>();
@@ -914,8 +956,9 @@ namespace UnityEditor.VFX
 
                 if (stripDataIndex != -1 && context.ownedType == VFXDataType.ParticleStrip)
                     bufferMappings.Add(new VFXMapping("stripDataBuffer", stripDataIndex));
-                if (aabbBufferIndex != -1 && (context.contextType == VFXContextType.Update || (context is VFXAbstractParticleOutput && (context as VFXAbstractParticleOutput).IsRaytraced())))
-                    bufferMappings.Add(new VFXMapping("aabbBuffer", aabbBufferIndex));
+
+                if (sharedAabbBufferIndex != -1 && (context.contextType == VFXContextType.Update || outputsSharingAABB.Contains(context)))
+                    bufferMappings.Add(new VFXMapping("aabbBuffer", sharedAabbBufferIndex));
 
                 bool hasAttachedStrip = IsAttributeStored(VFXAttribute.StripAlive);
                 if (hasAttachedStrip)
