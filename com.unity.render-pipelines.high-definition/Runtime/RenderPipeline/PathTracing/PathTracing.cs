@@ -652,7 +652,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Color should be accumulated after AOVs (order is important)
             RenderAccumulation(m_RenderGraph, hdCamera, m_FrameTexture, colorBuffer, HDCameraFrameHistoryType.PathTracing, true);
 
-            RenderDenoisePass(m_RenderGraph, hdCamera);
+            RenderDenoisePass(m_RenderGraph, hdCamera, colorBuffer);
 
             return colorBuffer;
         }

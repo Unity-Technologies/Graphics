@@ -381,31 +381,47 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderDenoisePassData
         {
+            public ComputeShader blitAndExposeCS;
+            public int blitAndExposeKernel;
             public TextureHandle color;
             public TextureHandle normalAOV;
             public TextureHandle albedoAOV;
             public TextureHandle motionVectorAOV;
+            public TextureHandle outputTexture;
             public SubFrameManager subFrameManager;
 
             public int camID;
             public bool useAOV;
             public bool temporal;
+
+            public int width;
+            public int height;
+            public int slices;
         }
 
-        void RenderDenoisePass(RenderGraph renderGraph, HDCamera hdCamera)
+        void RenderDenoisePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle outputTexture)
         {
             using (var builder = renderGraph.AddRenderPass<RenderDenoisePassData>("Denoise Pass", out var passData))
             {
+                passData.blitAndExposeCS = m_Asset.renderPipelineResources.shaders.blitAndExposeCS;
+                passData.blitAndExposeKernel = passData.blitAndExposeCS.FindKernel("KMain");
                 passData.subFrameManager = m_SubFrameManager;
+                passData.useAOV = m_PathTracingSettings.useAOVs.value;
+                passData.temporal = m_PathTracingSettings.temporal.value && hdCamera.camera.cameraType == CameraType.Game;
+
+                // copy camera params
+                passData.camID = hdCamera.camera.GetInstanceID();
+                passData.width = hdCamera.actualWidth;
+                passData.height = hdCamera.actualHeight;
+                passData.slices = hdCamera.viewCount;
 
                 // Grab the history buffer
                 TextureHandle history = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
                     ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1));
 
                 passData.color = builder.WriteTexture(history);
-                passData.useAOV = m_PathTracingSettings.useAOVs.value;
-                passData.temporal = m_PathTracingSettings.temporal.value && hdCamera.camera.cameraType == CameraType.Game;
-                passData.camID = hdCamera.camera.GetInstanceID();
+
+                passData.outputTexture = builder.WriteTexture(outputTexture);
 
                 if (m_PathTracingSettings.useAOVs.value)
                 {
@@ -460,6 +476,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 camData.denoiser.WaitForCompletion();
                                 camData.denoiser.GetResults(ctx.cmd, data.color);
+
+                                // Blit the denoised image from the history buffer and apply exposure.
+                                ctx.cmd.SetComputeTextureParam(data.blitAndExposeCS, data.blitAndExposeKernel, HDShaderIDs._InputTexture, data.color);
+                                ctx.cmd.SetComputeTextureParam(data.blitAndExposeCS, data.blitAndExposeKernel, HDShaderIDs._OutputTexture, data.outputTexture);
+                                ctx.cmd.DispatchCompute(data.blitAndExposeCS, data.blitAndExposeKernel, (data.width + 7) / 8, (data.height + 7) / 8, data.slices);
                             }
                         }
 
