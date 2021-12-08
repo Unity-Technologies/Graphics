@@ -692,23 +692,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 builder.SetRenderFunc(
                 (RenderSkyToCubemapPassData data, RenderGraphContext ctx) =>
-                {
-                    data.builtinParameters.commandBuffer = ctx.cmd;
+        {
+            data.builtinParameters.commandBuffer = ctx.cmd;
 
-                    for (int i = 0; i < 6; ++i)
-                    {
-                        data.builtinParameters.pixelCoordToViewDirMatrix = data.facePixelCoordToViewDirMatrices[i];
-                        data.builtinParameters.viewMatrix = data.cameraViewMatrices[i];
-                        data.builtinParameters.colorBuffer = data.output;
-                        data.builtinParameters.depthBuffer = null;
-                        data.builtinParameters.cubemapFace = (CubemapFace)i;
+            for (int i = 0; i < 6; ++i)
+            {
+                data.builtinParameters.pixelCoordToViewDirMatrix = data.facePixelCoordToViewDirMatrices[i];
+                data.builtinParameters.viewMatrix = data.cameraViewMatrices[i];
+                data.builtinParameters.colorBuffer = data.output;
+                data.builtinParameters.depthBuffer = null;
+                data.builtinParameters.cubemapFace = (CubemapFace)i;
 
-                        CoreUtils.SetRenderTarget(ctx.cmd, data.output, ClearFlag.None, 0, (CubemapFace)i);
-                        data.skyRenderer.RenderSky(data.builtinParameters, true, data.includeSunInBaking);
-                        if (data.cloudRenderer != null)
-                            data.cloudRenderer.RenderClouds(data.builtinParameters, true);
-                    }
-                });
+                CoreUtils.SetRenderTarget(ctx.cmd, data.output, ClearFlag.None, 0, (CubemapFace)i);
+                data.skyRenderer.RenderSky(data.builtinParameters, true, data.includeSunInBaking);
+                if (data.cloudRenderer != null)
+                    data.cloudRenderer.RenderClouds(data.builtinParameters, true);
+            }
+        });
 
                 return passData.output;
             }
@@ -722,7 +722,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer ambientProbeResult;
             public ComputeBuffer diffuseAmbientProbeResult;
             public ComputeBuffer volumetricAmbientProbeResult;
-            public ComputeBufferHandle scratchBuffer;
             public Vector4 fogParameters;
             public Action<AsyncGPUReadbackRequest> callback;
         }
@@ -741,7 +740,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.ambientProbeResult = ambientProbeResult;
                 passData.diffuseAmbientProbeResult = diffuseAmbientProbeResult;
                 passData.volumetricAmbientProbeResult = volumetricAmbientProbeResult;
-                passData.scratchBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(27, sizeof(uint))); // L2 = 9 channel per component
                 passData.fogParameters = fog != null ? new Vector4(fog.globalLightProbeDimmer.value, fog.anisotropy.value, 0.0f, 0.0f) : Vector4.zero;
                 passData.callback = callback;
 
@@ -749,7 +747,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 (UpdateAmbientProbePassData data, RenderGraphContext ctx) =>
                 {
                     ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_AmbientProbeOutputBufferParam, data.ambientProbeResult);
-                    ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_ScratchBufferParam, data.scratchBuffer);
                     ctx.cmd.SetComputeTextureParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_AmbientProbeInputCubemap, data.skyCubemap);
                     if (data.diffuseAmbientProbeResult != null)
                         ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_DiffuseAmbientProbeOutputBufferParam, data.diffuseAmbientProbeResult);
