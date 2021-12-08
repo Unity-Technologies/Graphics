@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.Universal
             m_LightBlendStyles[3].blendMode = Light2DBlendStyle.BlendMode.Additive;
             m_LightBlendStyles[3].maskTextureChannel = Light2DBlendStyle.TextureChannel.R;
 
-            // Initialize Editor Prefs for Sprite Editor 
+            // Initialize Editor Prefs for Sprite Editor
             InitalizeSpriteEditorPrefs();
         }
 
