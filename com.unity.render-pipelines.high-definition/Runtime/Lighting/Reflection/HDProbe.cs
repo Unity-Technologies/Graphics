@@ -124,8 +124,8 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_WasRenderedSinceLastOnDemandRequest = true;
 #if UNITY_EDITOR
         bool m_WasRenderedDuringAsyncCompilation = false;
-#endif
         int m_SHRequestID = -1;
+#endif
         [SerializeField]
         SphericalHarmonicsL2 m_SHForNormalization;
         [SerializeField]
@@ -562,6 +562,8 @@ namespace UnityEngine.Rendering.HighDefinition
             SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 6, Vector3.zero);
             SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 7, Vector3.zero);
             SphericalHarmonicsL2Utils.SetCoefficient(ref m_SHForNormalization, 8, Vector3.zero);
+            if (m_SHRequestID >= 0)
+                AdditionalGIBakeRequestsManager.instance.DequeueRequest(m_SHRequestID);
 
             QueueSHBaking();
         }
@@ -573,12 +575,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
 
             bool hasValidSHData = hdrp.asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
-#if UNITY_EDITOR
-            if (!m_HasValidSHForNormalization)
-            {
-                m_HasValidSHForNormalization = m_SHRequestID >= 0 && AdditionalGIBakeRequestsManager.instance.RetrieveProbeSH(m_SHRequestID, out m_SHForNormalization);
-            }
-#endif
             hasValidSHData = hasValidSHData && m_HasValidSHForNormalization;
 
             var L0 = SphericalHarmonicsL2Utils.GetCoefficient(m_SHForNormalization, 0);
@@ -665,6 +661,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void DequeueSHRequest()
+        {
+#if UNITY_EDITOR
+            if (m_SHRequestID >= 0)
+            {
+                AdditionalGIBakeRequestsManager.instance.DequeueRequest(m_SHRequestID);
+            }
+            m_SHRequestID = -1;
+#endif
+        }
+
         void OnEnable()
         {
             wasRenderedAfterOnEnable = false;
@@ -685,7 +692,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             HDProbeSystem.UnregisterProbe(this);
 #if UNITY_EDITOR
+            UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
+            DequeueSHRequest();
             UnityEditor.EditorApplication.hierarchyChanged -= UpdateProbeName;
+            UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
 #endif
         }
 
@@ -700,9 +710,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
                 UnityEditor.Lightmapping.lightingDataCleared -= ClearSHBaking;
+                DequeueSHRequest();
                 QueueSHBaking();
 #endif
             }
+        }
+
+        void OnDestroy()
+        {
+            m_RealtimeTexture?.Release();
+            m_RealtimeDepthBuffer?.Release();
         }
     }
 }
