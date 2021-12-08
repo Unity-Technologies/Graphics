@@ -321,6 +321,16 @@ namespace UnityEditor.ShaderGraph
                 return true;
             }
 
+            private bool ContainsCommand(string source, int begin, int end)
+            {
+                for (int i = begin; i < end && i < source.Length; ++i)
+                {
+                    if (source[i] == '$')
+                        return true;
+                }
+                return false;
+            }
+
             private bool ProcessPredicate(Token predicate, int endLine, ref int cur, ref bool appendEndln)
             {
                 // eval if(param)
@@ -336,8 +346,17 @@ namespace UnityEditor.ShaderGraph
                             passedPermutations.Select(i => i.permutationIndex).ToList()
                         );
                         result.AppendLine(ifdefs);
-                        //Append the rest of the line
-                        AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
+                        var content = predicate.s;
+                        if (ContainsCommand(content, nonwhitespace, endLine))
+                        {
+                            content = content.Substring(nonwhitespace, endLine - nonwhitespace);
+                            ProcessTemplateLine(content, 0, content.Length);
+                        }
+                        else
+                        {
+                            AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
+                        }
+
                         result.AppendNewLine();
                         result.AppendLine("#endif");
                         return false;

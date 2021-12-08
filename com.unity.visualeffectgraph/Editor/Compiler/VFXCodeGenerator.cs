@@ -753,8 +753,10 @@ namespace UnityEditor.VFX
             graph.ValidateGraph();
 
             // Check the validity of the shader graph (unsupported keywords or shader property usage).
-            if (VFXLibrary.currentSRPBinder == null || !VFXLibrary.currentSRPBinder.IsGraphDataValid(graph))
+            if (VFXLibrary.currentSRPBinder == null)
                 return null;
+
+            VFXLibrary.currentSRPBinder.CheckGraphDataValid(graph);
 
             var target = graph.activeTargets.Where(o =>
             {

@@ -62,7 +62,7 @@ namespace UnityEditor.VFX
             return s_BaseUnsupportedShaderPropertyTypes;
         }
 
-        public bool IsGraphDataValid(GraphData graph)
+        public bool CheckGraphDataValid(GraphData graph)
         {
             var valid = true;
             var warnings = new List<string>();
