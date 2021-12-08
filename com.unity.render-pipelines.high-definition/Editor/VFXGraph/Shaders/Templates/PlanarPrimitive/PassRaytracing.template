@@ -10,6 +10,14 @@
             #pragma raytracing surface_shader
 
             #define PROCEDURAL_RAY_TRACING
+    //Temporary to workaround the missing _RayTracingLODBias
+            //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            #ifdef SAMPLE_TEXTURE2D
+            #undef SAMPLE_TEXTURE2D
+            #define SAMPLE_TEXTURE2D(textureName, samplerName, coord2)                              textureName.SampleLevel(samplerName, coord2, 0)
+            #endif
+
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -18,6 +26,8 @@
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXCommon.hlsl"
             #include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl"
+
+
             #define SHADER_STAGE_RAY_TRACING
             ${VFXGeneratedBlockFunction}
 
@@ -36,7 +46,8 @@
                 VFXAttributes attributes = (VFXAttributes)0;
                 ${VFXLoadAttributes}
                 //rayIntersection.color = attributes.color * 1000; //needs big multiplicator to be visible, why?
-                rayIntersection.color = float3(attributeData.barycentrics * 100, 0.0f); //needs big multiplicator to be visible, why?
+                //rayIntersection.color = float3(attributeData.barycentrics * 100, 0.0f); //needs big multiplicator to be visible, why?
+                rayIntersection.color = SampleTexture(VFX_SAMPLER(mainTexture), attributeData.barycentrics) * (1.0f/GetCurrentExposureMultiplier()) *  attributes.color; //needs big multiplicator to be visible, why?
 
             }
 
@@ -142,7 +153,9 @@
                 {
                     AttributeData attributeData;
                     attributeData.barycentrics = uv;
-                    ReportHit(outHitT, 0, attributeData);
+                    float alpha = SampleTexture(VFX_SAMPLER(mainTexture),uv).a;
+                    if(alpha > 0.5f)
+                        ReportHit(outHitT, 0, attributeData);
                 }
             }
             ENDHLSL
