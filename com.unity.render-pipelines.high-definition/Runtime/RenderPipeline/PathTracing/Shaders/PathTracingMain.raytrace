@@ -34,9 +34,15 @@ float4      _PathTracingTilingParameters; // xy: tile count, zw: current tile in
 // Output(s)
 RW_TEXTURE2D_X(float4, _FrameTexture);
 
-float4 GetSkyCameraValue(uint2 xy)
+float4 GetCameraMissValue(uint2 xy)
 {
-    return IsSkyEnabled() && _PathTracingCameraSkyEnabled ? _SkyCameraTexture[COORD_TEXTURE2D_X(xy)] : _PathTracingCameraClearColor * GetInverseCurrentExposureMultiplier();
+    return IsSkyEnabled() && _PathTracingCameraSkyEnabled ?
+        _SkyCameraTexture[COORD_TEXTURE2D_X(xy)] : _PathTracingCameraClearColor * GetInverseCurrentExposureMultiplier();
+}
+
+float3 GetMaterialMissValue()
+{
+    return IsSkyEnabled() ? GetSkyValue(WorldRayDirection()) : 0.0;
 }
 
 [shader("miss")]
@@ -50,7 +56,7 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
         return;
     }
 
-    float4 missColor = GetSkyCameraValue(pathIntersection.pixelCoord);
+    float4 missColor = GetCameraMissValue(pathIntersection.pixelCoord);
 
     pathIntersection.value = missColor.rgb;
     pathIntersection.alpha = missColor.a;
@@ -93,13 +99,29 @@ void MissLight(inout PathIntersection pathIntersection : SV_RayPayload)
 [shader("miss")]
 void MissMaterial(inout PathIntersection pathIntersection : SV_RayPayload)
 {
-    if (IsSkySamplingEnabled() || (_RaytracingMaxRecursion - pathIntersection.remainingDepth) < _RaytracingMinRecursion)
+    if (IsSkySamplingEnabled() || GetCurrentDepth(pathIntersection) < _RaytracingMinRecursion)
     {
         pathIntersection.value = 0.0;
         return;
     }
 
-    pathIntersection.value = IsSkyEnabled() ? GetSkyValue(WorldRayDirection()) : 0.0;
+    pathIntersection.value = GetMaterialMissValue();
+    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value);
+}
+
+[shader("miss")]
+void MissTransparentUnlitMaterial(inout PathIntersection pathIntersection : SV_RayPayload)
+{
+    int currentDepth = GetCurrentDepth(pathIntersection);
+
+    if (currentDepth < _RaytracingMinRecursion)
+    {
+        pathIntersection.value = 0.0;
+        return;
+    }
+
+    // Misses from Transparent Unlit are special in that they always are straight up continuation rays
+    pathIntersection.value = currentDepth > 1 ? GetMaterialMissValue() : GetCameraMissValue(pathIntersection.pixelCoord).rgb;
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value);
 }
 

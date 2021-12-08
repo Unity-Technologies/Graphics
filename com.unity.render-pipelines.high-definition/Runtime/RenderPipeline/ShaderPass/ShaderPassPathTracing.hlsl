@@ -85,7 +85,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     }
 
     // Grab depth information
-    uint currentDepth = _RaytracingMaxRecursion - pathIntersection.remainingDepth;
+    uint currentDepth = GetCurrentDepth(pathIntersection);
 
     // Make sure to add the additional travel distance
     pathIntersection.cone.width += pathIntersection.t * abs(pathIntersection.cone.spreadAngle);
@@ -269,7 +269,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
         PathIntersection nextPathIntersection = pathIntersection;
         nextPathIntersection.remainingDepth--;
 
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, rayDescriptor, nextPathIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 3, rayDescriptor, nextPathIntersection);
 
         pathIntersection.value = lerp(nextPathIntersection.value, pathIntersection.value, builtinData.opacity);
     }
@@ -295,7 +295,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     }
 
     // Grab depth information
-    int currentDepth = _RaytracingMaxRecursion - pathIntersection.remainingDepth;
+    int currentDepth = GetCurrentDepth(pathIntersection);
     bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
 
     float4 inputSample = 0.0;
