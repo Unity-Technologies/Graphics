@@ -30,9 +30,9 @@ Shader "Hidden/Universal Render Pipeline/DrawRenderingLayer"
 
                 uint2 positionSS = uint2(input.positionCS.xy);
                 uint sceneRenderingLayer = LoadSceneRenderingLayer(positionSS);
-                uint renderingLayerColorIndex = clamp(log2(sceneRenderingLayer + 1), 0, 31);
+                uint renderingLayerColorIndex = clamp(log2(sceneRenderingLayer), 0, 31);
 
-                return _RenderingLayersColors[renderingLayerColorIndex];
+                return sceneRenderingLayer == 0 ? 0 : _RenderingLayersColors[renderingLayerColorIndex];
             }
             ENDHLSL
         }
