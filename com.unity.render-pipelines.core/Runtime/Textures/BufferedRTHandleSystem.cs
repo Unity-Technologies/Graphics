@@ -147,6 +147,7 @@ namespace UnityEngine.Rendering
         /// Queries the number of RT handle buffers allocated for a buffer ID.
         /// </summary>
         /// <param name="bufferId">The buffer ID to query.</param>
+        /// <returns>The num of frames allocated</returns>
         public int GetNumFramesAllocated(int bufferId)
         {
             if (!m_RTHandles.ContainsKey(bufferId))

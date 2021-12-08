@@ -657,7 +657,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
-    /// Builtin Drawer for <see cref="DebugUI.ObjectField"> Items.
+    /// Builtin Drawer for <see cref="DebugUI.ObjectField"/> items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.ObjectField))]
     public sealed class DebugUIDrawerObjectField : DebugUIDrawer
@@ -665,7 +665,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// OnGUI implementation for Object DebugUIDrawer.
         /// </summary>
-        /// <param name="widget">DebugUI <see cref="DebugUI.Widget">.</param>
+        /// <param name="widget">DebugUI <see cref="DebugUI.Widget"/>.</param>
         /// <param name="state">Debug State associated with the Debug Item.</param>
         /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
@@ -685,7 +685,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
-    /// Builtin Drawer for <see cref="DebugUI.ObjectListField"> Items.
+    /// Builtin Drawer for <see cref="DebugUI.ObjectListField"/> Items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.ObjectListField))]
     public sealed class DebugUIDrawerObjectListField : DebugUIDrawer
@@ -693,7 +693,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// OnGUI implementation for ObjectList DebugUIDrawer.
         /// </summary>
-        /// <param name="widget">DebugUI <see cref="DebugUI.Widget">.</param>
+        /// <param name="widget">DebugUI <see cref="DebugUI.Widget"/>.</param>
         /// <param name="state">Debug State associated with the Debug Item.</param>
         /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
