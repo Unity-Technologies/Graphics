@@ -17,9 +17,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Removed FSR_ENABLE_16BIT option from FSRCommon.hlsl. The 16-bit FSR implementation is now automatically enabled when supported by the target platform.
 
-### Changed
-- Removed FSR_ENABLE_16BIT option from FSRCommon.hlsl. The 16-bit FSR implementation is now automatically enabled when supported by the target platform.
-
 ## [13.1.2] - 2021-11-05
 
 ### Added
