@@ -79,19 +79,20 @@ namespace UnityEditor.Rendering.HighDefinition
             if (layerUIBlocks == null)
                 CreateUIBlockLayers();
 
-            using (new EditorGUIUtility.IconSizeScope(Styles.layerIconSize))
+            var iconSize = EditorGUIUtility.GetIconSize();
+            for (int layerIndex = 0; layerIndex < layerCount.floatValue; layerIndex++)
             {
-                for (int layerIndex = 0; layerIndex < layerCount.floatValue; layerIndex++)
+                EditorGUIUtility.SetIconSize(Styles.layerIconSize);
+                using (var header = new MaterialHeaderScope(Styles.layers[layerIndex], (uint)Styles.layerExpandableBits[layerIndex], materialEditor))
                 {
-                    using (var header = new MaterialHeaderScope(Styles.layers[layerIndex], (uint)Styles.layerExpandableBits[layerIndex], materialEditor))
+                    if (header.expanded)
                     {
-                        if (header.expanded)
-                        {
-                            DrawLayerGUI(layerIndex);
-                        }
+                        EditorGUIUtility.SetIconSize(iconSize);
+                        DrawLayerGUI(layerIndex);
                     }
                 }
             }
+            EditorGUIUtility.SetIconSize(iconSize);
         }
 
         void DrawLayerGUI(int layerIndex)

@@ -5,7 +5,13 @@
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
 #define HAS_LIGHTLOOP
 
-// Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
+// If you need to change this, be sure to read this comment.
+// For raytracing we decided to force the shadow quality to low.
+// - The performance is the first reason, given that it may happen during the ray tracing stage for indirect or in a non-tiled context for deferred
+// we want to save that cost as it may increase signfiicantly the cost..
+// - The second reason is that some filtering modes require the screen space position (at the moment you read this comment high and ultra high), which we cannot provide
+// in a ray tracing context.
+// In addition to that, we intentionally disabled dithering for the ray tracing case as it requires the screen space position.
 #define SHADOW_LOW
 
 #pragma only_renderers d3d11 ps5

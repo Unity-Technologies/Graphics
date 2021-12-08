@@ -103,6 +103,7 @@
         * Lighting
             * [Ambient](Ambient-Node)
             * [Baked GI](Baked-GI-Node)
+            * [Main Light Direction](https://docs.unity3d.com/Packages/com.unity.shadergraph@13.1/manual/Main-Light-Direction-Node.html)
             * [Reflection Probe](Reflection-Probe-Node)
         * Matrix
             * [Matrix 2x2](Matrix-2x2-Node)
@@ -136,10 +137,10 @@
             * [Sample Virtual Texture](Sample-Virtual-Texture-Node)
             * [Sampler State](Sampler-State-Node)
             * [Split Texture Transform](Split-Texture-Transform-Node)
-            * [Texel Size](Texel-Size-Node)
             * [Texture 2D Array Asset](Texture-2D-Array-Asset-Node)
             * [Texture 2D Asset](Texture-2D-Asset-Node)
             * [Texture 3D Asset](Texture-3D-Asset-Node)
+            * [Texture Size](Texture-Size-Node)
     * [Math](Math-Nodes)
         * Advanced
             * [Absolute](Absolute-Node)

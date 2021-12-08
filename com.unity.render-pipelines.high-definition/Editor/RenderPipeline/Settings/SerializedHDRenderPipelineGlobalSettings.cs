@@ -1,11 +1,10 @@
+using System; //Type
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Rendering;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEditorInternal; //ReorderableList
 using UnityEngine; //ScriptableObject
 using UnityEngine.Rendering; //CoreUtils.Destroy
-using System; //Type
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -43,6 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty shaderVariantLogLevel;
         public SerializedProperty lensAttenuation;
+        public SerializedProperty colorGradingSpace;
         public SerializedProperty diffusionProfileSettingsList;
         public SerializedProperty supportProbeVolumes;
         public SerializedProperty supportRuntimeDebugDisplay;
@@ -132,6 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition
             shaderVariantLogLevel = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.shaderVariantLogLevel);
 
             lensAttenuation = serializedObject.FindProperty("lensAttenuationMode");
+            colorGradingSpace = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.colorGradingSpace);
             diffusionProfileSettingsList = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.diffusionProfileSettingsList);
             m_DiffusionProfileUI = new DiffusionProfileSettingsListUI()
             {
@@ -219,7 +220,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawDiffusionProfileElement(SerializedProperty element, Rect rect, int index)
         {
-            EditorGUI.BeginChangeCheck();
             EditorGUI.ObjectField(rect, element, EditorGUIUtility.TrTextContent("Profile " + index));
         }
     }

@@ -378,6 +378,8 @@ namespace UnityEditor.Rendering
             if (GUILayout.Button(Styles.resetButtonContent, EditorStyles.toolbarButton))
             {
                 DebugManager.instance.Reset();
+                DestroyWidgetStates();
+                UpdateWidgetStates();
                 InternalEditorUtility.RepaintAllViews();
             }
 
@@ -561,6 +563,9 @@ namespace UnityEditor.Rendering
             public readonly GUIStyle selected = "OL SelectedRow";
             public readonly GUIStyle sectionHeader = new GUIStyle(EditorStyles.largeLabel);
             public readonly Color skinBackgroundColor;
+
+            public static GUIStyle centeredLeft = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleLeft };
+            public static float singleRowHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
             public static int foldoutColumnWidth = 70;
 

@@ -492,6 +492,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
+        /// Refresh a shared texture with a new descriptor.
+        /// </summary>
+        /// <param name="handle">Shared texture that needs to be updated.</param>
+        /// <param name="desc">New Descriptor for the texture.</param>
+        public void RefreshSharedTextureDesc(TextureHandle handle, in TextureDesc desc)
+        {
+            m_Resources.RefreshSharedTextureDesc(handle, desc);
+        }
+
+        /// <summary>
         /// Release a Render Graph shared texture resource.
         /// </summary>
         /// <param name="texture">The handle to the texture that needs to be release.</param>
@@ -633,6 +643,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </code>
         /// </example>
         /// <seealso cref="RenderGraphExecution"/>
+        /// <returns><see cref="RenderGraphExecution"/></returns>
         public RenderGraphExecution RecordAndExecute(in RenderGraphParameters parameters)
         {
             m_CurrentFrameIndex = parameters.currentFrameIndex;

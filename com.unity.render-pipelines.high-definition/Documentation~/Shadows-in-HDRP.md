@@ -14,6 +14,7 @@ The number of shadow maps HDRP renders per Light depends on the **Type** of the 
 
 - A Spot Light renders one shadow map.
 - A Point Light renders six shadow maps (the number of faces in a cubemap).
+- An Area Light renders one shadow map.
 - A Directional Light renders one shadow map per cascade. Set the cascade count of Directional Lights from the [HD Shadow Settings](Override-Shadows.md) of your Scene’s [Volumes](Volumes.md). The default value is four cascades.
 
 HDRP can perform a dynamic rescale of shadow maps to maximize space usage in shadow atlases, but also to reduce the performance impact of lights that occupy a small portion of the screen. To do this, HDRP scales down a light's shadow map resolution depending on the size of the screen area the light covers. The smaller the area on the screen, the more HDRP scales the resolution down from the value set on the [Light component](Light-Component.md). To enable this feature, go the Shadow section of your Unity Project’s [HDRP Asset](HDRP-Asset.md) and enable the **Dynamic Rescale** property for the shadow atlas you want HDRP to dynamically rescale the shadow maps of.
@@ -21,7 +22,7 @@ Note that HDRP does not support dynamic rescale for cached shadow maps.
 
 ## Shadow atlases
 
-HDRP renders all real-time shadows for a frame using a shadow map atlas for all [punctual light](Glossary.md#PunctualLight) shadows, and another shadow map atlas for Directional Light shadows.
+HDRP renders all real-time shadows for a frame using a shadow map atlas for all [punctual light](Glossary.md#PunctualLight) shadows, an atlas for area lights and another one for Directional Light shadows.
 
 Set the size of these atlases in your Unity Project’s [HDRP Asset](HDRP-Asset.md). The atlas size determines the maximum resolution of shadows in your Scene.
 
@@ -141,7 +142,7 @@ If you plan to only temporarily set a Light's **Update Mode** to **Every Frame**
 
 ### Mixed Cached Shadow Maps
 
-For non-directional lights It is possible to cache only a portion of the shadow map. To do this, enable the **Always draw dynamic** option in the [Light's](Light-Component.md) shadow settings and then enable the **Static Shadow Caster** option for all Renderers to cache shadows for.
+In HDRP is possible to cache only a portion of the shadow map. To do this, enable the **Always draw dynamic** option in the [Light's](Light-Component.md) shadow settings and then enable the **Static Shadow Caster** option for all Renderers to cache shadows for. Additionally, for directional lights the feature needs to be enabled on the HDRP asset via **Lighting > Shadows > Directional Light Shadows > Allow Mixed Cached Shadows. **
 With this setup, HDRP renders static shadow casters into the shadow map depending on the Light's Update Mode, but it renders dynamic shadow casters into their respective shadow maps each frame. If the Update Mode is set to OnEnable, HDRP only renders static shadow casters when you enable the Light component. If the Update Mode is to OnDemand, HDRP only renders static shadow casters when you explicitly request an update.
 This setup is particularly useful if your environment consists of mostly static GameObjects and the lights do not move, but there are few dynamic GameObjects that you want the static lights to cast shadows for. In such scenarios, setting the light to have a mixed cached shadow map greatly improves performance both on the CPU and GPU.
 

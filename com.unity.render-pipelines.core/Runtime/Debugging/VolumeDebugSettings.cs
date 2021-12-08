@@ -7,14 +7,18 @@ using UnityEditor;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Volume debug settings.
+    /// The volume settings
     /// </summary>
+    /// <typeparam name="T">A <see cref="MonoBehaviour"/> with <see cref="IAdditionalData"/></typeparam>
     public abstract class VolumeDebugSettings<T> : IVolumeDebugSettings
         where T : MonoBehaviour, IAdditionalData
     {
         /// <summary>Current volume component to debug.</summary>
         public int selectedComponent { get; set; } = 0;
 
+        /// <summary>
+        /// The current selected camera index
+        /// </summary>
         protected int m_SelectedCameraIndex = 0;
 
         /// <summary>Selected camera index.</summary>
@@ -78,49 +82,39 @@ namespace UnityEngine.Rendering
         /// <summary>Type of the current component to debug.</summary>
         public Type selectedComponentType
         {
-            get { return componentTypes[selectedComponent - 1]; }
+            get { return componentTypes[selectedComponent - 1].Item2; }
             set
             {
-                var index = componentTypes.FindIndex(t => t == value);
+                var index = componentTypes.FindIndex(t => t.Item2 == value);
                 if (index != -1)
                     selectedComponent = index + 1;
             }
         }
 
-        static List<Type> s_ComponentTypes;
+        static List<(string, Type)> s_ComponentTypes;
 
         /// <summary>List of Volume component types.</summary>
-        static public List<Type> componentTypes
+        public List<(string, Type)> componentTypes
         {
             get
             {
                 if (s_ComponentTypes == null)
                 {
-                    s_ComponentTypes = VolumeManager.instance.baseComponentTypeArray
-                        .Where(t => !t.IsDefined(typeof(HideInInspector), false))
-                        .Where(t => !t.IsDefined(typeof(ObsoleteAttribute), false))
-                        .OrderBy(t => ComponentDisplayName(t))
-                        .ToList();
+                    s_ComponentTypes = VolumeManager.GetSupportedVolumeComponents(targetRenderPipeline);
                 }
                 return s_ComponentTypes;
             }
         }
 
-        /// <summary>Returns the name of a component from its VolumeComponentMenuForRenderPipeline.</summary>
-        /// <param name="component">A volume component.</param>
-        /// <returns>The component display name.</returns>
-        public static string ComponentDisplayName(Type component)
-        {
-            if (component.GetCustomAttribute(typeof(VolumeComponentMenuForRenderPipeline), false) is VolumeComponentMenuForRenderPipeline volumeComponentMenuForRenderPipeline)
-                return volumeComponentMenuForRenderPipeline.menu;
-
-            if (component.GetCustomAttribute(typeof(VolumeComponentMenu), false) is VolumeComponentMenuForRenderPipeline volumeComponentMenu)
-                return volumeComponentMenu.menu;
-
-            return component.Name;
-        }
-
+        /// <summary>
+        /// The list of the additional camera datas
+        /// </summary>
         protected static List<T> additionalCameraDatas { get; private set; } = new List<T>();
+
+        /// <summary>
+        /// Specifies the render pipeline for this volume settings
+        /// </summary>
+        public abstract Type targetRenderPipeline { get; }
 
         /// <summary>
         /// Register the camera for the Volume Debug.
@@ -167,6 +161,8 @@ namespace UnityEngine.Rendering
         float[] weights = null;
         float ComputeWeight(Volume volume, Vector3 triggerPos)
         {
+            if (volume == null) return 0;
+
             var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
 
             if (!volume.gameObject.activeInHierarchy) return 0;
