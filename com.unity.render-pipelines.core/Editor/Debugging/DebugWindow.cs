@@ -141,7 +141,7 @@ namespace UnityEditor.Rendering
 
             open = true;
 
-            titleContent = Styles.windowTitle;
+            titleContent = EditorGUIUtility.TrTextContent(Styles.windowTitle);
 
             DebugManager.instance.refreshEditorRequested = false;
 
@@ -545,7 +545,7 @@ namespace UnityEditor.Rendering
         {
             public static float s_DefaultLabelWidth = 0.5f;
 
-            public static GUIContent windowTitle { get; } = EditorGUIUtility.TrTextContent("Rendering Debugger");
+            public static string windowTitle { get; } = "Rendering Debugger";
 
             public static GUIContent resetButtonContent { get; } = EditorGUIUtility.TrTextContent("Reset");
 
