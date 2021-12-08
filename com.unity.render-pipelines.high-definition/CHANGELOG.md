@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed FOV change when enabling physical camera.
 - Fixed spot light shadows near plane
 - Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
+- Fixed build warnings due to the exception in burst code (case 1382827).
 
 ## [12.1.2] - 2021-10-22
 
