@@ -1624,7 +1624,15 @@ namespace UnityEditor.VFX.UI
                 if (EditorUtility.IsDirty(graph) || UnityEngine.Object.ReferenceEquals(graph, controller.graph))
                 {
                     graph.UpdateSubAssets();
-                    graph.GetResource().WriteAsset();
+                    try
+                    {
+                        VFXGraph.compilingInEditMode = !m_IsRuntimeMode;
+                        graph.GetResource().WriteAsset();
+                    }
+                    finally
+                    {
+                        VFXGraph.compilingInEditMode = false;
+                    }
                 }
             }
         }
