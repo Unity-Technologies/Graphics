@@ -48,8 +48,8 @@ MonoBehaviour:
 
           <b>Global</b> volume overrides are applied
           to all cameras in the Scene regardless of their position. A <b>Global</b>
-          volume can be considered as an infinitely large and is useful to control
-          settings affecting the entire world, such as Sky and Fog.
+          volume can be considered as infinitely large and is useful to control settings
+          affecting the entire world, such as Sky and Fog.
 
 
           <b>Local</b>

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
 - Fixed inspector documentation URLs for the URP asset and Universal Renderer asset.
 - Fixed render scale setting unintentionally affecting the scene view camera.
+- Fixed property wrappers around material properties.
 
 ## [13.1.2] - 2021-11-05
 
@@ -41,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed decals to work with render scale [1353885](https://issuetracker.unity3d.com/issues/urp-builtin-to-urp-render-pipeline-converter-freezes-the-editor-when-converting-rendering-settings)
 - Fixed an issue in where the _ScreenParams is not setup correctly.
 - Fixed an issue where intermediate rendertextures were not scaled when a camera was rendering to a texture [case 1342895](https://issuetracker.unity3d.com/issues/camera-rendertocubemap-offsets-and-stretches-out-the-ambient-occlusionl-layer-when-the-render-scale-is-not-equal-to-1)
+
 ## [13.1.1] - 2021-10-04
 
 ### Added
@@ -61,6 +63,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Multiply blend now keeps DstAlpha as it's RGB only.
 - Particle AlphaModulate() renamed to AlphaModulateAndPremultiply() as it does both. Moved separate AlphaModulate() and AlphaPremultiply() to URP shader library. Fix double alpha multiply for ParticleLit.
 - Improved blending modes trigger a material update which tries to keep the existing look intact. This is not always possible and manual blend mode changes might be required.
+- Reverted intermediate texture behavior.
 
 ### Fixed
 - Fixed incorrect premultiply blend mode. case 1260085, case 1357703, [case 1347301](https://issuetracker.unity3d.com/product/unity/issues/guid/1347301/)
@@ -75,6 +78,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed disabled debug lighting modes on Vulkan and OpenGL following a shader compiler fix. [case 1334240]
 - Fixed an issue in where the Convert Renderering Settings would cause a freeze. [case 1353885](https://issuetracker.unity3d.com/issues/urp-builtin-to-urp-render-pipeline-converter-freezes-the-editor-when-converting-rendering-settings)
 - Fixed incorrect behavior of Reflections with Smoothness lighting debug mode. [case 1374181]
+- Fixed a performance regression in the 2D renderer regarding the PostProcessPass [case 1347893]
+- Fixed light banding artifacts on some mobile platforms. [case 1375791](https://issuetracker.unity3d.com/issues/mobile-urp-banding-like-artifacts-are-visible-when-smooth-material-is-lit-by-light)
 
 ## [13.1.0] - 2021-09-24
 ### Added
