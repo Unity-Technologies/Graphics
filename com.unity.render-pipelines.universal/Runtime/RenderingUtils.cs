@@ -485,6 +485,11 @@ namespace UnityEngine.Rendering.Universal
 
         internal static bool MultisampleDepthResolveSupported()
         {
+            // Temporarily disabling depth resolve a driver bug on OSX when using some AMD graphics cards. Temporarily disabling depth resolve on that platform
+            // TODO: re-enable once the issue is investigated/fixed
+            if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer)
+                return false;
+
             // Should we also check if the format has stencil and check stencil resolve capability only in that case?
             return SystemInfo.supportsMultisampleResolveDepth && SystemInfo.supportsMultisampleResolveStencil;
         }
