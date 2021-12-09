@@ -205,7 +205,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return renderedAnyLight;
         }
 
-        private static void RenderLightVolumeSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
+        private static void RenderLightVolumeSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int lowerLayerIndex, int upperLayerIndex, int layerToRender, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
         {
             if (lights.Count > 0)
             {
@@ -213,10 +213,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     var light = lights[i];
 
-                    var topMostLayer = light.GetTopMostLitLayer();
-                    if (layerToRender == topMostLayer)
+                    var topMostLayer = light.GetTopMostLitLayerIndex();
+                    if (topMostLayer <= upperLayerIndex && topMostLayer >= lowerLayerIndex)
                     {
-                        if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.blendStyleIndex == blendStyleIndex && light.IsLitLayer(layerToRender))
+                        if (light != null && light.lightType != Light2D.LightType.Global && light.volumeOpacity > 0.0f && light.blendStyleIndex == blendStyleIndex)
                         {
                             var lightVolumeMaterial = pass.rendererData.GetLightMaterial(light, true);
                             if (lightVolumeMaterial != null)
@@ -394,7 +394,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTarget, RenderTargetIdentifier depthTarget, uint blendStylesUsed)
+        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int lowerLayerIndex, int upperLayerIndex, int layerToRender, RenderTargetIdentifier renderTarget, RenderTargetIdentifier depthTarget, uint blendStylesUsed)
         {
             var blendStyles = pass.rendererData.lightBlendStyles;
 
@@ -410,6 +410,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     pass, renderingData,
                     i,
                     cmd,
+                    lowerLayerIndex,
+                    upperLayerIndex,
                     layerToRender,
                     renderTarget,
                     depthTarget,

@@ -183,7 +183,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         if (lightStats.totalVolumetricUsage > 0)
                         {
                             cmd.Clear();
-                            this.RenderLightVolumes(renderingData, cmd, layerToRender, colorAttachment, depthAttachment, lightStats.blendStylesUsed);
+                            this.RenderLightVolumes(renderingData, cmd, lowerBound, upperBound, layerToRender, colorAttachment, depthAttachment, lightStats.blendStylesUsed);
                             context.ExecuteCommandBuffer(cmd);
                             cmd.Clear();
                         }
