@@ -4,18 +4,26 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.9.0] - 2021-12-06
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [10.8.0] - 2021-09-20
 
 ### Added
 - Added [DisallowMultipleRendererFeature] attribute for Renderer Features.
+- Added a DepthNormalOnly pass for UniversalUnlit Shadergraph shaders.
+
+### Changed
+- MaterialReimporter.ReimportAllMaterials now batches the asset database changes to improve performance.
+- MaterialReimporter.ReimportAllMaterials now batches the asset database changes to improve performance.
 
 ### Fixed
 - Fixed ShaderGraph needing updated normals for ShadowCaster in URP.
 - Fixed memory leak with XR combined occlusion meshes. [case 1366173]
 - Fixed a 2D Renderer issue with volumetric lights sometimes not showing. [case 1329119]
-
-### Changed
-- MaterialReimporter.ReimportAllMaterials now batches the asset database changes to improve performance.
+- Fixed an issue with MSAA falling back to the incorrect value when sample count 2 is not supported on some Android GPUs.
 
 ## [10.7.0] - 2021-07-02
 

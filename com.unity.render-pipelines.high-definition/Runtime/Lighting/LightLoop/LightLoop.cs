@@ -1400,6 +1400,12 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.angularDiameter = additionalLightData.angularDiameter * Mathf.Deg2Rad;
             lightData.flareSize       = Mathf.Max(additionalLightData.flareSize * Mathf.Deg2Rad, 5.960464478e-8f);
             lightData.flareFalloff    = additionalLightData.flareFalloff;
+
+            // On some vendors trigonometry has very bad precision, so we precompute what we can on CPU to avoid precision issues (case 1369376).
+            float radInner = 0.5f * lightData.angularDiameter;
+            lightData.flareCosInner = Mathf.Cos(radInner);
+            lightData.flareCosOuter = Mathf.Cos(radInner + lightData.flareSize);
+
             lightData.flareTint       = (Vector3)(Vector4)additionalLightData.flareTint;
             lightData.surfaceTint     = (Vector3)(Vector4)additionalLightData.surfaceTint;
 
@@ -3793,7 +3799,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // Evaluate the contact shadow index of this light
-            contactShadowMask = 1 << m_ContactShadowIndex++;
+            contactShadowMask = 1 << m_ContactShadowIndex;
+            m_ContactShadowIndex++; // Update the index for next light that will need to cast contact shadows.
 
             // If this light has ray traced contact shadow
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && hdAdditionalLightData.rayTraceContactShadow)
