@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed FOV change when enabling physical camera.
 - Fixed spot light shadows near plane
 - Fixed unsupported material properties show when rendering pass is Low Resolution.
+- Fixed auto-exposure mismatch between sky background and scene objects in path tracing (case 1385131).
 
 ## [13.1.2] - 2021-11-05
 
