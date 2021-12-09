@@ -205,11 +205,6 @@ namespace UnityEngine.VFX
 #endif
         }
 
-        private static double Abs(double a)
-        {
-            return a < 0.0 ? -a : a;
-        }
-
         bool IsTimeInChunk(double time, int index)
         {
             var chunk = m_Chunks[index];
@@ -278,7 +273,7 @@ namespace UnityEngine.VFX
                     var playingBackward = playableTime < m_LastPlayableTime;
                     if (!playingBackward)
                     {
-                        if (Abs(m_LastPlayableTime - actualCurrentTime) < VFXManager.maxDeltaTime)
+                        if (Math.Abs(m_LastPlayableTime - actualCurrentTime) < VFXManager.maxDeltaTime)
                         {
                             //Remove the float part from VFX and only keep double precision
                             actualCurrentTime = m_LastPlayableTime;
