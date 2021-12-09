@@ -25,87 +25,64 @@ namespace UnityEngine.VFX
     [Serializable]
     abstract class EventAttributeValue<T> : EventAttribute
     {
+        private readonly Func<VFXEventAttribute, int, bool> m_HasFunc;
+        private readonly Action<VFXEventAttribute, int, T> m_ApplyFunc;
+
+        protected EventAttributeValue(Func<VFXEventAttribute, int, bool> hasFunc, Action<VFXEventAttribute, int, T> applyFunc)
+        {
+            m_HasFunc = hasFunc;
+            m_ApplyFunc = applyFunc;
+        }
+
+        public sealed override bool ApplyToVFX(VFXEventAttribute eventAttribute)
+        {
+            if (!m_HasFunc(eventAttribute, id))
+                return false;
+            m_ApplyFunc(eventAttribute, id, value);;
+            return true;
+        }
+
         public T value;
     }
 
     [Serializable]
     class EventAttributeFloat : EventAttributeValue<float>
     {
-        public sealed override bool ApplyToVFX(VFXEventAttribute eventAttribute)
-        {
-            if (!eventAttribute.HasFloat(id))
-                return false;
-            eventAttribute.SetFloat(id, value);
-            return true;
-        }
+        public EventAttributeFloat() : base((e, id) => e.HasFloat(id), (e, id, value) => e.SetFloat(id, value)) { }
     }
+
     [Serializable]
     class EventAttributeVector2 : EventAttributeValue<Vector2>
     {
-        public sealed override bool ApplyToVFX(VFXEventAttribute eventAttribute)
-        {
-            if (!eventAttribute.HasVector2(id))
-                return false;
-            eventAttribute.SetVector2(id, value);
-            return true;
-        }
+        public EventAttributeVector2() : base((e, id) => e.HasVector2(id), (e, id, value) => e.SetVector2(id, value)) { }
     }
+
     [Serializable]
     class EventAttributeVector3 : EventAttributeValue<Vector3>
     {
-        public sealed override bool ApplyToVFX(VFXEventAttribute eventAttribute)
-        {
-            if (!eventAttribute.HasVector3(id))
-                return false;
-            eventAttribute.SetVector3(id, value);
-            return true;
-        }
+        public EventAttributeVector3() : base((e, id) => e.HasVector3(id), (e, id, value) => e.SetVector3(id, value)) { }
     }
     [Serializable]
     class EventAttributeColor : EventAttributeVector3 {}
     [Serializable]
     class EventAttributeVector4 : EventAttributeValue<Vector4>
     {
-        public sealed override bool ApplyToVFX(VFXEventAttribute eventAttribute)
-        {
-            if (!eventAttribute.HasVector4(id))
-                return false;
-            eventAttribute.SetVector4(id, value);
-            return true;
-        }
+        public EventAttributeVector4() : base((e, id) => e.HasVector4(id), (e, id, value) => e.SetVector4(id, value)) { }
     }
     [Serializable]
     class EventAttributeInt : EventAttributeValue<int>
     {
-        public sealed override bool ApplyToVFX(VFXEventAttribute eventAttribute)
-        {
-            if (!eventAttribute.HasInt(id))
-                return false;
-            eventAttribute.SetInt(id, value);
-            return true;
-        }
+        public EventAttributeInt() : base((e, id) => e.HasInt(id), (e, id, value) => e.SetInt(id, value)) { }
     }
     [Serializable]
     class EventAttributeUInt : EventAttributeValue<uint>
     {
-        public sealed override bool ApplyToVFX(VFXEventAttribute eventAttribute)
-        {
-            if (!eventAttribute.HasUint(id))
-                return false;
-            eventAttribute.SetUint(id, value);
-            return true;
-        }
+        public EventAttributeUInt() : base((e, id) => e.HasUint(id), (e, id, value) => e.SetUint(id, value)) { }
     }
     [Serializable]
     class EventAttributeBool : EventAttributeValue<bool>
     {
-        public sealed override bool ApplyToVFX(VFXEventAttribute eventAttribute)
-        {
-            if (!eventAttribute.HasBool(id))
-                return false;
-            eventAttribute.SetBool(id, value);
-            return true;
-        }
+        public EventAttributeBool() : base((e, id) => e.HasBool(id), (e, id, value) => e.SetBool(id, value)) { }
     }
 
     static class VFXTimeSpaceHelper
