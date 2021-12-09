@@ -9,7 +9,6 @@ using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
 
-
 namespace UnityEditor.VFX.UI
 {
     [Serializable]
@@ -19,6 +18,7 @@ namespace UnityEditor.VFX.UI
 
         ShortcutHandler m_ShortcutHandler;
         VisualEffect m_pendingAttachment;
+        bool m_HasChanged;
 
         void OnEnable()
         {
@@ -120,6 +120,11 @@ namespace UnityEditor.VFX.UI
             }
 
             return false;
+        }
+
+        public void MarkHasChanged()
+        {
+            m_HasChanged = true;
         }
 
         public VFXView graphView { get; private set; }
@@ -342,6 +347,12 @@ namespace UnityEditor.VFX.UI
             var filename = "No Asset";
             if (controller != null)
             {
+                if (m_HasChanged)
+                {
+                    m_HasChanged = false;
+                    controller.graph.SanitizeForImport();
+                }
+
                 controller.NotifyUpdate();
                 if (controller.model != null)
                 {

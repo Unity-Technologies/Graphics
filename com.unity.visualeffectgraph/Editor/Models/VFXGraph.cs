@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-
+using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Profiling;
@@ -46,6 +46,16 @@ namespace UnityEditor.VFX
                         catch (Exception exception)
                         {
                             Debug.LogErrorFormat("Exception during sanitization of {0} : {1}", assetPath, exception);
+                        }
+
+                        // When an asset file is modified the current graph must be cleaned up
+                        foreach (var window in VFXViewWindow.GetAllWindows())
+                        {
+                            var path = AssetDatabase.GetAssetPath(window.displayedResource);
+                            if (assetPath == path)
+                            {
+                                window.MarkHasChanged();
+                            }
                         }
                     }
                     else
