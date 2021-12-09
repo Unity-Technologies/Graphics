@@ -940,7 +940,6 @@ namespace UnityEngine.Rendering.Universal
             if (isOverlayCamera)
             {
                 cameraData.requiresOpaqueTexture = false;
-                cameraData.postProcessingRequiresDepthTexture = false;
             }
 
             Matrix4x4 projectionMatrix = camera.projectionMatrix;
@@ -990,7 +989,7 @@ namespace UnityEngine.Rendering.Universal
                 mainLightCastShadows = (mainLightIndex != -1 && visibleLights[mainLightIndex].light != null &&
                     visibleLights[mainLightIndex].light.shadows != LightShadows.None);
 
-                // If additional lights are shaded per-pixel they cannot cast shadows
+                // If additional lights are shaded per-vertex they cannot cast shadows
                 if (settings.additionalLightsRenderingMode == LightRenderingMode.PerPixel)
                 {
                     for (int i = 0; i < visibleLights.Length; ++i)
