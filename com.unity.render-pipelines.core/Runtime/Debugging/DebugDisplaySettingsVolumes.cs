@@ -217,31 +217,35 @@ namespace UnityEngine.Rendering
                 {
                     displayName = Strings.volumeInfo,
                     opened = true, // Open by default for the in-game view
-                    children = { new DebugUI.Value() {
-                                         displayName = Strings.interpolatedValue,
-                                         getter = () => {
-                                             // This getter is called first at each render
-                                             // It is used to update the volumes
-                                             if (Time.time - timer < refreshRate)
-                                                 return string.Empty;
-                                             timer = Time.deltaTime;
-                                             if (data.volumeDebugSettings.selectedCameraIndex != 0)
-                                             {
-                                                 var newVolumes = data.volumeDebugSettings.GetVolumes();
-                                                 if (!data.volumeDebugSettings.RefreshVolumes(newVolumes))
-                                                 {
-                                                     for (int i = 0; i < newVolumes.Length; i++)
-                                                     {
-                                                         var visible = data.volumeDebugSettings.VolumeHasInfluence(newVolumes[i]);
-                                                         table.SetColumnVisibility(i + 1, visible);
-                                                     }
-                                                     return string.Empty;
-                                                 }
-                                             }
-                                             DebugManager.instance.ReDrawOnScreenDebug();
-                                             return string.Empty;
-                                         }
-                                     } }
+                    children =
+                    {
+                        new DebugUI.Value()
+                        {
+                            displayName = Strings.interpolatedValue,
+                            getter = () => {
+                                // This getter is called first at each render
+                                // It is used to update the volumes
+                                if (Time.time - timer < refreshRate)
+                                    return string.Empty;
+                                timer = Time.deltaTime;
+                                if (data.volumeDebugSettings.selectedCameraIndex != 0)
+                                {
+                                    var newVolumes = data.volumeDebugSettings.GetVolumes();
+                                    if (!data.volumeDebugSettings.RefreshVolumes(newVolumes))
+                                    {
+                                        for (int i = 0; i < newVolumes.Length; i++)
+                                        {
+                                            var visible = data.volumeDebugSettings.VolumeHasInfluence(newVolumes[i]);
+                                            table.SetColumnVisibility(i + 1, visible);
+                                        }
+                                        return string.Empty;
+                                    }
+                                }
+                                DebugManager.instance.ReDrawOnScreenDebug();
+                                return string.Empty;
+                            }
+                        }
+                    }
                 };
 
                 // Second row, links to volume gameobjects
@@ -256,7 +260,7 @@ namespace UnityEngine.Rendering
                     var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
                     row.children.Add(new DebugUI.Value()
                     {
-                        displayName = $"{volume.name} ({profile.name})",
+                        displayName = profile.name,
                         getter = () =>
                         {
                             var scope = volume.isGlobal ? Strings.global : Strings.local;
