@@ -763,7 +763,12 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
-            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
+
+            // Render scale is not intended to affect the scene view so override the scale to 1.0 when it's rendered.
+            bool isSceneViewCamera = (camera.cameraType == CameraType.SceneView);
+            float renderScale = isSceneViewCamera ? 1.0f : cameraData.renderScale;
+
+            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, renderScale,
                 cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
         }
 

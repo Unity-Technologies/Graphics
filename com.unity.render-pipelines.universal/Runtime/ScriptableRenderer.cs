@@ -153,18 +153,14 @@ namespace UnityEngine.Rendering.Universal
 
             Camera camera = cameraData.camera;
 
-            Rect pixelRect = cameraData.pixelRect;
-            float renderScale = cameraData.isSceneViewCamera ? 1f : cameraData.renderScale;
-            float scaledCameraWidth = (float)pixelRect.width * renderScale;
-            float scaledCameraHeight = (float)pixelRect.height * renderScale;
-            float cameraWidth = (float)pixelRect.width;
-            float cameraHeight = (float)pixelRect.height;
+            float scaledCameraWidth = (float)cameraData.cameraTargetDescriptor.width;
+            float scaledCameraHeight = (float)cameraData.cameraTargetDescriptor.height;
+            float cameraWidth = (float)camera.pixelWidth;
+            float cameraHeight = (float)camera.pixelHeight;
 
             // Use eye texture's width and height as screen params when XR is enabled
             if (cameraData.xr.enabled)
             {
-                scaledCameraWidth = (float)cameraData.cameraTargetDescriptor.width;
-                scaledCameraHeight = (float)cameraData.cameraTargetDescriptor.height;
                 cameraWidth = (float)cameraData.cameraTargetDescriptor.width;
                 cameraHeight = (float)cameraData.cameraTargetDescriptor.height;
 
