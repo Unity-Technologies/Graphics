@@ -132,18 +132,7 @@ namespace UnityEngine.VFX
                 singleEvents = new List<VisualEffectPlayableSerializedEvent>();
 
             behaviour.clipEventsCount = (uint)clipEvents.Count;
-            behaviour.events = new VisualEffectPlayableSerializedEvent[clipEvents.Count * 2 + singleEvents.Count];
-            int cursor = 0;
-            foreach (var itEvent in clipEvents)
-            {
-                behaviour.events[cursor++] = itEvent.enter;
-                behaviour.events[cursor++] = itEvent.exit;
-            }
-
-            foreach (var itEvent in singleEvents)
-            {
-                behaviour.events[cursor++] = itEvent;
-            }
+            behaviour.events = clipEvents.SelectMany(x => new VisualEffectPlayableSerializedEvent[] { x.enter, x.exit }).Concat(singleEvents).ToArray();
 
             if (!prewarm.enable || !behaviour.reinitEnter || prewarm.eventName == null || string.IsNullOrEmpty((string)prewarm.eventName))
             {
