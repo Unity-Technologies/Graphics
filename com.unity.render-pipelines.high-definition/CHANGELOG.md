@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a warning because of a null texture in the lens flare pass.
 - Fixed a nullref when enabling raycount without ray tracing.
 - Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
+- Fixed unsupported material properties show when rendering pass is Low Resolution.
 
 ## [13.1.3] - 2021-11-17
 
