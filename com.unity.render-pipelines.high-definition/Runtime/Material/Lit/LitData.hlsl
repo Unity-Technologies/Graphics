@@ -141,7 +141,16 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
                       float3 positionRWS, float3 vertexNormalWS, inout LayerTexCoord layerTexCoord)
 {
     layerTexCoord.vertexNormalWS = vertexNormalWS;
-    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(vertexNormalWS);
+    float objectSpaceMapping = false;
+#ifndef LAYERED_LIT_SHADER
+    objectSpaceMapping = _ObjectSpaceUVMapping;
+    if (objectSpaceMapping)
+    {
+        layerTexCoord.vertexNormalWS = TransformWorldToObjectNormal(layerTexCoord.vertexNormalWS);
+    }
+#endif
+
+    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(layerTexCoord.vertexNormalWS);
 
     int mappingType = UV_MAPPING_UVSET;
 #if defined(_MAPPING_PLANAR)
@@ -151,10 +160,6 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #endif
 
 
-    float objectSpaceMapping = false;
-#ifndef LAYERED_LIT_SHADER
-    objectSpaceMapping = _ObjectSpaceUVMapping;
-#endif
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
     ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask, _UVDetailsMappingMask,
                             _BaseColorMap_ST.xy, _BaseColorMap_ST.zw, _DetailMap_ST.xy, _DetailMap_ST.zw, 1.0, _LinkDetailsWithBase,

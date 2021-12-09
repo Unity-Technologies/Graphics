@@ -37,6 +37,12 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
     layerTexCoord.vertexNormalWS = input.tangentToWorld[2].xyz;
+    bool objectSpaceMapping = false;
+#ifndef LAYERED_LIT_SHADER
+    objectSpaceMapping = _ObjectSpaceUVMappingEmissive;
+    if (objectSpaceMapping)
+        layerTexCoord.vertexNormalWS = TransformWorldToObjectNormal(layerTexCoord.vertexNormalWS);
+#endif
     layerTexCoord.triplanarWeights = ComputeTriplanarWeights(layerTexCoord.vertexNormalWS);
 
     int mappingType = UV_MAPPING_UVSET;
@@ -47,9 +53,7 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
     #endif
 
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
-    bool objectSpaceMapping = false;
     #ifndef LAYERED_LIT_SHADER
-    objectSpaceMapping = _ObjectSpaceUVMappingEmissive;
     ComputeLayerTexCoord(
     #else
     ComputeLayerTexCoord0(
