@@ -27,7 +27,7 @@ The **Indirect Lighting Controller** uses the [Volume](Volumes.md) framework, so
 | **Reflection Lighting Layers**  | Specifies the [Light Layers](Light-Layers.md) for reflection lighting. If you enable Light Layers, you can use them to decouple Meshes in your Scene from the above multiplier. |
 | **Reflection/Planar Probe Intensity Multiplier** | A multiplier for baked, realtime, and custom [Reflection Probes](Reflection-Probe.md) and [Planar Probes](Planar-Reflection-Probe.md). HDRP multiplies the Reflection Probe data by this value. |
 | **Sky Reflection Fallback Multiplier** | A multiplier for the fallback Sky Reflection used when no [Reflection Probes](Reflection-Probe.md) or [Planar Probes](Planar-Reflection-Probe.md) are found. |
-| **Ambient Probe Multiplier** | A multiplier for the the indirect diffuse lighting that comes specifically from the ambient probe. This only applies when ambient probe is explicitly sampled, meaning that it won't affect the ambient probe fallback with light probe groups (but will work for Probe Volume fallback) |
+| **Ambient Probe Multiplier** | A multiplier for the the indirect diffuse lighting that comes specifically from the ambient probe. This only applies when ambient probe is explicitly dynamically sampled, meaning that it won't affect baked lighting: Lightmaps, light probe groups, Light Proxy Volumes or Probe Volume (but will work for Probe Volume ambient probe fallback) |
 
 ## Details
 
