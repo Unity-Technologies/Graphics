@@ -76,7 +76,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         UpdateSkyEnvironmentConvolution,
         RenderSkyToCubemap,
-        UpdateSkyEnvironment,
         UpdateSkyAmbientProbe,
         PreRenderSky,
         RenderSky,
