@@ -55,7 +55,9 @@ namespace UnityEditor.ShaderGraph
             var startIndex = builder.length;
             generator(builder);
             var length = builder.length - startIndex;
-            var code = builder.ToString(startIndex, length);
+
+            // trim fixes mismatched whitespace issue when nodes come from subgraphs
+            var code = builder.ToString(startIndex, length).Trim();
 
             // validate some assumptions around generics
             bool isGenericName = name.Contains("$");
