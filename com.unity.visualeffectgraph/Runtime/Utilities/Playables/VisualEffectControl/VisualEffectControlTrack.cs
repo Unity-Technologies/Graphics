@@ -49,7 +49,6 @@ namespace UnityEngine.VFX
                 }
             }
         }
-#endif
 
         protected override void OnBeforeTrackSerialize()
         {
@@ -60,6 +59,7 @@ namespace UnityEngine.VFX
                 m_VFXVersion = kCurrentVersion;
             }
         }
+#endif
 
         public override Playable CreateTrackMixer(PlayableGraph graph, GameObject go, int inputCount)
         {
