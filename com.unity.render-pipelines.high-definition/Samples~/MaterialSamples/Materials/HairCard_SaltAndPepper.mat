@@ -35,6 +35,7 @@ Material:
     - _Tip_Distance: 0.544
     - _Tip_Fade: 1
     m_Colors:
+    - _HairStrandDirection: {r: 0, g: -1, b: 0, a: 0}
     - _Length_Color: {r: 0.16037738, g: 0.090601645, b: 0.061528422, a: 1}
     - _Tip_Color: {r: 0.5, g: 0.4661345, b: 0.45597482, a: 1}
   m_BuildTextureStacks: []

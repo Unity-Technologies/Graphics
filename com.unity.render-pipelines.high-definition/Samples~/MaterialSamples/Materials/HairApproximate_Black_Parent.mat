@@ -49,6 +49,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: e793cee1081509742aeccad4b3f20023, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Alpha_Depth:
+        m_Texture: {fileID: 2800000, guid: e793cee1081509742aeccad4b3f20023, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _Masks:
         m_Texture: {fileID: 2800000, guid: 90f9510c5abe671408314d014b0924cc, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -90,8 +94,11 @@ Material:
     - _EnableFogOnTransparent: 1
     - _Going_Grey: 0
     - _MaxSmoothness: 0.6
+    - _Max_Smoothness: 0.6
     - _MinSmoothness: 0.4
+    - _Min_Smoothness: 0.4
     - _Opacity_Fading: 0.1
+    - _Opacity_Multiplier: 1
     - _Opacity_Threshold: 0.75
     - _OpaqueCullMode: 2
     - _Per_Strand_Hue_Variation: 0.01
@@ -103,13 +110,18 @@ Material:
     - _RenderQueueType: 3
     - _RequireSplitLighting: 0
     - _RimTransmittanceReach: 0.2
+    - _Rim_Transmittance_Reach: 0.2
     - _Root_Distance: 0.309
     - _Root_Fade: 0.309
     - _SecondarySmoothnessOffset: 0.1
     - _SecondarySpecularMultiplier: 2
     - _SecondarySpecularShift: -0.1
+    - _Secondary_Smoothness_Offset: 0.1
+    - _Secondary_Specular_Multiplier: 2
+    - _Secondary_Specular_Shift: -0.1
     - _Specular: 0.5
     - _SpecularShift: 0.1
+    - _Specular_Shift: 0.1
     - _SrcBlend: 1
     - _StencilRef: 0
     - _StencilRefDepth: 0
@@ -144,8 +156,11 @@ Material:
     - _BaseColor: {r: 0.3679245, g: 0.24488528, b: 0.17586327, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: 1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _HairStrandDirection: {r: 0, g: -1, b: 0, a: 0}
+    - _Hair_Strand_Direction: {r: 0, g: -1, b: 0, a: 0}
     - _Length_Color: {r: 0.09433961, g: 0.055926923, b: 0.03975316, a: 1}
     - _RimTransmittanceColor: {r: 1, g: 0.847236, b: 0.71383643, a: 0}
+    - _Rim_Transmittance_Color: {r: 1, g: 0.8433349, b: 0.7798742, a: 0}
     - _Root_Color: {r: 0.12156857, g: 0.043137237, b: 0.01176471, a: 1}
     - _SecondarySpecularTint: {r: 0.6509434, g: 0.45589027, b: 0.34798858, a: 1}
     - _Specular_Tint: {r: 0.5377358, g: 0.5377358, b: 0.5377358, a: 1}

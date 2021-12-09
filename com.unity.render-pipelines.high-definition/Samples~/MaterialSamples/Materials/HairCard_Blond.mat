@@ -32,6 +32,7 @@ Material:
     - _Baked_Ambient_Occlusion: 0.338
     - _RECALCULATE_CARD_NORMALS: 1
     m_Colors:
+    - _HairStrandDirection: {r: 0, g: -1, b: 0, a: 0}
     - _Length_Color: {r: 0.6886792, g: 0.43000898, b: 0.22522837, a: 1}
     - _Root_Color: {r: 0.31132078, g: 0.22620408, b: 0.18698825, a: 1}
     - _Tip_Color: {r: 0.8396226, g: 0.6838454, b: 0.5280645, a: 1}

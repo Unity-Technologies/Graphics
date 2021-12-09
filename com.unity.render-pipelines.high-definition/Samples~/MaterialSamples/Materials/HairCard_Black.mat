@@ -53,6 +53,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: e793cee1081509742aeccad4b3f20023, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Alpha_Depth:
+        m_Texture: {fileID: 2800000, guid: e793cee1081509742aeccad4b3f20023, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _Masks:
         m_Texture: {fileID: 2800000, guid: 90f9510c5abe671408314d014b0924cc, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -113,8 +117,11 @@ Material:
     - _Length_Smoothness: 0.7
     - _MaxRadius: 0.006
     - _MaxSmoothness: 0.75
+    - _Max_Opacity: 1
+    - _Max_Smoothness: 0.7
     - _MinRadius: 0.002
     - _MinSmoothness: 0.6
+    - _Min_Smoothness: 0.6
     - _Opacity_Fading: 0.1
     - _Opacity_Threshold: 0.75
     - _OpaqueCullMode: 2
@@ -170,6 +177,8 @@ Material:
     m_Colors:
     - _DoubleSidedConstants: {r: 1, g: 1, b: 1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _HairStrandDirection: {r: 0, g: -1, b: 0, a: 0}
+    - _Hair_Strand_Direction: {r: 0, g: -1, b: 0, a: 0}
     - _Length_Color: {r: 0.09433961, g: 0.07624301, b: 0.07624301, a: 1}
     - _Root_Color: {r: 0.1137255, g: 0.09411766, b: 0.09019608, a: 1}
     - _Tiling: {r: 1, g: 10, b: 0, a: 0}

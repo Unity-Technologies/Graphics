@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 299.9385, g: 337.0142, b: 537.30084, a: 1}
+  m_IndirectSpecularColor: {r: 300.07816, g: 337.18265, b: 537.49615, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -937,7 +937,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 214563287}
-  m_Mesh: {fileID: -2534719955929479979, guid: cd3f47ac70ac3894ca1a2bd3d52f2b2c, type: 3}
+  m_Mesh: {fileID: -2534719955929479979, guid: 0cbc7ab5fd0287b43bd14b38b240b2b6, type: 3}
 --- !u!1 &477366397
 GameObject:
   m_ObjectHideFlags: 0
@@ -991,7 +991,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -0.22}
+  m_AnchoredPosition: {x: 0, y: -0.206}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &481368174
@@ -1014,10 +1014,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Physical is based on Marschner algorithm. Opaque material, no textures,
-    using vertex color for ambient occlusion, strand index, and radius. Strands are
-    screen aligned ribbon. Check out the shadergraph for details. Enable MSAA for
-    better anti-aliasing.
+  m_text: The Physical shader is based on Marschner algorithm. An opaque material,
+    no textures, using vertex color for ambient occlusion, strand index, and radius.
+    Strands are screen aligned ribbons. Check out the shadergraph for more details.
+    Enable MSAA for better anti-aliasing.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1195,7 +1195,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330325308}
-  m_Mesh: {fileID: 694751378888331511, guid: 58bf833a436c4a64498496fee50c25fb, type: 3}
+  m_Mesh: {fileID: 694751378888331511, guid: a493e3376b77ad34b87dedf073061167, type: 3}
 --- !u!4 &560226050
 Transform:
   m_ObjectHideFlags: 0
@@ -1922,7 +1922,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 216906072}
-  m_Mesh: {fileID: -2534719955929479979, guid: cd3f47ac70ac3894ca1a2bd3d52f2b2c, type: 3}
+  m_Mesh: {fileID: -2534719955929479979, guid: 0cbc7ab5fd0287b43bd14b38b240b2b6, type: 3}
 --- !u!1 &1018126481
 GameObject:
   m_ObjectHideFlags: 0
@@ -2181,7 +2181,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 477366397}
-  m_Mesh: {fileID: 694751378888331511, guid: 58bf833a436c4a64498496fee50c25fb, type: 3}
+  m_Mesh: {fileID: 694751378888331511, guid: a493e3376b77ad34b87dedf073061167, type: 3}
 --- !u!4 &1173865018
 Transform:
   m_ObjectHideFlags: 0
@@ -2255,9 +2255,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Using : Before refraction, alpha clip, Writes to motion vector (otherwise
-    TAA will cause jitters), using transparent depth prepass with a threshold. Check
-    out the shadergraph for more details.'
+  m_text: 'Using : Render pass - Before refraction, alpha clipping, Transparent writes
+    to motion vector (otherwise TAA will cause jitters), Transparent depth prepass
+    with a threshold. Check out the shadergraph for more details.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2379,6 +2379,10 @@ PrefabInstance:
     serializedVersion: 2
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1669185313534232388, guid: 1a42cbeb3ca2a3a4c9cbcd64f25b23c9, type: 3}
+      propertyPath: m_MoveSpeed
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 1669185313534232391, guid: 1a42cbeb3ca2a3a4c9cbcd64f25b23c9, type: 3}
       propertyPath: m_RootOrder
       value: 1
@@ -2613,7 +2617,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1508561979}
-  m_Mesh: {fileID: 694751378888331511, guid: 58bf833a436c4a64498496fee50c25fb, type: 3}
+  m_Mesh: {fileID: 694751378888331511, guid: a493e3376b77ad34b87dedf073061167, type: 3}
 --- !u!1 &1629656957
 GameObject:
   m_ObjectHideFlags: 0
@@ -3001,7 +3005,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1920339283}
-  m_Mesh: {fileID: -2534719955929479979, guid: cd3f47ac70ac3894ca1a2bd3d52f2b2c, type: 3}
+  m_Mesh: {fileID: -2534719955929479979, guid: 0cbc7ab5fd0287b43bd14b38b240b2b6, type: 3}
 --- !u!4 &1971507587
 Transform:
   m_ObjectHideFlags: 0
@@ -3138,9 +3142,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Approximate is based on Kajiya-Kay algorithm. The balance between the
-    different component of the render (basecolor, specular, smoothness...) has to
-    be done manually. Check out the shadergraph for more details.
+  m_text: 'The Approximate shader is based on Kajiya-Kay algorithm. The balance between
+    the different components of the renderer (basecolor, specular, smoothness...)
+    have to be done manually. Check out the shadergraph for more details.
 
 '
   m_isRightToLeft: 0
