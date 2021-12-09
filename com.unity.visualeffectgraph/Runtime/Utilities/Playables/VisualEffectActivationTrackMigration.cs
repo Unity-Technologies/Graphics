@@ -13,15 +13,7 @@ namespace UnityEditor.VFX.Migration
     {
         static IEnumerable<VisualEffectControlTrack> GetOutOfDateControlTrack(TimelineAsset timeline)
         {
-            foreach (var track in timeline.GetOutputTracks())
-            {
-                if (track is VisualEffectControlTrack)
-                {
-                    var vfxTrack = track as VisualEffectControlTrack;
-                    if (!vfxTrack.IsUpToDate())
-                        yield return vfxTrack;
-                }
-            }
+            return timeline.GetOutputTracks().OfType<VisualEffectControlTrack>().Where(x => !x.IsUpToDate());
         }
 
         static EventAttribute MigrateEventStateToAttributes(VisualEffectActivationBehaviour.EventState eventState)
