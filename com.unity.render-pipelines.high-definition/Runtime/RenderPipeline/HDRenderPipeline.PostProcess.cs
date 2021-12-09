@@ -4902,6 +4902,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool keepAlpha;
             public bool dynamicResIsOn;
             public DynamicResUpscaleFilter dynamicResFilter;
+            public GlobalDynamicResolutionSettings drsSettings;
 
             public bool filmGrainEnabled;
             public Texture filmGrainTexture;
@@ -4939,6 +4940,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.keepAlpha = m_KeepAlpha;
                 passData.dynamicResIsOn = hdCamera.canDoDynamicResolution && hdCamera.DynResRequest.enabled;
                 passData.dynamicResFilter = hdCamera.DynResRequest.filter;
+                passData.drsSettings = currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
                 passData.useFXAA = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.FastApproximateAntialiasing && !passData.dynamicResIsOn && m_AntialiasingFS;
 
                 // Film Grain
@@ -4995,8 +4997,26 @@ namespace UnityEngine.Rendering.HighDefinition
                                         // The RCAS half of the FSR technique (EASU + RCAS) is merged into FinalPass instead of
                                         // running it inside a separate compute shader. This allows us to avoid an additional
                                         // round-trip through memory which improves performance.
-                                        finalPassMaterial.EnableKeyword("RCAS");
-                                        FSRUtils.SetRcasConstants(ctx.cmd);
+
+                                        float sharpness = FSRUtils.kDefaultSharpnessLinear;
+
+                                        // Only consider custom sharpness values if the top-level pipeline override is enabled
+                                        if (data.drsSettings.fsrOverrideSharpness)
+                                        {
+                                            // Use the override value specified in the camera if it's available, otherwise use the value from the pipeline asset.
+                                            sharpness = data.hdCamera.fsrOverrideSharpness ? data.hdCamera.fsrSharpness : data.drsSettings.fsrSharpness;
+                                        }
+
+                                        // When the sharpness value is zero, we can skip the RCAS logic since it won't make a visible difference.
+                                        if (sharpness > 0.0)
+                                        {
+                                            finalPassMaterial.EnableKeyword("RCAS");
+                                            FSRUtils.SetRcasConstantsLinear(ctx.cmd, sharpness);
+                                        }
+                                        else
+                                        {
+                                            finalPassMaterial.EnableKeyword("BYPASS");
+                                        }
                                         break;
                                 }
                             }
