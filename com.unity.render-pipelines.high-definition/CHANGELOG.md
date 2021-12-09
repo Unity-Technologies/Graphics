@@ -16,6 +16,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed stackLit coat screen space reflection and raytrace reflection light hierarchy and IBL fallback
 - Fixed custom pass utils Blur and Copy functions in XR.
 - Fixed SpeedTree graph compatibility by removing custom interpolators.
+- Fixed edges and ghosting appearing on shadow matte due to the shadow being black outside the range of the light (case 1371441).
+- Fixed interpolation issue with wind orientation (case 1379841).
+- Fixed range fields for depth of field (case 1376609).
+- Fixed exception on DLSS when motion vectors are disabled (case # 1377986).
+- Fixed Lens Flare visible when being behind a camera with Panini Projection on (case 1370214)
+- Fixed alpha channel display in color picker in Local Volumetric Fog component (the alpha is not used for the fog) (case 1381267).
+- Fixed default numbder of physically based sky bounce from 8 to 3
+- Fixed decal performances when they use different material and the same draw order.
+- Fixed Nans happening due to volumetric clouds when the pixel color is perfectly black (case 1379185).
+- Fixed missing information in the tooltip of affects smooth surfaces of the ray traced reflections denoiser (case 1376918).
+- Fixed objects belonging to preview scenes being marked as dirty during migration (case 1367204).
+- Fixed compilation errors from Path Tracing on the PS5 build.
 
 ## [12.1.2] - 2021-10-22
 
