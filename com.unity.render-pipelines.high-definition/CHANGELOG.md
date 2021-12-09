@@ -29,6 +29,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed objects belonging to preview scenes being marked as dirty during migration (case 1367204).
 - Fixed compilation errors from Path Tracing on the PS5 build.
 - Fixed option to force motion blur off when in XR.
+- Fixed taa jitter for after post process materials (case 1380967).
+- Fixed dirtiness handling in path tracing, when using multiple cameras at once (case 1376940).
+- Fixed flickering / edge aliasing issue when DoF and TAAU or DLSS are enabled (case 1381858).
+- Fixed rasterized accumulation motion blur when DoF is enabled (case 1378497).
+- Fixed light mode not available after switching a light to area "Disc" or "Tube" (case 1372588).
+- Fixed CoC size computation when dynamic resolution is enabled
+- Fixed shadow cascade transition not working properly with bias.
+- Fixed broken rendering when duplicating a camera while the Rendering Debugger is opened.
+- Fixed screen space shadow debug view not showing when no shadows is available.
+- Fixed nullref from debug menu in release build (case 1381556).
+- Fixed debug window reset.
+- Fixed camera bridge action in release build (case 1367866).
+- Fixed contact shadow disappearing when shadowmask is used and no non-static object is available.
+- Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
 
 ## [12.1.2] - 2021-10-22
 
