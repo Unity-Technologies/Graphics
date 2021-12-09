@@ -26,12 +26,14 @@ void ADD_IDX(ComputeLayerTexCoord)( // Uv related parameters
 
     // If base is planar/triplanar then detail map is forced to be planar/triplanar
     ADD_IDX(layerTexCoord.details).mappingType = ADD_IDX(layerTexCoord.base).mappingType = mappingType;
-    ADD_IDX(layerTexCoord.details).normalWS = ADD_IDX(layerTexCoord.base).normalWS = layerTexCoord.vertexNormalWS;
+    float3 normalForTexCoord = layerTexCoord.vertexNormalWS;
+    if (objectSpaceMapping)
+    {
+        normalForTexCoord = TransformWorldToObjectNormal(normalForTexCoord);
+    }
+    ADD_IDX(layerTexCoord.details).normalWS = ADD_IDX(layerTexCoord.base).normalWS = normalForTexCoord;
     // Copy data for the uvmapping
     ADD_IDX(layerTexCoord.details).triplanarWeights = ADD_IDX(layerTexCoord.base).triplanarWeights = layerTexCoord.triplanarWeights;
-
-    // TODO: Currently we only handle world planar/triplanar but we may want local planar/triplanar.
-    // In this case both position and normal need to be convert to object space.
 
     // planar/triplanar
     float2 uvXZ;
