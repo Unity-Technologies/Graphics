@@ -31,6 +31,7 @@ if __name__ == "__main__":
     with ZipFile(path.join(args.artifacts, "UpdatedTestData.zip"), 'w') as z:
         # z.write(update_tests_file_path)
         with open(update_tests_file_path) as f:
+            added_assets = []
             while True:
                 line = f.readline().strip()
                 if line == "":
@@ -47,23 +48,27 @@ if __name__ == "__main__":
                 else:  # Plain text write
                     test_name, asset_path, should_update_image = line.split(",")
 
-                test_name = re.search(f'{test_name}_.*(?=_)', asset_path).group(0)
+                re_test_name = re.search(f'{test_name}_.*(?=_result)', asset_path).group(0)
+                last_char_index = re_test_name.rfind("_")
+                re_test_name = re_test_name[:last_char_index] + "-" + re_test_name[last_char_index + 1:]
+                print(test_name)
+                print(re_test_name)
 
                 _, _, colorspace, editor, test_platform, vr, _, test_asset = asset_path.split("/")
 
                 if should_update_image == "True":
-                    actual_img_path = path.join(getcwd(), args.root, "Assets", "ActualImages",
-                                                colorspace, editor, test_platform, vr, test_name + ".png")
+                    actual_img_path = path.join(getcwd(), args.root, "test-results", "Assets", "ActualImages",
+                                                colorspace, editor, test_platform, vr, re_test_name + ".png")
                     reference_img_path = path.join(getcwd(), args.root, "Assets", "ReferenceImages",
-                                                   colorspace, editor, test_platform, vr, test_name + ".png")
+                                                   colorspace, editor, test_platform, vr, re_test_name + ".png")
                     test_asset_path = path.join(getcwd(), args.root, "Assets", "Testing", "IntegrationTests",
                                                 "ShaderGraphTestAssets", test_name + ".asset")
                     if extra_logs:
-                        print("Adding " + test_name)
+                        print("Adding " + re_test_name)
                     z.write(actual_img_path, reference_img_path)  # Write ActualImage to zip
                     if path.exists(actual_img_path + ".meta"):  # Meta file doesn't always exist, check
                         z.write(actual_img_path + ".meta", reference_img_path + ".meta")
-                    if path.exists(test_asset_path):
+                    if path.exists(test_asset_path) and test_asset_path not in added_assets:
                         # Updates the hash of all materials in the test asset to a random # with 8-10 digits
                         doc = UnityDocument.load_yaml(test_asset_path)
                         for mat in doc.entry.testMaterial:
@@ -72,7 +77,8 @@ if __name__ == "__main__":
                                 print(mat["hash"])
                         doc.dump_yaml()
                         z.write(test_asset_path)
-                    elif extra_logs:
+                        added_assets.append(test_asset_path)
+                    elif extra_logs and test_asset_path not in added_assets:
                         print("Could not find test asset to copy")
                 elif extra_logs:
                     print(test_name + " doesn't need to be updated")
