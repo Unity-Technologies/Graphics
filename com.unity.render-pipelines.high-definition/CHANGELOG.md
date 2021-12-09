@@ -64,12 +64,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unsupported material properties show when rendering pass is Low Resolution.
 - Fixed auto-exposure mismatch between sky background and scene objects in path tracing (case 1385131).
 - Fixed option to force motion blur off when in XR.
+- Fixed write to VT feedback in debug modes (case 1376874)
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
 - Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
 - Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
 - The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
+
 
 ## [13.1.2] - 2021-11-05
 
