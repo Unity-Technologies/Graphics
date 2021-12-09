@@ -3,6 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
+#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/LODDitheringTransition.hlsl"
 
 // TODO: Currently we support viewDirTS caclulated in vertex shader and in fragments shader.
 // As both solutions have their advantages and disadvantages (etc. shader target 2.0 has only 8 interpolators).
@@ -181,7 +182,7 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
 #ifdef LOD_FADE_CROSSFADE
-    LODDitheringTransitionURP(input.positionCS.xy, unity_LODFade.x);
+    LODDitheringTransition(input.positionCS.xy, unity_LODFade.x, k_LODDitherType);
 #endif
 
 #if defined(_PARALLAXMAP)

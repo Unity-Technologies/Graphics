@@ -121,5 +121,6 @@ struct VertexNormalInputs
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODDithering.hlsl"
 
 #endif

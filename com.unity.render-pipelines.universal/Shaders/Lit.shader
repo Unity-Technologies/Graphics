@@ -93,6 +93,7 @@ Shader "Universal Render Pipeline/Lit"
             ZWrite[_ZWrite]
             Cull[_Cull]
 
+            //@ This shoult be enabled only when msaa enabled and when material is not alpha blended
             AlphaToMask On
 
             HLSLPROGRAM
@@ -137,7 +138,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE 
             #pragma multi_compile_fog
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
@@ -413,6 +414,9 @@ Shader "Universal Render Pipeline/Lit"
             Blend[_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
             ZWrite[_ZWrite]
             Cull[_Cull]
+
+            //@ This shoult be enabled only when msaa enabled and when material is not alpha blended
+            AlphaToMask On
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11

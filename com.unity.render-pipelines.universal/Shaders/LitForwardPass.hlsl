@@ -223,17 +223,9 @@ half4 LitPassFragment(Varyings input) : SV_Target
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, _Surface);
 
-#ifdef LOD_FADE_CROSSFADE
-    float ditherAlpha = LODDitheringTransitionURP(input.positionCS.xy, unity_LODFade.x);
-    color.a = ditherAlpha;
+#ifdef LOD_FADE_CROSSFADE 
+    LODDitheringTransition(input.positionCS.xy, unity_LODFade.x, k_LODDitherType, color);
 #endif
-
-//#ifdef LOD_FADE_CROSSFADE
-//    if(unity_LODFade.x > 0.0)
-//        color.a = unity_LODFade.x;
-//    else
-//        color.a = unity_LODFade.x + 1.0;
-//#endif
 
     return color;
 }

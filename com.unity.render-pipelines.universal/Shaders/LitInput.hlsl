@@ -77,8 +77,6 @@ TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 TEXTURE2D(_ClearCoatMap);       SAMPLER(sampler_ClearCoatMap);
 
-TEXTURE2D(_BlueNoiseDitheringTexture); SAMPLER(sampler_BlueNoiseDitheringTexture);
-
 #ifdef _SPECULAR_SETUP
     #define SAMPLE_METALLICSPECULAR(uv) SAMPLE_TEXTURE2D(_SpecGlossMap, sampler_SpecGlossMap, uv)
 #else
@@ -244,44 +242,6 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
 #endif
 }
 
-float GetBlueNoiseDithering(uint2 seed)
-{
-    //@ This should be a parameter (64)
-    float blueNoiseTexSize = 64.0;
-
-    float2 uv = seed / blueNoiseTexSize;
-
-    return SAMPLE_TEXTURE2D(_BlueNoiseDitheringTexture, sampler_BlueNoiseDitheringTexture, uv).a;
-}
-
-float GetBlueWhiteDithering(uint2 seed)
-{
-    return GenerateHashedRandomFloat(seed);
-}
-
-float GetBayerMatrixDithering(uint2 seed)
-{
-    const float4x4 thresholdMatrix =
-    {
-        1.0 / 17.0,  9.0 / 17.0,  3.0 / 17.0,  11.0 / 17.0,
-        13.0 / 17.0, 5.0 / 17.0,  15.0 / 17.0, 7.0 / 17.0,
-        4.0 / 17.0,  12.0 / 17.0, 2.0 / 17.0,  10.0 / 17.0,
-        16.0 / 17.0, 8.0 / 17.0,  14.0 / 17.0, 6.0 / 17.0
-    };
-
-    return thresholdMatrix[seed.x % 4][seed.y % 4];
-}
-
-float LODDitheringTransitionURP(uint2 fadeMaskSeed, float ditherFactor)
-{
-    float d = GetBlueNoiseDithering(fadeMaskSeed);
-
-    float f = ditherFactor - CopySign(d, ditherFactor);
-    
-    return f * 2.0 + 1.0;
-
-    /*clip(f);
-    return 1;*/
-}
+//@ View invariant dithering is not needed for non camera rendering.
 
 #endif // UNIVERSAL_INPUT_SURFACE_PBR_INCLUDED
