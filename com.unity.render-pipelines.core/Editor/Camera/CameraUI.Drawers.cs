@@ -109,7 +109,10 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginChangeCheck();
             isPhysicalCamera = EditorGUILayout.Toggle(content, isPhysicalCamera);
             if (EditorGUI.EndChangeCheck())
+            {
                 p.projectionMatrixMode.intValue = isPhysicalCamera ? (int)ProjectionMatrixMode.PhysicalPropertiesBased : (int)ProjectionMatrixMode.Implicit;
+                s_FovChanged = true;
+            }
             EditorGUILayout.EndHorizontal();
             EditorGUI.EndProperty();
 
