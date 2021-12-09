@@ -4,6 +4,7 @@
 StructuredBuffer<PackedNeighborHit> _ProbeVolumeDebugNeighborHits;
 int _ProbeVolumeDebugNeighborHitCount;
 float _ProbeVolumeDebugNeighborQuadScale;
+int _ProbeVolumeDebugNeighborMode;
 
 float _ProbeVolumeDGIMaxNeighborDistance;
 uint _ProbeVolumeDGIResolutionXY;
@@ -97,6 +98,17 @@ VaryingsType VertMeshProcedural(uint vertexID, uint instanceID)
 
     float validity = pow(1.0 - probeValidity, 8.0);
 
+    float3 color;
+    switch (_ProbeVolumeDebugNeighborMode)
+    {
+        case 0:
+            color = albedoDistance.xyz;
+            break;
+        case 1:
+            color = UnpackEmission(neighborData.emission);
+            break;
+    }
+    
 #ifdef VARYINGS_NEED_POSITION_WS
     output.vmesh.positionRWS = positionRWS;
 #endif
@@ -121,7 +133,7 @@ output.vmesh.positionCS = TransformWorldToHClip(positionRWS);
     output.vmesh.texCoord3 = 0;
 #endif
 #if defined(VARYINGS_NEED_COLOR) || defined(VARYINGS_DS_NEED_COLOR)
-    output.vmesh.color = float4(albedoDistance.xyz, 1);
+    output.vmesh.color = float4(color, 1);
     //output.vmesh.color = lerp(float4(1, 0, 0, 1), float4(1, 1, 1, 1), validity);
 #endif
 

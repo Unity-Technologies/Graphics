@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint indexValidity;
         public uint albedoDistance;
         public uint normalAxis;
+        public uint emission;
     }
 
     [Serializable]
@@ -250,7 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal static void SetNeighborDataHit(ref ProbeVolumePayload payload, Vector3 albedo, Vector3 normal, float distance, float validity, int probeIndex, int axis, int hitIndex, float maxDensity)
+        internal static void SetNeighborDataHit(ref ProbeVolumePayload payload, Vector3 albedo, Vector3 emission, Vector3 normal, float distance, float validity, int probeIndex, int axis, int hitIndex, float maxDensity)
         {
             ref var neighborDataHits = ref payload.hitNeighborAxis;
             if (hitIndex >= neighborDataHits.Length)
@@ -263,7 +264,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 indexValidity = PackIndexAndValidity((uint) probeIndex, (uint) axis, validity),
                 albedoDistance = PackAlbedoAndDistance(albedo, distance, maxDensity * s_DiagonalDist),
-                normalAxis = PackNormalAndAxis(normal, axis)
+                normalAxis = PackNormalAndAxis(normal, axis),
+                emission = PackEmission(emission)
             };
         }
 
@@ -298,6 +300,27 @@ namespace UnityEngine.Rendering.HighDefinition
             packedOutput |= ((uint)(albedoG * 255.5f) << 8);
             packedOutput |= ((uint)(albedoB * 255.5f) << 16);
             packedOutput |= ((uint)(normalizedDistance * 255.5f) << 24);
+
+            return packedOutput;
+        }
+
+        private static uint PackEmission(Vector3 color)
+        {
+            var maxChannel = color.x > color.y ? color.x : color.y;
+            maxChannel = maxChannel > color.z ? maxChannel : color.z;
+            
+            // This byte value in M will result in the color range [0, 1].
+            const float multiplierToByteScale = 32f;
+            
+            byte m = (byte)Mathf.CeilToInt(maxChannel * multiplierToByteScale);
+            color *= 255f * multiplierToByteScale / m;
+            
+            uint packedOutput = 0;
+
+            packedOutput |= (uint)Mathf.Min(255f, color.x) << 0;
+            packedOutput |= (uint)Mathf.Min(255f, color.y) << 8;
+            packedOutput |= (uint)Mathf.Min(255f, color.z) << 16;
+            packedOutput |= (uint)m << 24;
 
             return packedOutput;
         }
@@ -471,6 +494,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeNeighborHits", probeVolume.propagationBuffers.neighborHits);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeNeighborHitCount", probeVolume.propagationBuffers.neighborHits.count);
             cmd.SetComputeFloatParam(shader, "_IndirectScale", giSettings.indirectMultiplier.value);
+            cmd.SetComputeFloatParam(shader, "_BakedEmissionMultiplier", giSettings.bakedEmissionMultiplier.value);
             cmd.SetComputeFloatParam(shader, "_RayBias", giSettings.bias.value);
             cmd.SetComputeFloatParam(shader, "_LeakMultiplier", giSettings.leakMultiplier.value);
             cmd.SetComputeFloatParam(shader, "_DirectContribution", giSettings.directContribution.value);
@@ -610,6 +634,11 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateRight, key.rotation * new Vector3(1.0f, 0.0f, 0.0f));
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateUp, key.rotation * new Vector3(0.0f, 1.0f, 0.0f));
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateForward, key.rotation * new Vector3(0.0f, 0.0f, 1.0f));
+
+            var dynamicRotation = probeVolume.rotation;
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasDynamicSHRotateRight, dynamicRotation * new Vector3(1.0f, 0.0f, 0.0f));
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasDynamicSHRotateUp, dynamicRotation * new Vector3(0.0f, 1.0f, 0.0f));
+            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasDynamicSHRotateForward, dynamicRotation * new Vector3(0.0f, 0.0f, 1.0f));
 
             cmd.SetComputeIntParam(shader, HDShaderIDs._ProbeVolumeAtlasReadBufferCount, numProbes);
 

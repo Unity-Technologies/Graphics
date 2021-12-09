@@ -31,14 +31,19 @@ Varyings Vert(Attributes input)
 // One per material.
 float4 _MaterialRequestsInfo;
 
-#define _RequestCount   _MaterialRequestsInfo.x
-#define _RequestStart   _MaterialRequestsInfo.y
-#define _QuadHeight     _MaterialRequestsInfo.z
+#define _RequestCount      _MaterialRequestsInfo.x
+#define _RequestStart      _MaterialRequestsInfo.y
+#define _RequestsPerColumn _MaterialRequestsInfo.z
+#define _HasBakedEmissive  _MaterialRequestsInfo.w
 
 struct ExtraDataRequest
 {
     float2 uv;
+    float2 uvDdx;
+    float2 uvDdy;
     float3 position;
+    float3 positionDdx;
+    float3 positionDdy;
     float3 normalWS;
     uint requestIdx;
 };
@@ -46,6 +51,7 @@ struct ExtraDataRequest
 struct ExtraDataRequestOutput
 {
     float3 albedo;
+    float3 emission;
 };
 
 StructuredBuffer<ExtraDataRequest>  _RequestsInputData;
@@ -66,11 +72,12 @@ void Frag(  Varyings varInput,
 
     input.positionSS = varInput.positionCS;
 
-    float quadLen = ceil(_RequestCount / _QuadHeight);
-    float2 drawSize = float2(quadLen, _QuadHeight);
+    float requestsPerRow = ceil(_RequestCount / _RequestsPerColumn);
+    float2 drawSize = float2(requestsPerRow, _RequestsPerColumn) * 2;
 
     int2 texel = floor(input.positionSS.xy);
-    int localIdx = texel.y * quadLen + texel.x;
+    int2 requestCoord = texel / 2;
+    int localIdx = requestCoord.y * requestsPerRow + requestCoord.x;
 
     // Silence compiler warning about potentially uninitialized variable.
     dummy = 0.0;
@@ -80,8 +87,13 @@ void Frag(  Varyings varInput,
         ExtraDataRequest req = _RequestsInputData[localIdx];
 
         // Modify input with hit data
-        input.texCoord0 = float4(req.uv, 0, 1);
-        input.positionRWS = req.position;
+        int2 requestFragment = texel % 2;
+
+        float2 uv = req.uv + req.uvDdx * requestFragment.x + req.uvDdy * requestFragment.y;
+        float3 position = req.position + req.positionDdx * requestFragment.x + req.positionDdy * requestFragment.y;
+        
+        input.texCoord0 = float4(uv, 0, 1);
+        input.positionRWS = position;
         input.tangentToWorld = GetLocalFrame(req.normalWS);
 
         PositionInputs posInput = GetPositionInput(input.positionSS.xy, rcp(drawSize), input.positionSS.z, input.positionSS.w, input.positionRWS);
@@ -105,8 +117,12 @@ void Frag(  Varyings varInput,
         // Output
         ExtraDataRequestOutput output;
         output.albedo = outAlbedo;
+        output.emission = _HasBakedEmissive ? builtinData.emissiveColor : 0;
         int globalIdx = localIdx + _RequestStart;
-        _RWRequestsOutputData[globalIdx] = output;
+        if (all(requestFragment == 0))
+        {
+            _RWRequestsOutputData[globalIdx] = output;
+        }
         // To make PS happy with just UAV.
         dummy = outAlbedo;
     }

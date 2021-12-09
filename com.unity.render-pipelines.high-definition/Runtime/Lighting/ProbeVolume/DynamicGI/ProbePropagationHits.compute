@@ -31,6 +31,7 @@ float4 _RayAxis[NEIGHBOR_AXIS_COUNT];
 
 float _DirectContribution;
 float _IndirectScale;
+float _BakedEmissionMultiplier;
 float _RayBias;
 float _InfiniteBounce;
 float _InfiniteBounceSharpness;
@@ -197,6 +198,7 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
         GatherLighting(hit, lightingAndWeight);
 
         const float3 finalRadiance = NormalizeOutputRadiance(lightingAndWeight, probeValidity);
-        _HitRadianceCacheAxis[hitAxisIndex] = finalRadiance;
+        const float3 emission = UnpackEmission(neighborData.emission) * _BakedEmissionMultiplier;
+        _HitRadianceCacheAxis[hitAxisIndex] = finalRadiance + emission;
     }
 }

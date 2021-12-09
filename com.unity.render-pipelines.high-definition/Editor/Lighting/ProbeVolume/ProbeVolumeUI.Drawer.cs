@@ -157,8 +157,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (serialized.supportDynamicGI.boolValue)
             {
                 EditorGUILayout.PropertyField(serialized.drawNeighbors, Styles.s_DrawNeighborsLabel);
-                if (serialized.drawNeighbors.boolValue && serialized.advancedFade.boolValue)
+
+                if (serialized.drawNeighbors.boolValue)
                 {
+                    EditorGUILayout.PropertyField(serialized.drawEmission, Styles.s_DrawEmissionLabel);
                     EditorGUILayout.PropertyField(serialized.neighborsQuadScale, Styles.s_NeighborsQuadScaleLabel);
                 }
             }
