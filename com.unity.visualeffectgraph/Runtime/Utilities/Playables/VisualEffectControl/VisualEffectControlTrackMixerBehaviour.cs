@@ -455,17 +455,11 @@ namespace UnityEngine.VFX
                 return null;
 
             var vfxAttribute = vfx.CreateVFXEventAttribute();
-            bool anyRelevantAttribute = false;
-            foreach (var attribute in attributes.content)
+            if (attributes.content.Count(x => x?.ApplyToVFX(vfxAttribute) == true) == 0)
             {
-                if (attribute != null && attribute.ApplyToVFX(vfxAttribute))
-                {
-                    anyRelevantAttribute = true;
-                }
-            }
-
-            if (!anyRelevantAttribute)
+                //We didn't setup any vfxEventAttribute, ignoring the event payload
                 return null;
+            }
 
             return vfxAttribute;
         }
