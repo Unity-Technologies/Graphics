@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
 - Fixed build warnings due to the exception in burst code (case 1382827).
 - Fixed unsupported material properties show when rendering pass is Low Resolution.
+- Fixed auto-exposure mismatch between sky background and scene objects in path tracing (case 1385131).
 
 ## [12.1.2] - 2021-10-22
 
