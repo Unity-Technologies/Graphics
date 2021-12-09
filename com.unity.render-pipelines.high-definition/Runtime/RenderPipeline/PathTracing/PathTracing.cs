@@ -73,6 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         uint  m_CacheMaxIteration = 0;
 #endif // UNITY_EDITOR
+        ulong m_CacheAccelSize = 0;
         uint m_CacheLightCount = 0;
         int m_CameraID = 0;
         bool m_RenderSky = true;
