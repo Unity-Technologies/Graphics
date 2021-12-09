@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renderer Features can now use the HelpURLAttribute to specify a documentation URL to be used in the inspector.
 - Added inspector documentation URLs to the SSAO, Decal, and Render Objects renderer features.
 - Changed "_USE_DRAW_PROCEDURAL" to be used only in vertex shader in Post Processing related shaders as they are not needed for fragment shaders. In result we now generate less shader variants.
+- Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
 
 ### Fixed
 - Fix shadow rendering correctly to work with shader stripping in WebGl. [case 1381881](https://issuetracker.unity3d.com/issues/webgl-urp-mesh-is-not-rendered-in-the-scene-on-webgl-build)
@@ -17,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed inspector documentation URLs for the URP asset and Universal Renderer asset.
 - Fixed render scale setting unintentionally affecting the scene view camera.
 - Fixed property wrappers around material properties.
+- Fixed FXAA quality issues when render scale is not 1.0.
 
 ## [13.1.2] - 2021-11-05
 
