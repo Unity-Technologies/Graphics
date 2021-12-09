@@ -213,14 +213,14 @@ namespace UnityEditor.VFX.UI
             get { return m_Controller; }
         }
 
-        void DisconnectController()
+        void DisconnectController(VFXViewController previousController)
         {
-            if (controller.model && controller.graph)
-                controller.graph.SetCompilationMode(VFXViewPreference.forceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
+            if (previousController.model && previousController.graph)
+                previousController.graph.SetCompilationMode(VFXViewPreference.forceEditionCompilation ? VFXCompilationMode.Edition : VFXCompilationMode.Runtime);
 
 
-            m_Controller.UnregisterHandler(this);
-            m_Controller.useCount--;
+            previousController.UnregisterHandler(this);
+            previousController.useCount--;
 
             serializeGraphElements = null;
             unserializeAndPaste = null;
@@ -264,10 +264,10 @@ namespace UnityEditor.VFX.UI
             m_NodeProvider = null;
             m_VCSDropDown.SetStatus(Asset.States.None);
 
-            if (m_Controller.graph)
+            if (previousController.graph)
             {
-                m_Controller.graph.errorManager.onClearAllErrors -= ClearAllErrors;
-                m_Controller.graph.errorManager.onRegisterError -= RegisterError;
+                previousController.graph.errorManager.onClearAllErrors -= ClearAllErrors;
+                previousController.graph.errorManager.onRegisterError -= RegisterError;
             }
 
             SceneView.duringSceneGui -= OnSceneGUI;
@@ -368,18 +368,37 @@ namespace UnityEditor.VFX.UI
             {
                 if (m_Controller != value)
                 {
-                    if (m_Controller != null)
+                    var previousController = m_Controller;
+
+                    if (value == null)
                     {
-                        DisconnectController();
+                        m_Controller = null;
+                        if (!VFXViewWindow.CloseIfNotLast(this))
+                        {
+                            DisconnectController(previousController);
+                            NewControllerSet();
+                        }
                     }
-                    m_Controller = value;
-                    if (m_Controller != null)
+                    else
                     {
-                        ConnectController();
+                        if (m_Controller != null)
+                        {
+                            DisconnectController(previousController);
+                        }
+
+                        m_Controller = value;
+                        if (m_Controller != null)
+                        {
+                            ConnectController();
+                        }
+
+                        if (m_Controller != null)
+                        {
+                            NewControllerSet();
+                            AttachToSelection();
+                            m_ComponentBoard.ResetPlayRate();
+                        }
                     }
-                    NewControllerSet();
-                    AttachToSelection();
-                    m_ComponentBoard.ResetPlayRate();
                 }
             }
         }
@@ -488,7 +507,21 @@ namespace UnityEditor.VFX.UI
             {
                 VisualEffectAssetEditorUtility.CreateTemplateAsset(filePath);
 
-                VFXViewWindow.GetWindow(this).LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath), null);
+                var existingWindow = VFXViewWindow.GetAllWindows().SingleOrDefault(x =>
+                {
+                    var asset = x.displayedResource != null ? x.displayedResource.asset : null;
+                    return asset != null && AssetDatabase.GetAssetPath(asset) == filePath;
+                });
+                if (existingWindow != null)
+                {
+                    existingWindow.Show();
+                    existingWindow.Focus();
+                }
+                else
+                {
+                    VFXViewWindow.GetWindow(this).LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath), null);
+                }
+
             }
         }
 
@@ -643,6 +676,7 @@ namespace UnityEditor.VFX.UI
 
         public void Dispose()
         {
+            controller = null;
             UnregisterCallback<DragUpdatedEvent>(OnDragUpdated);
             UnregisterCallback<DragPerformEvent>(OnDragPerform);
             UnregisterCallback<ValidateCommandEvent>(ValidateCommand);

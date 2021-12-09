@@ -538,6 +538,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, depthMinMaxAvgMSAA, prepassOutput.stencilBuffer);
 
+                if (m_DepthOfField.IsActive() && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
+                {
+                    RenderAccumulation(m_RenderGraph, hdCamera, source, source, false);
+                }
+
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
                 // blurred bokeh rather than out of focus motion blur)
                 source = MotionBlurPass(renderGraph, hdCamera, depthBuffer, motionVectors, source);
@@ -2716,9 +2721,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // The sensor scale is used to convert the CoC size from mm to screen pixels
                     float sensorScale;
                     if (dofParameters.camera.camera.gateFit == Camera.GateFitMode.Horizontal)
-                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.x) * dofParameters.camera.camera.pixelWidth;
+                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.x) * dofParameters.camera.actualWidth;
                     else
-                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.y) * dofParameters.camera.camera.pixelHeight;
+                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.y) * dofParameters.camera.actualHeight;
 
                     // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
                     // Note: Focus distance is in meters, but focalLength and sensor size are in mm.
@@ -3192,7 +3197,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
                     passData.viewport = postProcessViewportSize;
                     passData.hdCamera = hdCamera;
-                    passData.depthBuffer = depthBuffer;
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.occlusion = builder.ReadTexture(occlusionHandle);
 
                     TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Lens Flare Destination");
@@ -4301,7 +4306,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var currentGradingHash = ComputeLUTHash();
 
             // The lut we have already is ok.
-            if (currentGradingHash == m_LutHash)
+            if (currentGradingHash == m_LutHash &&
+                !m_Curves.AnyPropertiesIsOverridden()) // Curves content are not hashed, to compute the hash of the curves would probably be more expensive than actually running the LUT pass. So we just check if the project is using anything but the default
                 return logLut;
 
             // Else we update the hash and we recompute the LUT.
@@ -4896,6 +4902,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool keepAlpha;
             public bool dynamicResIsOn;
             public DynamicResUpscaleFilter dynamicResFilter;
+            public GlobalDynamicResolutionSettings drsSettings;
 
             public bool filmGrainEnabled;
             public Texture filmGrainTexture;
@@ -4933,6 +4940,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.keepAlpha = m_KeepAlpha;
                 passData.dynamicResIsOn = hdCamera.canDoDynamicResolution && hdCamera.DynResRequest.enabled;
                 passData.dynamicResFilter = hdCamera.DynResRequest.filter;
+                passData.drsSettings = currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
                 passData.useFXAA = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.FastApproximateAntialiasing && !passData.dynamicResIsOn && m_AntialiasingFS;
 
                 // Film Grain
@@ -4989,8 +4997,26 @@ namespace UnityEngine.Rendering.HighDefinition
                                         // The RCAS half of the FSR technique (EASU + RCAS) is merged into FinalPass instead of
                                         // running it inside a separate compute shader. This allows us to avoid an additional
                                         // round-trip through memory which improves performance.
-                                        finalPassMaterial.EnableKeyword("RCAS");
-                                        FSRUtils.SetRcasConstants(ctx.cmd);
+
+                                        float sharpness = FSRUtils.kDefaultSharpnessLinear;
+
+                                        // Only consider custom sharpness values if the top-level pipeline override is enabled
+                                        if (data.drsSettings.fsrOverrideSharpness)
+                                        {
+                                            // Use the override value specified in the camera if it's available, otherwise use the value from the pipeline asset.
+                                            sharpness = data.hdCamera.fsrOverrideSharpness ? data.hdCamera.fsrSharpness : data.drsSettings.fsrSharpness;
+                                        }
+
+                                        // When the sharpness value is zero, we can skip the RCAS logic since it won't make a visible difference.
+                                        if (sharpness > 0.0)
+                                        {
+                                            finalPassMaterial.EnableKeyword("RCAS");
+                                            FSRUtils.SetRcasConstantsLinear(ctx.cmd, sharpness);
+                                        }
+                                        else
+                                        {
+                                            finalPassMaterial.EnableKeyword("BYPASS");
+                                        }
                                         break;
                                 }
                             }

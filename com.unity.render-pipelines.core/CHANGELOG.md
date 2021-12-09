@@ -4,6 +4,15 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [14.0.0] - 2021-11-17
+
+### Added
+- Context menu on Volume Parameters to restore them to their default values.
+- Linear version of function that sets FSR RCAS shader constants
+
+### Fixed
+- Fixed XR support in CoreUtils.DrawFullscreen function.
+
 ## [13.1.2] - 2021-11-05
 
 ### Added
@@ -13,15 +22,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed issue when changing volume profiles at runtime with a script (case 1364256).
 - Fixed XR support in CoreUtils.DrawFullscreen function.
+- Fixed an issue causing Render Graph execution errors after a random amount of time.
 
 ## [13.1.1] - 2021-10-04
 
 ### Added
 - Added support for high performant unsafe (uint only) Radix, Merge and Insertion sort algorithms on CoreUnsafeUtils.
-- Context menu on Volume Parameters to restore them to their default values.
 - Added DebugFrameTiming class that can be used by render pipelines to display CPU/GPU frame timings and bottlenecks in Rendering Debugger.
 - Added new DebugUI widget types: ProgressBarValue and ValueTuple
-- Added common support code for FSR
+- Added common support code for FSR.
+- Added new `RenderPipelineGlobalSettingsProvider` to help adding a settings panel for editing global settings.
+- Added blending for curves in post processing volumes.
 
 ## [13.1.0] - 2021-09-24
 
