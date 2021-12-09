@@ -84,11 +84,6 @@ namespace UnityEngine.Rendering
         public int instanceIndex;
     }
 
-    public struct DrawRenderer
-    {
-        public AABB bounds;
-    }
-
     struct SHProperties
     {
         public float4 SHAr;
@@ -166,7 +161,6 @@ namespace UnityEngine.Rendering
         private NativeList<DrawInstance> m_instances;
         private NativeArray<int> m_instanceIndices;
         private NativeArray<int> m_drawIndices;
-        private NativeArray<DrawRenderer> m_renderers;
         private BRGInstanceBufferOffsets m_instanceBufferOffsets;
         private NativeList<DeferredMaterialInstance> m_deferredMaterialInstances;
 
@@ -202,7 +196,7 @@ namespace UnityEngine.Rendering
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<FrustumPlanes.PlanePacket4> receiverPlanes;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> splitCounts;
 
-            [ReadOnly] public NativeArray<DrawRenderer> renderers;
+            [ReadOnly] public BRGDrawData brgDrawData;
 
             [WriteOnly] public NativeArray<ulong> rendererVisibility;
 
@@ -210,15 +204,16 @@ namespace UnityEngine.Rendering
             {
                 // Each invocation is culling 8 renderers (8 split bits * 8 renderers = 64 bit bitfield)
                 int start = index * 8;
-                int end = math.min(start + 8, renderers.Length);
+                int end = math.min(start + 8, brgDrawData.length);
 
                 ulong visibleBits = 0;
                 for (int i = start; i < end; i++)
                 {
+                    AABB instanceBounds = brgDrawData.bounds[i];
 #if DEBUG_LOG_CULLING_RESULTS_SLOW
-                    bool receiverCulled = FrustumPlanes.Intersect2NoPartial(receiverPlanes, renderers[i].bounds) == FrustumPlanes.IntersectResult.Out;
+                    bool receiverCulled = FrustumPlanes.Intersect2NoPartial(receiverPlanes, instanceBounds) == FrustumPlanes.IntersectResult.Out;
                     {
-                        ulong splitMask = FrustumPlanes.Intersect2NoPartialMulti(planes, splitCounts, renderers[i].bounds);
+                        ulong splitMask = FrustumPlanes.Intersect2NoPartialMulti(planes, splitCounts, instanceBounds);
                         if (receiverCulled && splitMask != 0)
                         {
                             splitMask = 0x80UL; // Use bit 8 to mark receiver culling for profiling output (only 6 bits needed for payload)
@@ -226,9 +221,9 @@ namespace UnityEngine.Rendering
                         visibleBits |= splitMask << (8 * (i - start));
                     }
 #else
-                    if (FrustumPlanes.Intersect2NoPartial(receiverPlanes, renderers[i].bounds) != FrustumPlanes.IntersectResult.Out)
+                    if (FrustumPlanes.Intersect2NoPartial(receiverPlanes, instanceBounds) != FrustumPlanes.IntersectResult.Out)
                     {
-                        ulong splitMask = FrustumPlanes.Intersect2NoPartialMulti(planes, splitCounts, renderers[i].bounds);
+                        ulong splitMask = FrustumPlanes.Intersect2NoPartialMulti(planes, splitCounts, instanceBounds);
                         visibleBits |= splitMask << (8 * (i - start));  // 8x 8 bit masks per uint64
                     }
 #endif
@@ -697,7 +692,8 @@ namespace UnityEngine.Rendering
 
             cullingOutput.drawCommands[0] = drawCommands;
 
-            var visibilityLength = (m_renderers.Length + 7) / 8;
+            BRGDrawData drawData = m_BRGTransformUpdater.drawData;
+            var visibilityLength = (drawData.length + 7) / 8;
             var rendererVisibility =
                 new NativeArray<ulong>(visibilityLength, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
@@ -706,7 +702,7 @@ namespace UnityEngine.Rendering
                 planes = planes,
                 receiverPlanes = receiverPlanePackets,
                 splitCounts = splitCounts,
-                renderers = m_renderers,
+                brgDrawData = drawData,
                 rendererVisibility = rendererVisibility
             };
 
@@ -870,12 +866,12 @@ namespace UnityEngine.Rendering
             Debug.Log("Converting " + renderers.Count + " renderers...");
 #endif
 
-            m_renderers = new NativeArray<DrawRenderer>(renderers.Count, Allocator.Persistent);
+            int renderersLength = renderers.Count;
             m_batchHash = new NativeHashMap<DrawKey, int>(1024, Allocator.Persistent);
             m_rangeHash = new NativeHashMap<RangeKey, int>(1024, Allocator.Persistent);
             m_drawBatches = new NativeList<DrawBatch>(Allocator.Persistent);
             m_drawRanges = new NativeList<DrawRange>(Allocator.Persistent);
-            m_AddedRenderers = new List<MeshRenderer>(renderers.Count);
+            m_AddedRenderers = new List<MeshRenderer>(renderersLength);
             m_GlobalGeoPool = geometryPool;
 
             // Fill the GPU-persistent scene data ComputeBuffer
@@ -883,11 +879,11 @@ namespace UnityEngine.Rendering
                 4 /*zero*/
                 + 1 /*probes*/
                 + 1 /*speccube*/
-                + 7 * m_renderers.Length /*per renderer SH*/
-                + 1 * m_renderers.Length /*per renderer probe occlusion*/
-                + 2 * m_renderers.Length /* per renderer lightmapindex + scale/offset*/
-                + m_renderers.Length * 3 * 2 /*per renderer 4x3 matrix+inverse*/
-                + 1 * m_renderers.Length; /*per renderer, vec4 with deferredMaterialData*/
+                + 7 * renderersLength /*per renderer SH*/
+                + 1 * renderersLength /*per renderer probe occlusion*/
+                + 2 * renderersLength /* per renderer lightmapindex + scale/offset*/
+                + renderersLength * 3 * 2 /*per renderer 4x3 matrix+inverse*/
+                + 1 * renderersLength; /*per renderer, vec4 with deferredMaterialData*/
 
             var vectorBuffer = new NativeArray<Vector4>(bigDataBufferVector4Count, Allocator.Temp);
 
@@ -903,19 +899,19 @@ namespace UnityEngine.Rendering
             startOffset++;
 
             var SHArOffset = startOffset;
-            var SHAgOffset = SHArOffset + m_renderers.Length;
-            var SHAbOffset = SHAgOffset + m_renderers.Length;
-            var SHBrOffset = SHAbOffset + m_renderers.Length;
-            var SHBgOffset = SHBrOffset + m_renderers.Length;
-            var SHBbOffset = SHBgOffset + m_renderers.Length;
-            var SHCOffset = SHBbOffset + m_renderers.Length;
+            var SHAgOffset = SHArOffset + renderersLength;
+            var SHAbOffset = SHAgOffset + renderersLength;
+            var SHBrOffset = SHAbOffset + renderersLength;
+            var SHBgOffset = SHBrOffset + renderersLength;
+            var SHBbOffset = SHBgOffset + renderersLength;
+            var SHCOffset = SHBbOffset + renderersLength;
 
-            var probeOcclusionOffset = SHCOffset + m_renderers.Length;
-            var lightMapIndexOffset = probeOcclusionOffset + m_renderers.Length;
-            var lightMapScaleOffset = lightMapIndexOffset + m_renderers.Length;
-            var localToWorldOffset = lightMapScaleOffset + m_renderers.Length;
-            var worldToLocalOffset = localToWorldOffset + m_renderers.Length * 3;
-            var deferredMaterialDataOffset = worldToLocalOffset + m_renderers.Length * 3;
+            var probeOcclusionOffset = SHCOffset + renderersLength;
+            var lightMapIndexOffset = probeOcclusionOffset + renderersLength;
+            var lightMapScaleOffset = lightMapIndexOffset + renderersLength;
+            var localToWorldOffset = lightMapScaleOffset + renderersLength;
+            var worldToLocalOffset = localToWorldOffset + renderersLength * 3;
+            var deferredMaterialDataOffset = worldToLocalOffset + renderersLength * 3;
 
             m_instanceBufferOffsets = new BRGInstanceBufferOffsets()
             {
@@ -947,11 +943,6 @@ namespace UnityEngine.Rendering
             for (int i = 0; i < renderers.Count; i++)
             {
                 var renderer = renderers[i];
-
-                m_renderers[i] = new DrawRenderer
-                {
-                    bounds = new AABB { Center = new float3(0, 0, 0), Extents = new float3(0, 0, 0) }
-                };
 
                 var meshFilter = renderer.gameObject.GetComponent<MeshFilter>();
                 if (!renderer || !meshFilter || !meshFilter.sharedMesh || renderer.enabled == false)
@@ -994,8 +985,6 @@ namespace UnityEngine.Rendering
                 vectorBuffer[i * 3 + 1 + worldToLocalOffset] = new Vector4(mi.m11, mi.m21, mi.m02, mi.m12);
                 vectorBuffer[i * 3 + 2 + worldToLocalOffset] = new Vector4(mi.m22, mi.m03, mi.m13, mi.m23);
 
-                m_BRGTransformUpdater.RegisterTransformObject(i, rendererTransform, renderer.lightProbeUsage == LightProbeUsage.BlendProbes);
-
                 lpq.CalculateInterpolatedLightAndOcclusionProbe(rendererTransform.position, -1, out var lp,
                     out var probeOcclusion);
 
@@ -1010,9 +999,7 @@ namespace UnityEngine.Rendering
 
                 vectorBuffer[probeOcclusionOffset + i] = probeOcclusion;
 
-                // Renderer bounds
-                var transformedBounds = AABB.Transform(m, meshFilter.sharedMesh.bounds.ToAABB());
-                m_renderers[i] = new DrawRenderer { bounds = transformedBounds };
+                m_BRGTransformUpdater.RegisterTransformObject(i, rendererTransform, meshFilter.sharedMesh, renderer.lightProbeUsage == LightProbeUsage.BlendProbes);
 
                 Mesh usedMesh = null;
                 var usedSubmeshIndices = new List<int>();
@@ -1233,7 +1220,6 @@ namespace UnityEngine.Rendering
                 m_GPUPersistentInstanceData.Dispose();
                 m_BRGTransformUpdater.Dispose();
 
-                m_renderers.Dispose();
                 m_batchHash.Dispose();
                 m_rangeHash.Dispose();
                 m_drawBatches.Dispose();
