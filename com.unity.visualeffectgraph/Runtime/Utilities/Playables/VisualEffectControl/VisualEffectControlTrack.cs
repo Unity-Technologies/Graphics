@@ -71,10 +71,10 @@ namespace UnityEngine.VFX
 
         public override void GatherProperties(PlayableDirector director, IPropertyCollector driver)
         {
-            VisualEffect trackBinding = director.GetGenericBinding(this) as VisualEffect;
-            if (trackBinding == null)
-                return;
-            base.GatherProperties(director, driver);
+            if (director.GetGenericBinding(this) is VisualEffect)
+            {
+                base.GatherProperties(director, driver);
+            }
         }
     }
 }
