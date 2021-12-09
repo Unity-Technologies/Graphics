@@ -476,11 +476,7 @@ namespace UnityEngine.VFX
             foreach (var itEvent in events)
             {
                 //Apply clamping on the fly
-                var absoluteTime = itEvent.time;
-                if (absoluteTime > behavior.clipEnd)
-                    absoluteTime = behavior.clipEnd;
-                if (absoluteTime < behavior.clipStart)
-                    absoluteTime = behavior.clipStart;
+                var absoluteTime = Math.Max(behavior.clipStart, Math.Min(behavior.clipEnd, itEvent.time));
 
                 yield return new Event()
                 {
