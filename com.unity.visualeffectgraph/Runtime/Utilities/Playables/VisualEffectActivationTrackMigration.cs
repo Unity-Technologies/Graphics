@@ -147,7 +147,6 @@ namespace UnityEditor.VFX.Migration
                             }
                         }
                     };
-                    newAsset.singleEvents = new List<VisualEffectPlayableSerializedEvent>();
                     toDeleteClip.Add(oldClip);
                 }
             }
