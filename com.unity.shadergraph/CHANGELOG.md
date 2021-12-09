@@ -6,14 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.1.3] - 2021-11-17
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+
+ - Fixed the behavior of checkerboard node with raytracing
 
 ## [12.1.2] - 2021-10-22
 
 ### Fixed
-  - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
-
+ - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
+ 
 ## [12.1.1] - 2021-10-04
 
 ### Fixed
