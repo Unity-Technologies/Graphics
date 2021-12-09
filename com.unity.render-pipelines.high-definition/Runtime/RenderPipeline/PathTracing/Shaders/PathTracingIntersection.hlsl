@@ -54,10 +54,5 @@ float3 GetNormal(inout PathIntersection payload)
     return float3(asfloat(payload.pixelCoord.x), asfloat(payload.pixelCoord.y), payload.maxRoughness);
 }
 
-void ClearAOVData(inout PathIntersection payload)
-{
-    SetAlbedo(payload, 0.0);
-    SetNormal(payload, 0.0);
-}
 
 #endif // UNITY_PATH_TRACING_INTERSECTION_INCLUDED

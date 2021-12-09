@@ -9,6 +9,8 @@
 
 // Path tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingAOV.hlsl" 
+
 #ifdef HAS_LIGHTLOOP
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
 #endif
@@ -273,6 +275,11 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
         }
     }
 
+    AOVData aovData;
+    {
+        GetAOVData(mtlData, aovData);
+    }
+
 #else // SHADER_UNLIT
 
     pathIntersection.value = computeDirect ? surfaceData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
@@ -304,11 +311,17 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     }
     #endif
 
+    AOVData aovData;
+    {
+        aovData.albedo = bsdfData.color;
+        aovData.normal = fragInput.tangentToWorld[2];
+    }
+
 #endif // SHADER_UNLIT
 
     if (currentDepth == 0)
     {
-        WriteAOVs(pathIntersection, surfaceData, builtinData, posInput.positionWS);
+        WriteAOVData(pathIntersection, aovData, fragInput.positionRWS);
     }
 }
 
