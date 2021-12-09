@@ -210,10 +210,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Check acceleration structure dirtiness
-            ulong accelSize = RequestAccelerationStructure(hdCamera).GetSize();
-            if (accelSize != camData.accelSize)
+            ulong accelSize = m_CurrentRAS.GetSize();
+            if (accelSize != m_CacheAccelSize)
             {
-                camData.accelSize = accelSize;
+                m_CacheAccelSize = accelSize;
                 return ResetPathTracing(camID, camData);
             }
 

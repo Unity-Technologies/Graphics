@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (DebugManager.instance.enableRuntimeUI)
                 EnableRuntime();
-#endif			
+#endif
         }
 
         internal static void SetEnabled(bool enabled)
