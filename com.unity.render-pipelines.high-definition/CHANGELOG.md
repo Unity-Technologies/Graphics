@@ -50,6 +50,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
 - Fixed for changes of color curves not being applied immediately.
 - Fixed the rendering order of decals that have a similar draw order value.
+- Fixed HDRP build issues with DOTS_INSTANCING_ON shader variant.
 
 ## [13.1.2] - 2021-11-05
 
