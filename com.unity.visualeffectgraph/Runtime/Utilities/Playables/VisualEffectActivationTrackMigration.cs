@@ -9,13 +9,8 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Migration
 {
-    class ActivationToControlTrack : AssetPostprocessor
+    static class ActivationToControlTrack
     {
-        static IEnumerable<VisualEffectControlTrack> GetOutOfDateControlTrack(TimelineAsset timeline)
-        {
-            return timeline.GetOutputTracks().OfType<VisualEffectControlTrack>().Where(x => !x.IsUpToDate());
-        }
-
         static EventAttribute MigrateEventStateToAttributes(VisualEffectActivationBehaviour.EventState eventState)
         {
             var name = (string)eventState.attribute;
@@ -88,90 +83,60 @@ namespace UnityEditor.VFX.Migration
             return eventAttributes;
         }
 
-        static void SanitizeActivationToControl(TimelineAsset timelineAsset, VisualEffectControlTrack[] invalidTracks)
+        public static void SanitizeActivationToControl(VisualEffectControlTrack invalidTrack)
         {
             var toDeleteClip = new List<TimelineClip>();
-
-            foreach (var invalidTrack in invalidTracks)
+            foreach (var oldClip in invalidTrack.GetClips())
             {
-                foreach (var oldClip in invalidTrack.GetClips())
+                if (oldClip.asset is VisualEffectControlClip)
+                    continue; //Already sanitized
+
+                //The previous implementation wasn't reinit the VFX
+                invalidTrack.reinit = VisualEffectControlTrack.ReinitMode.None;
+
+                var newClip = invalidTrack.CreateClip<VisualEffectControlClip>();
+                newClip.start = oldClip.start;
+                newClip.duration = oldClip.duration;
+
+                var newAsset = newClip.asset as VisualEffectControlClip;
+                var oldAsset = oldClip.asset as VisualEffectActivationClip;
+
+                newAsset.clipStart = oldClip.start;
+                newAsset.clipEnd = oldClip.end;
+
+                //Equivalent of the previous VisualEffectActivationClip behavior, no scrubbing, no reinit, only activation
+                newAsset.prewarm.enable = false;
+                newAsset.reinit = VisualEffectControlClip.ReinitMode.None;
+                newAsset.scrubbing = false;
+
+                newAsset.clipEvents = new List<VisualEffectControlClip.ClipEvent>()
                 {
-                    if (oldClip.asset is VisualEffectControlClip)
-                        continue; //Already sanitized
-
-                    //The previous implementation wasn't reinit the VFX
-                    invalidTrack.reinit = VisualEffectControlTrack.ReinitMode.None;
-
-                    var newClip = invalidTrack.CreateClip<VisualEffectControlClip>();
-                    newClip.start = oldClip.start;
-                    newClip.duration = oldClip.duration;
-
-                    var newAsset = newClip.asset as VisualEffectControlClip;
-                    var oldAsset = oldClip.asset as VisualEffectActivationClip;
-
-                    newAsset.clipStart = oldClip.start;
-                    newAsset.clipEnd = oldClip.end;
-
-                    //Equivalent of the previous VisualEffectActivationClip behavior, no scrubbing, no reinit, only activation
-                    newAsset.prewarm.enable = false;
-                    newAsset.reinit = VisualEffectControlClip.ReinitMode.None;
-                    newAsset.scrubbing = false;
-
-                    newAsset.clipEvents = new List<VisualEffectControlClip.ClipEvent>()
+                    new VisualEffectControlClip.ClipEvent()
                     {
-                        new VisualEffectControlClip.ClipEvent()
+                        editorColor = VisualEffectControlClip.ClipEvent.defaultEditorColor,
+                        enter = new VisualEffectPlayableSerializedEventNoColor()
                         {
-                            editorColor = VisualEffectControlClip.ClipEvent.defaultEditorColor,
-                            enter = new VisualEffectPlayableSerializedEventNoColor()
-                            {
-                                name = (string)oldAsset.activationBehavior.onClipEnter,
-                                time = 0.0,
-                                timeSpace = PlayableTimeSpace.AfterClipStart,
-                                eventAttributes = MigrateEventStateToAttributes(oldAsset.activationBehavior.clipEnterEventAttributes)
-                            },
+                            name = (string)oldAsset.activationBehavior.onClipEnter,
+                            time = 0.0,
+                            timeSpace = PlayableTimeSpace.AfterClipStart,
+                            eventAttributes = MigrateEventStateToAttributes(oldAsset.activationBehavior.clipEnterEventAttributes)
+                        },
 
-                            exit = new VisualEffectPlayableSerializedEventNoColor()
-                            {
-                                name = (string)oldAsset.activationBehavior.onClipExit,
-                                time = 0.0,
-                                timeSpace = PlayableTimeSpace.BeforeClipEnd,
-                                eventAttributes = MigrateEventStateToAttributes(oldAsset.activationBehavior.clipExitEventAttributes)
-                            }
+                        exit = new VisualEffectPlayableSerializedEventNoColor()
+                        {
+                            name = (string)oldAsset.activationBehavior.onClipExit,
+                            time = 0.0,
+                            timeSpace = PlayableTimeSpace.BeforeClipEnd,
+                            eventAttributes = MigrateEventStateToAttributes(oldAsset.activationBehavior.clipExitEventAttributes)
                         }
-                    };
-                    toDeleteClip.Add(oldClip);
-                }
+                    }
+                };
+                toDeleteClip.Add(oldClip);
             }
 
             foreach (var deprecatedClip in toDeleteClip)
             {
-                timelineAsset.DeleteClip(deprecatedClip);
-            }
-        }
-
-        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
-        {
-            foreach (var str in importedAssets)
-            {
-                try
-                {
-                    if (str.EndsWith(".playable", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        var timeline = AssetDatabase.LoadAssetAtPath<TimelineAsset>(str);
-                        if (timeline != null)
-                        {
-                            var activationTracks = GetOutOfDateControlTrack(timeline);
-                            if (activationTracks.Any())
-                            {
-                                SanitizeActivationToControl(timeline, activationTracks.ToArray());
-                            }
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.LogErrorFormat("Failed to migrate VisualEffectActivationTrack: {0}\n{1}", str, e);
-                }
+                invalidTrack.timelineAsset.DeleteClip(deprecatedClip);
             }
         }
     }

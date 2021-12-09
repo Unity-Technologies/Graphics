@@ -4,6 +4,9 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
+#if UNITY_EDITOR
+using UnityEditor.VFX.Migration;
+#endif
 
 namespace UnityEngine.VFX
 {
@@ -29,10 +32,24 @@ namespace UnityEngine.VFX
         [SerializeField, NotKeyable]
         public ReinitMode reinit = ReinitMode.OnBindingEnableOrDisable;
 
-        public bool IsUpToDate()
+#if UNITY_EDITOR
+        private void OnValidate()
         {
-            return m_VFXVersion == kCurrentVersion;
+            if (m_VFXVersion != kCurrentVersion)
+            {
+                try
+                {
+                    ActivationToControlTrack.SanitizeActivationToControl(this);
+                    m_VFXVersion = kCurrentVersion;
+                }
+                catch (System.Exception e)
+                {
+                    //Workaround, we will retry until it's possible
+                    Debug.LogFormat("Fail to update controlTrack\n{0}", e.ToString());
+                }
+            }
         }
+#endif
 
         protected override void OnBeforeTrackSerialize()
         {
