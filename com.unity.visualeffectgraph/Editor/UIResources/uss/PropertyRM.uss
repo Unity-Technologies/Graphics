@@ -89,6 +89,11 @@
     background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spaceworld.png");
 }
 
+.spaceNone
+{
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spacenone.png");
+}
+
 .propertyrm .unity-base-text-field *
 {
     -unity-text-align: middle-left;

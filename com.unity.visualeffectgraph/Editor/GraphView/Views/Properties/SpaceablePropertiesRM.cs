@@ -3,6 +3,7 @@ using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEditor.VFX.UIElements;
 using VFXVector3Field = UnityEditor.VFX.UI.VFXVector3Field;
+using System;
 
 namespace UnityEditor.VFX.UI
 {
@@ -41,12 +42,16 @@ namespace UnityEditor.VFX.UI
 
         void OnButtonClick()
         {
-            space = (VFXCoordinateSpace)((int)(space + 1) % CoordinateSpaceInfo.SpaceCount);
+            //TODOPAUL: Move to CoordinateSpaceInfo (& check how filter it in VFXContextUI)
+            var values = (VFXCoordinateSpace[])Enum.GetValues(space.GetType());
+            var index = Array.IndexOf(values, space);
+            var nextIndex = (index + 1) % CoordinateSpaceInfo.SpaceCount;
+            space = values[nextIndex];
         }
 
         public override void UpdateGUI(bool force)
         {
-            foreach (string name in System.Enum.GetNames(typeof(VFXCoordinateSpace)))
+            foreach (string name in Enum.GetNames(typeof(VFXCoordinateSpace)))
             {
                 if (space.ToString() != name)
                     m_Button.RemoveFromClassList("space" + name);
