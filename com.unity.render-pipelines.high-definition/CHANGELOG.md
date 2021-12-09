@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SpeedTree graph compatibility by removing custom interpolators.
 - Fixed auto-exposure mismatch between sky background and scene objects in path tracing (case 1385131).
 - Fixed build warnings due to the exception in burst code (case 1382827).
+- Fixed write to VT feedback in debug modes (case 1376874)
 
 ## [13.1.3] - 2021-11-17
 
