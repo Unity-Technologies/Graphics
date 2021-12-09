@@ -73,7 +73,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         uint  m_CacheMaxIteration = 0;
 #endif // UNITY_EDITOR
-        ulong m_CacheAccelSize = 0;
         uint m_CacheLightCount = 0;
         int m_CameraID = 0;
         bool m_RenderSky = true;
@@ -212,9 +211,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Check acceleration structure dirtiness
             ulong accelSize = m_CurrentRAS.GetSize();
-            if (accelSize != m_CacheAccelSize)
+            if (accelSize != camData.accelSize)
             {
-                m_CacheAccelSize = accelSize;
+                camData.accelSize = accelSize;
                 return ResetPathTracing(camID, camData);
             }
 
