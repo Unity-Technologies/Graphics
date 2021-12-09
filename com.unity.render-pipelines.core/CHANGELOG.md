@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Context menu on Volume Parameters to restore them to their default values.
 - Linear version of function that sets FSR RCAS shader constants
+- `DebugUI.ObjectPopupField` to render a list of `UnityEngine.Objects` as a popup on the Rendering Debugger.
 
 ### Fixed
 - Fixed XR support in CoreUtils.DrawFullscreen function.
+- The Volume Panel on the Rendering Debugger was not corretly showing cameras when they were added or deleted.
 
 ## [13.1.2] - 2021-11-05
 

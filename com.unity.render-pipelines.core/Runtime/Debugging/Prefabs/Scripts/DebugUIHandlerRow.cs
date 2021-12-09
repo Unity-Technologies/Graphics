@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.UI
 
         GameObject GetChild(int index)
         {
-            return gameObject.transform.GetChild(1).GetChild(index).gameObject;
+            return gameObject.transform.GetChild(1)?.GetChild(index)?.gameObject;
         }
 
         bool IsActive(DebugUI.Table table, int index, out GameObject child)
