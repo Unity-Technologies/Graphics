@@ -1,4 +1,6 @@
 #if VFX_HAS_TIMELINE
+using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
@@ -36,17 +38,7 @@ namespace UnityEngine.VFX
         {
             base.OnBeforeTrackSerialize();
 
-            bool allClipAreControl = true;
-            foreach (var clip in GetClips())
-            {
-                if (!(clip.asset is VisualEffectControlClip))
-                {
-                    allClipAreControl = false;
-                    break;
-                }
-            }
-
-            if (allClipAreControl)
+            if (GetClips().All(x => x.asset is VisualEffectControlClip))
             {
                 m_VFXVersion = kCurrentVersion;
             }
