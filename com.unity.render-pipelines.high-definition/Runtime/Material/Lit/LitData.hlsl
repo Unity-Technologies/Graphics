@@ -142,15 +142,16 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 {
     layerTexCoord.vertexNormalWS = vertexNormalWS;
     float objectSpaceMapping = false;
+    float3 normalToComputeWeights = layerTexCoord.vertexNormalWS;
 #ifndef LAYERED_LIT_SHADER
     objectSpaceMapping = _ObjectSpaceUVMapping;
     if (objectSpaceMapping)
     {
-        layerTexCoord.vertexNormalWS = TransformWorldToObjectNormal(layerTexCoord.vertexNormalWS);
+        normalToComputeWeights = TransformWorldToObjectNormal(normalToComputeWeights);
     }
 #endif
 
-    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(layerTexCoord.vertexNormalWS);
+    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(normalToComputeWeights);
 
     int mappingType = UV_MAPPING_UVSET;
 #if defined(_MAPPING_PLANAR)
