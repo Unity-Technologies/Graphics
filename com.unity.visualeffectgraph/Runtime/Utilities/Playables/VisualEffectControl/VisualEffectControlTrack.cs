@@ -63,27 +63,8 @@ namespace UnityEngine.VFX
 
             var mixer = ScriptPlayable<VisualEffectControlTrackMixerBehaviour>.Create(graph, inputCount);
             var behaviour = mixer.GetBehaviour();
-            var reinitBinding = false;
-            var reinitUnbinding = false;
-            switch (reinit)
-            {
-                case ReinitMode.None:
-                    reinitBinding = false;
-                    reinitUnbinding = false;
-                    break;
-                case ReinitMode.OnBindingDisable:
-                    reinitBinding = false;
-                    reinitUnbinding = true;
-                    break;
-                case ReinitMode.OnBindingEnable:
-                    reinitBinding = true;
-                    reinitUnbinding = false;
-                    break;
-                case ReinitMode.OnBindingEnableOrDisable:
-                    reinitBinding = true;
-                    reinitUnbinding = true;
-                    break;
-            }
+            var reinitBinding = reinit == ReinitMode.OnBindingEnable || reinit == ReinitMode.OnBindingEnableOrDisable;
+            var reinitUnbinding = reinit == ReinitMode.OnBindingDisable || reinit == ReinitMode.OnBindingEnableOrDisable;
             behaviour.Init(this, reinitBinding, reinitUnbinding);
             return mixer;
         }
