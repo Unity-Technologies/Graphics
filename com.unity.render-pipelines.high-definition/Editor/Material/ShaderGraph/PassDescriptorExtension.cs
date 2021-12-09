@@ -38,6 +38,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static bool IsRaytracing(this PassDescriptor pass)
         {
+            if (pass.pragmas == null)
+                return false;
+
             foreach (var pragma in pass.pragmas)
             {
                 if (pragma.value == "#pragma raytracing surface_shader")

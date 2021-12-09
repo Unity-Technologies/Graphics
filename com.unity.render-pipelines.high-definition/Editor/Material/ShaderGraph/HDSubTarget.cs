@@ -130,8 +130,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-
-
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
             if (TargetsVFX())
@@ -193,7 +191,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.fieldDependencies.Add(CoreFieldDependencies.Default);
 
                 CollectPassKeywords(ref passDescriptor);
-
 
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
             }

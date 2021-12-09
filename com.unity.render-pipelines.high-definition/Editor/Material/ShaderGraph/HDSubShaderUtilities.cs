@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
         HDLitShader,    // For Lit, LayeredLit, LitTesselation, LayeredLitTesselation
         HDUnlitShader,  // Unlit
         Opaque,         // Used by Terrain
+        HDFogVolumeShader,  // Fog Volume ShaderGraphs
     }
 
     static class HDSubShaderUtilities
