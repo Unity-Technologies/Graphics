@@ -2,18 +2,24 @@
 
 ## Description
 
-The Refract node generates a refraction using an **Incident** vector, a normalized **Normal** vector of the surface, and the refractive index ratio, or **Eta** and produces a new refracted vector. The node uses the principles described in [Sahl-Snell's Law](https://en.wikipedia.org/wiki/Snell%27s_law).
+You can use the Refract node to give a shader a refraction effect. The Refract node generates a refraction using the following to produce a new refracted vector: 
 
-Based on Sahl-Snell's Law, for a medium's given refractive index, there is an angle where the surface behaves like a perfect mirror. When you set the Refract node's Mode to **Safe**, the node generates a null vector when it reaches this critical angle.
+- A normalized incident vector.
+
+- A normalized normal vector of the surface.
+
+- The refractive index of the source and the medium.
+
+The Refract node uses the principles described in [Snell's Law](https://en.wikipedia.org/wiki/Snell%27s_law). A medium's refractive index has an angle where the surface behaves like a perfect mirror. This angle is called total internal reflection. To avoid a NaN result, set the Refract node's **Mode** to **Safe**. This makes the Refract node generate a null vector when it reaches the critical angle before total internal reflection.
 
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| Incident      | Input | Vector | None | The normalized vector of what should be refracted to the surface causing the refraction. For example, this could be from a light source to a pixel or the surface, or from the eye to the pixel or surface. |
-| Normal      | Input | Vector | None | The normalized normal of the surface that should cause the refraction. |
-| IOR Source     | Input | Float    | None | The refractive index Source, or where the light is coming from. |
-| IOR Medium     | Input | Float    | None | The refractive index Medium, or the medium causing the refraction. |
+| Incident      | Input | Vector | None | The normalized vector from the light source to the surface.<br/>For example, this could be from a light source to a pixel, or from the Camera to a surface. |
+| Normal      | Input | Vector | None | The normalized normal of the surface that causes the refraction. |
+| IOR Source     | Input | Float    | None | The refractive index of the medium the light source originates in. |
+| IOR Medium     | Input | Float    | None | The refractive index of the medium that the light refracts into. |
 | Refracted | Output      |  Vector | None | The refracted vector. |
 | Intensity | Output      |  Float | None | Intensity of the refraction. |
 
@@ -21,7 +27,7 @@ Based on Sahl-Snell's Law, for a medium's given refractive index, there is an an
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
-| Mode      | Dropdown | Select **Safe** to prevent the Refract node from returning a NaN result when there is a risk of critical angle refraction. **Safe** will return a null vector result, instead. Select **CriticalAngle** to avoid this check for a potential NaN result. |
+| Mode      | Dropdown | &#8226; **Safe:** Returns a null vector result instead of a NaN result at the point of critical angle refraction. <br/>&#8226; **CriticalAngle:** Avoids the **Safe** check for a potential NaN result. ||
 
 ## Generated Code Example
 

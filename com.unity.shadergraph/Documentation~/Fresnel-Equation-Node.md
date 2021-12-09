@@ -2,11 +2,9 @@
 
 ## Description
 
-The Fresnel Equation Node, add various equation for the Fresnel Component. Unity had 3 modes, **Schlick**, **Dielectric** and **DielectricGeneric**.
-**Schlick** mode produce an approximation based on the [Schlick's Approximation](https://en.wikipedia.org/wiki/Schlick%27s_approximation), ideal for any interaction between Air-Dielectric material.
-**Dielectric** mode produce code to compute Fresnel equation simplified for Dielectric Material Interaction, for instance Air-Glass, Glass-Water, Water-Air.
-**DielectricGeneric** mode produce code to compute [Fresnel equation](https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations) for interaction between Dielectic and any material, for instance clear_coat-Metal, Glass-Metal, Water-Metal, ... (note if we set **IORMediumK** as 0, **DielectricGeneric** behave like **Dielectric**).
-Numerical values of refractive indices can be found here [refractiveindex.info](https://refractiveindex.info/).
+The Fresnel Equation Node adds equations that affect Material interactions to the Fresnel Component. You can select an equation in the **Mode** dropdown.
+
+You can find Numerical values of refractive indices at [refractiveindex.info](https://refractiveindex.info/).
 
 ## Ports (Schlick)
 
@@ -20,17 +18,17 @@ Numerical values of refractive indices can be found here [refractiveindex.info](
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| IOR Source | Input | Vector | None | The refractive index Source, or where the light is coming from. |
-| IOR Medium     | Input | Vector | None | The refractive index Medium, or the medium causing the refraction. |
+| IOR Source | Input | Vector | None | The refractive index of the medium the light source originates in. |
+| IOR Medium     | Input | Vector | None | The refractive index of the medium that the light refracts into. |
 | DotVector | Input | Float | None | The dot product between the normal and the surface. |
-| Fresnel | Output      |  same as f0 | None | Fresnel coefficient, which describe the amount of light reflected or transmitted. |
+| Fresnel | Output      |  same as f0 | None | The fresnel coefficient, which describe the amount of light reflected or transmitted. |
 
 ## Ports (DielectricGeneric)
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| IOR Source | Input | Vector | None | The refractive index Source, or where the light is coming from. |
-| IOR Medium     | Input | Vector | None | The refractive index Medium, or the medium causing the refraction. |
+| IOR Source | Input | Vector | None | The refractive index of the medium the light source originates in. |
+| IOR Medium     | Input | Vector | None | The refractive index of the medium that the light refracts into. |
 | IOR MediumK     | Input | Vector | None | The refractive index Medium (imaginary part), or the medium causing the refraction. |
 | DotVector | Input | Float | None | The dot product between the normal and the surface. |
 | Fresnel | Output      |  same as f0 | None | Fresnel coefficient, which describe the amount of light reflected or transmitted. |
@@ -39,7 +37,7 @@ Numerical values of refractive indices can be found here [refractiveindex.info](
 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
-| Mode      | Dropdown | Select **Schlick** for an interaction between Air-Dielectric material, **Dielectric** for an interaction between two dielectric material and **DielectricGeneric** for any interaction between a dielectric and a metal. |
+| Mode      | Dropdown | &#8226; **Schlick**: This mode produces an approximation based on [Schlick's Approximation](https://en.wikipedia.org/wiki/Schlick%27s_approximation). Use the Schlick mode for interactions between air and dielectric materials. <br/>&#8226; **Dielectric**: Use this mode for interactions between two dielectric Materials. For example, air to glass, glass to water, or water to air.<br/>&#8226; **DielectricGeneric**: This mode computes a [Fresnel equation](https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations) for interactions between a dielectric and a metal. For example, clear-coat- to metal, glass to metal, or water to metal. <br/>**Note:** if the **IORMediumK** value is 0, **DielectricGeneric** behaves in the same way as the **Dielectric** mode. ||
 
 ## Generated Code Example
 
