@@ -312,7 +312,7 @@ namespace UnityEngine.Rendering.Universal
                     RenderTargetIdentifier colorAttachmentTarget;
                     // We are not rendering to Backbuffer so we have the RT and the information with it
                     // while also creating a new RenderTargetIdentifier to ignore the current depth slice (which might get bypassed in XR setup eventually)
-                    if (new RenderTargetIdentifier(passColorAttachment.nameID, 0, 0) != BuiltinRenderTextureType.CameraTarget)
+                    if (new RenderTargetIdentifier(passColorAttachment.nameID, 0, depthSlice: 0) != BuiltinRenderTextureType.CameraTarget)
                     {
                         currentAttachmentDescriptor = new AttachmentDescriptor(depthOnly ? passColorAttachment.rt.descriptor.depthStencilFormat : passColorAttachment.rt.descriptor.graphicsFormat);
                         samples = passColorAttachment.rt.descriptor.msaaSamples;
