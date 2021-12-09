@@ -421,6 +421,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool highlightRinging;
         public bool drawValidity;
         public bool drawNeighbors;
+        public bool drawEmission;
         public bool drawOctahedralDepthRays;
         public float neighborsQuadScale;
         public int drawOctahedralDepthRayIndexX;
@@ -507,6 +508,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.highlightRinging = false;
             this.drawValidity = false;
             this.drawNeighbors = false;
+            this.drawEmission = false;
             this.drawOctahedralDepthRays = false;
             this.neighborsQuadScale = 1;
             this.drawOctahedralDepthRayIndexX = 0;
@@ -1287,7 +1289,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (parameters.supportDynamicGI)
             {
-                ProbeVolumeDynamicGI.instance.ConstructNeighborData(m_ProbePositions, ref probeVolumeAsset, in parameters);
+                ProbeVolumeDynamicGI.instance.ConstructNeighborData(m_ProbePositions, transform.rotation, ref probeVolumeAsset, in parameters);
             }
 
             UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);

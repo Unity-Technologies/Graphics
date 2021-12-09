@@ -561,6 +561,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 PrepareVisibleMaskVolumeListBuffers(null, immediateCmd, null, ref maskVolumes);
                 PushMaskVolumesGlobalParams(null, immediateCmd, null, ref maskVolumes.resources);
                 
+                m_ShaderVariablesGlobalCB._WorldSpaceCameraPos_Internal = Vector4.zero;
                 UpdateShaderVariablesGlobalMaskVolumes(ref m_ShaderVariablesGlobalCB, true);
                 ConstantBuffer.PushGlobal(immediateCmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
             }

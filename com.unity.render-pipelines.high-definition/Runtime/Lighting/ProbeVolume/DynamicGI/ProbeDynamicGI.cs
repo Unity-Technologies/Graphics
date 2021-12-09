@@ -19,6 +19,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         [Tooltip("Indirect multiplier for all lights affect Dynamic GI")]
         public ClampedFloatParameter indirectMultiplier = new ClampedFloatParameter(1f, 0.0f, 2f);
+        [Tooltip("Multiplier for material emissive colors that affect Dynamic GI")]
+        public ClampedFloatParameter bakedEmissionMultiplier = new ClampedFloatParameter(0f, 0f, 2f);
         [Tooltip("A control for blending in more influence of infinite bounce light near surfaces")]
         public ClampedFloatParameter infiniteBounce = new ClampedFloatParameter(1f, 0.0f, 2f);
 

@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty drawValidity;
         internal SerializedProperty highlightRinging;
         internal SerializedProperty drawNeighbors;
+        internal SerializedProperty drawEmission;
         internal SerializedProperty neighborsQuadScale;
         internal SerializedProperty drawOctahedralDepthRays;
         internal SerializedProperty drawOctahedralDepthRayIndexX;
@@ -61,6 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
             drawValidity = probeVolumeParams.FindPropertyRelative("drawValidity");
             highlightRinging = probeVolumeParams.FindPropertyRelative("highlightRinging");
             drawNeighbors = probeVolumeParams.FindPropertyRelative("drawNeighbors");
+            drawEmission = probeVolumeParams.FindPropertyRelative("drawEmission");
             neighborsQuadScale = probeVolumeParams.FindPropertyRelative("neighborsQuadScale");
 
             drawOctahedralDepthRays = probeVolumeParams.FindPropertyRelative("drawOctahedralDepthRays");
