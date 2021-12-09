@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing information in the tooltip of affects smooth surfaces of the ray traced reflections denoiser (case 1376918).
 - Fixed objects belonging to preview scenes being marked as dirty during migration (case 1367204).
 - Fixed compilation errors from Path Tracing on the PS5 build.
+- Fixed option to force motion blur off when in XR.
 - Fixed taa jitter for after post process materials (case 1380967).
 - Fixed dirtiness handling in path tracing, when using multiple cameras at once (case 1376940).
 - Fixed flickering / edge aliasing issue when DoF and TAAU or DLSS are enabled (case 1381858).
