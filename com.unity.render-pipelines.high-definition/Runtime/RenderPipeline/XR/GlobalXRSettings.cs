@@ -12,7 +12,8 @@ namespace UnityEngine.Rendering
         {
             singlePass = true,
             occlusionMesh = true,
-            cameraJitter = false
+            cameraJitter = false,
+            allowMotionBlur = true
         };
 
         /// <summary>Use single pass.</summary>
@@ -21,5 +22,7 @@ namespace UnityEngine.Rendering
         public bool occlusionMesh;
         /// <summary>Add jitter to camera for temporal effects.</summary>
         public bool cameraJitter;
+        /// <summary>Allow motion blur when in XR.</summary>
+        public bool allowMotionBlur;
     }
 }
