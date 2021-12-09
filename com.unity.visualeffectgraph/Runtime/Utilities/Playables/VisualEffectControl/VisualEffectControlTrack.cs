@@ -48,8 +48,7 @@ namespace UnityEngine.VFX
         {
             foreach (var clip in GetClips())
             {
-                var customClip = clip.asset as VisualEffectControlClip;
-                if (customClip != null)
+                if (clip.asset is VisualEffectControlClip customClip)
                 {
                     customClip.clipStart = clip.start;
                     customClip.clipEnd = clip.end;
