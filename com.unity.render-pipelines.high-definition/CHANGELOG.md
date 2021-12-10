@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed auto-exposure mismatch between sky background and scene objects in path tracing (case 1385131).
 - Fixed option to force motion blur off when in XR.
 - Fixed write to VT feedback in debug modes (case 1376874)
+- Fixed the water system not working on metal.
 - Fixed the missing debug menus to visualize the ray tracing acceleration structure (case 1371410).
 
 ### Changed
