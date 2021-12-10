@@ -2,7 +2,7 @@
 
 ## Description
 
-You can use the Refract node to give a shader a refraction effect. The Refract node generates a refraction using the following to produce a new refracted vector: 
+You can use the Refract node to give a shader a refraction effect. The Refract node generates a refraction using the following to produce a new refracted vector:
 
 - A normalized incident vector.
 
