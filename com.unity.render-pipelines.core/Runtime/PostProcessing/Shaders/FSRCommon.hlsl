@@ -33,7 +33,9 @@
 // Enable either the 16-bit or the 32-bit implementation of FSR depending on platform support
 // Note: There are known issues relating to the math approximation functions on some DX11 drivers when FP16 is used.
 //       Due to this issue, we currently prevent the 16-bit implementation from being used when DX11 is detected.
-#if REAL_IS_HALF && !defined(SHADER_API_D3D11)
+//#if REAL_IS_HALF && !defined(SHADER_API_D3D11)
+// FP16 is currently disabled for testing purposes
+#if 0
     #define A_HALF
     #define FSR_EASU_H 1
     #define FSR_RCAS_H 1
