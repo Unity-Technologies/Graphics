@@ -267,16 +267,14 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
 
         for(int l=0; l < PROPAGATION_AXIS_AMOUNT; ++l)
         {
-            float4 neighborAxisLookup = _SortedNeighborAxis[neighborAxisIndexOffset + l];
-            int i = (int)neighborAxisLookup.y;
-            float sgWeight = neighborAxisLookup.x;
+            // float4 neighborAxisLookup = _SortedNeighborAxis[neighborAxisIndexOffset + l];
+            // int i = (int)neighborAxisLookup.y;
+            // float sgWeight = neighborAxisLookup.x;
 
-            /*NeighborAxisLookup neighborAxisLookup = _SortedNeighborAxisLookup[neighborAxisIndexOffset + l];
+            NeighborAxisLookup neighborAxisLookup = _SortedNeighborAxisLookup[neighborAxisIndexOffset + l];
             int i = neighborAxisLookup.index;
             float sgWeight = neighborAxisLookup.sgWeight;
-            float3 neighborDirection = neighborAxisLookup.neighborDirection;*/
 
-            float3 neighborDirection = _RayAxis[i].xyz;
             uint sampleAxis = i * _ProbeVolumeProbeCount + probeIndex;
             NeighborAxis neighbor = _ProbeVolumeNeighbors[sampleAxis];
 
@@ -313,6 +311,8 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
 #if defined(SAMPLE_NEIGHBORS_DIRECTION_ONLY) || defined(SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION)
                 else
                 {
+                    float3 neighborDirection = neighborAxisLookup.neighborDirection;
+                    // float3 neighborDirection = _RayAxis[i].xyz;
                     float3 neighborWorldDirection = neighborDirection;
 
                     #if defined(SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION)

@@ -75,6 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private ComputeShader _PropagationCombineShader = null;
 
         private Vector4[] _sortedAxisLookups;
+        private NeighborAxisLookup[] _sortedAxisLookupsArray;
         private ComputeBuffer _sortedNeighborAxisLookups;
         private ProbeVolumeSimulationRequest[] _probeVolumeSimulationRequests;
 
@@ -132,9 +133,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 new Vector4( 0, -s_2DDiagonal, -s_2DDiagonal, s_2DDiagonalDist),
             };
 
-            int sortedNeighborAxisLookupsCount = (s_NeighborAxis.Length * s_NeighborAxis.Length);
-            _sortedAxisLookups = new Vector4[sortedNeighborAxisLookupsCount];
-            ProbeVolume.EnsureBuffer<NeighborAxisLookup>(ref _sortedNeighborAxisLookups, sortedNeighborAxisLookupsCount);
+            _sortedAxisLookups = new Vector4[s_NeighborAxis.Length * s_NeighborAxis.Length];
+            _sortedAxisLookupsArray = new NeighborAxisLookup[s_NeighborAxis.Length * s_NeighborAxis.Length];
+
             _probeVolumeSimulationRequests = new ProbeVolumeSimulationRequest[MAX_SIMULATIONS_PER_FRAME];
         }
 
@@ -411,6 +412,8 @@ namespace UnityEngine.Rendering.HighDefinition
             _PropagationAxesShader = resources.shaders.probePropagationAxesCS;
             _PropagationCombineShader = resources.shaders.probePropagationCombineCS;
 
+            ProbeVolume.EnsureBuffer<NeighborAxisLookup>(ref _sortedNeighborAxisLookups, _sortedAxisLookups.Length);
+
 #if UNITY_EDITOR
             _ProbeVolumeDebugNeighbors = resources.shaders.probeVolumeDebugNeighbors;
             dummyColor = RTHandles.Alloc(kDummyRTWidth, kDummyRTHeight, dimension: TextureDimension.Tex2D, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, name: "Dummy color");
@@ -423,6 +426,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             RTHandles.Release(dummyColor);
 #endif
+            ProbeVolume.CleanupBuffer(_sortedNeighborAxisLookups);
         }
 
 
@@ -756,13 +760,21 @@ namespace UnityEngine.Rendering.HighDefinition
                         var sgWeight = SGEvaluateFromDirection(1, sgSharpness, neighborDirection, axis);
                         sgWeight /= neighborDirection.w * neighborDirection.w;
                         _sortedAxisLookups[sortedAxisStart + neighborIndex] = new Vector4(sgWeight, neighborIndex, 0, 0);
+                        _sortedAxisLookupsArray[sortedAxisStart + neighborIndex] = new NeighborAxisLookup(neighborIndex, sgWeight, neighborDirection);
                     }
 
                     fixed (Vector4* sortedAxisPtr = &_sortedAxisLookups[sortedAxisStart])
                     {
                         CoreUnsafeUtils.QuickSort<AxisVector4>(s_NeighborAxis.Length, sortedAxisPtr);
                     }
+
+                    fixed (NeighborAxisLookup* sortedAxisPtr = &_sortedAxisLookupsArray[sortedAxisStart])
+                    {
+                        CoreUnsafeUtils.QuickSort<NeighborAxisLookup>(s_NeighborAxis.Length, sortedAxisPtr);
+                    }
                 }
+
+                _sortedNeighborAxisLookups.SetData(_sortedAxisLookupsArray);
 
                 _sortedAxisSharpness = sgSharpness;
             }
