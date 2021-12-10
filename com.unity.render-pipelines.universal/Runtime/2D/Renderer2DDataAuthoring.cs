@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.Universal
             return null;
         }
 
-        private void InitalizeSpriteEditorPrefs()
+        private void InitializeSpriteEditorPrefs()
         {
             // Provide a list of suggested texture property names to Sprite Editor via EditorPrefs.
             const string suggestedNamesKey = "SecondarySpriteTexturePropertyNames";
@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering.Universal
             m_LightBlendStyles[3].maskTextureChannel = Light2DBlendStyle.TextureChannel.R;
 
             // Initialize Editor Prefs for Sprite Editor
-            InitalizeSpriteEditorPrefs();
+            InitializeSpriteEditorPrefs();
         }
 
 #endif
