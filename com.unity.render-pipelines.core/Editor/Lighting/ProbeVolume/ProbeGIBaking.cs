@@ -252,7 +252,6 @@ namespace UnityEngine.Experimental.Rendering
 
         // NOTE: This is somewhat hacky and is going to likely be slow (or at least slower than it could).
         // It is only a first iteration of the concept that won't be as impactful on memory as other options.
-#if false // TODO: Make sure we intend to keep this before fixing
         internal static void RevertDilation()
         {
             if (m_BakingProfile == null)
@@ -263,6 +262,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             var dilationSettings = m_BakingSettings.dilationSettings;
+            var blackProbe = new SphericalHarmonicsL2();
 
             foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
             {
@@ -271,17 +271,14 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && cell.validity[i] > dilationSettings.dilationValidityThreshold)
                     {
-                        for (int k = 0; k < 9; ++k)
-                        {
-                            cell.sh[i][0, k] = 0.0f;
-                            cell.sh[i][1, k] = 0.0f;
-                            cell.sh[i][2, k] = 0.0f;
-                        }
+                        WriteToShaderCoeffsL0L1(ref blackProbe, cell.shL0L1Data, i * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
+
+                        if(cell.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                            WriteToShaderCoeffsL2(ref blackProbe, cell.shL2Data, i * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
                     }
                 }
             }
         }
-#endif
 
         // Can definitively be optimized later on.
         // Also note that all the bookkeeping of all the reference volumes will likely need to change when we move to
@@ -607,7 +604,13 @@ namespace UnityEngine.Experimental.Rendering
             // Convert baking cells to runtime cells
             foreach ((var asset, var bakingCellsList) in asset2BakingCells)
             {
-                asset.bands = probeRefVolume.shBands;
+                // NOTE: Right now we always write out both L0L1 and L2 data, regardless of which Probe Volume SH Bands lighting setting
+                //       happens to be active at the time of baking (probeRefVolume.shBands).
+                //
+                // TODO: Explicitly add an option for storing L2 data to bake sets. Freely mixing cells with different bands
+                //       availability is already supported by runtime.
+                //
+                asset.bands = ProbeVolumeSHBands.SphericalHarmonicsL2;
                 WriteBakingCells(asset, bakingCellsList);
                 asset.ResolveCells();
             }
@@ -654,27 +657,50 @@ namespace UnityEngine.Experimental.Rendering
             Clear();
         }
 
-        static void GetShaderCoeffsL0L1(ref SphericalHarmonicsL2 sh, NativeArray<Vector4> target, int offset)
+        static void WriteToShaderCoeffsL0L1(ref SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL0L1, int offset)
         {
-            target[offset + 0] = new Vector4(sh[0, 0], sh[1, 0], sh[2, 0], sh[0, 1]);
-            target[offset + 1] = new Vector4(sh[1, 1], sh[1, 2], sh[1, 3], sh[0, 2]);
-            target[offset + 2] = new Vector4(sh[2, 1], sh[2, 2], sh[2, 3], sh[0, 3]);
+            shaderCoeffsL0L1[offset +  0] = sh[0, 0]; shaderCoeffsL0L1[offset +  1] = sh[1, 0]; shaderCoeffsL0L1[offset +  2] = sh[2, 0]; shaderCoeffsL0L1[offset +  3] = sh[0, 1];
+            shaderCoeffsL0L1[offset +  4] = sh[1, 1]; shaderCoeffsL0L1[offset +  5] = sh[1, 2]; shaderCoeffsL0L1[offset +  6] = sh[1, 3]; shaderCoeffsL0L1[offset +  7] = sh[0, 2];
+            shaderCoeffsL0L1[offset +  8] = sh[2, 1]; shaderCoeffsL0L1[offset +  9] = sh[2, 2]; shaderCoeffsL0L1[offset + 10] = sh[2, 3]; shaderCoeffsL0L1[offset + 11] = sh[0, 3];
         }
 
-        static void GetShaderCoeffsL2(ref SphericalHarmonicsL2 sh, NativeArray<Vector4> target, int offset)
+        static void WriteToShaderCoeffsL2(ref SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL2, int offset)
         {
-            target[offset + 0] = new Vector4(sh[0, 4], sh[0, 5], sh[0, 6], sh[0, 7]);
-            target[offset + 1] = new Vector4(sh[1, 4], sh[1, 5], sh[1, 6], sh[1, 7]);
-            target[offset + 2] = new Vector4(sh[2, 4], sh[2, 5], sh[2, 6], sh[2, 7]);
-            target[offset + 3] = new Vector4(sh[0, 8], sh[1, 8], sh[2, 8], 1f);
+            shaderCoeffsL2[offset +  0] = sh[0, 4]; shaderCoeffsL2[offset +  1] = sh[0, 5]; shaderCoeffsL2[offset +  2] = sh[0, 6]; shaderCoeffsL2[offset +  3] = sh[0, 7];
+            shaderCoeffsL2[offset +  4] = sh[1, 4]; shaderCoeffsL2[offset +  5] = sh[1, 5]; shaderCoeffsL2[offset +  6] = sh[1, 6]; shaderCoeffsL2[offset +  7] = sh[1, 7];
+            shaderCoeffsL2[offset +  8] = sh[2, 4]; shaderCoeffsL2[offset +  9] = sh[2, 5]; shaderCoeffsL2[offset + 10] = sh[2, 6]; shaderCoeffsL2[offset + 11] = sh[2, 7];
+            shaderCoeffsL2[offset + 12] = sh[0, 8]; shaderCoeffsL2[offset + 13] = sh[1, 8]; shaderCoeffsL2[offset + 14] = sh[2, 8];
         }
 
-        static void GetBlobFileNames(string sourceFilename, out string cellDataFilename, out string cellSupportDataFilename )
+        static void ReadFromShaderCoeffsL0L1(ref SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL0L1, int offset)
+        {
+            sh[0, 0] = shaderCoeffsL0L1[offset +  0]; sh[1, 0] = shaderCoeffsL0L1[offset +  1]; sh[2, 0] = shaderCoeffsL0L1[offset +  2]; sh[0, 1] = shaderCoeffsL0L1[offset +  3];
+            sh[1, 1] = shaderCoeffsL0L1[offset +  4]; sh[1, 2] = shaderCoeffsL0L1[offset +  5]; sh[1, 3] = shaderCoeffsL0L1[offset +  6]; sh[0, 2] = shaderCoeffsL0L1[offset +  7];
+            sh[2, 1] = shaderCoeffsL0L1[offset +  8]; sh[2, 2] = shaderCoeffsL0L1[offset +  9]; sh[2, 3] = shaderCoeffsL0L1[offset + 10]; sh[0, 3] = shaderCoeffsL0L1[offset + 11];
+        }
+
+        static void ReadFromShaderCoeffsL2(ref SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL2, int offset)
+        {
+            sh[0, 4] = shaderCoeffsL2[offset +  0]; sh[0, 5] = shaderCoeffsL2[offset +  1]; sh[0, 6] = shaderCoeffsL2[offset +  2]; sh[0, 7] = shaderCoeffsL2[offset +  3];
+            sh[1, 4] = shaderCoeffsL2[offset +  4]; sh[1, 5] = shaderCoeffsL2[offset +  5]; sh[1, 6] = shaderCoeffsL2[offset +  6]; sh[1, 7] = shaderCoeffsL2[offset +  7];
+            sh[2, 4] = shaderCoeffsL2[offset +  8]; sh[2, 5] = shaderCoeffsL2[offset +  9]; sh[2, 6] = shaderCoeffsL2[offset + 10]; sh[2, 7] = shaderCoeffsL2[offset + 11];
+            sh[0, 8] = shaderCoeffsL2[offset + 12]; sh[1, 8] = shaderCoeffsL2[offset + 13]; sh[2, 8] = shaderCoeffsL2[offset + 14];
+        }
+
+        static void GetBlobFileNames(string sourceFilename, out string cellDataFilename, out string cellOptionalDataFilename, out string cellSupportDataFilename )
         {
             cellDataFilename = System.IO.Path.ChangeExtension(sourceFilename, "CellData.bytes");
+            cellOptionalDataFilename = System.IO.Path.ChangeExtension(sourceFilename, "CellOptionalData.bytes");
             cellSupportDataFilename = System.IO.Path.ChangeExtension(sourceFilename, "CellSupportData.bytes");
         }
 
+        /// <summary>
+        /// This method converts a list of baking cells into 4 separate assets:
+        ///   ProbeVolumeAssets: a Scriptable Object which currently contains book-keeping data, runtime cells, and referenced to flattened data
+        ///   CellData: a binary flat file containing essential data such as bricks and L0L1 probes data
+        ///   CellOptionalData: a binary flat file containing L2 probe data (when present)
+        ///   CellSupportData: a binary flat file containing debug data (stripped from player builds if building without debug shaders)
+        /// </summary>
         static void WriteBakingCells(ProbeVolumeAsset asset, List<BakingCell> bakingCells)
         {
             asset.cells = new Cell[bakingCells.Count];
@@ -703,9 +729,15 @@ namespace UnityEngine.Experimental.Rendering
                 asset.totalCellCounts.Add(cellCounts);
             }
 
+            // CellData
             using var bricks = new NativeArray<Brick>(asset.totalCellCounts.bricksCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var probes = new NativeArray<Vector4>(asset.totalCellCounts.probesCount * asset.CoefficientVectorsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var probesL0L1 = new NativeArray<float>(asset.totalCellCounts.probesCount * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
+            // CellOptionalData
+            var probesL2ScalarPaddedCount = asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2 ? asset.totalCellCounts.probesCount * ProbeVolumeAsset.kL2ScalarCoefficientsCount + 3 : 0;
+            using var probesL2 = new NativeArray<float>(probesL2ScalarPaddedCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+
+            // CellSupportData
             using var positions = new NativeArray<Vector3>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var validity = new NativeArray<float>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             using var offsets = new NativeArray<Vector3>(asset.totalCellCounts.offsetsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
@@ -718,16 +750,21 @@ namespace UnityEngine.Experimental.Rendering
 
                 bricks.GetSubArray(startCounts.bricksCount, cellCounts.bricksCount).CopyFrom(bakingCell.bricks);
 
-                var coefficientVectorsCount = asset.CoefficientVectorsCount;
-                var probesTarget = probes.GetSubArray(startCounts.probesCount * coefficientVectorsCount, cellCounts.probesCount * coefficientVectorsCount);
-                for (int j = 0, k = 0; j < cellCounts.probesCount; ++j, k += coefficientVectorsCount)
+                var probesTargetL0L1 = probesL0L1.GetSubArray(startCounts.probesCount * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount, cellCounts.probesCount * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
+                for (int j = 0, k = 0; j < cellCounts.probesCount; ++j, k += ProbeVolumeAsset.kL0L1ScalarCoefficientsCount)
                 {
                     ref var sh = ref bakingCell.sh[j];
+                    WriteToShaderCoeffsL0L1(ref sh, probesTargetL0L1, k);
+                }
 
-                    GetShaderCoeffsL0L1(ref sh, probesTarget, k);
-
-                    if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                        GetShaderCoeffsL2(ref sh, probesTarget, k + 3);
+                if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                {
+                    var probesTargetL2 = probesL2.GetSubArray(startCounts.probesCount * ProbeVolumeAsset.kL2ScalarCoefficientsCount, cellCounts.probesCount * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
+                    for (int j = 0, k = 0; j < cellCounts.probesCount; ++j, k += ProbeVolumeAsset.kL2ScalarCoefficientsCount)
+                    {
+                        ref var sh = ref bakingCell.sh[j];
+                        WriteToShaderCoeffsL2(ref sh, probesTargetL2, k);
+                    }
                 }
 
                 positions.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.probePositions);
@@ -741,7 +778,7 @@ namespace UnityEngine.Experimental.Rendering
             EditorUtility.SetDirty(asset);
             AssetDatabase.SaveAssets();
 
-            GetBlobFileNames(asset.GetSerializedFullPath(), out var cellDataFilename, out var cellSupportDataFilename);
+            GetBlobFileNames(asset.GetSerializedFullPath(), out var cellDataFilename, out var cellOptionalDataFilename, out var cellSupportDataFilename);
 
             unsafe
             {
@@ -751,7 +788,12 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     fs.Write(new ReadOnlySpan<byte>(bricks.GetUnsafeReadOnlyPtr(), bricks.Length * UnsafeUtility.SizeOf<Brick>()));
                     fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(probes.GetUnsafeReadOnlyPtr(), probes.Length * UnsafeUtility.SizeOf<Vector4>()));
+                    fs.Write(new ReadOnlySpan<byte>(probesL0L1.GetUnsafeReadOnlyPtr(), probesL0L1.Length * UnsafeUtility.SizeOf<float>()));
+                }
+                if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                {
+                    using var fs = new System.IO.FileStream(cellOptionalDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write);
+                    fs.Write(new ReadOnlySpan<byte>(probesL2.GetUnsafeReadOnlyPtr(), probesL2.Length * UnsafeUtility.SizeOf<float>()));
                 }
                 using (var fs = new System.IO.FileStream(cellSupportDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
@@ -764,42 +806,42 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             AssetDatabase.ImportAsset(cellDataFilename);
+
+            if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                AssetDatabase.ImportAsset(cellOptionalDataFilename);
+            else
+                AssetDatabase.DeleteAsset(cellOptionalDataFilename);
+
             AssetDatabase.ImportAsset(cellSupportDataFilename);
 
             asset.cellDataAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(cellDataFilename);
+            asset.cellOptionalDataAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(cellOptionalDataFilename);
             asset.cellSupportDataAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(cellSupportDataFilename);
-
-            asset.LoadBinaryData();
         }
 
         static void WritebackModifiedCellsData(ProbeVolumeAsset asset)
         {
-            GetBlobFileNames(asset.GetSerializedFullPath(), out var cellDataFilename, out var cellSupportDataFilename);
+            GetBlobFileNames(asset.GetSerializedFullPath(), out var cellDataFilename, out var cellOptionalDataFilename, out var cellSupportDataFilename);
 
             unsafe
             {
                 using (var fs = new System.IO.FileStream(cellDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
-                    var cellData = asset.assetToBytes[asset.cellDataAsset];
+                    var cellData = asset.cellDataAsset.GetData<byte>();
                     fs.Write(new ReadOnlySpan<byte>(cellData.GetUnsafeReadOnlyPtr(), cellData.Length));
+                }
+                if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                {
+                    var cellOptionalData = asset.cellOptionalDataAsset.GetData<byte>();
+                    using var fs = new System.IO.FileStream(cellOptionalDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write);
+                    fs.Write(new ReadOnlySpan<byte>(cellOptionalData.GetUnsafeReadOnlyPtr(), cellOptionalData.Length));
                 }
                 using (var fs = new System.IO.FileStream(cellSupportDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
-                    var cellSupportData = asset.assetToBytes[asset.cellSupportDataAsset];
+                    var cellSupportData = asset.cellSupportDataAsset.GetData<byte>();
                     fs.Write(new ReadOnlySpan<byte>(cellSupportData.GetUnsafeReadOnlyPtr(), cellSupportData.Length));
                 }
             }
-
-            asset.ReleaseBinaryData();
-
-            AssetDatabase.ImportAsset(cellDataFilename);
-            AssetDatabase.ImportAsset(cellSupportDataFilename);
-
-            asset.cellDataAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(cellDataFilename);
-            asset.cellSupportDataAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(cellSupportDataFilename);
-
-            asset.LoadBinaryData();
-            asset.ResolveCells();
         }
 
         private static void DeduplicateProbePositions(in Vector3[] probePositions, in int[] brickSubdivLevel, Dictionary<Vector3, int> uniquePositions,

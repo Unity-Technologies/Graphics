@@ -10,6 +10,9 @@ namespace UnityEngine.Experimental.Rendering
         Invalid = 999
     }
 
+    /// <summary>
+    /// A component that stores baked probe volume state and data references. Normally hidden from the user.
+    /// </summary>
     [ExecuteAlways]
     [AddComponentMenu("")] // Hide.
     public class ProbeVolumePerSceneData : MonoBehaviour, ISerializationCallbackReceiver
@@ -20,6 +23,7 @@ namespace UnityEngine.Experimental.Rendering
             public ProbeVolumeState state;
             public ProbeVolumeAsset asset;
             public TextAsset cellDataAsset;
+            public TextAsset cellOptionalDataAsset;
             public TextAsset cellSupportDataAsset;
         }
 
@@ -39,6 +43,7 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var assetItem in serializedAssets)
             {
                 assetItem.asset.cellDataAsset = assetItem.cellDataAsset;
+                assetItem.asset.cellOptionalDataAsset = assetItem.cellOptionalDataAsset;
                 assetItem.asset.cellSupportDataAsset = assetItem.cellSupportDataAsset;
                 assets.Add(assetItem.state, assetItem.asset);
             }
@@ -56,6 +61,7 @@ namespace UnityEngine.Experimental.Rendering
                 item.state = k;
                 item.asset = assets[k];
                 item.cellDataAsset = item.asset.cellDataAsset;
+                item.cellOptionalDataAsset = item.asset.cellOptionalDataAsset;
                 item.cellSupportDataAsset = item.asset.cellSupportDataAsset;
                 serializedAssets.Add(item);
             }
@@ -88,17 +94,19 @@ namespace UnityEngine.Experimental.Rendering
             var refVol = ProbeReferenceVolume.instance;
             if (assets.TryGetValue(m_CurrentState, out var asset) && asset != null)
             {
-                asset.ResolveCells();
-                refVol.AddPendingAssetLoading(asset);
+                if (asset.ResolveCells())
+                {
+                    refVol.AddPendingAssetLoading(asset);
 
 #if UNITY_EDITOR
-                if (refVol.sceneData != null)
-                {
-                    refVol.dilationValidtyThreshold = refVol.sceneData.GetBakeSettingsForScene(gameObject.scene).dilationSettings.dilationValidityThreshold;
-                }
+                    if (refVol.sceneData != null)
+                    {
+                        refVol.dilationValidtyThreshold = refVol.sceneData.GetBakeSettingsForScene(gameObject.scene).dilationSettings.dilationValidityThreshold;
+                    }
 #endif
 
-                m_PreviousState = m_CurrentState;
+                    m_PreviousState = m_CurrentState;
+                }
             }
         }
 

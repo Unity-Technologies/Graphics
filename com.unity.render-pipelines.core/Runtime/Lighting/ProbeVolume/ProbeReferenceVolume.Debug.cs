@@ -287,7 +287,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 var cell = cellInfo.cell;
 
-                if (!cell.shData.IsCreated || cell.shData.Length == 0 || !cellInfo.loaded)
+                if (!cell.shL0L1Data.IsCreated || cell.shL0L1Data.Length == 0 || !cellInfo.loaded)
                     continue;
 
                 List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();

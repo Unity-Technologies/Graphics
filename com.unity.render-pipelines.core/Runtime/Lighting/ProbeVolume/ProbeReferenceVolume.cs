@@ -363,16 +363,8 @@ namespace UnityEngine.Experimental.Rendering
 
             public NativeArray<Brick> bricks { get; internal set; }
 
-            // shData is swizzled for direct runtime upload
-            //
-            // L0r0, L0g0, L0b0, L1r0
-            // L1g0, L1g1, L1g2, L1r1
-            // L1b0, L1b1, L1b2, L1r2
-            // L2r0, L2r1, L2r2, L2r3
-            // L2g0, L2g1, L2g2, L2g3
-            // L2b0, L2b1, L2b2, L2b3
-            // L2r4, L2g4, L2b4, 1.0
-            public NativeArray<Vector4> shData { get; internal set; }
+            public NativeArray<float> shL0L1Data { get; internal set; } // pre-swizzled for runtime upload (12 coeffs)
+            public NativeArray<float> shL2Data { get; internal set; } // pre-swizzled for runtime upload (15 coeffs)
 
             public NativeArray<Vector3> probePositions { get; internal set; }
             public NativeArray<float> validity { get; internal set; }
@@ -636,7 +628,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// The <see cref="ProbeVolumeSHBands"/>
         /// </summary>
-        public ProbeVolumeSHBands shBands { get { return m_SHBands; } }
+        public ProbeVolumeSHBands shBands => m_SHBands;
 
         internal bool clearAssetsOnVolumeClear = false;
 
@@ -1248,7 +1240,7 @@ namespace UnityEngine.Experimental.Rendering
             while (chunkIndex < cellInfo.chunkList.Count)
             {
                 int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands, cell.shData.Reinterpret<Color>(), chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
+                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands, cell.shL0L1Data, cell.shL2Data, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
 
                 // copy chunks into pool
                 m_TmpSrcChunks.Clear();

@@ -35,8 +35,6 @@ namespace UnityEngine.Experimental.Rendering
 
         [SerializeField] internal ProbeVolumeSHBands bands;
 
-        internal int CoefficientVectorsCount => bands == ProbeVolumeSHBands.SphericalHarmonicsL2 ? 7 : 3;
-
         [SerializeField] string m_AssetFullPath = "UNINITIALIZED!";
 
         // Profile info
@@ -44,8 +42,9 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField] internal float minDistanceBetweenProbes;
         [SerializeField] internal int simplificationLevels;
 
-        // Binary data (stored in ProbeVolumeSceneData)
+        // Binary data (stored in ProbeVolumeSceneData, injected on load)
         internal TextAsset cellDataAsset;
+        internal TextAsset cellOptionalDataAsset;
         internal TextAsset cellSupportDataAsset;
 
         [Serializable]
@@ -63,6 +62,9 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        internal const int kL0L1ScalarCoefficientsCount = 12;
+        internal const int kL2ScalarCoefficientsCount = 15;
+
         internal int maxSubdivision => simplificationLevels + 1; // we add one for the top subdiv level which is the same size as a cell
         internal float minBrickSize => Mathf.Max(0.01f, minDistanceBetweenProbes * 3.0f);
 
@@ -75,9 +77,12 @@ namespace UnityEngine.Experimental.Rendering
             return m_AssetFullPath;
         }
 
-        internal void ResolveCells()
+        internal bool ResolveCells()
         {
-            // The unpacking here is the "inverse" of ProbeBakingGI.WriteBakingCells
+            if (cellDataAsset == null)
+                return false;
+
+            // The unpacking here is the "inverse" of ProbeBakingGI.WriteBakingCells flattening
 
             static int AlignUp16(int count)
             {
@@ -86,16 +91,19 @@ namespace UnityEngine.Experimental.Rendering
                 return count + (remainder == 0 ? 0 : alignment - remainder);
             }
 
-            LoadBinaryData();
-
-            var cellData = assetToBytes[cellDataAsset];
+            var cellData = cellDataAsset.GetData<byte>();
             var bricksByteCount = totalCellCounts.bricksCount * UnsafeUtility.SizeOf<ProbeBrickIndex.Brick>();
-            var shDataByteStart = AlignUp16(bricksByteCount);
-            var shDataByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<Vector4>() * CoefficientVectorsCount;
+            var shL0L1DataByteStart = AlignUp16(bricksByteCount);
+            var shL0L1DataByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL0L1ScalarCoefficientsCount;
             var bricksData = cellData.GetSubArray(0, bricksByteCount).Reinterpret<ProbeBrickIndex.Brick>(1);
-            var shData = cellData.GetSubArray( shDataByteStart, shDataByteCount).Reinterpret<Vector4>(1);
+            var shL0L1Data = cellData.GetSubArray(shL0L1DataByteStart, shL0L1DataByteCount).Reinterpret<float>(1);
 
-            var cellSupportData = cellSupportDataAsset ? assetToBytes[cellSupportDataAsset] : default;
+            var cellOptionalData = cellOptionalDataAsset ? cellOptionalDataAsset.GetData<byte>() : default;
+            var hasOptionalData = cellOptionalData.IsCreated;
+            var shL2DataByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL2ScalarCoefficientsCount;
+            var shL2Data = hasOptionalData ? cellOptionalData.GetSubArray(0, shL2DataByteCount).Reinterpret<float>(1) : default;
+
+            var cellSupportData = cellSupportDataAsset ? cellSupportDataAsset.GetData<byte>() : default;
             var hasSupportData = cellSupportData.IsCreated;
             var positionsByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<Vector3>();
             var validityByteStart = AlignUp16(positionsByteCount);
@@ -113,7 +121,12 @@ namespace UnityEngine.Experimental.Rendering
                 var counts = cellCounts[i];
 
                 cell.bricks = bricksData.GetSubArray(startCounts.bricksCount, counts.bricksCount);
-                cell.shData = shData.GetSubArray(startCounts.probesCount * CoefficientVectorsCount, counts.probesCount * CoefficientVectorsCount);
+                cell.shL0L1Data = shL0L1Data.GetSubArray(startCounts.probesCount * kL0L1ScalarCoefficientsCount, counts.probesCount * kL0L1ScalarCoefficientsCount);
+
+                if (hasOptionalData)
+                {
+                    cell.shL2Data = shL2Data.GetSubArray(startCounts.probesCount * kL2ScalarCoefficientsCount, counts.probesCount * kL2ScalarCoefficientsCount);
+                }
 
                 if (hasSupportData)
                 {
@@ -124,36 +137,9 @@ namespace UnityEngine.Experimental.Rendering
 
                 startCounts.Add(counts);
             }
+
+            return true;
         }
-
-        // TEMP SECTION: Manually extract a NA from bytes until we have access to: https://github.cds.internal.unity3d.com/unity/unity/pull/6458
-        bool isBlobCreated;
-        internal Dictionary<TextAsset, NativeArray<byte>> assetToBytes = new();
-        internal void ReleaseBinaryData() => OnDisable();
-        internal void LoadBinaryData() { OnEnable(); }
-        void OnEnable()
-        {
-            if (!isBlobCreated && cellDataAsset)
-            {
-                assetToBytes[cellDataAsset] = new NativeArray<byte>(cellDataAsset.bytes, Allocator.Persistent);
-
-                if(cellSupportDataAsset)
-                    assetToBytes[cellSupportDataAsset] = new NativeArray<byte>(cellSupportDataAsset.bytes, Allocator.Persistent);
-
-                isBlobCreated = true;
-            }
-        }
-
-        void OnDisable()
-        {
-            isBlobCreated = false;
-
-            foreach (var bytes in assetToBytes.Values)
-                bytes.Dispose();
-
-            assetToBytes.Clear();
-        }
-        // END TEMP SECTION
 
 #if UNITY_EDITOR
         internal static string GetFileName(Scene scene)

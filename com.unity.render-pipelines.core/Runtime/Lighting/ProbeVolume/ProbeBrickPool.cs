@@ -356,18 +356,24 @@ namespace UnityEngine.Experimental.Rendering
             data[index] = value;
         }
 
-        public static void FillDataLocation(ref DataLocation loc, ProbeVolumeSHBands srcBands, NativeArray<Color> shData, int startIndex, int count, ProbeVolumeSHBands dstBands)
+        internal static unsafe void FillDataLocation(ref DataLocation loc, ProbeVolumeSHBands srcBands, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, int startIndex, int count, ProbeVolumeSHBands dstBands)
         {
-            var probeStride = srcBands == ProbeVolumeSHBands.SphericalHarmonicsL2 ? 7 : 3;
+            // NOTE: The SH data arrays passed to this method should be pre-swizzled to the format expected by shader code.
+            // TODO: The next step here would be to store de-interleaved, pre-quantized brick data that can be memcopied directly into texture pixeldata
 
-            // Coeff constants that cancel out shader probe decoding
-            var zhalf = new Color(0f, 0f, 0f, 0.5f);
-            var half = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+            var inputProbesCount = shL0L1Data.Length / ProbeVolumeAsset.kL0L1ScalarCoefficientsCount;
+
+            // Coefficient constants that end up as black after shader probe data decoding
+            var kZZZH = new Color(0f, 0f, 0f, 0.5f);
+            var kHHHH = new Color(0.5f, 0.5f, 0.5f, 0.5f);
 
             int shidx = startIndex;
             int bx = 0, by = 0, bz = 0;
 
             ValidateTemporaryBuffers(loc, dstBands);
+
+            var shL0L1Ptr = (float*)shL0L1Data.GetUnsafeReadOnlyPtr();
+            var shL2Ptr = (float*)(shL2Data.IsCreated ? shL2Data.GetUnsafeReadOnlyPtr() : default);
 
             for (int brickIdx = startIndex; brickIdx < (startIndex + count); brickIdx += kBrickProbeCountTotal)
             {
@@ -383,42 +389,45 @@ namespace UnityEngine.Experimental.Rendering
 
                             // We are processing chunks at a time.
                             // So in practice we can go over the number of SH we have in the input list.
-                            // We fill with black to avoid copying garbage in the final atlas.
-                            if (shidx * probeStride >= shData.Length)
+                            // We fill with encoded black to avoid copying garbage in the final atlas.
+                            if (shidx >= inputProbesCount)
                             {
-                                SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, zhalf);
-                                SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, half);
-                                SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, half);
+                                SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, kZZZH);
+                                SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
 
                                 if (dstBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                 {
-                                    SetPixel(s_L2_0_locData, ix, iy, iz, loc.width, loc.height, half);
-                                    SetPixel(s_L2_1_locData, ix, iy, iz, loc.width, loc.height, half);
-                                    SetPixel(s_L2_2_locData, ix, iy, iz, loc.width, loc.height, half);
-                                    SetPixel(s_L2_3_locData, ix, iy, iz, loc.width, loc.height, half);
+                                    SetPixel(s_L2_0_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                    SetPixel(s_L2_1_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                    SetPixel(s_L2_2_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                    SetPixel(s_L2_3_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
                                 }
                             }
                             else
                             {
-                                SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, shData[shidx * probeStride + 0]);
-                                SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, shData[shidx * probeStride + 1]);
-                                SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, shData[shidx * probeStride + 2]);
+                                var shL0L1ColorPtr = (Color*)(shL0L1Ptr + shidx * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
+                                SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[0]);
+                                SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[1]);
+                                SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[2]);
 
                                 if (dstBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                 {
                                     if(srcBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                     {
-                                        SetPixel(s_L2_0_locData, ix, iy, iz, loc.width, loc.height, shData[shidx * probeStride + 3]);
-                                        SetPixel(s_L2_1_locData, ix, iy, iz, loc.width, loc.height, shData[shidx * probeStride + 4]);
-                                        SetPixel(s_L2_2_locData, ix, iy, iz, loc.width, loc.height, shData[shidx * probeStride + 5]);
-                                        SetPixel(s_L2_3_locData, ix, iy, iz, loc.width, loc.height, shData[shidx * probeStride + 6]);
+                                        var shL2ColorPtr = (Color*)(shL2Ptr + shidx * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
+                                        SetPixel(s_L2_0_locData, ix, iy, iz, loc.width, loc.height, shL2ColorPtr[0]);
+                                        SetPixel(s_L2_1_locData, ix, iy, iz, loc.width, loc.height, shL2ColorPtr[1]);
+                                        SetPixel(s_L2_2_locData, ix, iy, iz, loc.width, loc.height, shL2ColorPtr[2]);
+                                        SetPixel(s_L2_3_locData, ix, iy, iz, loc.width, loc.height, shL2ColorPtr[3]);
                                     }
                                     else
                                     {
-                                        SetPixel(s_L2_0_locData, ix, iy, iz, loc.width, loc.height, half);
-                                        SetPixel(s_L2_1_locData, ix, iy, iz, loc.width, loc.height, half);
-                                        SetPixel(s_L2_2_locData, ix, iy, iz, loc.width, loc.height, half);
-                                        SetPixel(s_L2_3_locData, ix, iy, iz, loc.width, loc.height, half);
+                                        // We want L2 output, but only have L0L1 input. Fill with encoded black to preserve L0L1 lighting data.
+                                        SetPixel(s_L2_0_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                        SetPixel(s_L2_1_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                        SetPixel(s_L2_2_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
+                                        SetPixel(s_L2_3_locData, ix, iy, iz, loc.width, loc.height, kHHHH);
                                     }
                                 }
                             }
