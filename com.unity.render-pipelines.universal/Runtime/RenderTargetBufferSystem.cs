@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public RTHandle GetBufferA()
         {
-            return m_A.rtMSAA;
+            return (m_AllowMSAA && m_A.msaa > 1) ? m_A.rtMSAA : m_A.rtResolve;
         }
 
         public void EnableMSAA(bool enable)
