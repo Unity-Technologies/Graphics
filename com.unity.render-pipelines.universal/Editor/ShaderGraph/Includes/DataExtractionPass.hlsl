@@ -107,13 +107,14 @@ half4 frag(PackedVaryings packedInput, float4 positionCS : SV_POSITION) : SV_TAR
     InputData inputData;
     InitializeInputData(unpacked, surfaceDescription, inputData);
 
-    ExtractionInputs extraction;
+    ExtractionInputs extraction = (ExtractionInputs)0;
     extraction.vertexNormalWS = unpacked.normalWS;
     extraction.pixelNormalWS = inputData.normalWS;
     extraction.positionWS = inputData.positionWS;
     extraction.deviceDepth = positionCS.z;
     extraction.baseColor = surfaceDescription.BaseColor;
     extraction.alpha = alpha;
+    #if 0
     #ifdef _SPECULAR_SETUP
     extraction.specular = surfaceDescription.Specular;
     #else
@@ -122,6 +123,7 @@ half4 frag(PackedVaryings packedInput, float4 positionCS : SV_POSITION) : SV_TAR
     extraction.smoothness = surfaceDescription.Smoothness;
     extraction.occlusion = surfaceDescription.Occlusion;
     extraction.emission = surfaceDescription.Emission.xyz;
+    #endif
 
     // half precision will not preserve things like IDs which require exact results.
     return half4(OutputExtraction(extraction));

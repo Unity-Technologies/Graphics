@@ -361,7 +361,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // UI shaders to render correctly. Verify [1352225] before changing this order.
                 result.passes.Add(PassVariant(CorePasses.SceneSelection(target), CorePragmas.DOTSDefault));
                 result.passes.Add(PassVariant(CorePasses.ScenePicking(target), CorePragmas.DOTSDefault));
-                result.passes.Add(PassVariant(CorePasses.DataExtraction(target), CorePragmas.DOTSDefault));
+                result.passes.Add(PassVariant(CorePasses.DataExtraction(target), CorePragmas.DOTSInstancedEditorSync));
 
                 result.passes.Add(PassVariant(LitPasses._2D(target), CorePragmas.DOTSDefault));
 

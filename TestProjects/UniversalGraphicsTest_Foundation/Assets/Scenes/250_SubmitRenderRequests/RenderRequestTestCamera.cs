@@ -1,4 +1,6 @@
-﻿using System;
+﻿// #define DEBUG_GPU_CAPTURE
+
+using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
@@ -8,6 +10,7 @@ using UnityEngine.Rendering;
 public class RenderRequestTestCamera : MonoBehaviour
 {
     public Camera.RenderRequestMode debugMode = Camera.RenderRequestMode.None;
+    public bool debugRenderEachFrame = false;
 
     private Camera m_Camera;
     private RenderRequestTestTarget[] m_Targets;
@@ -43,6 +46,10 @@ public class RenderRequestTestCamera : MonoBehaviour
 
     private void Start()
     {
+#if DEBUG_GPU_CAPTURE
+        ExternalGPUProfiler.BeginGPUCapture();
+#endif
+
         m_Camera = GetComponent<Camera>();
         m_Targets = FindObjectsOfType<RenderRequestTestTarget>();
         m_RenderRequests = new List<Camera.RenderRequest>();
@@ -71,6 +78,10 @@ public class RenderRequestTestCamera : MonoBehaviour
 
         AsyncGPUReadback.WaitAllRequests();
 
+#if DEBUG_GPU_CAPTURE
+        ExternalGPUProfiler.EndGPUCapture();
+#endif
+
         ValidatePosition(readbackPosition);
         ValidateNormal(readbackNormal);
         ValidateObjectId(readbackObjectId);
@@ -95,6 +106,9 @@ public class RenderRequestTestCamera : MonoBehaviour
         {
             if (r.mode == debugMode)
             {
+                if (debugRenderEachFrame)
+                    m_Camera.SubmitRenderRequests(new List<Camera.RenderRequest> { r });
+
                 GUI.DrawTexture(m_Camera.pixelRect, r.result, ScaleMode.ScaleToFit, false);
                 return;
             }

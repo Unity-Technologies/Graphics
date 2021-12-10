@@ -992,7 +992,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.ScenePicking(target),
-                pragmas = CorePragmas.Instanced,
+                pragmas = CorePragmas.DOTSInstancedEditorSync,
                 defines = new DefineCollection { { CoreKeywordDescriptors.AlphaClipThreshold, 1 } },
                 keywords = new KeywordCollection(),
                 includes = CoreIncludes.DataExtraction,
@@ -1429,6 +1429,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.DOTSInstancing },
+            { Pragma.Vertex("vert") },
+            { Pragma.Fragment("frag") },
+        };
+
+        public static readonly PragmaCollection DOTSInstancedEditorSync = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target45) },
+            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.MultiCompileInstancing },
+            { Pragma.DOTSInstancing },
+            { Pragma.EditorSyncCompilation },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
