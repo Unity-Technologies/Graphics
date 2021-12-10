@@ -27,7 +27,9 @@ Material:
   m_Shader: {fileID: -6465566751694194690, guid: 92f8c085987503d4da7eb0960db2c23b, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ShaderKeywords: _DISABLE_SSR_TRANSPARENT _GENERATE_THICKNESS_FROM_COLLAPSED_RIBBON_GEOMETRY
+  m_ShaderKeywords: _BLUE_VERTEX_COLOR_FOR_PER_STRAND_INDEX_EFFECT _DISABLE_SSR_TRANSPARENT
+    _GENERATE_THICKNESS_FROM_COLLAPSED_RIBBON_GEOMETRY _GREEN_VERTEX_COLOR_FOR_RADIUS_VARIATION
+    _RED_VERTEX_COLOR_FOR_AMBIENT_OCCLUSION
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -73,6 +75,7 @@ Material:
     - _AlphaToMaskInspectorValue: 0
     - _Alpha_Threshold: 0.33
     - _Ambient_Occlusion: 1
+    - _BLUE_VERTEX_COLOR_FOR_PER_STRAND_INDEX_EFFECT: 1
     - _BlendMode: 0
     - _ConservativeDepthOffsetEnable: 0
     - _CullMode: 2
@@ -89,6 +92,7 @@ Material:
     - _EnableFogOnTransparent: 1
     - _Float: 0.6
     - _GENERATE_THICKNESS_FROM_COLLAPSED_RIBBON_GEOMETRY: 1
+    - _GREEN_VERTEX_COLOR_FOR_RADIUS_VARIATION: 1
     - _Going_Grey: 0
     - _Grey_Hair: 1.06
     - _IS_RIBBON_HAIR: 1
@@ -100,6 +104,7 @@ Material:
     - _OpaqueCullMode: 2
     - _Per_Strand_Hue_Variation: 0.057
     - _Per_Strand_Smoothness_Variation: 0.1
+    - _RED_VERTEX_COLOR_FOR_AMBIENT_OCCLUSION: 1
     - _RIBBON_HAIR: 1
     - _Radial_Smoothness: 0.7
     - _ReceivesSSR: 1
