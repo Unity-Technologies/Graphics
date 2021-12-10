@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="rayValues">Specifes which ray count value should be returned.</param>
         /// <returns>The approximated ray count for a frame</returns>
-        public uint GetRaysPerFrame(RayCountValues rayValues) { return m_RayCountManager.GetRaysPerFrame(rayValues); }
+        public uint GetRaysPerFrame(RayCountValues rayValues) { return m_RayCountManager != null ? m_RayCountManager.GetRaysPerFrame(rayValues) : 0; }
 
         // Renderer Bake configuration can vary depends on if shadow mask is enabled or no
         PerObjectData m_CurrentRendererConfigurationBakedLighting = HDUtils.k_RendererConfigurationBakedLighting;
@@ -588,7 +588,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (UnityEditor.PlayerSettings.colorSpace == ColorSpace.Gamma)
             {
-                Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode (HDRP isn't set up properly. Go to Windows > RenderPipeline > HDRP Wizard to fix your settings).");
+                Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode (HDRP isn't set up properly. Go to Window > Rendering > HDRP Wizard to fix your settings).");
             }
 #endif
 
@@ -2119,13 +2119,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Configure all the keywords
                 ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
 
-                // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
-                // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
-                if (!m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
-                    UpdateSkyEnvironment(hdCamera, renderContext, cmd);
-                else
-                    cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTextureArray);
-
                 VFXCameraXRSettings cameraXRSettings;
                 cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
                 cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
@@ -2612,11 +2605,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PreImageEffects);
                 renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PostImageEffects);
             }
-        }
-
-        void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            m_SkyManager.UpdateEnvironment(hdCamera, renderContext, GetMainLight(), cmd);
         }
 
         /// <summary>
