@@ -9,6 +9,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
+            var globalSettings = HDRenderPipelineGlobalSettings.Ensure();
+
             // If ray tracing is disabled, strip all ray tracing shaders
             if (hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing == false)
             {
