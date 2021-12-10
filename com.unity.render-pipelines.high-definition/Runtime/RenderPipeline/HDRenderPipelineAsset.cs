@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipelineAsset()
         {
+            RenderBRG.RegisterSRPRenderInfoCallback(this, GetMaterialInfoForBRG);
         }
 
         void Reset()
@@ -226,12 +227,12 @@ namespace UnityEngine.Rendering.HighDefinition
         private static Material s_VisibilityMaterial = null;
         public Material VisibilityMaterial { get { return s_VisibilityMaterial; } }
 
-        public override RenderPipelineAsset.VisibilityMaterialRendererInfo GetVisibilityMaterialInfoForRenderer(RenderPipelineAsset.GetVisibilityMaterialInfoForRendererArgs arguments)
+        public RenderBRGMaterialRenderInfo GetMaterialInfoForBRG(RenderBRGGetMaterialRenderInfoArgs arguments)
         {
             if (s_VisibilityMaterial == null)
                 s_VisibilityMaterial = CoreUtils.CreateEngineMaterial(globalSettings.renderPipelineResources.shaders.visibilityPS);
 
-            return new RenderPipelineAsset.VisibilityMaterialRendererInfo()
+            return new RenderBRGMaterialRenderInfo()
             {
                 supportsVisibility = true,
                 materialOverride = s_VisibilityMaterial

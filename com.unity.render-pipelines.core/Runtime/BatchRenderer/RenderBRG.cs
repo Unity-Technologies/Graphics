@@ -755,7 +755,8 @@ namespace UnityEngine.Rendering
         }
 
         private void ProcessUsedMeshAndMaterialDataFromGameObjects(
-            RenderPipelineAsset pipelineAsset,
+            RenderPipelineAsset activePipelineAsset,
+            RenderBRGGetMaterialRenderInfoCallback onGetMaterialInfoCb,
             int instanceIndex,
             MeshRenderer renderer,
             MeshFilter meshFilter,
@@ -781,10 +782,11 @@ namespace UnityEngine.Rendering
                     matToUse = sharedMaterials[matIndex];
 
                 int targetSubmeshIndex = (int)(startSubMesh + matIndex);
-                if (pipelineAsset != null)
+                if (onGetMaterialInfoCb != null)
                 {
-                    RenderPipelineAsset.VisibilityMaterialRendererInfo visMaterialInfo = pipelineAsset.GetVisibilityMaterialInfoForRenderer(new RenderPipelineAsset.GetVisibilityMaterialInfoForRendererArgs()
+                    RenderBRGMaterialRenderInfo visMaterialInfo = onGetMaterialInfoCb(new RenderBRGGetMaterialRenderInfoArgs()
                     {
+                        pipelineAsset = activePipelineAsset,
                         renderer = renderer,
                         submeshIndex = targetSubmeshIndex,
                         material = matToUse
@@ -876,8 +878,6 @@ namespace UnityEngine.Rendering
             m_AddedRenderers = new List<MeshRenderer>(renderers.Count);
             m_GlobalGeoPool = geometryPool;
 
-            RenderPipelineAsset renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
-
             // Fill the GPU-persistent scene data ComputeBuffer
             int bigDataBufferVector4Count =
                 4 /*zero*/
@@ -941,6 +941,8 @@ namespace UnityEngine.Rendering
             LightProbesQuery lpq = new LightProbesQuery(Allocator.Temp);
             bool useFirstMeshForAll = false;    // Hack to help benchmarking different bottlenecks. TODO: Remove!
             MeshFilter firstMesh = null;
+
+            RenderBRGGetMaterialRenderInfoCallback onGetMaterialInfoCb = RenderBRG.GetActiveMaterialRenderInfoCallback(out RenderPipelineAsset activePipeline);
 
             for (int i = 0; i < renderers.Count; i++)
             {
@@ -1016,7 +1018,7 @@ namespace UnityEngine.Rendering
                 var usedSubmeshIndices = new List<int>();
                 var usedMaterials = new List<Material>();
                 ProcessUsedMeshAndMaterialDataFromGameObjects(
-                    renderPipelineAsset, i, renderer, meshFilter, rendererMaterialInfos,
+                    activePipeline, onGetMaterialInfoCb, i, renderer, meshFilter, rendererMaterialInfos,
                     deferredMaterialDataOffset, vectorBuffer,
                     ref usedMesh, usedSubmeshIndices, usedMaterials);
 
@@ -1260,8 +1262,43 @@ namespace UnityEngine.Rendering
         }
     }
 
+    public struct RenderBRGMaterialRenderInfo
+    {
+        public bool supportsVisibility;
+        public Material materialOverride;
+    }
+
+    public struct RenderBRGGetMaterialRenderInfoArgs
+    {
+        public RenderPipelineAsset pipelineAsset;
+        public Renderer renderer;
+        public int submeshIndex;
+        public Material material;
+    }
+
+    public delegate RenderBRGMaterialRenderInfo RenderBRGGetMaterialRenderInfoCallback(RenderBRGGetMaterialRenderInfoArgs arguments);
+
     public class RenderBRG : MonoBehaviour
     {
+        private static Dictionary<Guid, RenderBRGGetMaterialRenderInfoCallback> s_SrpMatInfoCallbacks = new();
+
+        public static void RegisterSRPRenderInfoCallback(RenderPipelineAsset pipelineAsset, RenderBRGGetMaterialRenderInfoCallback callbackValue)
+        {
+            s_SrpMatInfoCallbacks[pipelineAsset.GetType().GUID] = callbackValue;
+        }
+
+        internal static RenderBRGGetMaterialRenderInfoCallback GetActiveMaterialRenderInfoCallback(out RenderPipelineAsset activePipeline)
+        {
+            activePipeline = GraphicsSettings.renderPipelineAsset;
+            if (activePipeline == null)
+                return null;
+
+            if (s_SrpMatInfoCallbacks.TryGetValue(activePipeline.GetType().GUID, out var outCallback))
+                return outCallback;
+
+            return null;
+        }
+
         private static bool s_QueryLoadedScenes = true;
         private Dictionary<Scene, SceneBRG> m_Scenes = new();
         private CommandBuffer m_gpuCmdBuffer;
