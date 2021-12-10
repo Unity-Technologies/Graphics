@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Editing the values in the graph did not impact the system in real-time after saving [Case 1371089](https://issuetracker.unity3d.com/product/unity/issues/guid/1371089/)
 - Fixed null reference exception when opening another VFX and a debug mode is enabled [Case 1347420](https://issuetracker.unity3d.com/product/unity/issues/guid/1347420/)
 - Creating a new VFX of the same name as an already opened VFX will reuse the existing window [Case 1382841](https://issuetracker.unity3d.com/product/unity/issues/guid/1382841/)
+- Incorrect behavior of Tangent Space in ShaderGraph [Case 1363279](https://issuetracker.unity3d.com/product/unity/issues/guid/1363279/)
 
 ## [13.1.2] - 2021-11-05
 

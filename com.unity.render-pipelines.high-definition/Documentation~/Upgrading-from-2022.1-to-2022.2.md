@@ -5,3 +5,7 @@ In the High Definition Render Pipeline (HDRP), some features work differently be
 ## Directional Light Surface Texture
 
 While Physically Based Sky is used, Directional lights can have a surface texture, located in section Celestial Body. The orientation of the texture was incorrect, in HDRP 14 it is fixed by flipping UVs on the x axis. When upgrading a project, suns texture might need to be flipped.
+
+## XR
+
+Starting from HDRP 14.x, Motion Blur is turned off by default when in XR. This behaviour can be changed in the XR section HDRP asset by enabling the option **Allow Motion Blur**.
