@@ -75,7 +75,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle rayCountTexture = RayCountManager.CreateRayCountTexture(m_RenderGraph);
 #if ENABLE_VIRTUALTEXTURES
                 TextureHandle vtFeedbackBuffer = VTBufferManager.CreateVTFeedbackBuffer(m_RenderGraph, hdCamera.msaaSamples);
-                bool resolveVirtualTextureFeedback = true;
 #else
                 TextureHandle vtFeedbackBuffer = TextureHandle.nullHandle;
 #endif
@@ -98,10 +97,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     StartXRSinglePass(m_RenderGraph, hdCamera);
 
                     RenderFullScreenDebug(m_RenderGraph, colorBuffer, prepassOutput.depthBuffer, cullingResults, hdCamera);
-
-#if ENABLE_VIRTUALTEXTURES
-                    resolveVirtualTextureFeedback = false; // Could be handled but not needed for fullscreen debug pass currently
-#endif
                 }
                 else if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
                 {
@@ -116,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Stop Single Pass is after post process.
                     StartXRSinglePass(m_RenderGraph, hdCamera);
 
-                    colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer, prepassOutput.depthBuffer, vtFeedbackBuffer);
+                    colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer, prepassOutput.depthBuffer);
                     colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
                 }
                 else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
@@ -138,10 +133,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Debug.LogWarning("Path Tracing is not supported with XR single-pass rendering.");
                     }
-
-#if ENABLE_VIRTUALTEXTURES
-                    resolveVirtualTextureFeedback = false;
-#endif
                 }
                 else
                 {
@@ -255,17 +246,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Render gizmos that should be affected by post processes
                     RenderGizmos(m_RenderGraph, hdCamera, GizmoSubset.PreImageEffects);
-                }
 
 #if ENABLE_VIRTUALTEXTURES
-                // Note: This pass rely on availability of vtFeedbackBuffer buffer (i.e it need to be write before we read it here)
-                // We don't write it when FullScreenDebug mode or path tracer.
-                if (resolveVirtualTextureFeedback)
-                {
+                    // Note: This pass rely on availability of vtFeedbackBuffer buffer (i.e it need to be write before we read it here)
+                    // We don't write it when doing debug mode, FullScreenDebug mode or path tracer. Thus why this pass is call here.
                     hdCamera.ResolveVirtualTextureFeedback(m_RenderGraph, vtFeedbackBuffer);
                     PushFullScreenVTFeedbackDebugTexture(m_RenderGraph, vtFeedbackBuffer, msaa);
-                }
 #endif
+                }
 
                 // At this point, the color buffer has been filled by either debug views are regular rendering so we can push it here.
                 var colorPickerTexture = PushColorPickerDebugTexture(m_RenderGraph, colorBuffer);
