@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Output
             AddSlot(new Vector3MaterialSlot(kSurfaceGradientOutputSlotId, kSurfaceGradientOutputSlotName, kSurfaceGradientOutputSlotName, SlotType.Output, Vector3.zero));
-            AddSlot(new Vector3MaterialSlot(kFoamOutputSlotId, kFoamOutputSlotName, kFoamOutputSlotName, SlotType.Output, Vector3.zero));
+            AddSlot(new Vector1MaterialSlot(kFoamOutputSlotId, kFoamOutputSlotName, kFoamOutputSlotName, SlotType.Output, 0.0f));
             AddSlot(new Vector1MaterialSlot(kSmoothnessOutputSlotId, kSmoothnessOutputSlotName, kSmoothnessOutputSlotName, SlotType.Output, 0));
 
             RemoveSlotsNameNotMatching(new[]
@@ -116,7 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     GetVariableNameForSlot(kSmoothnessOutputSlotId)
                 );
 
-                sb.AppendLine("$precision3 {0} = foamData.foamValue;",
+                sb.AppendLine("$precision {0} = foamData.foamValue;",
                     GetVariableNameForSlot(kFoamOutputSlotId)
                 );
 
@@ -130,7 +130,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     GetVariableNameForSlot(kSmoothnessOutputSlotId)
                 );
 
-                sb.AppendLine("$precision3 {0} = 0.0;",
+                sb.AppendLine("$precision {0} = 0.0;",
                     GetVariableNameForSlot(kFoamOutputSlotId)
                 );
 

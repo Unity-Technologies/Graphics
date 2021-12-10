@@ -1305,7 +1305,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Render the debug water
-                RenderWaterSurfaces(renderGraph, hdCamera, output, depthBuffer, renderGraph.defaultResources.blackTexture);
+               //  WaterGBuffer waterGBuffer = RenderWaterGBuffer(renderGraph, hdCamera, depthBuffer, renderGraph.defaultResources.blackTexture);
+
+                // TODO render debug display for water
             }
 
             return output;

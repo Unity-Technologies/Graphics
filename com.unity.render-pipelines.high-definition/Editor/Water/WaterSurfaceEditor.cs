@@ -37,8 +37,16 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_DirectLightTipScattering;
         SerializedProperty m_DirectLightBodyScattering;
 
-        // Caustic parameters
+        // Caustic parameters (Common)
+        SerializedProperty m_Caustics;
         SerializedProperty m_CausticsIntensity;
+        // Simulation Caustics
+        SerializedProperty m_CausticsAlgorithm;
+        SerializedProperty m_CausticsResolution;
+        SerializedProperty m_CausticsBand;
+        SerializedProperty m_CausticsVirtualPlaneDistance;
+
+        // Procedural caustics
         SerializedProperty m_CausticsDispersionAmount;
         SerializedProperty m_CausticsTiling;
         SerializedProperty m_CausticsSpeed;
@@ -59,12 +67,16 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_FoamMask;
         SerializedProperty m_FoamMaskExtent;
         SerializedProperty m_FoamMaskOffset;
+        SerializedProperty m_Threshold;
 
         // Wind
         SerializedProperty m_WindOrientation;
         SerializedProperty m_WindSpeed;
         SerializedProperty m_WindAffectCurrent;
         SerializedProperty m_WindFoamCurve;
+
+        // Decals
+        SerializedProperty m_DecalLayerMask;
 
         void OnEnable()
         {
@@ -101,7 +113,16 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DirectLightBodyScattering = o.Find(x => x.directLightBodyScattering);
 
             // Caustic parameters
+            m_Caustics = o.Find(x => x.caustics);
             m_CausticsIntensity = o.Find(x => x.causticsIntensity);
+            m_CausticsAlgorithm = o.Find(x => x.causticsAlgorithm);
+
+            // Simulation caustics
+            m_CausticsResolution = o.Find(x => x.causticsResolution);
+            m_CausticsBand = o.Find(x => x.causticsBand);
+            m_CausticsVirtualPlaneDistance = o.Find(x => x.virtualPlaneDistance);
+
+            // Procedural caustics
             m_CausticsDispersionAmount = o.Find(x => x.causticsDispersionAmount);
             m_CausticsTiling = o.Find(x => x.causticsTiling);
             m_CausticsSpeed = o.Find(x => x.causticsSpeed);
@@ -118,6 +139,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FoamMaskExtent = o.Find(x => x.foamMaskExtent);
             m_FoamMaskOffset = o.Find(x => x.foamMaskOffset);
 
+            m_Threshold = o.Find(x => x.foamThreshold);
+
             // Water masking
             m_WaterMask = o.Find(x => x.waterMask);
             m_WaterMaskExtent = o.Find(x => x.waterMaskExtent);
@@ -128,6 +151,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_WindSpeed = o.Find(x => x.windSpeed);
             m_WindFoamCurve = o.Find(x => x.windFoamCurve);
             m_WindAffectCurrent = o.Find(x => x.windAffectCurrent);
+
+            // Decal
+            m_DecalLayerMask = o.Find(x => x.decalLayerMask);
         }
 
         static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Specifies the normalized (between 0.0 and 1.0) amplitude of each simulation band.");
@@ -144,6 +170,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_DirectLightBodyScattering = EditorGUIUtility.TrTextContent("Direct Light Body Scattering", "Controls the intensity of the direct light scattering on the tip of the waves.");
 
         static public readonly GUIContent k_CausticsDispersionAmount = EditorGUIUtility.TrTextContent("Caustics Dispersion Amount", "Controls the amount of dispersion of the caustics.");
+        static public readonly GUIContent k_CausticsBand = EditorGUIUtility.TrTextContent("Caustics Band", "Controls which band is used for the caustics evaluation.");
 
         static public readonly GUIContent k_SurfaceFoamSmoothness = EditorGUIUtility.TrTextContent("Surface Foam Smoothness", "Controls the surface foam smoothness.");
         static public readonly GUIContent k_SurfaceFoamIntensity = EditorGUIUtility.TrTextContent("Surface Foam Intensity", "Controls the surface foam intensity.");
@@ -195,6 +222,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            bool highBandCount = false;
             EditorGUILayout.LabelField("Simulation", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
@@ -202,6 +230,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_WaterMaxPatchSize.floatValue = Mathf.Clamp(m_WaterMaxPatchSize.floatValue, 5.0f, 10000.0f);
 
                 EditorGUILayout.PropertyField(m_HighBandCount);
+                highBandCount = m_HighBandCount.boolValue;
                 using (new IndentLevelScope())
                 {
                     if (m_HighBandCount.boolValue)
@@ -222,7 +251,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
-                m_Choppiness.floatValue = EditorGUILayout.Slider(k_Choppiness, m_Choppiness.floatValue, 1.0f, 3.0f);
+                m_Choppiness.floatValue = EditorGUILayout.Slider(k_Choppiness, m_Choppiness.floatValue, 1.0f, 10.0f);
                 m_TimeMultiplier.floatValue = EditorGUILayout.Slider(k_TimeMultiplier, m_TimeMultiplier.floatValue, 0.0f, 10.0f);
             }
 
@@ -256,17 +285,40 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField("Caustics", EditorStyles.boldLabel);
             using (new IndentLevelScope())
             {
-                EditorGUILayout.PropertyField(m_CausticsIntensity);
-                m_CausticsIntensity.floatValue = Mathf.Max(m_CausticsIntensity.floatValue, 0.0f);
+                EditorGUILayout.PropertyField(m_Caustics);
+                if (m_Caustics.boolValue)
+                {
+                    EditorGUILayout.PropertyField(m_CausticsIntensity);
+                    m_CausticsIntensity.floatValue = Mathf.Max(m_CausticsIntensity.floatValue, 0.0f);
 
-                m_CausticsDispersionAmount.floatValue = EditorGUILayout.Slider(k_CausticsDispersionAmount, m_CausticsDispersionAmount.floatValue, 0.0f, 1.0f);
+                    EditorGUILayout.PropertyField(m_CausticsPlaneOffset);
+                    m_CausticsPlaneOffset.floatValue = Mathf.Max(m_CausticsPlaneOffset.floatValue, 0.0f);
 
-                EditorGUILayout.PropertyField(m_CausticsTiling);
-                m_CausticsTiling.floatValue = Mathf.Max(m_CausticsTiling.floatValue, 0.001f);
-                EditorGUILayout.PropertyField(m_CausticsSpeed);
-                m_CausticsSpeed.floatValue = Mathf.Clamp(m_CausticsSpeed.floatValue, 0.0f, 100.0f);
-                EditorGUILayout.PropertyField(m_CausticsPlaneOffset);
-                m_CausticsPlaneOffset.floatValue = Mathf.Max(m_CausticsPlaneOffset.floatValue, 0.0f);
+                    EditorGUILayout.PropertyField(m_CausticsAlgorithm);
+                    
+                    if ((WaterSurface.WaterCausticsType)m_CausticsAlgorithm.enumValueIndex == WaterSurface.WaterCausticsType.Simulation)
+                    {
+                        using (new IndentLevelScope())
+                        {
+                            EditorGUILayout.PropertyField(m_CausticsResolution);
+                            m_CausticsBand.intValue = EditorGUILayout.IntSlider(k_CausticsBand, m_CausticsBand.intValue, 0, highBandCount ? 3 : 1);
+                            
+                            EditorGUILayout.PropertyField(m_CausticsVirtualPlaneDistance);
+                            m_CausticsVirtualPlaneDistance.floatValue = Mathf.Max(m_CausticsVirtualPlaneDistance.floatValue, 0.001f);
+                        }
+                    }
+                    else
+                    {
+                        using (new IndentLevelScope())
+                        {
+                            m_CausticsDispersionAmount.floatValue = EditorGUILayout.Slider(k_CausticsDispersionAmount, m_CausticsDispersionAmount.floatValue, 0.0f, 1.0f);
+                            EditorGUILayout.PropertyField(m_CausticsTiling);
+                            m_CausticsTiling.floatValue = Mathf.Max(m_CausticsTiling.floatValue, 0.001f);
+                            EditorGUILayout.PropertyField(m_CausticsSpeed);
+                            m_CausticsSpeed.floatValue = Mathf.Clamp(m_CausticsSpeed.floatValue, 0.0f, 100.0f);
+                        }
+                    }
+                }
             }
 
             EditorGUILayout.LabelField("Masking", EditorStyles.boldLabel);
@@ -305,6 +357,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.PropertyField(m_FoamMaskOffset);
                     }
                 }
+
+                EditorGUILayout.PropertyField(m_Threshold);
             }
 
             EditorGUILayout.LabelField("Wind", EditorStyles.boldLabel);
@@ -314,6 +368,28 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_WindSpeed.floatValue = EditorGUILayout.Slider(k_WindSpeed, m_WindSpeed.floatValue, 0.0f, 100.0f);
                 m_WindAffectCurrent.floatValue = EditorGUILayout.Slider(k_WindAffectsCurrent, m_WindAffectCurrent.floatValue, 0.0f, 1.0f);
                 EditorGUILayout.PropertyField(m_WindFoamCurve);
+            }
+
+            // Decal controls
+            if (HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportDecals)
+            {
+                bool decalLayerEnabled = false;
+                EditorGUILayout.LabelField("Decals", EditorStyles.boldLabel);
+                using (new IndentLevelScope())
+                {
+                    decalLayerEnabled = HDRenderPipeline.currentPipeline.currentPlatformRenderPipelineSettings.supportDecalLayers;
+                    using (new EditorGUI.DisabledScope(!decalLayerEnabled))
+                    {
+                        EditorGUILayout.PropertyField(m_DecalLayerMask);
+                    }
+                }
+
+                if (!decalLayerEnabled)
+                {
+                    HDEditorUtils.QualitySettingsHelpBox("Enable 'Decal Layers' in your HDRP Asset if you want to control the Angle Fade. There is a performance cost of enabling this option.",
+                        MessageType.Info, HDRenderPipelineUI.Expandable.Decal, "m_RenderPipelineSettings.supportDecalLayers");
+                    EditorGUILayout.Space();
+                }
             }
             serializedObject.ApplyModifiedProperties();
         }

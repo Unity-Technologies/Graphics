@@ -10,17 +10,6 @@ namespace UnityEngine.Rendering.HighDefinition
     [ExecuteInEditMode]
     public class WaterSurface : MonoBehaviour
     {
-        /// <summary>
-        /// Controls the type of geometry used to render the water surface when non infinite.
-        /// </summary>
-        public enum WaterGeometryType
-        {
-            // The water surface will be rendered as a procedural quad.
-            Quad,
-            // The water will be rendered with a mesh provided by the user.
-            Custom
-        }
-
         #region Instance Management
 
         // Management to avoid memory allocations at fetch time
@@ -71,6 +60,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Sets the earth radius that is used to curve the water surface when in infite mode to simulate the earth's curvature.")]
         public float earthRadius = 6371000.0f;
+
+        /// <summary>
+        /// Controls the type of geometry used to render the water surface when non infinite.
+        /// </summary>
+        public enum WaterGeometryType
+        {
+            // The water surface will be rendered as a procedural quad.
+            Quad,
+            // The water will be rendered with a mesh provided by the user.
+            Custom
+        }
 
         /// <summary>
         /// Specifies the type of geometry used to render the water surface when non infinite.
@@ -190,13 +190,77 @@ namespace UnityEngine.Rendering.HighDefinition
         public float directLightBodyScattering = 0.5f;
         #endregion
 
-        #region Water Caustics
+        #region Water Caustics General
+        /// <summary>
+        /// When enabled, the water surface will render caustics.
+        /// </summary>
+        [Tooltip("When enabled, the water surface will render caustics.")]
+        public bool caustics = true;
+
         /// <summary>
         /// Sets the intensity of the under-water caustics.
         /// </summary>
         [Tooltip("Sets the intensity of the under-water caustics.")]
         public float causticsIntensity = 0.5f;
 
+        /// <summary>
+        /// Sets the vertical plane offset in meters at which the caustics start.
+        /// </summary>
+        [Tooltip("Sets the vertical plane offset in meters at which the caustics start.")]
+        public float causticsPlaneOffset = 0.0f;
+        
+        /// <summary>
+        /// Defines what algorithm is used for caustics rendering.
+        /// </summary>
+        public enum WaterCausticsType
+        {
+            // The water simulation is used to evaluate the caustics.
+            Simulation,
+            // A procedural approach is used for the caustics
+            Procedural
+        }
+
+        /// <summary>
+        /// Specifies the type of algorithm that is used to evaluate the caustics.
+        /// </summary>
+        [Tooltip("Specifies the type of algorithm that is used to evaluate the caustics.")]
+        public WaterCausticsType causticsAlgorithm = WaterCausticsType.Simulation;
+        #endregion
+
+        #region Water Caustics Simulation
+        /// <summary>
+        /// Defines the resolution a which caustics are rendered (simulation only).
+        /// </summary>
+        public enum WaterCausticsResolution
+        {
+            // The water caustics are rendered at 256x256
+            Caustics256 = 256,
+            // The water caustics are rendered at 512x512
+            Caustics512 = 512,
+            // The water caustics are rendered at 1024x1024
+            Caustics1024 = 1024,
+        }
+
+        /// <summary>
+        /// Specifies the resolution at which the water caustics are rendered (simulation only).
+        /// </summary>
+        [Tooltip("Specifies the resolution at which the water caustics are rendered (simulation only).")]
+        public WaterCausticsResolution causticsResolution = WaterCausticsResolution.Caustics512;
+
+        /// <summary>
+        /// Controls which band is used for the caustics evaluation.
+        /// </summary>
+        [Tooltip("Controls which band is used for the caustics evaluation.")]
+        public int causticsBand = 1;
+
+        /// <summary>
+        /// Sets the distance of the virtual caustics receiving plane.
+        /// </summary>
+        [Tooltip("Sets the distance of the virtual caustics receiving plane.")]
+        public float virtualPlaneDistance = 5.0f;
+        #endregion
+
+        #region Water Caustics Procedural
         /// <summary>
         /// Controls the amount of dispersion of the caustics. A higher value induces more shift in the lower frequencies (red tinted) of the visible spectrum.
         /// </summary>
@@ -214,12 +278,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Sets the scrolling speed of the under-water caustics.")]
         public float causticsSpeed = 0.0f;
-
-        /// <summary>
-        /// Sets the vertical plane offset in meters at which the caustics start.
-        /// </summary>
-        [Tooltip("Sets the vertical plane offset in meters at which the caustics start.")]
-        public float causticsPlaneOffset = 0.0f;
         #endregion
 
         #region Water Foam
@@ -253,6 +311,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// TODO: Rename to deepFoamIntensity.
         [Tooltip("Sets the deep foam brightness.")]
         public float deepFoam = 0.3f;
+
+        public Vector4 foamThreshold = Vector4.zero;
 
         /// <summary>
         /// Sets the deep foam color.
@@ -326,6 +386,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public AnimationCurve windFoamCurve = new AnimationCurve(new Keyframe(0f, 0.0f), new Keyframe(0.2f, 0.0f), new Keyframe(0.3f, 1.0f), new Keyframe(1.0f, 1.0f));
         #endregion
 
+        #region Water Decals
+        /// <summary>
+        /// Specifies the decal layers that affect the water surface.
+        /// </summary>
+        [Tooltip("Specifies the decal layers that affect the water surface.")]
+        public DecalLayerEnum decalLayerMask = DecalLayerEnum.DecalLayerDefault;
+        #endregion
+
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
@@ -342,7 +410,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else if (!simulation.ValidResources(bandResolution, bandCount))
             {
-                simulation.ReleaseSmmulationResources();
+                simulation.ReleaseSimulationResources();
                 simulation.AllocateSmmulationResources(bandResolution, bandCount);
                 needUpdate = true;
                 initialAllocation = true;
@@ -377,6 +445,18 @@ namespace UnityEngine.Rendering.HighDefinition
             RegisterInstance(this);
         }
 
+        private void OnEnable()
+        {
+            // Add this water surface to the internal surface management
+            RegisterInstance(this);
+        }
+
+        private void OnDisable()
+        {
+            // Remove this water surface from the internal surface management
+            UnregisterInstance(this);
+        }
+
         void UpdateSimulationData()
         {
             simulation.windSpeed = windSpeed;
@@ -393,7 +473,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Make sure to release the resources if they have been created (before HDRP destroys them)
             if (simulation != null && simulation.AllocatedTextures())
-                simulation.ReleaseSmmulationResources();
+                simulation.ReleaseSimulationResources();
         }
     }
 }

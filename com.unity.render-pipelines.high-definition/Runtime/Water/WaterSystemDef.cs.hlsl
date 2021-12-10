@@ -4,6 +4,18 @@
 
 #ifndef WATERSYSTEMDEF_CS_HLSL
 #define WATERSYSTEMDEF_CS_HLSL
+// Generated from UnityEngine.Rendering.HighDefinition.WaterSurfaceProfile
+// PackingRules = Exact
+struct WaterSurfaceProfile
+{
+    float3 waterAmbientProbe;
+    float tipScatteringHeight;
+    float bodyScatteringHeight;
+    float maxRefractionDistance;
+    float _padding1;
+    float _padding2;
+};
+
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWater
 // PackingRules = Exact
 CBUFFER_START(ShaderVariablesWater)
@@ -32,15 +44,16 @@ CBUFFER_START(ShaderVariablesWater)
     float3 _ScatteringColorTips;
     float _FoamSmoothness;
     float _DispersionAmount;
-    float _RefractionLow;
-    float _MaxAbsorptionDistance;
+    float _PaddingW0;
+    float _PaddingW1;
     float _ScatteringBlur;
+    float4 _JacoThreshold;
     float3 _TransparencyColor;
     float _OutScatteringCoefficient;
     float _DisplacementScattering;
     float _ScatteringIntensity;
-    float _BodyScatteringWeight;
-    float _TipScatteringWeight;
+    int _SurfaceIndex;
+    float _CausticsRegionSize;
     float4 _ScatteringLambertLighting;
     float3 _DeepFoamColor;
     float _HeightBasedScattering;
@@ -63,7 +76,8 @@ CBUFFER_START(ShaderVariablesWaterRendering)
     float2 _CausticsOffset;
     float _CausticsTiling;
     float _CausticsPlaneOffset;
-    float2 _PaddingWR0;
+    int _WaterCausticsType;
+    uint _WaterDecalLayer;
     float _EarthRadius;
     float _CausticsIntensity;
 CBUFFER_END

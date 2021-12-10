@@ -178,6 +178,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader fourierTransformCS;
             [Reload("Runtime/RenderPipelineResources/ShaderGraph/Water.shadergraph")]
             public Shader waterPS;
+            [Reload("Runtime/Water/WaterLighting.compute")]
+            public ComputeShader waterLightingCS;
+            [Reload("Runtime/Water/WaterCaustics.shader")]
+            public Shader waterCausticsPS;
 
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
@@ -449,10 +453,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture3D perlinNoise32RGB;
 
             // Water textures
-            [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamSurface.png")]
+            [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamSurface2.png")]
             public Texture2D foamSurface;
             [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamNormals.png")]
             public Texture2D foamNormals;
+            [Reload("Runtime/RenderPipelineResources/Texture/Water/CausticsFlipBook.png")]
+            public Texture3D causticsFlipBook;
 
             // Post-processing
             [Reload(new[]

@@ -241,7 +241,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DecalColorMask3 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask3);
 
         public static readonly int _StencilTexture = Shader.PropertyToID("_StencilTexture");
-
+        public static readonly int _NormalBufferRW = Shader.PropertyToID("_NormalBufferRW");
+        
         // Used in the stencil resolve pass
         public static readonly int _OutputStencilBuffer = Shader.PropertyToID("_OutputStencilBuffer");
         public static readonly int _CoarseStencilBuffer = Shader.PropertyToID("_CoarseStencilBuffer");
@@ -525,13 +526,24 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FoamBufferRW = Shader.PropertyToID("_FoamBufferRW");
         public static readonly int _WaterDisplacementBuffer = Shader.PropertyToID("_WaterDisplacementBuffer");
         public static readonly int _WaterAdditionalDataBuffer = Shader.PropertyToID("_WaterAdditionalDataBuffer");
+        public static readonly int _WaterCausticsDataBuffer = Shader.PropertyToID("_WaterCausticsDataBuffer");
         public static readonly int _WaterAdditionalDataBufferRW = Shader.PropertyToID("_WaterAdditionalDataBufferRW");
         public static readonly int _WaterMask = Shader.PropertyToID("_WaterMask");
         public static readonly int _FoamMask = Shader.PropertyToID("_FoamMask");
         public static readonly int _FoamTexture = Shader.PropertyToID("_FoamTexture");
         public static readonly int _FoamNormal = Shader.PropertyToID("_FoamNormal");
-        public static readonly int _CausticsTexture = Shader.PropertyToID("_CausticsTexture");
+        public static readonly int _WaterGBufferTexture0 = Shader.PropertyToID("_WaterGBufferTexture0");
+        public static readonly int _WaterGBufferTexture0RW = Shader.PropertyToID("_WaterGBufferTexture0RW");
+        public static readonly int _WaterGBufferTexture1 = Shader.PropertyToID("_WaterGBufferTexture1");
+        public static readonly int _WaterGBufferTexture2 = Shader.PropertyToID("_WaterGBufferTexture2");
+        public static readonly int _WaterSurfaceProfiles = Shader.PropertyToID("_WaterSurfaceProfiles");
 
+        // Water caustics
+        public static readonly int _CausticsNormalsMipOffset = Shader.PropertyToID("_CausticsNormalsMipOffset");
+        public static readonly int _CausticGeometryResolution = Shader.PropertyToID("_CausticGeometryResolution");
+        public static readonly int _CausticsVirtualPlane = Shader.PropertyToID("_CausticsVirtualPlane");
+        public static readonly int _CausticsBandIndex = Shader.PropertyToID("_CausticsBandIndex");
+        
         public static readonly int _Flowmap = Shader.PropertyToID("_Flowmap");
         public static readonly int _FlowmapParam = Shader.PropertyToID("_FlowmapParam");
 

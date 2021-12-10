@@ -4,6 +4,19 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    // This structure holds all the information that can be requested during the deferred water lighting
+    [GenerateHLSL(PackingRules.Exact, false)]
+    struct WaterSurfaceProfile
+    {
+        public Vector3 waterAmbientProbe;
+        public float tipScatteringHeight;
+        
+        public float bodyScatteringHeight;
+        public float maxRefractionDistance;
+        public float _padding1;
+        public float _padding2;
+    }
+
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesWater
     {
@@ -59,17 +72,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _FoamSmoothness;
 
         public float _DispersionAmount;
-        public float _RefractionLow;
-        public float _MaxAbsorptionDistance;
+        public float _PaddingW0;
+        public float _PaddingW1;
         public float _ScatteringBlur;
+
+        public Vector4 _JacoThreshold;
 
         public Vector3 _TransparencyColor;
         public float _OutScatteringCoefficient;
 
         public float _DisplacementScattering;
         public float _ScatteringIntensity;
-        public float _BodyScatteringWeight;
-        public float _TipScatteringWeight;
+        public int _SurfaceIndex;
+        public float _CausticsRegionSize;
 
         public Vector4 _ScatteringLambertLighting;
 
@@ -114,8 +129,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Vertical shift on when the caustics start
         public float _CausticsPlaneOffset;
 
-        // Padding
-        public Vector2 _PaddingWR0;
+        public int _WaterCausticsType;
+        public uint _WaterDecalLayer;
         // Earth radius
         public float _EarthRadius;
         // Intensity of the water caustics
