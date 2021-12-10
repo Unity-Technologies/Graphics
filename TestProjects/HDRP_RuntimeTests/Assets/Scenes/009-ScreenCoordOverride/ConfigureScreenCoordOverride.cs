@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.HighDefinition;
 
 [ExecuteAlways]
-[RequireComponent(typeof(UniversalAdditionalCameraData))]
+[RequireComponent(typeof(HDAdditionalCameraData))]
 public class ConfigureScreenCoordOverride : MonoBehaviour
 {
     static readonly Vector4 k_IdentityScaleBias = new Vector4(1, 1, 0, 0);
@@ -41,15 +41,19 @@ public class ConfigureScreenCoordOverride : MonoBehaviour
 
     void OnDisable()
     {
-        var additionalCameraData = GetComponent<UniversalAdditionalCameraData>();
-        additionalCameraData.useScreenCoordOverride = false;
+        var additionalCameraData = GetComponent<HDAdditionalCameraData>();
+        SetScreenCoordOverrideActive(additionalCameraData, false);
+        additionalCameraData.customRenderingSettings = false;
     }
 
     void Configure()
     {
-        var additionalCameraData = GetComponent<UniversalAdditionalCameraData>();
-        additionalCameraData.useScreenCoordOverride = m_UseScreenCoordOverride;
-        additionalCameraData.screenCoordScaleBias = m_ScreenCoordScaleBias;
+        var additionalCameraData = GetComponent<HDAdditionalCameraData>();
+
+        additionalCameraData.customRenderingSettings = true;
+
+        SetScreenCoordOverrideActive(additionalCameraData, m_UseScreenCoordOverride);
+        additionalCameraData.screenCoordScaleBias = m_UseScreenCoordOverride ? m_ScreenCoordScaleBias : k_IdentityScaleBias;
 
         if (m_UseScreenSizeOverride)
         {
@@ -61,8 +65,15 @@ public class ConfigureScreenCoordOverride : MonoBehaviour
         }
     }
 
+    static void SetScreenCoordOverrideActive(HDAdditionalCameraData additionalCameraData, bool value)
+    {
+        additionalCameraData.renderingPathCustomFrameSettingsOverrideMask.mask[(int)FrameSettingsField.ScreenCoordOverride] = value;
+        additionalCameraData.renderingPathCustomFrameSettings.SetEnabled(FrameSettingsField.ScreenCoordOverride, value);
+    }
+
     static Vector4 AppendReciprocal(Vector2 value)
     {
         return new Vector4(value.x, value.y, 1.0f / value.x, 1.0f / value.y);
     }
 }
+

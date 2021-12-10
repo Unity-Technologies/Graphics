@@ -52,7 +52,7 @@ Shader "Hidden/Test/ScreenCoordOverrideFullScreen"
             float4 Frag (Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                // TODO We use Blit but don't use the color, remove stuff.
+                // TODO We use Blit but don't use the color, remove it.
                 half4 baseColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
                 float2 transformedUV = SCREEN_COORD_APPLY_SCALEBIAS(input.uv);
                 return float4(transformedUV, 0, 1);

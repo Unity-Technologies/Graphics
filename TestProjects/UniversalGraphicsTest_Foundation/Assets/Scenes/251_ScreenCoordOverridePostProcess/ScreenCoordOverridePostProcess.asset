@@ -56,4 +56,4 @@ MonoBehaviour:
   m_AccurateGbufferNormals: 0
   m_ClusteredRendering: 0
   m_TileSize: 32
-  m_IntermediateTextureMode: 0
+  m_IntermediateTextureMode: 1
