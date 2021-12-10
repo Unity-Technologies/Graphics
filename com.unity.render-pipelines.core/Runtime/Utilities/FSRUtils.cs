@@ -151,9 +151,9 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Returns true if FidelityFX Super Resolution (FSR) is supported on the current system
-        ///
         /// FSR requires the textureGather shader instruction which wasn't supported by OpenGL ES until version 3.1
         /// </summary>
+        /// <returns>True if supported</returns>
         public static bool IsSupported()
         {
             return SystemInfo.graphicsShaderLevel >= 45;

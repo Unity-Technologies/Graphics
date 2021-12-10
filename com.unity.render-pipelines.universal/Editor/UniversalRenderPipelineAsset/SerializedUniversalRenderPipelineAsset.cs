@@ -57,7 +57,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty supportsLightLayers { get; }
         public SerializedProperty debugLevelProp { get; }
 
-        public SerializedProperty shaderVariantLogLevel { get; }
         public SerializedProperty volumeFrameworkUpdateModeProp { get; }
 
         public SerializedProperty colorGradingMode { get; }
@@ -126,7 +125,6 @@ namespace UnityEditor.Rendering.Universal
             supportsLightLayers = serializedObject.FindProperty("m_SupportsLightLayers");
             debugLevelProp = serializedObject.FindProperty("m_DebugLevel");
 
-            shaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
             volumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");
 
             storeActionsOptimizationProperty = serializedObject.FindProperty("m_StoreActionsOptimization");
