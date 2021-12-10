@@ -43,6 +43,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed camera bridge action in release build (case 1367866).
 - Fixed contact shadow disappearing when shadowmask is used and no non-static object is available.
 - Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
+- Fixed shader graph errors when disabling the bias on texture samplers.
+- Fixed a shader warning in the volumetric clouds combine file.
+- Fixed layer lit shader UI.
+- Fixed error thrown when layered lit material has an invalid material type.
+- Fixed a warning because of a null texture in the lens flare pass.
+- Fixed a nullref when enabling raycount without ray tracing.
+- Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
+- Fixed FOV change when enabling physical camera.
+- Fixed spot light shadows near plane
+- Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
+- Fixed build warnings due to the exception in burst code (case 1382827).
+- Fixed unsupported material properties show when rendering pass is Low Resolution.
+- Fixed auto-exposure mismatch between sky background and scene objects in path tracing (case 1385131).
 
 ## [12.1.2] - 2021-10-22
 

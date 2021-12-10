@@ -79,7 +79,7 @@ To calculate SSR, HDRP reads a color buffer with a blurred mipmap generated duri
 
 If a transparent material has **Receive SSR Transparent** enabled, HDRP always uses the **Approximation** algorithm to calculate SSR, even you select **PBR Accumulation**.
 
-
+When a transparent material has rendering pass set to **Low Resolution**, then **Receive SSR Transparent** can't be selected.
 
 ### Ray-traced reflection
 
