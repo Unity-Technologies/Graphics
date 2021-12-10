@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.Universal
         {
             base.profilingSampler = new ProfilingSampler(nameof(DrawSkyboxPass));
 
+            //readOnlyDepthStencil = ReadOnlyDepthStencil.Depth;
             renderPassEvent = evt;
         }
 

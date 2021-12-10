@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal int GBufferShadowMask { get { return UseShadowMask ? GBufferLightingIndex + (UseRenderPass ? 1 : 0) + 1 : -1; } }
         internal int GBufferRenderingLayers { get { return UseRenderingLayers ? GBufferLightingIndex + (UseRenderPass ? 1 : 0) + (UseShadowMask ? 1 : 0) + 1 : -1; } }
         // Color buffer count (not including dephStencil).
-        internal int GBufferSliceCount { get { return 4 + (UseRenderPass ? 1 : 0) + (UseShadowMask ? 1 : 0) + (UseRenderingLayers ? 1 : 0); } }
+        internal int GBufferSliceCount { get { return 4 + (UseShadowMask ? 1 : 0) + (UseRenderingLayers ? 1 : 0); } }
 
         internal GraphicsFormat GetGBufferFormat(int index)
         {
@@ -372,7 +372,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.DeferredInputAttachments[0] = this.GbufferAttachments[0];
             this.DeferredInputAttachments[1] = this.GbufferAttachments[1];
             this.DeferredInputAttachments[2] = this.GbufferAttachments[2];
-            this.DeferredInputAttachments[3] = this.GbufferAttachments[4];
+            // this.DeferredInputAttachments[3] = this.GbufferAttachments[4];
         }
 
         internal bool IsRuntimeSupportedThisFrame()
@@ -408,14 +408,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 3)
             {
-                this.DeferredInputAttachments = new RTHandle[4]
+                this.DeferredInputAttachments = new RTHandle[3]//[4]
                 {
-                    GbufferAttachments[0], GbufferAttachments[1], GbufferAttachments[2], GbufferAttachments[4],
+                    GbufferAttachments[0], GbufferAttachments[1], GbufferAttachments[2],// GbufferAttachments[4],
                 };
 
-                this.DeferredInputIsTransient = new bool[4]
+                this.DeferredInputIsTransient = new bool[3]//[4]
                 {
-                    true, true, true, false
+                    true, true, true,// false
                 };
             }
             this.DepthAttachmentHandle = this.DepthAttachment;
@@ -519,7 +519,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 InitStencilDeferredMaterial();
 
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingDeferredPass))
+            //using (new ProfilingScope(cmd, m_ProfilingDeferredPass))
             {
                 // This does 2 things:
                 // - baked geometry are skipped (do not receive dynamic lighting)
@@ -688,7 +688,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
-            Profiler.BeginSample(k_DeferredStencilPass);
+           // Profiler.BeginSample(k_DeferredStencilPass);
 
             using (new ProfilingScope(cmd, m_ProfilingSamplerDeferredStencilPass))
             {
@@ -702,7 +702,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     RenderStencilSpotLights(cmd, ref renderingData, visibleLights);
             }
 
-            Profiler.EndSample();
+          //  Profiler.EndSample();
         }
 
         void RenderStencilDirectionalLights(CommandBuffer cmd, ref RenderingData renderingData, NativeArray<VisibleLight> visibleLights, int mainLightIndex)

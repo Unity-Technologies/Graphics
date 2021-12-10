@@ -31,6 +31,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_DeferredLights.UseRenderPass)
                 ConfigureInputAttachments(m_DeferredLights.DeferredInputAttachments, m_DeferredLights.DeferredInputIsTransient);
 
+           // readOnlyDepthStencil = ReadOnlyDepthStencil.Depth;
+            cmd?.SetGlobalTexture("_CameraDepthAttachment", depthAttachment);
             // TODO: Cannot currently bind depth texture as read-only!
             ConfigureTarget(lightingAttachment, depthAttachment);
         }

@@ -106,18 +106,18 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     TEXTURE2D_X_HALF(_GBuffer0);
     TEXTURE2D_X_HALF(_GBuffer1);
     TEXTURE2D_X_HALF(_GBuffer2);
-
+    TEXTURE2D_X_FLOAT(_CameraDepthAttachment);
 #if _RENDER_PASS_ENABLED
 
     #define GBUFFER0 0
     #define GBUFFER1 1
     #define GBUFFER2 2
-    #define GBUFFER3 3
+//    #define GBUFFER3 3
 
     FRAMEBUFFER_INPUT_HALF(GBUFFER0);
     FRAMEBUFFER_INPUT_HALF(GBUFFER1);
     FRAMEBUFFER_INPUT_HALF(GBUFFER2);
-    FRAMEBUFFER_INPUT_FLOAT(GBUFFER3);
+//    FRAMEBUFFER_INPUT_FLOAT(GBUFFER3);
 #else
     #ifdef GBUFFER_OPTIONAL_SLOT_1
     TEXTURE2D_X_HALF(_GBuffer4);
@@ -242,7 +242,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
         #if _RENDER_PASS_ENABLED
-        float d        = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy).x;
+        float d        = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthAttachment, my_point_clamp_sampler, screen_uv, 0).x;//LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy).x;
         half4 gbuffer0 = LOAD_FRAMEBUFFER_INPUT(GBUFFER0, input.positionCS.xy);
         half4 gbuffer1 = LOAD_FRAMEBUFFER_INPUT(GBUFFER1, input.positionCS.xy);
         half4 gbuffer2 = LOAD_FRAMEBUFFER_INPUT(GBUFFER2, input.positionCS.xy);
@@ -332,7 +332,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     half4 FragFog(Varyings input) : SV_Target
     {
         #if _RENDER_PASS_ENABLED
-            float d = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy).x;
+            float d = LOAD_TEXTURE2D_X(_CameraDepthAttachment, input.positionCS.xy).x;
         #else
             float d = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).x;
         #endif
