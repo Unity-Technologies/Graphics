@@ -66,6 +66,12 @@ float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
 
 #endif // _ENABLE_SHADOW_MATTE
 
+float3 ClampValue(float3 value)
+{
+    float intensity = Luminance(value) * GetCurrentExposureMultiplier();
+    return intensity > _RaytracingIntensityClamp ? value * _RaytracingIntensityClamp / intensity : value;
+}
+
 // Function responsible for surface scattering
 void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes, float4 inputSample)
 {
@@ -224,6 +230,9 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 // Shoot ray for indirect lighting
                 TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, rayDescriptor, nextPathIntersection);
 
+                // Apply clamping on indirect values (can darken the result slightly, but significantly reduces fireflies)
+                nextPathIntersection.value = ClampValue(nextPathIntersection.value);
+
                 if (computeDirect)
                 {
                     // Use same ray for direct lighting (use indirect result for occlusion)
@@ -237,9 +246,10 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 }
 
                 // Apply material absorption
-                nextPathIntersection.value = ApplyAbsorption(mtlData, surfaceData, nextPathIntersection.t, isSampleBelow, nextPathIntersection.value);
+                nextPathIntersection.value = ApplyAbsorption(mtlData, surfaceData, nextPathIntersection.t, isSampleBelow, nextPathIntersection.value);        
 
-                pathIntersection.value += value * rrFactor * nextPathIntersection.value;
+                // Apply another round of clamping, to catch low PDF or high Russian roulette factor applied to high values
+                pathIntersection.value += ClampValue(value * rrFactor * nextPathIntersection.value);
             }
         }
     }
@@ -338,11 +348,6 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
         // Apply the volume/surface pdf
         pathIntersection.value /= pdf;
-
-        // Bias the result (potentially making it slightly darker), but reduces fireflies a lot
-        float intensity = Luminance(pathIntersection.value) * GetCurrentExposureMultiplier();
-        if (intensity > _RaytracingIntensityClamp)
-            pathIntersection.value *= _RaytracingIntensityClamp / intensity;
     }
 }
 
