@@ -154,6 +154,16 @@ namespace UnityEditor.VFX
 
         public SortCriteria GetSortCriterion() { return sortMode; }
 
+        public bool NeedsOwnAabbBuffer()
+        {
+            if (!IsRaytraced())
+                return false;
+            foreach (var attrib in VFXAttribute.AllAttributeAffectingAABB)
+                if (GetData().IsCurrentAttributeWritten(attrib, this))
+                    return true;
+            return false;
+        }
+
 
         public virtual VFXOutputUpdate.Features outputUpdateFeatures
         {
@@ -173,6 +183,8 @@ namespace UnityEditor.VFX
                 }
                 if (HasFrustumCulling())
                     features |= VFXOutputUpdate.Features.FrustumCulling;
+                if (NeedsOwnAabbBuffer())
+                    features |= VFXOutputUpdate.Features.FillRaytracingAABB;
                 return features;
             }
         }

@@ -20,6 +20,7 @@ namespace UnityEditor.VFX
             Sort = 1 << 5 | Culling,
             CameraSort = 1 << 6 | Sort,
             FrustumCulling = 1 << 7 | IndirectDraw,
+            FillRaytracingAABB = 1 << 8,
         }
 
         public VFXOutputUpdate() : base(VFXContextType.Filter, VFXDataType.Particle, VFXDataType.Particle) { }
@@ -226,6 +227,10 @@ namespace UnityEditor.VFX
                     yield return "VFX_FEATURE_FRUSTUM_CULL";
                 if (output.HasStrips(false))
                     yield return "HAS_STRIPS";
+                if (HasFeature(Features.FillRaytracingAABB)) //TODO : helper to check all positional attributes
+                {
+                    yield return "VFX_COMPUTE_AABBS";
+                }
             }
         }
 

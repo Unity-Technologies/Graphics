@@ -168,7 +168,7 @@ namespace UnityEditor.VFX
                     yield return new VFXAttributeInfo(VFXAttribute.StripAlive, VFXAttributeMode.ReadWrite);
 
                 VFXDataParticle particleData = GetData() as VFXDataParticle;
-                if (particleData && (particleData.NeedsComputeBounds() || particleData.NeedsAabbBuffer()))
+                if (particleData && (particleData.NeedsComputeBounds() || particleData.NeedsSharedAabbBuffer()))
                 {
                     yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                     yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
@@ -290,7 +290,7 @@ namespace UnityEditor.VFX
                     yield return "VFX_UPDATE_SKIP_ZERO_DELTA_TIME";
                 if ((GetData() as VFXDataParticle).NeedsComputeBounds())
                     yield return "VFX_COMPUTE_BOUNDS";
-                if ((GetData() as VFXDataParticle).NeedsAabbBuffer())
+                if ((GetData() as VFXDataParticle).NeedsSharedAabbBuffer())
                     yield return "VFX_COMPUTE_AABBS";
             }
         }
