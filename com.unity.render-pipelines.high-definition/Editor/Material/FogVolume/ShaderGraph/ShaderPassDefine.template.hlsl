@@ -1,1 +1,0 @@
-#define FOGVOLUME_SHADER

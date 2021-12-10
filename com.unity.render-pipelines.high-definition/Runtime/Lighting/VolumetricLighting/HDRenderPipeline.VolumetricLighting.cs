@@ -857,6 +857,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer volumetricAmbientProbeBuffer;
         }
 
+        class FogVolumeMeshVoxelizationPassData
+        {
+            
+        }
+
         TextureHandle VolumeVoxelizationPass(RenderGraph renderGraph,
             HDCamera hdCamera,
             ComputeBuffer visibleVolumeBoundsBuffer,
@@ -925,6 +930,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     return passData.densityBuffer;
                 }
+
+                // Voxelize fog volume meshes
+                using (var builder = renderGraph.AddRenderPass<FogVolumeMeshVoxelizationPassData>("Fog Volume Mesh Voxelization", out var passData))
+                {
+                }
+
             }
             return TextureHandle.nullHandle;
         }
