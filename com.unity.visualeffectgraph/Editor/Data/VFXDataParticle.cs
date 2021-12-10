@@ -590,7 +590,7 @@ namespace UnityEditor.VFX
         public bool NeedsSharedAabbBuffer()
         {
             //TODO : can lead to useless computation if all outputs have a transform
-            return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => o.IsRaytraced());
+            return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => !o.NeedsOwnAabbBuffer() && o.IsRaytraced());
         }
 
         private void PrepareAABBBuffers(out List<VFXAbstractParticleOutput> outputsSharingAABB,
