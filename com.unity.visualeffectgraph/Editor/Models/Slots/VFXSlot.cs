@@ -990,12 +990,12 @@ namespace UnityEditor.VFX
 
             var toInvalidate = new HashSet<VFXSlot>();
 
-            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(this) : VFXCoordinateSpace.None);
+            masterSlot.SetOutExpression(masterSlot.m_InExpression, masterSlot.space, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(this) : VFXCoordinateSpace.None);
             masterSlot.PropagateToChildren(s =>
             {
                 var exp = s.ExpressionToChildren(s.m_OutExpression);
                 for (int i = 0; i < s.GetNbChildren(); ++i)
-                    s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(s) : VFXCoordinateSpace.None);
+                    s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, masterSlot.space, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(s) : VFXCoordinateSpace.None);
             });
 
             foreach (var slot in toInvalidate)
@@ -1021,20 +1021,17 @@ namespace UnityEditor.VFX
                     }
                     else
                     {
-                        exp = ConvertSpace(exp, destSpaceableType, destSlot.space);
+                        exp = ConvertSpace(exp, sourceSlot.space, destSpaceableType, destSlot.space);
                     }
                 }
             }
             return exp;
         }
 
-        public void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, VFXCoordinateSpace convertToSpace)
+        public void SetOutExpression(VFXExpression exp, VFXCoordinateSpace sourceSpace, HashSet<VFXSlot> toInvalidate, VFXCoordinateSpace convertToSpace)
         {
             exp = m_Property.attributes.ApplyToExpressionGraph(exp);
-            if (convertToSpace != (VFXCoordinateSpace)int.MaxValue) //TODOPAUL: Think twice
-            {
-                exp = ConvertSpace(exp, this, convertToSpace);
-            }
+            exp = ConvertSpace(exp, sourceSpace, this, convertToSpace);
 
             if (m_OutExpression != exp)
             {
