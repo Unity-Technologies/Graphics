@@ -20,6 +20,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed inspector documentation URLs for the URP asset and Universal Renderer asset.
 - Fixed inspector documentation URLs to the SSAO, Decal, and Render Objects renderer features.
 - Fixed "Add Renderer Feature" filtering in menu
+- Fixed property wrappers around material properties.
 
 ## [13.1.2] - 2021-11-05
 
