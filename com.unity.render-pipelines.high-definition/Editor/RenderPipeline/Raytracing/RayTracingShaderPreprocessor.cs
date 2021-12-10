@@ -18,7 +18,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     || snippet.passName == "VisibilityDXR"
                     || snippet.passName == "PathTracingDXR"
                     || snippet.passName == "GBufferDXR"
-                    || snippet.passName == "SubSurfaceDXR")
+                    || snippet.passName == "SubSurfaceDXR"
+                    || snippet.passName == "DebugDXR")
                     return true;
             }
             else
@@ -31,6 +32,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 // If we only support Quality mode, we do not want the indirectDXR shader
                 if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Quality
                     && snippet.passName == "GBufferDXR")
+                    return true;
+
+                // If requested by the render pipeline settings, or if we are in a release build
+                // don't compile the DXR debug pass
+                bool isDebugDXR = snippet.passName == "DebugDXR";
+                if (isDebugDXR && (!Debug.isDebugBuild || !globalSettings.supportRuntimeDebugDisplay))
                     return true;
             }
 
