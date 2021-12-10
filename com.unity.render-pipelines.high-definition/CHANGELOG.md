@@ -67,6 +67,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed write to VT feedback in debug modes (case 1376874)
 - Fixed the water system not working on metal.
 - Fixed the missing debug menus to visualize the ray tracing acceleration structure (case 1371410).
+- Fixed compilation issue related to shader stripping in ray tracing.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
