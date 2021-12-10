@@ -14,10 +14,12 @@ test_platforms:
     utr_flags:
       - [all]: --extra-editor-arg="-xr-reuse-tests"
   - type: Standalone
+    allow_cache: False
     utr_flags:
       - [OSX_Metal]: --timeout=2400
   - type: Standalone
     name: Standalone_XR
+    allow_cache: False
     commands:
       - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [Win_DX11, Win_DX12, Win_Vulkan]: cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
