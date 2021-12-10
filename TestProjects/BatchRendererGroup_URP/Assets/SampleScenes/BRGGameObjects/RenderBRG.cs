@@ -392,11 +392,7 @@ public unsafe class RenderBRG : MonoBehaviour
     {
         Shader shader = Shader.Find(name);
 
-        if (shader == null)
-        {
-        	Debug.LogError("Shader not found: " + name);
-        	return null;
-        }
+        if (shader == null) return null;
 
         Material material = new Material(shader);
 
