@@ -106,9 +106,9 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute[] AllAttributeWriteOnly = new VFXAttribute[] { EventCount };
         public static readonly VFXAttribute[] AllAttributeLocalOnly = new VFXAttribute[] { EventCount, ParticleIndexInStrip, StripIndex, ParticleCountInStrip };
 
-        public static readonly VFXAttribute[] AllAttributePositional = new VFXAttribute[]
+        public static readonly VFXAttribute[] AllAttributeAffectingAABB = new VFXAttribute[]
         {
-            AxisX, AxisY, AxisZ, AngleX, AngleY, AngleZ, PivotX, PivotY, PivotZ, Size, ScaleX, ScaleY, ScaleZ
+             Position, PivotX, PivotY, PivotZ, Size, ScaleX, ScaleY, ScaleZ
         };
 
         public static readonly string[] All = AllAttribute.Select(e => e.name).ToArray();

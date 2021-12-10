@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using UnityEditor.VFX;
 using UnityEngine.VFX;
 using UnityEngine.Serialization;
-using Object = UnityEngine.Object;
 using static UnityEditor.VFX.VFXSortingUtility;
 
 
@@ -611,29 +609,32 @@ namespace UnityEditor.VFX
                 return;
             foreach (var output in rayTracedOutputs)
             {
-                foreach (var attrib in VFXAttribute.AllAttributePositional)
+                if (output.NeedsOwnAabbBuffer())
                 {
-                    if (IsCurrentAttributeWritten(attrib, output))
-                    {
-                        listOutputsOwningAABB.Add(output);
-                        break;
-                    }
+                    listOutputsOwningAABB.Add(output);
                 }
-                outputsSharingAABB.Add(output);
+                else
+                    outputsSharingAABB.Add(output);
             }
+
+            VFXGPUBufferDesc aabbBufferDesc =
+                new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 24 };
 
             int sharedAABBCount = outputsSharingAABB.Count;
             if (sharedAABBCount > 0)
             {
                 sharedAabbBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 24 }); //6 floats
+                outBufferDescs.Add(aabbBufferDesc);
                 systemBufferMappings.Add(new VFXMapping("aabbBuffer", sharedAabbBufferIndex));
             }
+
+            int outputId = 0;
             foreach (var output in listOutputsOwningAABB)
             {
                 int bufferIndex = outBufferDescs.Count;
                 outputsOwningAABB.Add(output, bufferIndex);
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 24 }); //6 floats
+                outBufferDescs.Add(aabbBufferDesc);
+                systemBufferMappings.Add(new VFXMapping("aabbBuffer" + outputId++, bufferIndex));
             }
         }
 
@@ -932,6 +933,10 @@ namespace UnityEditor.VFX
                         var currentIndex = elementToVFXBufferMotionVector[update.output];
                         temporaryBufferMappings.Add(new VFXMappingTemporary() { pastFrameIndex = 0u, perCameraBuffer = true, mapping = new VFXMapping("elementToVFXBuffer", currentIndex) });
                     }
+                    if (update.HasFeature(VFXOutputUpdate.Features.FillRaytracingAABB) && outputsOwningAABB.ContainsKey(update.output))
+                    {
+                        bufferMappings.Add(new VFXMapping("aabbBuffer", outputsOwningAABB[update.output]));
+                    }
                 }
                 else if (context.contextType == VFXContextType.Output && (context is IVFXSubRenderer) && (context as IVFXSubRenderer).hasMotionVector)
                 {
@@ -957,8 +962,17 @@ namespace UnityEditor.VFX
                 if (stripDataIndex != -1 && context.ownedType == VFXDataType.ParticleStrip)
                     bufferMappings.Add(new VFXMapping("stripDataBuffer", stripDataIndex));
 
-                if (sharedAabbBufferIndex != -1 && (context.contextType == VFXContextType.Update || outputsSharingAABB.Contains(context)))
+                if (sharedAabbBufferIndex != -1 && (context.contextType == VFXContextType.Update ||
+                                                    outputsSharingAABB.Contains(context)))
+                {
                     bufferMappings.Add(new VFXMapping("aabbBuffer", sharedAabbBufferIndex));
+                    additionalParameters.Add(new VFXMapping("sharesAabbBuffer", 1));
+                }
+
+                if (context is VFXAbstractParticleOutput output && outputsOwningAABB.ContainsKey(output))
+                {
+                    bufferMappings.Add(new VFXMapping("aabbBuffer", outputsOwningAABB[output]));
+                }
 
                 bool hasAttachedStrip = IsAttributeStored(VFXAttribute.StripAlive);
                 if (hasAttachedStrip)
@@ -1008,7 +1022,6 @@ namespace UnityEditor.VFX
                     if (deadListCountIndex != -1)
                         bufferMappings.Add(new VFXMapping("deadListCount", deadListCountIndex));
                 }
-
                 var gpuTarget = context.allLinkedOutputSlot.SelectMany(o => (o.owner as VFXContext).outputContexts)
                     .Where(c => c.CanBeCompiled())
                     .Select(o => dependentBuffers.eventBuffers[o.GetData()])
