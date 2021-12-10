@@ -45,10 +45,7 @@
                 uint index = PrimitiveIndex();
                 VFXAttributes attributes = (VFXAttributes)0;
                 ${VFXLoadAttributes}
-                //rayIntersection.color = attributes.color * 1000; //needs big multiplicator to be visible, why?
-                //rayIntersection.color = float3(attributeData.barycentrics * 100, 0.0f); //needs big multiplicator to be visible, why?
-                rayIntersection.color = SampleTexture(VFX_SAMPLER(mainTexture), attributeData.barycentrics) * (1.0f/GetCurrentExposureMultiplier()) *  attributes.color; //needs big multiplicator to be visible, why?
-
+                rayIntersection.color = SampleTexture(VFX_SAMPLER(mainTexture), attributeData.barycentrics) * (1.0f/GetCurrentExposureMultiplier()) *  attributes.color;
             }
 
             bool RayBoxIntersectionTest(in float3 rayWorldOrigin, in float3 rayWorldDirection, in float3 boxPosWorld, in float3 boxHalfSize, out float outHitT)
@@ -99,7 +96,6 @@
                 float3 planeOrigin = elementToVFX._m03_m13_m23;
                 if(RayPlaneIntersection(rayObjectOrigin, rayObjectDirection, planeNormal, planeOrigin, outHitT, hitPoint))
                 {
-                    //float3 hitPointTrans = (hitPoint - planeOrigin);
                     uv = mul(vfxToElement, float4(hitPoint,1.0f)).xy + 0.5f;
                     if(any(uv < 0.0f) || any(uv > 1.0f) )
                         return false;
@@ -148,7 +144,6 @@
 		            size3,
 		            attributes.position);
 
-                //if (RayBoxIntersectionTest(WorldRayOrigin(), WorldRayDirection(), aabbPos, aabbSize * 0.5, outHitT))
                 if (RayQuadIntersection(ObjectRayOrigin(), ObjectRayDirection(), elementToVFX, vfxToElement, size3, outHitT, uv))
                 {
                     AttributeData attributeData;
