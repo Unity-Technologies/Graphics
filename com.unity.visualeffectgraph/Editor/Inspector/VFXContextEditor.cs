@@ -54,10 +54,24 @@ class VFXContextEditor : VFXSlotContainerEditor
         throw new ArgumentException("VFXSetting is from an unexpected instance: " + setting.instance);
     }
 
+    public static readonly GUIContent spaceLabel = EditorGUIUtility.TrTextContent("Space", "Specifies simulated space of the system.");
+
+    enum ContextSpace
+    {
+        Local = VFXCoordinateSpace.Local,
+        World = VFXCoordinateSpace.World
+    }
+
     protected void DisplaySpace()
     {
         if (spaceProperty != null)
-            EditorGUILayout.PropertyField(spaceProperty);
+        {
+            var contextSpace = (ContextSpace)spaceProperty.intValue;
+            EditorGUI.BeginChangeCheck();
+            var newSpace = (ContextSpace)EditorGUILayout.EnumPopup(spaceLabel, contextSpace);
+            if (EditorGUI.EndChangeCheck())
+                spaceProperty.intValue = (int)newSpace;
+        }
     }
 
     public override SerializedProperty DoInspectorGUI()

@@ -38,11 +38,6 @@ namespace UnityEditor.VFX
         }
     }
 
-    class CoordinateSpaceInfo
-    {
-        public static readonly int SpaceCount = Enum.GetValues(typeof(VFXCoordinateSpace)).Length;
-    }
-
     [VFXType(VFXTypeAttribute.Usage.Default, "Circle"), Serializable]
     struct TCircle
     {

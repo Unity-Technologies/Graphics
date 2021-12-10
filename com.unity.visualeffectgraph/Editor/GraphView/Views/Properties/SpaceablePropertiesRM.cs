@@ -42,10 +42,10 @@ namespace UnityEditor.VFX.UI
 
         void OnButtonClick()
         {
-            //TODOPAUL: Move to CoordinateSpaceInfo (& check how filter it in VFXContextUI)
             var values = (VFXCoordinateSpace[])Enum.GetValues(space.GetType());
+            var spaceCount = values.Length;
             var index = Array.IndexOf(values, space);
-            var nextIndex = (index + 1) % CoordinateSpaceInfo.SpaceCount;
+            var nextIndex = (index + 1) % spaceCount;
             space = values[nextIndex];
         }
 
