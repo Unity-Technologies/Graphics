@@ -37,6 +37,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent hdrText = EditorGUIUtility.TrTextContent("HDR", "Controls the global HDR settings.");
             public static GUIContent msaaText = EditorGUIUtility.TrTextContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
             public static GUIContent renderScaleText = EditorGUIUtility.TrTextContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
+            public static GUIContent lodCrossFadeTypeText = EditorGUIUtility.TrTextContent("LOD Cross Fade Type", "Type of the LOD Cross Fade that is used to draw Renderer LOD when LODGroup has CrossFade Fade Mode selected.");
 
             // Main light
             public static GUIContent mainLightRenderingModeText = EditorGUIUtility.TrTextContent("Main Light", "Main light is the brightest directional light.");

@@ -131,6 +131,8 @@ half4 UnlitPassFragment(Varyings input) : SV_Target
 #endif
     finalColor.rgb = MixFog(finalColor.rgb, fogFactor);
 
+    ApplyLODCrossFade(input.positionCS, finalColor);
+
     return finalColor;
 }
 

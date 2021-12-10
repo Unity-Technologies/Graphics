@@ -252,9 +252,6 @@ SAMPLER(samplerunity_ShadowMask);
 TEXTURE2D_ARRAY(unity_ShadowMasks);
 SAMPLER(samplerunity_ShadowMasks);
 
-TEXTURE2D(_BlueNoiseDitheringTexture);
-SAMPLER(sampler_BlueNoiseDitheringTexture); 
-
 // ----------------------------------------------------------------------------
 
 // TODO: all affine matrices should be 3x4.

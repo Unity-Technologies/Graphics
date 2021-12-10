@@ -137,6 +137,16 @@ namespace UnityEngine.Rendering.Universal
         UsePipelineSettings = 2,
     }
 
+    /// <summary>
+    /// Type of the LOD CrossFade.
+    /// </summary>
+    public enum LODCrossFadeType
+    {
+        BayerMatrixDither, 
+        WhiteNoiseDither,
+        BlueNoiseDither
+    }
+
     [ExcludeFromPreset]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
@@ -166,6 +176,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsHDR = true;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
+        [SerializeField] LODCrossFadeType m_LODCrossFadeType = LODCrossFadeType.BayerMatrixDither;
         // TODO: Shader Quality Tiers
 
         // Main directional light Settings
@@ -658,6 +669,11 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_RenderScale; }
             set { m_RenderScale = ValidateRenderScale(value); }
+        }
+
+        public LODCrossFadeType lodCrossFadeType
+        {
+            get { return m_LODCrossFadeType; }
         }
 
         public LightRenderingMode mainLightRenderingMode

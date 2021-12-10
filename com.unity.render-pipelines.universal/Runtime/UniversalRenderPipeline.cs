@@ -1235,6 +1235,7 @@ namespace UnityEngine.Rendering.Universal
 
             Texture2D blueNoiseTexture = PostProcessData.GetDefaultPostProcessData().textures.blueNoise64LTex;
             Shader.SetGlobalTexture(ShaderPropertyId.blueNoiseDitheringTexture, blueNoiseTexture);
+            Shader.SetGlobalInt(ShaderPropertyId.lodCrossFadeType, (int)asset.lodCrossFadeType);
         }
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)

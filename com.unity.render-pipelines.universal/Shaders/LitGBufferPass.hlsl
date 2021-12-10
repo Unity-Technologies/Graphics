@@ -181,9 +181,7 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-#ifdef LOD_FADE_CROSSFADE
-    LODDitheringTransition(input.positionCS.xy, unity_LODFade.x, k_LODDitherType);
-#endif
+    ApplyLODCrossFade(input.positionCS);
 
 #if defined(_PARALLAXMAP)
 #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
