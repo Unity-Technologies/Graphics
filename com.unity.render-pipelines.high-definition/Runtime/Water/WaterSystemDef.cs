@@ -4,6 +4,19 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    // This structure holds all the information that can be requested during the deferred water lighting
+    [GenerateHLSL(PackingRules.Exact, false)]
+    struct WaterSurfaceProfile
+    {
+        public Vector3 waterAmbientProbe;
+        public float tipScatteringHeight;
+        
+        public float bodyScatteringHeight;
+        public float maxRefractionDistance;
+        public uint lightLayers;
+        public float _padding2;
+    }
+
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesWater
     {
@@ -32,23 +45,23 @@ namespace UnityEngine.Rendering.HighDefinition
         // Delta-time since the last simulation step
         public float _DeltaTime;
 
-        // Intensity of the surface foam
-        public float _SurfaceFoamIntensity;
+        // Smoothness of the simulation foam 
+        public float _SimulationFoamSmoothness;
+        // Intensity of the simulation foam
+        public float _SimulationFoamIntensity;
         // Amount of surface foam
-        public float _SurfaceFoamAmount;
-        // Amount of deep foam
-        public float _DeepFoamAmount;
+        public float _SimulationFoamAmount;
         // TODO WRITE
         public float _SSSMaskCoefficient;
 
-        // Padding
-        public Vector2 _PaddingW0;
+        public float _DispersionAmount;
+        public float _ScatteringBlur;
         // Maximum refraction distance
         public float _MaxRefractionDistance;
         // Smoothness of the water part of the surface (non foam)
         public float _WaterSmoothness;
 
-        // Horizonal offsets of the foam texture
+        // Horizontal offsets of the foam texture
         public Vector2 _FoamOffsets;
         // Tiling parameter of the foam texture
         public float _FoamTilling;
@@ -60,16 +73,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _ScatteringColorTips;
 
-        public float _DispersionAmount;
-        public float _RefractionLow;
-        public float _MaxAbsorptionDistance;
-        public float _ScatteringBlur;
-
-
         public float _DisplacementScattering;
         public float _ScatteringIntensity;
-        public float _BodyScatteringWeight;
-        public float _TipScatteringWeight;
+        public int _SurfaceIndex;
+        public float _CausticsRegionSize;
 
         public Vector4 _ScatteringLambertLighting;
 
@@ -78,7 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _OutScatteringCoefficient;
         public float _FoamSmoothness;
         public float _HeightBasedScattering;
-        public float _PaddingW1;
+        public float _PaddingW0;
 
         public Vector4 _FoamJacobianLambda;
     }
@@ -93,6 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Offset of the current patch w/r to the origin
         public Vector4 _PatchOffset;
+
         // Ambient probe used to render the water
         public Vector4 _WaterAmbientProbe;
 
@@ -121,5 +129,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _CausticsTiling;
         // Vertical shift on when the caustics start
         public float _CausticsPlaneOffset;
+
+        // Type of caustics that are rendered
+        public int _WaterCausticsType;
+        // Which decal layers should affect this surface
+        public uint _WaterDecalLayer;
+        // Is this surface infinite or finite
+        public int _InfiniteSurface;
+        public float _PaddingWR0;
     }
 }

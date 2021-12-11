@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added FSR sharpness override to camera and pipeline asset.
+- Improvements done to the water system (Deferred, Decals, SSR, Foam, Caustics, etc.).
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
