@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
@@ -295,9 +296,62 @@ namespace UnityEditor.ShaderGraph
             return conversion.from.ToNeededCoordinateSpace();
         }
 
+        static readonly bool[,] k_ViaWorldFunction = new bool[5, 5]   // [from, to]
+        {
+            {   // from CoordinateSpace.Object
+                false, // to CoordinateSpace.Object
+                true,  // to CoordinateSpace.View
+                false, // to CoordinateSpace.World
+                true,  // to CoordinateSpace.Tangent
+                true,  // to CoordinateSpace.AbsoluteWorld
+            },
+            {   // from CoordinateSpace.View
+                true,  // to CoordinateSpace.Object
+                false, // to CoordinateSpace.View
+                false, // to CoordinateSpace.World
+                true,  // to CoordinateSpace.Tangent
+                true,  // to CoordinateSpace.AbsoluteWorld
+            },
+            {   // from CoordinateSpace.World
+                false, // to CoordinateSpace.Object
+                false, // to CoordinateSpace.View
+                false, // to CoordinateSpace.World
+                false, // to CoordinateSpace.Tangent
+                false, // to CoordinateSpace.AbsoluteWorld
+            },
+            {   // from CoordinateSpace.Tangent
+                true,  // to CoordinateSpace.Object
+                true,  // to CoordinateSpace.View
+                false, // to CoordinateSpace.World
+                false, // to CoordinateSpace.Tangent
+                true,  // to CoordinateSpace.AbsoluteWorld
+            },
+            {   // from CoordinateSpace.AbsoluteWorld
+                true,  // to CoordinateSpace.Object
+                true,  // to CoordinateSpace.View
+                false, // to CoordinateSpace.World
+                true,  // to CoordinateSpace.Tangent
+                false, // to CoordinateSpace.AbsoluteWorld
+            }
+        };
+
+        internal static IEnumerable<NeededTransform> ComputeTransformRequirement(CoordinateSpaceConversion xform)
+        {
+            var viaWorld = k_ViaWorldFunction[(int)xform.from, (int)xform.to];
+            if (viaWorld)
+            {
+                yield return new NeededTransform(xform.from.ToNeededCoordinateSpace(), NeededCoordinateSpace.World);
+                yield return new NeededTransform(NeededCoordinateSpace.World, xform.to.ToNeededCoordinateSpace());
+            }
+            else
+            {
+                yield return new NeededTransform(xform.from.ToNeededCoordinateSpace(), xform.to.ToNeededCoordinateSpace());
+            }
+        }
+
         public NeededTransform[] RequiresTransform(ShaderStageCapability stageCapability)
         {
-            return spaceTransform.RequiresTransform.ToArray();
+            return ComputeTransformRequirement(conversion).ToArray();
         }
     }
 }
