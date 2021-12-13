@@ -638,6 +638,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.materialMipBias = materialMipBias;
 
+            data.screenSizeOverride = screenSizeOverride;
+            data.screenCoordScaleBias = screenCoordScaleBias;
+
             // We must not copy the following
             //data.m_IsDebugRegistered = m_IsDebugRegistered;
             //data.m_CameraRegisterName = m_CameraRegisterName;
