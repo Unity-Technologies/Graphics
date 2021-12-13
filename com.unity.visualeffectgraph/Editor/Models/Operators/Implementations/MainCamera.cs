@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.Operator
             if (slot.spaceable && slot.property.type == typeof(CameraType))
                 return VFXCoordinateSpace.World;
 
-            return (VFXCoordinateSpace)int.MaxValue;
+            return VFXCoordinateSpace.None;
         }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

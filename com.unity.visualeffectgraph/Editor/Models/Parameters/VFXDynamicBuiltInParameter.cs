@@ -187,7 +187,7 @@ namespace UnityEditor.VFX
                 case BuiltInFlag.WorldToLocal:
                     return VFXCoordinateSpace.World;
                 default:
-                    return (VFXCoordinateSpace)int.MaxValue;
+                    return VFXCoordinateSpace.None;
             }
         }
 

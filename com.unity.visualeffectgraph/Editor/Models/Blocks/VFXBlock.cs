@@ -88,7 +88,7 @@ namespace UnityEditor.VFX
             /* For block, space is directly inherited from parent context, this method should remains sealed */
             if (GetParent() != null)
                 return GetParent().space;
-            return (VFXCoordinateSpace)int.MaxValue;
+            return VFXCoordinateSpace.None;
         }
 
         public VFXContext flattenedParent
