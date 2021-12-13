@@ -62,6 +62,22 @@ Your Unity project now supports DLSS and you can now enable DLSS for Cameras in 
 The **Use Optimal Settings** checkbox in the [HDRP Assets](HDRP-Asset.md) is enabled by default. This means that DLSS sets the dynamic resolution scale automatically.
 If you disable this checkbox DLSS uses the same dynamic resolution scale set by the project. For more information see the [Dynamic Resolution](Dynamic-Resolution.md) guide.
 
+### Mip bias in DLSS
+
+To enable automatic mip bias correction when DLSS is enabled, enable the checkbox **Use Mip Bias** in the [HDRP Asset](HDRO-Asset.md).
+
+If a specific custom mip bias is desired for a texture, the following custom function node can be created with the following body:
+
+```glsl
+Out = SAMPLE_TEXTURE2D_BIAS(TextureInput, SamplerInput, UV, MipBias);
+```
+
+![](Images/CustomMipSupportNode.png)
+
+
+![](Images/CustomMipSupportNodeExample.png)
+
+
 ### Setting the DLSS quality mode
 
 DLSS now works in your project, but you can change the quality mode to customize DLSS towards performance or quality. You can do this on a project level or a per-Camera level. For information about the available quality modes, see [Quality modes](https://docs.unity3d.com/2021.2/Documentation/Manual/deep-learning-super-sampling.html).
