@@ -44,6 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static FieldDescriptor Eye = new FieldDescriptor(kMaterial, "Eye", "_MATERIAL_FEATURE_EYE 1");
         public static FieldDescriptor EyeCinematic = new FieldDescriptor(kMaterial, "EyeCinematic", "_MATERIAL_FEATURE_EYE_CINEMATIC 1");
+        public static FieldDescriptor EyeCausticLut = new FieldDescriptor(kMaterial, "EyeCinematicWithCaustic", "_MATERIAL_FEATURE_EYE_CAUSTIC_LUT 1");
 
         protected override SubShaderDescriptor GetRaytracingSubShaderDescriptor()
         {
@@ -62,6 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Eye specific properties
             context.AddField(Eye, eyeData.materialType == EyeData.MaterialType.Eye);
             context.AddField(EyeCinematic, eyeData.materialType == EyeData.MaterialType.EyeCinematic);
+            context.AddField(EyeCausticLut, eyeData.materialType == EyeData.MaterialType.EyeCinematicWithCaustic);
             context.AddField(SubsurfaceScattering, eyeData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
 
             context.AddField(SpecularAA, lightingData.specularAA &&
@@ -82,6 +84,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.SurfaceDescription.Mask);
             context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, eyeData.subsurfaceScattering);
             context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask, eyeData.subsurfaceScattering);
+            context.AddBlock(HDBlockFields.SurfaceDescription.IrisHeight, eyeData.materialType == EyeData.MaterialType.EyeCinematicWithCaustic);
+            context.AddBlock(HDBlockFields.SurfaceDescription.IrisRadius, eyeData.materialType == EyeData.MaterialType.EyeCinematicWithCaustic);
+            context.AddBlock(HDBlockFields.SurfaceDescription.CausticIntensity, eyeData.materialType == EyeData.MaterialType.EyeCinematicWithCaustic);
+            context.AddBlock(HDBlockFields.SurfaceDescription.CausticBlend, eyeData.materialType == EyeData.MaterialType.EyeCinematicWithCaustic);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
