@@ -104,8 +104,8 @@ namespace UnityEngine.Experimental.Rendering
                 m_DebugMesh = parameters.probeDebugMesh;
                 m_DebugMaterial = CoreUtils.CreateEngineMaterial(parameters.probeDebugShader);
                 m_DebugMaterial.enableInstancing = true;
-                m_DebugOffsetMesh = debugOffsetMesh;
-                m_DebugOffsetMaterial = CoreUtils.CreateEngineMaterial(debugOffsetShader);
+                m_DebugOffsetMesh = parameters.offsetDebugMesh;
+                m_DebugOffsetMaterial = CoreUtils.CreateEngineMaterial(parameters.offsetDebugShader);
                 m_DebugOffsetMaterial.enableInstancing = true;
 
                 // Hard-coded colors for now.
@@ -328,7 +328,7 @@ namespace UnityEngine.Experimental.Rendering
                 Vector4[] texels = new Vector4[kProbesPerBatch];
                 float[] validity = new float[kProbesPerBatch];
                 float[] relativeSize = new float[kProbesPerBatch];
-                Vector4[] offsets = cell.offsetVectors?.Length > 0 ? new Vector4[kProbesPerBatch] : null;
+                Vector4[] offsets = cell.offsetVectors.IsCreated && cell.offsetVectors.Length > 0 ? new Vector4[kProbesPerBatch] : null;
 
                 List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
                 List<Matrix4x4> offsetBuffer = new List<Matrix4x4>();
