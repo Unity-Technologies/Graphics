@@ -17,6 +17,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesProbeVolumes, b5)
     float _MinBrickSize;
     int _IndexChunkSize;
     float _NormalBias;
+    float _Weight;
 CBUFFER_END
 
 

@@ -323,6 +323,10 @@ namespace UnityEngine.Experimental.Rendering
         /// Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.
         /// </summary>
         public float samplingNoise;
+        /// <summary>
+        /// Global probe volumes weight. Allows for fading out probe volumes influence falling back to ambient probe.
+        /// </summary>
+        public float weight;
     }
 
     /// <summary>
@@ -632,6 +636,7 @@ namespace UnityEngine.Experimental.Rendering
 
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
         ProbeVolumeSHBands m_SHBands;
+        float m_ProbeVolumesWeight;
 
         /// <summary>
         /// The <see cref="ProbeVolumeSHBands"/>
@@ -644,6 +649,11 @@ namespace UnityEngine.Experimental.Rendering
         /// Get the memory budget for the Probe Volume system.
         /// </summary>
         public ProbeVolumeTextureMemoryBudget memoryBudget => m_MemoryBudget;
+
+        /// <summary>
+        /// Global probe volumes weight. Allows for fading out probe volumes influence falling back to ambient probe.
+        /// </summary>
+        public float probeVolumesWeight { get => m_ProbeVolumesWeight; set => m_ProbeVolumesWeight = Mathf.Clamp01(value); }
 
         static ProbeReferenceVolume _instance = new ProbeReferenceVolume();
 
@@ -672,6 +682,7 @@ namespace UnityEngine.Experimental.Rendering
 
             m_MemoryBudget = parameters.memoryBudget;
             m_SHBands = parameters.shBands;
+            m_ProbeVolumesWeight = 1f;
             InitializeDebug(parameters);
             InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
             m_IsInitialized = true;
@@ -1343,6 +1354,7 @@ namespace UnityEngine.Experimental.Rendering
             shaderVars._MinBrickSize = MinBrickSize();
             shaderVars._IndexChunkSize = ProbeBrickIndex.kIndexChunkSize;
             shaderVars._CellInMeters = MaxBrickSize();
+            shaderVars._Weight = parameters.weight;
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }
