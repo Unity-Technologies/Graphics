@@ -8,6 +8,7 @@
             #pragma target 4.5
             #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
+            #pragma multi_compile _ MULTI_BOUNCE_INDIRECT
 
             // Global includes
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -17,11 +18,15 @@
             // Define the shader pass
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
 
+            // We are in a ray tracing pass, we can only support low shadows
+            #define SHADOW_LOW
+
             // Need to override the macros for ray tracing
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
-            // Shader variables ray tracing
+            // Shader variables
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
 
             // Equivalent of the Pixel to Vertex structure
             struct rt_input
@@ -31,9 +36,11 @@
             };
             #define VFX_VARYING_PS_INPUTS rt_input
             #define VFX_VARYING_POSCS pos
-            
+
             // VFX includes
+            ${VFXHDRPLitVaryingsMacros} 
             ${VFXPerPassInclude}
+            ${VFXIncludeRP("VFXLit.template")}
             
             // Needs to be included after the VFX includes
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXRayTracingCommon.hlsl"
@@ -41,20 +48,27 @@
             // Visibility function required for the intersection shader
             bool AABBPrimitiveIsVisible(RayTracingProceduralData rtProceduralData, float2 uv)
             {
-                VFXAttributes attributes = rtProceduralData.attributes;
-                ${VFXLoadParameter:{alphaThreshold}}
-                return SampleTexture(VFX_SAMPLER(mainTexture), uv).a > alphaThreshold;
+                #if HDRP_USE_BASE_COLOR_MAP
+                    VFXAttributes attributes = rtProceduralData.attributes;
+                    ${VFXLoadParameter:{alphaThreshold}}
+                    return SampleTexture(VFX_SAMPLER(baseColorMap), uv).a > alphaThreshold;
+                #else
+                    return true;
+                #endif
             }
 
-            // Material includes
+            // Lighting and material includes
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/RayTracingProcedural.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
             // Defines for the attributes
-            ${VFXIncludeRP("VFXLitVaryings.template")}
+            ${VFXIncludeRP("VFXLitVaryings.template")}      
 
             // Graph functions
             ${VFXGeneratedBlockFunction}
@@ -64,22 +78,73 @@
             {
                 UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
 
-                VFXAttributes attributes;
-                ZERO_INITIALIZE(VFXAttributes, attributes);
-
                 // Compute the distance of the ray
                 rayIntersection.t = RayTCurrent();
+
+                // Evaluate the view direction
+                float3 viewWS = -WorldRayDirection();
+
+                // Evaluate the position
+                float3 positionRWS = WorldRayOrigin() + rayIntersection.t * WorldRayDirection();
+
+                // Evaluate the position input
+                PositionInputs posInput = GetPositionInput(rayIntersection.pixelCoord, _ScreenSize.zw, positionRWS);
 
                 // Index needs to be available in the context for the attribute load to work
                 uint index = PrimitiveIndex();
 
+                // Attributes of the paticle
+                VFXAttributes attributes;
+                ZERO_INITIALIZE(VFXAttributes, attributes);
+
                 // Load the VFX attributes that we need for this
                 ${VFXLoadAttributes}
                 ${VFXProcessBlocks}
+                ${VFXLoadSize}
 
-                // Given that we will be multiplying the final color by the current exposure multiplier outside of this function, we need to make sure that
-                // the unlit color is not impacted by that. Thus, we multiply it by the inverse of the current exposure multiplier.
-                rayIntersection.color = SampleTexture(VFX_SAMPLER(mainTexture), attributeData.barycentrics) * attributes.color.xyz * GetInverseCurrentExposureMultiplier();
+                // Build the "varying" input
+                rt_input o;
+                ZERO_INITIALIZE(rt_input, o);
+
+                // Fill the attributes
+                ${VFXVertexCommonProcess}
+
+                // Object <-> primtive matrices
+                const float4x4 objectToPrimitive = GetVFXToElementMatrix(attributes.axisX, attributes.axisY, attributes.axisZ,
+                    float3(attributes.angleX, attributes.angleY, attributes.angleZ),
+                    float3(attributes.pivotX, attributes.pivotY, attributes.pivotZ),
+                    size3, attributes.position);
+
+                // TODO have the real normal here
+                float3 normalOS = normalize(-objectToPrimitive[2].xyz);
+
+                // Build the uv data
+                VFXUVData uvData;
+                uvData.uvs = float4(attributeData.barycentrics, 0, 0);
+                uvData.blend = 0;
+                uvData.mvs = 0;
+
+                // Output structures
+                SurfaceData surfaceData = (SurfaceData)0;
+                BuiltinData builtinData = (BuiltinData)0;
+                BSDFData bsdfData = (BSDFData)0;
+                PreLightData preLightData = (PreLightData)0;
+
+                // Evaluate the input data
+                VFXGetHDRPLitData(surfaceData, builtinData, bsdfData, preLightData, o, normalOS, uvData, 0);
+
+                // Run the lightloop
+                float3 reflected = float3(0.0, 0.0, 0.0);
+                float reflectedWeight = 0.0;
+                LightLoopOutput lightLoopOutput;
+                LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, float4(reflected, reflectedWeight), float4(0.0, 0.0, 0.0, 0.0), lightLoopOutput);
+
+                // Alias
+                float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+                float3 specularLighting = lightLoopOutput.specularLighting;
+
+                // Color display for the moment
+                rayIntersection.color = diffuseLighting + specularLighting;
 
                 // Apply fog attenuation
                 ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), rayIntersection.t, rayIntersection.color, true);
