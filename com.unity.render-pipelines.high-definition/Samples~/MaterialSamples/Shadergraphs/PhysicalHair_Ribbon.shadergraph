@@ -1907,10 +1907,10 @@
     "m_Guid": {
         "m_GuidSerialized": "19859530-168d-499d-a6b3-b9699558e120"
     },
-    "m_Name": "Generate Thickness from collapsed ribbon geometry",
+    "m_Name": "Screen Aligned Thickness",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Generate Thickness from collapsed ribbon geometry",
-    "m_DefaultReferenceName": "_GENERATE_THICKNESS_FROM_COLLAPSED_RIBBON_GEOMETRY",
+    "m_RefNameGeneratedByDisplayName": "Screen Aligned Thickness",
+    "m_DefaultReferenceName": "_SCREEN_ALIGNED_THICKNESS",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
@@ -2905,7 +2905,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Generate Thickness from collapsed ribbon geometry",
+    "m_Name": "Screen Aligned Thickness",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -4833,7 +4833,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Generate Thickness from collapsed ribbon geometry",
+    "m_Name": "Screen Aligned Thickness",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -8079,7 +8079,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Generate Thickness from collapsed ribbon geometry",
+    "m_Name": "Screen Aligned Thickness",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -8585,7 +8585,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Generate Thickness from collapsed ribbon geometry",
+    "m_Name": "Screen Aligned Thickness",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {

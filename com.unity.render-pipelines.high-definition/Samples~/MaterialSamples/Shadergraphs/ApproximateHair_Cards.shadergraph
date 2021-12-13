@@ -4478,7 +4478,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "2a22afd01d2d47ea99c1762ccb8d469c",
     "m_Id": 0,
-    "m_DisplayName": "Depth_Offset",
+    "m_DisplayName": "Depth Offset",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -12122,9 +12122,9 @@
     "m_Guid": {
         "m_GuidSerialized": "ccaf3042-1751-4338-9bea-cc97eb79dc20"
     },
-    "m_Name": "Depth_Offset",
+    "m_Name": "Depth Offset",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Depth_Offset",
+    "m_RefNameGeneratedByDisplayName": "Depth Offset",
     "m_DefaultReferenceName": "_Depth_Offset",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
