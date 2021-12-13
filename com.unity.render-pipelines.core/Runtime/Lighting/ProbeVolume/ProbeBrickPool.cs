@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
+using Unity.Profiling;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -84,6 +85,8 @@ namespace UnityEngine.Experimental.Rendering
         static DynamicArray<Color> s_L2_1_locData = null;
         static DynamicArray<Color> s_L2_2_locData = null;
         static DynamicArray<Color> s_L2_3_locData = null;
+
+        static ProfilerMarker sPMFillDataLocation = new ProfilerMarker("FillDataLocation");
 
         internal ProbeBrickPool(ProbeVolumeTextureMemoryBudget memoryBudget, ProbeVolumeSHBands shBands)
         {
@@ -360,6 +363,8 @@ namespace UnityEngine.Experimental.Rendering
         {
             // NOTE: The SH data arrays passed to this method should be pre-swizzled to the format expected by shader code.
             // TODO: The next step here would be to store de-interleaved, pre-quantized brick data that can be memcopied directly into texture pixeldata
+
+            using var pmFillDataLocation = sPMFillDataLocation.Auto();
 
             var inputProbesCount = shL0L1Data.Length / ProbeVolumeAsset.kL0L1ScalarCoefficientsCount;
 
