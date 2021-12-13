@@ -87,16 +87,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter maximumIntensity = new MinFloatParameter(10f, 0f);
 
         /// <summary>
-        /// Defines the number of tiles (X: width, Y: height) and the indices of the current tile (Z: i in [0, width[, W: j in [0, height[) for interleaved tiled rendering.
-        /// </summary>
-        [Tooltip("Defines the number of tiles (X: width, Y: height) and the indices of the current tile (Z: i in [0, width[, W: j in [0, height[) for interleaved tiled rendering.")]
-        public Vector4Parameter tilingParameters = new Vector4Parameter(new Vector4(1, 1, 0, 0));
-
-        /// <summary>
         /// Defines if and when sky importance sampling is enabled. It should be turned on for sky models with high contrast and bright spots, and turned off for smooth, uniform skies.
         /// </summary>
         [Tooltip("Defines if and when sky importance sampling is enabled. It should be turned on for sky models with high contrast and bright spots, and turned off for smooth, uniform skies.")]
         public SkyImportanceSamplingParameter skyImportanceSampling = new SkyImportanceSamplingParameter(SkyImportanceSamplingMode.HDRIOnly);
+
+        /// <summary>
+        /// Defines the number of tiles (X: width, Y: height) and the indices of the current tile (Z: i in [0, width[, W: j in [0, height[) for interleaved tiled rendering.
+        /// </summary>
+        [Tooltip("Defines the number of tiles (X: width, Y: height) and the indices of the current tile (Z: i in [0, width[, W: j in [0, height[) for interleaved tiled rendering.")]
+        public Vector4Parameter tilingParameters = new Vector4Parameter(new Vector4(1, 1, 0, 0));
 
         /// <summary>
         /// Default constructor for the path tracing volume component.
