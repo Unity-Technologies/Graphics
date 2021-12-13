@@ -14,12 +14,12 @@ This table provides an overview of the current features supported in the Univers
 | Physical Camera                                              | Yes                                                          | Yes                                                          |
 | Dynamic Resolution                                           | Yes                                                          | Yes                                                          |
 | Multi Display                                                | Yes                                                          | Yes                                                          |
-| Stacking                                                     | Yes                                                          | Yes                                                 |
-| Flare Layer                                                  | Yes                                                          | Not supported                                                |
+| Stacking                                                     | Yes                                                          | Yes                                                          |
+| Flare Layer                                                  | Yes                                                          | Replaced by [SRP Lens Flares](shared/lens-flare/lens-flare-component.md)       |
 | Depth Texture                                                | Yes                                                          | Yes                                                          |
-| Depth + Normals Texture                                      | Yes                                                          | Not supported                                                |
+| Depth + Normals Texture                                      | Yes                                                          | Yes                                                          |
 | Color Texture                                                | Not supported                                                | Yes                                                          |
-| Motion vectors                                               | Yes                                                          | In research                                                  |
+| Motion vectors                                               | Yes                                                          | Yes                                                          |
 | ***Batching***                                               |                                                              |                                                              |
 | Static Batching (By Shader)                                  | Not supported                                                | Yes                                                          |
 | Static Batching (By Material)                                | Yes                                                          | Yes                                                          |
@@ -53,8 +53,8 @@ This table provides an overview of the current features supported in the Univers
 | ***Mixed Lighting Mode***                                         |                                                              |                                                              |
 | Subtractive                                                  | Yes                                                          | Yes                                                          |
 | Baked Indirect                                               | Yes                                                          | Yes                                                          |
-| Shadowmask                         | Yes                              | Yes (Forward Rendering Path) |
-| Distance Shadowmask                | Yes                              | Yes (Forward Rendering Path) |
+| Shadowmask                         | Yes                              | Yes |
+| Distance Shadowmask                | Yes                              | Yes |
 | ***Light Probes***                     |                                                              |                                                              |
 | Blending                                                     | Yes                                                          | Yes                                                          |
 | Proxy Volume (LPPV)                                          | Yes                                                          | Not supported                                                 |
@@ -63,8 +63,8 @@ This table provides an overview of the current features supported in the Univers
 | ***Reflection Probes***                |                                                              |                                                              |
 | Realtime                                                     | Yes                                                          | Yes                                                          |
 | Baked                                                        | Yes                                                          | Yes                                                          |
-| *Sampling*<br/>Simple<br/>Blend Probes<br/>Blend Probes and Skybox | <br/>Yes<br/>Yes<br/>Yes                                     | <br/>Yes<br/>In research<br/>In research                     |
-| Box Projection                                              | Yes                                                          | In research                                                  |
+| *Sampling*<br/>Simple<br/>Blend Probes<br/>Blend Probes and Skybox | <br/>Yes<br/>Yes<br/>Yes                               | <br/>Yes<br/>Yes<br/>Yes                                     |
+| Box Projection                                              | Yes                                                          | Yes                                                  |
 | ***Lightmap Modes***                   |                                                              |                                                              |
 | Non-Directional                                              | Yes                                                          | Yes                                                          |
 | Directional                                                  | Yes                                                          | Yes                                                          |
@@ -82,10 +82,10 @@ This table provides an overview of the current features supported in the Univers
 | Exponential Squared                                          | Yes                                                          | Yes                                                          |
 | ***Visual Effects Components***                              |                                                              |                                                              |
 | Halo                                                         | Yes                                                          | Not supported                                                |
-| Lens Flare                                                   | Yes                                                          | Not supported                                                |
+| Lens Flare                                                   | Yes                                                          | Replaced by [SRP Lens Flares](shared/lens-flare/lens-flare-component.md)                                                |
 | Trail Renderer                                               | Yes                                                          | Yes                                                          |
 | Billboard Renderer                                           | Yes                                                          | Yes                                                          |
-| Projector                                                    | Yes                                                          | Not supported                                                |
+| Projector                                                    | Yes                                                          | Replaced by [Decal Projector](renderer-feature-decal.md)     |
 | ***Shaders (General)***                                      |                                                              |                                                              |
 | Shader Graph                                                 | Not supported                                                | Yes                                                          |
 | Surface Shaders                                              | Yes                                                          | Not supported                                                |
@@ -93,7 +93,7 @@ This table provides an overview of the current features supported in the Univers
 | *Built-in Lit Uber Shader*<br/>Metallic Workflow<br/>Specular Workflow | Standard Shader<br/>Yes<br/>Yes                                             | [Lit Shader](lit-shader.md)<br/>Yes<br/>Yes           |
 | *Surface Type and Blend Mode*<br/>Opaque<br/>Faded (Alpha Blend)<br/>Transparent<br/>Cutout<br/>Additive<br/>Multiply | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Not supported<br/>Not supported | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes             |
 | *Surface Inputs*<br/>Albedo (Base Map)<br/>Specular<br/>Metallic<br/>Smoothness<br/>Ambient Occlusion<br/>Normal Map<br/>Detail Map<br/>Detail Normal Map<br/>Heightmap | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes |
-| Light Cookies                                                | Yes                                                          | In research                                                  |
+| Light Cookies                                                | Yes                                                          | Yes                                                          |
 | Parallax Mapping | Yes                         | Yes                        |
 | Light Distance Fade                                          | Not supported                                                | In research                                                  |
 | Shadow Distance Fade                                         | Yes                                                          | In research                                                  |
@@ -124,7 +124,7 @@ This table provides an overview of the current features supported in the Univers
 | ScriptableRenderPass                                         | Not supported                                                | Yes                                                          |
 | Custom Renderers                                             | Not supported                                                | Yes                                                          |
 | ***Post-processing***                                        | Uses Post-Processing Version 2 package                      | Uses integrated [post-processing solution](integration-with-post-processing.md) |
-| Ambient Occlusion (MSVO)                                     | Yes                                                          | In research                                                  |
+| Ambient Occlusion (MSVO)                                     | Yes                                                          | Replaced by [SSAO](post-processing-ssao.md)                                                   |
 | Auto Exposure                                                | Yes                                                          | Not supported                                                          |
 | Bloom                                                        | Yes                                                          | Yes                                                          |
 | Chromatic Aberration                                         | Yes                                                          | Yes                                                          |
@@ -167,4 +167,4 @@ This table provides an overview of the current features supported in the Univers
 | ***AR***                                                     |                                                              |                                                              |
 | AR Foundation                 | Yes                       | Yes                       |
 | ***Debug***                                                  |                                                              |                                                              |
-| Scene view modes                                             | Yes                                                          | In research                                                  |
+| Scene view modes                                             | Yes                                                          | Yes                                                          |
