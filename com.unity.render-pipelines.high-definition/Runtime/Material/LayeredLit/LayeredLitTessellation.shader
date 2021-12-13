@@ -1320,6 +1320,9 @@ Shader "HDRP/LayeredLitTessellation"
 
             ENDHLSL
         }
+
+        // This ensures that the material finds the "DebugDXR" pass for ray tracing debug view
+        UsePass "HDRP/RayTracingDebug/DebugDXR"
     }
 
     CustomEditor "UnityEditor.Rendering.HighDefinition.LayeredLitGUI"
