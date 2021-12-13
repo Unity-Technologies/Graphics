@@ -10,7 +10,7 @@ You can have multiple URP assets and switch between them. For example, you can h
 ## UI overview
 In the URP, you can configure settings for:
 
-- [__Rendering__](#renderingl)
+- [__Rendering__](#rendering)
 - [__Quality__](#quality)
 - [__Lighting__](#lighting)
 - [__Shadows__](#shadows)
@@ -37,6 +37,7 @@ To show all additional properties in all sections:
 2. In the property **Additional Properties > Visibility**, select **All Visible**.
 
     ![Additional Properties > Visibility > All Visible](Images/settings-general/show-all-additional-properties.png)
+
 
 ### Rendering
 The __Rendering__ settings control the core part of the pipeline rendered frame.
