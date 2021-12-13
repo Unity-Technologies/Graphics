@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Data required for the online initialization
             m_DenoiserInitialized = false;
             m_OwnenScrambledTexture = rpResources.textures.owenScrambledRGBATex;
-            m_PointDistribution = new ComputeBuffer(16 * 2 * 4, sizeof(float));
+            m_PointDistribution = new ComputeBuffer(16 * 4, 2 * sizeof(float));
         }
 
         public void Release()
