@@ -185,22 +185,27 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                             sortingPosition = 0
                         };*/
 
+                        DrawBatch drawBatch = drawBatches[remappedIndex];
+
                         draws.drawCommands[outBatch] = new BatchDrawCommand
                         {
-                            flags = BatchDrawCommandFlags.Procedural,
+                            flags = BatchDrawCommandFlags.Procedural,// | BatchDrawCommandFlags.Indexed,
                             //flags = BatchDrawCommandFlags.None,
                             visibleOffset = (uint)batchStartIndex,
                             visibleCount = (uint)visibleCount,
                             batchID = batchID,
-                            materialID = drawBatches[remappedIndex].key.material,
+                            materialID = drawBatch.key.material,
                             procedural = new BatchDrawCommandProcedural
                             {
+                                //indexBufferHandle = drawBatch.indexBufferHandle,
+                                //indexCount = drawBatch.indexCount,
+                                //indexOffset = drawBatch.indexOffset,
                                 indexBufferHandle = default,
                                 indexCount = 0,
                                 indexOffset = 0,
                                 topology = MeshTopology.Triangles,
-                                vertexCount = 3,
-                                vertexOffset = 0
+                                vertexCount = drawBatch.vertexCount,
+                                vertexOffset = drawBatch.vertexOffset
                             },
                             /*regular = new BatchDrawCommandRegular
                             {
@@ -438,7 +443,8 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
             var transformedBounds = AABB.Transform(m, meshFilter.sharedMesh.bounds.ToAABB());
             m_renderers[i] = new DrawRenderer { bounds = transformedBounds };
 
-            var mesh = m_BatchRendererGroup.RegisterMesh(meshFilter.sharedMesh);
+            var mesh = meshFilter.sharedMesh;
+            var meshID = m_BatchRendererGroup.RegisterMesh(mesh);
 
             var sharedMaterials = new List<Material>();
             renderer.GetSharedMaterials(sharedMaterials);
@@ -448,12 +454,23 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
 
             for (int matIndex = 0; matIndex < sharedMaterials.Count; matIndex++)
             {
+                uint vertexOffset = 0;
+                uint vertexCount = (uint)mesh.vertexCount;
+                uint indexCount = mesh.GetIndexCount(matIndex);
+                uint indexOffset = mesh.GetIndexStart(matIndex);
+                GraphicsBufferHandle indexBufferHandle = mesh.GetIndexBuffer().bufferHandle;
+
                 var material = m_BatchRendererGroup.RegisterMaterial(sharedMaterials[matIndex]);
 
-                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, shadows = shadows, pickableObjectInstanceID = instanceID };
+                var key = new DrawKey { material = material, meshID = meshID, submeshIndex = (uint)matIndex, shadows = shadows, pickableObjectInstanceID = instanceID };
                 var drawBatch = new DrawBatch
                 {
                     key = key,
+                    vertexCount = vertexCount,
+                    vertexOffset = vertexOffset,
+                    indexCount = indexCount,
+                    indexOffset = indexOffset,
+                    indexBufferHandle = indexBufferHandle,
                     instanceCount = 0,
                     instanceOffset = 0
                 };

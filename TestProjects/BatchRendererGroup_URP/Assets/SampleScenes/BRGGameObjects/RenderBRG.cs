@@ -49,8 +49,13 @@ public struct DrawKey : IEquatable<DrawKey>
 public struct DrawBatch
 {
     public DrawKey key;
+    public uint vertexOffset;
+    public uint vertexCount;
+    public uint indexOffset;
+    public uint indexCount;
     public int instanceCount;
     public int instanceOffset;
+    public GraphicsBufferHandle indexBufferHandle;
 }
 
 public struct DrawInstance

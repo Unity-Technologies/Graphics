@@ -73,9 +73,10 @@ Shader "Hackweek/DrawProcedural"
 
                 int instanceID = unity_InstanceID;
 
-                float3 positionOS = float3(0,0,0);
+                float3 offset = float3(2, 0, 0) * (vertexID / 3);
+                float3 positionOS = offset;
 
-                switch (vertexID)
+                switch (vertexID % 3)
                 {
                     case 0:
                         positionOS += float3(-1,-1,0);
