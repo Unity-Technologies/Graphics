@@ -73,7 +73,113 @@ namespace UnityEditor.VFX.Test
             }) == 1);
         }
 
-        #pragma warning disable 0414
+        public class SpaceConversionCase
+        {
+            public override string ToString()
+            {
+                return inputs.Select(o => o.ToString()).Aggregate((a, b) => string.Format("{0}, {1}", a, b));
+            }
+
+            internal VFXCoordinateSpace[] inputs;
+            internal VFXCoordinateSpace output;
+            internal bool expectLocalToWorld;
+            internal bool expectWorldToLocal;
+        }
+
+        static private SpaceConversionCase[] SpaceConversions = new SpaceConversionCase[]
+        {
+            new SpaceConversionCase()
+            {
+                inputs = new VFXCoordinateSpace[] { VFXCoordinateSpace.Local, VFXCoordinateSpace.Local },
+                output = VFXCoordinateSpace.Local,
+                expectLocalToWorld = false,
+                expectWorldToLocal = false
+            },
+            new SpaceConversionCase()
+            {
+                inputs = new VFXCoordinateSpace[] { VFXCoordinateSpace.Local, VFXCoordinateSpace.World },
+                output = VFXCoordinateSpace.World,
+                expectLocalToWorld = true,
+                expectWorldToLocal = false
+            },
+            new SpaceConversionCase()
+            {
+                inputs = new VFXCoordinateSpace[] { VFXCoordinateSpace.World, VFXCoordinateSpace.Local },
+                output = VFXCoordinateSpace.World,
+                expectLocalToWorld = true,
+                expectWorldToLocal = false
+            },
+            new SpaceConversionCase()
+            {
+                inputs = new VFXCoordinateSpace[] { VFXCoordinateSpace.Local, VFXCoordinateSpace.Local, VFXCoordinateSpace.None },
+                output = VFXCoordinateSpace.Local,
+                expectLocalToWorld = false,
+                expectWorldToLocal = false
+            },
+            new SpaceConversionCase()
+            {
+                inputs = new VFXCoordinateSpace[] { VFXCoordinateSpace.Local, VFXCoordinateSpace.World, VFXCoordinateSpace.None },
+                output = VFXCoordinateSpace.World,
+                expectLocalToWorld = true,
+                expectWorldToLocal = false
+            },
+            new SpaceConversionCase()
+            {
+                inputs = new VFXCoordinateSpace[] { VFXCoordinateSpace.World, VFXCoordinateSpace.Local, VFXCoordinateSpace.None },
+                output = VFXCoordinateSpace.World,
+                expectLocalToWorld = true,
+                expectWorldToLocal = false
+            },
+            new SpaceConversionCase()
+            {
+                inputs = new VFXCoordinateSpace[] { VFXCoordinateSpace.None, VFXCoordinateSpace.None, VFXCoordinateSpace.None },
+                output = VFXCoordinateSpace.None,
+                expectLocalToWorld = false,
+                expectWorldToLocal = false
+            }
+        };
+
+        [Test]
+        public void Space_Between([ValueSource("SpaceConversions")] SpaceConversionCase spaceConversion)
+        {
+            var add = ScriptableObject.CreateInstance<Add>();
+
+            add.SetOperandType(0, typeof(Position));
+            add.SetOperandType(1, typeof(Position));
+            while (add.inputSlots.Count < spaceConversion.inputs.Length)
+            {
+                add.AddOperand(typeof(Position));
+            }
+
+            for (int i = 0; i < spaceConversion.inputs.Length; ++i)
+            {
+                Assert.AreEqual(add.inputSlots[i].property.type, typeof(Position));
+                Assert.AreEqual(add.inputSlots[i].space, VFXCoordinateSpace.Local);
+
+                add.inputSlots[i].space = spaceConversion.inputs[i];
+
+                Assert.AreEqual(add.inputSlots[i].space, spaceConversion.inputs[i]);
+            }
+
+            Assert.AreEqual(add.outputSlots[0].space, spaceConversion.output);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var result = context.Compile(add.outputSlots[0].GetExpression());
+
+            var allExpr = CollectParentExpression(result).ToArray();
+
+            Assert.AreEqual(spaceConversion.expectLocalToWorld, allExpr.Any(o =>
+            {
+                return o.operation == VFXExpressionOperation.LocalToWorld;
+            }));
+
+            Assert.AreEqual(spaceConversion.expectWorldToLocal, allExpr.Any(o =>
+            {
+                return o.operation == VFXExpressionOperation.WorldToLocal;
+            }));
+        }
+
+#pragma warning disable 0414
         private static Type[] SpaceTransmissionType = { typeof(Position), typeof(Sphere) };
 
         #pragma warning restore 0414
