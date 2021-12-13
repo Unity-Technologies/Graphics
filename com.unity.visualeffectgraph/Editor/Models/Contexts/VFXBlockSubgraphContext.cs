@@ -61,6 +61,27 @@ namespace UnityEditor.VFX
                 return false;
             }
         }
+
+        bool reetrant = false;
+        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.Invalidate(model, cause);
+
+            //Our system cannot retrieve the actual space with subgraph blocks (yet)
+            //Forcing all input slot in VFXCoordinateSpace.None for user consistency
+            if (!spaceable && !reetrant)
+            {
+                var notUndefinedSpace = children.SelectMany(o => o.inputSlots).Where(o => o.space != VFXCoordinateSpace.None);
+                if (notUndefinedSpace.Any())
+                {
+                    reetrant = true;
+                    foreach (var slot in notUndefinedSpace)
+                        slot.space = VFXCoordinateSpace.None;
+                    reetrant = false;
+                }
+            }
+        }
+
         public override bool Accept(VFXBlock block, int index = -1)
         {
             return ((block.compatibleContexts & compatibleContextType) == compatibleContextType);
