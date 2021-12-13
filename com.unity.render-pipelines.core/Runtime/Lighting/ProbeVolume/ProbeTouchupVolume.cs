@@ -29,6 +29,11 @@ namespace UnityEngine.Experimental.Rendering
         {
             return size;
         }
+
+        internal Bounds GetBounds()
+        {
+            return new Bounds(transform.position, size);
+        }
 #endif
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline

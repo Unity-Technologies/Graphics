@@ -462,6 +462,15 @@ namespace UnityEngine.Experimental.Rendering
             onAdditionalProbesBakeCompletedCalled = true;
 
             var dilationSettings = m_BakingSettings.dilationSettings;
+
+            // TODO_FCC: THIS SLOW. DO BETTER.
+            var touchupVolumes = GameObject.FindObjectsOfType<ProbeTouchupVolume>();
+            var touchupVolumesBounds = new List<Bounds>(touchupVolumes.Length);
+            foreach (var touchup in touchupVolumes)
+            {
+                touchupVolumesBounds.Add(touchup.GetBounds());
+            }
+
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
             {
@@ -539,7 +548,17 @@ namespace UnityEngine.Experimental.Rendering
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 7, new Vector3(shv[0, 7], shv[1, 7], shv[2, 7]));
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(shv[0, 8], shv[1, 8], shv[2, 8]));
 
-                    cell.validity[i] = validity[j];
+                    // TODO_FCC: This is roughtly testing, slow.
+                    bool invalidatedProbe = false;
+                    foreach (var touchupBound in touchupVolumesBounds)
+                    {
+                        if (touchupBound.Contains(cell.probePositions[i]))
+                        {
+                            invalidatedProbe = true;
+                            break;
+                        }
+                    }
+                    cell.validity[i] = invalidatedProbe ? 1.0f : validity[j];
                 }
 
                 cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell, out var minValidLocalIdxAtMaxRes, out var sizeOfValidIndicesAtMaxRes);
