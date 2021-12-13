@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [14.0.0] - 2021-11-17
 
 ### Added
+
 - Added FSR sharpness override to camera and pipeline asset.
+- Added an option on the lit shader to perform Planar and Triplanar mapping in Object Space.
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
