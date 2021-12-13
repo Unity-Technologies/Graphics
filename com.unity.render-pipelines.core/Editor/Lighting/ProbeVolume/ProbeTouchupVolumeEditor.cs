@@ -66,9 +66,10 @@ namespace UnityEditor.Experimental.Rendering
                     return;
                 }
                 EditorGUILayout.PropertyField(m_SerializedTouchupVolume.invalidateProbes, Styles.s_InvalidateProbes);
-                EditorGUI.BeginDisabledGroup(m_SerializedTouchupVolume.invalidateProbes.boolValue);
-                EditorGUILayout.PropertyField(m_SerializedTouchupVolume.intensityScale, Styles.s_IntensityScale);
-                EditorGUI.EndDisabledGroup();
+                // TODO: This is a very dangerous thing to expose, so for now we don't show. Keeping here in case we find it necessary.
+                //EditorGUI.BeginDisabledGroup(m_SerializedTouchupVolume.invalidateProbes.boolValue);
+                //EditorGUILayout.PropertyField(m_SerializedTouchupVolume.intensityScale, Styles.s_IntensityScale);
+                //EditorGUI.EndDisabledGroup();
             }
             else
             {

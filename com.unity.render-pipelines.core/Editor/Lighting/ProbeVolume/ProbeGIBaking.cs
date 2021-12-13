@@ -496,6 +496,18 @@ namespace UnityEngine.Experimental.Rendering
                     int brickIdx = i / 64;
                     cell.minSubdiv = Mathf.Min(cell.minSubdiv, cell.bricks[brickIdx].subdivisionLevel);
 
+                    // TODO_FCC: This is roughtly testing, slow.
+                    bool invalidatedProbe = false;
+                    foreach (var touchupBound in touchupVolumesBounds)
+                    {
+                        if (touchupBound.Contains(cell.probePositions[i]))
+                        {
+                            invalidatedProbe = true;
+                            break;
+                        }
+                    }
+
+
                     // Compress the range of all coefficients but the DC component to [0..1]
                     // Upper bounds taken from http://ppsloan.org/publications/Sig20_Advances.pptx
                     // Divide each coefficient by DC*f to get to [-1,1] where f is from slide 33
@@ -506,7 +518,7 @@ namespace UnityEngine.Experimental.Rendering
                         if (l0 == 0.0f)
                             continue;
 
-                        if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && validity[j] > dilationSettings.dilationValidityThreshold)
+                        if (invalidatedProbe || (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && validity[j] > dilationSettings.dilationValidityThreshold))
                         {
                             for (int k = 0; k < 9; ++k)
                             {
@@ -548,16 +560,6 @@ namespace UnityEngine.Experimental.Rendering
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 7, new Vector3(shv[0, 7], shv[1, 7], shv[2, 7]));
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(shv[0, 8], shv[1, 8], shv[2, 8]));
 
-                    // TODO_FCC: This is roughtly testing, slow.
-                    bool invalidatedProbe = false;
-                    foreach (var touchupBound in touchupVolumesBounds)
-                    {
-                        if (touchupBound.Contains(cell.probePositions[i]))
-                        {
-                            invalidatedProbe = true;
-                            break;
-                        }
-                    }
                     cell.validity[i] = invalidatedProbe ? 1.0f : validity[j];
                 }
 

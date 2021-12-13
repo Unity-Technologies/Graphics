@@ -15,10 +15,10 @@ namespace UnityEngine.Experimental.Rendering
     [AddComponentMenu("Light/Probe Volume Touchup (Experimental)")]
     public class ProbeTouchupVolume : MonoBehaviour
     {
-        public float intensityScale = 1.0f;
-        public bool invalidateProbes = false;
+        internal float intensityScale = 1.0f;
+        internal bool invalidateProbes = false;
 
-        public Vector3 size = new Vector3(1, 1, 1);
+        internal Vector3 size = new Vector3(1, 1, 1);
 
 #if UNITY_EDITOR
         /// <summary>
