@@ -1313,15 +1313,15 @@ namespace UnityEngine.Rendering.Universal
                     // for the current situation. When the current resolution and render scale are compatible with integer
                     // scaling we use the point sampling filter. Otherwise we just use the default filter (linear).
                     float pixelScale = (1.0f / renderScale);
-                    bool isIntegerScale = ((pixelScale - Mathf.Floor(pixelScale)) == 0.0f);
+                    bool isIntegerScale = Mathf.Approximately((pixelScale - Mathf.Floor(pixelScale)), 0.0f);
 
                     if (isIntegerScale)
                     {
                         float widthScale = (imageSize.x / pixelScale);
                         float heightScale = (imageSize.y / pixelScale);
 
-                        bool isImageCompatible = (((widthScale - Mathf.Floor(widthScale)) == 0.0f) &&
-                                                  ((heightScale - Mathf.Floor(heightScale)) == 0.0f));
+                        bool isImageCompatible = (Mathf.Approximately((widthScale - Mathf.Floor(widthScale)), 0.0f) &&
+                                                  Mathf.Approximately((heightScale - Mathf.Floor(heightScale)), 0.0f));
 
                         if (isImageCompatible)
                         {
