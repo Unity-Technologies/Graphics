@@ -53,6 +53,7 @@ namespace UnityEditor.Rendering.Universal
             ClearEditorsList();
         }
 
+        /// <inheritdoc/>
         public override void OnInspectorGUI()
         {
             if (m_RendererFeatures == null)

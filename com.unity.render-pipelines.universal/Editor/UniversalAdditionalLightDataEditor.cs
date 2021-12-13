@@ -7,6 +7,7 @@ namespace UnityEditor.Rendering.Universal
     [CustomEditor(typeof(UniversalAdditionalLightData))]
     public class UniversalAdditionLightDataEditor : Editor
     {
+        /// <inheritdoc/>
         public override void OnInspectorGUI()
         {
         }

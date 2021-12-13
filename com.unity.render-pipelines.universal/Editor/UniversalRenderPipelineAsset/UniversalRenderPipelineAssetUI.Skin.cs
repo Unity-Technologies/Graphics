@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.Universal
 {
     internal partial class UniversalRenderPipelineAssetUI
     {
-        public static class Styles
+        internal static class Styles
         {
             // Groups
             public static GUIContent renderingSettingsText = EditorGUIUtility.TrTextContent("Rendering", "Settings that control the core part of the pipeline rendered frame.");

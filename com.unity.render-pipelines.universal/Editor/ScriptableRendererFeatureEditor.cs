@@ -6,6 +6,7 @@ namespace UnityEditor.Rendering.Universal
     [CustomEditor(typeof(ScriptableRendererFeature), true)]
     public class ScriptableRendererFeatureEditor : Editor
     {
+        /// <inheritdoc/>
         public override void OnInspectorGUI()
         {
             DrawPropertiesExcluding(serializedObject, "m_Script");

@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.Universal
             m_Textures = serializedObject.FindProperty("textures");
         }
 
+        /// <inheritdoc/>
         public override void OnInspectorGUI()
         {
             serializedObject.Update();

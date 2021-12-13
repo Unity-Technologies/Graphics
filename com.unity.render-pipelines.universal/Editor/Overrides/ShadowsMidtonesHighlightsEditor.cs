@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.Universal
     [VolumeComponentEditor(typeof(ShadowsMidtonesHighlights))]
     sealed class ShadowsMidtonesHighlightsEditor : VolumeComponentEditor
     {
-        static class Styles
+        private static class Styles
         {
             public static readonly GUIContent shadowsLabel = EditorGUIUtility.TrTextContent("Shadows", "Apply a hue to the shadows and adjust their level.");
             public static readonly GUIContent midtonesLabel = EditorGUIUtility.TrTextContent("Midtones", "Apply a hue to the midtones and adjust their level.");
