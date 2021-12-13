@@ -18,6 +18,10 @@ namespace UnityEditor.ShaderGraph
         public const int UVInput = 2;
         public const int SamplerInput = 3;
         public const int IndexInputId = 8;
+        public const int MipBiasInput = 9;
+        public const int LodInput = 10;
+        public const int DdxInput = 11;
+        public const int DdyInput = 12;
 
         const string kOutputSlotRGBAName = "RGBA";
         const string kOutputSlotRName = "R";
@@ -28,8 +32,8 @@ namespace UnityEditor.ShaderGraph
         const string kUVInputName = "UV";
         const string kSamplerInputName = "Sampler";
         const string kIndexInputName = "Index";
-        const string kDefaultSampleMacro = "SAMPLE_TEXTURE2D_ARRAY";
-        const string kSampleMacroNoBias = "PLATFORM_SAMPLE_TEXTURE2D_ARRAY";
+
+        Mip2DSamplingInputs m_Mip2DSamplingInputs = Mip2DSamplingInputs.NewDefault();
 
         public override bool hasPreview { get { return true; } }
 
@@ -48,6 +52,20 @@ namespace UnityEditor.ShaderGraph
             get { return m_EnableGlobalMipBias; }
         }
 
+        [SerializeField]
+        private Texture2DMipSamplingMode m_MipSamplingMode = Texture2DMipSamplingMode.Standard;
+        internal Texture2DMipSamplingMode mipSamplingMode
+        {
+            set { m_MipSamplingMode = value; UpdateMipSamplingModeInputs(); }
+            get { return m_MipSamplingMode; }
+        }
+
+        private void UpdateMipSamplingModeInputs()
+        {
+            m_Mip2DSamplingInputs = MipSamplingModesUtils.CreateMip2DSamplingInputs(
+                this, m_MipSamplingMode, m_Mip2DSamplingInputs, MipBiasInput, LodInput, DdxInput, DdyInput);
+        }
+
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector4MaterialSlot(OutputSlotRGBAId, kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
@@ -59,7 +77,8 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector1MaterialSlot(IndexInputId, kIndexInputName, kIndexInputName, SlotType.Input, 0));
             AddSlot(new UVMaterialSlot(UVInput, kUVInputName, kUVInputName, UVChannel.UV0));
             AddSlot(new SamplerStateMaterialSlot(SamplerInput, kSamplerInputName, kSamplerInputName, SlotType.Input));
-            RemoveSlotsNameNotMatching(new[] { OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, TextureInputId, IndexInputId, UVInput, SamplerInput });
+            UpdateMipSamplingModeInputs();
+            RemoveSlotsNameNotMatching(new[] { OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, TextureInputId, IndexInputId, UVInput, SamplerInput, MipBiasInput });
         }
 
         // Node generations
@@ -73,13 +92,14 @@ namespace UnityEditor.ShaderGraph
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
             var id = GetSlotValue(TextureInputId, generationMode);
-            var result = string.Format("$precision4 {0} = {1}({2}.tex, {3}.samplerstate, {4}, {5});"
+            var result = string.Format("$precision4 {0} = {1}({2}.tex, {3}.samplerstate, {4}, {5} {6});"
                 , GetVariableNameForSlot(OutputSlotRGBAId)
-                , m_EnableGlobalMipBias ? kDefaultSampleMacro : kSampleMacroNoBias
+                , MipSamplingModesUtils.Get2DTextureSamplingMacro(m_MipSamplingMode, usePlatformMacros: !m_EnableGlobalMipBias, isArray: true)
                 , id
                 , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id
                 , uvName
-                , indexName);
+                , indexName
+                , MipSamplingModesUtils.GetSamplerMipArgs(this, m_MipSamplingMode, m_Mip2DSamplingInputs, generationMode));
 
             sb.AppendLine(result);
 

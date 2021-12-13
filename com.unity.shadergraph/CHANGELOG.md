@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
  - Fixed the behavior of checkerboard node with raytracing
 
+### Added
+ - Added mip sampling modes for 2d textures, 2d texture arrays and 3d textures
+
 ## [13.1.2] - 2021-11-05
 
 ### Fixed

@@ -12,13 +12,30 @@ namespace UnityEditor.ShaderGraph
         public const int TextureInputId = 1;
         public const int UVInput = 2;
         public const int SamplerInput = 3;
+        public const int LodInput = 4;
 
         const string kOutputSlotName = "Out";
         const string kTextureInputName = "Texture";
         const string kUVInputName = "UV";
         const string kSamplerInputName = "Sampler";
 
+        Mip3DSamplingInputs m_Mip3DSamplingInputs = Mip3DSamplingInputs.NewDefault();
+
         public override bool hasPreview { get { return true; } }
+
+        [SerializeField]
+        private Texture3DMipSamplingMode m_MipSamplingMode = Texture3DMipSamplingMode.Standard;
+        internal Texture3DMipSamplingMode mipSamplingMode
+        {
+            set { m_MipSamplingMode = value; UpdateMipSamplingModeInputs(); }
+            get { return m_MipSamplingMode; }
+        }
+
+        private void UpdateMipSamplingModeInputs()
+        {
+            m_Mip3DSamplingInputs = MipSamplingModesUtils.CreateMip3DSamplingInputs(
+                this, m_MipSamplingMode, m_Mip3DSamplingInputs, LodInput);
+        }
 
         public SampleTexture3DNode()
         {
@@ -33,6 +50,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Texture3DInputMaterialSlot(TextureInputId, kTextureInputName, kTextureInputName));
             AddSlot(new Vector3MaterialSlot(UVInput, kUVInputName, kUVInputName, SlotType.Input, Vector3.zero));
             AddSlot(new SamplerStateMaterialSlot(SamplerInput, kSamplerInputName, kSamplerInputName, SlotType.Input));
+            UpdateMipSamplingModeInputs();
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, TextureInputId, UVInput, SamplerInput });
         }
 
@@ -46,11 +64,13 @@ namespace UnityEditor.ShaderGraph
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
             var id = GetSlotValue(TextureInputId, generationMode);
-            var result = string.Format("$precision4 {0} = SAMPLE_TEXTURE3D({1}.tex, {2}.samplerstate, {3});"
+            var result = string.Format("$precision4 {0} = {1}({2}.tex, {3}.samplerstate, {4} {5});"
                 , GetVariableNameForSlot(OutputSlotId)
+                , MipSamplingModesUtils.Get3DTextureSamplingMacro(m_MipSamplingMode, usePlatformMacros: false)
                 , id
                 , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id
-                , uvName);
+                , uvName
+                , MipSamplingModesUtils.GetSamplerMipArgs(this, m_MipSamplingMode, m_Mip3DSamplingInputs, generationMode));
 
             sb.AppendLine(result);
         }
