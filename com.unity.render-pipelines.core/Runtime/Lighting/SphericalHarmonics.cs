@@ -2,10 +2,10 @@ using System;
 
 namespace UnityEngine.Rendering
 {
-    [Serializable]
     /// <summary>
     /// Structure holding Spherical Harmonic L1 coefficient.
     /// </summary>
+    [Serializable]
     public struct SphericalHarmonicsL1
     {
         /// <summary>

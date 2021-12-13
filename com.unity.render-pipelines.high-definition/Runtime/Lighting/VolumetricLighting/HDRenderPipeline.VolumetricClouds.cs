@@ -6,7 +6,6 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         // Intermediate values for ambient probe evaluation
-        Vector4[] m_PackedCoeffsClouds;
         ZonalHarmonicsL2 m_PhaseZHClouds;
 
         // Cloud preset maps
@@ -57,7 +56,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // Allocate the buffers for ambient probe evaluation
-            m_PackedCoeffsClouds = new Vector4[7];
             m_PhaseZHClouds = new ZonalHarmonicsL2();
             m_PhaseZHClouds.coeffs = new float[3];
 
@@ -87,7 +85,6 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeVolumetricCloudsMap();
             InitializeVolumetricCloudsShadows();
             InitializeVolumetricCloudsAmbientProbe();
-            InitializeVolumetricCloudsStaticTextures();
         }
 
         void ReleaseVolumetricClouds()
@@ -102,7 +99,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseVolumetricCloudsMap();
             ReleaseVolumetricCloudsShadows();
             ReleaseVolumetricCloudsAmbientProbe();
-            ReleaseVolumetricCloudsStaticTextures();
         }
 
         void AllocatePresetTextures()

@@ -389,6 +389,15 @@ namespace UnityEngine.Rendering.HighDefinition
         [ExcludeCopy]
         internal bool cameraCanRenderDLSS = false;
 
+        /// <summary>If set to true, AMD FidelityFX Super Resolution (FSR) will utilize the sharpness setting set on this camera instead of the one specified in the quality asset.</summary>
+        [Tooltip("If set to true, AMD FidelityFX Super Resolution (FSR) will utilize the sharpness setting set on this camera instead of the one specified in the quality asset.")]
+        public bool fsrOverrideSharpness = false;
+
+        /// <summary>Sets this camera's sharpness value for AMD FidelityFX Super Resolution.</summary>
+        [Tooltip("Sets this camera's sharpness value for AMD FidelityFX Super Resolution 1.0 (FSR).")]
+        [Range(0, 1)]
+        public float fsrSharpness = FSRUtils.kDefaultSharpnessLinear;
+
         /// <summary>Event used to override HDRP rendering for this particular camera.</summary>
         public event Action<ScriptableRenderContext, HDCamera> customRender;
         /// <summary>True if any Custom Render event is registered for this camera.</summary>
@@ -618,6 +627,9 @@ namespace UnityEngine.Rendering.HighDefinition
             data.deepLearningSuperSamplingUseOptimalSettings = deepLearningSuperSamplingUseOptimalSettings;
             data.deepLearningSuperSamplingSharpening = deepLearningSuperSamplingSharpening;
 
+            data.fsrOverrideSharpness = fsrOverrideSharpness;
+            data.fsrSharpness = fsrSharpness;
+
             data.materialMipBias = materialMipBias;
 
             // We must not copy the following
@@ -689,6 +701,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_Camera.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
             m_Camera.allowHDR = false;
+
+            // By doing that, we force the update of frame settings debug data once. Otherwise, when the Rendering Debugger is opened,
+            // Wrong data is registered to the undo system because it did not get the chance to be updated once.
+            FrameSettings dummy = new FrameSettings();
+            FrameSettingsHistory.AggregateFrameSettings(ref dummy, m_Camera, this, HDRenderPipeline.currentAsset, null);
 
             RegisterDebug();
 

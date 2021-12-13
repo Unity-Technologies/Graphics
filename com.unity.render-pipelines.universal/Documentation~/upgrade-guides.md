@@ -4,7 +4,8 @@ This section contains information about upgrading from an older version of the U
 
 For information on converting assets made for a Built-in Render Pipeline project to assets compatible with URP, see the page [Render Pipeline Converter](features/rp-converter.md).
 
-* [Upgrading to URP 12.0.x](upgrade-guide-2021-2.md)
+* [Upgrading to URP 2022.1](upgrade-guide-2022-1.md)
+* [Upgrading to URP 2021.2](upgrade-guide-2021-2.md)
 * [Upgrading to URP 11.0.x](upgrade-guide-11-0-x.md)
 * [Upgrading to URP 10.1.x](upgrade-guide-10-1-x.md)
 * [Upgrading to URP 10.0.x](upgrade-guide-10-0-x.md)
