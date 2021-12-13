@@ -707,6 +707,10 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 #ifdef LIGHT_LAYERS
     // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
     OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, 0.0, (builtinData.renderingLayers & 0x000000FF) / 255.0);
+#if SHADEROPTIONS_IS_CUSTOM_PROJECT
+    OUT_GBUFFER_LIGHT_LAYERS.r = PackByte(builtinData.objectID & 0xFF);
+    OUT_GBUFFER_LIGHT_LAYERS.g = PackByte((builtinData.objectID >> 8) & 0xFF);
+#endif
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
@@ -745,6 +749,9 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     {
         float4 inGBuffer4 = LOAD_TEXTURE2D_X(_LightLayersTexture, positionSS);
         builtinData.renderingLayers = uint(inGBuffer4.w * 255.5);
+#if SHADEROPTIONS_IS_CUSTOM_PROJECT
+        builtinData.objectID = (UnpackByte(inGBuffer4.g) << 8) | UnpackByte(inGBuffer4.r);
+#endif
     }
     else
     {

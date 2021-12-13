@@ -1,6 +1,10 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 
+#if SHADEROPTIONS_IS_CUSTOM_PROJECT
+    #include "Assets/Code/OverrideBakedLightingTransform/Shaders/LitOverrideBakedLightingCode2.hlsl"
+#endif
+
 #ifndef SCALARIZE_LIGHT_LOOP
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/ .
@@ -471,7 +475,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
                     // Reflect normal to get lighting for reflection probe tinting
                     float3 R = reflect(-V, bsdfData.normalWS);
 
+#if SHADEROPTIONS_IS_CUSTOM_PROJECT
+                    OverrideEvaluateAdaptiveProbeVolume(builtinData.objectID, posInput.positionWS,
+#else
                     EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
+#endif
                         bsdfData.normalWS,
                         -bsdfData.normalWS,
                         R,

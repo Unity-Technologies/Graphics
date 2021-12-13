@@ -51,6 +51,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Note: For any rendering bigger than 4k (in native) it is recommended to use Low count per tile, to avoid possible artifacts.
         /// </summary>
         FPTLMaxLightCount = FPTLMaxLightSizes.High
+
+#if SHADEROPTIONS_IS_CUSTOM_PROJECT
+        , IS_CUSTOM_PROJECT = 1,
+#else
+        , IS_CUSTOM_PROJECT = 0,
+#endif
     };
 
     // Note: #define can't be use in include file in C# so we chose this way to configure both C# and hlsl
