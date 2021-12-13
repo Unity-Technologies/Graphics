@@ -116,13 +116,13 @@ bool LoadCellIndexMetaData(int cellFlatIdx, out int chunkIndex, out int stepSize
 
 uint GetIndexData(APVResources apvRes, float3 posWS)
 {
-    int3 cellPos = floor(posWS / _CellInMeters);
-    float3 topLeftCellWS = cellPos * _CellInMeters;
+    int3 cellPos = floor(posWS / 81);
+    float3 topLeftCellWS = cellPos * 81;
 
     // Make sure we start from 0
-    cellPos -= (int3)_MinCellPosition;
+    cellPos -= int3(-1,-1,-1);
 
-    int flatIdx = cellPos.z * (_CellIndicesDim.x * _CellIndicesDim.y) + cellPos.y * _CellIndicesDim.x + cellPos.x;
+    int flatIdx = cellPos.z * (2 * 2) + cellPos.y * 2 + cellPos.x;
 
     int stepSize = 0;
     int3 minRelativeIdx, maxRelativeIdx;
@@ -132,7 +132,7 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
     if (LoadCellIndexMetaData(flatIdx, chunkIdx, stepSize, minRelativeIdx, maxRelativeIdx))
     {
         float3 residualPosWS = posWS - topLeftCellWS;
-        int3 localBrickIndex = floor(residualPosWS / (_MinBrickSize * stepSize));
+        int3 localBrickIndex = floor(residualPosWS / (3 * stepSize));
 
         // Out of bounds.
         if (any(localBrickIndex < minRelativeIdx || localBrickIndex >= maxRelativeIdx))
@@ -145,7 +145,7 @@ uint GetIndexData(APVResources apvRes, float3 posWS)
         int3 localRelativeIndexLoc = (localBrickIndex - minRelativeIdx);
         int flattenedLocationInCell = localRelativeIndexLoc.z * (sizeOfValid.x * sizeOfValid.y) + localRelativeIndexLoc.x * sizeOfValid.y + localRelativeIndexLoc.y;
 
-        locationInPhysicalBuffer = chunkIdx * _IndexChunkSize + flattenedLocationInCell;
+        locationInPhysicalBuffer = chunkIdx * 243 + flattenedLocationInCell;
 
     }
     else
@@ -185,13 +185,13 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
     // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
     bool hasValidUVW = true;
 
-    float4 posWSForSample = float4(posWS + normalWS * _NormalBias
-        + viewDirWS * _ViewBias, 1.0);
+    float4 posWSForSample = float4(posWS + normalWS * 0.33
+        + viewDirWS * 0, 1.0);
 
-    uint3 poolDim = (uint3)_PoolDim;
+    uint3 poolDim = uint3(2048,512,4);
 
     // resolve the index
-    float3 posRS = posWSForSample.xyz / _MinBrickSize;
+    float3 posRS = posWSForSample.xyz / 3.0f;
     uint packed_pool_idx = GetIndexData(apvRes, posWSForSample.xyz);
 
     // no valid brick loaded for this index, fallback to ambient probe
@@ -210,12 +210,12 @@ bool TryToGetPoolUVWAndSubdiv(APVResources apvRes, float3 posWS, float3 normalWS
     flattened_pool_idx -= pool_idx.z * (poolDim.x * poolDim.y);
     pool_idx.y = flattened_pool_idx / poolDim.x;
     pool_idx.x = flattened_pool_idx - (pool_idx.y * poolDim.x);
-    uvw = ((float3) pool_idx + 0.5) / _PoolDim;
+    uvw = ((float3) pool_idx + 0.5) / uint3(2048, 512, 4);
 
     // calculate uv offset and scale
     float3 offset = frac(posRS / (float)cellSize);  // [0;1] in brick space
     //offset    = clamp( offset, 0.25, 0.75 );      // [0.25;0.75] in brick space (is this actually necessary?)
-    offset *= 3.0 / _PoolDim;                       // convert brick footprint to texels footprint in pool texel space
+    offset *= 3.0 / uint3(2048, 512, 4);                       // convert brick footprint to texels footprint in pool texel space
     uvw += offset;                                  // add the final offset
 
     return hasValidUVW;
@@ -332,9 +332,9 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
 {
     APVResources apvRes = FillAPVResources();
 
-    if (_PVSamplingNoise > 0)
+    if (0.25 > 0)
     {
-        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * _PVSamplingNoise;
+        float noise1D_0 = (InterleavedGradientNoise(positionSS, 0) * 2.0f - 1.0f) * 0.25;
         posWS += noise1D_0;
     }
 
