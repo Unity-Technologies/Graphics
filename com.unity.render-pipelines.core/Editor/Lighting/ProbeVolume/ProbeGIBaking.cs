@@ -42,7 +42,7 @@ namespace UnityEngine.Experimental.Rendering
         // Can be probably done cleaner.
         public Dictionary<Vector3, int> uniqueBrickSubdiv = new Dictionary<Vector3, int>();
 
-        private BakingBatch() {}
+        private BakingBatch() { }
 
         public BakingBatch(int index)
         {
@@ -131,7 +131,7 @@ namespace UnityEngine.Experimental.Rendering
             // We assume that all the bounds for all the scenes in the set have been set. However we also update the scenes that are currently loaded anyway for security.
             // and to have a new trigger to update the bounds we have.
             int openedScenesCount = SceneManager.sceneCount;
-            for (int i=0; i<openedScenesCount; ++i)
+            for (int i = 0; i < openedScenesCount; ++i)
             {
                 var scene = SceneManager.GetSceneAt(i);
                 sceneData.OnSceneSaved(scene); // We need to perform the same actions we do when the scene is saved.
@@ -180,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering
             // TODO: This should be ensured by the controlling panel, until we have that we need to assert.
 
             // To check what are  the scenes that have probe volume enabled we checks the ProbeVolumePerSceneData. We are guaranteed to have only one per scene.
-            for (int i=0; i<perSceneData.Length; ++i)
+            for (int i = 0; i < perSceneData.Length; ++i)
             {
                 var data = perSceneData[i];
                 var scene = data.gameObject.scene;
@@ -273,7 +273,7 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         WriteToShaderCoeffsL0L1(ref blackProbe, cell.shL0L1Data, i * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
 
-                        if(cell.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                        if (cell.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                             WriteToShaderCoeffsL2(ref blackProbe, cell.shL2Data, i * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
                     }
                 }
@@ -659,35 +659,35 @@ namespace UnityEngine.Experimental.Rendering
 
         static void WriteToShaderCoeffsL0L1(ref SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL0L1, int offset)
         {
-            shaderCoeffsL0L1[offset +  0] = sh[0, 0]; shaderCoeffsL0L1[offset +  1] = sh[1, 0]; shaderCoeffsL0L1[offset +  2] = sh[2, 0]; shaderCoeffsL0L1[offset +  3] = sh[0, 1];
-            shaderCoeffsL0L1[offset +  4] = sh[1, 1]; shaderCoeffsL0L1[offset +  5] = sh[1, 2]; shaderCoeffsL0L1[offset +  6] = sh[1, 3]; shaderCoeffsL0L1[offset +  7] = sh[0, 2];
-            shaderCoeffsL0L1[offset +  8] = sh[2, 1]; shaderCoeffsL0L1[offset +  9] = sh[2, 2]; shaderCoeffsL0L1[offset + 10] = sh[2, 3]; shaderCoeffsL0L1[offset + 11] = sh[0, 3];
+            shaderCoeffsL0L1[offset + 0] = sh[0, 0]; shaderCoeffsL0L1[offset + 1] = sh[1, 0]; shaderCoeffsL0L1[offset + 2] = sh[2, 0]; shaderCoeffsL0L1[offset + 3] = sh[0, 1];
+            shaderCoeffsL0L1[offset + 4] = sh[1, 1]; shaderCoeffsL0L1[offset + 5] = sh[1, 2]; shaderCoeffsL0L1[offset + 6] = sh[1, 3]; shaderCoeffsL0L1[offset + 7] = sh[0, 2];
+            shaderCoeffsL0L1[offset + 8] = sh[2, 1]; shaderCoeffsL0L1[offset + 9] = sh[2, 2]; shaderCoeffsL0L1[offset + 10] = sh[2, 3]; shaderCoeffsL0L1[offset + 11] = sh[0, 3];
         }
 
         static void WriteToShaderCoeffsL2(ref SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL2, int offset)
         {
-            shaderCoeffsL2[offset +  0] = sh[0, 4]; shaderCoeffsL2[offset +  1] = sh[0, 5]; shaderCoeffsL2[offset +  2] = sh[0, 6]; shaderCoeffsL2[offset +  3] = sh[0, 7];
-            shaderCoeffsL2[offset +  4] = sh[1, 4]; shaderCoeffsL2[offset +  5] = sh[1, 5]; shaderCoeffsL2[offset +  6] = sh[1, 6]; shaderCoeffsL2[offset +  7] = sh[1, 7];
-            shaderCoeffsL2[offset +  8] = sh[2, 4]; shaderCoeffsL2[offset +  9] = sh[2, 5]; shaderCoeffsL2[offset + 10] = sh[2, 6]; shaderCoeffsL2[offset + 11] = sh[2, 7];
+            shaderCoeffsL2[offset + 0] = sh[0, 4]; shaderCoeffsL2[offset + 1] = sh[0, 5]; shaderCoeffsL2[offset + 2] = sh[0, 6]; shaderCoeffsL2[offset + 3] = sh[0, 7];
+            shaderCoeffsL2[offset + 4] = sh[1, 4]; shaderCoeffsL2[offset + 5] = sh[1, 5]; shaderCoeffsL2[offset + 6] = sh[1, 6]; shaderCoeffsL2[offset + 7] = sh[1, 7];
+            shaderCoeffsL2[offset + 8] = sh[2, 4]; shaderCoeffsL2[offset + 9] = sh[2, 5]; shaderCoeffsL2[offset + 10] = sh[2, 6]; shaderCoeffsL2[offset + 11] = sh[2, 7];
             shaderCoeffsL2[offset + 12] = sh[0, 8]; shaderCoeffsL2[offset + 13] = sh[1, 8]; shaderCoeffsL2[offset + 14] = sh[2, 8];
         }
 
         static void ReadFromShaderCoeffsL0L1(ref SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL0L1, int offset)
         {
-            sh[0, 0] = shaderCoeffsL0L1[offset +  0]; sh[1, 0] = shaderCoeffsL0L1[offset +  1]; sh[2, 0] = shaderCoeffsL0L1[offset +  2]; sh[0, 1] = shaderCoeffsL0L1[offset +  3];
-            sh[1, 1] = shaderCoeffsL0L1[offset +  4]; sh[1, 2] = shaderCoeffsL0L1[offset +  5]; sh[1, 3] = shaderCoeffsL0L1[offset +  6]; sh[0, 2] = shaderCoeffsL0L1[offset +  7];
-            sh[2, 1] = shaderCoeffsL0L1[offset +  8]; sh[2, 2] = shaderCoeffsL0L1[offset +  9]; sh[2, 3] = shaderCoeffsL0L1[offset + 10]; sh[0, 3] = shaderCoeffsL0L1[offset + 11];
+            sh[0, 0] = shaderCoeffsL0L1[offset + 0]; sh[1, 0] = shaderCoeffsL0L1[offset + 1]; sh[2, 0] = shaderCoeffsL0L1[offset + 2]; sh[0, 1] = shaderCoeffsL0L1[offset + 3];
+            sh[1, 1] = shaderCoeffsL0L1[offset + 4]; sh[1, 2] = shaderCoeffsL0L1[offset + 5]; sh[1, 3] = shaderCoeffsL0L1[offset + 6]; sh[0, 2] = shaderCoeffsL0L1[offset + 7];
+            sh[2, 1] = shaderCoeffsL0L1[offset + 8]; sh[2, 2] = shaderCoeffsL0L1[offset + 9]; sh[2, 3] = shaderCoeffsL0L1[offset + 10]; sh[0, 3] = shaderCoeffsL0L1[offset + 11];
         }
 
         static void ReadFromShaderCoeffsL2(ref SphericalHarmonicsL2 sh, NativeArray<float> shaderCoeffsL2, int offset)
         {
-            sh[0, 4] = shaderCoeffsL2[offset +  0]; sh[0, 5] = shaderCoeffsL2[offset +  1]; sh[0, 6] = shaderCoeffsL2[offset +  2]; sh[0, 7] = shaderCoeffsL2[offset +  3];
-            sh[1, 4] = shaderCoeffsL2[offset +  4]; sh[1, 5] = shaderCoeffsL2[offset +  5]; sh[1, 6] = shaderCoeffsL2[offset +  6]; sh[1, 7] = shaderCoeffsL2[offset +  7];
-            sh[2, 4] = shaderCoeffsL2[offset +  8]; sh[2, 5] = shaderCoeffsL2[offset +  9]; sh[2, 6] = shaderCoeffsL2[offset + 10]; sh[2, 7] = shaderCoeffsL2[offset + 11];
+            sh[0, 4] = shaderCoeffsL2[offset + 0]; sh[0, 5] = shaderCoeffsL2[offset + 1]; sh[0, 6] = shaderCoeffsL2[offset + 2]; sh[0, 7] = shaderCoeffsL2[offset + 3];
+            sh[1, 4] = shaderCoeffsL2[offset + 4]; sh[1, 5] = shaderCoeffsL2[offset + 5]; sh[1, 6] = shaderCoeffsL2[offset + 6]; sh[1, 7] = shaderCoeffsL2[offset + 7];
+            sh[2, 4] = shaderCoeffsL2[offset + 8]; sh[2, 5] = shaderCoeffsL2[offset + 9]; sh[2, 6] = shaderCoeffsL2[offset + 10]; sh[2, 7] = shaderCoeffsL2[offset + 11];
             sh[0, 8] = shaderCoeffsL2[offset + 12]; sh[1, 8] = shaderCoeffsL2[offset + 13]; sh[2, 8] = shaderCoeffsL2[offset + 14];
         }
 
-        static void GetBlobFileNames(string sourceFilename, out string cellDataFilename, out string cellOptionalDataFilename, out string cellSupportDataFilename )
+        static void GetBlobFileNames(string sourceFilename, out string cellDataFilename, out string cellOptionalDataFilename, out string cellSupportDataFilename)
         {
             cellDataFilename = System.IO.Path.ChangeExtension(sourceFilename, "CellData.bytes");
             cellOptionalDataFilename = System.IO.Path.ChangeExtension(sourceFilename, "CellOptionalData.bytes");
@@ -711,7 +711,8 @@ namespace UnityEngine.Experimental.Rendering
             {
                 var bakingCell = bakingCells[i];
 
-                asset.cells[i] = new Cell {
+                asset.cells[i] = new Cell
+                {
                     position = bakingCell.position,
                     index = bakingCell.index,
                     minSubdiv = bakingCell.minSubdiv,
@@ -720,7 +721,8 @@ namespace UnityEngine.Experimental.Rendering
                     shBands = asset.bands,
                 };
 
-                var cellCounts = new ProbeVolumeAsset.CellCounts {
+                var cellCounts = new ProbeVolumeAsset.CellCounts
+                {
                     bricksCount = bakingCell.bricks.Length,
                     probesCount = bakingCell.probePositions.Length,
                     offsetsCount = bakingCell.offsetVectors.Length

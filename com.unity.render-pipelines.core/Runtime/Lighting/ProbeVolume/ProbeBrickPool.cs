@@ -413,7 +413,7 @@ namespace UnityEngine.Experimental.Rendering
 
                                 if (dstBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                 {
-                                    if(srcBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                                    if (srcBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                     {
                                         var shL2ColorPtr = (Color*)(shL2Ptr + shidx * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
                                         SetPixel(s_L2_0_locData, ix, iy, iz, loc.width, loc.height, shL2ColorPtr[0]);

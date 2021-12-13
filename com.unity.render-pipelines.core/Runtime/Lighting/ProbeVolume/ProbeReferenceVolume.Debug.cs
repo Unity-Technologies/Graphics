@@ -192,7 +192,7 @@ namespace UnityEngine.Experimental.Rendering
             if (parameters.supportsRuntimeDebug)
             {
                 // Cells / Bricks visualization is not implemented in a runtime compatible way atm.
-                if(Application.isEditor)
+                if (Application.isEditor)
                     widgetList.Add(subdivContainer);
 
                 widgetList.Add(probeContainer);

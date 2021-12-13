@@ -1,4 +1,4 @@
-﻿using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Experimental.Rendering
 {
@@ -7,10 +7,8 @@ namespace UnityEditor.Experimental.Rendering
     {
         public override void OnInspectorGUI()
         {
-            using(new EditorGUI.DisabledScope(true))
+            using (new EditorGUI.DisabledScope(true))
                 base.OnInspectorGUI();
         }
     }
 }
-
-
