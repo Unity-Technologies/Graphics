@@ -9,6 +9,41 @@ using UnityEditor;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
+    /// Options for sky importance sampling, in path tracing.
+    /// </summary>
+    public enum SkyImportanceSamplingMode
+    {
+        /// <summary>
+        /// Enables importance sampling for HDRI skies only.
+        /// </summary>
+        HDRIOnly,
+
+        /// <summary>
+        /// Always enables sky importance sampling.
+        /// </summary>
+        On,
+
+        /// <summary>
+        /// Always disables sky importance sampling.
+        /// </summary>
+        Off
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="SkyImportanceSamplingMode"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class SkyImportanceSamplingParameter : VolumeParameter<SkyImportanceSamplingMode>
+    {
+        /// <summary>
+        /// Creates a new <see cref="SkyImportanceSamplingParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public SkyImportanceSamplingParameter(SkyImportanceSamplingMode value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    /// <summary>
     /// A volume component that holds settings for the Path Tracing effect.
     /// </summary>
     [Serializable, VolumeComponentMenuForRenderPipeline("Ray Tracing/Path Tracing (Preview)", typeof(HDRenderPipeline))]
@@ -56,6 +91,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Defines the number of tiles (X: width, Y: height) and the indices of the current tile (Z: i in [0, width[, W: j in [0, height[) for interleaved tiled rendering.")]
         public Vector4Parameter tilingParameters = new Vector4Parameter(new Vector4(1, 1, 0, 0));
+
+        /// <summary>
+        /// Defines if and when sky importance sampling is enabled. It should be turned on for sky models with high contrast and bright spots, and turned off for smooth, uniform skies.
+        /// </summary>
+        [Tooltip("Defines if and when sky importance sampling is enabled. It should be turned on for sky models with high contrast and bright spots, and turned off for smooth, uniform skies.")]
+        public SkyImportanceSamplingParameter skyImportanceSampling = new SkyImportanceSamplingParameter(SkyImportanceSamplingMode.HDRIOnly);
 
         /// <summary>
         /// Default constructor for the path tracing volume component.
@@ -181,9 +222,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private bool IsSkySamplingEnabled(HDCamera hdCamera)
         {
-            // We only want to importance-sample HDRIs (and not gradient or physically-based skies)
-            var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-            return visualEnvironment.skyType.value == (int)SkyType.HDRI;
+            switch (m_PathTracingSettings.skyImportanceSampling.value)
+            {
+            case SkyImportanceSamplingMode.On:
+                return true;
+
+            case SkyImportanceSamplingMode.Off:
+                return false;
+
+            default: // HDRI Only
+                var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
+                return visualEnvironment.skyType.value == (int)SkyType.HDRI;
+            }
         }
 
 #if UNITY_EDITOR
@@ -453,7 +503,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Prepares data (CDF) to be able to importance sample the sky afterwards
         void RenderSkySamplingData(RenderGraph renderGraph, HDCamera hdCamera)
         {
-            if (!m_GlobalSettings.renderPipelineRayTracingResources.pathTracingSkySamplingDataCS || !IsSkySamplingEnabled(hdCamera))
+            if (!m_GlobalSettings.renderPipelineRayTracingResources.pathTracingSkySamplingDataCS)
                 return;
 
             using (var builder = renderGraph.AddRenderPass<RenderSkySamplingPassData>("Render Sky Sampling Data for Path Tracing", out var passData))
@@ -529,7 +579,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderSkyBackground(m_RenderGraph, hdCamera, m_SkyBGTexture);
                     m_RenderSky = false;
 
-                    if (m_SkyHash != hdCamera.lightingSky.skyParametersHash)
+                    if (IsSkySamplingEnabled(hdCamera) && m_SkyHash != hdCamera.lightingSky.skyParametersHash)
                     {
                         RenderSkySamplingData(m_RenderGraph, hdCamera);
                         m_SkyHash = hdCamera.lightingSky.skyParametersHash;

@@ -230,9 +230,6 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 // Shoot ray for indirect lighting
                 TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, rayDescriptor, nextPathIntersection);
 
-                // Apply clamping on indirect values (can darken the result slightly, but significantly reduces fireflies)
-                nextPathIntersection.value = ClampValue(nextPathIntersection.value);
-
                 if (computeDirect)
                 {
                     // Use same ray for direct lighting (use indirect result for occlusion)
@@ -248,8 +245,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 // Apply material absorption
                 nextPathIntersection.value = ApplyAbsorption(mtlData, surfaceData, nextPathIntersection.t, isSampleBelow, nextPathIntersection.value);        
 
-                // Apply another round of clamping, to catch low PDF or high Russian roulette factor applied to high values
-                pathIntersection.value += ClampValue(value * rrFactor * nextPathIntersection.value);
+                pathIntersection.value += value * rrFactor * nextPathIntersection.value;
             }
         }
     }
@@ -348,6 +344,10 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
         // Apply the volume/surface pdf
         pathIntersection.value /= pdf;
+
+        // Apply clamping on indirect values (can darken the result slightly, but significantly reduces fireflies)
+        if (currentDepth)
+            pathIntersection.value = ClampValue(pathIntersection.value);
     }
 }
 
