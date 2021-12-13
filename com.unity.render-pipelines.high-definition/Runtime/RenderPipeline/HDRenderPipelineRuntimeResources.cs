@@ -43,6 +43,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader probeVolumeDebugShader;
             [Reload("Runtime/Debug/ProbeVolumeOffsetDebug.shader")]
             public Shader probeVolumeOffsetDebugShader;
+            [Reload("Runtime/Debug/ClearDebugBuffer.compute")]
+            public ComputeShader clearDebugBufferCS;
 
             // Lighting
             [Reload("Runtime/Lighting/Deferred.Shader")]
@@ -170,6 +172,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader volumetricCloudMapGeneratorCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricCloudsCombine.shader")]
             public Shader volumetricCloudsCombinePS;
+
+            // Water
+            [Reload("Runtime/Water/WaterSimulation.compute")]
+            public ComputeShader waterSimulationCS;
+            [Reload("Runtime/Water/FourierTransform.compute")]
+            public ComputeShader fourierTransformCS;
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/Water.shadergraph")]
+            public Shader waterPS;
 
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
@@ -337,11 +347,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader dofCoCMinMaxCS;
             [Reload("Runtime/PostProcessing/Shaders/DoFMinMaxDilate.compute")]
             public ComputeShader dofMinMaxDilateCS;
+            [Reload("Runtime/PostProcessing/Shaders/DoFCombine.compute")]
+            public ComputeShader dofCombineCS;
 
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;
-            [Reload("Runtime/PostProcessing/Shaders/RobustContrastAdaptiveSharpen.compute")]
-            public ComputeShader robustContrastAdaptiveSharpenCS;
             [Reload("Runtime/PostProcessing/Shaders/EdgeAdaptiveSpatialUpsampling.compute")]
             public ComputeShader edgeAdaptiveSpatialUpsamplingCS;
             [Reload("Runtime/VirtualTexturing/Shaders/DownsampleVTFeedback.compute")]
@@ -439,6 +449,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture3D worleyNoise32RGB;
             [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/PerlinNoise32RGB.png")]
             public Texture3D perlinNoise32RGB;
+
+            // Water textures
+            [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamSurface.png")]
+            public Texture2D foamSurface;
+            [Reload("Runtime/RenderPipelineResources/Texture/Water/FoamNormals.png")]
+            public Texture2D foamNormals;
 
             // Post-processing
             [Reload(new[]

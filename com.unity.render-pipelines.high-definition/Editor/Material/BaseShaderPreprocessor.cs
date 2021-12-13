@@ -62,6 +62,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected ShadowKeywords m_ShadowKeywords;
 
+#if !ENABLE_SENSOR_SDK
+        protected ShaderKeyword m_SensorEnableLidar;
+        protected ShaderKeyword m_SensorOverrideReflectance;
+#endif
+
         protected Dictionary<HDShadowFilteringQuality, ShaderKeyword> m_ShadowVariants;
 
         public virtual int Priority => 0;
@@ -94,6 +99,11 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DecalSurfaceGradient = new ShaderKeyword("DECAL_SURFACE_GRADIENT");
             m_EditorVisualization = new ShaderKeyword("EDITOR_VISUALIZATION");
             m_ShadowKeywords = new ShadowKeywords();
+
+#if !ENABLE_SENSOR_SDK
+            m_SensorEnableLidar = new ShaderKeyword("SENSORSDK_ENABLE_LIDAR");
+            m_SensorOverrideReflectance = new ShaderKeyword("SENSORSDK_OVERRIDE_REFLECTANCE");
+#endif
         }
 
         public bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet,

@@ -190,7 +190,7 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
     // Height fog attenuation.
     {
         // TODO: should probably unify height attenuation somehow...
-        float  cosZenithAngle = L.y;
+        float  cosZenithAngle = max(L.y, 0.001f);
         float  fragmentHeight = posInput.positionWS.y;
         float3 oDepth = OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
                                               _HeightFogExponents, cosZenithAngle, fragmentHeight);
@@ -269,19 +269,9 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         shadow = lightLoopContext.shadowValue;
 
     #ifdef SHADOWS_SHADOWMASK
-        // TODO: Optimize this code! Currently it is a bit like brute force to get the last transistion and fade to shadow mask, but there is
-        // certainly more efficient to do
-        // We reuse the transition from the cascade system to fade between shadow mask at max distance
-        uint  payloadOffset;
-        real  fade;
-        int cascadeCount;
-        int shadowSplitIndex = 0;
-
-        shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, light.shadowIndex, posInput.positionWS, fade, cascadeCount);
-
-        // we have a fade caclulation for each cascade but we must lerp with shadow mask only for the last one
-        // if shadowSplitIndex is -1 it mean we are outside cascade and should return 1.0 to use shadowmask: saturate(-shadowSplitIndex) return 0 for >= 0 and 1 for -1
-        fade = ((shadowSplitIndex + 1) == cascadeCount) ? fade : saturate(-shadowSplitIndex);
+        float3 camToPixel = posInput.positionWS - GetPrimaryCameraPosition();
+        float distanceCamToPixel2 = dot(camToPixel, camToPixel);
+        float fade = saturate(distanceCamToPixel2 * light.cascadesBorderFadeScaleBias.x + light.cascadesBorderFadeScaleBias.y);
 
         // In the transition code (both dithering and blend) we use shadow = lerp( shadow, 1.0, fade ) for last transition
         // mean if we expend the code we have (shadow * (1 - fade) + fade). Here to make transition with shadow mask

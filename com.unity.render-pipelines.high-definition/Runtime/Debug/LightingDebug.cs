@@ -1,4 +1,5 @@
 using System;
+using Unity.Burst.CompilerServices;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -105,6 +106,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
     static class DebugLightHierarchyExtensions
     {
+
+       [IgnoreWarning(1370)] //Ignore throwing exception warning on burst..
         public static bool IsEnabledFor(
             this DebugLightFilterMode mode,
             GPULightType gpuLightType,

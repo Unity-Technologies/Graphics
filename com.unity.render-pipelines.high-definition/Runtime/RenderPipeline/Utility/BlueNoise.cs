@@ -132,6 +132,16 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_RenderPipelineResources.textures.scramblingTex);
         }
 
+        internal DitheredTextureSet DitheredTextureSet1SPP()
+        {
+            DitheredTextureSet ditheredTextureSet = new DitheredTextureSet();
+            ditheredTextureSet.owenScrambled256Tex = m_RenderPipelineResources.textures.owenScrambled256Tex;
+            ditheredTextureSet.scramblingTile = m_RenderPipelineResources.textures.scramblingTile1SPP;
+            ditheredTextureSet.rankingTile = m_RenderPipelineResources.textures.rankingTile1SPP;
+            ditheredTextureSet.scramblingTex = m_RenderPipelineResources.textures.scramblingTex;
+            return ditheredTextureSet;
+        }
+
         internal DitheredTextureSet DitheredTextureSet8SPP()
         {
             DitheredTextureSet ditheredTextureSet = new DitheredTextureSet();

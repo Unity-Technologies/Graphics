@@ -20,6 +20,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool m_ShouldOverrideColorBufferFormat = false;
         GraphicsFormat m_AOVGraphicsFormat = GraphicsFormat.None;
 
+        // Property used for transparent motion vector color mask - depends on presence of virtual texturing or not
+        int colorMaskTransparentVel;
+        int colorMaskAdditionalTarget;
+
         void RecordRenderGraph(RenderRequest renderRequest,
             AOVRequestData aovRequest,
             List<RTHandle> aovBuffers,
@@ -35,6 +39,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 var customPassCullingResults = renderRequest.cullingResults.customPassCullingResults ?? cullingResults;
                 bool msaa = hdCamera.msaaEnabled;
                 var target = renderRequest.target;
+
+                // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
+                // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
+                if (!m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
+                    m_SkyManager.UpdateEnvironment(m_RenderGraph, hdCamera, GetMainLight());
 
                 // We need to initialize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
                 // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.
@@ -86,6 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ShadowResult shadowResult = new ShadowResult();
                 BuildGPULightListOutput gpuLightListOutput = new BuildGPULightListOutput();
                 TextureHandle uiBuffer = m_RenderGraph.defaultResources.blackTextureXR;
+                TextureHandle sunOcclusionTexture = m_RenderGraph.defaultResources.whiteTexture;
 
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.IsFullScreenDebugPassEnabled())
                 {
@@ -175,7 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderSubsurfaceScattering(m_RenderGraph, hdCamera, colorBuffer, historyValidationTexture, ref lightingBuffers, ref prepassOutput);
 
                     RenderSky(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, prepassOutput.depthBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture);
-                    RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, volumetricLighting, maxZMask);
+                    sunOcclusionTexture = RenderVolumetricClouds(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, volumetricLighting, maxZMask);
 
                     // Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
                     SendGeometryGraphicsBuffers(m_RenderGraph, prepassOutput.normalBuffer, prepassOutput.depthPyramidTexture, hdCamera);
@@ -235,7 +245,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.WorldSpacePosition, fullScreenDebugFormat);
                     PushFullScreenLightingDebugTexture(m_RenderGraph, colorBuffer, fullScreenDebugFormat);
 
-                    if (m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
+                    bool accumulateInPost = m_PostProcessEnabled && m_DepthOfField.IsActive();
+                    if (!accumulateInPost && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
                     {
                         RenderAccumulation(m_RenderGraph, hdCamera, colorBuffer, colorBuffer, false);
                     }
@@ -263,7 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                 TextureHandle afterPostProcessBuffer = RenderAfterPostProcessObjects(m_RenderGraph, hdCamera, cullingResults, prepassOutput);
-                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, uiBuffer, afterPostProcessBuffer, cullingResults, hdCamera);
+                TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, prepassOutput, colorBuffer, backBuffer, uiBuffer, afterPostProcessBuffer, sunOcclusionTexture, cullingResults, hdCamera);
 
                 var xyMapping = GenerateDebugHDRxyMapping(m_RenderGraph, hdCamera, postProcessDest);
                 GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
@@ -674,6 +685,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public bool decalsEnabled;
             public bool renderMotionVecForTransparent;
+            public int colorMaskTransparentVel;
             public TextureHandle transparentSSRLighting;
             public TextureHandle volumetricLighting;
             public TextureHandle depthPyramidTexture;
@@ -947,12 +959,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (AfterPostProcessPassData data, RenderGraphContext ctx) =>
                     {
+                        // Disable camera jitter. See coment in RestoreNonjitteredMatrices
+                        if (data.hdCamera.RequiresCameraJitter())
+                        {
+                            data.hdCamera.UpdateAllViewConstants(false);
+                            data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB);
+                        }
+
                         UpdateOffscreenRenderingConstants(ref data.globalCB, true, 1.0f);
                         ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
                         DrawOpaqueRendererList(ctx.renderContext, ctx.cmd, data.hdCamera.frameSettings, data.opaqueAfterPostprocessRL);
                         // Setup off-screen transparency here
                         DrawTransparentRendererList(ctx.renderContext, ctx.cmd, data.hdCamera.frameSettings, data.transparentAfterPostprocessRL);
+
+                        // Reenable camera jitter for CustomPostProcessBeforeTAA injection point
+                        if (data.hdCamera.RequiresCameraJitter())
+                        {
+                            data.hdCamera.UpdateAllViewConstants(true);
+                            data.hdCamera.UpdateShaderVariablesGlobalCB(ref data.globalCB);
+                        }
 
                         UpdateOffscreenRenderingConstants(ref data.globalCB, false, 1.0f);
                         ConstantBuffer.PushGlobal(ctx.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
@@ -1005,6 +1031,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // decal datas count is 0 if no decals affect transparency
                 passData.decalsEnabled = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0);
                 passData.renderMotionVecForTransparent = NeedMotionVectorForTransparent(hdCamera.frameSettings);
+                passData.colorMaskTransparentVel = colorMaskTransparentVel;
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
                 passData.transparentSSRLighting = builder.ReadTexture(ssrLighting);
                 passData.depthPyramidTexture = builder.ReadTexture(prepassOutput.depthPyramidTexture); // We need to bind this for transparent materials doing stuff like soft particles etc.
@@ -1046,7 +1073,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (ForwardTransparentPassData data, RenderGraphContext context) =>
                     {
                         // Bind all global data/parameters for transparent forward pass
-                        context.cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, data.renderMotionVecForTransparent ? (int)ColorWriteMask.All : 0);
+                        context.cmd.SetGlobalInt(data.colorMaskTransparentVel, data.renderMotionVecForTransparent ? (int)ColorWriteMask.All : 0);
                         if (data.decalsEnabled)
                             DecalSystem.instance.SetAtlas(context.cmd); // for clustered decals
 
@@ -1289,11 +1316,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ResetCameraMipBias(hdCamera);
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled() || hdCamera.IsSSREnabled(true) || hdCamera.IsSSGIEnabled())
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) || hdCamera.IsSSREnabled() || hdCamera.IsSSREnabled(true) || hdCamera.IsSSGIEnabled() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.Water))
             {
                 var resolvedColorBuffer = ResolveMSAAColor(renderGraph, hdCamera, colorBuffer, m_NonMSAAColorBuffer);
                 GenerateColorPyramid(renderGraph, hdCamera, resolvedColorBuffer, currentColorPyramid, FullScreenDebugMode.FinalColorPyramid);
             }
+
+            // For now, the water surface rendering happens all here.
+            RenderWaterSurfaces(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, currentColorPyramid);
 
             // We don't have access to the color pyramid with transparent if rough refraction is disabled
             RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.BeforeTransparent, aovRequest, aovCustomPassBuffers);
