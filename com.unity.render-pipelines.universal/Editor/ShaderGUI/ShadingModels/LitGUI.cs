@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    public static class LitGUI
+    internal static class LitGUI
     {
         internal enum WorkflowMode
         {

@@ -83,6 +83,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DownsamplingMethod = downsampling;
         }
 
+        /// <inheritdoc />
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (destination.rt == null)

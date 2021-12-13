@@ -4,6 +4,9 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
+    /// <summary>
+    /// Editor script for a <c>PostProcessData</c> class.
+    /// </summary>
     [CustomEditor(typeof(PostProcessData), true)]
     public class PostProcessDataEditor : Editor
     {

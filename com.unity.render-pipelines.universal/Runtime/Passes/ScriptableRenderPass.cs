@@ -15,10 +15,29 @@ namespace UnityEngine.Rendering.Universal
     [Flags]
     public enum ScriptableRenderPassInput
     {
+        /// <summary>
+        /// Used when a <c>ScriptableRenderPass</c> does not require any texture.
+        /// </summary>
         None = 0,
+
+        /// <summary>
+        /// Used when a <c>ScriptableRenderPass</c> requires a depth texture.
+        /// </summary>
         Depth = 1 << 0,
+
+        /// <summary>
+        /// Used when a <c>ScriptableRenderPass</c> requires a normal texture.
+        /// </summary>
         Normal = 1 << 1,
+
+        /// <summary>
+        /// Used when a <c>ScriptableRenderPass</c> requires a normal texture.
+        /// </summary>
         Color = 1 << 2,
+
+        /// <summary>
+        /// Used when a <c>ScriptableRenderPass</c> requires a motion vectors texture.
+        /// </summary>
         Motion = 1 << 3
     }
 

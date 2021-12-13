@@ -45,6 +45,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.MssaSamples = -1;
         }
 
+        /// <inheritdoc />
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var descriptor = renderingData.cameraData.cameraTargetDescriptor;

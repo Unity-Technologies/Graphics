@@ -9,6 +9,9 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.Universal
 {
+    /// <summary>
+    /// Editor script for a <c>ScriptableRendererData</c> class.
+    /// </summary>
     [CustomEditor(typeof(ScriptableRendererData), true)]
     public class ScriptableRendererDataEditor : Editor
     {
