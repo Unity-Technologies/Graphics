@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added common support code for FSR.
 - Added new `RenderPipelineGlobalSettingsProvider` to help adding a settings panel for editing global settings.
 - Added blending for curves in post processing volumes.
+- New extension for Render Pipeline Global Settings for shader variants settings -> `IShaderVariantsSettings`.
 
 ## [13.1.0] - 2021-09-24
 

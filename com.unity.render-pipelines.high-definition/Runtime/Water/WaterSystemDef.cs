@@ -22,15 +22,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // Individual sizes of the wave bands
         public Vector4 _BandPatchSize;
 
-        // Scale of the individual patches
-        public Vector4 _BandPatchUVScale;
-
         // Wind speed per band
         public Vector4 _WindSpeed;
 
         // Horizontal wind direction
         public Vector2 _WindDirection;
-        // Amount of choppiness per band
+        // Amount of choppiness
         public float _Choppiness;
         // Delta-time since the last simulation step
         public float _DeltaTime;
@@ -44,27 +41,30 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO WRITE
         public float _SSSMaskCoefficient;
 
-        // TODO write
-        public float _CloudTexturedAmount;
         // Padding
-        public float _RefractionNormalWeight;
+        public Vector2 _PaddingW0;
+        // Maximum refraction distance
         public float _MaxRefractionDistance;
+        // Smoothness of the water part of the surface (non foam)
         public float _WaterSmoothness;
 
+        // Horizonal offsets of the foam texture
         public Vector2 _FoamOffsets;
+        // Tiling parameter of the foam texture
         public float _FoamTilling;
+        // Attenuation of the foam due to the wind
         public float _WindFoamAttenuation;
 
-        public Vector3 _ScatteringColorTips;
-        public float _FoamSmoothness;
+        // Color applied to the surfaces that are through the refraction
+        public Vector4 _TransparencyColor;
+
+        public Vector4 _ScatteringColorTips;
 
         public float _DispersionAmount;
         public float _RefractionLow;
         public float _MaxAbsorptionDistance;
         public float _ScatteringBlur;
 
-        public Vector3 _TransparencyColor;
-        public float _OutScatteringCoefficient;
 
         public float _DisplacementScattering;
         public float _ScatteringIntensity;
@@ -73,8 +73,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _ScatteringLambertLighting;
 
-        public Vector3 _DeepFoamColor;
+        public Vector4 _DeepFoamColor;
+
+        public float _OutScatteringCoefficient;
+        public float _FoamSmoothness;
         public float _HeightBasedScattering;
+        public float _PaddingW1;
 
         public Vector4 _FoamJacobianLambda;
     }
@@ -88,15 +92,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 _WaterRotation;
 
         // Offset of the current patch w/r to the origin
-        public Vector3 _PatchOffset;
+        public Vector4 _PatchOffset;
+        // Ambient probe used to render the water
+        public Vector4 _WaterAmbientProbe;
+
         // Resolution (in quads) of the current water patch
         public uint _GridRenderingResolution;
-
-        // Ambient probe used to render the water
-        public Vector3 _WaterAmbientProbe;
         // Mask that defines the tessellation pattern
-
         public uint _TesselationMasks;
+        // Earth radius
+        public float _EarthRadius;
+        // Intensity of the water caustics
+        public float _CausticsIntensity;
+
         // Scale of the current water mask
         public Vector2 _WaterMaskScale;
         // Offset of the current water mask
@@ -113,12 +121,5 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _CausticsTiling;
         // Vertical shift on when the caustics start
         public float _CausticsPlaneOffset;
-
-        // Padding
-        public Vector2 _PaddingWR0;
-        // Earth radius
-        public float _EarthRadius;
-        // Intensity of the water caustics
-        public float _CausticsIntensity;
     }
 }

@@ -40,3 +40,4 @@ MonoBehaviour:
   rayBinningCS: {fileID: 7200000, guid: cddcb515ffe9a914893d6d8fc1d85454, type: 3}
   countTracedRays: {fileID: 7200000, guid: e1f3fa867f1dfbd4ab7dd4d39d2b96d8, type: 3}
   reflectionFilterMapping: {fileID: 2800000, guid: 82eec49626a00b047ba86244607816c8, type: 3}
+  rtasDebug: {fileID: 4807578003741378534, guid: 7f98079d20376fd4f8590d58be99ab0d, type: 3}
