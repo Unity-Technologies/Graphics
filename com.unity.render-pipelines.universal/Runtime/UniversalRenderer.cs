@@ -1191,7 +1191,13 @@ namespace UnityEngine.Rendering.Universal
         {
             m_ColorBufferSystem.Swap();
 
-            ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd));
+            // TODO So here we have 2 calls to the render-target-system.
+            // One reallocates, the other does not.
+            //Check if we are using the depth that is attached to color buffer
+            if (m_ActiveCameraDepthAttachment.nameID != BuiltinRenderTextureType.CameraTarget)
+                ConfigureCameraTarget(m_ColorBufferSystem.GetBackBuffer(cmd), m_ColorBufferSystem.GetBufferA());
+            else
+                ConfigureCameraColorTarget(m_ColorBufferSystem.GetBackBuffer(cmd));
 
             m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
             cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.nameID);
