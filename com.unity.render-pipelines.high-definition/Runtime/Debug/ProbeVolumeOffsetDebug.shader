@@ -1,4 +1,4 @@
-Shader "Hidden/HDRP/ProbeVolumeDebug"
+Shader "Hidden/HDRP/ProbeVolumeOffsetDebug"
 {
     SubShader
     {
@@ -20,9 +20,15 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
             UNITY_SETUP_INSTANCE_ID(v);
             UNITY_TRANSFER_INSTANCE_ID(v, o);
 
-            if(!ShouldCull(o))
+            float3 offset = UNITY_ACCESS_INSTANCED_PROP(Props, _Offset).xyz;
+            float offsetLenSqr = dot(offset, offset);
+            if(offsetLenSqr <= 1e-6f)
             {
-                float4 wsPos = mul(UNITY_MATRIX_M, float4(v.vertex.xyz * _ProbeSize, 1.0));
+                DoCull(o);
+            }
+            else if(!ShouldCull(o))
+            {
+                float4 wsPos = mul(UNITY_MATRIX_M, float4(v.vertex.x * _OffsetSize, v.vertex.y * _OffsetSize, v.vertex.z, 1.f));
                 o.vertex = mul(UNITY_MATRIX_VP, wsPos);
                 o.normal = normalize(mul(v.normal, (float3x3)UNITY_MATRIX_M));
             }
@@ -32,36 +38,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
 
         float4 frag(v2f i) : SV_Target
         {
-            UNITY_SETUP_INSTANCE_ID(i);
-
-            if (_ShadingMode >= DEBUGPROBESHADINGMODE_SH && _ShadingMode <= DEBUGPROBESHADINGMODE_SHL0L1)
-            {
-                return float4(CalculateDiffuseLighting(i) * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
-            }
-            else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY)
-            {
-                float validity = UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
-                return lerp(float4(0, 1, 0, 1), float4(1, 0, 0, 1), validity);
-            }
-            else if (_ShadingMode == DEBUGPROBESHADINGMODE_VALIDITY_OVER_DILATION_THRESHOLD)
-            {
-                float validity = UNITY_ACCESS_INSTANCED_PROP(Props, _Validity);
-                if (validity > _ValidityThreshold)
-                {
-                    return float4(1, 0, 0, 1);
-                }
-                else
-                {
-                    return float4(0, 1, 0, 1);
-                }
-            }
-            else if (_ShadingMode == DEBUGPROBESHADINGMODE_SIZE)
-            {
-                float4 col = lerp(float4(0, 1, 0, 1), float4(1, 0, 0, 1), UNITY_ACCESS_INSTANCED_PROP(Props, _RelativeSize));
-                return col;
-            }
-
-            return _Color;
+            return float4(1, 0, 0, 1);
         }
         ENDHLSL
 
