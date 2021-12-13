@@ -492,7 +492,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 });
             }
-        }
 #endif
+        }
     }
 }
