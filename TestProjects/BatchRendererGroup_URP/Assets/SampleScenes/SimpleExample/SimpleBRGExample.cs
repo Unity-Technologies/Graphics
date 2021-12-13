@@ -216,14 +216,13 @@ public class SimpleBRGExample : MonoBehaviour
         // Configure our single draw command to draw kNumInstances instances
         // starting from offset 0 in the array, using the batch, material and mesh
         // IDs that we registered in the Start() method. No special flags are set.
+        drawCommands->drawCommands[0].flags = 0;
         drawCommands->drawCommands[0].visibleOffset = 0;
         drawCommands->drawCommands[0].visibleCount = kNumInstances;
         drawCommands->drawCommands[0].batchID = m_BatchID;
         drawCommands->drawCommands[0].materialID = m_MaterialID;
-        drawCommands->drawCommands[0].meshID = m_MeshID;
-        drawCommands->drawCommands[0].submeshIndex = 0;
+        drawCommands->drawCommands[0].regular = new BatchDrawCommandRegular { meshID = m_MeshID, submeshIndex = 0, };
         drawCommands->drawCommands[0].splitVisibilityMask = 0xff;
-        drawCommands->drawCommands[0].flags = 0;
         drawCommands->drawCommands[0].sortingPosition = 0;
 
         // Configure our single draw range to cover our single draw command which

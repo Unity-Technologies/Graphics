@@ -230,14 +230,17 @@ public unsafe class RenderBRG : MonoBehaviour
                         {
                             draws.drawCommands[outBatch] = new BatchDrawCommand
                             {
+                                flags = BatchDrawCommandFlags.None,
                                 visibleOffset = (uint)batchStartIndex,
                                 visibleCount = (uint)visibleCount,
                                 batchID = batchID,
                                 materialID = drawBatches[remappedIndex].key.material,
-                                meshID = drawBatches[remappedIndex].key.meshID,
-                                submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
+                                regular = new BatchDrawCommandRegular
+                                {
+                                    meshID = drawBatches[remappedIndex].key.meshID,
+                                    submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
+                                },
                                 splitVisibilityMask = (ushort)visibleMaskPrev,
-                                flags = BatchDrawCommandFlags.None,
                                 sortingPosition = 0
                             };
                             outBatch++;
@@ -260,14 +263,17 @@ public unsafe class RenderBRG : MonoBehaviour
                     {
                         draws.drawCommands[outBatch] = new BatchDrawCommand
                         {
+                            flags = BatchDrawCommandFlags.None,
                             visibleOffset = (uint)batchStartIndex,
                             visibleCount = (uint)visibleCount,
                             batchID = batchID,
                             materialID = drawBatches[remappedIndex].key.material,
-                            meshID = drawBatches[remappedIndex].key.meshID,
-                            submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
+                            regular = new BatchDrawCommandRegular
+                            {
+                                meshID = drawBatches[remappedIndex].key.meshID,
+                                submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
+                            },
                             splitVisibilityMask = (ushort)visibleMaskPrev,
-                            flags = BatchDrawCommandFlags.None,
                             sortingPosition = 0
                         };
 

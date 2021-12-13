@@ -104,14 +104,17 @@ public unsafe class BRGSetup : MonoBehaviour
         drawCommands.drawCommands = Malloc<BatchDrawCommand>(1);
         drawCommands.drawCommands[0] = new BatchDrawCommand
         {
+            flags = m_motionVectorTest ? BatchDrawCommandFlags.HasMotion : BatchDrawCommandFlags.None,
             visibleOffset = 0,
             visibleCount = (uint)n,
             batchID = m_batchID,
             materialID = m_materialID,
-            meshID = m_meshID,
-            submeshIndex = 0,
+            regular = new BatchDrawCommandRegular
+            {
+                meshID = m_meshID,
+                submeshIndex = 0,
+            },
             splitVisibilityMask = 0xff,
-            flags = m_motionVectorTest ? BatchDrawCommandFlags.HasMotion : BatchDrawCommandFlags.None,
             sortingPosition = 0
         };
 
