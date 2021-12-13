@@ -252,18 +252,18 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Adjust near blend CoC based on depth distance when manual, non-physical mode is used.
+        /// Adjust near blur CoC based on depth distance when manual, non-physical mode is used.
         /// </summary>
-        public bool fixManualRangeNearBlend
+        public bool limitManualRangeNearBlur
         {
             get
             {
                 if (!UsesQualitySettings())
-                    return m_FixManualRangeNearBlend.value;
+                    return m_LimitManualRangeNearBlur.value;
 
-                return GetPostProcessingQualitySettings().FixManualRangeNearBlend[quality.levelAndOverride.level];
+                return GetPostProcessingQualitySettings().LimitManualRangeNearBlur[quality.levelAndOverride.level];
             }
-            set => m_FixManualRangeNearBlend.value = value;
+            set => m_LimitManualRangeNearBlur.value = value;
         }
 
         /// <summary>
@@ -329,9 +329,9 @@ namespace UnityEngine.Rendering.HighDefinition
         BoolParameter m_PhysicallyBased = new BoolParameter(false);
 
         [AdditionalProperty]
-        [Tooltip("Adjust near blend CoC based on depth distance when manual, non-physical mode is used.")]
+        [Tooltip("Adjust near blur CoC based on depth distance when manual, non-physical mode is used.")]
         [SerializeField]
-        BoolParameter m_FixManualRangeNearBlend = new BoolParameter(false);
+        BoolParameter m_LimitManualRangeNearBlur = new BoolParameter(false);
 
         /// <summary>
         /// Tells if the effect needs to be rendered or not.

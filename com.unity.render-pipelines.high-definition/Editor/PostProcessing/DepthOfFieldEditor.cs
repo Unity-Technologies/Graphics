@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HighQualityFiltering;
         SerializedDataParameter m_Resolution;
         SerializedDataParameter m_PhysicallyBased;
-        SerializedDataParameter m_FixManualRangeNearBlend;
+        SerializedDataParameter m_LimitManualRangeNearBlur;
 
         public override void OnEnable()
         {
@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_HighQualityFiltering = Unpack(o.Find("m_HighQualityFiltering"));
             m_Resolution = Unpack(o.Find("m_Resolution"));
             m_PhysicallyBased = Unpack(o.Find("m_PhysicallyBased"));
-            m_FixManualRangeNearBlend = Unpack(o.Find("m_FixManualRangeNearBlend"));
+            m_LimitManualRangeNearBlur = Unpack(o.Find("m_LimitManualRangeNearBlur"));
 
             base.OnEnable();
         }
@@ -195,7 +195,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (m_FocusMode.value.intValue == (int)DepthOfFieldMode.Manual && !m_PhysicallyBased.value.boolValue)
                 {
-                    PropertyField(m_FixManualRangeNearBlend);
+                    PropertyField(m_LimitManualRangeNearBlur);
                 }
             }
         }
@@ -212,7 +212,7 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.Save<int>(m_Resolution);
             settings.Save<bool>(m_HighQualityFiltering);
             settings.Save<bool>(m_PhysicallyBased);
-            settings.Save<bool>(m_FixManualRangeNearBlend);
+            settings.Save<bool>(m_LimitManualRangeNearBlur);
 
             return settings;
         }
@@ -226,7 +226,7 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.TryLoad<int>(ref m_Resolution);
             settings.TryLoad<bool>(ref m_HighQualityFiltering);
             settings.TryLoad<bool>(ref m_PhysicallyBased);
-            settings.TryLoad<bool>(ref m_FixManualRangeNearBlend);
+            settings.TryLoad<bool>(ref m_LimitManualRangeNearBlur);
         }
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
@@ -238,7 +238,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CopySetting(ref m_Resolution, (int)settings.postProcessQualitySettings.DoFResolution[level]);
             CopySetting(ref m_HighQualityFiltering, settings.postProcessQualitySettings.DoFHighQualityFiltering[level]);
             CopySetting(ref m_PhysicallyBased, settings.postProcessQualitySettings.DoFPhysicallyBased[level]);
-            CopySetting(ref m_FixManualRangeNearBlend, settings.postProcessQualitySettings.FixManualRangeNearBlend[level]);
+            CopySetting(ref m_LimitManualRangeNearBlur, settings.postProcessQualitySettings.LimitManualRangeNearBlur[level]);
         }
     }
 }
