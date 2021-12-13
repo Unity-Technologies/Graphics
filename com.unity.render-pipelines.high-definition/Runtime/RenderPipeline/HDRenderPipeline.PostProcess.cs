@@ -2174,7 +2174,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.dofCircleOfConfusionCS.EnableKeyword("USE_MIN_DEPTH");
             }
 
-            if(m_DepthOfField.limitManualRangeNearBlur && m_DepthOfField.focusMode == DepthOfFieldMode.Manual && !m_DepthOfField.physicallyBased && m_DepthOfField.IsNearLayerActive())
+            if (m_DepthOfField.limitManualRangeNearBlur && m_DepthOfField.focusMode == DepthOfFieldMode.Manual && !m_DepthOfField.physicallyBased && m_DepthOfField.IsNearLayerActive())
             {
                 parameters.dofCoCCS.EnableKeyword("FIX_NEAR_BLEND");
             }
