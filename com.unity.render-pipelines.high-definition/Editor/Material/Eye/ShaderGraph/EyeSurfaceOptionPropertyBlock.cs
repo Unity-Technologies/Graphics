@@ -22,6 +22,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static GUIContent irisNormalType = new GUIContent("Iris Normal", "Override the iris normal");
             public static GUIContent irisHeight = new GUIContent("Iris Height", "Height/distance of iris surface");
             public static GUIContent irisRadius = new GUIContent("Iris Radius", "Iris Radius in object space");
+            public static GUIContent causticIntensity = new GUIContent("Caustic Intensity", "Caustic intensity multiplier");
+            public static GUIContent causticBlend = new GUIContent("Caustic Blend", "Caustic blending factor with normal diffuse");
         }
 
         EyeData eyeData;
@@ -42,6 +44,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 AddProperty(Styles.irisHeight, () => eyeData.irisHeight, (newValue) => eyeData.irisHeight = newValue);
                 AddProperty(Styles.irisRadius, () => eyeData.irisRadius, (newValue) => eyeData.irisRadius = newValue);
+                AddProperty(Styles.causticIntensity, () => eyeData.causticIntensity, (newValue) => eyeData.causticIntensity = newValue);
+                AddProperty(Styles.causticBlend, () => eyeData.causticBlend, (newValue) => eyeData.causticBlend = newValue);
             }
         }
     }

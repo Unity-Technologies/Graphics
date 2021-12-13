@@ -37,6 +37,8 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.SubsurfaceMask:             surfaceData.subsurfaceMask = surfaceDescription.SubsurfaceMask;
     $SurfaceDescription.IrisHeight:                 surfaceData.irisHeight =                surfaceDescription.IrisHeight;
     $SurfaceDescription.IrisRadius:                 surfaceData.irisRadius =                surfaceDescription.IrisRadius;
+    $SurfaceDescription.CausticIntensity:           surfaceData.causticIntensity =          surfaceDescription.CausticIntensity;
+    $SurfaceDescription.CausticBlend:               surfaceData.causticBlend =              surfaceDescription.CausticBlend;
 
     // These static material feature allow compile time optimization
     surfaceData.materialFeatures = 0;

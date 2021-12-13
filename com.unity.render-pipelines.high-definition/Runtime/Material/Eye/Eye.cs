@@ -65,12 +65,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [SurfaceDataAttributes("Subsurface Mask")]
             public float subsurfaceMask;
-            
+
             [SurfaceDataAttributes("Height of the iris from origo (OS)")]
             public float irisHeight;
-            
+
             [SurfaceDataAttributes("Iris Radius")]
             public float irisRadius;
+
+            [SurfaceDataAttributes("Caustic intensity multiplier")]
+            public float causticIntensity;
+
+            [SurfaceDataAttributes("Blending factor between caustic and normal diffuse")]
+            public float causticBlend;
         };
 
         //-----------------------------------------------------------------------------
@@ -106,7 +112,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // MaterialFeature dependent attribute
             public float irisHeight;
             public float irisRadius;
-            
+            public float causticIntensity;
+            public float causticBlend;
+
             // SSS
             public uint diffusionProfileIndex;
             public float subsurfaceMask;
@@ -118,11 +126,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Init precomputed textures
         //-----------------------------------------------------------------------------
         private Texture3D m_EyeCausticLUT;
-        
+
         public static readonly int _PreIntegratedEyeCaustic = Shader.PropertyToID("_PreIntegratedEyeCaustic");
 
         public Eye() { }
-        
+
         public override void Build(HDRenderPipelineAsset hdAsset, HDRenderPipelineRuntimeResources defaultResources)
         {
             m_EyeCausticLUT = defaultResources.textures.eyeCausticLUT;
@@ -135,7 +143,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void RenderInit(CommandBuffer cmd)
         {
-            
+
         }
 
         public override void Bind(CommandBuffer cmd)

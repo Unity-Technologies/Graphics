@@ -1,7 +1,7 @@
 ﻿TEXTURE3D(_PreIntegratedEyeCaustic);
 SAMPLER(_CausticLUT_trilinear_clamp_sampler);
 
-float ComputeCausticFromLUT(float2 irisPlanePosition, float irisHeight, float3 lightPosOS)
+float ComputeCausticFromLUT(float2 irisPlanePosition, float irisHeight, float3 lightPosOS, float intensityMultiplier)
 {
     //these need to match with the values LUT was generated with
     float causticLutThetaMin = -0.5f; //LUT generated with last slice 30 degrees below horizon, ie. cos(pi * 0.5 + 30 * toRadians) == -0.5
@@ -40,11 +40,16 @@ float ComputeCausticFromLUT(float2 irisPlanePosition, float irisHeight, float3 l
     uv.x *= 1.f - causticScleraMargin;
     uv.x += causticScleraMargin;
 
-    float c = SAMPLE_TEXTURE3D_LOD(_PreIntegratedEyeCaustic, _CausticLUT_trilinear_clamp_sampler, float3(uv.x, uv.y,1.f - w), 0).x;
+    float c = SAMPLE_TEXTURE3D_LOD(_PreIntegratedEyeCaustic, _CausticLUT_trilinear_clamp_sampler, float3(uv.x, uv.y,1.f - w), 0).x * intensityMultiplier;
 
     //clamp borders to black (uv.x < 0 smoothstepped since we might not have given enough margin in LUT for the sclera hotspot to falloff. Capturing it completely would waste a lot of space in the LUT)
     float2 bc = (step(0, uv.y) * step(uv, 1));
     c *= bc.x * bc.y * smoothstep(-0.2f, 0.0f, uv.x);
     c *= blendToBlack;
     return c;
+}
+
+float3 ApplyCausticToDiffuse(float3 diffuse, float causticIntensity, float corneaMask, float blend)
+{
+    return (1.f - blend) * corneaMask + diffuse * causticIntensity;
 }

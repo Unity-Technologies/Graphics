@@ -86,6 +86,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask, eyeData.subsurfaceScattering);
             context.AddBlock(HDBlockFields.SurfaceDescription.IrisHeight, eyeData.materialType == EyeData.MaterialType.EyeCinematicWithCaustic);
             context.AddBlock(HDBlockFields.SurfaceDescription.IrisRadius, eyeData.materialType == EyeData.MaterialType.EyeCinematicWithCaustic);
+            context.AddBlock(HDBlockFields.SurfaceDescription.CausticIntensity, eyeData.materialType == EyeData.MaterialType.EyeCinematicWithCaustic);
+            context.AddBlock(HDBlockFields.SurfaceDescription.CausticBlend, eyeData.materialType == EyeData.MaterialType.EyeCinematicWithCaustic);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)

@@ -44,13 +44,29 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_IrisHeight;
             set => m_IrisHeight = value;
         }
-        
+
         [SerializeField]
         float m_IrisRadius = 0.1f;
         public float irisRadius
         {
             get => m_IrisRadius;
             set => m_IrisRadius = value;
+        }
+
+        [SerializeField]
+        float m_CausticIntensity = 1.0f;
+        public float causticIntensity
+        {
+            get => m_CausticIntensity;
+            set => m_CausticIntensity = value;
+        }
+
+        [SerializeField]
+        float m_CausticBlend = 1.0f;
+        public float causticBlend
+        {
+            get => m_CausticBlend;
+            set => m_CausticBlend = Mathf.Clamp01(value);
         }
     }
 }
