@@ -35,7 +35,12 @@ namespace UnityEditor.ShaderGraph
     $precision pCoord = atan2(uv.x, uv.y);
     $precision r = 2 * pi / Sides;
     $precision distance = cos(floor(0.5 + pCoord / r) * r - pCoord) * length(uv);
+
+#if defined(SHADER_STAGE_RAY_TRACING)
+    Out = saturate((1.0 - distance) * 1e7);
+#else
     Out = saturate((1 - distance) / fwidth(distance));
+#endif
 }
 ";
         }

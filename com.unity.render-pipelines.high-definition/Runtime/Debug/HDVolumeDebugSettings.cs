@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
@@ -5,6 +7,11 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public class HDVolumeDebugSettings : VolumeDebugSettings<HDAdditionalCameraData>
     {
+        /// <summary>
+        /// Specifies the render pipeline for this volume settings
+        /// </summary>
+        public override Type targetRenderPipeline => typeof(HDRenderPipeline);
+
         /// <summary>Selected camera volume stack.</summary>
         public override VolumeStack selectedCameraVolumeStack
         {
