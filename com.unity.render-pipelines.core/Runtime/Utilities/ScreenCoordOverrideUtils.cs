@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Rendering
+namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Screen Coord Override Utility class.
