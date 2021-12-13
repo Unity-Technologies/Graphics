@@ -10,9 +10,6 @@
 // Required to be defined for some includes
 #define WATER_SIMULATION
 
-// Overestimation of the choppiness for the foam simulation
-#define FOAM_CHOPPINESS_MULTIPLIER 7.0
-
 // SRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"

@@ -231,7 +231,7 @@ void DecodeFromGBuffer(uint2 positionSS, out BSDFData bsdfData, out BuiltinData 
     builtinData.shadowMask1 = 1.0;
     builtinData.shadowMask2 = 1.0;
     builtinData.shadowMask3 = 1.0;
-    builtinData.emissiveColor = _WaterAmbientProbe;
+    builtinData.emissiveColor = _WaterAmbientProbe.xyz;
 }
 
 void DecodeWaterFromNormalBuffer(uint2 positionSS, out NormalData normalData)

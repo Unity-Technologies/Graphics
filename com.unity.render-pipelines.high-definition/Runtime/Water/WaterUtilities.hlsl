@@ -6,6 +6,8 @@
 #define PHILLIPS_AMPLITUDE_SCALAR 10.0
 #define WATER_IOR 1.3333
 #define WATER_INV_IOR 1.0 / WATER_IOR
+// Overestimation of the choppiness for the foam simulation
+#define FOAM_CHOPPINESS_MULTIPLIER 7.0
 
 // Water simulation data
 Texture2DArray<float4> _WaterDisplacementBuffer;
@@ -751,7 +753,7 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3
     }
 
     // Evaluate the absorption tint
-    absorptionTint = exp(-refractedWaterDistance * _OutScatteringCoefficient * (1.f - _TransparencyColor));
+    absorptionTint = exp(-refractedWaterDistance * _OutScatteringCoefficient * (1.f - _TransparencyColor.xyz));
 }
 
 float EvaluateTipThickness(float3 viewWS, float3 lowFrequencyNormals, float lowFrequencyHeight)
