@@ -110,6 +110,25 @@ float ApproximateCapsuleOcclusion(
     return ApproximateSphereOcclusion(coneAxis, coneCosTheta, maxDistance, sphereCenter, capsuleRadius);
 }
 
+#define CAPSULE_SHADOW_FEATURE_USE_ELLIPSOID        0x1
+#define CAPSULE_SHADOW_FEATURE_USE_CAPSULE_SHEAR    0x2
+#define CAPSULE_SHADOW_FEATURE_CLIP_TO_PLANE        0x4
+#define CAPSULE_SHADOW_FEATURE_AVOID_SELF_SHADOW    0x8
+
+uint GetDefaultCapsuleShadowFeatureBits()
+{
+    uint featureBits = CAPSULE_SHADOW_FEATURE_AVOID_SELF_SHADOW;
+    switch (_CapsuleOccluderShadowMethod) {
+    case CAPSULESHADOWMETHOD_ELLIPSOID:
+        featureBits |= CAPSULE_SHADOW_FEATURE_USE_ELLIPSOID;
+        break;
+    case CAPSULESHADOWMETHOD_CAPSULE_WITH_SHEAR:
+        featureBits |= CAPSULE_SHADOW_FEATURE_USE_CAPSULE_SHEAR;
+        break;
+    }
+    return featureBits;
+}
+
 float EvaluateCapsuleShadow(
     float3 lightPosOrAxis,
     bool lightIsPunctual,
@@ -119,6 +138,8 @@ float EvaluateCapsuleShadow(
     float3 normalWS,
     uint renderLayer)
 {
+    uint featureBits = GetDefaultCapsuleShadowFeatureBits();
+
     uint sphereCount, sphereStart;
 
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
@@ -178,7 +199,7 @@ float EvaluateCapsuleShadow(
 
                 // apply falloff to avoid self-shadowing
                 // (adjusts where in the interior to fade in the shadow based on the local normal)
-                {
+                if (featureBits & CAPSULE_SHADOW_FEATURE_AVOID_SELF_SHADOW) {
                     float t = RayClosestPoint(surfaceToCapsuleVec, s_capsuleData.axisDirWS, float3(0.f, 0.f, 0.f));
                     float3 closestCenter = surfaceToCapsuleVec + clamp(t, -s_capsuleData.offset, s_capsuleData.offset)*s_capsuleData.axisDirWS;
                     float closestDistance = length(closestCenter);
@@ -189,8 +210,7 @@ float EvaluateCapsuleShadow(
 
                 // test the occluder shape vs the light
                 if (occlusion > 0.f) {
-                    if (_CapsuleOccluderShadowMethod == CAPSULESHADOWMETHOD_ELLIPSOID)
-                    {
+                    if (featureBits & CAPSULE_SHADOW_FEATURE_USE_ELLIPSOID) {
                         // make everything relative to the surface
                         float3 surfaceToLightVec = lightPosOrAxis;
                         if (lightIsPunctual)
@@ -237,33 +257,32 @@ float EvaluateCapsuleShadow(
 
                         float lightDotAxis = dot(s_capsuleData.axisDirWS, surfaceToLightDir);
 
-    #if 0
-                        // clip capsule to be towards the light from the surface point
-                        float clipMaxT = s_capsuleData.offset;
-                        float clipMinT = -clipMaxT;
-                        float clipIntersectT = clamp(-dot(surfaceToCapsuleVec, surfaceToLightDir)/lightDotAxis, clipMinT, clipMaxT);
-                        if (lightDotAxis < 0.f) {
-                            clipMaxT = clipIntersectT;
-                        } else {
-                            clipMinT = clipIntersectT;
-                        }
-                        float clippedBias = 0.5f*(clipMaxT + clipMinT);
-                        float clippedOffset = 0.5f*(clipMaxT - clipMinT);
-                        surfaceToCapsuleVec += s_capsuleData.axisDirWS * clippedBias;
-    #else
                         float clippedOffset = s_capsuleData.offset;
-    #endif
+                        if (featureBits & CAPSULE_SHADOW_FEATURE_CLIP_TO_PLANE) {
+                            // clip capsule to be towards the light from the surface point
+                            float clipMaxT = s_capsuleData.offset;
+                            float clipMinT = -clipMaxT;
+                            float clipIntersectT = clamp(-dot(surfaceToCapsuleVec, surfaceToLightDir)/lightDotAxis, clipMinT, clipMaxT);
+                            if (lightDotAxis < 0.f) {
+                                clipMaxT = clipIntersectT;
+                            } else {
+                                clipMinT = clipIntersectT;
+                            }
+                            float clippedBias = 0.5f*(clipMaxT + clipMinT);
+                            float clippedOffset = 0.5f*(clipMaxT - clipMinT);
+                            surfaceToCapsuleVec += s_capsuleData.axisDirWS * clippedBias;
+                        }
                         float3 capOffsetVec = s_capsuleData.axisDirWS * clippedOffset;
 
-
                         float shearCosTheta = lightCosTheta;
-                        if (_CapsuleOccluderShadowMethod == CAPSULESHADOWMETHOD_CAPSULE_WITH_SHEAR) {
+                        if (featureBits & CAPSULE_SHADOW_FEATURE_USE_CAPSULE_SHEAR) {
                             // shear the capsule along the light direction, to flatten when shadowing along length
                             float3 zAxisDir = surfaceToLightDir;
                             float capsuleOffsetZ = lightDotAxis*clippedOffset;
                             float radiusOffsetZ = (lightDotAxis < 0.f) ? (-s_capsuleData.radius) : s_capsuleData.radius;
                             float edgeOffsetZ = radiusOffsetZ + capsuleOffsetZ;
-                            float zOffsetFactor = abs(lightDotAxis)*capsuleOffsetZ/edgeOffsetZ;
+                            float shearAmount = lightDotAxis*lightDotAxis; // could also use abs(lightDotAxis)
+                            float zOffsetFactor = shearAmount*capsuleOffsetZ/edgeOffsetZ;
                             surfaceToCapsuleVec -= zAxisDir*(dot(surfaceToCapsuleVec, zAxisDir)*zOffsetFactor);
                             capOffsetVec -= zAxisDir*(edgeOffsetZ*zOffsetFactor);
 
