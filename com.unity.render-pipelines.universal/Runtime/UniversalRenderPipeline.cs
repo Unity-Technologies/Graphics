@@ -847,18 +847,18 @@ namespace UnityEngine.Rendering.Universal
 
             if (cameraData.renderScale > 1.0f)
             {
-                cameraData.imageScaling = ImageScaling.Downscaling;
+                cameraData.imageScalingMode = ImageScalingMode.Downscaling;
             }
             else if ((cameraData.renderScale < 1.0f) || (cameraData.upscalingFilter == ImageUpscalingFilter.FSR))
             {
                 // When FSR is enabled, we still consider 100% render scale an upscaling operation.
                 // This allows us to run the FSR shader passes all the time since they improve visual quality even at 100% scale.
 
-                cameraData.imageScaling = ImageScaling.Upscaling;
+                cameraData.imageScalingMode = ImageScalingMode.Upscaling;
             }
             else
             {
-                cameraData.imageScaling = ImageScaling.None;
+                cameraData.imageScalingMode = ImageScalingMode.None;
             }
 
             cameraData.fsrOverrideSharpness = settings.fsrOverrideSharpness;

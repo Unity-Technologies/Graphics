@@ -93,8 +93,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         // RTHandle alias for _TempTarget2
         RTHandle m_TempTarget2 = RTHandles.Alloc(ShaderConstants._TempTarget2);
 
-        // RTHandle used as a temporary target when operations need to be performed before upscaling
-        RTHandle m_UpscaleSetupTarget;
+        // RTHandle used as a temporary target when operations need to be performed before image scaling
+        RTHandle m_ScalingSetupTarget;
 
         // RTHandle used as a temporary target when operations need to be performed after upscaling
         RTHandle m_UpscaledTarget;
@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Dispose()
         {
-            m_UpscaleSetupTarget?.Release();
+            m_ScalingSetupTarget?.Release();
             m_UpscaledTarget?.Release();
         }
 
@@ -529,7 +529,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // 2. When FXAA is enabled with FSR, FXAA is moved to an earlier pass to ensure that FSR sees fully anti-aliased input. The moved FXAA pass sits between
                 //    UberPost and FSR so we can no longer perform color conversion here without affecting other passes.
                 bool doEarlyFsrColorConversion = (!m_hasExternalPostPasses &&
-                                                  (((cameraData.imageScaling == ImageScaling.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR)) &&
+                                                  (((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR)) &&
                                                    (cameraData.antialiasing != AntialiasingMode.FastApproximateAntialiasing)));
                 if (doEarlyFsrColorConversion)
                 {
@@ -1423,10 +1423,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
 
-            if (cameraData.imageScaling != ImageScaling.None)
+            if (cameraData.imageScalingMode != ImageScalingMode.None)
             {
                 // FSR is only considered "enabled" when we're performing upscaling. (downscaling uses a linear filter unconditionally)
-                bool isFsrEnabled = ((cameraData.imageScaling == ImageScaling.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
+                bool isFsrEnabled = ((cameraData.imageScalingMode == ImageScalingMode.Upscaling) && (cameraData.upscalingFilter == ImageUpscalingFilter.FSR));
 
                 bool doLateFsrColorConversion = (isFsrEnabled && (isFxaaEnabled || m_hasExternalPostPasses));
 
@@ -1440,7 +1440,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 tempRtDesc.msaaSamples = 1;
                 tempRtDesc.depthBufferBits = 0;
 
-                m_Materials.upscaleSetup.shaderKeywords = null;
+                m_Materials.scalingSetup.shaderKeywords = null;
 
                 var sourceRtId = m_Source;
 
@@ -1448,25 +1448,25 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     if (isFxaaEnabled)
                     {
-                        m_Materials.upscaleSetup.EnableKeyword(ShaderKeywordStrings.Fxaa);
+                        m_Materials.scalingSetup.EnableKeyword(ShaderKeywordStrings.Fxaa);
                     }
 
                     if (doLateFsrColorConversion)
                     {
-                        m_Materials.upscaleSetup.EnableKeyword(ShaderKeywordStrings.Gamma20);
+                        m_Materials.scalingSetup.EnableKeyword(ShaderKeywordStrings.Gamma20);
                     }
 
-                    RenderingUtils.ReAllocateIfNeeded(ref m_UpscaleSetupTarget, tempRtDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_UpscaleSetupTexture");
-                    Blit(cmd, m_Source, m_UpscaleSetupTarget, m_Materials.upscaleSetup);
+                    RenderingUtils.ReAllocateIfNeeded(ref m_ScalingSetupTarget, tempRtDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_ScalingSetupTexture");
+                    Blit(cmd, m_Source, m_ScalingSetupTarget, m_Materials.scalingSetup);
 
-                    cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_UpscaleSetupTarget);
+                    cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_ScalingSetupTarget);
 
-                    sourceRtId = m_UpscaleSetupTarget;
+                    sourceRtId = m_ScalingSetupTarget;
                 }
 
-                switch (cameraData.imageScaling)
+                switch (cameraData.imageScalingMode)
                 {
-                    case ImageScaling.Upscaling:
+                    case ImageScalingMode.Upscaling:
                     {
                         // In the upscaling case, set material keywords based on the selected upscaling filter
                         // Note: If FSR is enabled, we go down this path regardless of the current render scale. We do this because
@@ -1525,7 +1525,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                         break;
                     }
 
-                    case ImageScaling.Downscaling:
+                    case ImageScalingMode.Downscaling:
                     {
                         // In the downscaling case, we don't perform any sort of filter override logic since we always want linear filtering
                         // and it's already the default option in the shader.
@@ -1590,7 +1590,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public readonly Material cameraMotionBlur;
             public readonly Material paniniProjection;
             public readonly Material bloom;
-            public readonly Material upscaleSetup;
+            public readonly Material scalingSetup;
             public readonly Material easu;
             public readonly Material uber;
             public readonly Material finalPass;
@@ -1605,7 +1605,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cameraMotionBlur = Load(data.shaders.cameraMotionBlurPS);
                 paniniProjection = Load(data.shaders.paniniProjectionPS);
                 bloom = Load(data.shaders.bloomPS);
-                upscaleSetup = Load(data.shaders.upscaleSetupPs);
+                scalingSetup = Load(data.shaders.scalingSetupPS);
                 easu = Load(data.shaders.easuPS);
                 uber = Load(data.shaders.uberPostPS);
                 finalPass = Load(data.shaders.finalPostPassPS);
@@ -1636,7 +1636,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.Destroy(cameraMotionBlur);
                 CoreUtils.Destroy(paniniProjection);
                 CoreUtils.Destroy(bloom);
-                CoreUtils.Destroy(upscaleSetup);
+                CoreUtils.Destroy(scalingSetup);
                 CoreUtils.Destroy(easu);
                 CoreUtils.Destroy(uber);
                 CoreUtils.Destroy(finalPass);

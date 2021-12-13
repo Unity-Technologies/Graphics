@@ -682,7 +682,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Image filter requested by the user for upscaling operations
+        /// Returns the upscaling filter desired by the user
+        /// Note: Filter selections differ from actual filters in that they may include "meta-filters" such as
+        ///       "Automatic" which resolve to an actual filter at a later time.
         /// </summary>
         public UpscalingFilterSelection upscalingFilter
         {
