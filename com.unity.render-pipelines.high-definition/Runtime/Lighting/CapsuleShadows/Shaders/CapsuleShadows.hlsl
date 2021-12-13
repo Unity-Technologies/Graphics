@@ -181,7 +181,7 @@ float EvaluateCapsuleShadow(
             if (IsMatchingLightLayer(s_capsuleData.lightLayers, renderLayer))
             {
                 float occlusion;
-                if (_CapsuleOccluderUseEllipsoid)
+                if (_CapsuleOccluderShadowMethod == CAPSULESHADOWMETHOD_ELLIPSOID)
                 {
                     // make everything relative to the surface
                     float3 surfaceToLightVec = lightPosOrAxis;
@@ -224,17 +224,34 @@ float EvaluateCapsuleShadow(
                     else
                         surfaceToLightDir = lightPosOrAxis;
 
-                    float3 directionWS = s_capsuleData.axisDirWS * s_capsuleData.offset;
-                    float3 surfaceToCapsule = s_capsuleData.centerRWS - directionWS - posInput.positionWS;
-                    float3 capsuleVec = 2.f*directionWS;
+                    float3 surfaceToCapsuleVec = s_capsuleData.centerRWS - posInput.positionWS;
+                    float3 capOffsetVec = s_capsuleData.axisDirWS * s_capsuleData.offset;
+                    float shearCosTheta = lightCosTheta;
 
-                    // occlude using closest sphere along this capsule
+                    if (_CapsuleOccluderShadowMethod == CAPSULESHADOWMETHOD_CAPSULE_WITH_SHEAR) {
+                        // shear the capsule along the light direction, to flatten when shadowing along length
+                        float3 zAxisDir = surfaceToLightDir;
+                        float axisDotZ = dot(s_capsuleData.axisDirWS, zAxisDir);
+                        float capsuleOffsetZ = axisDotZ*s_capsuleData.offset;
+                        float radiusOffsetZ = (axisDotZ < 0.f) ? (-s_capsuleData.radius) : s_capsuleData.radius;
+                        float edgeOffsetZ = radiusOffsetZ + capsuleOffsetZ;
+                        float zOffsetFactor = abs(axisDotZ)*capsuleOffsetZ/edgeOffsetZ;
+                        surfaceToCapsuleVec -= zAxisDir*(dot(surfaceToCapsuleVec, zAxisDir)*zOffsetFactor);
+                        capOffsetVec -= zAxisDir*(edgeOffsetZ*zOffsetFactor);
+
+                        // shear the light cone an equivalent amount
+                        float lightSinTheta2 = 1.f - lightCosTheta*lightCosTheta;
+                        shearCosTheta = lightCosTheta*(1.f - zOffsetFactor);
+                        shearCosTheta /= sqrt(shearCosTheta*shearCosTheta + lightSinTheta2);
+                    }
+
+                    // occlude using closest sphere along the sheared capsule
                     occlusion = ApproximateCapsuleOcclusion(
                         surfaceToLightDir,
-                        lightCosTheta,
+                        shearCosTheta,
                         maxDistance,
-                        surfaceToCapsule,
-                        capsuleVec,
+                        surfaceToCapsuleVec - capOffsetVec,
+                        2.f*capOffsetVec,
                         s_capsuleData.radius);
                 }
 

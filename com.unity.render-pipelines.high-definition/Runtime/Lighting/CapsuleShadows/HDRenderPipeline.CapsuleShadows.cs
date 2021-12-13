@@ -142,7 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ShaderVariablesCapsuleOccluders shaderVariables = new ShaderVariablesCapsuleOccluders
             {
                 _CapsuleOccluderCount = m_VisibleCapsuleOccluderData.Count,
-                _CapsuleOccluderUseEllipsoid = capsuleShadows.useEllipsoids.value ? 1 : 0,
+                _CapsuleOccluderShadowMethod = (int)capsuleShadows.shadowMethod.value,
             };
             ConstantBuffer.PushGlobal(cmd, shaderVariables, HDShaderIDs._ShaderVariablesCapsuleOccluders);
 

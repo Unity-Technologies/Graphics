@@ -6,11 +6,19 @@ using UnityEngine.UIElements;
 
 namespace UnityEngine.Rendering
 {
+    [GenerateHLSL]
+    public enum CapsuleShadowMethod
+    {
+        CapsuleWithShear,
+        Capsule,
+        Ellipsoid
+    }
+
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     public struct ShaderVariablesCapsuleOccluders
     {
         public int _CapsuleOccluderCount;
-        public int _CapsuleOccluderUseEllipsoid;
+        public int _CapsuleOccluderShadowMethod;
         public int _CapsuleOccluderPad0;
         public int _CapsuleOccluderPad1;
     }

@@ -1,7 +1,23 @@
 using System;
+using System.Diagnostics;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Capsule Shadow Method parameter.
+    /// </summary>
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class CapsuleShadowMethodParameter : VolumeParameter<CapsuleShadowMethod>
+    {
+        /// <summary>
+        /// Capsule Shadow Method parameter constructor.
+        /// </summary>
+        /// <param name="value">Capsule Shadow Method parameter.</param>
+        /// <param name="overrideState">Initial override state.</param>
+        public CapsuleShadowMethodParameter(CapsuleShadowMethod value, bool overrideState = false)
+            : base(value, overrideState) { }
+    }
+
     [Serializable, VolumeComponentMenuForRenderPipeline("Shadowing/Capsule Shadows", typeof(HDRenderPipeline))]
     public class CapsuleShadows : VolumeComponent
     {
@@ -11,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter enable = new BoolParameter(false);
 
         // TODO: move to settings/debug?
-        public BoolParameter useEllipsoids = new BoolParameter(false);
+        public CapsuleShadowMethodParameter shadowMethod = new CapsuleShadowMethodParameter(CapsuleShadowMethod.CapsuleWithShear);
 
         CapsuleShadows()
         {

@@ -4,11 +4,18 @@
 
 #ifndef CAPSULEOCCLUDER_CS_HLSL
 #define CAPSULEOCCLUDER_CS_HLSL
+//
+// UnityEngine.Rendering.CapsuleShadowMethod:  static fields
+//
+#define CAPSULESHADOWMETHOD_CAPSULE_WITH_SHEAR (0)
+#define CAPSULESHADOWMETHOD_CAPSULE (1)
+#define CAPSULESHADOWMETHOD_ELLIPSOID (2)
+
 // Generated from UnityEngine.Rendering.ShaderVariablesCapsuleOccluders
 // PackingRules = Exact
 CBUFFER_START(ShaderVariablesCapsuleOccluders)
     int _CapsuleOccluderCount;
-    int _CapsuleOccluderUseEllipsoid;
+    int _CapsuleOccluderShadowMethod;
     int _CapsuleOccluderPad0;
     int _CapsuleOccluderPad1;
 CBUFFER_END
