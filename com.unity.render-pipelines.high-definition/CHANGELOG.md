@@ -74,6 +74,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
 - Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
 - The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
+- Force enable Alpha To Coverage on all shaders with alpha test.
 
 ## [13.1.2] - 2021-11-05
 
