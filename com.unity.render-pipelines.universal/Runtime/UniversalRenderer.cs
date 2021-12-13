@@ -769,7 +769,8 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
                 m_RenderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
 
-                m_RenderOpaqueForwardPass.ConfigureClear(ClearFlag.All, Color.black);
+                if (SystemInfo.usesLoadStoreActions)
+                    m_RenderOpaqueForwardPass.ConfigureClear(ClearFlag.All, Color.black);
 
                 EnqueuePass(m_RenderOpaqueForwardPass);
             }
