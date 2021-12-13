@@ -27,7 +27,11 @@ namespace UnityEngine.Experimental.Rendering
                 Physics.queriesHitBackfaces = true;
 
                 AddOccluders();
-                ApplyVirtualOffsetsSingleThreaded(positions, out offsets, voSettings);
+
+                if (voSettings.useMultiThreadedOffset)
+                    ApplyVirtualOffsetsMultiThreaded(positions, out offsets, voSettings);
+                else
+                    ApplyVirtualOffsetsSingleThreaded(positions, out offsets, voSettings);
             }
             finally
             {
