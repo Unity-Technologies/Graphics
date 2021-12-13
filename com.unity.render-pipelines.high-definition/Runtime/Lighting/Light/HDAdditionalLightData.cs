@@ -3367,6 +3367,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="enabled"></param>
         public void EnableShadows(bool enabled) => legacyLight.shadows = enabled ? LightShadows.Soft : LightShadows.None;
 
+        internal bool ShadowsEnabled()
+        {
+            return legacyLight.shadows != LightShadows.None;
+        }
+
         /// <summary>
         /// Set the shadow resolution.
         /// </summary>

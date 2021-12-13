@@ -509,11 +509,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
 
-                if (m_DLSSPassEnabled && DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
+                if (DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
                 {
-                    TextureHandle colorBiasMask = DoDLSSColorMaskPass(renderGraph, hdCamera, depthBuffer);
-                    source = DoDLSSPass(renderGraph, hdCamera, inputColor, depthBuffer, motionVectors, colorBiasMask);
-                    SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
+                    source = DoDLSSPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors);
                 }
 
                 source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_GlobalSettings.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
@@ -539,6 +537,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, motionVectors, m_GlobalSettings.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, depthMinMaxAvgMSAA, prepassOutput.stencilBuffer);
+
+                if (m_DepthOfField.IsActive() && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
+                {
+                    RenderAccumulation(m_RenderGraph, hdCamera, source, source, false);
+                }
 
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
                 // blurred bokeh rather than out of focus motion blur)
@@ -566,6 +569,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 hdCamera.didResetPostProcessingHistoryInLastFrame = hdCamera.resetPostProcessingHistory;
 
                 hdCamera.resetPostProcessingHistory = false;
+            }
+            else
+            {
+                if (DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.BeforePost)
+                {
+                    source = DoDLSSPasses(renderGraph, hdCamera, source, depthBuffer, motionVectors);
+                }
             }
 
             if (DynamicResolutionHandler.instance.upsamplerSchedule == DynamicResolutionHandler.UpsamplerScheduleType.AfterPost)
@@ -666,6 +676,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public DLSSPass.Parameters parameters;
             public DLSSPass.CameraResourcesHandles resourceHandles;
+        }
+
+        TextureHandle DoDLSSPasses(RenderGraph renderGraph, HDCamera hdCamera,
+            TextureHandle source, TextureHandle depthBuffer, TextureHandle motionVectors)
+        {
+            if (!m_DLSSPassEnabled)
+                return source;
+
+            TextureHandle colorBiasMask = DoDLSSColorMaskPass(renderGraph, hdCamera, depthBuffer);
+            source = DoDLSSPass(renderGraph, hdCamera, source, depthBuffer, motionVectors, colorBiasMask);
+            SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
+            return source;
         }
 
         TextureHandle DoDLSSPass(
@@ -2699,9 +2721,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // The sensor scale is used to convert the CoC size from mm to screen pixels
                     float sensorScale;
                     if (dofParameters.camera.camera.gateFit == Camera.GateFitMode.Horizontal)
-                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.x) * dofParameters.camera.camera.pixelWidth;
+                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.x) * dofParameters.camera.actualWidth;
                     else
-                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.y) * dofParameters.camera.camera.pixelHeight;
+                        sensorScale = (0.5f / dofParameters.camera.camera.sensorSize.y) * dofParameters.camera.actualHeight;
 
                     // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
                     // Note: Focus distance is in meters, but focalLength and sensor size are in mm.
@@ -2867,8 +2889,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool postDoFTAAEnabled = false;
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
-            bool taaEnabled = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+            bool stabilizeCoC = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
             bool isOrtho = hdCamera.camera.orthographic;
+
+            // If DLSS is enabled, we need to stabilize the CoC buffer (because the upsampled depth is jittered)
+            if (m_DLSSPassEnabled)
+                stabilizeCoC = true;
 
             // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
             bool isDoFPathTraced = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
@@ -2882,7 +2908,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
                 // Note: for Rendergraph the m_IsDoFHisotoryValid perhaps should be moved to the "pass data" struct
-                if (taaEnabled && hdCamera.dofHistoryIsValid != m_DepthOfField.physicallyBased)
+                if (stabilizeCoC && hdCamera.dofHistoryIsValid != m_DepthOfField.physicallyBased)
                 {
                     hdCamera.resetPostProcessingHistory = true;
                 }
@@ -2911,7 +2937,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "DoF Destination");
                     passData.destination = builder.WriteTexture(dest);
                     passData.motionVecTexture = builder.ReadTexture(motionVectors);
-                    passData.taaEnabled = taaEnabled;
+                    passData.taaEnabled = stabilizeCoC;
 
                     if (!m_DepthOfField.physicallyBased)
                     {
@@ -3062,7 +3088,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // When physically based DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and then after DoF to accumulate more aperture samples
-                if (taaEnabled && m_DepthOfField.physicallyBased)
+                if (stabilizeCoC && m_DepthOfField.physicallyBased)
                 {
                     source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, stencilTexture, postDoF: true, "Post-DoF TAA Destination");
                     hdCamera.dofHistoryIsValid = true;
@@ -3171,7 +3197,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
                     passData.viewport = postProcessViewportSize;
                     passData.hdCamera = hdCamera;
-                    passData.depthBuffer = depthBuffer;
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.occlusion = builder.ReadTexture(occlusionHandle);
 
                     TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Lens Flare Destination");
@@ -3199,7 +3225,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.parameters.skipCopy);
                         });
 
-                    PushFullScreenDebugTexture(renderGraph, source, FullScreenDebugMode.LensFlareDataDriven);
+                    PushFullScreenDebugTexture(renderGraph, source, hdCamera.postProcessRTScales, FullScreenDebugMode.LensFlareDataDriven);
                 }
             }
 
@@ -3594,6 +3620,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !hdCamera.resetPostProcessingHistory && m_MotionBlurFS)
             {
+                // If we are in XR we need to check if motion blur is allowed at all.
+                if (hdCamera.xr.enabled)
+                {
+                    if (!m_Asset.currentPlatformRenderPipelineSettings.xrSettings.allowMotionBlur)
+                        return source;
+                }
+
                 using (var builder = renderGraph.AddRenderPass<MotionBlurData>("Motion Blur", out var passData, ProfilingSampler.Get(HDProfileId.MotionBlur)))
                 {
                     PrepareMotionBlurPassData(renderGraph, builder, passData, hdCamera, source, motionVectors, depthTexture);
@@ -4280,7 +4313,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var currentGradingHash = ComputeLUTHash();
 
             // The lut we have already is ok.
-            if (currentGradingHash == m_LutHash)
+            if (currentGradingHash == m_LutHash &&
+                !m_Curves.AnyPropertiesIsOverridden()) // Curves content are not hashed, to compute the hash of the curves would probably be more expensive than actually running the LUT pass. So we just check if the project is using anything but the default
                 return logLut;
 
             // Else we update the hash and we recompute the LUT.
@@ -4875,6 +4909,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool keepAlpha;
             public bool dynamicResIsOn;
             public DynamicResUpscaleFilter dynamicResFilter;
+            public GlobalDynamicResolutionSettings drsSettings;
 
             public bool filmGrainEnabled;
             public Texture filmGrainTexture;
@@ -4912,6 +4947,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.keepAlpha = m_KeepAlpha;
                 passData.dynamicResIsOn = hdCamera.canDoDynamicResolution && hdCamera.DynResRequest.enabled;
                 passData.dynamicResFilter = hdCamera.DynResRequest.filter;
+                passData.drsSettings = currentAsset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
                 passData.useFXAA = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.FastApproximateAntialiasing && !passData.dynamicResIsOn && m_AntialiasingFS;
 
                 // Film Grain
@@ -4968,8 +5004,26 @@ namespace UnityEngine.Rendering.HighDefinition
                                         // The RCAS half of the FSR technique (EASU + RCAS) is merged into FinalPass instead of
                                         // running it inside a separate compute shader. This allows us to avoid an additional
                                         // round-trip through memory which improves performance.
-                                        finalPassMaterial.EnableKeyword("RCAS");
-                                        FSRUtils.SetRcasConstants(ctx.cmd);
+
+                                        float sharpness = FSRUtils.kDefaultSharpnessLinear;
+
+                                        // Only consider custom sharpness values if the top-level pipeline override is enabled
+                                        if (data.drsSettings.fsrOverrideSharpness)
+                                        {
+                                            // Use the override value specified in the camera if it's available, otherwise use the value from the pipeline asset.
+                                            sharpness = data.hdCamera.fsrOverrideSharpness ? data.hdCamera.fsrSharpness : data.drsSettings.fsrSharpness;
+                                        }
+
+                                        // When the sharpness value is zero, we can skip the RCAS logic since it won't make a visible difference.
+                                        if (sharpness > 0.0)
+                                        {
+                                            finalPassMaterial.EnableKeyword("RCAS");
+                                            FSRUtils.SetRcasConstantsLinear(ctx.cmd, sharpness);
+                                        }
+                                        else
+                                        {
+                                            finalPassMaterial.EnableKeyword("BYPASS");
+                                        }
                                         break;
                                 }
                             }

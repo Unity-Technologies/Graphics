@@ -583,7 +583,12 @@ namespace UnityEngine.Rendering.Universal
             depthOnly = depth;
             renderTargetFormat[0] = format;
         }
+        internal void ConfigureTarget(RTHandle colorAttachment, RTHandle depthAttachment, GraphicsFormat format, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
+        {
+            ConfigureTarget(colorAttachment, format, width, height, sampleCount, depth);
+            m_DepthAttachment = depthAttachment;
 
+        }
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.

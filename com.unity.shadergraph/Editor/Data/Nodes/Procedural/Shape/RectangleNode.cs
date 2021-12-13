@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph
 {
     $precision2 d = abs(UV * 2 - 1) - $precision2(Width, Height);
 #if defined(SHADER_STAGE_RAY_TRACING)
-    d = saturate((1 - saturate(d * FLT_MAX)));
+    d = saturate((1 - saturate(d * 1e7)));
 #else
     d = saturate(1 - d / fwidth(d));
 #endif
@@ -80,8 +80,8 @@ namespace UnityEditor.ShaderGraph
     UV = UV * 2.0 - 1.0;
     $precision2 w = $precision2(Width, Height);     // rectangle width/height
 #if defined(SHADER_STAGE_RAY_TRACING)
-    $precision2 o = saturate(0.5f + FLT_MAX * (w - abs(UV)));
-    o = min(o, FLT_MAX * w * 2.0f);
+    $precision2 o = saturate(0.5f + 1e7 * (w - abs(UV)));
+    o = min(o, 1e7 * w * 2.0f);
 #else
     $precision2 f = min(fwidth(UV), 0.5f);
     $precision2 k = 1.0f / f;
