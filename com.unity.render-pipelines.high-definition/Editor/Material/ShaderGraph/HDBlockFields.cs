@@ -118,6 +118,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor IrisRadius = new BlockFieldDescriptor(SurfaceDescription.name, "IrisRadius", "SURFACEDESCRIPTION_IRISRADIUS",
                 new FloatControl(0.1f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor CausticIntensity = new BlockFieldDescriptor(SurfaceDescription.name, "CausticIntensity", "SURFACEDESCRIPTION_CAUSTICINTENSITY",
+                new FloatControl(1.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor CausticBlend = new BlockFieldDescriptor(SurfaceDescription.name, "CausticBlend", "SURFACEDESCRIPTION_CAUSTICBLEND",
+                new FloatControl(1.0f), ShaderStage.Fragment);
 
             // --------------------------------------------------
             // Hair

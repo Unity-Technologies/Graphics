@@ -31,6 +31,8 @@
 #define DEBUGVIEW_EYE_SURFACEDATA_SUBSURFACE_MASK (1514)
 #define DEBUGVIEW_EYE_SURFACEDATA_HEIGHT_OF_THE_IRIS_FROM_ORIGO_(OS) (1515)
 #define DEBUGVIEW_EYE_SURFACEDATA_IRIS_RADIUS (1516)
+#define DEBUGVIEW_EYE_SURFACEDATA_CAUSTIC_INTENSITY_MULTIPLIER (1517)
+#define DEBUGVIEW_EYE_SURFACEDATA_BLENDING_FACTOR_BETWEEN_CAUSTIC_AND_NORMAL_DIFFUSE (1518)
 
 //
 // UnityEngine.Rendering.HighDefinition.Eye+BSDFData:  static fields
@@ -51,9 +53,11 @@
 #define DEBUGVIEW_EYE_BSDFDATA_MASK (1563)
 #define DEBUGVIEW_EYE_BSDFDATA_IRIS_HEIGHT (1564)
 #define DEBUGVIEW_EYE_BSDFDATA_IRIS_RADIUS (1565)
-#define DEBUGVIEW_EYE_BSDFDATA_DIFFUSION_PROFILE_INDEX (1566)
-#define DEBUGVIEW_EYE_BSDFDATA_SUBSURFACE_MASK (1567)
-#define DEBUGVIEW_EYE_BSDFDATA_ROUGHNESS (1568)
+#define DEBUGVIEW_EYE_BSDFDATA_CAUSTIC_INTENSITY (1566)
+#define DEBUGVIEW_EYE_BSDFDATA_CAUSTIC_BLEND (1567)
+#define DEBUGVIEW_EYE_BSDFDATA_DIFFUSION_PROFILE_INDEX (1568)
+#define DEBUGVIEW_EYE_BSDFDATA_SUBSURFACE_MASK (1569)
+#define DEBUGVIEW_EYE_BSDFDATA_ROUGHNESS (1570)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Eye+SurfaceData
 // PackingRules = Exact
@@ -73,6 +77,8 @@ struct SurfaceData
     float subsurfaceMask;
     float irisHeight;
     float irisRadius;
+    float causticIntensity;
+    float causticBlend;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.Eye+BSDFData
@@ -92,6 +98,8 @@ struct BSDFData
     float2 mask;
     float irisHeight;
     float irisRadius;
+    float causticIntensity;
+    float causticBlend;
     uint diffusionProfileIndex;
     float subsurfaceMask;
     float roughness;
@@ -158,6 +166,12 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_EYE_SURFACEDATA_IRIS_RADIUS:
             result = surfacedata.irisRadius.xxx;
             break;
+        case DEBUGVIEW_EYE_SURFACEDATA_CAUSTIC_INTENSITY_MULTIPLIER:
+            result = surfacedata.causticIntensity.xxx;
+            break;
+        case DEBUGVIEW_EYE_SURFACEDATA_BLENDING_FACTOR_BETWEEN_CAUSTIC_AND_NORMAL_DIFFUSE:
+            result = surfacedata.causticBlend.xxx;
+            break;
     }
 }
 
@@ -216,6 +230,12 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_EYE_BSDFDATA_IRIS_RADIUS:
             result = bsdfdata.irisRadius.xxx;
+            break;
+        case DEBUGVIEW_EYE_BSDFDATA_CAUSTIC_INTENSITY:
+            result = bsdfdata.causticIntensity.xxx;
+            break;
+        case DEBUGVIEW_EYE_BSDFDATA_CAUSTIC_BLEND:
+            result = bsdfdata.causticBlend.xxx;
             break;
         case DEBUGVIEW_EYE_BSDFDATA_DIFFUSION_PROFILE_INDEX:
             result = GetIndexColor(bsdfdata.diffusionProfileIndex);

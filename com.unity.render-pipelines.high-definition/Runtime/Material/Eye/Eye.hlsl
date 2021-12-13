@@ -163,6 +163,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     bsdfData.irisHeight = surfaceData.irisHeight;
     bsdfData.irisRadius = surfaceData.irisRadius;
+    bsdfData.causticIntensity = surfaceData.causticIntensity;
+    bsdfData.causticBlend = surfaceData.causticBlend;
 
     ApplyDebugToBSDFData(bsdfData);
 
@@ -340,7 +342,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         float3 refrOS = TransformWorldToObjectDir(refract(-V, N, 1.0 / bsdfData.IOR));
 
         float t = max(posOS.z - bsdfData.irisHeight, 0.f) / max(-refrOS.z, 1e-5f);
-        
+
         float3 irisPositionOS = posOS + refrOS * t;
         preLightData.irisPlanePosition = irisPositionOS.xy / bsdfData.irisRadius;
     }
@@ -504,21 +506,21 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_CINEMATIC))
     {
-        
+
         float c = bsdfData.mask.x;
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_CAUSTIC_FROM_LUT))
         {
             float3 lightPosOS = TransformWorldToObjectDir(-lightData.forward) * 1000.f;
-            c = ComputeCausticFromLUT(preLightData.irisPlanePosition, bsdfData.irisHeight, lightPosOS);
+            c = ComputeCausticFromLUT(preLightData.irisPlanePosition, bsdfData.irisHeight, lightPosOS, bsdfData.causticIntensity);
         }
-        
+
         // Evaluate a second time the light but for a different position and for diffuse only.
         LightEyeTransform(posInput, bsdfData, lightData.positionRWS, lightData.forward, lightData.right, lightData.up);
 
         DirectLighting dlIris = ShadeSurface_Directional(   lightLoopContext, posInput, builtinData,
                                                             preLightData, lightData, bsdfData, V);
 
-        float3 caustic = dlIris.diffuse * c;
+        float3 caustic = ApplyCausticToDiffuse(dlIris.diffuse, c, bsdfData.mask.x, bsdfData.causticBlend);
         dl.diffuse = (1.f - bsdfData.mask.x) * dl.diffuse + caustic;
     }
     else
@@ -548,16 +550,16 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         float c = bsdfData.mask.x;
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_CAUSTIC_FROM_LUT))
         {
-            c = ComputeCausticFromLUT(preLightData.irisPlanePosition, bsdfData.irisHeight, TransformWorldToObject(lightData.positionRWS));
+            c = ComputeCausticFromLUT(preLightData.irisPlanePosition, bsdfData.irisHeight, TransformWorldToObject(lightData.positionRWS), bsdfData.causticIntensity);
         }
-        
+
         // Evaluate a second time the light but for a different position and for diffuse only.
         LightEyeTransform(posInput, bsdfData, lightData.positionRWS, lightData.forward, lightData.right, lightData.up);
 
         DirectLighting dlIris = ShadeSurface_Punctual(  lightLoopContext, posInput, builtinData,
                                                         preLightData, lightData, bsdfData, V);
-        
-        float3 caustic = dlIris.diffuse * c;
+
+        float3 caustic = ApplyCausticToDiffuse(dlIris.diffuse, c, bsdfData.mask.x, bsdfData.causticBlend);
         dl.diffuse = (1.f - bsdfData.mask.x) * dl.diffuse + caustic;
     }
     else
@@ -748,9 +750,9 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
         float c = bsdfData.mask.x;
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_EYE_CAUSTIC_FROM_LUT))
         {
-            c = ComputeCausticFromLUT(preLightData.irisPlanePosition, bsdfData.irisHeight, TransformWorldToObject(lightData.positionRWS));
+            c = ComputeCausticFromLUT(preLightData.irisPlanePosition, bsdfData.irisHeight, TransformWorldToObject(lightData.positionRWS), bsdfData.causticIntensity);
         }
-        
+
         LightEyeTransform(posInput, bsdfData, lightData.positionRWS, lightData.forward, lightData.right, lightData.up);
 
         DirectLighting dl2;
@@ -762,8 +764,8 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
         {
             dl2 = EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
         }
-        
-        float3 caustic = dl2.diffuse * c;
+
+        float3 caustic = ApplyCausticToDiffuse(dl2.diffuse, c, bsdfData.mask.x, bsdfData.causticBlend);
         dl.diffuse = (1.f - bsdfData.mask.x) * dl.diffuse + caustic;
     }
 
