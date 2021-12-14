@@ -150,14 +150,21 @@ static const uint kDOTSInstancingFlagCameraMotion     = (1 << 2); // Object uses
 static const uint kDOTSInstancingFlagHasPrevPosition  = (1 << 3); // Object has a separate previous frame position vertex streams (e.g. for deformed objects)
 static const uint kDOTSInstancingFlagMainLightEnabled = (1 << 4); // Object should receive direct lighting from the main light (e.g. light not baked into lightmap)
 
+static DOTSVisibleData unity_SampledDOTSVisibleData;
+
+void SetupDOTSVisibleInstancingData()
+{
+    unity_SampledDOTSVisibleData = unity_DOTSVisibleInstances[unity_InstanceID];
+}
+
 uint GetDOTSInstanceIndex()
 {
-    return unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.x;
+    return unity_SampledDOTSVisibleData.VisibleData.x;
 }
 
 int GetDOTSInstanceCrossfadeSnorm8()
 {
-    return unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.y;
+    return unity_SampledDOTSVisibleData.VisibleData.y;
 }
 
 bool IsDOTSInstancedProperty(uint metadata)
@@ -286,24 +293,24 @@ float2x4 LoadDOTSInstancedData_float2x4(float2x4 default_value, uint metadata)
 
 float4  LoadDOTSInstancedData_RenderingLayer()
 {
-    return float4(asfloat(unity_DOTSVisibleInstances[0].VisibleData.z), 0,0,0);
+    return float4(asfloat(unity_SampledDOTSVisibleData.VisibleData.z), 0,0,0);
 }
 
 float4 LoadDOTSInstancedData_MotionVectorsParams()
 {
-    uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
+    uint flags = unity_SampledDOTSVisibleData.VisibleData.w;
     return float4(0, flags & kDOTSInstancingFlagForceZeroMotion ? 0.0f : 1.0f, -0.001f, flags & kDOTSInstancingFlagCameraMotion ? 0.0f : 1.0f);
 }
 
 float4 LoadDOTSInstancedData_WorldTransformParams()
 {
-    uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
+    uint flags = unity_SampledDOTSVisibleData.VisibleData.w;
     return float4(0, 0, 0, flags & kDOTSInstancingFlagFlipWinding ? -1.0f : 1.0f);
 }
 
 float4 LoadDOTSInstancedData_LightData()
 {
-    uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
+    uint flags = unity_SampledDOTSVisibleData.VisibleData.w;
     // X channel = light start index (not supported in DOTS instancing)
     // Y channel = light count (not supported in DOTS instancing)
     // Z channel = main light strength

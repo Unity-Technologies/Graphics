@@ -239,6 +239,11 @@
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityDOTSInstancing.hlsl"
 
+    #if defined(UNITY_SETUP_INSTANCE_ID) && defined(DOTS_INSTANCING_ON)
+        #undef UNITY_SETUP_INSTANCE_ID
+        #define UNITY_SETUP_INSTANCE_ID(input) { DEFAULT_UNITY_SETUP_INSTANCE_ID(input); SetupDOTSVisibleInstancingData(); }
+    #endif
+
 #else
     #define UNITY_INSTANCING_BUFFER_START(buf)      UNITY_INSTANCING_CBUFFER_SCOPE_BEGIN(UnityInstancing_##buf) struct {
     #define UNITY_INSTANCING_BUFFER_END(arr)        } arr##Array[UNITY_INSTANCED_ARRAY_SIZE]; UNITY_INSTANCING_CBUFFER_SCOPE_END
