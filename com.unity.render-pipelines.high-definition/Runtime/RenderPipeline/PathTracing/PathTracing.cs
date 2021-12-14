@@ -224,15 +224,15 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             switch (m_PathTracingSettings.skyImportanceSampling.value)
             {
-            case SkyImportanceSamplingMode.On:
-                return true;
+                case SkyImportanceSamplingMode.On:
+                    return true;
 
-            case SkyImportanceSamplingMode.Off:
-                return false;
+                case SkyImportanceSamplingMode.Off:
+                    return false;
 
-            default: // HDRI Only
-                var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-                return visualEnvironment.skyType.value == (int)SkyType.HDRI;
+                default: // HDRI Only
+                    var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
+                    return visualEnvironment.skyType.value == (int)SkyType.HDRI;
             }
         }
 

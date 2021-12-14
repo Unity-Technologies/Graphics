@@ -243,7 +243,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 }
 
                 // Apply material absorption
-                nextPathIntersection.value = ApplyAbsorption(mtlData, surfaceData, nextPathIntersection.t, isSampleBelow, nextPathIntersection.value);        
+                nextPathIntersection.value = ApplyAbsorption(mtlData, surfaceData, nextPathIntersection.t, isSampleBelow, nextPathIntersection.value);
 
                 pathIntersection.value += value * rrFactor * nextPathIntersection.value;
             }
