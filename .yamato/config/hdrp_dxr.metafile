@@ -20,7 +20,7 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:stable
+        image: graphics-qa/win10-gfx-katana:v1.0.0-771581
         flavor: b1.large
         model: rtx2080
 
