@@ -221,6 +221,8 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty opaqueCullMode = null;
         MaterialProperty rayTracing = null;
 
+        SerializedProperty renderQueueProperty = null;
+
         SurfaceType defaultSurfaceType { get { return SurfaceType.Opaque; } }
 
         // start faking MaterialProperty for renderQueue
@@ -364,6 +366,8 @@ namespace UnityEditor.Rendering.HighDefinition
             rayTracing = FindProperty(kRayTracing);
 
             refractionModel = FindProperty(kRefractionModel);
+
+            renderQueueProperty = materialEditor.serializedObject.FindProperty("m_CustomRenderQueue");
         }
 
         /// <summary>
@@ -541,7 +545,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (shaderHasBackThenFrontPass && transparentBackfaceEnable != null)
                     materialEditor.ShaderProperty(transparentBackfaceEnable, Styles.transparentBackfaceEnableText);
 
-                if ((m_Features & Features.ShowPrePassAndPostPass) != 0)
+                if ((m_Features & Features.ShowPrePassAndPostPass) != 0 && !HDRenderQueue.k_RenderQueue_LowTransparent.Contains(renderQueue))
                 {
                     bool shaderHasDepthPrePass = materials.All(m => m.FindPass(HDShaderPassNames.s_TransparentDepthPrepassStr) != -1);
                     if (shaderHasDepthPrePass && transparentDepthPrepassEnable != null)
@@ -552,10 +556,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         materialEditor.ShaderProperty(transparentDepthPostpassEnable, Styles.transparentDepthPostpassEnableText);
                 }
 
-                if (transparentWritingMotionVec != null)
+                if (transparentWritingMotionVec != null && !HDRenderQueue.k_RenderQueue_LowTransparent.Contains(renderQueue))
                     materialEditor.ShaderProperty(transparentWritingMotionVec, Styles.transparentWritingMotionVecText);
 
-                if (transparentZWrite != null)
+                if (transparentZWrite != null && !HDRenderQueue.k_RenderQueue_LowTransparent.Contains(renderQueue))
                     materialEditor.ShaderProperty(transparentZWrite, Styles.zWriteEnableText);
 
                 if (zTest != null)
@@ -632,6 +636,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox(Styles.transparentSSSErrorMessage, MessageType.Error);
             }
 
+            MaterialEditor.BeginProperty(renderQueueProperty);
             switch (mode)
             {
                 case SurfaceType.Opaque:
@@ -667,6 +672,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 default:
                     throw new ArgumentException("Unknown SurfaceType");
             }
+            MaterialEditor.EndProperty();
+
             --EditorGUI.indentLevel;
             EditorGUI.showMixedValue = false;
 
@@ -754,7 +761,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(supportDecals, Styles.supportDecalsText);
             }
 
-            if (receivesSSR != null && receivesSSRTransparent != null)
+            if (receivesSSR != null && receivesSSRTransparent != null && !HDRenderQueue.k_RenderQueue_LowTransparent.Contains(renderQueue))
             {
                 // Based on the surface type, display the right recieveSSR option
                 if (surfaceTypeValue == SurfaceType.Transparent)
@@ -837,6 +844,7 @@ namespace UnityEditor.Rendering.HighDefinition
             int mode = (int)GetFilteredDisplacementMode(prop);
             bool mixed = HasMixedDisplacementMode(prop);
 
+            MaterialEditor.BeginProperty(prop);
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = mixed;
             int newMode = EditorGUILayout.IntPopup(label, mode, displayedOptions, optionValues);
@@ -846,6 +854,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.RegisterPropertyChangeUndo(label.text);
                 prop.floatValue = newMode;
             }
+            MaterialEditor.EndProperty();
 
             return (DisplacementMode)newMode;
         }

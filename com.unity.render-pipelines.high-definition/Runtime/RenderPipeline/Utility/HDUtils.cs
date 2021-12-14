@@ -905,7 +905,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Post process pass is the final blit only when not in developer mode.
             // In developer mode, we support a range of debug rendering that needs to occur after post processes.
             // In order to simplify writing them, we don't Y-flip in the post process pass but add a final blit at the end of the frame.
-            return !Debug.isDebugBuild && !WillCustomPassBeExecuted(hdCamera, CustomPassInjectionPoint.AfterPostProcess);
+            return !Debug.isDebugBuild && !WillCustomPassBeExecuted(hdCamera, CustomPassInjectionPoint.AfterPostProcess) && !hdCamera.hasCaptureActions;
         }
 
         // These two convertion functions are used to store GUID assets inside materials,
@@ -1178,6 +1178,51 @@ namespace UnityEngine.Rendering.HighDefinition
             ComponentSingleton<HDAdditionalReflectionData>.Release();
             ComponentSingleton<HDAdditionalLightData>.Release();
             ComponentSingleton<HDAdditionalCameraData>.Release();
+        }
+
+        internal static float InterpolateOrientation(float fromValue, float toValue, float t)
+        {
+            // Compute the direct distance
+            float directDistance = Mathf.Abs(toValue - fromValue);
+            float outputValue = 0.0f;
+
+            // Handle the two cases
+            if (fromValue < toValue)
+            {
+                float upperRange = 360.0f - toValue;
+                float lowerRange = fromValue;
+                float alternativeDistance = upperRange + lowerRange;
+                if (alternativeDistance < directDistance)
+                {
+                    float targetValue = toValue - 360.0f;
+                    outputValue = fromValue + (targetValue - fromValue) * t;
+                    if (outputValue < 0.0f)
+                        outputValue += 360.0f;
+                }
+                else
+                {
+                    outputValue = fromValue + (toValue - fromValue) * t;
+                }
+            }
+            else
+            {
+                float upperRange = 360.0f - fromValue;
+                float lowerRange = toValue;
+                float alternativeDistance = upperRange + lowerRange;
+                if (alternativeDistance < directDistance)
+                {
+                    float targetValue = toValue + 360.0f;
+                    outputValue = fromValue + (targetValue - fromValue) * t;
+                    if (outputValue > 360.0f)
+                        outputValue -= 360.0f;
+                }
+                else
+                {
+                    outputValue = fromValue + (toValue - fromValue) * t;
+                }
+            }
+
+            return outputValue;
         }
     }
 }
