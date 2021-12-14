@@ -824,9 +824,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct NeighborAxisLookup : IComparable<NeighborAxisLookup>
         {
-            public int index;
-            public float sgWeight;
             public Vector3 neighborDirection;
+            public float sgWeight;
+            public int index;
 
             public NeighborAxisLookup(int index, float sgWeight, Vector3 neighborDirection)
             {
