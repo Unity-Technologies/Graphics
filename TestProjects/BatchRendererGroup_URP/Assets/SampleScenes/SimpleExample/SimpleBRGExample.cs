@@ -26,6 +26,8 @@ public class SimpleBRGExample : MonoBehaviour
     private GraphicsBuffer m_VB;
     private GraphicsBuffer m_IB;
 
+    private GraphicsBuffer m_IndirectBuffer;
+
     // Some helper constants to make calculations later a bit more convenient.
     private const int kSizeOfMatrix = sizeof(float) * 4 * 4;
     private const int kSizeOfPackedMatrix = sizeof(float) * 4 * 3;
@@ -93,6 +95,15 @@ public class SimpleBRGExample : MonoBehaviour
         material.SetBuffer("VertexBuffer", m_VB);
         material.SetInteger("VertexBufferOffset", offset);
         material.SetInteger("VertexBufferStride", stride);
+
+        m_IndirectBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 1, GraphicsBuffer.IndirectDrawIndexedArgs.size);
+        var args = new GraphicsBuffer.IndirectDrawIndexedArgs[1];
+        args[0].indexCountPerInstance = (uint)m_IB.count;
+        args[0].instanceCount = kNumInstances;
+        args[0].startIndex = 0;
+        args[0].baseVertexIndex = 0;
+        args[0].startInstance = 0;
+        m_IndirectBuffer.SetData(args);
 
         // Create the BatchRendererGroup and register assets
         m_BRG = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
@@ -187,6 +198,7 @@ public class SimpleBRGExample : MonoBehaviour
     {
         m_InstanceData.Dispose();
         m_BRG.Dispose();
+        m_IndirectBuffer.Dispose();
         m_IB.Dispose();
         m_VB.Dispose();
     }
@@ -232,20 +244,17 @@ public class SimpleBRGExample : MonoBehaviour
         // Configure our single draw command to draw kNumInstances instances
         // starting from offset 0 in the array, using the batch, material and mesh
         // IDs that we registered in the Start() method. No special flags are set.
-        drawCommands->drawCommands[0].flags = BatchDrawCommandFlags.Procedural | BatchDrawCommandFlags.Indexed;
+        drawCommands->drawCommands[0].flags = BatchDrawCommandFlags.Procedural | BatchDrawCommandFlags.Indirect | BatchDrawCommandFlags.Indexed;
         drawCommands->drawCommands[0].visibleOffset = 0;
         drawCommands->drawCommands[0].visibleCount = kNumInstances;
         drawCommands->drawCommands[0].batchID = m_BatchID;
         drawCommands->drawCommands[0].materialID = m_MaterialID;
-        drawCommands->drawCommands[0].procedural = new BatchDrawCommandProcedural
+        drawCommands->drawCommands[0].proceduralIndirect = new BatchDrawCommandProceduralIndirect
         {
             indexBufferHandle = m_IB.bufferHandle,
-            indexCount = (uint)m_IB.count,
-            indexOffset = 0,
+            indirectBufferHandle = m_IndirectBuffer.bufferHandle,
+            indirectBufferOffset = 0,
             topology = MeshTopology.Triangles,
-            vertexCount = 0,
-            vertexOffset = 0,
-
         };
         drawCommands->drawCommands[0].splitVisibilityMask = 0xff;
         drawCommands->drawCommands[0].sortingPosition = 0;
