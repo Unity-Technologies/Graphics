@@ -109,13 +109,7 @@ namespace UnityEditor.VFX
                 DisplayToggle(UpdateStyles.reapParticles, m_ReapParticlesProperty, reapParticles, false);
             DisplayToggle(UpdateStyles.skipZeroDeltaTime, m_SkipZeroDeltaTimeProperty, skipZeroDeltaTimeUpdate, false);
 
-            if (serializedObject.ApplyModifiedProperties())
-            {
-                foreach (var context in targets.OfType<VFXBasicUpdate>())
-                {
-                    context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
-                }
-            }
+            ApplyAndInvalidate();
 
             DisplaySummary();
         }

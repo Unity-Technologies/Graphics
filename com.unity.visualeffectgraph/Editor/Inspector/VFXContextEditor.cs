@@ -272,6 +272,29 @@ class VFXContextEditor : VFXSlotContainerEditor
     {
     }
 
+    protected void ApplyAndInvalidate()
+    {
+        bool invalidate = false;
+
+        if (serializedObject != null && serializedObject.ApplyModifiedProperties())
+            invalidate = true;
+
+        if (dataObject != null && dataObject.ApplyModifiedProperties())
+            invalidate = true;
+
+        if (srpSubOutputObject != null && srpSubOutputObject.ApplyModifiedProperties())
+            invalidate = true;
+
+        if (invalidate)
+        {
+            foreach (VFXContext ctx in targets.OfType<VFXContext>())
+            {
+                // notify that something changed, this will also invalidate contexts.
+                ctx.GetData().Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+            }
+        }
+    }
+
     public override void OnInspectorGUI()
     {
         if (dataObject != null)
@@ -284,15 +307,8 @@ class VFXContextEditor : VFXSlotContainerEditor
 
         base.OnInspectorGUI();
 
-        bool invalidateContext = (dataObject != null && dataObject.ApplyModifiedProperties()) || (srpSubOutputObject != null && srpSubOutputObject.ApplyModifiedProperties());
-        if (invalidateContext)
-        {
-            foreach (VFXContext ctx in targets.OfType<VFXContext>())
-            {
-                // notify that something changed.
-                ctx.GetData().Invalidate(VFXModel.InvalidationCause.kSettingChanged); // This will also invalidate contexts
-            }
-        }
+        ApplyAndInvalidate();
+
         DisplayWarnings();
         DisplaySummary();
     }
