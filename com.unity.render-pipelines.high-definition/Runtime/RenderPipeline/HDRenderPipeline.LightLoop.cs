@@ -1283,15 +1283,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             var cs = data.ssrCS;
 
-                            if (data.accumNeedClear || data.debugDisplaySpeed)
-                                CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccum, ClearFlag.Color, Color.clear);
-                            if (data.previousAccumNeedClear || data.debugDisplaySpeed)
-                                CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
-
                             if (!data.usePBRAlgo)
                                 ctx.cmd.EnableShaderKeyword("SSR_APPROX");
                             else
+                            {
+                                if (data.accumNeedClear || data.debugDisplaySpeed)
+                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccum, ClearFlag.Color, Color.clear);
+                                if (data.previousAccumNeedClear || data.debugDisplaySpeed)
+                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
+
                                 ctx.cmd.DisableShaderKeyword("SSR_APPROX");
+                            }
 
                             if (data.transparentSSR)
                                 ctx.cmd.EnableShaderKeyword("DEPTH_SOURCE_NOT_FROM_MIP_CHAIN");
