@@ -1326,17 +1326,15 @@ namespace UnityEngine.Experimental.Rendering
                 viewBias *= MinDistanceBetweenProbes();
             }
 
+            var minCellPos = m_CellIndices.GetCellMinPosition();
+            var indexDim = m_CellIndices.GetCellIndexDimension();
+            var poolDim = m_Pool.GetPoolDimensions();
+
             ShaderVariablesProbeVolumes shaderVars;
-            shaderVars._NormalBias = normalBias;
-            shaderVars._PoolDim = m_Pool.GetPoolDimensions();
-            shaderVars._ViewBias = viewBias;
-            shaderVars._PVSamplingNoise = parameters.samplingNoise;
-            shaderVars._CellInMinBricks = (int)Mathf.Pow(3, m_MaxSubdivision - 1);
-            shaderVars._CellIndicesDim = m_CellIndices.GetCellIndexDimension();
-            shaderVars._MinCellPosition = m_CellIndices.GetCellMinPosition();
-            shaderVars._MinBrickSize = MinBrickSize();
-            shaderVars._IndexChunkSize = ProbeBrickIndex.kIndexChunkSize;
-            shaderVars._CellInMeters = MaxBrickSize();
+            shaderVars._Biases_CellInMinBrick_MinBrickSize = new Vector4(normalBias, viewBias, (int)Mathf.Pow(3, m_MaxSubdivision - 1), MinBrickSize());
+            shaderVars._IndicesDim_IndexChunkSize = new Vector4(indexDim.x, indexDim.y, indexDim.z, ProbeBrickIndex.kIndexChunkSize);
+            shaderVars._MinCellPos_Noise = new Vector4(minCellPos.x, minCellPos.y, minCellPos.z, parameters.samplingNoise);
+            shaderVars._PoolDim_CellInMeters = new Vector4(poolDim.x, poolDim.y, poolDim.z, MaxBrickSize());
             shaderVars._Weight = parameters.weight;
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);

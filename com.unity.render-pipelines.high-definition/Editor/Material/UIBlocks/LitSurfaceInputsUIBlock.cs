@@ -75,6 +75,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent UVBaseMappingText = new GUIContent("Base UV mapping", "");
             public static GUIContent texWorldScaleText = new GUIContent("World scale", "Sets the tiling factor HDRP applies to Planar/Trilinear mapping.");
+            public static GUIContent uvMappingSpace = new GUIContent("UV Mapping Space", "Sets the space for the input position used for Planar/Trilinear mapping.");
 
             // Specular color
             public static GUIContent energyConservingSpecularColorText = new GUIContent("Energy Conserving Specular Color", "When enabled, HDRP simulates energy conservation when using Specular Color mode. This results in high Specular Color values producing lower Diffuse Color values.");
@@ -159,6 +160,8 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty anisotropy = null;
         const string kAnisotropy = "_Anisotropy";
         MaterialProperty anisotropyMap = null;
+
+        MaterialProperty uvMappingSpace = null;
 
         MaterialProperty energyConservingSpecularColor = null;
         const string kEnergyConservingSpecularColor = "_EnergyConservingSpecularColor";
@@ -258,6 +261,8 @@ namespace UnityEditor.Rendering.HighDefinition
             TexWorldScale = FindPropertyLayered(kTexWorldScale, m_LayerCount);
             InvTilingScale = FindPropertyLayered(kInvTilingScale, m_LayerCount);
             UVMappingMask = FindPropertyLayered(kUVMappingMask, m_LayerCount);
+            TexWorldScale = FindPropertyLayered(kTexWorldScale, m_LayerCount);
+            uvMappingSpace = FindProperty(kObjectSpaceUVMapping);
 
             baseColor = FindPropertyLayered(kBaseColor, m_LayerCount);
             baseColorMap = FindPropertyLayered(kBaseColorMap, m_LayerCount);
@@ -504,6 +509,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
             {
+                materialEditor.ShaderProperty(uvMappingSpace, Styles.uvMappingSpace);
                 materialEditor.ShaderProperty(TexWorldScale[m_LayerIndex], Styles.texWorldScaleText);
             }
             materialEditor.TextureScaleOffsetProperty(baseColorMap[m_LayerIndex]);

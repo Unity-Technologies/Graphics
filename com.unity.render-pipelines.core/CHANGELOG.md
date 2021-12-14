@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed XR support in CoreUtils.DrawFullscreen function.
+- Fixed issue in DynamicResolutionHandler when camera request was turned off at runtime, the ScalableBufferManager would leak state and not unset DRS state (case 1383093).
 
 ## [13.1.2] - 2021-11-05
 
@@ -33,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added common support code for FSR.
 - Added new `RenderPipelineGlobalSettingsProvider` to help adding a settings panel for editing global settings.
 - Added blending for curves in post processing volumes.
+- New extension for Render Pipeline Global Settings for shader variants settings -> `IShaderVariantsSettings`.
 
 ## [13.1.0] - 2021-09-24
 
