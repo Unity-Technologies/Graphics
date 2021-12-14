@@ -72,8 +72,8 @@ Shader "Hackweek/SimpleDrawProcedural"
                 int stride = 56;
                 int offset = 0;
                 float x = VertexBuffer.Load(stride * vertexID + offset + 0);
-                float y = VertexBuffer.Load(stride * vertexID + offset + 1);
-                float z = VertexBuffer.Load(stride * vertexID + offset + 2);
+                float y = VertexBuffer.Load(stride * vertexID + offset + 4);
+                float z = VertexBuffer.Load(stride * vertexID + offset + 8);
                 float3 position = float3(x, y, z);
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(position);
 
