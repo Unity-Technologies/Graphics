@@ -52,7 +52,7 @@ Shader "Hackweek/DrawProcedural"
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
-            #pragma multi_compile DOTS_INSTANCING_ON
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -93,6 +93,7 @@ Shader "Hackweek/DrawProcedural"
 
             Varyings HackweekVertexProcedural(Attributes input, uint vertexID : SV_VertexID)
             {
+#ifdef DOTS_INSTANCING_ON
                 Varyings output = (Varyings)0;
 
                 UNITY_SETUP_INSTANCE_ID(input);
@@ -109,6 +110,9 @@ Shader "Hackweek/DrawProcedural"
                 output.uv = TRANSFORM_TEX(float2(0,0), _BaseMap);
 
                 return output;
+#else
+                return UnlitPassVertex(input);
+#endif
             }
 
             ENDHLSL
