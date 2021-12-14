@@ -64,9 +64,9 @@ If you disable this checkbox DLSS uses the same dynamic resolution scale set by 
 
 ### Mip bias in DLSS
 
-To enable automatic mip bias correction when DLSS is enabled, enable the checkbox **Use Mip Bias** in the [HDRP Asset](HDRO-Asset.md).
+To enable automatic mip bias correction when you enable DLSS, open the [HDRP Asset](HDRP-Asset.md) and enable the **Use Mip Bias** checkbox.
 
-If a specific custom mip bias is desired for a texture, the following custom function node can be created with the following body:
+If you need a specific custom mip bias for a Texture, create a custom sampler that samples from TextureInput, SamplerInput, UV, and MipBias. To do this, enter the following script into the Node Settings ' Body field. The images below display this example:
 
 ```glsl
 Out = SAMPLE_TEXTURE2D_BIAS(TextureInput, SamplerInput, UV, MipBias);
