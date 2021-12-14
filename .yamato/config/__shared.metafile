@@ -267,15 +267,15 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:latest
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:latest
         flavor: b1.xlarge
       editmode:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:latest
         flavor: b1.large
     agent_package:
       type: Unity::VM
@@ -511,7 +511,7 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:latest
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
@@ -581,7 +581,7 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:latest
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
@@ -683,9 +683,9 @@ non_project_agents:
     flavor: m1.mac
   sdet_win_large:
     type: Unity::VM
-    image: sdet/gamecode_win10:stable
+    image: sdet/gamecode_win10:latest
     flavor: b1.large
   sdet_win_large_gpu:
     type: Unity::VM::GPU
-    image: sdet/gamecode_win10:stable
+    image: sdet/gamecode_win10:latest
     flavor: b1.large

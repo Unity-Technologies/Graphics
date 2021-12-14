@@ -11,7 +11,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_trunk:
     name: HDRP_PerformanceTests on Win_DX11_performance_memory_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:latest
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -43,7 +43,7 @@ HDRP_PerformanceTests_Win_DX11_performance_counters_il2cpp_Linear_trunk:
     name: HDRP_PerformanceTests on Win_DX11_performance_counters_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:latest
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -75,7 +75,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_trunk:
     name: HDRP_PerformanceTests on Win_DX11_performance_run_build_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:latest
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -107,7 +107,7 @@ HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION:
     name: HDRP_PerformanceTests on Win_DX11_performance_memory_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:latest
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -139,7 +139,7 @@ HDRP_PerformanceTests_Win_DX11_performance_counters_il2cpp_Linear_CUSTOM-REVISIO
     name: HDRP_PerformanceTests on Win_DX11_performance_counters_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:latest
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -171,7 +171,7 @@ HDRP_PerformanceTests_Win_DX11_performance_run_build_il2cpp_Linear_CUSTOM-REVISI
     name: HDRP_PerformanceTests on Win_DX11_performance_run_build_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:latest
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates

@@ -16,7 +16,7 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: sdet/gamecode_win10:latest
         flavor: b1.xlarge
         model: rtx2080
   - name: OSX
