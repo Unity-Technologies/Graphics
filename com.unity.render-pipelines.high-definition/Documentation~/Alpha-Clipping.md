@@ -4,7 +4,7 @@ The **Alpha Clipping** option controls whether your Material acts as a [Cutout S
 
 Enable **Alpha Clipping** to create a transparent effect with hard edges between the opaque and transparent areas. HDRP achieves this effect by not rendering pixels with alpha values below the value you specify in the **Threshold** field. For example, a **Threshold** of 0.1 means that HDRP doesn't render alpha values below 0.1.
 
-When using MSAA, the new edges of the object caused by the cutout are not be taken into account for antialiasing. In this case HDRP will automatically enable alpha-to-coverage on the shader to benefit from MSAA.
+When using MSAA, the new edges of the object caused by the cutout are not be taken into account for antialiasing. In this case HDRP will automatically enable Alpha To Coverage on the shader to benefit from MSAA.
 
 If you enable this feature, HDRP exposes the following properties for you to use to customize the Alpha Clipping effect:
 
