@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering
         public Vector4 _PoolDim_CellInMeters;
         public Vector4 _MinCellPos_Noise;
         public Vector4 _IndicesDim_IndexChunkSize;
-        public Vector4 _Biases_CellInMinBrick_MinBrickSize; public Vector4 _LeakReductionParams;
+        public Vector4 _Biases_CellInMinBrick_MinBrickSize;
         public Vector4 _LeakReductionParams;
     }
 }
