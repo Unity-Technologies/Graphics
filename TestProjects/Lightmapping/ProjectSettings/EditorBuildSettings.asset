@@ -5,7 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Tests_Graphics/GraphicTestScene01-tiling-4-tiles.unity
     guid: 1cce0e76bcdd26745a6c3c7ba3804f2f
   - enabled: 1
