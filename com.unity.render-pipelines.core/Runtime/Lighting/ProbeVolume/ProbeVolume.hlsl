@@ -3,18 +3,6 @@
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ShaderVariablesProbeVolumes.cs.hlsl"
 
-// Unpack variables
-#define _PoolDim _PoolDim_CellInMeters.xyz
-#define _CellInMeters _PoolDim_CellInMeters.w
-#define _MinCellPosition _MinCellPos_Noise.xyz
-#define _PVSamplingNoise _MinCellPos_Noise.w
-#define _CellIndicesDim _IndicesDim_IndexChunkSize.xyz
-#define _IndexChunkSize _IndicesDim_IndexChunkSize.w
-#define _NormalBias _Biases_CellInMinBrick_MinBrickSize.x
-#define _ViewBias _Biases_CellInMinBrick_MinBrickSize.y
-#define _MinBrickSize _Biases_CellInMinBrick_MinBrickSize.w
-
-
 #ifndef DECODE_SH
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
 #endif

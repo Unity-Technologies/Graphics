@@ -28,7 +28,7 @@ CBUFFER_END
 #define _ProbeCount (uint)_DilationParameters.x
 #define _ValidityThreshold _DilationParameters.y
 #define _SearchRadius _DilationParameters.z
-#define _MinBrickSizeForDilation _DilationParameters.w
+#define _MinBrickSize _DilationParameters.w
 
 #define _SquaredDistanceWeight (_DilationParameters2.x > 0)
 
@@ -103,7 +103,7 @@ void DilateCell(uint3 id : SV_DispatchThreadID)
 
             if (TryToGetPoolUVWAndSubdiv(FillAPVResources(), centralPosition, 0, 0, uvw, subdiv))
             {
-                float stepSize = _MinBrickSizeForDilation / 3.0f;
+                float stepSize = _MinBrickSize / 3.0f;
 
                 // Inflate search radius a bit.
                 float radius = 1.5f * _SearchRadius;
