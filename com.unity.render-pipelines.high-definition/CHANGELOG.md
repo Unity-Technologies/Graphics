@@ -6,11 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [14.0.0] - 2021-11-17
 
-### Changed
-- Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
-- Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
-- Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
-- The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
+### Added
+
+- Added FSR sharpness override to camera and pipeline asset.
+- Added an option on the lit shader to perform Planar and Triplanar mapping in Object Space.
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
@@ -50,11 +49,42 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed contact shadow disappearing when shadowmask is used and no non-static object is available.
 - Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
 - Fixed for changes of color curves not being applied immediately.
+- Fixed edges and ghosting appearing on shadow matte due to the shadow being black outside the range of the light (case 1371441).
+- Fixed the ray tracing fallbacks being broken since an Nvidia Driver Update.
+- Fixed layer lit shader UI.
+- Fixed a warning because of a null texture in the lens flare pass.
+- Fixed a nullref when enabling raycount without ray tracing.
+- Fixed error thrown when layered lit material has an invalid material type.
+- Fixed HDRP build issues with DOTS_INSTANCING_ON shader variant.
+- Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
+- Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
+- Fixed build warnings due to the exception in burst code (case 1382827).
+- Fixed SpeedTree graph compatibility by removing custom interpolators.
+- Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
+- Fixed FOV change when enabling physical camera.
+- Fixed spot light shadows near plane
+- Fixed unsupported material properties show when rendering pass is Low Resolution.
+- Fixed auto-exposure mismatch between sky background and scene objects in path tracing (case 1385131).
+- Fixed option to force motion blur off when in XR.
+- Fixed write to VT feedback in debug modes (case 1376874)
+- Fixed the water system not working on metal.
+- Fixed the missing debug menus to visualize the ray tracing acceleration structure (case 1371410).
+- Fixed compilation issue related to shader stripping in ray tracing.
+- Fixed flipped UV for directional light cookie on PBR Sky (case 1382656).
+- Fixing missing doc API for RTAS Debug display.
+
+### Changed
+- Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
+- Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
+- Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
+- The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
+- Render Graph object pools are now cleared with render graph cleanup
 
 ## [13.1.2] - 2021-11-05
 
 ### Added
 - Added minimal picking support for DOTS 1.0 (on parity with Hybrid Renderer V2)
+- Implemented an initial version of the HDRP water system.
 
 ### Fixed
 - Fixed compilation errors when using Elipse, Rectangle, Polygon, Checkerboard, RoundedPolygon, RoundedRectangle in a ray tracing shader graph (case 1377610).
@@ -67,9 +97,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
 - Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
 - Fixed Lens Flare visible when being behind a camera with Panini Projection on (case 1370214);
+- Fixed Correlated Color Temperature not being applied in Player builds for Enlighten realtime GI lights (case 1370438);
 
 ### Changed
 - Optimizations for the physically based depth of field.
+- Volumetric Lighting now uses an ambient probe computed directly on the GPU to avoid latency.
 
 ## [13.1.1] - 2021-10-04
 
@@ -132,6 +164,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Modified HDRP to use common FSR logic from SRP core.
 - Optimized FSR by merging the RCAS logic into the FinalPass shader.
 - Integrate a help box to inform users of the potential dependency to directional lights when baking.
+- Changed default numbder of physically based sky bounce from 8 to 3
+- Shader Variant Log Level moved from Miscellaneous section to Shader Stripping section on the HDRP Global Settings.
 
 ## [13.1.0] - 2021-09-24
 
