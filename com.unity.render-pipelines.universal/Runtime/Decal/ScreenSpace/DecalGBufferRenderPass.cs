@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
         private DecalDrawGBufferSystem m_DrawSystem;
         private DecalScreenSpaceSettings m_Settings;
         private DeferredLights m_DeferredLights;
-        private RenderTargetIdentifier[] m_GbufferAttachments;
+        private RTHandle[] m_GbufferAttachments;
 
         public DecalGBufferRenderPass(DecalScreenSpaceSettings settings, DecalDrawGBufferSystem drawSystem)
         {
@@ -40,22 +40,21 @@ namespace UnityEngine.Rendering.Universal
             m_DeferredLights = deferredLights;
         }
 
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            if (m_DeferredLights != null && m_DeferredLights.UseRenderPass)
+            if (m_DeferredLights.UseRenderPass)
             {
-                if (m_GbufferAttachments == null)
-                    m_GbufferAttachments = new RenderTargetIdentifier[]
-                    {
-                        m_DeferredLights.GbufferAttachmentIdentifiers[0], m_DeferredLights.GbufferAttachmentIdentifiers[1],
-                        m_DeferredLights.GbufferAttachmentIdentifiers[2], m_DeferredLights.GbufferAttachmentIdentifiers[3]
-                    };
-                ConfigureInputAttachments(m_DeferredLights.DepthCopyTextureIdentifier, false);
+                m_GbufferAttachments = new RTHandle[]
+                {
+                    m_DeferredLights.GbufferAttachments[0], m_DeferredLights.GbufferAttachments[1],
+                    m_DeferredLights.GbufferAttachments[2], m_DeferredLights.GbufferAttachments[3]
+                };
+                ConfigureInputAttachments(m_DeferredLights.DepthCopyTexture, false);
             }
             else
-                m_GbufferAttachments = m_DeferredLights.GbufferAttachmentIdentifiers;
+                m_GbufferAttachments = m_DeferredLights.GbufferAttachments;
 
-            ConfigureTarget(m_GbufferAttachments, m_DeferredLights.DepthAttachmentIdentifier);
+            ConfigureTarget(m_GbufferAttachments, m_DeferredLights.DepthAttachmentHandle);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)

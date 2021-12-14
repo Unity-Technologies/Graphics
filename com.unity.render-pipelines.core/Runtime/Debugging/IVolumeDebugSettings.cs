@@ -11,6 +11,11 @@ namespace UnityEngine.Rendering
     /// </summary>
     public interface IVolumeDebugSettings
     {
+        /// <summary>
+        /// Specifies the render pipelie
+        /// </summary>
+        Type targetRenderPipeline { get; }
+
         /// <summary>Selected component.</summary>
         int selectedComponent { get; set; }
 
@@ -34,6 +39,9 @@ namespace UnityEngine.Rendering
 
         /// <summary>Type of the current component to debug.</summary>
         Type selectedComponentType { get; set; }
+
+        /// <summary>List of Volume component types and their path</summary>
+        List<(string, Type)> componentTypes { get; }
 
         /// <summary>
         /// Obtains the Volumes

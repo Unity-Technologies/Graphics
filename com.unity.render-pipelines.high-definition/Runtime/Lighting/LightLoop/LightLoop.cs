@@ -1665,6 +1665,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void ClearUnusedProcessedReferences(CullingResults cullResults, HDProbeCullingResults hdProbeCullingResults)
+        {
+            for (int i = cullResults.visibleReflectionProbes.Length; i < m_ProcessedReflectionProbeData.size; i++)
+                m_ProcessedReflectionProbeData[i].hdProbe = null;
+            for (int i = hdProbeCullingResults.visibleProbes.Count; i < m_ProcessedPlanarProbeData.size; i++)
+                m_ProcessedPlanarProbeData[i].hdProbe = null;
+        }
+
         bool TrivialRejectProbe(in ProcessedProbeData processedProbe, HDCamera hdCamera)
         {
             // For now we won't display real time probe when rendering one.
@@ -1865,6 +1873,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareLightsForGPU)))
             {
                 Camera camera = hdCamera.camera;
+                ClearUnusedProcessedReferences(cullResults, hdProbeCullingResults);
 
                 // If any light require it, we need to enabled bake shadow mask feature
                 m_EnableBakeShadowMask = false;

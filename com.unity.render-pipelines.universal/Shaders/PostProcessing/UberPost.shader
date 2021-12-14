@@ -10,7 +10,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
         #pragma multi_compile_local_fragment _ _DITHERING
         #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
         #pragma multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
-        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
+        #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

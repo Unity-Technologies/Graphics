@@ -99,12 +99,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float diffuseDimmer;
         public float specularDimmer;
+
         public float penumbraTint;
         public float isRayTracedContactShadow;
 
         public float distanceFromCamera;      // -1 -> no sky interaction
         public float angularDiameter;         // Units: radians
+
         public float flareFalloff;
+        public float flareCosInner;
+        public float flareCosOuter;
         public float capsuleShadowRange; // 0 if no capsule shadows
 
         public Vector3 flareTint;
