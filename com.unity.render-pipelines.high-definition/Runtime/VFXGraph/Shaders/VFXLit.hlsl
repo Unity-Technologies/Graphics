@@ -13,7 +13,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
-#if (SHADERPASS == SHADERPASS_FORWARD)
+#if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT)
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
 
     // The light loop (or lighting architecture) is in charge to:
@@ -32,6 +32,9 @@
         #define _DISABLE_SSR
     #else
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+        #if defined(SHADER_STAGE_RAY_TRACING)
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
+        #endif
     #endif
 
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
@@ -42,6 +45,9 @@
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
     #else
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+        #if defined(SHADER_STAGE_RAY_TRACING)
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
+        #endif
     #endif
 #endif // (SHADERPASS == SHADERPASS_FORWARD)
 
@@ -113,7 +119,9 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
     #endif
     #endif
     color.a *= VFXGetSoftParticleFade(i);
-    VFXClipFragmentColor(color.a,i);
+    #if !defined(SHADER_STAGE_RAY_TRACING)
+    VFXClipFragmentColor(color.a, i);
+    #endif
     surfaceData.baseColor = saturate(color.rgb);
 
     #if IS_OPAQUE_PARTICLE

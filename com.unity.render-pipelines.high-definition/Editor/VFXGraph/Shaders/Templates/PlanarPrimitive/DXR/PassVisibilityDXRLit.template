@@ -1,4 +1,4 @@
-﻿
+
         Pass
         {
             Name "VisibilityDXR"
@@ -8,25 +8,49 @@
             #pragma target 4.5
             #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
-
-            // This pass is used by the sphere primitive
-            #define RAY_TRACING_SPHERE_PRIMITIVE
-
-            #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
-            #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
+            #pragma multi_compile _ MULTI_BOUNCE_INDIRECT
 
             // Global includes
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 
+            // Define the shader pass
+            #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
+            
             // Need to override the macros for ray tracing
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
-            // VFX includes
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXCommon.hlsl"
-            #include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl"
+            // Shader variables
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
             
+            // Equivalent of the Pixel to Vertex structure
+            struct rt_input
+            {
+                float4 pos;
+                ${VFXHDRPLitDeclareVaryings}
+            };
+            #define VFX_VARYING_PS_INPUTS rt_input
+            #define VFX_VARYING_POSCS pos
+
+            // VFX includes
+            ${VFXPerPassInclude}
+            
+            // Needs to be includes just after the VFX includes
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXRayTracingCommon.hlsl"
+
+            // Visibility function required for the intersection shader
+            bool AABBPrimitiveIsVisible(RayTracingProceduralData rtProceduralData, float2 uv)
+            {
+                #if HDRP_USE_BASE_COLOR_MAP
+                    VFXAttributes attributes = rtProceduralData.attributes;
+                    ${VFXLoadParameter:{alphaThreshold}}
+                    return SampleTexture(VFX_SAMPLER(baseColorMap), uv).a > alphaThreshold;
+                #else
+                    return true;
+                #endif
+            }
+
             // Material includes
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
@@ -64,8 +88,11 @@
                 ${VFXProcessBlocks}
                 ${VFXLoadSize}
 
+                // Build the ray tracing procedural data
+                RayTracingProceduralData rtProceduralData = BuildRayTracingProceduralData(attributes, size3);
+
                 // Execute the matching intersection code
-                IntersectPrimitive(attributes, size3);
+                IntersectPrimitive(rtProceduralData);
             }
             ENDHLSL
         }
