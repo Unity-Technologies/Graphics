@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed write to VT feedback in debug modes (case 1376874)
 - Fixed the ray tracing fallbacks being broken since an Nvidia Driver Update.
 - Render Graph object pools are now cleared with render graph cleanup
+- Fixed a shader warning in UnityInstancing.hlsl
 
 ## [13.1.3] - 2021-11-17
 
