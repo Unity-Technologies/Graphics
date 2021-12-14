@@ -65,21 +65,21 @@ Shader "Hackweek/SimpleDrawProcedural"
 
             ByteAddressBuffer VertexBuffer;
 
-            Varyings HackweekVertexProcedural(uint instanceID : SV_InstanceID, uint vertexID : SV_VertexID)
+            Varyings HackweekVertexProcedural(Attributes input, uint vertexID : SV_VertexID)
             {
                 Varyings output = (Varyings)0;
 
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
                 int stride = 56;
                 int offset = 0;
-                float x = VertexBuffer.Load(stride * vertexID + offset + 0);
-                float y = VertexBuffer.Load(stride * vertexID + offset + 4);
-                float z = VertexBuffer.Load(stride * vertexID + offset + 8);
-                float3 position = float3(x, y, z);
+                float3 position = asfloat(VertexBuffer.Load3(stride * vertexID + offset));
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(position);
 
                 output.positionCS = vertexInput.positionCS;
                 output.uv = TRANSFORM_TEX(float2(0,0), _BaseMap);
-                output.instanceID = instanceID;
 
                 return output;
             }

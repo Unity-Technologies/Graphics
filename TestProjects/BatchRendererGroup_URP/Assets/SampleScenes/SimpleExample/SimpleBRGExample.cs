@@ -90,8 +90,9 @@ public class SimpleBRGExample : MonoBehaviour
         var offset = mesh.GetVertexAttributeOffset(VertexAttribute.Position);
         m_VB = mesh.GetVertexBuffer(0);
         m_IB = mesh.GetIndexBuffer();
-        Shader.SetGlobalBuffer("VertexBuffer", m_VB);
-        //material.SetBuffer("_VertexBuffer", m_VB);
+        material.SetBuffer("VertexBuffer", m_VB);
+        material.SetInteger("VertexBufferOffset", offset);
+        material.SetInteger("VertexBufferStride", stride);
 
         // Create the BatchRendererGroup and register assets
         m_BRG = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
