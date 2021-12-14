@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixing missing doc API for RTAS Debug display.
 - Fixed AO dissapearing when DRS would be turned off through a camera, while hardware drs is active in DX12 or Vulkan (case 1383093).
 - Fixed misc shader warnings.
+- Fixed a shader warning in UnityInstancing.hlsl
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
