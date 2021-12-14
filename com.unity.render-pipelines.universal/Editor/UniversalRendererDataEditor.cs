@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.Universal
     /// Editor script for a <c>UniversalRendererData</c> class.
     /// </summary>
     [CustomEditor(typeof(UniversalRendererData), true)]
-    public class UniversalRendererDataEditor : ScriptableRendererDataEditor
+    internal class UniversalRendererDataEditor : ScriptableRendererDataEditor
     {
         private static class Styles
         {
