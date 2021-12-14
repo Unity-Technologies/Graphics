@@ -192,7 +192,7 @@ Each sky renderer can have different needs. This means the responsbility to shar
 
 The content of your sky Shader depends on the effects you want to include.
 
-For example, the below code describes the [HDRI sky](Override-HDRI-Sky.md) implementation of the SkyRenderer. 
+For example, the below code describes the [HDRI sky](Override-HDRI-Sky.md) implementation of the SkyRenderer.
 
 The following example uses two passes. The first pass uses a depth test to render the sky in the background (so that geometry occludes it correctly). The second pass doesn't use a Depth Test and renders the sky into the reflection cubemap:
 
