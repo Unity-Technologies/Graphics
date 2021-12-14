@@ -1173,6 +1173,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string kUVDetail = "_UVDetail";
         internal const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         internal const string kDecalLayerMaskFromDecal = "_DecalLayerMaskFromDecal";
+        internal const string kObjectSpaceUVMapping = "_ObjectSpaceUVMapping";
 
         internal const string kDisplacementMode = "_DisplacementMode";
         internal const string kMaterialID = "_MaterialID";

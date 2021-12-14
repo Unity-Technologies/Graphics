@@ -345,7 +345,6 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int zBufferParams = Shader.PropertyToID("_ZBufferParams");
         public static readonly int orthoParams = Shader.PropertyToID("unity_OrthoParams");
         public static readonly int globalMipBias = Shader.PropertyToID("_GlobalMipBias");
-        public static readonly int globalMipBiasPow2 = Shader.PropertyToID("_GlobalMipBiasPow2");
 
         public static readonly int screenSize = Shader.PropertyToID("_ScreenSize");
 
@@ -582,13 +581,16 @@ namespace UnityEngine.Rendering.Universal
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
             bool isHdrEnabled, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
+            int scaledWidth = (int)((float)camera.pixelWidth * renderScale);
+            int scaledHeight = (int)((float)camera.pixelHeight * renderScale);
+
             RenderTextureDescriptor desc;
 
             if (camera.targetTexture == null)
             {
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
-                desc.width = (int)((float)desc.width * renderScale);
-                desc.height = (int)((float)desc.height * renderScale);
+                desc.width = scaledWidth;
+                desc.height = scaledHeight;
                 desc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, needsAlpha);
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
@@ -597,8 +599,9 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 desc = camera.targetTexture.descriptor;
-                desc.width = (int)((float)camera.pixelWidth * renderScale);
-                desc.height = (int)((float)camera.pixelHeight * renderScale);
+                desc.width = scaledWidth;
+                desc.height = scaledHeight;
+
                 if (camera.cameraType == CameraType.SceneView && !isHdrEnabled)
                 {
                     desc.graphicsFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);

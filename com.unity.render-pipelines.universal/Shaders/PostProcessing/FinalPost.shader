@@ -17,6 +17,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
         TEXTURE2D_X(_SourceTex);
+
         TEXTURE2D(_Grain_Texture);
         TEXTURE2D(_BlueNoise_Texture);
 

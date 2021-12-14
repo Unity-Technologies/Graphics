@@ -154,11 +154,29 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public enum RTASDebugView
     {
+        /// <summary>
+        /// Debug view of the RTAS for shadows.
+        /// </summary>
         Shadows,
+        /// <summary>
+        /// Debug view of the RTAS for ambient occlusion.
+        /// </summary>
         AmbientOcclusion,
+        /// <summary>
+        /// Debug view of the RTAS for global illumination.
+        /// </summary>
         GlobalIllumination,
+        /// <summary>
+        /// Debug view of the RTAS for reflections.
+        /// </summary>
         Reflections,
+        /// <summary>
+        /// Debug view of the RTAS for recursive ray tracing.
+        /// </summary>
         RecursiveRayTracing,
+        /// <summary>
+        /// Debug view of the RTAS for path tracing.
+        /// </summary>
         PathTracing
     }
 
@@ -167,7 +185,13 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public enum RTASDebugMode
     {
+        /// <summary>
+        /// Displacing the instanceID as the RTAS Debug view.
+        /// </summary>
         InstanceID,
+        /// <summary>
+        /// Displacing the primitiveID as the RTAS Debug view.
+        /// </summary>
         PrimitiveID,
     }
 
