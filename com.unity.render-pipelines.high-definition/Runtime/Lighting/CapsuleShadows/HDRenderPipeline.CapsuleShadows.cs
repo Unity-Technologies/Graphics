@@ -143,6 +143,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 _CapsuleOccluderCount = m_VisibleCapsuleOccluderData.Count,
                 _CapsuleOccluderShadowMethod = (int)capsuleShadows.shadowMethodDebug.value,
+                _CapsuleOccluderFadeSelfShadow = capsuleShadows.fadeSelfShadow.value ? 1 : 0,
             };
             ConstantBuffer.PushGlobal(cmd, shaderVariables, HDShaderIDs._ShaderVariablesCapsuleOccluders);
 

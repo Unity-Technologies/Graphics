@@ -113,11 +113,11 @@ float ApproximateCapsuleOcclusion(
 #define CAPSULE_SHADOW_FEATURE_ELLIPSOID            0x1
 #define CAPSULE_SHADOW_FEATURE_FLATTEN              0x2
 #define CAPSULE_SHADOW_FEATURE_CLIP_TO_PLANE        0x4
-#define CAPSULE_SHADOW_FEATURE_AVOID_SELF_SHADOW    0x8
+#define CAPSULE_SHADOW_FEATURE_FADE_SELF_SHADOW     0x8
 
 uint GetDefaultCapsuleShadowFeatureBits()
 {
-    uint featureBits = CAPSULE_SHADOW_FEATURE_AVOID_SELF_SHADOW;
+    uint featureBits = 0;
     switch (_CapsuleOccluderShadowMethod) {
     case CAPSULESHADOWMETHOD_ELLIPSOID:
         featureBits |= CAPSULE_SHADOW_FEATURE_ELLIPSOID;
@@ -125,6 +125,9 @@ uint GetDefaultCapsuleShadowFeatureBits()
     case CAPSULESHADOWMETHOD_FLATTEN_THEN_CLOSEST_SPHERE:
         featureBits |= CAPSULE_SHADOW_FEATURE_FLATTEN;
         break;
+    }
+    if (_CapsuleOccluderFadeSelfShadow) {
+        featureBits |= CAPSULE_SHADOW_FEATURE_FADE_SELF_SHADOW;
     }
     return featureBits;
 }
@@ -199,7 +202,7 @@ float EvaluateCapsuleShadow(
 
                 // apply falloff to avoid self-shadowing
                 // (adjusts where in the interior to fade in the shadow based on the local normal)
-                if (featureBits & CAPSULE_SHADOW_FEATURE_AVOID_SELF_SHADOW) {
+                if (featureBits & CAPSULE_SHADOW_FEATURE_FADE_SELF_SHADOW) {
                     float t = RayClosestPoint(surfaceToCapsuleVec, s_capsuleData.axisDirWS, float3(0.f, 0.f, 0.f));
                     float3 closestCenter = surfaceToCapsuleVec + clamp(t, -s_capsuleData.offset, s_capsuleData.offset)*s_capsuleData.axisDirWS;
                     float closestDistance = length(closestCenter);

@@ -29,6 +29,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: move to settings/debug?
         public CapsuleShadowMethodParameter shadowMethodDebug = new CapsuleShadowMethodParameter(CapsuleShadowMethod.FlattenThenClosestSphere);
 
+        // TODO: move to settings/debug?
+        public BoolParameter fadeSelfShadow = new BoolParameter(true);
+
         CapsuleShadows()
         {
             displayName = "Capsule Shadows";

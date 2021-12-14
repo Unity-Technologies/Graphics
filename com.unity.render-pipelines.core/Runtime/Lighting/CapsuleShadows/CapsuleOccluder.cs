@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering
     {
         public int _CapsuleOccluderCount;
         public int _CapsuleOccluderShadowMethod;
-        public int _CapsuleOccluderPad0;
+        public int _CapsuleOccluderFadeSelfShadow;
         public int _CapsuleOccluderPad1;
     }
 

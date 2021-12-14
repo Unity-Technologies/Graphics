@@ -16,7 +16,7 @@
 CBUFFER_START(ShaderVariablesCapsuleOccluders)
     int _CapsuleOccluderCount;
     int _CapsuleOccluderShadowMethod;
-    int _CapsuleOccluderPad0;
+    int _CapsuleOccluderFadeSelfShadow;
     int _CapsuleOccluderPad1;
 CBUFFER_END
 
