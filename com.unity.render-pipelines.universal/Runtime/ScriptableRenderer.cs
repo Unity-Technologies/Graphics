@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.Universal
             // We clamp this value to 0.0 or less to make sure we don't end up reducing image detail in the downsampling case.
             float mipBias = Math.Min((float)-Math.Log(cameraWidth / scaledCameraWidth, 2.0f), 0.0f);
             cmd.SetGlobalVector(ShaderPropertyId.globalMipBias, new Vector2(mipBias, Mathf.Pow(2.0f, mipBias)));
-            
+
             ScreenCoordOverrideUtils.SetKeyword(cmd, cameraData.useScreenCoordOverride);
             cmd.SetGlobalVector(ShaderPropertyId.screenSizeOverride, cameraData.screenSizeOverride);
             cmd.SetGlobalVector(ShaderPropertyId.screenCoordScaleBias, cameraData.screenCoordScaleBias);
