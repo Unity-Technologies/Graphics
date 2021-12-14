@@ -261,8 +261,11 @@ Shader "Hidden/HDRP/DebugFullScreen"
 #if DONT_USE_NINE_TAP_FILTER
                     mv_arrow = SampleMotionVectors(center * _ScreenSize.zw * _RTHandleScale.xy);
 #else
-                    for (int i = -1; i <= 1; ++i) for (int j = -1; j <= 1; ++j)
-                        mv_arrow += SampleMotionVectors((center + float2(i, j)) * _RTHandleScale.xy * _ScreenSize.zw);
+                    UNITY_UNROLL
+                    for (int i = -1; i <= 1; ++i)
+                        UNITY_UNROLL
+                        for (int j = -1; j <= 1; ++j)
+                            mv_arrow += SampleMotionVectors((center + float2(i, j)) * _RTHandleScale.xy * _ScreenSize.zw);
                     mv_arrow /= 9.0f;
 #endif
                     mv_arrow.y *= -1;
@@ -294,7 +297,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEPTH_OF_FIELD_COC)
                 {
-                    float coc = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
+                    float coc = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).x;
 
                     float3 color = lerp(float3(1.0, 0.0, 0.0), float3(1.0, 1.0, 1.0), saturate(-coc));
                     color = lerp(color, float3(1.0, 1.0, 1.0), saturate(coc));

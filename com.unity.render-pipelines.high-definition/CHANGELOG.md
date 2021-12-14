@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the ray tracing fallbacks being broken since an Nvidia Driver Update.
 - Render Graph object pools are now cleared with render graph cleanup
 - Fixed a shader warning in UnityInstancing.hlsl
+- Fixed misc shader warnings.
 
 ## [13.1.3] - 2021-11-17
 
