@@ -50,7 +50,6 @@ $Varyings.texCoord1: #define VARYINGS_NEED_TEXCOORD1
 $Varyings.texCoord2: #define VARYINGS_NEED_TEXCOORD2
 $Varyings.texCoord3: #define VARYINGS_NEED_TEXCOORD3
 $Varyings.color: #define VARYINGS_NEED_COLOR
-$Varyings.viewDirectionWS: #define VARYINGS_NEED_VIEWDIRECTION_WS
 $Varyings.bitangentWS: #define VARYINGS_NEED_BITANGENT_WS
 $Varyings.screenPosition: #define VARYINGS_NEED_SCREENPOSITION
 $Varyings.fogFactorAndVertexLight: #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT

@@ -13,7 +13,6 @@ CBUFFER_START(ShaderVariablesWater)
     float _DirectionDampener;
     float4 _WaveAmplitude;
     float4 _BandPatchSize;
-    float4 _BandPatchUVScale;
     float4 _WindSpeed;
     float2 _WindDirection;
     float _Choppiness;
@@ -22,28 +21,28 @@ CBUFFER_START(ShaderVariablesWater)
     float _SurfaceFoamAmount;
     float _DeepFoamAmount;
     float _SSSMaskCoefficient;
-    float _CloudTexturedAmount;
-    float _RefractionNormalWeight;
+    float2 _PaddingW0;
     float _MaxRefractionDistance;
     float _WaterSmoothness;
     float2 _FoamOffsets;
     float _FoamTilling;
     float _WindFoamAttenuation;
-    float3 _ScatteringColorTips;
-    float _FoamSmoothness;
+    float4 _TransparencyColor;
+    float4 _ScatteringColorTips;
     float _DispersionAmount;
     float _RefractionLow;
     float _MaxAbsorptionDistance;
     float _ScatteringBlur;
-    float3 _TransparencyColor;
-    float _OutScatteringCoefficient;
     float _DisplacementScattering;
     float _ScatteringIntensity;
     float _BodyScatteringWeight;
     float _TipScatteringWeight;
     float4 _ScatteringLambertLighting;
-    float3 _DeepFoamColor;
+    float4 _DeepFoamColor;
+    float _OutScatteringCoefficient;
+    float _FoamSmoothness;
     float _HeightBasedScattering;
+    float _PaddingW1;
     float4 _FoamJacobianLambda;
 CBUFFER_END
 
@@ -52,10 +51,12 @@ CBUFFER_END
 CBUFFER_START(ShaderVariablesWaterRendering)
     float2 _GridSize;
     float2 _WaterRotation;
-    float3 _PatchOffset;
+    float4 _PatchOffset;
+    float4 _WaterAmbientProbe;
     uint _GridRenderingResolution;
-    float3 _WaterAmbientProbe;
     uint _TesselationMasks;
+    float _EarthRadius;
+    float _CausticsIntensity;
     float2 _WaterMaskScale;
     float2 _WaterMaskOffset;
     float2 _FoamMaskScale;
@@ -63,9 +64,6 @@ CBUFFER_START(ShaderVariablesWaterRendering)
     float2 _CausticsOffset;
     float _CausticsTiling;
     float _CausticsPlaneOffset;
-    float2 _PaddingWR0;
-    float _EarthRadius;
-    float _CausticsIntensity;
 CBUFFER_END
 
 

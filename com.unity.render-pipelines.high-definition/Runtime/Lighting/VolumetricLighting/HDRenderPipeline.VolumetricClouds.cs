@@ -85,7 +85,6 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeVolumetricCloudsMap();
             InitializeVolumetricCloudsShadows();
             InitializeVolumetricCloudsAmbientProbe();
-            InitializeVolumetricCloudsStaticTextures();
         }
 
         void ReleaseVolumetricClouds()
@@ -100,7 +99,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseVolumetricCloudsMap();
             ReleaseVolumetricCloudsShadows();
             ReleaseVolumetricCloudsAmbientProbe();
-            ReleaseVolumetricCloudsStaticTextures();
         }
 
         void AllocatePresetTextures()
