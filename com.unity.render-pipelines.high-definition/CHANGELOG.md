@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a shader warning in UnityInstancing.hlsl
 - Fixed misc shader warnings.
 - Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
+- Fixed Correlated Color Temperature not being applied in Player builds for Enlighten realtime GI lights (case 1370438);
 
 ## [12.1.3] - 2021-11-17
 
