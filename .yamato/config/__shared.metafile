@@ -49,7 +49,7 @@ color_spaces:
   - gamma
 test_platforms:
   - type: Standalone
-    allow_cache: True
+    allow_cache: False
     utr_flags:
       - [OSX_Metal]: '%CACHE_ARGS%'
       - [all]: --suite=playmode
@@ -136,7 +136,7 @@ test_platforms:
     after_build:
       - [OSX_OpenGlCore, iPhone_Metal, XRQuest_OpenGLES3, XRQuest_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.find_instabilities>
   - type: playmode
-    allow_cache: True
+    allow_cache: False
     utr_flags:
       - [all]: '%CACHE_ARGS%'
       - [all]: --testfilter=%TEST_FILTER%
