@@ -11,7 +11,6 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
         public static readonly int _TempTex = Shader.PropertyToID("_TempTex");
     }
 
-    const string k_ShaderPath = "Hidden/Test/ScreenCoordOverrideFullScreen";
     const string k_CommandBufferName = "Screen Coord Override";
 
     Material m_Material;
@@ -19,7 +18,7 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
     public ScreenCoordOverrideRenderPass(RenderPassEvent renderPassEvent)
     {
         this.renderPassEvent = renderPassEvent;
-        m_Material = CoreUtils.CreateEngineMaterial(k_ShaderPath);
+        m_Material = CoreUtils.CreateEngineMaterial(ScreenCoordOverrideResources.GetInstance().FullScreenShader);
     }
 
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
