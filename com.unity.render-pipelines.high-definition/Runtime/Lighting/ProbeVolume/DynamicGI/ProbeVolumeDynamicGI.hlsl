@@ -19,9 +19,9 @@ struct PackedNeighborMiss
 
 struct NeighborAxisLookup
 {
-    int index;
-    float sgWeight;
     float3 neighborDirection;
+    float sgWeight;
+    int index;
 };
 
 struct NeighborAxis
