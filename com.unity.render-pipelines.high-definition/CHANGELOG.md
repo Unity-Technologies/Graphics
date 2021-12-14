@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added FSR sharpness override to camera and pipeline asset.
+- Added an option on the lit shader to perform Planar and Triplanar mapping in Object Space.
 - Improvements done to the water system (Deferred, Decals, SSR, Foam, Caustics, etc.).
 
 ### Fixed
@@ -69,6 +70,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the water system not working on metal.
 - Fixed the missing debug menus to visualize the ray tracing acceleration structure (case 1371410).
 - Fixed compilation issue related to shader stripping in ray tracing.
+- Fixed flipped UV for directional light cookie on PBR Sky (case 1382656).
+- Fixing missing doc API for RTAS Debug display.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
