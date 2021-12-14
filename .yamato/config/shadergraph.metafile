@@ -122,6 +122,8 @@ jobs:
         test_platforms:
           - Standalone
       - .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_<TRACK>
+      - .yamato/all-shadergraph_builtin_foundation.yml#ShaderGraph_BuiltIn_Foundation_<TRACK>
+      - .yamato/all-shadergraph_builtin_lighting.yml#ShaderGraph_BuiltIn_Lighting_<TRACK>
       - .yamato/_abv.yml#General_Checks_<TRACK>
   - name: Extra <PROJECT_NAME>
     dependencies:

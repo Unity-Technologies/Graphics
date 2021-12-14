@@ -38,6 +38,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty deepLearningSuperSamplingUseOptimalSettings;
         public SerializedProperty deepLearningSuperSamplingSharpening;
 
+        public SerializedProperty fsrOverrideSharpness;
+        public SerializedProperty fsrSharpness;
+
         public SerializedProperty SMAAQuality;
         public SerializedProperty taaSharpenStrength;
         public SerializedProperty taaHistorySharpening;
@@ -97,6 +100,9 @@ namespace UnityEditor.Rendering.HighDefinition
             deepLearningSuperSamplingUseCustomAttributes = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.deepLearningSuperSamplingUseCustomAttributes);
             deepLearningSuperSamplingUseOptimalSettings = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.deepLearningSuperSamplingUseOptimalSettings);
             deepLearningSuperSamplingSharpening = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.deepLearningSuperSamplingSharpening);
+
+            fsrOverrideSharpness = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fsrOverrideSharpness);
+            fsrSharpness = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fsrSharpness);
 
             SMAAQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.SMAAQuality);
             taaSharpenStrength = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaSharpenStrength);
