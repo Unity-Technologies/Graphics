@@ -102,7 +102,8 @@ namespace UnityEngine.Rendering
 
             s_GlobalHwUpresActive = HardwareDynamicResIsEnabled();
             s_GlobalHwFraction = m_CurrentFraction;
-            ScalableBufferManager.ResizeBuffers(s_GlobalHwFraction, s_GlobalHwFraction);
+            float currentFraction = s_GlobalHwUpresActive ? s_GlobalHwFraction : 1.0f;
+            ScalableBufferManager.ResizeBuffers(currentFraction, currentFraction);
             return true;
         }
 
@@ -290,6 +291,7 @@ namespace UnityEngine.Rendering
 
             if (!m_Enabled && !s_ActiveInstanceDirty)
             {
+                FlushScalableBufferManagerState();
                 s_ActiveInstanceDirty = false;
                 return;
             }
