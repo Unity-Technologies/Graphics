@@ -35,7 +35,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
         if (_EnableDecals)
         {
             float alpha = 1.0;
-            // Both uses and modifies 'surfaceData.normalWS'. 
+            // Both uses and modifies 'surfaceData.normalWS'.
             DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, fragInputs, _WaterDecalLayer, alpha);
             ApplyDecalToSurfaceData(decalSurfaceData, fragInputs.tangentToWorld[2], surfaceData);
         }
