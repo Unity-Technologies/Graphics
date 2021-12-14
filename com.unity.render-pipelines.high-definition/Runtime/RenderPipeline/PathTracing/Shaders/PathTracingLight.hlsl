@@ -509,7 +509,7 @@ bool SampleLights(LightList lightList,
 #endif
     }
 
-    return pdf > 0.0;
+    return any(value) && any(pdf);
 }
 
 void EvaluateLights(LightList lightList,
