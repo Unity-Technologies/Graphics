@@ -324,6 +324,7 @@ GameObject:
   m_Component:
   - component: {fileID: 762066955}
   - component: {fileID: 762066954}
+  - component: {fileID: 762066956}
   m_Layer: 0
   m_Name: Global Volume
   m_TagString: Untagged
@@ -363,6 +364,20 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &762066956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 762066953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e5d13e92635407db694be2c56e4bf14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PostProcessingShader: {fileID: 4800000, guid: 51db3e0c172dabf40ba911b2a70c7d79,
+    type: 3}
 --- !u!1 &1579749108
 GameObject:
   m_ObjectHideFlags: 0
@@ -533,7 +548,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   hasPersistentHistory: 0
-  screenSizeOverride: {x: 570, y: 1330, z: 0.001754386, w: 0.0007518797}
+  screenSizeOverride: {x: 1494, y: 718, z: 0.00066934404, w: 0.0013927576}
   screenCoordScaleBias: {x: 2, y: 2, z: -1, w: -1}
   allowDeepLearningSuperSampling: 1
   deepLearningSuperSamplingUseCustomQualitySettings: 0

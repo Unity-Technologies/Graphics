@@ -5,9 +5,21 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-[CreateAssetMenu(fileName = "ScreenCoordOverrideResources", menuName = "Testing/ScreenCoordOverrideResources", order = 1)]
-public class ScreenCoordOverrideResources : ScriptableSingleton<ScreenCoordOverrideResources>
+public class ScreenCoordOverrideResources : MonoBehaviour
 {
+    static ScreenCoordOverrideResources s_Instance;
+
+    public static ScreenCoordOverrideResources GetInstance()
+    {
+        if (s_Instance == null)
+        {
+            s_Instance = FindObjectOfType<ScreenCoordOverrideResources>();
+            Assert.IsNotNull(s_Instance, $"Could not find instance of \"{nameof(ScreenCoordOverrideResources)}\".");
+        }
+
+        return s_Instance;
+    }
+
     const string k_ShaderName = "Hidden/Shader/ScreenCoordPostProcess";
 
     [SerializeField]

@@ -18,7 +18,7 @@ public sealed class ScreenCoordPostProcess : CustomPostProcessVolumeComponent, I
 
     public override void Setup()
     {
-        m_Material = CoreUtils.CreateEngineMaterial(ScreenCoordOverrideResources.instance.PostProcessingShader);
+        m_Material = CoreUtils.CreateEngineMaterial(ScreenCoordOverrideResources.GetInstance().PostProcessingShader);
     }
 
     public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
