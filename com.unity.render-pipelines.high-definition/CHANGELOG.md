@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compilation issue related to shader stripping in ray tracing.
 - Fixed flipped UV for directional light cookie on PBR Sky (case 1382656).
 - Fixing missing doc API for RTAS Debug display.
+- Fixed water shader warnings.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
