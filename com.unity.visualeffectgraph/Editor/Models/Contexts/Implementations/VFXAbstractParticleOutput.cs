@@ -158,10 +158,8 @@ namespace UnityEditor.VFX
         {
             if (!IsRaytraced())
                 return false;
-            foreach (var attrib in VFXAttribute.AllAttributeAffectingAABB)
-                if (GetData().IsCurrentAttributeWritten(attrib, this))
-                    return true;
-            return false;
+            var writtenAttributes = GetAttributesInfos().Where(o => (VFXAttributeMode.Write & o.mode) != 0).Select(o => o.attrib);
+            return writtenAttributes.Intersect(VFXAttribute.AllAttributeAffectingAABB).Any();
         }
 
 

@@ -586,6 +586,7 @@ namespace UnityEditor.VFX
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_MOTION_VECTOR (1)");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_SELECTION (2)");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_SHADOW (3)");
+            globalIncludeContent.WriteLine("#pragma enable_d3d11_debug_symbols");
 
             foreach (var attribute in allCurrentAttributes)
                 globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(CultureInfo.InvariantCulture), "CURRENT");
