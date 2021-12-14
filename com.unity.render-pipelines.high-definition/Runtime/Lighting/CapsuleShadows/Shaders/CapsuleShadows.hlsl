@@ -204,8 +204,10 @@ float EvaluateCapsuleShadow(
                     float3 closestCenter = surfaceToCapsuleVec + clamp(t, -s_capsuleData.offset, s_capsuleData.offset)*s_capsuleData.axisDirWS;
                     float closestDistance = length(closestCenter);
                     float3 closestDir = closestCenter/closestDistance;
-                    float fadeCoord = closestDistance/s_capsuleData.radius + 0.5f*dot(normalWS, closestDir);
-                    occlusion *= smoothstep(0.5f, .75f, fadeCoord);
+                    float fadeCoord
+                        = closestDistance/s_capsuleData.radius  // 0 in interior, 1 on surface
+                        + 0.5f*dot(normalWS, closestDir);       // -1 facing out of capsule, +1 facing into capsule
+                    occlusion *= smoothstep(0.6f, 0.8f, fadeCoord);
                 }
 
                 // test the occluder shape vs the light
