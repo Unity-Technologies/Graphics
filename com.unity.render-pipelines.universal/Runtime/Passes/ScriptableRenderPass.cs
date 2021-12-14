@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.Universal
         Normal = 1 << 1,
 
         /// <summary>
-        /// Used when a <c>ScriptableRenderPass</c> requires a normal texture.
+        /// Used when a <c>ScriptableRenderPass</c> requires a color texture.
         /// </summary>
         Color = 1 << 2,
 
