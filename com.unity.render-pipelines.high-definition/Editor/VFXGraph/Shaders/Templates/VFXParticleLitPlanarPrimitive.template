@@ -25,7 +25,8 @@
 		${VFXInclude("Shaders/VFXParticleCommonRT.template")}
 
 		// Requires passes by ray tracing
-		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/PassVisibilityDXRLit.template")}
-		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/PassIndirectDXRLit.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/PassVisibilityDXRLit.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/PassIndirectDXRLit.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/PassGBufferDXRLit.template")}
 	}
 }

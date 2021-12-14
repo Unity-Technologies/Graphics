@@ -73,6 +73,20 @@ bool RayTriangleIntersection(float3 rayOrigin, float3 rayDir, float3 planeOrigin
     return false;
 }
 
+bool RayDiskIntersection(float3 rayOrigin, float3 rayDir, float3 planeOrigin, float3 planeNormal, float4x4 localToPrimitive, out float t, out float2 uv)
+{
+    if(RayPlaneIntersection(rayOrigin, rayDir, planeOrigin, planeNormal, t))
+    {
+        // Compute the intersection point
+        float3 hitPoint = rayOrigin + rayDir * t;
+
+        // Evaluate the projected UVs
+        uv = mul(localToPrimitive, float4(hitPoint, 1.0f)).xy + 0.5;
+        return length(uv - 0.5) < 0.5;
+    }
+    return false;
+}
+
 void IntersectPrimitive(RayTracingProceduralData rtProceduralData)
 {
     // Grab the current particle's AABB
@@ -95,6 +109,19 @@ void IntersectPrimitive(RayTracingProceduralData rtProceduralData)
     float t;
     float2 uv;
     if (RayTriangleIntersection(ObjectRayOrigin(), ObjectRayDirection(), rtProceduralData.position, rtProceduralData.normal, rtProceduralData.p0, rtProceduralData.p1, rtProceduralData.p2, rtProceduralData.objectToPrimitive, t, uv))
+    {
+        AttributeData attributeData;
+        attributeData.barycentrics = uv;
+
+        if(AABBPrimitiveIsVisible(rtProceduralData, uv))
+            ReportHit(t, 0, attributeData);
+    }
+#endif
+
+#if defined(RAY_TRACING_DISK_PRIMTIIVE)
+    float t;
+    float2 uv;
+    if (RayDiskIntersection(ObjectRayOrigin(), ObjectRayDirection(), rtProceduralData.position, rtProceduralData.normal, rtProceduralData.objectToPrimitive, t, uv))
     {
         AttributeData attributeData;
         attributeData.barycentrics = uv;

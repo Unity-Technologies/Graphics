@@ -89,7 +89,29 @@ float4x4 PrimtiveToObject(VFXAttributes attributes, float3 size3)
 #endif
 
 #if defined(VFX_PRIMITIVE_OCTAGON)
-    #define RAY_TRACING_OCTAGON_PRIMTIIVE
+    #define RAY_TRACING_DISK_PRIMTIIVE
+    // structure that holds all we need for the intersection shader
+    struct RayTracingProceduralData
+    {
+        float4x4 objectToPrimitive;
+        float4x4 primitiveToObject;
+        float3 normal;
+        float3 position;
+        VFXAttributes attributes;
+        float3 size;
+    };
+
+    RayTracingProceduralData BuildRayTracingProceduralData(VFXAttributes attributes, float3 size3)
+    {
+        RayTracingProceduralData rtPrData;
+        rtPrData.objectToPrimitive = ObjectToPrimitive(attributes, size3);
+        rtPrData.primitiveToObject = PrimtiveToObject(attributes, size3);
+        rtPrData.position =  rtPrData.primitiveToObject._m03_m13_m23;
+        rtPrData.normal = -rtPrData.primitiveToObject._m02_m12_m22;
+        rtPrData.attributes = attributes;
+        rtPrData.size = size3;
+        return rtPrData;
+    }
 #endif
 
 #endif // VFX_RAY_TRACING_COMMON_HLSL
