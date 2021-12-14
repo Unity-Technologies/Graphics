@@ -373,9 +373,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Compute the size of the patches and their scale
             cb._BandPatchSize = currentWater.simulation.patchSizes;
-            cb._BandPatchUVScale = new Vector4(1.0f, currentWater.simulation.patchSizes.x / currentWater.simulation.patchSizes.y,
-                                                    currentWater.simulation.patchSizes.x / currentWater.simulation.patchSizes.z,
-                                                    currentWater.simulation.patchSizes.x / currentWater.simulation.patchSizes.w);
 
             // Wind direction
             cb._WindDirection = OrientationToDirection(currentWater.windOrientation);
@@ -411,8 +408,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ScatteringIntensity = currentWater.scatteringFactor * 0.5f;
             cb._HeightBasedScattering = currentWater.heightScattering * 2.0f;
             cb._DisplacementScattering = currentWater.displacementScattering * 0.5f;
-
-            cb._CloudTexturedAmount = 1.0f;
 
             float scatteringLambertLightingNear = 0.6f;
             float scatteringLambertLightingFar = 0.06f;

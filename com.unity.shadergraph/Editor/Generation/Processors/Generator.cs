@@ -269,6 +269,12 @@ namespace UnityEditor.ShaderGraph
                     if (pass.TestActive(activeFields))
                         GenerateShaderPass(targetIndex, pass.descriptor, activeFields, activeBlockDescriptors.Select(x => x.descriptor).ToList(), subShaderProperties);
                 }
+
+                if (descriptor.usePassList != null)
+                {
+                    foreach (var usePass in descriptor.usePassList)
+                        m_Builder.AppendLine($"UsePass \"{usePass}\"");
+                }
             }
         }
 
