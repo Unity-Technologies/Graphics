@@ -57,6 +57,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unsupported material properties show when rendering pass is Low Resolution.
 - Fixed auto-exposure mismatch between sky background and scene objects in path tracing (case 1385131).
 - Fixed the ray tracing fallbacks being broken since an Nvidia Driver Update.
+- Render Graph object pools are now cleared with render graph cleanup
+
 
 ## [12.1.2] - 2021-10-22
 
