@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
