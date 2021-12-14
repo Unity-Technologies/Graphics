@@ -797,6 +797,9 @@ Shader "HDRP/AxF"
 
             ENDHLSL
         }
+
+        // This ensures that the material finds the "DebugDXR" pass for ray tracing debug view
+        UsePass "HDRP/RayTracingDebug/DebugDXR"
     }
 
     CustomEditor "Rendering.HighDefinition.AxFGUI"

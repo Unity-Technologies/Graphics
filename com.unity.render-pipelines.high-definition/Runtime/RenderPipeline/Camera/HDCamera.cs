@@ -738,6 +738,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool deepLearningSuperSamplingUseCustomAttributes => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.deepLearningSuperSamplingUseCustomAttributes;
         internal bool deepLearningSuperSamplingUseOptimalSettings => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.deepLearningSuperSamplingUseOptimalSettings;
         internal float deepLearningSuperSamplingSharpening => m_AdditionalCameraData == null ? 0.0f : m_AdditionalCameraData.deepLearningSuperSamplingSharpening;
+        internal bool fsrOverrideSharpness => m_AdditionalCameraData == null ? false : m_AdditionalCameraData.fsrOverrideSharpness;
+        internal float fsrSharpness => m_AdditionalCameraData == null ? FSRUtils.kDefaultSharpnessLinear : m_AdditionalCameraData.fsrSharpness;
 
         internal bool RequiresCameraJitter()
         {
@@ -841,7 +843,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // The condition inside controls whether we perform init/deinit or not.
                 HDRenderPipeline.ReinitializeVolumetricBufferParams(this);
 
-                bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion);
+                bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion) || frameSettings.IsEnabled(FrameSettingsField.Water);
                 bool isHistoryColorPyramidRequired = IsSSREnabled() || IsSSREnabled(true) || IsSSGIEnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
                 bool isVolumetricHistoryRequired = IsVolumetricReprojectionEnabled();
 
