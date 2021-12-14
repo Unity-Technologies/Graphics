@@ -316,6 +316,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_DebugParameters.UnRegisterDebug(this.name);
             m_Resources.Cleanup();
             m_DefaultResources.Cleanup();
+            m_RenderGraphPool.Cleanup();
 
             s_RegisteredGraphs.Remove(this);
             onGraphUnregistered?.Invoke(this);
