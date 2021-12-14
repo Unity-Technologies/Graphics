@@ -82,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)
             {
-                if (debugDisplay.drawProbes)
+                if (debugDisplay.drawProbes && enabledBySRP && isInitialized)
                 {
                     DrawProbeDebug(camera);
                 }
