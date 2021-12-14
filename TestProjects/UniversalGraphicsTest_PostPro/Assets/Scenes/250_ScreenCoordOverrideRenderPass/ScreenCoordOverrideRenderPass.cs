@@ -45,7 +45,6 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
 
     public void Cleanup()
     {
-        Assert.IsNotNull(m_Material);
         CoreUtils.Destroy(m_Material);
     }
 }
