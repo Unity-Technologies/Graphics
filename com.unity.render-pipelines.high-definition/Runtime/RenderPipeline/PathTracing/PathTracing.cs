@@ -107,9 +107,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter temporal = new BoolParameter(false);
 #endif
 
-
-
-
         /// <summary>
         /// Defines if and when sky importance sampling is enabled. It should be turned on for sky models with high contrast and bright spots, and turned off for smooth, uniform skies.
         /// </summary>
