@@ -44,7 +44,7 @@ void ParallelScan(uint i, uint j, uint w, uint iterCount, RW_TEXTURE2D(float, bu
     AllMemoryBarrierWithGroupSync();
 
     // Prevent NaNs arising from the division of 0 by 0.
-    sum = max(buf[uint2(w - 1, j)], FLT_EPS);
+    sum = max(buf[uint2(w - 1, j)], FLT_MIN);
 
     AllMemoryBarrierWithGroupSync();
 
