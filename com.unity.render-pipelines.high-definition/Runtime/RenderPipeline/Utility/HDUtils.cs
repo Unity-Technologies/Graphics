@@ -631,10 +631,12 @@ namespace UnityEngine.Rendering.HighDefinition
         internal struct PackedMipChainInfo
         {
             public Vector2Int textureSize;
-            public Vector2Int hardwareTextureSize;
             public int mipLevelCount;
             public Vector2Int[] mipLevelSizes;
             public Vector2Int[] mipLevelOffsets;
+
+            private Vector2 cachedTextureScale;
+            private Vector2Int cachedHardwareTextureSize;
 
             private bool m_OffsetBufferWillNeedUpdate;
 
@@ -650,13 +652,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // This function is NOT fast, but it is illustrative, and can be optimized later.
             public void ComputePackedMipChainInfo(Vector2Int viewportSize)
             {
+                bool isHardwareDrsOn = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
+                Vector2Int hardwareTextureSize = isHardwareDrsOn ? DynamicResolutionHandler.instance.ApplyScalesOnSize(viewportSize) : viewportSize;
+                Vector2 textureScale = isHardwareDrsOn ? new Vector2((float)viewportSize.x / (float)hardwareTextureSize.x, (float)viewportSize.y / (float)hardwareTextureSize.y) : new Vector2(1.0f, 1.0f);
+
                 // No work needed.
-                if (viewportSize == mipLevelSizes[0])
+                if (cachedHardwareTextureSize == hardwareTextureSize && cachedTextureScale == textureScale)
                     return;
 
-                bool isHardwareDrsOn = DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled();
-                hardwareTextureSize = isHardwareDrsOn ? DynamicResolutionHandler.instance.ApplyScalesOnSize(viewportSize) : viewportSize;
-                Vector2 textureScale = isHardwareDrsOn ? new Vector2((float)viewportSize.x / (float)hardwareTextureSize.x, (float)viewportSize.y / (float)hardwareTextureSize.y) : new Vector2(1.0f, 1.0f);
+                cachedHardwareTextureSize = hardwareTextureSize;
+                cachedTextureScale = textureScale;
 
                 mipLevelSizes[0] = hardwareTextureSize;
                 mipLevelOffsets[0] = Vector2Int.zero;
