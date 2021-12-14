@@ -18,6 +18,13 @@ struct PackedNeighborMiss
     uint indexValidity;
 };
 
+struct NeighborAxisLookup
+{
+    float3 neighborDirection;
+    float sgWeight;
+    int index;
+};
+
 struct NeighborAxis
 {
     uint hitIndexValidity;
