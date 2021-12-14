@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option on the lit shader to perform Planar and Triplanar mapping in Object Space.
 - Added a button in the Probe Volume Baking window to open the Probe Volume debug panel.
 - Added importance sampling of the sky in path tracing (aka environment sampling).
+- Added the overlay render queue to custom passes.
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
