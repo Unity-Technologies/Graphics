@@ -10,6 +10,7 @@ using UnityEditorInternal;
 using System.Linq;
 using UnityEditor.SceneManagement;
 using UnityEngine.Rendering;
+using UnityEditor.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -33,10 +34,12 @@ namespace UnityEngine.Experimental.Rendering
         {
             public static readonly Texture sceneIcon = EditorGUIUtility.IconContent("SceneAsset Icon").image;
             public static readonly Texture probeVolumeIcon = EditorGUIUtility.IconContent("LightProbeGroup Icon").image; // For now it's not the correct icon, we need to request it
+            public static readonly Texture debugIcon = EditorGUIUtility.IconContent("DebuggerEnabled").image;
 
             public static readonly GUIContent sceneLightingSettings = new GUIContent("Light Settings In Use", EditorGUIUtility.IconContent("LightingSettings Icon").image);
             public static readonly GUIContent sceneNotFound = new GUIContent("Scene Not Found!", Styles.sceneIcon);
             public static readonly GUIContent bakingSetsTitle = new GUIContent("Baking Sets", Styles.sceneIcon);
+            public static readonly GUIContent debugButton = new GUIContent(Styles.debugIcon);
         }
 
         SearchField m_SearchField;
@@ -361,7 +364,7 @@ namespace UnityEngine.Experimental.Rendering
         void DrawSeparator()
         {
             EditorGUILayout.BeginVertical(GUILayout.Width(2));
-            m_DrawHorizontalSplitter?.Invoke(null, new object[] { new Rect(k_LeftPanelSize, 20, 2, position.height) });
+            m_DrawHorizontalSplitter?.Invoke(null, new object[] { new Rect(k_LeftPanelSize, 0, 2, position.height) });
             EditorGUILayout.EndVertical();
         }
 
@@ -378,8 +381,15 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUILayout.BeginVertical();
             m_RightScrollPosition = EditorGUILayout.BeginScrollView(m_RightScrollPosition, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
 
-            var titleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
-            EditorGUI.LabelField(titleRect, "Probe Volume Settings", m_SubtitleStyle);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                var titleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
+                EditorGUI.LabelField(titleRect, "Probe Volume Settings", m_SubtitleStyle);
+                var debugButtonRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight, GUILayout.Width(k_TitleTextHeight));
+                if (GUI.Button(debugButtonRect, Styles.debugButton))
+                    OpenProbeVolumeDebugPanel();
+            }
+
             EditorGUILayout.Space();
             SanitizeScenes();
             m_ScenesInSet.DoLayoutList();
@@ -431,6 +441,16 @@ namespace UnityEngine.Experimental.Rendering
 
             EditorGUILayout.EndScrollView();
             EditorGUILayout.EndVertical();
+        }
+
+        void OpenProbeVolumeDebugPanel()
+        {
+            var debugPanel = GetWindow<DebugWindow>();
+            debugPanel.titleContent = DebugWindow.Styles.windowTitle;
+            debugPanel.Show();
+            var index = DebugManager.instance.FindPanelIndex(ProbeReferenceVolume.k_DebugPanelName);
+            if (index != -1)
+                DebugManager.instance.RequestEditorWindowPanelIndex(index);
         }
 
         void DrawBakeButton()
