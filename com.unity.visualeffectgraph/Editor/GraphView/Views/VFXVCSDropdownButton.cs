@@ -58,7 +58,10 @@ namespace UnityEditor.VFX.UI
         {
             if (state == Asset.States.None)
             {
-                m_VCSStatusImage.image = null;
+                if (m_VCSStatusImage != null)
+                {
+                    m_VCSStatusImage.image = null;
+                }
                 m_GetLatestButton.SetEnabled(false);
                 m_RevertButton.SetEnabled(false);
                 m_SubmitButton.SetEnabled(false);

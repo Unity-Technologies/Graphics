@@ -262,7 +262,10 @@ namespace UnityEditor.VFX.UI
             m_Systems.Clear();
             VFXExpression.ClearCache();
             m_NodeProvider = null;
-            m_VCSDropDown.SetStatus(Asset.States.None);
+            if (Provider.enabled && !IsOffline())
+            {
+                m_VCSDropDown.SetStatus(Asset.States.None);
+            }
 
             if (previousController.graph)
             {
