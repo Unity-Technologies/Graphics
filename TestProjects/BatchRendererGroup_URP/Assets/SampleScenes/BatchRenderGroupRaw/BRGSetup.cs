@@ -23,6 +23,8 @@ public unsafe class BRGSetup : MonoBehaviour
     private BatchRendererGroup m_BatchRendererGroup;
     private GraphicsBuffer m_GPUPersistentInstanceData;
 
+    UploadBufferPool m_bufferPool;
+
     private BatchID m_batchID;
     private BatchMaterialID m_materialID;
     private BatchMeshID m_meshID;
