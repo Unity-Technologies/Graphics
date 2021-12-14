@@ -63,6 +63,34 @@ Shader "Hackweek/DrawProcedural"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitForwardPass.hlsl"
 
+            static const float3 CubeVertices[] =
+            {
+                float3(0.50, -0.50, 0.50),
+                float3(-0.50, -0.50, 0.50),
+                float3(0.50, 0.50, 0.50),
+                float3(-0.50, 0.50, 0.50),
+                float3(0.50, 0.50, -0.50),
+                float3(-0.50, 0.50, -0.50),
+                float3(0.50, -0.50, -0.50),
+                float3(-0.50, -0.50, -0.50),
+                float3(0.50, 0.50, 0.50),
+                float3(-0.50, 0.50, 0.50),
+                float3(0.50, 0.50, -0.50),
+                float3(-0.50, 0.50, -0.50),
+                float3(0.50, -0.50, -0.50),
+                float3(0.50, -0.50, 0.50),
+                float3(-0.50, -0.50, 0.50),
+                float3(-0.50, -0.50, -0.50),
+                float3(-0.50, -0.50, 0.50),
+                float3(-0.50, 0.50, 0.50),
+                float3(-0.50, 0.50, -0.50),
+                float3(-0.50, -0.50, -0.50),
+                float3(0.50, -0.50, -0.50),
+                float3(0.50, 0.50, -0.50),
+                float3(0.50, 0.50, 0.50),
+                float3(0.50, -0.50, 0.50)
+            };
+
             Varyings HackweekVertexProcedural(Attributes input, uint vertexID : SV_VertexID)
             {
                 Varyings output = (Varyings)0;
@@ -73,23 +101,7 @@ Shader "Hackweek/DrawProcedural"
 
                 int instanceID = unity_InstanceID;
 
-                float3 offset = float3(2, 0, 0) * (vertexID / 3);
-                float3 positionOS = offset;
-
-                switch (vertexID % 3)
-                {
-                    case 0:
-                        positionOS += float3(-1,-1,0);
-                    break;
-
-                    case 1:
-                        positionOS += float3(-1,1,0);
-                    break;
-
-                    case 2:
-                        positionOS += float3(1,1,0);
-                    break;
-                }
+                float3 positionOS = CubeVertices[vertexID];
 
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS);
 

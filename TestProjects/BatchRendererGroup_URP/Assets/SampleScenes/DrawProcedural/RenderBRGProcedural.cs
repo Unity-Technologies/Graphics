@@ -189,29 +189,21 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
 
                         draws.drawCommands[outBatch] = new BatchDrawCommand
                         {
-                            flags = BatchDrawCommandFlags.Procedural,// | BatchDrawCommandFlags.Indexed,
-                            //flags = BatchDrawCommandFlags.None,
+                            flags = BatchDrawCommandFlags.Procedural | BatchDrawCommandFlags.Indexed,
                             visibleOffset = (uint)batchStartIndex,
                             visibleCount = (uint)visibleCount,
                             batchID = batchID,
                             materialID = drawBatch.key.material,
                             procedural = new BatchDrawCommandProcedural
                             {
-                                //indexBufferHandle = drawBatch.indexBufferHandle,
-                                //indexCount = drawBatch.indexCount,
-                                //indexOffset = drawBatch.indexOffset,
-                                indexBufferHandle = default,
-                                indexCount = 0,
-                                indexOffset = 0,
+                                indexBufferHandle = drawBatch.indexBufferHandle,
+                                indexCount = drawBatch.indexCount,
+                                indexOffset = drawBatch.indexOffset,
+
                                 topology = MeshTopology.Triangles,
                                 vertexCount = drawBatch.vertexCount,
                                 vertexOffset = drawBatch.vertexOffset
                             },
-                            /*regular = new BatchDrawCommandRegular
-                            {
-                                meshID = drawBatches[remappedIndex].key.meshID,
-                                submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
-                            },*/
                             splitVisibilityMask = (ushort)visibleMaskPrev,
                             sortingPosition = 0
                         };
