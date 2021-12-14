@@ -138,7 +138,10 @@ namespace UnityEngine.Rendering
 
         public override int GetHashCode()
         {
-            return (typeSet != null ? typeSet.GetHashCode() : 0);
+            return (typeSet != null ? typeSet.Aggregate(0, (acc, v) => acc + v.AsType().GetHashCode()) : 0);
         }
+
+        public static bool operator ==(VolumeComponentArchetype l, VolumeComponentArchetype r) => l?.Equals(r) ?? r == null ;
+        public static bool operator !=(VolumeComponentArchetype l, VolumeComponentArchetype r) => !(l == r);
     }
 }

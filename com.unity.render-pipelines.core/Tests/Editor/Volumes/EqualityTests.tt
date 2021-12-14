@@ -3,6 +3,7 @@
 #><#@ import namespace="System.Collections.Generic"
 #>
 using System;
+using System.Linq;
 using FsCheck;
 using NUnit.Framework;
 
@@ -19,6 +20,17 @@ namespace UnityEngine.Rendering.Tests
         }
 
 <# foreach (var test in equalityTests) Write(test); #>
+
+        [Test]
+        public void EverythingVolumeComponentFilterEquality()
+        {
+            var l2 = new EverythingVolumeComponentFilter();
+            var r2 = new EverythingVolumeComponentFilter();
+
+            var expectsAreEquals = true;
+            <# WriteEqualityCode(true); #>
+            Assert.True(result);
+        }
     }
 }
 
@@ -29,13 +41,15 @@ namespace UnityEngine.Rendering.Tests
         public string buildFromType;
         public string constructor;
         public string expectsAreEqual;
+        public bool addNullableTests;
 
-        public EqualityTest(string testName, string buildFromType, string constructor, string expectsAreEqual)
+        public EqualityTest(string testName, string buildFromType, string constructor, string expectsAreEqual, bool addNullableTests)
         {
             this.testName = testName;
             this.buildFromType = buildFromType;
             this.constructor = constructor;
             this.expectsAreEqual = expectsAreEqual;
+            this.addNullableTests = addNullableTests;
         }
     }
 
@@ -51,6 +65,22 @@ namespace UnityEngine.Rendering.Tests
                 var r2 = <#= string.Format(test.constructor, "r") #>;
 
                 var expectsAreEquals = <#= test.expectsAreEqual #>;
+                <#+ WriteEqualityCode(test.addNullableTests); #>
+                return result;
+            }
+
+            Prop.ForAll<<#= test.buildFromType #>, <#= test.buildFromType #>>(Property).QuickCheckThrowOnFailure();
+
+            // Enforce testing equality
+            var value = Arb.Generate<<#= test.buildFromType #>>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
+            Assert.IsTrue(Property(value, value));
+        }
+<#+
+    }
+
+    public void WriteEqualityCode(bool addNullableTests)
+    {
+#>
                 var areEquals = l2 == r2;
                 var areEquals2 = l2.Equals(r2);
                 var areEquals3 = l2.Equals((object)r2);
@@ -63,7 +93,17 @@ namespace UnityEngine.Rendering.Tests
                 // Check equal to itself
                 var isEqual = l2 == l2 && l2.GetHashCode() == l2.GetHashCode();
 
-                return areEquals == areEquals2
+                var nullableTest = false;
+<#+
+        if (addNullableTests)
+        {
+#>
+                r2 = null;
+                nullableTest = !l2.Equals(r2);
+<#+
+        }
+#>
+                var result = areEquals == areEquals2
                     && areEquals == areEquals3
                     && areEquals != areNotEquals4
                     && hashCodeEquals
@@ -72,14 +112,6 @@ namespace UnityEngine.Rendering.Tests
                     && !l2.Equals((object)null)
                     && !l2.Equals((object)new SomeObject())
                     && l2.Equals((object)l2);
-            }
-
-            Prop.ForAll<<#= test.buildFromType #>, <#= test.buildFromType #>>(Property).QuickCheckThrowOnFailure();
-
-            // Enforce testing equality
-            var value = Arb.Generate<<#= test.buildFromType #>>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
-            Assert.IsTrue(Property(value, value));
-        }
 <#+
     }
 
@@ -91,16 +123,16 @@ namespace UnityEngine.Rendering.Tests
                 $"{className}Equality",
                 "VolumeComponentType",
                 string.Format(constructor, className),
-                "l.AsType() == r.AsType()");
+                "l.AsType() == r.AsType()",
+                true);
     }
 
     EqualityTest[] equalityTests = new[]
     {
         Tests.VolumeComponentFilter("IsSupportedVolumeComponentFilter", Tests.fromTypeConstructor),
         Tests.VolumeComponentFilter("IsExplicitlySupportedVolumeComponentFilter", Tests.fromTypeConstructor),
-        Tests.VolumeComponentFilter("EverythingVolumeComponentFilter", "new EverythingVolumeComponentFilter()"),
-        new EqualityTest("VolumeComponentTypeEquality", "VolumeComponentType", "{0}", "l.AsType() == r.AsType()"),
-        new EqualityTest("IsVisibleVolumeComponentFilterEquality", "bool", "IsVisibleVolumeComponentFilter.FromIsVisible({0})", "l == r"),
-        new EqualityTest("VolumeComponentArchetypeEquality", "VolumeComponentType[]", "VolumeComponentArchetype.FromTypes({0})", "l == r"),
+        new EqualityTest("VolumeComponentTypeEquality", "VolumeComponentType", "{0}", "l.AsType() == r.AsType()", false),
+        new EqualityTest("IsVisibleVolumeComponentFilterEquality", "bool", "IsVisibleVolumeComponentFilter.FromIsVisible({0})", "l == r", true),
+        new EqualityTest("VolumeComponentArchetypeEquality", "VolumeComponentType[]", "VolumeComponentArchetype.FromTypes({0})", "l.ToHashSet().SetEquals(r.ToHashSet())", true),
     };
 #>
