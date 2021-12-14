@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed AO dissapearing when DRS would be turned off through a camera, while hardware drs is active in DX12 or Vulkan (case 1383093).
 - Fixed write to VT feedback in debug modes (case 1376874)
 - Fixed a shader warning in UnityInstancing.hlsl
+- Fixed misc shader warnings.
 
 ## [12.1.2] - 2021-10-22
 
