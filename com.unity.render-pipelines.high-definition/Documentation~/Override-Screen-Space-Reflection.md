@@ -8,9 +8,16 @@ HDRP implements [ray-traced reflection](Ray-Traced-Reflections.md) on top of thi
 
 [!include[](snippets/Volume-Override-Enable-Override.md)]
 
-For this feature:
-The property to enable in your HDRP Asset is: **Lighting > Reflections > Screen Space Reflection**.
-The property to enable in your Frame Settings is: **Lighting > Screen Space Reflection**.
+To enable Screen Space Reflection:
+
+1. In your HDRP Asset Inspector window, go to **Lighting** > **Reflections** and enable **Screen Space Reflection**
+
+2. Enable Screen Space Reflection in Frame Settings
+
+   * If you want to enable Screen Space Reflection for all cameras, go to **Edit** > **Project Settings** > **Graphics** > **HDRP Global Settings** > **Frame Settings (Default Values)** > **Lighting** and enable **Screen Space Reflection**
+   * If you want to enable Screen Space Reflection for specific cameras, in the Inspector window of each camera:
+      1. Go to **Rendering** and enable **Custom Frame Settings**
+      2. Go to **Frame Settings Overrides** > **Lighting** and enable **Screen Space Reflection**
 
 ## Using Screen Space Reflection
 
@@ -104,7 +111,10 @@ To calculate SSR, HDRP reads a color buffer with a blurred mipmap generated duri
 
 If a transparent material has **Receive SSR Transparent** enabled, HDRP always uses the **Approximation** algorithm to calculate SSR, even you select **PBR Accumulation**.
 
+When a transparent material has rendering pass set to **Low Resolution**, then **Receive SSR Transparent** can't be selected.
+
 ### Ray-traced reflection
 
+Currently, ray tracing in HDRP does not support [decals](decal.md). This means that, when you use ray-traced reflection, decals do not appear in reflective surfaces.
+
 If a transparent material has **Receive SSR Transparent** enabled, HDRP will evaluate the reflections as smooth.
-Currently, ray tracing in HDRP does not support [decals](decal.md). This means that when you use ray-traced reflection decals do not appear in reflective surfaces.

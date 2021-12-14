@@ -125,7 +125,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 UnityEditor.EditorApplication.delayCall += () =>
                 {
                     if (targetObject != null && !targetObject.Equals(null))
-                        UnityEditor.EditorUtility.SetDirty(targetObject);
+                    {
+                        // Only dirty the object's scene if it can be saved, preview scenes are not saved (case 1367204).
+                        if (!UnityEditor.SceneManagement.EditorSceneManager.IsPreviewSceneObject(targetObject))
+                            UnityEditor.EditorUtility.SetDirty(targetObject);
+                    }
                 };
             }
 #endif
