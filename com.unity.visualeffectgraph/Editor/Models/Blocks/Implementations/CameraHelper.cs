@@ -35,7 +35,7 @@ namespace UnityEditor.VFX.Block
                 expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionExtractFarPlaneFromMainCamera(), "Camera_farPlane"));
                 expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionExtractAspectRatioFromMainCamera(), "Camera_aspectRatio"));
                 expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionExtractPixelDimensionsFromMainCamera(), "Camera_pixelDimensions"));
-                expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionExtractLensShiftFromMainCamera(), "Camera_lensShift"));
+                //expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionExtractLensShiftFromMainCamera(), "Camera_lensShift"));
                 expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes.Depth), "Camera_depthBuffer"));
                 expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionGetBufferFromMainCamera(VFXCameraBufferTypes.Color), "Camera_colorBuffer"));
                 expressions = expressions.Append(new VFXNamedExpression(new VFXExpressionIsMainCameraOrthographic(), "Camera_orthographic"));

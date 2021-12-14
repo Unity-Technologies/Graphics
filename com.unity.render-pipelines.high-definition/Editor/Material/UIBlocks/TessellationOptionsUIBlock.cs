@@ -105,7 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private void DrawDelayedFloatProperty(MaterialProperty prop, GUIContent content)
         {
-            MaterialEditor.BeginProperty(prop);
+            MaterialEditorEx.BeginProperty(prop);
 
             Rect position = EditorGUILayout.GetControlRect();
             EditorGUI.BeginChangeCheck();
@@ -115,7 +115,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (EditorGUI.EndChangeCheck())
                 prop.floatValue = newValue;
 
-            MaterialEditor.EndProperty();
+            MaterialEditorEx.EndProperty();
         }
     }
 }

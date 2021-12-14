@@ -636,7 +636,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox(Styles.transparentSSSErrorMessage, MessageType.Error);
             }
 
-            MaterialEditor.BeginProperty(renderQueueProperty);
+            MaterialEditorEx.BeginProperty(renderQueueProperty);
             switch (mode)
             {
                 case SurfaceType.Opaque:
@@ -672,7 +672,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 default:
                     throw new ArgumentException("Unknown SurfaceType");
             }
-            MaterialEditor.EndProperty();
+            MaterialEditorEx.EndProperty();
 
             --EditorGUI.indentLevel;
             EditorGUI.showMixedValue = false;
@@ -844,7 +844,7 @@ namespace UnityEditor.Rendering.HighDefinition
             int mode = (int)GetFilteredDisplacementMode(prop);
             bool mixed = HasMixedDisplacementMode(prop);
 
-            MaterialEditor.BeginProperty(prop);
+            MaterialEditorEx.BeginProperty(prop);
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = mixed;
             int newMode = EditorGUILayout.IntPopup(label, mode, displayedOptions, optionValues);
@@ -854,7 +854,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.RegisterPropertyChangeUndo(label.text);
                 prop.floatValue = newMode;
             }
-            MaterialEditor.EndProperty();
+            MaterialEditorEx.EndProperty();
 
             return (DisplacementMode)newMode;
         }

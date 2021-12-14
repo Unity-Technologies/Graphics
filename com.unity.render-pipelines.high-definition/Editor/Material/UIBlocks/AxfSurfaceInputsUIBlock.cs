@@ -339,12 +339,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Expand as user-friendly UI
                     EditorGUILayout.LabelField("BRDF Variants", EditorStyles.boldLabel);
 
-                    MaterialEditor.BeginProperty(m_SVBRDF_BRDFType);
+                    MaterialEditorEx.BeginProperty(m_SVBRDF_BRDFType);
                     diffuseType = (SvbrdfDiffuseType)EditorGUILayout.Popup("Diffuse Type", (int)diffuseType, SvbrdfDiffuseTypeNames);
                     specularType = (SvbrdfSpecularType)EditorGUILayout.Popup("Specular Type", (int)specularType, SvbrdfSpecularTypeNames);
-                    MaterialEditor.EndProperty();
+                    MaterialEditorEx.EndProperty();
 
-                    MaterialEditor.BeginProperty(m_SVBRDF_BRDFVariants);
+                    MaterialEditorEx.BeginProperty(m_SVBRDF_BRDFVariants);
                     if (specularType == SvbrdfSpecularType.WARD)
                     {
                         fresnelVariant = (SvbrdfFresnelVariant)EditorGUILayout.Popup("Fresnel Variant", (int)fresnelVariant, SvbrdfFresnelVariantNames);
@@ -354,7 +354,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         blinnVariant = (SvbrdfSpecularVariantBlinn)EditorGUILayout.Popup("Blinn Variant", (int)blinnVariant, SvbrdfSpecularVariantBlinnNames);
                     }
-                    MaterialEditor.EndProperty();
+                    MaterialEditorEx.EndProperty();
 
                     EditorGUILayout.Space();
                     EditorGUILayout.LabelField("Parameters and Maps", EditorStyles.boldLabel);
@@ -390,9 +390,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // Anisotropy
-                    MaterialEditor.BeginProperty(m_Flags);
+                    MaterialEditorEx.BeginProperty(m_Flags);
                     anisotropy = EditorGUILayout.Toggle("Is Anisotropic", anisotropy);
-                    MaterialEditor.EndProperty();
+                    MaterialEditorEx.EndProperty();
                     if (anisotropy)
                     {
                         ++EditorGUI.indentLevel;
@@ -402,18 +402,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // Clearcoat
-                    MaterialEditor.BeginProperty(m_Flags);
+                    MaterialEditorEx.BeginProperty(m_Flags);
                     clearcoat = EditorGUILayout.Toggle("Enable Clearcoat", clearcoat);
-                    MaterialEditor.EndProperty();
+                    MaterialEditorEx.EndProperty();
                     if (clearcoat)
                     {
                         ++EditorGUI.indentLevel;
                         DrawRightJustifiedHeader(Styles.mapsTilingOffsetText.text);
                         materialEditor.TexturePropertySingleLine(Styles.clearcoatColorMapText, m_ClearcoatColorMap, m_ClearcoatColorMapST);
                         materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap, m_ClearcoatNormalMapST);
-                        MaterialEditor.BeginProperty(m_Flags);
+                        MaterialEditorEx.BeginProperty(m_Flags);
                         clearcoatRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatRefraction);
-                        MaterialEditor.EndProperty();
+                        MaterialEditorEx.EndProperty();
                         // The IOR map is always required for the coat F0, while in the CAR_PAINT model, the IOR
                         // is given by a scalar value.
                         DrawRightJustifiedHeader(Styles.mapsTilingOffsetText.text);
@@ -447,15 +447,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     materialEditor.TexturePropertySingleLine(Styles.BRDFColorMapText, m_CarPaint2_BRDFColorMap);
                     materialEditor.ShaderProperty(m_CarPaint2_BRDFColorMapScale, Styles.BRDFColorMapScaleText);
 
-                    MaterialEditor.BeginProperty(m_Flags);
+                    MaterialEditorEx.BeginProperty(m_Flags);
                     brdfColorDiagonalClamp = EditorGUILayout.Toggle("BRDF Color Table Diagonal Clamping", brdfColorDiagonalClamp);
-                    MaterialEditor.EndProperty();
+                    MaterialEditorEx.EndProperty();
                     if (brdfColorDiagonalClamp)
                     {
                         ++EditorGUI.indentLevel;
-                        MaterialEditor.BeginProperty(m_CarPaint2_BRDFColorMapUVScale);
+                        MaterialEditorEx.BeginProperty(m_CarPaint2_BRDFColorMapUVScale);
                         m_CarPaint2_BRDFColorMapUVScale.vectorValue = EditorGUILayout.Vector2Field(Styles.BRDFColorMapUVScaleText, m_CarPaint2_BRDFColorMapUVScale.vectorValue);
-                        MaterialEditor.EndProperty();
+                        MaterialEditorEx.EndProperty();
                         --EditorGUI.indentLevel;
                     }
 
@@ -489,9 +489,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // Clearcoat
-                    MaterialEditor.BeginProperty(m_Flags);
+                    MaterialEditorEx.BeginProperty(m_Flags);
                     clearcoat = EditorGUILayout.Toggle("Enable Clearcoat", clearcoat);
-                    MaterialEditor.EndProperty();
+                    MaterialEditorEx.EndProperty();
                     if (clearcoat)
                     {
                         ++EditorGUI.indentLevel;
@@ -504,9 +504,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                         //materialEditor.TexturePropertySingleLine( Styles.clearcoatIORMapText, m_ClearcoatIORMap );
                         materialEditor.ShaderProperty(m_CarPaint2_ClearcoatIOR, Styles.CarPaintIORText);
-                        MaterialEditor.BeginProperty(m_Flags);
+                        MaterialEditorEx.BeginProperty(m_Flags);
                         clearcoatRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatRefraction);
-                        MaterialEditor.EndProperty();
+                        MaterialEditorEx.EndProperty();
                         --EditorGUI.indentLevel;
                     }
 

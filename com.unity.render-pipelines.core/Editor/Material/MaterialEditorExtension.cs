@@ -1,4 +1,13 @@
+using UnityEditor;
 using UnityEngine;
+
+public class MaterialEditorEx : UnityEditor.MaterialEditor
+{
+    public static void BeginProperty(SerializedProperty property) {}
+    public static void BeginProperty(MaterialProperty property) {}
+    public static void EndProperty() {}
+}
+
 
 namespace UnityEditor.Rendering
 {
@@ -79,7 +88,7 @@ namespace UnityEditor.Rendering
         /// <param name="transform">Optional function to apply on the new value</param>
         public static void IntShaderProperty(this MaterialEditor editor, MaterialProperty prop, GUIContent label, System.Func<int, int> transform = null)
         {
-            MaterialEditor.BeginProperty(prop);
+            MaterialEditorEx.BeginProperty(prop);
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = prop.hasMixedValue;
@@ -92,7 +101,7 @@ namespace UnityEditor.Rendering
                 prop.floatValue = newValue;
             }
 
-            MaterialEditor.EndProperty();
+            MaterialEditorEx.EndProperty();
         }
 
         /// <summary>
@@ -117,7 +126,7 @@ namespace UnityEditor.Rendering
         /// <param name="label">Label for the property</param>
         public static void IntSliderShaderProperty(this MaterialEditor editor, MaterialProperty prop, int min, int max, GUIContent label)
         {
-            MaterialEditor.BeginProperty(prop);
+            MaterialEditorEx.BeginProperty(prop);
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = prop.hasMixedValue;
@@ -129,7 +138,7 @@ namespace UnityEditor.Rendering
                 prop.floatValue = newValue;
             }
 
-            MaterialEditor.EndProperty();
+            MaterialEditorEx.EndProperty();
         }
 
         /// <summary>
@@ -141,7 +150,7 @@ namespace UnityEditor.Rendering
         /// <param name="min">The minimum value the user can specify</param>
         public static void MinFloatShaderProperty(this MaterialEditor editor, MaterialProperty prop, GUIContent label, float min)
         {
-            MaterialEditor.BeginProperty(prop);
+            MaterialEditorEx.BeginProperty(prop);
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = prop.hasMixedValue;
@@ -151,7 +160,7 @@ namespace UnityEditor.Rendering
             if (EditorGUI.EndChangeCheck())
                 prop.floatValue = newValue;
 
-            MaterialEditor.EndProperty();
+            MaterialEditorEx.EndProperty();
         }
 
         /// <summary>
@@ -162,7 +171,7 @@ namespace UnityEditor.Rendering
         /// <param name="label">Label for the property</param>
         public static void Vector3ShaderProperty(this MaterialEditor editor, MaterialProperty prop, GUIContent label)
         {
-            MaterialEditor.BeginProperty(prop);
+            MaterialEditorEx.BeginProperty(prop);
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = prop.hasMixedValue;
@@ -171,7 +180,7 @@ namespace UnityEditor.Rendering
             if (EditorGUI.EndChangeCheck())
                 prop.vectorValue = vector;
 
-            MaterialEditor.EndProperty();
+            MaterialEditorEx.EndProperty();
         }
 
         /// <summary>
@@ -184,7 +193,7 @@ namespace UnityEditor.Rendering
         /// <returns>The index of the option that has been selected by the user</returns>
         public static int PopupShaderProperty(this MaterialEditor editor, MaterialProperty prop, GUIContent label, string[] displayedOptions)
         {
-            MaterialEditor.BeginProperty(prop);
+            MaterialEditorEx.BeginProperty(prop);
 
             int val = (int)prop.floatValue;
 
@@ -198,7 +207,7 @@ namespace UnityEditor.Rendering
                 prop.floatValue = val = newValue;
             }
 
-            MaterialEditor.EndProperty();
+            MaterialEditorEx.EndProperty();
 
             return val;
         }
@@ -214,7 +223,7 @@ namespace UnityEditor.Rendering
         /// <returns>The value of the option that has been selected by the user</returns>
         public static int IntPopupShaderProperty(this MaterialEditor editor, MaterialProperty prop, string label, string[] displayedOptions, int[] optionValues)
         {
-            MaterialEditor.BeginProperty(prop);
+            MaterialEditorEx.BeginProperty(prop);
 
             int val = (int)prop.floatValue;
 
@@ -228,7 +237,7 @@ namespace UnityEditor.Rendering
                 prop.floatValue = val = newValue;
             }
 
-            MaterialEditor.EndProperty();
+            MaterialEditorEx.EndProperty();
 
             return val;
         }
@@ -244,8 +253,8 @@ namespace UnityEditor.Rendering
         /// <param name="label">Label for the property</param>
         public static void MinMaxShaderProperty(this MaterialEditor editor, MaterialProperty min, MaterialProperty max, float minLimit, float maxLimit, GUIContent label)
         {
-            MaterialEditor.BeginProperty(min);
-            MaterialEditor.BeginProperty(max);
+            MaterialEditorEx.BeginProperty(min);
+            MaterialEditorEx.BeginProperty(max);
 
             float minValue = min.floatValue;
             float maxValue = max.floatValue;
@@ -257,8 +266,8 @@ namespace UnityEditor.Rendering
                 max.floatValue = maxValue;
             }
 
-            MaterialEditor.EndProperty();
-            MaterialEditor.EndProperty();
+            MaterialEditorEx.EndProperty();
+            MaterialEditorEx.EndProperty();
         }
 
         /// <summary>
@@ -271,7 +280,7 @@ namespace UnityEditor.Rendering
         /// <param name="label">Label for the property</param>
         public static void MinMaxShaderProperty(this MaterialEditor editor, MaterialProperty remapProp, float minLimit, float maxLimit, GUIContent label)
         {
-            MaterialEditor.BeginProperty(remapProp);
+            MaterialEditorEx.BeginProperty(remapProp);
 
             Vector2 remap = remapProp.vectorValue;
 
@@ -280,7 +289,7 @@ namespace UnityEditor.Rendering
             if (EditorGUI.EndChangeCheck())
                 remapProp.vectorValue = remap;
 
-            MaterialEditor.EndProperty();
+            MaterialEditorEx.EndProperty();
         }
     }
 }

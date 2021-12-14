@@ -185,7 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap, baseColor);
             else
             {
-                MaterialEditor.BeginProperty(baseColor);
+                MaterialEditorEx.BeginProperty(baseColor);
 
                 Color color = baseColor.colorValue;
                 EditorGUI.BeginChangeCheck();
@@ -195,7 +195,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                     baseColor.colorValue = color;
 
-                MaterialEditor.EndProperty();
+                MaterialEditorEx.EndProperty();
             }
 
             using (new EditorGUI.DisabledScope(!affectNormal))

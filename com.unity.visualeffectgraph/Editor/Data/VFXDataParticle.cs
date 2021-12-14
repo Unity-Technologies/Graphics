@@ -664,7 +664,7 @@ namespace UnityEditor.VFX
             var systemFlag = VFXSystemFlag.SystemDefault;
             if (attributeBufferIndex != -1)
             {
-                systemFlag |= VFXSystemFlag.SystemHasAttributeBuffer;
+                //systemFlag |= VFXSystemFlag.SystemHasAttributeBuffer;
                 systemBufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
             }
 
@@ -1018,7 +1018,7 @@ namespace UnityEditor.VFX
                         for (int j = 0; j < update.bufferCount; ++j)
                         {
                             VFXEditorTaskDesc sortTaskDesc = new VFXEditorTaskDesc();
-                            sortTaskDesc.type = UnityEngine.VFX.VFXTaskType.PerOutputSort;
+                            //sortTaskDesc.type = UnityEngine.VFX.VFXTaskType.PerOutputSort;
                             sortTaskDesc.externalProcessor = null;
                             sortTaskDesc.model = context;
 

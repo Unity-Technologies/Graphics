@@ -550,39 +550,39 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // Grab the ray tracing settings
-            RayTracingSettings rtSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
-#if UNITY_EDITOR
-            if (rtSettings.buildMode.value == RTASBuildMode.Automatic || hdCamera.camera.cameraType == CameraType.SceneView)
-#else
-            if (rtSettings.buildMode.value == RTASBuildMode.Automatic)
-#endif
-            {
-                // Cull the scene for the RTAS
-                RayTracingInstanceCullingResults cullingResults = m_RTASManager.Cull(hdCamera, effectParameters);
-
-                // Update the material dirtiness for the PT
-                if (effectParameters.pathTracing)
-                {
-                    m_RTASManager.transformsDirty |= cullingResults.transformsChanged;
-                    for (int i = 0; i < cullingResults.materialsCRC.Length; i++)
-                    {
-                        RayTracingInstanceMaterialCRC matCRC = cullingResults.materialsCRC[i];
-                        m_RTASManager.materialsDirty |= UpdateMaterialCRC(matCRC.instanceID, matCRC.crc);
-                    }
-                }
-
-                // Build the ray tracing acceleration structure
-                m_RTASManager.Build(hdCamera);
-
-                // tag the structures as valid
-                m_ValidRayTracingState = true;
-            }
-            else
-            {
-                // If the user fed a non null ray tracing acceleration structure, then we are all set.
-                if (hdCamera.rayTracingAccelerationStructure != null)
-                    m_ValidRayTracingState = true;
-            }
+//             RayTracingSettings rtSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
+// #if UNITY_EDITOR
+//             if (rtSettings.buildMode.value == RTASBuildMode.Automatic || hdCamera.camera.cameraType == CameraType.SceneView)
+// #else
+//             if (rtSettings.buildMode.value == RTASBuildMode.Automatic)
+// #endif
+//             {
+//                 // Cull the scene for the RTAS
+//                 RayTracingInstanceCullingResults cullingResults = m_RTASManager.Cull(hdCamera, effectParameters);
+//
+//                 // Update the material dirtiness for the PT
+//                 if (effectParameters.pathTracing)
+//                 {
+//                     m_RTASManager.transformsDirty |= cullingResults.transformsChanged;
+//                     for (int i = 0; i < cullingResults.materialsCRC.Length; i++)
+//                     {
+//                         RayTracingInstanceMaterialCRC matCRC = cullingResults.materialsCRC[i];
+//                         m_RTASManager.materialsDirty |= UpdateMaterialCRC(matCRC.instanceID, matCRC.crc);
+//                     }
+//                 }
+//
+//                 // Build the ray tracing acceleration structure
+//                 m_RTASManager.Build(hdCamera);
+//
+//                 // tag the structures as valid
+//                 m_ValidRayTracingState = true;
+//             }
+//             else
+//             {
+//                 // If the user fed a non null ray tracing acceleration structure, then we are all set.
+//                 if (hdCamera.rayTracingAccelerationStructure != null)
+//                     m_ValidRayTracingState = true;
+//             }
         }
 
         class RTASDebugPassData
@@ -805,18 +805,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal RayTracingAccelerationStructure RequestAccelerationStructure(HDCamera hdCamera)
         {
-            if (m_ValidRayTracingState)
-            {
-                RayTracingSettings rtSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
-#if UNITY_EDITOR
-                if (rtSettings.buildMode.value == RTASBuildMode.Automatic || hdCamera.camera.cameraType == CameraType.SceneView)
-#else
-                if (rtSettings.buildMode.value == RTASBuildMode.Automatic)
-#endif
-                    return m_RTASManager.rtas;
-                else
-                    return hdCamera.rayTracingAccelerationStructure;
-            }
+//             if (m_ValidRayTracingState)
+//             {
+//                 RayTracingSettings rtSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
+// #if UNITY_EDITOR
+//                 if (rtSettings.buildMode.value == RTASBuildMode.Automatic || hdCamera.camera.cameraType == CameraType.SceneView)
+// #else
+//                 if (rtSettings.buildMode.value == RTASBuildMode.Automatic)
+// #endif
+//                     return m_RTASManager.rtas;
+//                 else
+//                     return hdCamera.rayTracingAccelerationStructure;
+//             }
             return null;
         }
 

@@ -766,7 +766,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     AreaLightShape.Disc => LightType.Disc,
                     _ => throw new Exception("Unexpected area light type: " + serialized.areaLightShape),
                 };
-                serialized.settings.DrawCookieProperty(serialized.areaLightCookie, s_Styles.areaLightCookie, inspectorAreaLightType);
+                //serialized.settings.DrawCookieProperty(serialized.areaLightCookie, s_Styles.areaLightCookie, inspectorAreaLightType);
+                EditorGUILayout.ObjectField(serialized.areaLightCookie, s_Styles.areaLightCookie);
                 ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
             }
             if (serialized.type == HDLightType.Point || serialized.type == HDLightType.Spot || (serialized.type == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
@@ -1255,7 +1256,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality == HDShadowFilteringQuality.VeryHigh)
                     {
                         EditorGUILayout.Slider(serialized.slopeBias, 0.0f, 1.0f, s_Styles.slopeBias);
-                        EditorGUILayout.Slider(serialized.normalBias, 0.0f, 5.0f, s_Styles.normalBias);    
+                        EditorGUILayout.Slider(serialized.normalBias, 0.0f, 5.0f, s_Styles.normalBias);
                     }
                     else
                     {

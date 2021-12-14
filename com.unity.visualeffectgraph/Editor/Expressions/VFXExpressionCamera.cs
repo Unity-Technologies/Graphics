@@ -214,18 +214,18 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXExpressionExtractLensShiftFromMainCamera : VFXExpression
-    {
-        public VFXExpressionExtractLensShiftFromMainCamera() : base(VFXExpression.Flags.InvalidOnGPU) { }
-
-        public override VFXExpressionOperation operation => VFXExpressionOperation.ExtractLensShiftFromMainCamera;
-
-        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
-        {
-            if (Camera.main != null)
-                return VFXValue.Constant(Camera.main.GetGateFittedLensShift());
-            else
-                return VFXValue.Constant(CameraType.defaultValue.lensShift);
-        }
-    }
+    // class VFXExpressionExtractLensShiftFromMainCamera : VFXExpression
+    // {
+    //     public VFXExpressionExtractLensShiftFromMainCamera() : base(VFXExpression.Flags.InvalidOnGPU) { }
+    //
+    //     public override VFXExpressionOperation operation => VFXExpressionOperation.ExtractLensShiftFromMainCamera;
+    //
+    //     sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+    //     {
+    //         if (Camera.main != null)
+    //             return VFXValue.Constant(Camera.main.GetGateFittedLensShift());
+    //         else
+    //             return VFXValue.Constant(CameraType.defaultValue.lensShift);
+    //     }
+    // }
 }

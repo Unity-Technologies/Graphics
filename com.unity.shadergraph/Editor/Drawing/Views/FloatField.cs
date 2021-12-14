@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    class FloatField : UnityEngine.UIElements.DoubleField
+    class FloatField : UnityEditor.UIElements.DoubleField
     {
         protected override string ValueToString(double v)
         {

@@ -12,9 +12,9 @@ namespace UnityEditor.VFX
 
         // updates
         CameraSort = UnityEngine.VFX.VFXTaskType.CameraSort,
-        GlobalSort = UnityEngine.VFX.VFXTaskType.GlobalSort,
+        GlobalSort = UnityEngine.VFX.VFXTaskType.CameraSort,
         PerCameraUpdate = UnityEngine.VFX.VFXTaskType.PerCameraUpdate,
-        PerOutputSort = UnityEngine.VFX.VFXTaskType.PerOutputSort,
+        PerOutputSort = UnityEngine.VFX.VFXTaskType.PerCameraUpdate,
 
         // outputs
         ParticlePointOutput = UnityEngine.VFX.VFXTaskType.ParticlePointOutput,

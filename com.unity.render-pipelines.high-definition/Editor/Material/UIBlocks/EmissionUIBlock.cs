@@ -140,8 +140,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static void DoEmissiveIntensityGUI(MaterialEditor materialEditor, MaterialProperty emissiveIntensity, MaterialProperty emissiveIntensityUnit)
         {
-            MaterialEditor.BeginProperty(emissiveIntensity);
-            MaterialEditor.BeginProperty(emissiveIntensityUnit);
+            MaterialEditorEx.BeginProperty(emissiveIntensity);
+            MaterialEditorEx.BeginProperty(emissiveIntensityUnit);
 
             bool unitIsMixed = emissiveIntensityUnit.hasMixedValue;
             bool intensityIsMixed = unitIsMixed || emissiveIntensity.hasMixedValue;
@@ -190,8 +190,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             EditorGUI.showMixedValue = false;
 
-            MaterialEditor.EndProperty();
-            MaterialEditor.EndProperty();
+            MaterialEditorEx.EndProperty();
+            MaterialEditorEx.EndProperty();
         }
 
         /// <summary>
