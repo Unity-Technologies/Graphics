@@ -29,5 +29,16 @@ namespace UnityEngine.Rendering.Tests
 
             Prop.ForAll(ArbX.CreateTypeArbitrary(), Property).QuickCheckThrowOnFailure();
         }
+
+        [Test]
+        public void CastToType()
+        {
+            bool Property(VolumeComponentType type)
+            {
+                return type.AsType() == (Type)type;
+            }
+
+            Prop.ForAll<VolumeComponentType>(Property).QuickCheckThrowOnFailure();
+        }
     }
 }

@@ -33,8 +33,7 @@ namespace UnityEngine.Rendering
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((IsSupportedVolumeComponentFilter)obj);
+            return obj.GetType() == this.GetType() && Equals((IsSupportedVolumeComponentFilter)obj);
         }
 
         public override int GetHashCode()
@@ -132,7 +131,7 @@ namespace UnityEngine.Rendering
             return m_Visible && isVisible || !m_Visible && !isVisible;
         }
 
-        bool Equals(IsVisibleVolumeComponentFilter other) => true;
+        bool Equals(IsVisibleVolumeComponentFilter other) => other.m_Visible == m_Visible;
 
         public bool Equals(IFilter<VolumeComponentType> other)
         {

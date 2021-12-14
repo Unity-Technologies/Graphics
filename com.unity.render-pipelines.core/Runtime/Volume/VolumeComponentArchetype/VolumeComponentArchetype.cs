@@ -17,8 +17,12 @@ namespace UnityEngine.Rendering
     /// </summary>
     public sealed class VolumeComponentArchetype : IEquatable<VolumeComponentArchetype>
     {
-        static Dictionary<VolumeComponentDatabase, Dictionary<IFilter<VolumeComponentType>, VolumeComponentArchetype>> s_CacheByDatabaseByFilter
-            = new Dictionary<VolumeComponentDatabase, Dictionary<IFilter<VolumeComponentType>, VolumeComponentArchetype>>();
+        [ExcludeFromCodeCoverage]
+        static class StaticMembers
+        {
+            public static readonly Dictionary<VolumeComponentDatabase, Dictionary<IFilter<VolumeComponentType>, VolumeComponentArchetype>> cacheByDatabaseByFilter
+                = new Dictionary<VolumeComponentDatabase, Dictionary<IFilter<VolumeComponentType>, VolumeComponentArchetype>>();
+        }
 
         VolumeComponentType[] typeArray { get; }
         HashSet<VolumeComponentType> typeSet { get; }
@@ -28,8 +32,8 @@ namespace UnityEngine.Rendering
 
         VolumeComponentArchetype([DisallowNull] params VolumeComponentType[] typeArray)
         {
-            this.typeArray = typeArray;
             typeSet = typeArray.ToHashSet();
+            this.typeArray = typeSet.ToArray();
         }
 
         [return: NotNull]
@@ -45,10 +49,10 @@ namespace UnityEngine.Rendering
         {
             database ??= VolumeComponentDatabase.memoryDatabase;
 
-            if (!s_CacheByDatabaseByFilter.TryGetValue(database, out var byFilter))
+            if (!StaticMembers.cacheByDatabaseByFilter.TryGetValue(database, out var byFilter))
             {
                 byFilter = new Dictionary<IFilter<VolumeComponentType>, VolumeComponentArchetype>();
-                s_CacheByDatabaseByFilter.Add(database, byFilter);
+                StaticMembers.cacheByDatabaseByFilter.Add(database, byFilter);
             }
 
             if (!byFilter.TryGetValue(filter, out var set))

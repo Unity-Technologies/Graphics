@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering
 
         public bool Equals(VolumeComponentType other)
         {
-            return Equals(m_Type, other.m_Type);
+            return m_Type == other.m_Type;
         }
 
         public override bool Equals(object obj)

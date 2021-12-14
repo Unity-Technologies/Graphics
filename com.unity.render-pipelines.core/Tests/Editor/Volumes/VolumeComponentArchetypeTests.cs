@@ -83,6 +83,7 @@ namespace UnityEngine.Rendering.Tests
                 .Select(tuple => new GetAndAddExtensionsTestAction((GetAndAddExtensionsTestAction.Kind)tuple.Item2, tuple.Item1));
 
         }
+
         [OneTimeSetUp]
         public static void SetupFixture()
         {

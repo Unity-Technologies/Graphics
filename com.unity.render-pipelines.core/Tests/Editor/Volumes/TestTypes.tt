@@ -45,7 +45,13 @@ namespace UnityEngine.Rendering.Tests
             WriteLine("[Obsolete]");
 
 #>
-        public class TestVolumeComponent<#= i.ToString("0000") #> : VolumeComponent { }
+        public class TestVolumeComponent<#= i.ToString("0000") #> : VolumeComponent
+        {
+<#
+        var type = (random.Next() & 1) == 1 ? "IntParameter" : "FloatParameter";
+#>
+            public <#= type #> parameter = new <#= type #>(<#= random.Next() >> 1 #>);
+        }
 <#
     }
 #>

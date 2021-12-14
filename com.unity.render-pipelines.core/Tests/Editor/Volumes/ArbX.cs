@@ -8,6 +8,20 @@ namespace UnityEngine.Rendering.Tests
 {
     public static partial class ArbX
     {
+        static readonly Type[] k_DefaultTypes = {
+            typeof(bool),
+            typeof(byte),
+            typeof(sbyte),
+            typeof(short),
+            typeof(ushort),
+            typeof(int),
+            typeof(uint),
+            typeof(long),
+            typeof(ulong),
+            typeof(float),
+            typeof(double),
+            typeof(string), };
+
         public class ArbitraryVolumeComponentType : Arbitrary<VolumeComponentType>
         {
             static VolumeComponentType[] s_Types = TestTypes.AllVolumeComponents
@@ -25,8 +39,9 @@ namespace UnityEngine.Rendering.Tests
 
         class ArbitraryType : Arbitrary<Type>
         {
-            static Type[] s_Types = TestTypes.AllVolumeComponents
-                .Union(new[] { null, typeof(int), typeof(uint), typeof(string), typeof(byte) })
+            static Type[] s_Types = TestTypes.AllVolumeComponents.Take(20)
+                .Union(new Type[] { null })
+                .Union(k_DefaultTypes)
                 .ToArray();
 
             public override Gen<Type> Generator => Gen.Elements(s_Types);
