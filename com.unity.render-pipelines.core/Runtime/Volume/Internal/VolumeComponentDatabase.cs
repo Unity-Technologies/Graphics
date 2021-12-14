@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering
         [NotNull]
         public static VolumeComponentDatabase memoryDatabase { get; }
 
+        [ExcludeFromCodeCoverage]
         static VolumeComponentDatabase()
         {
             // Get the types
@@ -30,7 +31,7 @@ namespace UnityEngine.Rendering
             memoryDatabase = new VolumeComponentDatabase(componentTypes);
         }
 
-        static void StaticInitializeComponents(VolumeComponentType[] componentTypes)
+        internal static void StaticInitializeComponents(VolumeComponentType[] componentTypes)
         {
             const BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
             foreach (var type in componentTypes)
@@ -39,8 +40,6 @@ namespace UnityEngine.Rendering
                 if (initMethod != null)
                 {
                     initMethod.Invoke(null, null);
-                    Debug.LogWarning($"{type} has an Init method, it won't be called in future release. " +
-                        $"Please add the RuntimeInitializeOnLoadMethod attribute instead.");
                 }
             }
         }
