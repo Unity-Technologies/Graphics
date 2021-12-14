@@ -13,7 +13,7 @@
 #define _NormalBias _Biases_CellInMinBrick_MinBrickSize.x
 #define _ViewBias _Biases_CellInMinBrick_MinBrickSize.y
 #define _MinBrickSize _Biases_CellInMinBrick_MinBrickSize.w
-
+#define _Weight _Weight_Padding.x
 
 #ifndef DECODE_SH
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
