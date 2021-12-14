@@ -77,7 +77,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         UpdateSkyEnvironmentConvolution,
         RenderSkyToCubemap,
-        UpdateSkyEnvironment,
         UpdateSkyAmbientProbe,
         PreRenderSky,
         RenderSky,
@@ -112,6 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingDebugCluster,
         // RT acceleration structure setup
         RaytracingBuildAccelerationStructure,
+        RaytracingBuildAccelerationStructureDebug,
         // RTR
         RaytracingReflectionDirectionGeneration,
         RaytracingReflectionEvaluation,

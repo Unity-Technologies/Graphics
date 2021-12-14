@@ -11,6 +11,10 @@ class FoundationEditorTests
         UniversalProjectAssert.AllRenderersPostProcessing(kProjectName, expectDisabled: false);
     }
 
+    /// <summary>
+    /// The URP post processing tests expect all pipeline assets to explicitly disable mixed lighting support
+    /// since it significantly increases project build times.
+    /// </summary>
     [Test]
     public void CheckIfMixedLightingDisabled()
     {
