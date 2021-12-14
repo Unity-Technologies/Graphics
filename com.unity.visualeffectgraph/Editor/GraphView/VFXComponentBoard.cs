@@ -527,6 +527,16 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public void LockUI()
+        {
+            m_BoundsToolContainer.SetEnabled(false);
+        }
+
+        public void UnlockUI()
+        {
+            m_BoundsToolContainer.SetEnabled(true);
+        }
+
         public bool Attach(VisualEffect effect = null)
         {
             VisualEffect target = effect != null ? effect : Selection.activeGameObject?.GetComponent<VisualEffect>();
@@ -627,7 +637,6 @@ namespace UnityEditor.VFX.UI
             UpdatePlayRate();
             UpdatePlayButton();
             UpdateBoundsModes();
-            m_ApplyBoundsButton.SetEnabled(m_BoundsRecorder.bounds.Any() && m_View.IsAssetEditable());
             UpdateRecordingButton();
         }
 

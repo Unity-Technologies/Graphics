@@ -76,7 +76,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         UpdateSkyEnvironmentConvolution,
         RenderSkyToCubemap,
-        UpdateSkyEnvironment,
         UpdateSkyAmbientProbe,
         PreRenderSky,
         RenderSky,
@@ -100,6 +99,10 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricCloudsShadow,
         VolumetricCloudMapGeneration,
         VolumetricCloudsAmbientProbe,
+
+        // Water surface
+        WaterSurfaceSimulation,
+        WaterSurfaceRendering,
 
         // RT Cluster
         RaytracingBuildCluster,

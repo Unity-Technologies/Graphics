@@ -1,10 +1,9 @@
-using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [CustomEditor(typeof(UniversalRenderPipelineGlobalSettings))]
     [CanEditMultipleObjects]
+    [CustomEditor(typeof(UniversalRenderPipelineGlobalSettings))]
     sealed class UniversalGlobalSettingsEditor : Editor
     {
         SerializedUniversalRenderPipelineGlobalSettings m_SerializedGlobalSettings;
@@ -21,7 +20,7 @@ namespace UnityEditor.Rendering.Universal
             serialized.serializedObject.Update();
 
             // In the quality window use more space for the labels
-            UniversalGlobalSettingsPanelIMGUI.Inspector.Draw(serialized, this);
+            UniversalRenderPipelineGlobalSettingsUI.Inspector.Draw(serialized, this);
 
             serialized.serializedObject.ApplyModifiedProperties();
         }
