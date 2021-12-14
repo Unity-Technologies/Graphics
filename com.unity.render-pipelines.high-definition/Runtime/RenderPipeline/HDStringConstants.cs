@@ -539,7 +539,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CausticGeometryResolution = Shader.PropertyToID("_CausticGeometryResolution");
         public static readonly int _CausticsVirtualPlane = Shader.PropertyToID("_CausticsVirtualPlane");
         public static readonly int _CausticsBandIndex = Shader.PropertyToID("_CausticsBandIndex");
-        
+
         public static readonly int _Flowmap = Shader.PropertyToID("_Flowmap");
         public static readonly int _FlowmapParam = Shader.PropertyToID("_FlowmapParam");
 

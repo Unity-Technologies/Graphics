@@ -290,14 +290,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_CausticsPlaneOffset.floatValue = Mathf.Max(m_CausticsPlaneOffset.floatValue, 0.0f);
 
                     EditorGUILayout.PropertyField(m_CausticsAlgorithm);
-                    
+
                     if ((WaterSurface.WaterCausticsType)m_CausticsAlgorithm.enumValueIndex == WaterSurface.WaterCausticsType.Simulation)
                     {
                         using (new IndentLevelScope())
                         {
                             EditorGUILayout.PropertyField(m_CausticsResolution);
                             m_CausticsBand.intValue = EditorGUILayout.IntSlider(k_CausticsBand, m_CausticsBand.intValue, 0, highBandCount ? 3 : 1);
-                            
+
                             EditorGUILayout.PropertyField(m_CausticsVirtualPlaneDistance);
                             m_CausticsVirtualPlaneDistance.floatValue = Mathf.Max(m_CausticsVirtualPlaneDistance.floatValue, 0.001f);
                         }

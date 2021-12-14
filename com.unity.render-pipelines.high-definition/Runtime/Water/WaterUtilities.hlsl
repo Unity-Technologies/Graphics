@@ -119,7 +119,7 @@ float4 EvaluateDisplacementNormalization()
     return _WaveAmplitude  / patchSize * PHILLIPS_AMPLITUDE_SCALAR;
 }
 
-void EvaluateDisplacedPoints(float3 displacementC, float3 displacementR, float3 displacementU, 
+void EvaluateDisplacedPoints(float3 displacementC, float3 displacementR, float3 displacementU,
                                 float normalization, float pixelSize, float choppiness,
                                 out float3 p0, out float3 p1, out float3 p2)
 {
@@ -496,7 +496,7 @@ void EvaluateWaterAdditionalData(float3 positionAWS, out WaterAdditionalData wat
     surfaceGradient += float3(additionalData.x, 0, additionalData.y);
     // jacobian += additionalData.z;
 #endif
-    
+
     // Output the two surface gradients
     waterAdditionalData.surfaceGradient = surfaceGradient;
     waterAdditionalData.lowFrequencySurfaceGradient = lowFrequencySurfaceGradient;
@@ -572,8 +572,8 @@ void EvaluateFoamData(float3 surfaceGradient, float3 lowFrequencySurfaceGradient
     float foamTex = _FoamTexture.Sample(s_linear_repeat_sampler,foamUV);
 
     // Final foam value
-    foamData.foamValue = simulationFoam * foamMask.x * foamTex + customFoam;;
-    
+    foamData.foamValue = simulationFoam * foamMask.x * foamTex + customFoam;
+
     // Combine it with the regular surface gradient
     foamData.surfaceGradient = lerp(surfaceGradient, lowFrequencySurfaceGradient, foamData.foamValue);
 
@@ -710,7 +710,7 @@ float EdgeBlendingFactor(float2 screenPosition, float distanceToWaterSurface)
     float distanceToEdge = 1.0 - min((1.0 - abs(screenPosNDC.x)), (1.0 - abs(screenPosNDC.y)));
 
     // What we want here is:
-    // - +inf -> 0.5 value is 0 
+    // - +inf -> 0.5 value is 0
     // - 0.5-> 0.25 value is going from  0 to 1
     // - 0.25 -> 0 value is 1
     float distAttenuation = 1.0 - saturate((distanceToWaterSurface - 0.75) / 0.25);

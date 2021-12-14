@@ -112,7 +112,7 @@ Shader "Hidden/HDRP/WaterCaustics"
                 float2 gridSize = _CausticsRegionSize * GRID_SCALE_FACTOR;
                 float3 center = float3(0, 0, 0);
                 float3 gridPositionWS = float3(vertexPos.x * gridSize.x, 0, vertexPos.y * gridSize.y) - float3(gridSize.x * 0.5, 0, gridSize.y * 0.5) + center - 0.5 / _BandResolution;
-                
+
                 // Evaluate the caustics data
                 return EvaluateVaryings(gridPositionWS);
             }

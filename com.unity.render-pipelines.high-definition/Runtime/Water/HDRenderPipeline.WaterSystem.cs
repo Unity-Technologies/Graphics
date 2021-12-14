@@ -312,7 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_FFTRowPassIs = RTHandles.Alloc(textureRes, textureRes, k_WaterHighBandCount, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
 
             // Allocate the additional rendering data
-            m_WaterMaterialPropertyBlock= new MaterialPropertyBlock();
+            m_WaterMaterialPropertyBlock = new MaterialPropertyBlock();
             m_InternalWaterMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.waterPS);
 
             // Water profile management

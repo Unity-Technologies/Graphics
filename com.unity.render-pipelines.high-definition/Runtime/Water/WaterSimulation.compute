@@ -135,7 +135,7 @@ void PrepareCausticsGeometry(uint3 currentThread : SV_DispatchThreadID)
     int quadIndex = currentThread.y * _CausticGeometryResolution + currentThread.x;
 
     // Indices are ordered this way to be up facing
-    // A --- C 
+    // A --- C
     // |   | |
     // | |   |
     // B ----D
@@ -149,7 +149,7 @@ void PrepareCausticsGeometry(uint3 currentThread : SV_DispatchThreadID)
     _CauticsGeometryRW[6 * quadIndex] = A;
     _CauticsGeometryRW[6 * quadIndex + 1] = B;
     _CauticsGeometryRW[6 * quadIndex + 2] = C;
-    
+
     // Output the indices of triangle 1 of the quad
     _CauticsGeometryRW[6 * quadIndex + 3] = C;
     _CauticsGeometryRW[6 * quadIndex + 4] = B;

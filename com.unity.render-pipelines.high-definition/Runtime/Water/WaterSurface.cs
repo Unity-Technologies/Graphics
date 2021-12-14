@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Sets the vertical plane offset in meters at which the caustics start.")]
         public float causticsPlaneOffset = 0.0f;
-        
+
         /// <summary>
         /// Defines what algorithm is used for caustics rendering.
         /// </summary>

@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Complete normal signal
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true, checkIsNormalized: true)]
             public Vector3 normalWS;
-            
+
             // Low frequency normal signal
             [SurfaceDataAttributes(new string[] { "Low Frequency Normal WS", "Low Frequency Normal View Space" }, true)]
             public Vector3 lowFrequencyNormalWS;

@@ -137,7 +137,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { WaterSurfaceGBuffer, 1 },
             { ClusteredLightList, 1 },
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
-        }; 
+        };
         #endregion
 
         #region GBufferWater

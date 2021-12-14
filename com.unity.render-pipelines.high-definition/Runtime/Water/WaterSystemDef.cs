@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public Vector3 waterAmbientProbe;
         public float tipScatteringHeight;
-        
+
         public float bodyScatteringHeight;
         public float maxRefractionDistance;
         public uint lightLayers;
@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Delta-time since the last simulation step
         public float _DeltaTime;
 
-        // Smoothness of the simulation foam 
+        // Smoothness of the simulation foam
         public float _SimulationFoamSmoothness;
         // Intensity of the simulation foam
         public float _SimulationFoamIntensity;
