@@ -23,6 +23,9 @@ public class SimpleBRGExample : MonoBehaviour
     private BatchMeshID m_MeshID;
     private BatchMaterialID m_MaterialID;
 
+    private GraphicsBuffer m_VB;
+    private GraphicsBuffer m_IB;
+
     // Some helper constants to make calculations later a bit more convenient.
     private const int kSizeOfMatrix = sizeof(float) * 4 * 4;
     private const int kSizeOfPackedMatrix = sizeof(float) * 4 * 3;
@@ -82,15 +85,25 @@ public class SimpleBRGExample : MonoBehaviour
     // During initialization, we will allocate all required objects, and set up our custom instance data.
     void Start()
     {
+        mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
+        var stride = mesh.GetVertexBufferStride(0);
+        var offset = mesh.GetVertexAttributeOffset(VertexAttribute.Position);
+        m_VB = mesh.GetVertexBuffer(0);
+        m_IB = mesh.GetIndexBuffer();
+        Shader.SetGlobalBuffer("VertexBuffer", m_VB);
+        //material.SetBuffer("_VertexBuffer", m_VB);
+
         // Create the BatchRendererGroup and register assets
         m_BRG = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
         m_MeshID = m_BRG.RegisterMesh(mesh);
         m_MaterialID = m_BRG.RegisterMaterial(material);
 
+
         // Create the buffer that holds our instance data
         m_InstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Raw,
             BufferCountForInstances(kBytesPerInstance, kNumInstances, kExtraBytes),
             sizeof(int));
+        m_InstanceData.name = "InstanceData";
 
         // Place one zero matrix at the start of the instance data buffer, so loads from address 0 will return zero
         var zero = new Matrix4x4[1] { Matrix4x4.zero };
@@ -173,6 +186,8 @@ public class SimpleBRGExample : MonoBehaviour
     {
         m_InstanceData.Dispose();
         m_BRG.Dispose();
+        m_IB.Dispose();
+        m_VB.Dispose();
     }
 
     // The callback method called by Unity whenever it visibility culls to determine which
@@ -216,12 +231,21 @@ public class SimpleBRGExample : MonoBehaviour
         // Configure our single draw command to draw kNumInstances instances
         // starting from offset 0 in the array, using the batch, material and mesh
         // IDs that we registered in the Start() method. No special flags are set.
-        drawCommands->drawCommands[0].flags = 0;
+        drawCommands->drawCommands[0].flags = BatchDrawCommandFlags.Procedural | BatchDrawCommandFlags.Indexed;
         drawCommands->drawCommands[0].visibleOffset = 0;
         drawCommands->drawCommands[0].visibleCount = kNumInstances;
         drawCommands->drawCommands[0].batchID = m_BatchID;
         drawCommands->drawCommands[0].materialID = m_MaterialID;
-        drawCommands->drawCommands[0].regular = new BatchDrawCommandRegular { meshID = m_MeshID, submeshIndex = 0, };
+        drawCommands->drawCommands[0].procedural = new BatchDrawCommandProcedural
+        {
+            indexBufferHandle = m_IB.bufferHandle,
+            indexCount = (uint)m_IB.count,
+            indexOffset = 0,
+            topology = MeshTopology.Triangles,
+            vertexCount = 0,
+            vertexOffset = 0,
+
+        };
         drawCommands->drawCommands[0].splitVisibilityMask = 0xff;
         drawCommands->drawCommands[0].sortingPosition = 0;
 
