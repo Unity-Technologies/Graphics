@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.Tests
 
 <#
     var random = new RandomStream(652423453u, 3575452435u);
+    var allowedChars = "abcdefghijklmnopqrstuvwxzABCDEFGHIJKLMNOPQRSTUVWXYZ _/";
     for (var i = 0u; i < 1000; ++i)
     {
         // Randomized uint
@@ -33,7 +34,6 @@ namespace UnityEngine.Rendering.Tests
             WriteLine($"[SupportedOn(typeof(TestVolumeComponent{dependOnIndex:0000}))]");
         }
 
-
         if ((random.Next() & 0xff) < 20)
         {
             WriteLine("[Obsolete]");
@@ -44,6 +44,17 @@ namespace UnityEngine.Rendering.Tests
         else if ((random.Next() & 0xff) < 50)
             WriteLine("[Obsolete]");
 
+        if ((random.Next() & 0xff) < 50)
+        {
+            var sb = new StringBuilder();
+            var c = (random.Next() & 0xff);
+            // Create a random string for the menu
+            for (var j = 0; j < c; ++j)
+            {
+                sb.Append(allowedChars[(int) (random.Next() % allowedChars.Length)]);
+            }
+            WriteLine($"[VolumeComponentMenu(\"{sb}\")]");
+        }
 #>
         public class TestVolumeComponent<#= i.ToString("0000") #> : VolumeComponent
         {
