@@ -87,15 +87,27 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter maximumIntensity = new MinFloatParameter(10f, 0f);
 
 #if ENABLE_UNITY_DENOISERS
+        /// <summary>
+        /// Enables denoising for the converged path tracer frame
+        /// </summary>
         [Tooltip("Enables denoising for the converged path tracer frame")]
-        public DenoiserParameter denoiser = new DenoiserParameter(DenoiserType.None); // new BoolParameter(false);
-#endif
+        public DenoiserParameter denoising = new DenoiserParameter(DenoiserType.None);
 
+        /// <summary>
+        /// Improves the detail retention after denoising by using albedo and normal AOVs.
+        /// </summary>
         [Tooltip("Enables denoising with albedo and normal AOVs")]
+        [InspectorName("Use AOVs")]
         public BoolParameter useAOVs = new BoolParameter(false);
 
+        /// <summary>
+        /// Enables temporally stable denoising (not all denosing backends support this option)
+        /// </summary>
         [Tooltip("Enables temporally stable denoising")]
         public BoolParameter temporal = new BoolParameter(false);
+#endif
+
+
 
 
         /// <summary>
@@ -635,7 +647,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #if ENABLE_UNITY_DENOISERS
-                bool denoise = m_PathTracingSettings.denoiser.value != DenoiserType.None;
+                bool denoise = m_PathTracingSettings.denoising.value != DenoiserType.None;
                 if (denoise && m_PathTracingSettings.useAOVs.value)
                 {
                     RenderAccumulation(m_RenderGraph, hdCamera, albedo, TextureHandle.nullHandle, HDCameraFrameHistoryType.AlbedoAOV, true);

@@ -448,7 +448,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     CameraData camData = data.subFrameManager.GetCameraData(data.camID);
 
-                    camData.denoiser.type = m_PathTracingSettings.denoiser.value;
+                    camData.denoiser.type = m_PathTracingSettings.denoising.value;
 
                     if (camData.currentIteration == (data.subFrameManager.subFrameCount) && camData.denoiser.type != DenoiserType.None)
                     {

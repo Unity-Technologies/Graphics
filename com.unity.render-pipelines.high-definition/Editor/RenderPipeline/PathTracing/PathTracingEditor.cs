@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_SkyImportanceSampling = Unpack(o.Find(x => x.skyImportanceSampling));
             m_Denoising = Unpack(o.Find(x => x.denoise));
 #if ENABLE_UNITY_DENOISERS
-            m_Denoising = Unpack(o.Find(x => x.denoiser));
+            m_Denoising = Unpack(o.Find(x => x.denoising));
             m_UseAOV = Unpack(o.Find(x => x.useAOVs));
             m_Temporal = Unpack(o.Find(x => x.temporal));
 #endif
