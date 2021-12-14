@@ -24,10 +24,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// When enabled, HDRP processes Capsule Shadows for this Volume.
         /// </summary>
-        public BoolParameter enable = new BoolParameter(false);
+        public BoolParameter enable = new BoolParameter(true);
 
         // TODO: move to settings/debug?
-        public CapsuleShadowMethodParameter shadowMethod = new CapsuleShadowMethodParameter(CapsuleShadowMethod.CapsuleWithShear);
+        public CapsuleShadowMethodParameter shadowMethodDebug = new CapsuleShadowMethodParameter(CapsuleShadowMethod.CapsuleWithShear);
 
         CapsuleShadows()
         {
