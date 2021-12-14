@@ -9,8 +9,8 @@ namespace UnityEngine.Rendering
     [GenerateHLSL]
     public enum CapsuleShadowMethod
     {
-        CapsuleWithShear,
-        Capsule,
+        FlattenThenClosestSphere,
+        ClosestSphere,
         Ellipsoid
     }
 

@@ -110,8 +110,8 @@ float ApproximateCapsuleOcclusion(
     return ApproximateSphereOcclusion(coneAxis, coneCosTheta, maxDistance, sphereCenter, capsuleRadius);
 }
 
-#define CAPSULE_SHADOW_FEATURE_USE_ELLIPSOID        0x1
-#define CAPSULE_SHADOW_FEATURE_USE_CAPSULE_SHEAR    0x2
+#define CAPSULE_SHADOW_FEATURE_ELLIPSOID            0x1
+#define CAPSULE_SHADOW_FEATURE_FLATTEN              0x2
 #define CAPSULE_SHADOW_FEATURE_CLIP_TO_PLANE        0x4
 #define CAPSULE_SHADOW_FEATURE_AVOID_SELF_SHADOW    0x8
 
@@ -120,10 +120,10 @@ uint GetDefaultCapsuleShadowFeatureBits()
     uint featureBits = CAPSULE_SHADOW_FEATURE_AVOID_SELF_SHADOW;
     switch (_CapsuleOccluderShadowMethod) {
     case CAPSULESHADOWMETHOD_ELLIPSOID:
-        featureBits |= CAPSULE_SHADOW_FEATURE_USE_ELLIPSOID;
+        featureBits |= CAPSULE_SHADOW_FEATURE_ELLIPSOID;
         break;
-    case CAPSULESHADOWMETHOD_CAPSULE_WITH_SHEAR:
-        featureBits |= CAPSULE_SHADOW_FEATURE_USE_CAPSULE_SHEAR;
+    case CAPSULESHADOWMETHOD_FLATTEN_THEN_CLOSEST_SPHERE:
+        featureBits |= CAPSULE_SHADOW_FEATURE_FLATTEN;
         break;
     }
     return featureBits;
@@ -212,7 +212,7 @@ float EvaluateCapsuleShadow(
 
                 // test the occluder shape vs the light
                 if (occlusion > 0.f) {
-                    if (featureBits & CAPSULE_SHADOW_FEATURE_USE_ELLIPSOID) {
+                    if (featureBits & CAPSULE_SHADOW_FEATURE_ELLIPSOID) {
                         // make everything relative to the surface
                         float3 surfaceToLightVec = lightPosOrAxis;
                         if (lightIsPunctual)
@@ -277,7 +277,7 @@ float EvaluateCapsuleShadow(
                         float3 capOffsetVec = s_capsuleData.axisDirWS * clippedOffset;
 
                         float shearCosTheta = lightCosTheta;
-                        if (featureBits & CAPSULE_SHADOW_FEATURE_USE_CAPSULE_SHEAR) {
+                        if (featureBits & CAPSULE_SHADOW_FEATURE_FLATTEN) {
                             // shear the capsule along the light direction, to flatten when shadowing along length
                             float3 zAxisDir = surfaceToLightDir;
                             float capsuleOffsetZ = lightDotAxis*clippedOffset;

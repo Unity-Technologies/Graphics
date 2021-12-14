@@ -7,8 +7,8 @@
 //
 // UnityEngine.Rendering.CapsuleShadowMethod:  static fields
 //
-#define CAPSULESHADOWMETHOD_CAPSULE_WITH_SHEAR (0)
-#define CAPSULESHADOWMETHOD_CAPSULE (1)
+#define CAPSULESHADOWMETHOD_FLATTEN_THEN_CLOSEST_SPHERE (0)
+#define CAPSULESHADOWMETHOD_CLOSEST_SPHERE (1)
 #define CAPSULESHADOWMETHOD_ELLIPSOID (2)
 
 // Generated from UnityEngine.Rendering.ShaderVariablesCapsuleOccluders

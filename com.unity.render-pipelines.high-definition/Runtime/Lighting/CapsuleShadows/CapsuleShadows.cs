@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter enable = new BoolParameter(true);
 
         // TODO: move to settings/debug?
-        public CapsuleShadowMethodParameter shadowMethodDebug = new CapsuleShadowMethodParameter(CapsuleShadowMethod.CapsuleWithShear);
+        public CapsuleShadowMethodParameter shadowMethodDebug = new CapsuleShadowMethodParameter(CapsuleShadowMethod.FlattenThenClosestSphere);
 
         CapsuleShadows()
         {
