@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Added FSR sharpness override to camera and pipeline asset.
 - Added an option on the lit shader to perform Planar and Triplanar mapping in Object Space.
+- Added Expose SSR parameters to control speed rejection from Motion Vector including computing Motion Vector in World Space.
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
@@ -341,7 +342,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to render screen space global illumination in half resolution to achieve real-time compatible performance in high resolutions (case 1353727).
 - Added a built-in custom pass to draw object IDs.
 - Added an example in the documentation that shows how to use the accumulation API for high quality antialiasing (supersampling).
-- Added Expose SSR parameters to control speed rejection from Motion Vector including computing Motion Vector in World Space.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
