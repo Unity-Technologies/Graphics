@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_CombineCloudsKernelColorCopy;
         int m_CombineCloudsKernelColorRW;
         int m_CombineCloudsSkyKernel;
+        bool m_ActiveVolumetricClouds;
 
         // Combine pass via hardware blending, used in case of MSAA color target.
         Material m_CloudCombinePass;
@@ -52,7 +53,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializeVolumetricClouds()
         {
-            if (!m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
+            // Keep track of the state for the release
+            m_ActiveVolumetricClouds = m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds;
+            if (!m_ActiveVolumetricClouds)
                 return;
 
             // Allocate the buffers for ambient probe evaluation
@@ -89,7 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ReleaseVolumetricClouds()
         {
-            if (!m_Asset.currentPlatformRenderPipelineSettings.supportVolumetricClouds)
+            if (!m_ActiveVolumetricClouds)
                 return;
 
             // Destroy the material
