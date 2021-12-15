@@ -11,8 +11,10 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Panini projection crop to fit.")]
         public ClampedFloatParameter cropToFit = new ClampedFloatParameter(1f, 0f, 1f);
 
+        /// <inheritdoc/>
         public bool IsActive() => distance.value > 0f;
 
+        /// <inheritdoc/>
         public bool IsTileCompatible() => false;
     }
 }
