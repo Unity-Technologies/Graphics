@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(ScreenSpaceReflection))]
+    [CustomEditor(typeof(ScreenSpaceReflection))]
     class HDScreenSpaceReflectionEditor : VolumeComponentWithQualityEditor
     {
         // Shared data

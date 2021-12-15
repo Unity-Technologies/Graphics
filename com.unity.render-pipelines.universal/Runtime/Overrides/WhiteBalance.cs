@@ -11,8 +11,10 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Sets the white balance to compensate for a green or magenta tint.")]
         public ClampedFloatParameter tint = new ClampedFloatParameter(0f, -100, 100f);
 
+        /// <inheritdoc/>
         public bool IsActive() => temperature.value != 0f || tint.value != 0f;
 
+        /// <inheritdoc/>
         public bool IsTileCompatible() => true;
     }
 }
