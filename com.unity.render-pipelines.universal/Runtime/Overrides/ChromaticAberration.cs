@@ -8,8 +8,10 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Use the slider to set the strength of the Chromatic Aberration effect.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
 
+        /// <inheritdoc/>
         public bool IsActive() => intensity.value > 0f;
 
+        /// <inheritdoc/>
         public bool IsTileCompatible() => false;
     }
 }

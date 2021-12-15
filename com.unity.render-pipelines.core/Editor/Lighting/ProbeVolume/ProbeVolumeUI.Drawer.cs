@@ -23,6 +23,7 @@ namespace UnityEditor.Experimental.Rendering
             Bounds bounds = new Bounds();
             bool foundABound = false;
             bool performFitting = false;
+            bool performFittingOnlyOnScene = false;
             bool performFittingOnlyOnSelection = false;
 
             bool ContributesToGI(Renderer renderer)
@@ -43,12 +44,16 @@ namespace UnityEditor.Experimental.Rendering
                     bounds.Encapsulate(currBound);
                 }
             }
-
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Scene"), EditorStyles.miniButton))
+            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to all Scenes", "Fits the Probe Volume's boundary to all open Scenes"), EditorStyles.miniButton))
             {
                 performFitting = true;
             }
-            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Selection"), EditorStyles.miniButton))
+            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Scene", "Fits the Probe Volume's boundary to the Scene it belongs to."), EditorStyles.miniButton))
+            {
+                performFitting = true;
+                performFittingOnlyOnScene = true;
+            }
+            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Fit to Selection", "Fits the Probe Volume's boundary to the selected GameObjects. Lock the Probe Volume's Inspector to allow for the selection of other GameObjects."), EditorStyles.miniButton))
             {
                 performFitting = true;
                 performFittingOnlyOnSelection = true;
@@ -86,12 +91,15 @@ namespace UnityEditor.Experimental.Rendering
 
                     foreach (Renderer renderer in renderers)
                     {
+                        bool useRendererToExpand = false;
                         bool contributeGI = ContributesToGI(renderer) && renderer.gameObject.activeInHierarchy && renderer.enabled;
 
                         if (contributeGI)
-                        {
+                            useRendererToExpand = performFittingOnlyOnScene ? (renderer.gameObject.scene == pv.gameObject.scene) : true;
+
+                        if (useRendererToExpand)
                             ExpandBounds(renderer.bounds);
-                        }
+
                     }
                 }
 

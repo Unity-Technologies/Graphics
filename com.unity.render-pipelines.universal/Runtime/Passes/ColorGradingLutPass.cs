@@ -183,8 +183,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 renderingData.cameraData.xr.StopSinglePass(cmd);
 
+                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_InternalLut);
+                CoreUtils.SetRenderTarget(cmd, m_InternalLut, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
                 // Render the lut
-                cmd.Blit(null, m_InternalLut.nameID, material);
+                cmd.Blit(null, BuiltinRenderTextureType.CurrentActive, material, 0);
 
                 renderingData.cameraData.xr.StartSinglePass(cmd);
             }
