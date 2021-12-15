@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float oldLightColorTemperature;
         public float oldIntensity;
         public bool lightEnabled;
+        public int renderEntityDataVersion;
     }
 
     //@TODO: We should continuously move these values
@@ -2502,6 +2503,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [System.NonSerialized]
         TimelineWorkaround timelineWorkaround = new TimelineWorkaround();
 
+        [System.NonSerialized]
+        int m_CurrentRenderEntityVersion = 0;
+
 #if UNITY_EDITOR
 
         // Force to retrieve color light's m_UseColorTemperature because it's private
@@ -2678,6 +2682,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 timelineWorkaround.oldDisplayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
                 timelineWorkaround.oldLightColorTemperature = legacyLight.colorTemperature;
             }
+
+            if (timelineWorkaround.renderEntityDataVersion != m_CurrentRenderEntityVersion)
+            {
+                timelineWorkaround.renderEntityDataVersion = m_CurrentRenderEntityVersion;
+                UpdateRenderEntity();
+            }
+        }
+
+
+        void DirtyRenderEntityData()
+        {
+            ++m_CurrentRenderEntityVersion;
         }
 
         void OnDidApplyAnimationProperties()
@@ -2796,6 +2812,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             data.UpdateAllLightValues();
+            UpdateRenderEntity();
         }
 
         // As we have our own default value, we need to initialize the light intensity correctly
@@ -3217,6 +3234,9 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateBounds();
 
             UpdateAreaLightEmissiveMesh(fromTimeLine: fromTimeLine);
+
+            if (fromTimeLine)
+                DirtyRenderEntityData();
         }
 
         internal void RefreshCachedShadow()
