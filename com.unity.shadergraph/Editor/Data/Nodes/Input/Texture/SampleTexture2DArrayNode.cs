@@ -23,16 +23,12 @@ namespace UnityEditor.ShaderGraph
         public const int DdxInput = 11;
         public const int DdyInput = 12;
 
-        const string kOutputSlotRGBAName = "RGBA";
-        const string kOutputSlotRName = "R";
-        const string kOutputSlotGName = "G";
-        const string kOutputSlotBName = "B";
-        const string kOutputSlotAName = "A";
         const string kTextureInputName = "Texture Array";
         const string kUVInputName = "UV";
         const string kSamplerInputName = "Sampler";
         const string kIndexInputName = "Index";
 
+        RGBANodeOutput m_RGBAPins = RGBANodeOutput.NewDefault();
         Mip2DSamplingInputs m_Mip2DSamplingInputs = Mip2DSamplingInputs.NewDefault();
 
         public override bool hasPreview { get { return true; } }
@@ -62,23 +58,25 @@ namespace UnityEditor.ShaderGraph
 
         private void UpdateMipSamplingModeInputs()
         {
+            var capabilities = ShaderStageCapability.Fragment;
+            if (m_MipSamplingMode == Texture2DMipSamplingMode.LOD || m_MipSamplingMode == Texture2DMipSamplingMode.Gradient)
+                capabilities |= ShaderStageCapability.Vertex;
+
+            m_RGBAPins.SetCapabilities(capabilities);
+
             m_Mip2DSamplingInputs = MipSamplingModesUtils.CreateMip2DSamplingInputs(
                 this, m_MipSamplingMode, m_Mip2DSamplingInputs, MipBiasInput, LodInput, DdxInput, DdyInput);
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector4MaterialSlot(OutputSlotRGBAId, kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
-            AddSlot(new Vector1MaterialSlot(OutputSlotRId, kOutputSlotRName, kOutputSlotRName, SlotType.Output, 0, ShaderStageCapability.Fragment));
-            AddSlot(new Vector1MaterialSlot(OutputSlotGId, kOutputSlotGName, kOutputSlotGName, SlotType.Output, 0, ShaderStageCapability.Fragment));
-            AddSlot(new Vector1MaterialSlot(OutputSlotBId, kOutputSlotBName, kOutputSlotBName, SlotType.Output, 0, ShaderStageCapability.Fragment));
-            AddSlot(new Vector1MaterialSlot(OutputSlotAId, kOutputSlotAName, kOutputSlotAName, SlotType.Output, 0, ShaderStageCapability.Fragment));
+            m_RGBAPins.CreateNodes(this, ShaderStageCapability.None, OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId);
             AddSlot(new Texture2DArrayInputMaterialSlot(TextureInputId, kTextureInputName, kTextureInputName));
             AddSlot(new Vector1MaterialSlot(IndexInputId, kIndexInputName, kIndexInputName, SlotType.Input, 0));
             AddSlot(new UVMaterialSlot(UVInput, kUVInputName, kUVInputName, UVChannel.UV0));
             AddSlot(new SamplerStateMaterialSlot(SamplerInput, kSamplerInputName, kSamplerInputName, SlotType.Input));
             UpdateMipSamplingModeInputs();
-            RemoveSlotsNameNotMatching(new[] { OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, TextureInputId, IndexInputId, UVInput, SamplerInput, MipBiasInput });
+            RemoveSlotsNameNotMatching(new[] { OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, TextureInputId, IndexInputId, UVInput, SamplerInput, MipBiasInput, LodInput, DdxInput, DdyInput });
         }
 
         // Node generations
