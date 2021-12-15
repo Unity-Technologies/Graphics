@@ -253,6 +253,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Matrix4x4[] m_PixelCoordToViewDirWS;
 
+        ShaderTagId[] m_FogVolumeRenderersPasses = { HDShaderPassNames.s_FogVolumeDepthPassName, HDShaderPassNames.s_FogVolumeVoxelizeName };
+
         static internal void SafeDestroy(ref RenderTexture rt)
         {
             if (rt != null)
@@ -859,17 +861,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class FogVolumeMeshVoxelizationPassData
         {
-            
+            public RendererListHandle fogVolumeRenderList;
+            public TextureHandle fogVolumeDepth;
+            public TextureHandle densityBuffer;
+            public HDCamera hdCamera;
         }
 
         TextureHandle VolumeVoxelizationPass(RenderGraph renderGraph,
             HDCamera hdCamera,
+            CullingResults cullingResults,
             ComputeBuffer visibleVolumeBoundsBuffer,
             ComputeBuffer visibleVolumeDataBuffer,
             ComputeBufferHandle bigTileLightList)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
+                TextureHandle densityBuffer;
+
                 using (var builder = renderGraph.AddRenderPass<VolumeVoxelizationPassData>("Volume Voxelization", out var passData))
                 {
                     builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync());
@@ -928,14 +936,57 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.DispatchCompute(data.voxelizationCS, data.voxelizationKernel, ((int)data.resolution.x + 7) / 8, ((int)data.resolution.y + 7) / 8, data.viewCount);
                         });
 
-                    return passData.densityBuffer;
+                    densityBuffer = passData.densityBuffer;
                 }
 
                 // Voxelize fog volume meshes
                 using (var builder = renderGraph.AddRenderPass<FogVolumeMeshVoxelizationPassData>("Fog Volume Mesh Voxelization", out var passData))
                 {
+                    var renderListDesc = new UnityEngine.Rendering.RendererUtils.RendererListDesc(m_FogVolumeRenderersPasses, cullingResults, hdCamera.camera)
+                    {
+                        rendererConfiguration = 0,
+                        renderQueueRange = HDRenderQueue.k_RenderQueue_All,
+                        sortingCriteria = SortingCriteria.CommonTransparent,
+                        excludeObjectMotionVectors = false
+                    };
+
+                    passData.fogVolumeRenderList = builder.UseRendererList(renderGraph.CreateRendererList(renderListDesc));
+
+                    // Tell that this pass requires that at least one object in the scene is compatible with the fog volume mesh shader, otherwise the pass is culled.
+                    builder.DependsOn(passData.fogVolumeRenderList);
+
+                    Debug.Log(s_CurrentVolumetricBufferSize);
+                    passData.fogVolumeDepth = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
+                    {
+                        colorFormat = GraphicsFormat.R16_SFloat,
+                        dimension = TextureDimension.Tex2D,
+                        enableRandomWrite = true,
+                        name = "Fog Volume Depth" 
+                    }));
+                    passData.densityBuffer = builder.WriteTexture(densityBuffer);
+                    passData.hdCamera = hdCamera;
+
+                    builder.SetRenderFunc(
+                    (FogVolumeMeshVoxelizationPassData data, RenderGraphContext ctx) =>
+                    {
+                        int frameIndex = (int)VolumetricFrameIndex(hdCamera);
+                        var currIdx = (frameIndex + 0) & 1;
+                        var prevIdx = (frameIndex + 1) & 1;
+
+                        var currParams = data.hdCamera.vBufferParams[currIdx];
+
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._FogVolumeDepth, data.fogVolumeDepth);
+                        ctx.cmd.SetRandomWriteTarget(1, data.densityBuffer);
+                        Debug.Log(data.densityBuffer.IsValid());
+                        CoreUtils.SetRenderTarget(ctx.cmd, data.fogVolumeDepth);
+                        ctx.cmd.SetViewport(new Rect(0, 0, currParams.viewportSize.x, currParams.viewportSize.y));
+                        CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, data.fogVolumeRenderList);
+                        ctx.cmd.ClearRandomWriteTargets();
+                    });
+
                 }
 
+                return densityBuffer;
             }
             return TextureHandle.nullHandle;
         }

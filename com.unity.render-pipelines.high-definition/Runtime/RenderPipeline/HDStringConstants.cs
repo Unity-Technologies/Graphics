@@ -58,7 +58,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_DecalMeshForwardEmissiveStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive];
         /// <summary>DBuffer VFX Decal pass name</summary>
         public static readonly string s_DBufferVFXDecalStr = "DBufferVFX";
-
+        /// <summary>Fog Volume Voxelize pass name.</summary>
+        public static readonly string s_FogVolumeVoxelizeStr = "FogVolumeVoxelize";
+        /// <summary>Fog Volume Depth pass name.</summary>
+        public static readonly string s_FogVolumeDepthPassStr = "FogVolumeDepthPass";
 
         // ShaderPass name
         /// <summary>Empty shader tag id.</summary>
@@ -98,6 +101,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_DecalMeshForwardEmissiveName = new ShaderTagId(s_DecalMeshForwardEmissiveStr);
         /// <summary>DBuffer VFX Decal shader tag id.</summary>
         public static readonly ShaderTagId s_DBufferVFXDecalName = new ShaderTagId(s_DBufferVFXDecalStr);
+
+        // Fog volume passes
+        /// <summary>Fog Volume Voxelize pass shader tag id.</summary>
+        public static readonly ShaderTagId s_FogVolumeVoxelizeName = new ShaderTagId(s_FogVolumeVoxelizeStr);
+        /// <summary>Fog Volume Depth pass shader tag id.</summary>
+        public static readonly ShaderTagId s_FogVolumeDepthPassName = new ShaderTagId(s_FogVolumeDepthPassStr);
 
         // Legacy name
         internal static readonly ShaderTagId s_AlwaysName = new ShaderTagId("Always");
@@ -555,6 +564,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VolumeData = Shader.PropertyToID("_VolumeData");
         public static readonly int _VolumeMaskAtlas = Shader.PropertyToID("_VolumeMaskAtlas");
         public static readonly int _VolumeAmbientProbeBuffer = Shader.PropertyToID("_VolumetricAmbientProbeBuffer");
+        public static readonly int _FogVolumeDepth = Shader.PropertyToID("_FogVolumeDepth");
 
         public static readonly int _MaxZMaskTexture = Shader.PropertyToID("_MaxZMaskTexture");
         public static readonly int _DilationWidth = Shader.PropertyToID("_DilationWidth");

@@ -14,9 +14,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public FogVolumeSubTarget() => displayName = "Fog Volume";
 
-        public readonly static string k_VoxelizePassName = "FogVolumeVoxelize";
-        public readonly static string k_WriteDepthPassName = "FogVolumeWriteDepth";
-
         static readonly GUID kSubTargetSourceCodeGuid = new GUID("0e63daeaa7722194d90b56081aa39ae6");  // FogVolumeSubTarget.cs
 
         protected override string[] templateMaterialDirectories => new string[]{};
@@ -69,9 +66,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return new PassDescriptor()
             {
                 // Definition
-                displayName = k_WriteDepthPassName,
+                displayName = HDShaderPassNames.s_FogVolumeDepthPassStr,
                 referenceName = "SHADERPASS_FOGVOLUME_WRITE_DEPTH",
-                lightMode = k_WriteDepthPassName,
+                lightMode = HDShaderPassNames.s_FogVolumeDepthPassStr,
                 useInPreview = false,
 
                 // Port mask
@@ -91,9 +88,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return new PassDescriptor()
             {
                 // Definition
-                displayName = k_VoxelizePassName,
+                displayName = HDShaderPassNames.s_FogVolumeVoxelizeStr,
                 referenceName = "SHADERPASS_FOGVOLUME_VOXELIZATION",
-                lightMode = k_VoxelizePassName,
+                lightMode = HDShaderPassNames.s_FogVolumeVoxelizeStr,
                 useInPreview = false,
 
                 // Port mask

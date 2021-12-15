@@ -3,6 +3,14 @@
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/HDRenderPipeline.VolumetricLighting.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+
+RW_TEXTURE3D(float4, _VBufferDensity) : register(u1); // RGB = sqrt(scattering), A = sqrt(extinction)
+TEXTURE2D_X(_FogVolumeDepth);
 
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
@@ -29,8 +37,15 @@ void Frag(PackedVaryingsToPS packedInput, out float4 outColor : SV_Target0)
     float3 scatteringColor;
     float density;
 
+    // Sample the depth to know when to stop
+    float stopDepth = SAMPLE_TEXTURE2D(_FogVolumeDepth, input.positionSS.xy);
+
+    float startDepth = posInput.linearDepth;
+
     // TODO: call this in a loop to voxelize :)
-    GetSurfaceData(input, V, posInput, scatteringColor, density);
+    GetVolumeData(input, V, posInput, scatteringColor, density);
+
+    _VBufferDensity[uint3(posInput.positionSS.xy, 0)] = float4(scatteringColor, density);
 
     // TODO: set color mask to 0 and remove this line
     outColor = 0;

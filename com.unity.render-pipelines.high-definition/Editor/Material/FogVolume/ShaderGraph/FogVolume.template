@@ -19,6 +19,7 @@ Pass
 
     // Pragmas
     $splice(PassPragmas)
+    #pragma enable_d3d11_debug_symbols
 
     // Keywords
     $splice(PassKeywords)
@@ -105,9 +106,8 @@ Pass
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
-        // TODO
-        scatteringColor = 0;
-        density = 0;
+        scatteringColor = surfaceDescription.BaseColor;
+        density = surfaceDescription.Alpha;
     }
 
     // --------------------------------------------------
