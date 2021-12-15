@@ -145,7 +145,12 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             foreach (var set in serializedBakingSets)
+            {
+                // Ensure baking set settings are up to date
+                set.settings.Upgrade();
+
                 bakingSets.Add(set);
+            }
         }
 
         // This function must not be called during the serialization (because of asset creation)
@@ -240,27 +245,7 @@ namespace UnityEngine.Experimental.Rendering
 
             set.name = name;
             set.profile = newProfile;
-            set.settings = new ProbeVolumeBakingProcessSettings
-            {
-                dilationSettings = new ProbeDilationSettings
-                {
-                    enableDilation = true,
-                    dilationDistance = 1,
-                    dilationValidityThreshold = 0.25f,
-                    dilationIterations = 1,
-                    squaredDistWeighting = true,
-                },
-                virtualOffsetSettings = new VirtualOffsetSettings
-                {
-                    useVirtualOffset = true,
-                    outOfGeoOffset = 0.01f,
-                    searchMultiplier = 0.2f,
-                    rayOriginBias = -0.001f,
-                    maxHitsPerRay = 10,
-                    collisionMask = Physics.DefaultRaycastLayers,
-                    useMultiThreadedOffset = true,
-                }
-            };
+            set.settings = ProbeVolumeBakingProcessSettings.Default;
         }
 
         internal void SyncBakingSetSettings()
@@ -507,11 +492,7 @@ namespace UnityEngine.Experimental.Rendering
             if (sceneBakingSettings == null) sceneBakingSettings = new Dictionary<string, ProbeVolumeBakingProcessSettings>();
 
             var sceneGUID = GetSceneGUID(scene);
-
-            ProbeVolumeBakingProcessSettings settings = new ProbeVolumeBakingProcessSettings();
-            settings.dilationSettings = dilationSettings;
-            settings.virtualOffsetSettings = virtualOffsetSettings;
-            sceneBakingSettings[sceneGUID] = settings;
+            sceneBakingSettings[sceneGUID] = new ProbeVolumeBakingProcessSettings(dilationSettings, virtualOffsetSettings);
         }
 
         internal ProbeReferenceVolumeProfile GetProfileForScene(Scene scene)
@@ -535,7 +516,7 @@ namespace UnityEngine.Experimental.Rendering
             if (sceneBakingSettings != null && sceneBakingSettings.ContainsKey(sceneGUID))
                 return sceneBakingSettings[sceneGUID];
 
-            return new ProbeVolumeBakingProcessSettings();
+            return ProbeVolumeBakingProcessSettings.Default;
         }
 
         // This is sub-optimal, but because is called once when kicking off a bake
