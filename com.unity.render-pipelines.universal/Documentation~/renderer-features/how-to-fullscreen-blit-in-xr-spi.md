@@ -1,6 +1,6 @@
-# How to perform a full screen blit in Single Pass Instanced rendering in XR
+# How to perform a full screen blit in URP
 
-The example on this page describes how to create a custom Renderer Feature that performs a full screen blit in Single Pass Instanced rendering in XR.
+The example on this page describes how to create a custom Renderer Feature that performs a full screen blit.
 
 ## Example overview
 
@@ -213,7 +213,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
 
     For this example, set the Intensity property to 1.5.
 
-5. To visualize the example, configure the project to use XR SDK. [Add the MockHMD XR Plugin to the project](https://docs.unity3d.com/Packages/com.unity.xr.mock-hmd@latest/index.html). Set the **Render Mode** property to **Single Pass Instanced**.
+5. To visualize the example in XR, configure the project to use XR SDK. [Add the MockHMD XR Plugin to the project](https://docs.unity3d.com/Packages/com.unity.xr.mock-hmd@latest/index.html). Set the **Render Mode** property to **Single Pass Instanced**.
 
     ![Configure MockHMD](../Images/how-to/blit-xr/xr-plugin-mockhmd.png)
 
