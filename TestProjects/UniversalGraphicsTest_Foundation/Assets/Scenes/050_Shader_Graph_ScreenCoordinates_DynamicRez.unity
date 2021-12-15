@@ -294,7 +294,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c1341477569e634cabd23203016109a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playRenderScale: 1
+  playRenderScale: 0.25
 --- !u!1 &1161206970
 GameObject:
   m_ObjectHideFlags: 0
