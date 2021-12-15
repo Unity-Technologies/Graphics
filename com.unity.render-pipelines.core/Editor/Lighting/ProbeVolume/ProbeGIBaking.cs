@@ -468,7 +468,8 @@ namespace UnityEngine.Experimental.Rendering
             var touchupVolumesBounds = new List<Bounds>(touchupVolumes.Length);
             foreach (var touchup in touchupVolumes)
             {
-                touchupVolumesBounds.Add(touchup.GetBounds());
+                if (touchup.isActiveAndEnabled && touchup.invalidateProbes)
+                    touchupVolumesBounds.Add(touchup.GetBounds());
             }
 
             // Fetch results of all cells

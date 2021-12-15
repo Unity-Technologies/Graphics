@@ -16,9 +16,9 @@ namespace UnityEngine.Experimental.Rendering
     public class ProbeTouchupVolume : MonoBehaviour
     {
         internal float intensityScale = 1.0f;
-        internal bool invalidateProbes = false;
+        public bool invalidateProbes = false;
 
-        internal Vector3 size = new Vector3(1, 1, 1);
+        public Vector3 size = new Vector3(1, 1, 1);
 
 #if UNITY_EDITOR
         /// <summary>
@@ -32,7 +32,8 @@ namespace UnityEngine.Experimental.Rendering
 
         internal Bounds GetBounds()
         {
-            return new Bounds(transform.position, size);
+            ProbeReferenceVolume.Volume volume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(transform.position, transform.rotation, GetExtents()), 0, 0);
+            return volume.CalculateAABB();
         }
 #endif
     }

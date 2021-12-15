@@ -411,7 +411,7 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 norma
         }
     }
 
-    WeightSample(baseSample, rcp(totalW));
+    WeightSample(baseSample, rcp(max(1e-5f, totalW)));
 
     return baseSample;
 }
