@@ -80,6 +80,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed for APV debug mode breaking rendering when switching to an asset with APV disabled.
 - Fixed potential asymmetrical resource release in the volumetric clouds (case 1388218).
 - Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
+- Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
