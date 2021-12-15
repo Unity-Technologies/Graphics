@@ -516,13 +516,8 @@ float3 EvaluateWaterSurfaceGradient_VS(float3 positionAWS, int LOD, int bandInde
     texSize.xy = res;
     texSize.zw = 1.0f / res;
 
-    // Attenuate using the water mask
-    float2 maskUV = EvaluateWaterMaskUV(positionAWS);
-    float2 waterMask = SAMPLE_TEXTURE2D_LOD(_WaterMask, s_linear_repeat_sampler, maskUV, 0);
-    float actualMask = bandIndex <= 1 ? waterMask.x : waterMask.y;
-
     // First band
-    float4 additionalData = SampleTexture2DArrayBicubicLOD(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), uvBand, bandIndex, texSize, LOD) * actualMask;
+    float4 additionalData = SampleTexture2DArrayBicubicLOD(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), uvBand, bandIndex, texSize, LOD);
     float3 surfaceGradient = float3(additionalData.x, 0, additionalData.y);
 
     // Blend the various surface gradients
