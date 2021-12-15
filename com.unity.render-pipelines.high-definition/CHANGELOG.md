@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Correlated Color Temperature not being applied in Player builds for Enlighten realtime GI lights (case 1370438);
 - Fixed Normal Map assiignation when importing FBX Materials.
 - Fixed rendering in the editor when an incompatible API is added (case 1384634).
+- Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
 
 ## [13.1.4] - 2021-12-04
 
