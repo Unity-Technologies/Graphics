@@ -126,15 +126,14 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 // Layout of the water gbuffer
 // GBuffer0 R16G16B16A16 (64 bits)
 // - GBuffer0: Bits 64 -> 32: Diffuse color (11 11 10)
-// - GBuffer0: Bits 31 -> 16:  Empty
+// - GBuffer0: Bits 31 -> 16:  Caustics
 // - GBuffer0: Bits 15 -> 0: foam value
 
 // GBuffer1 R16G16B16A16 (64 bits)
 // - GBuffer1: Bits 63 -> 32: Complete Normal Surface Gradients
 // - GBuffer1: Bits 31 -> 0: Low frequency Normal Surface Gradients
 
-// GBuffer2 R32G32
-// - GBuffer2: Bits 63 -> 32: Refraction color compressed
+// GBuffer2 R16G16
 // - GBuffer2: Bits 31 -> 16: Tip Thickness (Compressed)
 // - GBuffer2: Bits 15 -> 8: Discrete Perceptual Roughness (0 -> 255)
 // - GBuffer2: Bits 8 -> 4:  Empty

@@ -91,7 +91,8 @@ void WaterDeferredLighting(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
         return;
 
     // Compute the posInput
-    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    uint2 tileCoord = currentCoord / GetTileSize();
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
 
     // Compute the view vector
     float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
