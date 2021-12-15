@@ -638,10 +638,12 @@ namespace UnityEngine.Rendering.Universal
             set => m_ScreenCoordScaleBias = value;
         }
 
+        /// <inheritdoc/>
         public void OnBeforeSerialize()
         {
         }
 
+        /// <inheritdoc/>
         public void OnAfterDeserialize()
         {
             if (version <= 1)
@@ -651,6 +653,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
         public void OnDrawGizmos()
         {
             string gizmoName = "";
