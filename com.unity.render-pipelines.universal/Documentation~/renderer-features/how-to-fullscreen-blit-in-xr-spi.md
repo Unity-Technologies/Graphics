@@ -1,6 +1,6 @@
-# How to draw to full screen in URP
+# How to perform a full screen blit in URP
 
-The example on this page describes how to create a custom Renderer Feature that performs a full screen quad pass.
+The example on this page describes how to create a custom Renderer Feature that performs a full screen blit.
 
 ## Example overview
 
@@ -34,21 +34,21 @@ This section assumes that you created a Scene as described in section [Create ex
 
 Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@12.0/api/UnityEngine.Rendering.Universal.ScriptableRendererFeature.html) with a custom [Render Pass](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@12.0/api/UnityEngine.Rendering.Universal.ScriptableRenderPass.html).
 
-1. Create a new C# script. Call it `ColorFullScreenRendererFeature.cs`. This script implements the custom Renderer Feature.
+1. Create a new C# script. Call it `ColorBlitRendererFeature.cs`. This script implements the custom Renderer Feature.
 
     ```C#
     using UnityEngine;
     using UnityEngine.Rendering;
     using UnityEngine.Rendering.Universal;
 
-    internal class ColorFullScreenRendererFeature : ScriptableRendererFeature
+    internal class ColorBlitRendererFeature : ScriptableRendererFeature
     {
         public Shader m_Shader;
         public float m_Intensity;
 
         Material m_Material;
 
-        ColorFullScreenPass m_RenderPass = null;
+        ColorBlitPass m_RenderPass = null;
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
@@ -71,7 +71,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
             if (m_Shader != null)
                 m_Material = new Material(m_Shader);
 
-            m_RenderPass = new ColorFullScreenPass(m_Material);
+            m_RenderPass = new ColorBlitPass(m_Material);
         }
 
         protected override void Dispose(bool disposing)
@@ -81,9 +81,9 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
     }
     ```
 
-2. Create a new C# script. Call it `ColorFullScreenPass.cs`. This script implements the custom Render Pass that performs the custom full screen draw call.
+2. Create a new C# script. Call it `ColorBlitPass.cs`. This script implements the custom Render Pass that performs the custom blit draw call.
 
-    This Render Pass uses the `cmd.DrawMesh` method to draw a full-screen quad and perform the full screen draw operation.
+    This Render Pass uses the `cmd.DrawMesh` method to draw a full-screen quad and perform the blit operation.
 
     > **NOTE:** Do not use the `cmd.Blit` method in URP XR projects because that method has compatibility issues with the URP XR integration. Using `cmd.Blit` might implicitly enable or disable XR shader keywords, which breaks XR SPI rendering.
 
@@ -92,14 +92,14 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
     using UnityEngine.Rendering;
     using UnityEngine.Rendering.Universal;
 
-    internal class ColorFullScreenPass : ScriptableRenderPass
+    internal class ColorBlitPass : ScriptableRenderPass
     {
-        ProfilingSampler m_ProfilingSampler = new ProfilingSampler("ColorFullScreen");
+        ProfilingSampler m_ProfilingSampler = new ProfilingSampler("ColorBlit");
         Material m_Material;
         RenderTargetIdentifier m_CameraColorTarget;
         float m_Intensity;
 
-        public ColorFullScreenPass(Material material)
+        public ColorBlitPass(Material material)
         {
             m_Material = material;
             renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
@@ -141,10 +141,10 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
     }
     ```
 
-3. <a name="shader"></a>Create the shader that performs the full screen draw operation. Call the shader file `ColorFullScreen.shader`. The vertex function outputs the full-screen quad position. The fragment function samples the color buffer and returns the `color * float4(0, _Intensity, 0, 1)` value to the render target.
+3. <a name="shader"></a>Create the shader that performs the blit operation. Call the shader file `ColorBlit.shader`. The vertex function outputs the full-screen quad position. The fragment function samples the color buffer and returns the `color * float4(0, _Intensity, 0, 1)` value to the render target.
 
     ```hlsl
-    Shader "ColorFullScreen"
+    Shader "ColorBlit"
     {
             SubShader
         {
@@ -153,7 +153,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
             ZWrite Off Cull Off
             Pass
             {
-                Name "ColorFullScreenPass"
+                Name "ColorBlitPass"
 
                 HLSLPROGRAM
                 #pragma vertex vert
@@ -210,7 +210,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
     }
     ```
 
-4. Add the `ColorFullScreenRendererFeature` to the Universal Renderer asset.
+4. Add the `ColorBlitRendererFeature` to the Universal Renderer asset.
 
     ![Add Renderer Feature](../Images/how-to/blit-xr/add-renderer-feature.png)
 
