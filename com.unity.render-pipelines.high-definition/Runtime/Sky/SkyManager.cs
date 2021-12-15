@@ -1236,7 +1236,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var skyContext = hdCamera.visualSky;
             if (skyContext.IsValid())
             {
-                using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Sky", out var passData, profilingSampler))
+                using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Sky", out var passData, sampler))
                 {
                     passData.colorBuffer = builder.WriteTexture(colorBuffer);
                     passData.depthBuffer = builder.WriteTexture(depthBuffer);
