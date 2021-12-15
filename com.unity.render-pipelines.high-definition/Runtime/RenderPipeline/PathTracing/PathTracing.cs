@@ -470,7 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Override the exposure texture, as we need a neutral value for this render
             SetGlobalTexture(renderGraph, HDShaderIDs._ExposureTexture, m_EmptyExposureTexture);
 
-            m_SkyManager.RenderSky(renderGraph, hdCamera, skyBuffer, CreateDepthBuffer(renderGraph, true, MSAASamples.None));
+            m_SkyManager.RenderSky(renderGraph, hdCamera, skyBuffer, CreateDepthBuffer(renderGraph, true, MSAASamples.None), "Render Sky Background for Path Tracing");
 
             // Restore the regular exposure texture
             SetGlobalTexture(renderGraph, HDShaderIDs._ExposureTexture, GetExposureTexture(hdCamera));

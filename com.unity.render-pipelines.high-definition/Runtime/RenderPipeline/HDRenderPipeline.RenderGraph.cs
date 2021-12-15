@@ -1584,7 +1584,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) || CoreUtils.IsSceneFilteringEnabled())
                 return;
 
-            m_SkyManager.RenderSky(renderGraph, hdCamera, colorBuffer, depthStencilBuffer);
+            m_SkyManager.RenderSky(renderGraph, hdCamera, colorBuffer, depthStencilBuffer, "Render Sky");
             m_SkyManager.RenderOpaqueAtmosphericScattering(renderGraph, hdCamera, colorBuffer, depthTexture, volumetricLighting, depthStencilBuffer);
         }
 

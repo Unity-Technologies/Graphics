@@ -1226,7 +1226,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool renderSunDisk;
         }
 
-        public void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        public void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, string passName)
         {
             if (hdCamera.clearColorMode != HDAdditionalCameraData.ClearColorMode.Sky ||
                 // If the luxmeter is enabled, we don't render the sky
