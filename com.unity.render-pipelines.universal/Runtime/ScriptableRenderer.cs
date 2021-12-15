@@ -558,6 +558,11 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool stripAdditionalLightOffVariants { get; set; } = false;
 
+        /// <summary>
+        /// Creates a new <c>ScriptableRenderer"</c> instance.
+        /// </summary>
+        /// <param name="data">The <c>ScriptableRendererData</c> data to initialize the renderer.</param>
+        /// <seealso cref="ScriptableRendererData"/>
         public ScriptableRenderer(ScriptableRendererData data)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -876,8 +881,9 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns a clear flag based on CameraClearFlags.
         /// </summary>
-        /// <param name="cameraClearFlags">Camera clear flags.</param>
+        /// <param name="cameraData">The Camera data.</param>
         /// <returns>A clear flag that tells if color and/or depth should be cleared.</returns>
+        /// <seealso cref="CameraData"/>
         protected static ClearFlag GetCameraClearFlag(ref CameraData cameraData)
         {
             var cameraClearFlags = cameraData.camera.clearFlags;
