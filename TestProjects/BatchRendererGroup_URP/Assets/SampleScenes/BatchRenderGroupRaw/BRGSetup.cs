@@ -31,6 +31,7 @@ public unsafe class BRGSetup : MonoBehaviour
     private int m_itemCount;
     private bool m_initialized;
     private float m_phase;
+    private int m_frame;
 
     private NativeArray<Vector4> m_sysmemBuffer;
 
@@ -77,9 +78,11 @@ public unsafe class BRGSetup : MonoBehaviour
                 staticShadowCaster = false,
                 allDepthSorted = false
             }
-        };
+        }; 
 
         drawCommands.visibleInstances = Malloc<int>(m_itemCount);
+        var uploadBuffer = m_bufferPool.StartBufferWrite();
+
         int n = 0;
         int radius = (itemGridSize / 2) * (itemGridSize / 2);       // (grid/2)^2
         int radiusO = (radius * 90) / 100;
@@ -97,10 +100,17 @@ public unsafe class BRGSetup : MonoBehaviour
 
                 }
                 if (visible)
-                    drawCommands.visibleInstances[n++] = r * itemGridSize + i;
+                {
+                    var index = r * itemGridSize + i;
+                    drawCommands.visibleInstances[n] = index;
+                    uploadBuffer.gpuData[n] = (uint)index;
+                    n++;
+                }
             }
         }
+
         drawCommands.visibleInstanceCount = n;
+        m_bufferPool.EndBufferWrite(uploadBuffer);
 
         drawCommands.drawCommandCount = 1;
         drawCommands.drawCommands = Malloc<BatchDrawCommand>(1);
@@ -133,6 +143,7 @@ public unsafe class BRGSetup : MonoBehaviour
     void Start()
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
+        m_bufferPool = new UploadBufferPool(10 * 3, 4096 * 1024);   // HACKS: Max 10 callbacks/frame, 3 frame hard coded reuse. 4MB maximum buffer size (1 million visible indices).
 
         int itemCount = itemGridSize * itemGridSize;
         m_itemCount = itemCount;
@@ -234,6 +245,10 @@ public unsafe class BRGSetup : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        m_bufferPool.SetFrame(m_frame);
+        m_bufferPool.SetReuseFrame(m_frame - 3);    // Reuse 3 frames old buffers. TODO: Use the proper API  to know when GPU has stopped using the data!
+        m_frame++;
+
         m_phase += Time.fixedDeltaTime * m_motionSpeed;
 
         if (m_motionAmplitude > 0.0f)
