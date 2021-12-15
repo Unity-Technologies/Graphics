@@ -3,12 +3,27 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
+    /// <summary>
+    /// Modes for Debugging Probes
+    /// </summary>
     [GenerateHLSL]
     public enum DebugProbeShadingMode
     {
+        /// <summary>
+        /// Based on Spherical Harmonics
+        /// </summary>
         SH,
+        /// <summary>
+        /// Based on validity
+        /// </summary>
         Validity,
+        /// <summary>
+        /// Based on validity over a dilation threshold
+        /// </summary>
         ValidityOverDilationThreshold,
+        /// <summary>
+        /// Based on size
+        /// </summary>
         Size
     }
 
@@ -41,6 +56,8 @@ namespace UnityEngine.Experimental.Rendering
 
         const int kProbesPerBatch = 1023;
 
+        public static readonly string k_DebugPanelName = "Probe Volume";
+
         internal ProbeVolumeDebug debugDisplay { get; } = new ProbeVolumeDebug();
 
         /// <summary>Colors that can be used for debug visualization of the brick structure subdivision.</summary>
@@ -58,13 +75,14 @@ namespace UnityEngine.Experimental.Rendering
         internal Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>> realtimeSubdivisionInfo = new Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>>();
 
         /// <summary>
-        /// Render Probe Volume related debug
+        ///  Render Probe Volume related debug
         /// </summary>
+        /// <param name="camera">The <see cref="Camera"/></param>
         public void RenderDebug(Camera camera)
         {
             if (camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)
             {
-                if (debugDisplay.drawProbes)
+                if (debugDisplay.drawProbes && enabledBySRP && isInitialized)
                 {
                     DrawProbeDebug(camera);
                 }
@@ -175,16 +193,16 @@ namespace UnityEngine.Experimental.Rendering
             widgetList.Add(streamingContainer);
 
             m_DebugItems = widgetList.ToArray();
-            var panel = DebugManager.instance.GetPanel("Probe Volume", true);
+            var panel = DebugManager.instance.GetPanel(k_DebugPanelName, true);
             panel.children.Add(m_DebugItems);
         }
 
         void UnregisterDebug(bool destroyPanel)
         {
             if (destroyPanel)
-                DebugManager.instance.RemovePanel("Probe Volume");
+                DebugManager.instance.RemovePanel(k_DebugPanelName);
             else
-                DebugManager.instance.GetPanel("Probe Volume", false).children.Remove(m_DebugItems);
+                DebugManager.instance.GetPanel(k_DebugPanelName, false).children.Remove(m_DebugItems);
         }
 
         bool ShouldCullCell(Vector3 cellPosition, Transform cameraTransform, Plane[] frustumPlanes)

@@ -155,18 +155,14 @@ namespace UnityEngine.Rendering.Universal
 
             Camera camera = cameraData.camera;
 
-            Rect pixelRect = cameraData.pixelRect;
-            float renderScale = cameraData.isSceneViewCamera ? 1f : cameraData.renderScale;
-            float scaledCameraWidth = (float)pixelRect.width * renderScale;
-            float scaledCameraHeight = (float)pixelRect.height * renderScale;
-            float cameraWidth = (float)pixelRect.width;
-            float cameraHeight = (float)pixelRect.height;
+            float scaledCameraWidth = (float)cameraData.cameraTargetDescriptor.width;
+            float scaledCameraHeight = (float)cameraData.cameraTargetDescriptor.height;
+            float cameraWidth = (float)camera.pixelWidth;
+            float cameraHeight = (float)camera.pixelHeight;
 
             // Use eye texture's width and height as screen params when XR is enabled
             if (cameraData.xr.enabled)
             {
-                scaledCameraWidth = (float)cameraData.cameraTargetDescriptor.width;
-                scaledCameraHeight = (float)cameraData.cameraTargetDescriptor.height;
                 cameraWidth = (float)cameraData.cameraTargetDescriptor.width;
                 cameraHeight = (float)cameraData.cameraTargetDescriptor.height;
 
@@ -222,6 +218,11 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
 
             cmd.SetGlobalVector(ShaderPropertyId.screenSize, new Vector4(cameraWidth, cameraHeight, 1.0f / cameraWidth, 1.0f / cameraHeight));
+
+            // Calculate a bias value which corrects the mip lod selection logic when image scaling is active.
+            // We clamp this value to 0.0 or less to make sure we don't end up reducing image detail in the downsampling case.
+            float mipBias = Math.Min((float)-Math.Log(cameraWidth / scaledCameraWidth, 2.0f), 0.0f);
+            cmd.SetGlobalVector(ShaderPropertyId.globalMipBias, new Vector2(mipBias, Mathf.Pow(2.0f, mipBias)));
 
             //Set per camera matrices.
             SetCameraMatrices(cmd, ref cameraData, true);
@@ -1001,18 +1002,6 @@ namespace UnityEngine.Rendering.Universal
 
                 rendererFeatures[i].SetupRenderPasses(this, in renderingData);
             }
-
-            // Remove any null render pass that might have been added by user by mistake
-            int count = activeRenderPassQueue.Count;
-            for (int i = count - 1; i >= 0; i--)
-            {
-                if (activeRenderPassQueue[i] == null)
-                    activeRenderPassQueue.RemoveAt(i);
-            }
-
-            // if any pass was injected, the "automatic" store optimization policy will disable the optimized load actions
-            if (count > 0 && m_StoreActionsOptimizationSetting == StoreActionsOptimization.Auto)
-                m_UseOptimizedStoreActions = false;
         }
 
         void ClearRenderingState(CommandBuffer cmd)
@@ -1280,6 +1269,11 @@ namespace UnityEngine.Rendering.Universal
                     m_FirstTimeCameraColorTargetIsBound = false; // register that we did clear the camera target the first time it was bound
 
                     finalClearFlag |= (cameraClearFlag & ClearFlag.Color);
+
+                    // on platforms that support Load and Store actions having the clear flag means that the action will be DontCare, which is something we want when the color target is bound the first time
+                    if (SystemInfo.usesLoadStoreActions)
+                        finalClearFlag |= renderPass.clearFlag;
+
                     finalClearColor = cameraData.backgroundColor;
 
                     if (m_FirstTimeCameraDepthTargetIsBound)
@@ -1297,7 +1291,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Condition (m_CameraDepthTarget!=BuiltinRenderTextureType.CameraTarget) below prevents m_FirstTimeCameraDepthTargetIsBound flag from being reset during non-camera passes (such as Color Grading LUT). This ensures that in those cases, cameraDepth will actually be cleared during the later camera pass.
-                if (m_CameraDepthTarget.nameID != BuiltinRenderTextureType.CameraTarget && (passDepthAttachment.nameID == m_CameraDepthTarget.nameID || passColorAttachment.nameID == m_CameraDepthTarget.nameID) && m_FirstTimeCameraDepthTargetIsBound)
+                if (new RenderTargetIdentifier(m_CameraDepthTarget.nameID, 0, depthSlice: 0) != BuiltinRenderTextureType.CameraTarget && (passDepthAttachment.nameID == m_CameraDepthTarget.nameID || passColorAttachment.nameID == m_CameraDepthTarget.nameID) && m_FirstTimeCameraDepthTargetIsBound)
                 {
                     m_FirstTimeCameraDepthTargetIsBound = false;
 
@@ -1349,6 +1343,11 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
             }
+
+#if ENABLE_SHADER_DEBUG_PRINT
+            ShaderDebugPrintManager.instance.SetShaderDebugPrintInputConstants(cmd, ShaderDebugPrintInputProducer.Get());
+            ShaderDebugPrintManager.instance.SetShaderDebugPrintBindings(cmd);
+#endif
 #pragma warning restore 0618
         }
 

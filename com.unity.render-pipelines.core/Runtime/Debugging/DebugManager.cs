@@ -380,6 +380,14 @@ namespace UnityEngine.Rendering
             return p;
         }
 
+        /// <summary>
+        /// Find the index of the panel from it's display name.
+        /// </summary>
+        /// <param name="displayName">The display name of the panel to find.</param>
+        /// <returns>The index of the panel in the list. -1 if not found.</returns>
+        public int FindPanelIndex(string displayName)
+            => m_Panels.FindIndex(p => p.displayName == displayName);
+
         // TODO: Use a query path here as well instead of a display name
         /// <summary>
         /// Remove a debug panel.

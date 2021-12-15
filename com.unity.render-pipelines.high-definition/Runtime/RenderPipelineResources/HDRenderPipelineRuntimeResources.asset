@@ -32,8 +32,7 @@ MonoBehaviour:
     debugViewVirtualTexturingBlit: {fileID: 4800000, guid: 55d195396b03b804eb78c92d468e3c8e,
       type: 3}
     materialError: {fileID: 4800000, guid: 79a966a5200a456188dec0d48d805614, type: 3}
-    probeVolumeDebugShader: {fileID: 4800000, guid: 3b21275fd12d65f49babb5286f040f2d,
-      type: 3}
+    probeVolumeDebugShader: {fileID: 4800000, guid: 3b21275fd12d65f49babb5286f040f2d, type: 3}
     clearDebugBufferCS: {fileID: 7200000, guid: 7fc6041d5cf70004aa33bb1ac64e3c06, type: 3}
     deferredPS: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
     colorPyramidPS: {fileID: 4800000, guid: 2fcfb8d92f45e4549b3f0bad5d0654bf, type: 3}
@@ -124,18 +123,15 @@ MonoBehaviour:
       type: 3}
     volumetricCloudsCombinePS: {fileID: 4800000, guid: 12f1a69ddf916f042ae6ce8a994506f3,
       type: 3}
-    preIntegratedFGD_GGXDisneyDiffusePS: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad,
-      type: 3}
-    preIntegratedFGD_CharlieFabricLambertPS: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0,
-      type: 3}
-    preIntegratedFGD_WardPS: {fileID: 4800000, guid: d279c46a545b0af4f9f0c4fa82cd489e,
-      type: 3}
-    preIntegratedFGD_CookTorrancePS: {fileID: 4800000, guid: a6402c19b020b4a4fb7073aaa2e26aba,
-      type: 3}
-    preIntegratedFGD_MarschnerPS: {fileID: 4800000, guid: 31f36caf0a5e7f848a1b5328b6ad3eb8,
-      type: 3}
-    preIntegratedFiberScatteringCS: {fileID: 7200000, guid: 4a087c9d074552c48aeb85184d56312e,
-      type: 3}
+    waterSimulationCS: {fileID: 7200000, guid: f4c121c930cdb97459188eeb2166f0ad, type: 3}
+    fourierTransformCS: {fileID: 7200000, guid: 006aabe8be599854c9abea76f890d60b, type: 3}
+    waterPS: {fileID: -6465566751694194690, guid: 3fda5e465882bec4d8e64161b681806c, type: 3}
+    preIntegratedFGD_GGXDisneyDiffusePS: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad, type: 3}
+    preIntegratedFGD_CharlieFabricLambertPS: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0, type: 3}
+    preIntegratedFGD_WardPS: {fileID: 4800000, guid: d279c46a545b0af4f9f0c4fa82cd489e, type: 3}
+    preIntegratedFGD_CookTorrancePS: {fileID: 4800000, guid: a6402c19b020b4a4fb7073aaa2e26aba, type: 3}
+    preIntegratedFGD_MarschnerPS: {fileID: 4800000, guid: 31f36caf0a5e7f848a1b5328b6ad3eb8, type: 3}
+    preIntegratedFiberScatteringCS: {fileID: 7200000, guid: 4a087c9d074552c48aeb85184d56312e, type: 3}
     encodeBC6HCS: {fileID: 7200000, guid: aa922d239de60304f964e24488559eeb, type: 3}
     cubeToPanoPS: {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}
     blitCubeTextureFacePS: {fileID: 4800000, guid: d850d0a2481878d4bbf17e5126b04163,
@@ -242,8 +238,6 @@ MonoBehaviour:
     dofCombineCS: {fileID: 7200000, guid: d9b940a90a2d0884f94990a0dde43a53, type: 3}
     contrastAdaptiveSharpenCS: {fileID: 7200000, guid: 560896aec2f412c48995be35551a4ac6,
       type: 3}
-    robustContrastAdaptiveSharpenCS: {fileID: 7200000, guid: d907373e407ff65479c449a66c04443d,
-      type: 3}
     edgeAdaptiveSpatialUpsamplingCS: {fileID: 7200000, guid: f054fa9fe2c85bb42b9489e2f9ffb643,
       type: 3}
     VTFeedbackDownsample: {fileID: 7200000, guid: 32d963548086c2c439aeb23a93e9a00a,
@@ -346,6 +340,8 @@ MonoBehaviour:
       type: 3}
     worleyNoise32RGB: {fileID: 11700000, guid: ec156c314a242914dbb706f73ad78cf2, type: 3}
     perlinNoise32RGB: {fileID: 11700000, guid: d1aae012f8a4f23478471851f17ff915, type: 3}
+    foamSurface: {fileID: 2800000, guid: b157905335303e74fb9450838e672b83, type: 3}
+    foamNormals: {fileID: 2800000, guid: e410f1ed4690b8d40b335b78e7c0441f, type: 3}
     filmGrainTex:
     - {fileID: 2800000, guid: 284a1ac236869fa4eacf377d73c7dff8, type: 3}
     - {fileID: 2800000, guid: bd74961b009b93145a998ae93a5fc186, type: 3}

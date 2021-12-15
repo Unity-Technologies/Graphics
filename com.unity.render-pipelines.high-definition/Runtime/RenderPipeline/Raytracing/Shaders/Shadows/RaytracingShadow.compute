@@ -576,12 +576,11 @@ void RaytracingPointShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, u
     float rayLength = length(rayDirection);
     rayDirection = rayDirection / rayLength;
 
-    // If this ray is under the surface, no need to shoot it
-    float lightRange2 = lightData.range * lightData.range;
-    if (dot(normalData.normalWS, rayDirection) < 0.0 || dist2 > lightRange2)
-    {
-       samplePDF = -1.0;
-    }
+    // If the normal of this pixel cannot face the light, we invalidate it
+    samplePDF = dot(normalData.normalWS, rayDirection) > 0.0 ? samplePDF : -1.0;
+
+    // If this pixel is beyond the range of the light, we invalidate it
+    samplePDF = dist2 < (lightData.range * lightData.range) ? samplePDF : -2.0;
 
     // Output the direction to the target uav
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, samplePDF);
@@ -650,15 +649,14 @@ void RaytracingSpotShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, ui
     float rayLength = length(rayDirection);
     rayDirection = rayDirection / rayLength;
 
-    // If this ray is under the surface, no need to shoot it
-    float lightRange2 = lightData.range * lightData.range;
-    if (dot(normalData.normalWS, rayDirection) < 0.0 || dist2 > lightRange2)
-    {
-       samplePDF = -1.0;
-    }
-
     // If the direction is going out of the cone, we invalidate this ray (to avoid casting useless rays)
-    samplePDF = dot(-rayDirection, lightData.forward) > cos(_RaytracingSpotAngle * 0.5f) ? samplePDF : -1.0;
+    samplePDF = dot(-rayDirection, lightData.forward) > cos(_RaytracingSpotAngle * 0.5f) ? samplePDF : -2.0;
+
+    // If the normal of this pixel cannot face the light, we invalidate it
+    samplePDF = dot(normalData.normalWS, rayDirection) > 0.0 ? samplePDF : -1.0;
+
+    // If this pixel is beyond the range of the light, we invalidate it
+    samplePDF = dist2 < (lightData.range * lightData.range) ? samplePDF : -2.0;
 
     // Output the direction to the target uav
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, samplePDF);
