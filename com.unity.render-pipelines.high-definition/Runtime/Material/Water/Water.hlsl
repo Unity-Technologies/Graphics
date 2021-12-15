@@ -20,7 +20,7 @@
 //-----------------------------------------------------------------------------
 TEXTURE2D_X_UINT4(_WaterGBufferTexture0);
 TEXTURE2D_X(_WaterGBufferTexture1);
-TEXTURE2D_X_UINT4(_WaterGBufferTexture2);
+TEXTURE2D_X_UINT2(_WaterGBufferTexture2);
 StructuredBuffer<WaterSurfaceProfile> _WaterSurfaceProfiles;
 
 //-----------------------------------------------------------------------------
@@ -114,7 +114,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
 
     bsdfData.foam = surfaceData.foam;
-    bsdfData.refractionColor = surfaceData.refractionColor;
+    bsdfData.caustics = surfaceData.caustics;
     bsdfData.tipThickness = surfaceData.tipThickness;
 
     return bsdfData;
@@ -155,7 +155,7 @@ void EncodeIntoGBuffer( BSDFData bsdfData, BuiltinData builtinData
                         , uint2 positionSS
                         , out uint4 outGBuffer0
                         , out float4 outGBuffer1
-                        , out uint4 outGBuffer2)
+                        , out uint2 outGBuffer2)
 {
     // Compress the diffuse color to 11 11 10
     uint diffuseCmp = PackToR11G11B10f(bsdfData.diffuseColor);
@@ -163,8 +163,10 @@ void EncodeIntoGBuffer( BSDFData bsdfData, BuiltinData builtinData
     uint2 splitedDiffuseColor = SplitUInt32ToUInt16(diffuseCmp);
     // Compress the foam to an uint16
     uint compressedFoam = f32tof16(bsdfData.foam);
+    // Compress the caustics to an uint16
+    uint compressedCaustics = f32tof16(bsdfData.caustics);
     // Output to the Gbuffer0
-    outGBuffer0 = uint4(splitedDiffuseColor.x, splitedDiffuseColor.y, 0, compressedFoam);
+    outGBuffer0 = uint4(splitedDiffuseColor.x, splitedDiffuseColor.y, compressedCaustics, compressedFoam);
 
     // Convert the pair of normals to surface gradients
     float3 normalSurfaceGradient = SurfaceGradientFromPerturbedNormal(float3(0, 1, 0), bsdfData.normalWS);
@@ -172,16 +174,12 @@ void EncodeIntoGBuffer( BSDFData bsdfData, BuiltinData builtinData
     // Output to the Gbuffer1
     outGBuffer1 = float4(normalSurfaceGradient.xz, lowFrequencyNormalSurfaceGradient.xz);
 
-    // Compress the refraction color to 11 11 10
-    uint refractionCmp = PackToR11G11B10f(bsdfData.refractionColor);
-    // Split the color into two uint16 values
-    uint2 splitedRefraction = SplitUInt32ToUInt16(refractionCmp);
     // Pack the additional data
-    uint packetAdditionalData = PackToGbuffer2(bsdfData.tipThickness, bsdfData.perceptualRoughness, _SurfaceIndex);
+    uint packedAdditionalData = PackToGbuffer2(bsdfData.tipThickness, bsdfData.perceptualRoughness, _SurfaceIndex);
     // Split the additional data into two uint16 values
-    uint2 splitedAdditional = SplitUInt32ToUInt16(packetAdditionalData);
+    uint2 splitedAdditional = SplitUInt32ToUInt16(packedAdditionalData);
     // Output to the Gbuffer2
-    outGBuffer2 = uint4(splitedRefraction.x, splitedRefraction.y, splitedAdditional.x, splitedAdditional.y);
+    outGBuffer2 = uint2(splitedAdditional.x, splitedAdditional.y);
 }
 
 uint MergeUInt16ToUInt32(uint2 input)
@@ -204,10 +202,11 @@ void DecodeFromGBuffer(uint2 positionSS, out BSDFData bsdfData, out BuiltinData 
     // Read the gbuffer values
     uint4 inGBuffer0 = LOAD_TEXTURE2D_X(_WaterGBufferTexture0, positionSS);
     float4 inGBuffer1 = LOAD_TEXTURE2D_X(_WaterGBufferTexture1, positionSS);
-    uint4 inGBuffer2 = LOAD_TEXTURE2D_X(_WaterGBufferTexture2, positionSS);
+    uint2 inGBuffer2 = LOAD_TEXTURE2D_X(_WaterGBufferTexture2, positionSS);
 
     // Output the diffuse color and foam intensity
     bsdfData.diffuseColor = UnpackFromR11G11B10f(MergeUInt16ToUInt32(inGBuffer0.xy));
+    bsdfData.caustics = f16tof32(inGBuffer0.z);
     bsdfData.foam = f16tof32(inGBuffer0.w);
 
     // Output the pair of normals
@@ -217,12 +216,8 @@ void DecodeFromGBuffer(uint2 positionSS, out BSDFData bsdfData, out BuiltinData 
     // Recompute the water fresnel0
     bsdfData.fresnel0 = WATER_FRESNEL_ZERO;
 
-    // Output the refractionColor and tip thickness
-    float3 refractionColor = UnpackFromR11G11B10f(MergeUInt16ToUInt32(inGBuffer2.xy));
-    bsdfData.refractionColor = refractionColor;
-
     // Decompress the additional data of the gbuffer3
-    UnpackTipThicknessAndSurfaceIndex(MergeUInt16ToUInt32(inGBuffer2.zw), bsdfData.tipThickness, bsdfData.perceptualRoughness, bsdfData.surfaceIndex);
+    UnpackTipThicknessAndSurfaceIndex(MergeUInt16ToUInt32(inGBuffer2.xy), bsdfData.tipThickness, bsdfData.perceptualRoughness, bsdfData.surfaceIndex);
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
 
     // Fill the built in data
@@ -237,7 +232,7 @@ void DecodeFromGBuffer(uint2 positionSS, out BSDFData bsdfData, out BuiltinData 
 void DecodeWaterFromNormalBuffer(uint2 positionSS, out NormalData normalData)
 {
     float4 inGBuffer1 = LOAD_TEXTURE2D_X(_WaterGBufferTexture1, positionSS);
-    uint4 inGBuffer2 = LOAD_TEXTURE2D_X(_WaterGBufferTexture2, positionSS);
+    uint2 inGBuffer2 = LOAD_TEXTURE2D_X(_WaterGBufferTexture2, positionSS);
 
     // TODO: change when supporting non horizontal water surfaces
     normalData.normalWS = SurfaceGradientResolveNormal(float3(0, 1, 0), float3(inGBuffer1.x, 0, inGBuffer1.y));
@@ -245,7 +240,7 @@ void DecodeWaterFromNormalBuffer(uint2 positionSS, out NormalData normalData)
     // Todo read the water normal
     float tipThickness;
     uint surfaceIndex;
-    UnpackTipThicknessAndSurfaceIndex(MergeUInt16ToUInt32(inGBuffer2.zw), tipThickness, normalData.perceptualRoughness, surfaceIndex);
+    UnpackTipThicknessAndSurfaceIndex(MergeUInt16ToUInt32(inGBuffer2.xy), tipThickness, normalData.perceptualRoughness, surfaceIndex);
 }
 
 //-----------------------------------------------------------------------------
@@ -263,6 +258,10 @@ struct PreLightData
     float tipScatteringHeight;
     float bodyScatteringHeight;
     float maxRefractionDistance;
+
+    // Refraction
+    float3 transparencyColor;
+    float outScatteringCoefficient;
 
     float NdotV;                     // Could be negative due to normal mapping, use ClampNdotV()
     float partLambdaV;
@@ -307,6 +306,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.tipScatteringHeight = profile.tipScatteringHeight;
     preLightData.bodyScatteringHeight = profile.bodyScatteringHeight;
     preLightData.maxRefractionDistance = profile.maxRefractionDistance;
+    preLightData.transparencyColor = profile.transparencyColor;
+    preLightData.outScatteringCoefficient = profile.outScatteringCoefficient;
 
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
@@ -683,10 +684,19 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     float2 distortedWaterNDC;
     float refractedWaterDistance;
     float3 absorptionTint;
-    ComputeWaterRefractionParams(posInput.positionWS, bsdfData.normalWS, bsdfData.lowFrequencyNormalWS, posInput.positionSS * _ScreenSize.zw, V, preLightData.maxRefractionDistance, refractedWaterPosRWS, distortedWaterNDC, refractedWaterDistance, absorptionTint);
+    ComputeWaterRefractionParams(posInput.positionWS, bsdfData.normalWS, bsdfData.lowFrequencyNormalWS,
+        posInput.positionSS * _ScreenSize.zw, V, 
+        preLightData.maxRefractionDistance, preLightData.transparencyColor, preLightData.outScatteringCoefficient,
+        refractedWaterPosRWS, distortedWaterNDC, refractedWaterDistance, absorptionTint);
 
-    // Combine the refraction color with the fresnel
-    lighting.specularTransmitted = LoadCameraColor(distortedWaterNDC * _ScreenSize.xy) * bsdfData.refractionColor * (1.f - preLightData.specularFGD) * GetInverseCurrentExposureMultiplier();
+    // Evaluate the color at the bed of the water surface (wrong absorption tint, but we accept it)
+    float3 waterBedColor = LoadCameraColor(distortedWaterNDC * _ScreenSize.xy) * absorptionTint;
+    
+    // Add the caustics's contribution
+    waterBedColor *= bsdfData.caustics;
+
+    // Apply the additional attenuation, the fresnel and the exposure
+    lighting.specularTransmitted = waterBedColor * absorptionTint * (1.f - preLightData.specularFGD) * (1 - saturate(bsdfData.foam)) * GetInverseCurrentExposureMultiplier();
 
     // Flag the hierarchy as complete
     hierarchyWeight = 0;

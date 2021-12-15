@@ -93,7 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 string lfNormalWS = GetSlotValue(kLowFrequencyNormalWSInputSlotId, generationMode);
                 string screenPos = GetSlotValue(kScreenPositionInputSlotId, generationMode);
                 string viewWS = GetSlotValue(kViewWSInputSlotId, generationMode);
-                sb.AppendLine("ComputeWaterRefractionParams({0}, {1}, {2}, {3}, {4}, _MaxRefractionDistance, refractedPos, distordedNDC, refractedDistance, absorptionTint);",
+                sb.AppendLine("ComputeWaterRefractionParams({0}, {1}, {2}, {3}, {4}, _MaxRefractionDistance, _TransparencyColor.xyz, _OutScatteringCoefficient, refractedPos, distordedNDC, refractedDistance, absorptionTint);",
                     positionWS,
                     normalWS,
                     lfNormalWS,

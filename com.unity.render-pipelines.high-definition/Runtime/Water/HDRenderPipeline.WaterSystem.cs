@@ -469,7 +469,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ScatteringColorTips = new Vector3(currentWater.scatteringColor.r, currentWater.scatteringColor.g, currentWater.scatteringColor.b);
             cb._DeltaTime = currentWater.simulation.deltaTime;
 
-            cb._DispersionAmount = currentWater.causticsDispersionAmount * 0.3f;
             cb._MaxRefractionDistance = Mathf.Min(currentWater.maxAbsorptionDistance, currentWater.maxRefractionDistance);
 
             cb._OutScatteringCoefficient = -Mathf.Log(0.02f) / currentWater.maxAbsorptionDistance;
@@ -720,6 +719,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.waterRenderingCB._CausticsIntensity = currentWater.causticsIntensity;
             parameters.waterRenderingCB._CausticsTiling = currentWater.causticsTiling;
             parameters.waterRenderingCB._CausticsPlaneOffset = currentWater.causticsPlaneOffset;
+            parameters.waterRenderingCB._CausticsPlaneBlendDistance = currentWater.causticsPlaneBlendDistance;
             parameters.waterRenderingCB._EarthRadius = currentWater.infinite ? currentWater.earthRadius : 6371000.0f;
             parameters.waterRenderingCB._InfiniteSurface = currentWater.infinite ? 1 : 0;
 
@@ -858,6 +858,10 @@ namespace UnityEngine.Rendering.HighDefinition
             profile.waterAmbientProbe = EvaluateWaterAmbientProbe(hdCamera, settings.ambientProbeDimmer.value);
             profile.maxRefractionDistance = Mathf.Min(waterSurface.maxAbsorptionDistance, waterSurface.maxRefractionDistance);
             profile.lightLayers = (uint)waterSurface.lightLayerMask;
+            profile.transparencyColor = new Vector3(Mathf.Min(waterSurface.refractionColor.r, 0.99f),
+                                                    Mathf.Min(waterSurface.refractionColor.g, 0.99f),
+                                                    Mathf.Min(waterSurface.refractionColor.b, 0.99f));
+            profile.outScatteringCoefficient = -Mathf.Log(0.02f) / waterSurface.maxAbsorptionDistance;;
             m_WaterSurfaceProfileArray[waterSurfaceIndex] = profile;
         }
 
@@ -1023,7 +1027,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle WaterGbuffer1 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Water GBuffer 1" });
             TextureHandle WaterGbuffer2 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { colorFormat = GraphicsFormat.R16G16B16A16_UInt, enableRandomWrite = true, name = "Water GBuffer 2" });
+            { colorFormat = GraphicsFormat.R16G16_UInt, enableRandomWrite = true, name = "Water GBuffer 2" });
 
             for (int surfaceIdx = 0; surfaceIdx < numWaterSurfaces; ++surfaceIdx)
             {

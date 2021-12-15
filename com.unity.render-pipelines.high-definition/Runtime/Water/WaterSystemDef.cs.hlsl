@@ -13,7 +13,9 @@ struct WaterSurfaceProfile
     float bodyScatteringHeight;
     float maxRefractionDistance;
     uint lightLayers;
-    float _padding2;
+    float padding0;
+    float3 transparencyColor;
+    float outScatteringCoefficient;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWater
@@ -73,10 +75,10 @@ CBUFFER_START(ShaderVariablesWaterRendering)
     float2 _CausticsOffset;
     float _CausticsTiling;
     float _CausticsPlaneOffset;
+    float _CausticsPlaneBlendDistance;
     int _WaterCausticsType;
     uint _WaterDecalLayer;
     int _InfiniteSurface;
-    float _PaddingWR0;
 CBUFFER_END
 
 

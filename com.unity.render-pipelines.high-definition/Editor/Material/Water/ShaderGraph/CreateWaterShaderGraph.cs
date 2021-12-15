@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 WaterSubTarget.WaterBlocks.LowFrequencyNormalWS,
                 BlockFields.SurfaceDescription.Smoothness,
                 WaterSubTarget.WaterBlocks.Foam,
-                WaterSubTarget.WaterBlocks.RefractionColor,
+                WaterSubTarget.WaterBlocks.Caustics,
                 WaterSubTarget.WaterBlocks.TipThickness,
                 BlockFields.SurfaceDescription.Alpha,
 

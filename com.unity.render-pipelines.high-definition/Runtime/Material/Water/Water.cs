@@ -48,9 +48,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Thickness of the waves
             public float tipThickness;
 
-            // Refraction color
-            [SurfaceDataAttributes("Refraction Color")]
-            public Vector3 refractionColor;
+            // Underwater caustics
+            [SurfaceDataAttributes("Caustics")]
+            public float caustics;
         }
 
         //-----------------------------------------------------------------------------
@@ -81,8 +81,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Linear smoothness on the surface of the water
             public float roughness;
 
-            // Refraction color
-            public Vector3 refractionColor;
+            // Underwater caustics
+            public float caustics;
 
             // Foam Value
             public float foam;

@@ -21,7 +21,7 @@
 #define DEBUGVIEW_WATER_SURFACEDATA_SMOOTHNESS (1605)
 #define DEBUGVIEW_WATER_SURFACEDATA_FOAM (1606)
 #define DEBUGVIEW_WATER_SURFACEDATA_TIP_THICKNESS (1607)
-#define DEBUGVIEW_WATER_SURFACEDATA_REFRACTION_COLOR (1608)
+#define DEBUGVIEW_WATER_SURFACEDATA_CAUSTICS (1608)
 
 //
 // UnityEngine.Rendering.HighDefinition.Water+BSDFData:  static fields
@@ -34,7 +34,7 @@
 #define DEBUGVIEW_WATER_BSDFDATA_LOW_FREQUENCY_NORMAL_VIEW_SPACE (1655)
 #define DEBUGVIEW_WATER_BSDFDATA_PERCEPTUAL_ROUGHNESS (1656)
 #define DEBUGVIEW_WATER_BSDFDATA_ROUGHNESS (1657)
-#define DEBUGVIEW_WATER_BSDFDATA_REFRACTION_COLOR (1658)
+#define DEBUGVIEW_WATER_BSDFDATA_CAUSTICS (1658)
 #define DEBUGVIEW_WATER_BSDFDATA_FOAM (1659)
 #define DEBUGVIEW_WATER_BSDFDATA_TIP_THICKNESS (1660)
 #define DEBUGVIEW_WATER_BSDFDATA_SURFACE_INDEX (1661)
@@ -49,7 +49,7 @@ struct SurfaceData
     float perceptualSmoothness;
     float foam;
     float tipThickness;
-    float3 refractionColor;
+    float caustics;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.Water+BSDFData
@@ -62,7 +62,7 @@ struct BSDFData
     float3 lowFrequencyNormalWS;
     float perceptualRoughness;
     float roughness;
-    float3 refractionColor;
+    float caustics;
     float foam;
     float tipThickness;
     uint surfaceIndex;
@@ -100,8 +100,8 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_WATER_SURFACEDATA_TIP_THICKNESS:
             result = surfacedata.tipThickness.xxx;
             break;
-        case DEBUGVIEW_WATER_SURFACEDATA_REFRACTION_COLOR:
-            result = surfacedata.refractionColor;
+        case DEBUGVIEW_WATER_SURFACEDATA_CAUSTICS:
+            result = surfacedata.caustics.xxx;
             break;
     }
 }
@@ -138,8 +138,8 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_WATER_BSDFDATA_ROUGHNESS:
             result = bsdfdata.roughness.xxx;
             break;
-        case DEBUGVIEW_WATER_BSDFDATA_REFRACTION_COLOR:
-            result = bsdfdata.refractionColor;
+        case DEBUGVIEW_WATER_BSDFDATA_CAUSTICS:
+            result = bsdfdata.caustics.xxx;
             break;
         case DEBUGVIEW_WATER_BSDFDATA_FOAM:
             result = bsdfdata.foam.xxx;

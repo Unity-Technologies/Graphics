@@ -146,10 +146,9 @@ float EvaluateJacobian(float3 p0, float3 p1, float3 p2, float choppiness, float 
     return (Jxx * Jyy - Jxy * Jyx);
 }
 
-float EvaluateFoam(float jacobian, uint bandIdx)
+float EvaluateFoam(float jacobian)
 {
-    jacobian = -min(jacobian, 0);
-    return saturate(jacobian);
+    return saturate(-jacobian);
 }
 
 #if !defined(WATER_SIMULATION)
@@ -502,7 +501,7 @@ void EvaluateWaterAdditionalData(float3 positionAWS, out WaterAdditionalData wat
     waterAdditionalData.lowFrequencySurfaceGradient = lowFrequencySurfaceGradient;
 
     // Evaluate the foam from the jacobian
-    waterAdditionalData.simulationFoam = saturate(-min(jacobian, 0)) * _SimulationFoamIntensity;
+    waterAdditionalData.simulationFoam = EvaluateFoam(jacobian) * _SimulationFoamIntensity;
 }
 
 float3 EvaluateWaterSurfaceGradient_VS(float3 positionAWS, int LOD, int bandIndex)
@@ -643,57 +642,62 @@ float VoronoiNoise(float2 coordinate)
     return minDistToCell * minDistToCell;
 }
 
-float2 EvaluateCausticsUV(float3 causticPosAWS)
+float3 EvaluateCausticsUV(float3 causticPosAWS)
 {
-    return (causticPosAWS.xz) * _CausticsTiling + _CausticsOffset.xy;
+    return (causticPosAWS) * _CausticsTiling + float3(_CausticsOffset.x, 0.0, _CausticsOffset.y);
 }
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
-float3 EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float2 distortedWaterNDC)
+float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float2 distortedWaterNDC)
 {
+    // Convert the position to absolute world space
+    float3 causticPosAWS = GetAbsolutePositionWS(refractedWaterPosRWS);
+
+    // Evaluate the caustics weight
+    float causticDepth = _PatchOffset.y - causticPosAWS.y - _CausticsPlaneOffset;
+    float causticWeight = saturate(causticDepth / _CausticsPlaneBlendDistance);
+
+    // Evaluate the normal of the surface (using partial derivatives of the absolute world pos is not possible as it is not stable enough)
+    NormalData normalData;
+    float4 normalBuffer = LOAD_TEXTURE2D_X_LOD(_NormalBufferTexture, distortedWaterNDC * _ScreenSize.xy, 0);
+    DecodeFromNormalBuffer(normalBuffer, normalData);
+    float3 triplanarW = ComputeTriplanarWeights(normalData.normalWS);
+
+    // Will hold the results of the caustics evaluation
+    float3 causticsValues = 0.0;
+
     // TODO: Is this worth a multicompile?
     if (_WaterCausticsType == 0)
     {
-        // Evaluate the normal of the surface (using partial derivatives of the absolute world pos)
-        NormalData normalData;
-        float4 normalBuffer = LOAD_TEXTURE2D_X_LOD(_NormalBufferTexture, distortedWaterNDC * _ScreenSize.xy, 0);
-        DecodeFromNormalBuffer(normalBuffer, normalData);
-
-        // Convert the position to absolute world space
-        float3 causticPosAWS = GetAbsolutePositionWS(refractedWaterPosRWS);
-
-        // Evaluate the triplanar coodinates and weights
+        // Evaluate the triplanar coodinates
         float3 sampleCoord = causticPosAWS / (_CausticsRegionSize * 0.5) + 0.5;
         float2 uv0, uv1, uv2;
         GetTriplanarCoordinate(sampleCoord, uv0, uv1, uv2);
-        float3 weights = ComputeTriplanarWeights(normalData.normalWS);
-        float causticWeight = _PatchOffset.y - causticPosAWS.y > _CausticsPlaneOffset ? saturate(_PatchOffset.y - causticPosAWS.y - _CausticsPlaneOffset) : 0;
 
         // Evaluate the sharpness of the caustics based on the depth
         float sharpness = (1.0 - causticWeight) * 2;
 
-        // sample and blend
-        float causticX = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv0, sharpness).x;
-        float causticY = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv1, sharpness).x;
-        float causticZ = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv2, sharpness).x;
-        float causticsIntensity = lerp(0, causticX * weights.y + causticY * weights.z + causticZ * weights.x, causticWeight * causticWeight);
-
-        // Apply a profile
-        return lerp(1.0, 1.8, causticsIntensity * _CausticsIntensity);
+        // sample the caystuc textyre
+        causticsValues.x = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv0, sharpness).x;
+        causticsValues.y = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv1, sharpness).x;
+        causticsValues.z = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv2, sharpness).x;
     }
     else
     {
-        float3 causticPosAWS = GetAbsolutePositionWS(refractedWaterPosRWS);
-        float normalizedDepth = saturate((_PatchOffset.y - causticPosAWS.y - _CausticsPlaneOffset));
-        float2 causticsUV = EvaluateCausticsUV(causticPosAWS);
-        float colorShiftItensity = normalizedDepth * _DispersionAmount;
-        float voronoiR = VoronoiNoise(causticsUV + float2(PositivePow(colorShiftItensity, 0.9) * _CausticsTiling, 0.0));
-        float voronoiG = VoronoiNoise(causticsUV + float2(PositivePow(colorShiftItensity, 1.6) * _CausticsTiling, 0.0));
-        float voronoiB = VoronoiNoise(causticsUV + float2(PositivePow(colorShiftItensity, 2.0) * _CausticsTiling, 0.0));
-        float3 caustics = float3(voronoiR, voronoiG, voronoiB) * normalizedDepth;
-        return lerp(1.0, 1.8, caustics * _CausticsIntensity);
+        // Evaluate the triplanar coodinates
+        float3 causticsUV = EvaluateCausticsUV(causticPosAWS);
+        float2 uv0, uv1, uv2;
+        GetTriplanarCoordinate(causticsUV, uv0, uv1, uv2);
+        
+        // Evaluate the caustic s
+        causticsValues.x = VoronoiNoise(uv0);
+        causticsValues.y = VoronoiNoise(uv1);
+        causticsValues.z = VoronoiNoise(uv2);
     }
+
+    // Evaluate the triplanar weights and blend the samples togheter
+    return 1.0 + lerp(0, causticsValues.x * triplanarW.y + causticsValues.y * triplanarW.z + causticsValues.z * triplanarW.x, causticWeight) * _CausticsIntensity;
 }
 
 float EdgeBlendingFactor(float2 screenPosition, float distanceToWaterSurface)
@@ -714,7 +718,9 @@ float EdgeBlendingFactor(float2 screenPosition, float distanceToWaterSurface)
     return lerp(saturate((distanceToEdge - 0.8) / (0.2)), saturate(distanceToEdge + 0.25), distAttenuation);
 }
 
-void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3 lowFrequencyNormals, float2 screenUV, float3 viewWS, float maxRefractionDistance,
+void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3 lowFrequencyNormals,
+    float2 screenUV, float3 viewWS,
+    float maxRefractionDistance, float3 transparencyColor, float outScatteringCoeff,
     out float3 refractedWaterPosRWS, out float2 distortedWaterNDC, out float refractedWaterDistance, out float3 absorptionTint)
 {
     // Compute the position of the surface behind the water surface
@@ -748,7 +754,7 @@ void ComputeWaterRefractionParams(float3 waterPosRWS, float3 waterNormal, float3
     }
 
     // Evaluate the absorption tint
-    absorptionTint = exp(-refractedWaterDistance * _OutScatteringCoefficient * (1.f - _TransparencyColor.xyz));
+    absorptionTint = exp(-refractedWaterDistance * outScatteringCoeff * (1.f - transparencyColor));
 }
 
 float EvaluateTipThickness(float3 viewWS, float3 lowFrequencyNormals, float lowFrequencyHeight)
@@ -770,7 +776,7 @@ float3 EvaluateScatteringColor(float sssMask, float lowFrequencyHeight, float ho
     float heightBasedScattering = EvaluateHeightBasedScattering(lowFrequencyHeight);
     float displacementScattering = EvaluateDisplacementScattering(horizontalDisplacement);
     float3 scatteringCoefficients = (displacementScattering + heightBasedScattering) * (1.f - _ScatteringColorTips.rgb);
-    float3 scatteringTint = _ScatteringColorTips * exp(-scatteringCoefficients);
+    float3 scatteringTint = _ScatteringColorTips.xyz * exp(-scatteringCoefficients);
     float lambertCompensation = lerp(_ScatteringLambertLighting.z, _ScatteringLambertLighting.w, sssMask);
     return scatteringTint * (1.f - absorptionTint) * lambertCompensation * _ScatteringIntensity;
 }

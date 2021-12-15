@@ -214,6 +214,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public float causticsPlaneOffset = 0.0f;
 
         /// <summary>
+        /// Sets the blending distance for the water caustics.
+        /// </summary>
+        [Tooltip("Sets the blending distance for the water caustics.")]
+        public float causticsPlaneBlendDistance = 0.0f;
+
+        /// <summary>
         /// Defines what algorithm is used for caustics rendering.
         /// </summary>
         public enum WaterCausticsType
@@ -265,12 +271,6 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Water Caustics Procedural
-        /// <summary>
-        /// Controls the amount of dispersion of the caustics. A higher value induces more shift in the lower frequencies (red tinted) of the visible spectrum.
-        /// </summary>
-        [Tooltip("Controls the amount of dispersion of the caustics. A higher value induces more shift in the lower frequencies (red tinted) of the visible spectrum.")]
-        public float causticsDispersionAmount = 0.5f;
-
         /// <summary>
         /// Sets the tiling factor of the under-water caustics.
         /// </summary>

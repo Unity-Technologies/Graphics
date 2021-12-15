@@ -14,7 +14,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public float bodyScatteringHeight;
         public float maxRefractionDistance;
         public uint lightLayers;
-        public float _padding2;
+        public float padding0;
+
+        // Refraction data Data
+        public Vector3 transparencyColor;
+        public float outScatteringCoefficient;
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
@@ -130,12 +134,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // Vertical shift on when the caustics start
         public float _CausticsPlaneOffset;
 
+        // Blend distance
+        public float _CausticsPlaneBlendDistance;
         // Type of caustics that are rendered
         public int _WaterCausticsType;
         // Which decal layers should affect this surface
         public uint _WaterDecalLayer;
         // Is this surface infinite or finite
         public int _InfiniteSurface;
-        public float _PaddingWR0;
+
     }
 }

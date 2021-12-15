@@ -27,7 +27,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.Foam:                       surfaceData.foam =                      surfaceDescription.Foam;
 
     $SurfaceDescription.TipThickness:               surfaceData.tipThickness =              surfaceDescription.TipThickness;
-    $SurfaceDescription.RefractionColor:            surfaceData.refractionColor =           surfaceDescription.RefractionColor;
+    $SurfaceDescription.Caustics:                   surfaceData.caustics =                  surfaceDescription.Caustics;
 
     bentNormalWS = float3(0, 1, 0);
 
@@ -43,5 +43,4 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
 
     // Kill the scattering and the refraction based on where foam is perceived
     surfaceData.baseColor *= (1 - saturate(surfaceData.foam));
-    surfaceData.refractionColor *= (1 - saturate(surfaceData.foam));
 }

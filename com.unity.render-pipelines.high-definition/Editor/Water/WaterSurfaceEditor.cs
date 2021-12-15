@@ -47,10 +47,10 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_CausticsVirtualPlaneDistance;
 
         // Procedural caustics
-        SerializedProperty m_CausticsDispersionAmount;
         SerializedProperty m_CausticsTiling;
         SerializedProperty m_CausticsSpeed;
         SerializedProperty m_CausticsPlaneOffset;
+        SerializedProperty m_CausticsPlaneBlendDistance;
 
         // Water masking
         SerializedProperty m_WaterMask;
@@ -121,10 +121,10 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CausticsVirtualPlaneDistance = o.Find(x => x.virtualPlaneDistance);
 
             // Procedural caustics
-            m_CausticsDispersionAmount = o.Find(x => x.causticsDispersionAmount);
             m_CausticsTiling = o.Find(x => x.causticsTiling);
             m_CausticsSpeed = o.Find(x => x.causticsSpeed);
             m_CausticsPlaneOffset = o.Find(x => x.causticsPlaneOffset);
+            m_CausticsPlaneBlendDistance = o.Find(x => x.causticsPlaneBlendDistance);
 
             // Foam
             m_SimulationFoamSmoothness = o.Find(x => x.simulationFoamSmoothness);
@@ -288,6 +288,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     EditorGUILayout.PropertyField(m_CausticsPlaneOffset);
                     m_CausticsPlaneOffset.floatValue = Mathf.Max(m_CausticsPlaneOffset.floatValue, 0.0f);
+                    
+                    EditorGUILayout.PropertyField(m_CausticsPlaneBlendDistance);
+                    m_CausticsPlaneBlendDistance.floatValue = Mathf.Max(m_CausticsPlaneBlendDistance.floatValue, 0.0f);
 
                     EditorGUILayout.PropertyField(m_CausticsAlgorithm);
 
@@ -306,7 +309,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         using (new IndentLevelScope())
                         {
-                            m_CausticsDispersionAmount.floatValue = EditorGUILayout.Slider(k_CausticsDispersionAmount, m_CausticsDispersionAmount.floatValue, 0.0f, 1.0f);
                             EditorGUILayout.PropertyField(m_CausticsTiling);
                             m_CausticsTiling.floatValue = Mathf.Max(m_CausticsTiling.floatValue, 0.001f);
                             EditorGUILayout.PropertyField(m_CausticsSpeed);

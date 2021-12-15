@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static BlockFieldDescriptor LowFrequencyNormalWS = new BlockFieldDescriptor(kMaterial, "LowFrequencyNormalWS", "Low Frequency Normal (World Space)", "SURFACEDESCRIPTION_LOWFREQUENCYNORMALWS", new Vector3Control(Vector3.zero), ShaderStage.Fragment);
             public static BlockFieldDescriptor Foam = new BlockFieldDescriptor(kMaterial, "Foam", "Foam", "SURFACEDESCRIPTION_FOAM", new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor TipThickness = new BlockFieldDescriptor(kMaterial, "TipThickness", "Tip Thickness", "SURFACEDESCRIPTIONTIP_THICKNESS", new FloatControl(0.0f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor RefractionColor = new BlockFieldDescriptor(kMaterial, "RefractionColor", "Refraction Color", "SURFACEDESCRIPTION_REFRACTIONCOLOR", new ColorControl(new Color(0.0f, 0.0f, 0.0f), false), ShaderStage.Fragment);
+            public static BlockFieldDescriptor Caustics = new BlockFieldDescriptor(kMaterial, "Caustics", "Caustics", "SURFACEDESCRIPTION_CAUSTICS", new FloatControl(0.0f), ShaderStage.Fragment);
         }
 
         #region Keywords
@@ -286,7 +286,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
             context.AddBlock(WaterBlocks.Foam);
             context.AddBlock(WaterBlocks.TipThickness);
-            context.AddBlock(WaterBlocks.RefractionColor);
+            context.AddBlock(WaterBlocks.Caustics);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
         }
 
