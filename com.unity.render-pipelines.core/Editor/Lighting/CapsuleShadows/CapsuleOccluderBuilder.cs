@@ -11,6 +11,8 @@ namespace UnityEngine.Rendering
         public float minimumLength = 0.15f;
         public float radiusScale = 0.8f;
 
+        private const int MINIMUM_VERTICES_FOR_PCA = 16;
+
         [MenuItem("GameObject/Rendering/Capsule Occluders...")]
         static void CreateWizard()
         {
@@ -22,6 +24,17 @@ namespace UnityEngine.Rendering
             isValid = (skinnedMesh != null);
         }
 
+        private struct BoneData
+        {
+            public Vector3 mean;
+            public uint count;
+            public Bounds boneBounds;
+            public Vector3 diag; // covariance xx, yy, zz
+            public Vector3 cross; // covariance yz, zx, xy
+            public Quaternion rotationInverse;
+            public Bounds capsuleBounds; // in local space of capsule
+        };
+
         void OnWizardCreate()
         {
             Transform[] bones = skinnedMesh.bones;
@@ -32,80 +45,121 @@ namespace UnityEngine.Rendering
             if (boneCount != bindposes.Length)
                 throw new Exception("Bone count mismatch!");
 
-            // gather up local space bounds for each bone, using vertices with >50% weight
-            Bounds[] bounds = new Bounds[boneCount];
-            bool[] boundsValid = new bool[boneCount];
-            var vertices = sharedMesh.vertices;
+            Vector3[] vertices = sharedMesh.vertices;
             var bonesPerVertex = sharedMesh.GetBonesPerVertex();
             var boneWeights = sharedMesh.GetAllBoneWeights();
-            int boneWeightIndex = 0;
-            for (int vertIndex = 0; vertIndex < sharedMesh.vertexCount; ++vertIndex)
-            {
-                Vector3 bindPosition = vertices[vertIndex];
-                int vertBoneCount = bonesPerVertex[vertIndex];
-                for (int vertBoneIndex = 0; vertBoneIndex < vertBoneCount; ++vertBoneIndex)
+
+            Action<Action<int, Vector3>> vertexVisitor = action => {
+                int boneWeightIndex = 0;
+                for (int vertIndex = 0; vertIndex < sharedMesh.vertexCount; ++vertIndex)
                 {
-                    BoneWeight1 bw = boneWeights[boneWeightIndex];
-                    if (bw.weight > 0.5f)
+                    Vector3 bindPosition = vertices[vertIndex];
+                    int vertBoneCount = bonesPerVertex[vertIndex];
+                    for (int vertBoneIndex = 0; vertBoneIndex < vertBoneCount; ++vertBoneIndex)
                     {
-                        Vector3 localPosition = bindposes[bw.boneIndex].MultiplyPoint3x4(bindPosition);
-                        if (boundsValid[bw.boneIndex])
-                        {
-                            bounds[bw.boneIndex].Encapsulate(localPosition);
-                        }
-                        else
-                        {
-                            boundsValid[bw.boneIndex] = true;
-                            bounds[bw.boneIndex] = new Bounds(localPosition, Vector3.zero);
-                        }
+                        BoneWeight1 bw = boneWeights[boneWeightIndex];
+                        if (bw.weight > 0.5f)
+                            action(bw.boneIndex, bindposes[bw.boneIndex].MultiplyPoint3x4(bindPosition));
+                        ++boneWeightIndex;
                     }
-                    ++boneWeightIndex;
                 }
+            };
+
+            // compute the mean vertex position per bone
+            BoneData[] boneTemp = new BoneData[boneCount];
+            vertexVisitor((boneIndex, localPosition) => {
+                ref BoneData temp = ref boneTemp[boneIndex];
+                temp.mean += localPosition;
+                temp.count += 1;
+            });
+            foreach (ref BoneData temp in boneTemp.AsSpan())
+            {
+                temp.mean /= temp.count;
+                temp.boneBounds = new Bounds(temp.mean, Vector3.zero);
             }
+
+            // compute covariance
+            vertexVisitor((boneIndex, localPosition) => {
+                ref BoneData temp = ref boneTemp[boneIndex];
+                temp.boneBounds.Encapsulate(localPosition);
+                Vector3 offset = localPosition - temp.mean;
+                temp.diag += new Vector3(offset.x*offset.x, offset.y*offset.y, offset.z*offset.z);
+                temp.cross += new Vector3(offset.y*offset.z, offset.z*offset.x, offset.x*offset.y);
+            });
+            foreach (ref BoneData temp in boneTemp.AsSpan())
+            {
+                temp.diag /= temp.count;
+                temp.cross /= temp.count;
+            }
+
+            // compute rotation from the principal axis
+            foreach (ref BoneData temp in boneTemp.AsSpan())
+            {
+                if (temp.count >= MINIMUM_VERTICES_FOR_PCA)
+                {
+                    Vector3 axis = new Vector3(1.0f, 1.0f, 1.0f)/Mathf.Sqrt(3.0f);
+                    for (int i = 0; i < 100; ++i)
+                    {
+                        axis = new Vector3(
+                            axis.x*temp.diag.x + axis.y*temp.cross.z + axis.z*temp.cross.y,
+                            axis.x*temp.cross.z + axis.y*temp.diag.y + axis.z*temp.cross.x,
+                            axis.x*temp.cross.y + axis.y*temp.cross.x + axis.z*temp.diag.z);
+                        axis /= axis.magnitude;
+                    }
+                    temp.rotationInverse = Quaternion.FromToRotation(axis, Vector3.forward);
+                }
+                else
+                {
+                    temp.rotationInverse =  Quaternion.identity;
+                }
+                temp.capsuleBounds = new Bounds(temp.rotationInverse * temp.mean, Vector3.zero);
+            }
+
+            // compute bounds in this rotated space
+            vertexVisitor((boneIndex, localPosition) => {
+                ref BoneData temp = ref boneTemp[boneIndex];
+                temp.capsuleBounds.Encapsulate(temp.rotationInverse * localPosition);
+            });
 
             // convert to capsules at each bone
             for (int boneIndex = 0; boneIndex < boneCount; ++boneIndex)
             {
-                if (!boundsValid[boneIndex])
-                    continue;
-
                 CapsuleOccluder capsule = bones[boneIndex].GetComponent<CapsuleOccluder>();
                 if (capsule != null)
                 {
                     Undo.DestroyObjectImmediate(capsule);
                 }
 
-                Vector3 size = bounds[boneIndex].size;
+                ref readonly BoneData temp = ref boneTemp[boneIndex];
+                Quaternion tempRotation = Quaternion.Inverse(temp.rotationInverse);
+                Vector3 center = tempRotation * temp.capsuleBounds.center;
+                Vector3 size = temp.capsuleBounds.size;
 
-                float height = size.x;
-                Quaternion rotation = Quaternion.FromToRotation(Vector3.right, Vector3.forward);
+                float height = size.z;
+                float diameter = Mathf.Max(size.x, size.y);
+                Quaternion rotation = tempRotation;
                 if (size.y > height)
                 {
                     height = size.y;
-                    rotation = Quaternion.FromToRotation(Vector3.up, Vector3.forward);
+                    diameter = Mathf.Max(size.z, size.y);
+                    rotation = tempRotation * Quaternion.FromToRotation(Vector3.up, Vector3.forward);
                 }
-                if (size.z > height)
+                if (size.x > height)
                 {
-                    height = size.z;
-                    rotation = Quaternion.identity;
+                    height = size.x;
+                    diameter = Mathf.Max(size.y, size.z);
+                    rotation = tempRotation * Quaternion.FromToRotation(Vector3.right, Vector3.forward);
                 }
-                if (height < minimumLength)
+
+                diameter *= radiusScale;
+                if (height < minimumLength && diameter < minimumLength)
                     continue;
 
-                float radius = 0.0f;
-                for (int i = 0; i < 3; ++i)
-                {
-                    float d = size[i];
-                    if (d < height) { 
-                        radius = Mathf.Max(radius, radiusScale * 0.5f * d);
-                    }
-                }
-
                 capsule = Undo.AddComponent<CapsuleOccluder>(bones[boneIndex].gameObject);
-                capsule.center = bounds[boneIndex].center;
+                capsule.center = center;
                 capsule.rotation = rotation;
                 capsule.height = height;
-                capsule.radius = radius;
+                capsule.radius = 0.5f * diameter;
             }
         }
     }
