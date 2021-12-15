@@ -60,6 +60,8 @@ public unsafe class BRGSetup : MonoBehaviour
             return new JobHandle();
         }
 
+        var uploadBuffer = m_bufferPool.StartBufferWrite();
+
         BatchCullingOutputDrawCommands drawCommands = new BatchCullingOutputDrawCommands();
 
         drawCommands.drawRangeCount = 1;
@@ -68,6 +70,7 @@ public unsafe class BRGSetup : MonoBehaviour
         {
             drawCommandsBegin = 0,
             drawCommandsCount = 1,
+            visibleInstancesBufferHandle = uploadBuffer.bufferHandle,
             filterSettings = new BatchFilterSettings
             {
                 renderingLayerMask = 1,
@@ -81,7 +84,6 @@ public unsafe class BRGSetup : MonoBehaviour
         }; 
 
         drawCommands.visibleInstances = Malloc<int>(m_itemCount);
-        var uploadBuffer = m_bufferPool.StartBufferWrite();
 
         int n = 0;
         int radius = (itemGridSize / 2) * (itemGridSize / 2);       // (grid/2)^2
