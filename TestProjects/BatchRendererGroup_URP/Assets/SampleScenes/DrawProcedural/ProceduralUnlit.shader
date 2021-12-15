@@ -27,6 +27,12 @@ Shader "Hackweek/ProceduralUnlit"
         [HideInInspector] _SampleGI("SampleGI", float) = 0.0 // needed from bakedlit
     }
 
+    HLSLINCLUDE
+
+    #pragma enable_d3d11_debug_symbols
+
+    ENDHLSL
+
     SubShader
     {
         Tags {"RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="4.5"}
@@ -41,7 +47,6 @@ Shader "Hackweek/ProceduralUnlit"
             Name "Unlit"
 
             HLSLPROGRAM
-            #pragma enable_d3d11_debug_symbols
             #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
@@ -64,33 +69,31 @@ Shader "Hackweek/ProceduralUnlit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitForwardPass.hlsl"
 
+#ifdef DOTS_INSTANCING_ON
+
             ByteAddressBuffer GeometryPositionBuffer;
             ByteAddressBuffer GeometryUV0Buffer;
 
-            Varyings HackweekVertexProcedural(Attributes input, uint vertexID : SV_VertexID)
+            Varyings HackweekVertexProcedural(uint vertexID : SV_VertexID)
             {
-#ifdef DOTS_INSTANCING_ON
                 Varyings output = (Varyings)0;
 
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_TRANSFER_INSTANCE_ID(input, output);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-                int instanceID = unity_InstanceID;
-
-                float3 position = asfloat(GeometryPositionBuffer.Load3(3 * 4 * vertexID));
+                float3 positionOS = asfloat(GeometryPositionBuffer.Load3(3 * 4 * vertexID));
                 float2 uv0 = asfloat(GeometryUV0Buffer.Load2(2 * 4 * vertexID));
 
-                VertexPositionInputs vertexInput = GetVertexPositionInputs(position);
+                VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS);
 
                 output.positionCS = vertexInput.positionCS;
                 output.uv = TRANSFORM_TEX(uv0, _BaseMap);
 
                 return output;
-#else
-                return UnlitPassVertex(input);
-#endif
             }
+#else
+            Varyings HackweekVertexProcedural(Attributes input)
+            {
+                return UnlitPassVertex(input);
+            }
+#endif
 
             ENDHLSL
         }
