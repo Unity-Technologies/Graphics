@@ -566,7 +566,7 @@ void EvaluateFoamData(float3 surfaceGradient, float3 lowFrequencySurfaceGradient
     float foamTex = _FoamTexture.Sample(s_linear_repeat_sampler,foamUV);
 
     // Final foam value
-    foamData.foamValue = simulationFoam * foamMask.x * foamTex + customFoam;
+    foamData.foamValue = simulationFoam * foamMask.x * foamTex * _WindFoamAttenuation + customFoam;
 
     // Combine it with the regular surface gradient
     foamData.surfaceGradient = lerp(surfaceGradient, lowFrequencySurfaceGradient, foamData.foamValue);

@@ -129,6 +129,8 @@ namespace UnityEngine.Rendering.HighDefinition
             AllTransparentWithLowRes,
             /// <summary>Transparent GameObjects that use after post process render pass.</summary>
             AfterPostProcessTransparent,
+            /// <summary>All GameObjects that use the overlay render pass.</summary>
+            Overlay,
             /// <summary>All GameObjects</summary>
             All,
         }
