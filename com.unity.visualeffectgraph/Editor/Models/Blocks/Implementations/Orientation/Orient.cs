@@ -169,7 +169,7 @@ axisZ =  -viewRot[2].xyz;";
                         else
                             sourceCode += @"
 
-axisZ = GetViewOrRayDirection();
+axisZ = -GetViewOrRayDirection();
 axisX = VFXSafeNormalizedCross(viewRot[1].xyz, axisZ, float3(1,0,0));
 axisY = cross(axisZ,axisX) ;";
                         return sourceCode + @"

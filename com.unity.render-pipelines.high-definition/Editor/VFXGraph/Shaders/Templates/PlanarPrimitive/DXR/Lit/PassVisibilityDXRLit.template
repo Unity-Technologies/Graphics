@@ -1,4 +1,4 @@
-﻿
+
         Pass
         {
             Name "VisibilityDXR"
@@ -8,25 +8,29 @@
             #pragma target 4.5
             #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
-
-            // This pass is used by the sphere primitive
-            #define RAY_TRACING_SPHERE_PRIMITIVE
-
-            #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
-            #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
+            #pragma multi_compile _ MULTI_BOUNCE_INDIRECT
 
             // Global includes
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 
+            // Define the shader pass
+            #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
+            
             // Need to override the macros for ray tracing
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
+            // Shader variables
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+
             // VFX includes
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXCommon.hlsl"
-            #include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl"
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Common/RayTracingInputStructure.template")}
+            ${VFXPerPassInclude}
             
+            // Needs to be included after the VFX includes
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/IntersectionFunctions.template")}
+
             // Material includes
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
@@ -48,24 +52,7 @@
                 rayIntersection.velocity = 0;
             }
 
-            [shader("intersection")]
-            void IntersectionShader()
-            {
-                UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
-                
-                VFXAttributes attributes;
-                ZERO_INITIALIZE(VFXAttributes, attributes);
-                
-                // Index needs to be available in the context for the attribute load to work
-                uint index = PrimitiveIndex();
-
-                // Load the VFX attributes that we need for this
-                ${VFXLoadAttributes}
-                ${VFXProcessBlocks}
-                ${VFXLoadSize}
-
-                // Execute the matching intersection code
-                IntersectPrimitive(attributes, size3);
-            }
+            // Inject the intersection shader
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Common/IntersectionShader.template")}
             ENDHLSL
         }

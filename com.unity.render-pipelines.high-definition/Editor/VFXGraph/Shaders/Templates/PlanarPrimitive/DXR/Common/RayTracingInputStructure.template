@@ -1,0 +1,8 @@
+            // Equivalent of the Pixel to Vertex structure
+            struct rt_input
+            {
+                float4 pos;
+                ${VFXHDRPLitDeclareVaryings}
+            };
+            #define VFX_VARYING_PS_INPUTS rt_input
+            #define VFX_VARYING_POSCS pos

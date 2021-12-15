@@ -38,67 +38,96 @@ bool RayQuadIntersection(float3 rayOrigin, float3 rayDir, float3 planeOrigin, fl
     return false;
 }
 
-void IntersectPrimitive(VFXAttributes attributes, float3 size3)
+float sign(float2 p1, float2 p2, float2 p3)
+{
+    return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+}
+
+bool PointInTriangle(float2 pt, float2 v1, float2 v2, float2 v3)
+{
+    float d1, d2, d3;
+    bool has_neg, has_pos;
+
+    d1 = sign(pt, v1, v2);
+    d2 = sign(pt, v2, v3);
+    d3 = sign(pt, v3, v1);
+
+    has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+    has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+    return !(has_neg && has_pos);
+}
+
+bool RayTriangleIntersection(float3 rayOrigin, float3 rayDir, float3 planeOrigin, float3 planeNormal, float2 p0, float2 p1, float2 p2, float4x4 localToPrimitive, out float t, out float2 uv)
+{
+    if(RayPlaneIntersection(rayOrigin, rayDir, planeOrigin, planeNormal, t))
+    {
+        // Compute the intersection point
+        float3 hitPoint = rayOrigin + rayDir * t;
+
+        // Evaluate the projected UVs
+        float2 pos2D = mul(localToPrimitive, float4(hitPoint, 1.0f)).xy + 0.5;
+        uv = pos2D;
+        return PointInTriangle(pos2D, p0, p1, p2);
+    }
+    return false;
+}
+
+bool RayDiskIntersection(float3 rayOrigin, float3 rayDir, float3 planeOrigin, float3 planeNormal, float4x4 localToPrimitive, out float t, out float2 uv)
+{
+    if(RayPlaneIntersection(rayOrigin, rayDir, planeOrigin, planeNormal, t))
+    {
+        // Compute the intersection point
+        float3 hitPoint = rayOrigin + rayDir * t;
+
+        // Evaluate the projected UVs
+        uv = mul(localToPrimitive, float4(hitPoint, 1.0f)).xy + 0.5;
+        return length(uv - 0.5) < 0.5;
+    }
+    return false;
+}
+
+void IntersectPrimitive(RayTracingProceduralData rtProceduralData)
 {
     // Grab the current particle's AABB
     AABB particleAABB = FetchPrimitiveAABB(PrimitiveIndex());
 
-    // These parameters are only required by the quad primitive for now
-#if defined(RAY_TRACING_QUAD_PRIMTIIVE)
-    // Object <-> primtive matrices
-    const float4x4 primtiveToObject = GetElementToVFXMatrix(attributes.axisX, attributes.axisY, attributes.axisZ,
-        float3(attributes.angleX,attributes.angleY,attributes.angleZ),
-        float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
-        size3, attributes.position);
-
-    const float4x4 objectToPrimitive = GetVFXToElementMatrix(attributes.axisX, attributes.axisY, attributes.axisZ,
-        float3(attributes.angleX, attributes.angleY, attributes.angleZ),
-        float3(attributes.pivotX, attributes.pivotY, attributes.pivotZ),
-        size3, attributes.position);
-#endif
-
-#if defined(RAY_TRACING_BOX_PRIMITIVE)
-    // Intersect the box and fill the intersection data
-    float entryP = 0;
-    float exitP = 0;
-    if (IntersectRayAABB(ObjectRayOrigin(), ObjectRayDirection(), particleAABB.minPosOS, particleAABB.maxPosOS, 0.0, FLT_MAX, entryP, exitP))
-    {
-        AttributeData attributeData;
-        attributeData.barycentrics = float2(0.5, 0.5);
-        ReportHit(entryP, 0, attributeData);
-    }
-#endif
-
 #if defined(RAY_TRACING_QUAD_PRIMTIIVE)
     float t;
     float2 uv;
-    if (RayQuadIntersection(ObjectRayOrigin(), ObjectRayDirection(), primtiveToObject._m03_m13_m23, -primtiveToObject._m02_m12_m22, objectToPrimitive, t, uv))
+    if (RayQuadIntersection(ObjectRayOrigin(), ObjectRayDirection(), rtProceduralData.position, rtProceduralData.normal, rtProceduralData.objectToPrimitive, t, uv))
     {
         AttributeData attributeData;
         attributeData.barycentrics = uv;
 
-        float alpha = SampleTexture(VFX_SAMPLER(mainTexture), uv).a;
-        if(alpha > 0.5f)
+        if(AABBPrimitiveIsVisible(rtProceduralData, uv))
             ReportHit(t, 0, attributeData);
     }
 #endif
 
-#if defined(RAY_TRACING_SPHERE_PRIMITIVE)
-    float3 sphereCenter = (particleAABB.maxPosOS + particleAABB.minPosOS) * 0.5;
-    float sphereRadius = (particleAABB.maxPosOS.x - particleAABB.minPosOS.x) * 0.5;
-
-    // Intersect the box and fill the intersection data
-    float2 intersection = 0;
-    float3 rayStart = ObjectRayOrigin() - sphereCenter;
-    float3 rayDir = ObjectRayDirection();
-    if (IntersectRaySphere(rayStart, rayDir, sphereRadius, intersection))
+#if defined(RAY_TRACING_TRIANGLE_PRIMTIIVE)
+    float t;
+    float2 uv;
+    if (RayTriangleIntersection(ObjectRayOrigin(), ObjectRayDirection(), rtProceduralData.position, rtProceduralData.normal, rtProceduralData.p0, rtProceduralData.p1, rtProceduralData.p2, rtProceduralData.objectToPrimitive, t, uv))
     {
-        // Pack the normal into the attribute data
         AttributeData attributeData;
-        attributeData.barycentrics = PackNormalOctQuadEncode(normalize(rayStart + intersection.x * rayDir));
+        attributeData.barycentrics = uv;
 
-        // Report the hit
-        ReportHit(intersection.x, 0, attributeData);
+        if(AABBPrimitiveIsVisible(rtProceduralData, uv))
+            ReportHit(t, 0, attributeData);
+    }
+#endif
+
+#if defined(RAY_TRACING_DISK_PRIMTIIVE)
+    float t;
+    float2 uv;
+    if (RayDiskIntersection(ObjectRayOrigin(), ObjectRayDirection(), rtProceduralData.position, rtProceduralData.normal, rtProceduralData.objectToPrimitive, t, uv))
+    {
+        AttributeData attributeData;
+        attributeData.barycentrics = uv;
+
+        if(AABBPrimitiveIsVisible(rtProceduralData, uv))
+            ReportHit(t, 0, attributeData);
     }
 #endif
 }

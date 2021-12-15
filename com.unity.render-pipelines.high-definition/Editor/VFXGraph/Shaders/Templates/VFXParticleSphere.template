@@ -1,29 +1,13 @@
 {
-	${VFXInclude("Shaders/VFXParticleHeaderHybrid.template")}
-
 	SubShader
 	{
 	    Tags{ "RenderPipeline" = "HDRenderPipeline" }
 		Cull Off
 
-		${VFXShaderTags}
-		${VFXInclude("Shaders/VFXParticleCommon.template")}
-		${VFXOutputRenderState}	
-
+		${VFXInclude("Shaders/VFXParticleHeader.template")}
 		${VFXIncludeRP("Templates/Sphere/PassSelection.template")}
 		${VFXIncludeRP("Templates/Sphere/PassDepth.template")}
 		${VFXIncludeRP("Templates/Sphere/PassGBuffer.template")}
 		${VFXInclude("Shaders/particleSpheres/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
-	}
-
-	SubShader
-	{
-	    Tags{ "RenderPipeline" = "HDRenderPipeline" }
-
-		${VFXInclude("Shaders/VFXParticleCommonRT.template")}
-
-		// Requires passes by ray tracing
-		${VFXIncludeRP("Templates/Sphere/DXR/PassVisibilityDXR.template")}
-		${VFXIncludeRP("Templates/Sphere/DXR/PassIndirectDXR.template")}
 	}
 }
