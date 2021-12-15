@@ -7,12 +7,15 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
+using System.Linq;
 using FrustumPlanes = Unity.Rendering.FrustumPlanes.FrustumPlanes;
 
 public unsafe class RenderBRGProcedural : MonoBehaviour
 {
     private BatchRendererGroup m_BatchRendererGroup;
     private GraphicsBuffer m_GPUPersistentInstanceData;
+    private GraphicsBuffer m_GeometryBuffer;
+    private GraphicsBuffer m_GeometryIndexBuffer;
 
     private BatchID m_batchID;
     private bool m_initialized;
@@ -351,10 +354,21 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
         m_pickingMaterial = LoadPickingMaterial();
         m_BatchRendererGroup.SetPickingMaterial(m_pickingMaterial);
 #endif
+        var allRenderers = FindObjectsOfType<MeshRenderer>();
 
-        // Create a batch...
-        var renderers = FindObjectsOfType<MeshRenderer>();
-        Debug.Log("Converting " + renderers.Length + " renderers...");
+        Debug.Log("Converting " + allRenderers.Length + " renderers...");
+
+        var renderers = allRenderers.Where((MeshRenderer renderer) =>
+        {
+            if (!renderer) return false;
+
+            var meshFilter = renderer.GetComponent<MeshFilter>();
+
+            return meshFilter != null && meshFilter.sharedMesh != null && renderer.enabled;
+        })
+        .ToArray();
+
+        if (renderers.Length == 0) return;
 
         m_renderers = new NativeArray<DrawRenderer>(renderers.Length, Allocator.Persistent);
         m_batchHash = new NativeHashMap<DrawKey, int>(1024, Allocator.Persistent);
@@ -398,6 +412,52 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
 
         m_instances = new NativeList<DrawInstance>(1024, Allocator.Persistent);
 
+        var geometryBufferData = new List<Vector3>();
+        var geometryIndexBufferData = new List<UInt16>();
+
+        var meshIndexOffsetTable = new Dictionary<Mesh, uint>();
+        uint meshIndexOffset = 0;
+        ushort meshVertexOffset = 0;
+
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            var mesh = renderers[i].gameObject.GetComponent<MeshFilter>().sharedMesh;
+
+            if (!meshIndexOffsetTable.ContainsKey(mesh))
+            {
+                Debug.Assert(mesh.GetIndexStart(0) == 0);
+
+                var vertices = mesh.vertices;
+
+                meshIndexOffsetTable.Add(mesh, meshIndexOffset);
+                geometryBufferData.AddRange(vertices);
+
+                for (int j = 0; j < mesh.subMeshCount; ++j)
+                {
+                    var indices32 = mesh.GetIndices(j);
+                    var indices = new ushort[indices32.Length];
+
+                    for (int k = 0; k < indices.Length; ++k)
+                    {
+                        indices[k] = (ushort)(meshVertexOffset + indices32[k]);
+                    }
+
+                    geometryIndexBufferData.AddRange(indices);
+
+                    meshIndexOffset += (uint)indices.Length;
+                }
+
+                meshVertexOffset += (ushort)vertices.Length;
+            }
+        }
+
+        m_GeometryBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, geometryBufferData.Count, sizeof(Vector3));
+        m_GeometryBuffer.SetData(geometryBufferData);
+
+        m_GeometryIndexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Index, geometryIndexBufferData.Count, sizeof(ushort));
+        m_GeometryIndexBuffer.SetData(geometryIndexBufferData);
+
+        Shader.SetGlobalBuffer("GeometryBuffer", m_GeometryBuffer);
 
         for (int i = 0; i < renderers.Length; i++)
         {
@@ -406,10 +466,6 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
             m_renderers[i] = new DrawRenderer { bounds = new AABB { Center = new float3(0, 0, 0), Extents = new float3(0, 0, 0) } };
 
             var meshFilter = renderer.gameObject.GetComponent<MeshFilter>();
-            if (!renderer || !meshFilter || !meshFilter.sharedMesh || renderer.enabled == false)
-            {
-                continue;
-            }
 
             // Disable the existing Unity MeshRenderer to avoid double rendering!
             renderer.enabled = false;
@@ -447,10 +503,15 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
             for (int matIndex = 0; matIndex < sharedMaterials.Count; matIndex++)
             {
                 uint vertexOffset = 0;
-                uint vertexCount = (uint)mesh.vertexCount;
+                uint vertexCount = 0;//(uint)mesh.vertexCount;
                 uint indexCount = mesh.GetIndexCount(matIndex);
-                uint indexOffset = mesh.GetIndexStart(matIndex);
-                GraphicsBufferHandle indexBufferHandle = mesh.GetIndexBuffer().bufferHandle;
+
+                uint indexOffset;
+                if (!meshIndexOffsetTable.TryGetValue(mesh, out indexOffset))
+                {
+                    Debug.LogError("Could not find mesh in hash map");
+                }
+                indexOffset += mesh.GetIndexStart(matIndex);
 
                 var material = m_BatchRendererGroup.RegisterMaterial(sharedMaterials[matIndex]);
 
@@ -462,7 +523,7 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                     vertexOffset = vertexOffset,
                     indexCount = indexCount,
                     indexOffset = indexOffset,
-                    indexBufferHandle = indexBufferHandle,
+                    indexBufferHandle = m_GeometryIndexBuffer.bufferHandle,
                     instanceCount = 0,
                     instanceOffset = 0
                 };
@@ -622,6 +683,8 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
             // NOTE: Don't need to remove batch or unregister BatchRendererGroup resources. BRG.Dispose takes care of that.
             m_BatchRendererGroup.Dispose();
             m_GPUPersistentInstanceData.Dispose();
+            m_GeometryBuffer.Dispose();
+            m_GeometryIndexBuffer.Dispose();
 
             m_renderers.Dispose();
             m_batchHash.Dispose();

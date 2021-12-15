@@ -41,6 +41,7 @@ Shader "Hackweek/DrawProcedural"
             Name "Unlit"
 
             HLSLPROGRAM
+            #pragma enable_d3d11_debug_symbols
             #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
@@ -63,33 +64,7 @@ Shader "Hackweek/DrawProcedural"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitForwardPass.hlsl"
 
-            static const float3 CubeVertices[] =
-            {
-                float3(0.50, -0.50, 0.50),
-                float3(-0.50, -0.50, 0.50),
-                float3(0.50, 0.50, 0.50),
-                float3(-0.50, 0.50, 0.50),
-                float3(0.50, 0.50, -0.50),
-                float3(-0.50, 0.50, -0.50),
-                float3(0.50, -0.50, -0.50),
-                float3(-0.50, -0.50, -0.50),
-                float3(0.50, 0.50, 0.50),
-                float3(-0.50, 0.50, 0.50),
-                float3(0.50, 0.50, -0.50),
-                float3(-0.50, 0.50, -0.50),
-                float3(0.50, -0.50, -0.50),
-                float3(0.50, -0.50, 0.50),
-                float3(-0.50, -0.50, 0.50),
-                float3(-0.50, -0.50, -0.50),
-                float3(-0.50, -0.50, 0.50),
-                float3(-0.50, 0.50, 0.50),
-                float3(-0.50, 0.50, -0.50),
-                float3(-0.50, -0.50, -0.50),
-                float3(0.50, -0.50, -0.50),
-                float3(0.50, 0.50, -0.50),
-                float3(0.50, 0.50, 0.50),
-                float3(0.50, -0.50, 0.50)
-            };
+            ByteAddressBuffer GeometryBuffer;
 
             Varyings HackweekVertexProcedural(Attributes input, uint vertexID : SV_VertexID)
             {
@@ -102,9 +77,10 @@ Shader "Hackweek/DrawProcedural"
 
                 int instanceID = unity_InstanceID;
 
-                float3 positionOS = CubeVertices[vertexID];
+                int stride = 12;
+                float3 position = asfloat(GeometryBuffer.Load3(stride * vertexID));
 
-                VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS);
+                VertexPositionInputs vertexInput = GetVertexPositionInputs(position);
 
                 output.positionCS = vertexInput.positionCS;
                 output.uv = TRANSFORM_TEX(float2(0,0), _BaseMap);
