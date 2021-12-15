@@ -22,6 +22,7 @@ public unsafe class BRGSetup : MonoBehaviour
 
     private BatchRendererGroup m_BatchRendererGroup;
     private GraphicsBuffer m_GPUPersistentInstanceData;
+    private Texture2D m_GPUPersistentInstanceDataTexture;
 
     private BatchID[] m_batchIDs;
     private BatchMaterialID m_materialID;
@@ -151,10 +152,12 @@ public unsafe class BRGSetup : MonoBehaviour
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
+        const uint kTextureMaxSize = 4096;  // most suitable value on mobile
+
         // TODO: Replace that 
-        const uint kUBOMaxWindowSize = 64 * 1024;
-        const uint kUBOAlignment = 256;
         const int kFloat4Size = 16;
+        const uint kUBOMaxWindowSize = kTextureMaxSize * kTextureMaxSize * kFloat4Size;
+        const uint kUBOAlignment = 16;
 
         // create one or several batches (regarding UBO size limit on UBO only platform such as GLES3.1)
         uint itemCount = (uint)(itemGridSize * itemGridSize);
@@ -168,6 +171,13 @@ public unsafe class BRGSetup : MonoBehaviour
         m_batchCount = (m_itemCount + m_maxItemPerBatch - 1) / m_maxItemPerBatch;
 
         uint batchAlignedSizeInBytes = (((4 + m_maxItemPerBatch * kItemSize)* kFloat4Size) + kUBOAlignment - 1) & (~(kUBOAlignment - 1));
+
+        // align on a kTextureMaxSize*(16*n) texels texture
+        uint texH = ((batchAlignedSizeInBytes / kFloat4Size) + kTextureMaxSize-1) / kTextureMaxSize;
+        texH = (texH + 15) & 0xfffffff0;
+        // Be sure total size in bytes is really the texture size (if not SetData will fail)
+        batchAlignedSizeInBytes = kTextureMaxSize * texH * kFloat4Size;
+
         uint totalRawBufferSizeInBytes = m_batchCount * batchAlignedSizeInBytes;
 
         // compute offsets of each item ( according to several batches & alignment per batch )
@@ -201,13 +211,22 @@ public unsafe class BRGSetup : MonoBehaviour
         int worldToObjectID = Shader.PropertyToID("unity_WorldToObject");
         int colorID = Shader.PropertyToID("_BaseColor");
 
-        // Generate a grid of objects...
-
+        // Create main BRG large GPU buffer
 #if false
         m_GPUPersistentInstanceData = new ComputeBuffer(1, bigDataBufferVector4Count * 16, ComputeBufferType.Constant);
 #else
-        m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Constant, (int)totalRawBufferSizeInBytes, kFloat4Size);
+
+        if ( texH <= kTextureMaxSize)
+        {
+            //        m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Constant, (int)totalRawBufferSizeInBytes, kFloat4Size);
+            m_GPUPersistentInstanceDataTexture = new Texture2D((int)kTextureMaxSize, (int)texH, TextureFormat.RGBAFloat, false);
+            m_GPUPersistentInstanceDataTexture.filterMode = FilterMode.Point;
+        }
 #endif
+
+
+        // Generate a grid of objects...
+
         // Matrices
         UpdatePositions(m_center);
 
@@ -226,7 +245,9 @@ public unsafe class BRGSetup : MonoBehaviour
             }
         }
 
-        m_GPUPersistentInstanceData.SetData(m_sysmemBuffer);
+        //        m_GPUPersistentInstanceData.SetData(m_sysmemBuffer);
+        m_GPUPersistentInstanceDataTexture.SetPixelData<Vector4>(m_sysmemBuffer, 0, 0);
+        m_GPUPersistentInstanceDataTexture.Apply();
 
         var batchMetadata = new NativeArray<MetadataValue>(4, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
         batchMetadata[0] = CreateMetadataValue(objectToWorldID, 64, true);       // matrices
@@ -238,7 +259,8 @@ public unsafe class BRGSetup : MonoBehaviour
         m_batchIDs = new BatchID[m_batchCount];
         for (uint b=0;b<m_batchCount;b++)
         {
-            m_batchIDs[b] = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistentInstanceData.bufferHandle, m_srpBatches[b].rawBufferOffsetInFloat4 * kFloat4Size);
+//            m_batchIDs[b] = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistentInstanceData.bufferHandle, m_srpBatches[b].rawBufferOffsetInFloat4 * kFloat4Size);
+            m_batchIDs[b] = m_BatchRendererGroup.AddBatchTexture(batchMetadata, m_GPUPersistentInstanceDataTexture);
         }
 
         m_initialized = true;
@@ -288,7 +310,9 @@ public unsafe class BRGSetup : MonoBehaviour
             Vector3 pos = new Vector3(0, 0, Mathf.Cos(m_phase) * m_motionAmplitude);
             UpdatePositions(pos + m_center);
             // upload the full buffer
-            m_GPUPersistentInstanceData.SetData(m_sysmemBuffer);
+//            m_GPUPersistentInstanceData.SetData(m_sysmemBuffer);
+            m_GPUPersistentInstanceDataTexture.SetPixelData<Vector4>(m_sysmemBuffer, 0, 0);
+            m_GPUPersistentInstanceDataTexture.Apply();
         }
 
     }
@@ -305,7 +329,7 @@ public unsafe class BRGSetup : MonoBehaviour
             if (m_mesh) m_BatchRendererGroup.UnregisterMesh(m_meshID);
 
             m_BatchRendererGroup.Dispose();
-            m_GPUPersistentInstanceData.Dispose();
+//            m_GPUPersistentInstanceData.Dispose();
             m_sysmemBuffer.Dispose();
         }
     }

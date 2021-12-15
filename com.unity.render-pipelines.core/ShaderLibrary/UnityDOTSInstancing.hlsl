@@ -7,6 +7,10 @@
 #define UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
 #endif
 
+#if defined(SHADER_API_D3D11)
+#define UNITY_DOTS_INSTANCING_TEXTURE
+#endif
+
 #if UNITY_OLD_PREPROCESSOR
 #error DOTS Instancing requires the new shader preprocessor. Please enable Caching Preprocessor in the Editor settings!
 #endif
@@ -134,6 +138,8 @@ for t, c, sz in (
 CBUFFER_START(unity_DOTSInstanceData)
     float4 unity_DOTSInstanceDataRaw[4096];
 CBUFFER_END
+#elif defined(UNITY_DOTS_INSTANCING_TEXTURE)
+TEXTURE2D(unity_DOTSInstanceData);
 #else
 ByteAddressBuffer unity_DOTSInstanceData;
 #endif
@@ -191,10 +197,18 @@ uint ComputeDOTSInstanceDataAddressOverridden(uint metadata, uint stride)
     return baseAddress + offset;
 }
 
-#ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
+#if (defined(UNITY_DOTS_INSTANCING_UNIFORM_BUFFER) || defined(UNITY_DOTS_INSTANCING_TEXTURE))
 uint DOTSInstanceData_Load(uint address)
 {
+#if defined(UNITY_DOTS_INSTANCING_UNIFORM_BUFFER)
     return asuint(unity_DOTSInstanceDataRaw[address >> 4][(address>>2)&3]);
+#else // UNITY_DOTS_INSTANCING_TEXTURE
+    int2 uv;
+    uv.x = ((address >> 4) & 4095);        // >>4 for byte address to texel and &4095 for MOD tex-width
+    uv.y = (address >> (4 + 12)) & 4095;  // >>4 for byte to texel and >>12 because 4096 width texture
+    uint4 value = asuint(LOAD_TEXTURE2D(unity_DOTSInstanceData, uv).xyzw);
+    return (value[(address >> 2) & 3]);
+#endif
 }
 uint2 DOTSInstanceData_Load2(uint address)
 {
