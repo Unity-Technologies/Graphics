@@ -187,6 +187,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added API to edit diffusion profiles and set IES on lights.
 - Added public API to reset path tracing accumulation, and check its status.
 - Added support for SensorSDK's Lidar and camera models in path tracing.
+- Added Fullscreen Samples
 
 ### Fixed
 - Fixed decal position when created from context menu. (case 1368987)
