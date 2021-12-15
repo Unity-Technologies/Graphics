@@ -628,6 +628,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InvViewportScaleBias = Shader.PropertyToID("_InvViewportScaleBias");
         public static readonly int _PathTracingDoFParameters = Shader.PropertyToID("_PathTracingDoFParameters");
         public static readonly int _PathTracingTilingParameters = Shader.PropertyToID("_PathTracingTilingParameters");
+        public static readonly int _PathTracingCameraSkyEnabled = Shader.PropertyToID("_PathTracingCameraSkyEnabled");
+        public static readonly int _PathTracingCameraClearColor = Shader.PropertyToID("_PathTracingCameraClearColor");
+        public static readonly int _PathTracingSkyTextureWidth = Shader.PropertyToID("_PathTracingSkyTextureWidth");
+        public static readonly int _PathTracingSkyTextureHeight = Shader.PropertyToID("_PathTracingSkyTextureHeight");
+        public static readonly int _PathTracingSkyCDFTexture = Shader.PropertyToID("_PathTracingSkyCDFTexture");
+        public static readonly int _PathTracingSkyMarginalTexture = Shader.PropertyToID("_PathTracingSkyMarginalTexture");
 
         // Light Cluster
         public static readonly int _LightDatasRT = Shader.PropertyToID("_LightDatasRT");
@@ -740,8 +746,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Primary Visibility
         public static readonly int _RaytracingFlagMask = Shader.PropertyToID("_RaytracingFlagMask");
         public static readonly int _RaytracingPrimaryDebug = Shader.PropertyToID("_RaytracingPrimaryDebug");
-        public static readonly int _RaytracingCameraSkyEnabled = Shader.PropertyToID("_RaytracingCameraSkyEnabled");
-        public static readonly int _RaytracingCameraClearColor = Shader.PropertyToID("_RaytracingCameraClearColor");
 
         // Indirect diffuse
         public static readonly int _IndirectDiffuseTexture = Shader.PropertyToID("_IndirectDiffuseTexture");
