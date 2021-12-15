@@ -538,7 +538,7 @@ float3 ComputeDebugNormal(float3 worldPos)
 
 float2 EvaluateFoamUV(float3 positionAWS)
 {
-    return (positionAWS.xz + _FoamOffsets.xy) * _FoamTilling;
+    return (positionAWS.xz) * _FoamTilling;
 }
 
 float2 EvaluateFoamMaskUV(float3 positionAWS)
@@ -550,7 +550,7 @@ float2 EvaluateFoamMaskUV(float3 positionAWS)
     uv = float2(uv.x * _WaterRotation.x + uv.y * _WaterRotation.y, uv.x * _WaterRotation.y - uv.y * _WaterRotation.x);
 
     // Shift and scale
-    return float2(uv.x - _FoamMaskOffset.x, uv.y - _FoamMaskOffset.y) * _FoamMaskOffset + 0.5f;
+    return float2(uv.x - _FoamMaskOffset.x, uv.y - _FoamMaskOffset.y) * _FoamMaskScale + 0.5f;
 }
 
 struct FoamData
