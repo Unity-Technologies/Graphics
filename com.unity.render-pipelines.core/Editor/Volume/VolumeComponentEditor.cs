@@ -301,8 +301,6 @@ namespace UnityEditor.Rendering
             })
                 .OrderBy(t => t.order)
                 .ToList();
-
-            Init();
         }
 
         /// <summary>
