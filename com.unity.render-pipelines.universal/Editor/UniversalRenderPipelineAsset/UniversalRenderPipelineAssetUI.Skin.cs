@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.Universal
 {
     internal partial class UniversalRenderPipelineAssetUI
     {
-        public static class Styles
+        internal static class Styles
         {
             // Groups
             public static GUIContent renderingSettingsText = EditorGUIUtility.TrTextContent("Rendering", "Settings that control the core part of the pipeline rendered frame.");
@@ -36,6 +36,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent hdrText = EditorGUIUtility.TrTextContent("HDR", "Controls the global HDR settings.");
             public static GUIContent msaaText = EditorGUIUtility.TrTextContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
             public static GUIContent renderScaleText = EditorGUIUtility.TrTextContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
+            public static GUIContent upscalingFilterText = EditorGUIUtility.TrTextContent("Upscaling Filter", "Controls the type of filter used for upscaling when render scale is lower than 1.0.");
 
             // Main light
             public static GUIContent mainLightRenderingModeText = EditorGUIUtility.TrTextContent("Main Light", "Main light is the brightest directional light.");

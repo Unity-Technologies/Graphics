@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [14.0.0] - 2021-11-17
 
 ### Added
-
 - Added FSR sharpness override to camera and pipeline asset.
 - Added an option on the lit shader to perform Planar and Triplanar mapping in Object Space.
+- Added a button in the Probe Volume Baking window to open the Probe Volume debug panel.
+- Added importance sampling of the sky in path tracing (aka environment sampling).
+- Added the overlay render queue to custom passes.
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
@@ -72,6 +74,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compilation issue related to shader stripping in ray tracing.
 - Fixed flipped UV for directional light cookie on PBR Sky (case 1382656).
 - Fixing missing doc API for RTAS Debug display.
+- Fixed AO dissapearing when DRS would be turned off through a camera, while hardware drs is active in DX12 or Vulkan (case 1383093).
+- Fixed misc shader warnings.
+- Fixed a shader warning in UnityInstancing.hlsl
+- Fixed for APV debug mode breaking rendering when switching to an asset with APV disabled.
 - Fixed potential asymmetrical resource release in the volumetric clouds (case 1388218).
 
 ### Changed
@@ -98,6 +104,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
 - Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
 - Fixed Lens Flare visible when being behind a camera with Panini Projection on (case 1370214);
+- Fixed Correlated Color Temperature not being applied in Player builds for Enlighten realtime GI lights (case 1370438);
 
 ### Changed
 - Optimizations for the physically based depth of field.
