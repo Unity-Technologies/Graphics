@@ -123,13 +123,18 @@ namespace UnityEngine.Rendering
                 unsafe // Need to do ugly casts via pointers
                 {
                     uint* ptr = (uint*)data.GetUnsafePtr();
-                    for (int i = 1; i < count;)
+                    for (int i = 1; i + 1 < count;) // ensure space for a payload after the header
                     {
                         DebugValueType type = (DebugValueType)(data[i] & 0x0f);
                         if ((data[i] & k_TypeHasTag) == k_TypeHasTag)
                         {
                             uint tagEncoded = data[i + 1];
                             i++;
+
+                            // ensure space for a payload after a tag
+                            if (i + 1 >= count)
+                                break;
+
                             for (int j = 0; j < 4; j++)
                             {
                                 char c = (char)(tagEncoded & 255);
