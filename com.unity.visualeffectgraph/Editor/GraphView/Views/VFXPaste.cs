@@ -56,9 +56,9 @@ namespace UnityEditor.VFX.UI
             }
 
             var resource = VisualEffectResource.GetResourceAtPath(path);
-            var controller = new VFXViewController(resource);
+            var graph = resource.GetOrCreateGraph();
 
-            return controller.graph.children
+            return graph.children
                 .OfType<VFXSubgraphOperator>()
                 .All(x => CanPasteSubgraph(x.subgraph, openedAssetPath));
         }
