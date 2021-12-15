@@ -68,6 +68,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a crash with render graph viewer when render graph is not provided with an execution name.
 - Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
 - Fixed issue with typed loads on RGBA16F in Volumetric Lighting Filtering.
+- Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
 
 ## [12.1.3] - 2021-11-17
 
