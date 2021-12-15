@@ -350,7 +350,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         currentAttachmentDescriptor.ConfigureResolveTarget(colorAttachmentTarget);
                         if (RenderingUtils.MultisampleDepthResolveSupported())
-                            m_ActiveDepthAttachmentDescriptor.ConfigureResolveTarget(depthAttachmentTarget);
+                            m_ActiveDepthAttachmentDescriptor.ConfigureResolveTarget(m_ActiveDepthAttachmentDescriptor.loadStoreTarget);
                     }
 
 
