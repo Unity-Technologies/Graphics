@@ -303,7 +303,7 @@ namespace UnityEngine.Rendering
             r.rightDown = Input.GetMouseButton(1);
             r.middleDown = Input.GetMouseButton(2);
 #endif
-#if ENABLE_INPUT_SYSTEM
+#if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
             // NOTE: needs Unity.InputSystem asmdef reference.
             var mouse = InputSystem.Mouse.current;
             r.pos = mouse.position.ReadValue();
