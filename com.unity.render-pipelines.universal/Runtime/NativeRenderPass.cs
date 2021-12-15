@@ -396,7 +396,12 @@ namespace UnityEngine.Rendering.Universal
 
                     // resolving to the implicit color target's resolve surface TODO: handle m_CameraResolveTarget if present?
                     if (samples > 1)
+                    {
                         currentAttachmentDescriptor.ConfigureResolveTarget(colorAttachmentTarget);
+                        if (RenderingUtils.MultisampleDepthResolveSupported())
+                            m_ActiveDepthAttachmentDescriptor.ConfigureResolveTarget(depthAttachmentTarget);
+                    }
+
 
                     if (m_UseOptimizedStoreActions)
                     {
