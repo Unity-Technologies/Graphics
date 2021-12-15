@@ -109,6 +109,21 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test]
+        public void CanGetExistingExtension()
+        {
+            bool Property(VolumeComponentType[] types)
+            {
+                var archetype = VolumeComponentArchetype.FromTypes(types);
+
+                return archetype.GetOrAddDefaultState(out var extension)
+                    && archetype.GetDefaultState(out var extension2)
+                    && ReferenceEquals(extension, extension2);
+            }
+
+            Prop.ForAll<VolumeComponentType[]>(Property).QuickCheckThrowOnFailure();
+        }
+
+        [Test]
         public void FromEverything()
         {
             bool Property(VolumeComponentType[] types)

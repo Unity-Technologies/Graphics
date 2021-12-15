@@ -1,5 +1,5 @@
 using System;
-using JetBrains.Annotations;
+using System.Diagnostics.CodeAnalysis;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
@@ -7,11 +7,14 @@ namespace UnityEditor.Rendering
     // Do not make this public
     // Ongoing refactor will provide a better way to define components
     // that can be added to a volume profile
+
+    // High level API bound to static resource/API. Hard to test, but used API should be tested
+    [ExcludeFromCodeCoverage]
     internal static class VolumeComponentUserExperience
     {
         static readonly VolumeComponentContext k_DisplayedContext = new VolumeComponentContext();
 
-        [NotNull]
+        [JetBrains.Annotations.NotNull]
         public static VolumeComponentArchetype displayedArchetype
         {
             get
@@ -24,6 +27,8 @@ namespace UnityEditor.Rendering
             }
         }
 
+        // High level API bound to static resource/API. Hard to test, but used API should be tested
+        [ExcludeFromCodeCoverage]
         [InitializeOnLoad]
         static class OnPipelineChanged
         {

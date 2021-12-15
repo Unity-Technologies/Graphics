@@ -79,12 +79,4 @@ namespace UnityEngine.Rendering
         [NotNull]
         public IReadOnlyList<(string path, VolumeComponentType type)> volumeComponentPathAndTypes { get; }
     }
-
-    static class VolumeComponentTypeSetPathAndTypeExtension
-    {
-        public static bool GetOrAddPathAndType(
-            [DisallowNull] this VolumeComponentArchetype archetype,
-            [NotNullWhen(true)] out VolumeComponentArchetypePathAndType extension)
-            => archetype.GetOrAddExtension<VolumeComponentArchetypePathAndType, VolumeComponentArchetypePathAndType.Factory>(out extension);
-    }
 }

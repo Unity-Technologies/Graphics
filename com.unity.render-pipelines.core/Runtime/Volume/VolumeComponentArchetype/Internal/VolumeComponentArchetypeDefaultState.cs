@@ -46,12 +46,4 @@ namespace UnityEngine.Rendering
             }
         }
     }
-
-    static class VolumeComponentTypeSetDefaultStateExtension
-    {
-        public static bool GetOrAddDefaultState(
-            [DisallowNull] this VolumeComponentArchetype archetype,
-            [NotNullWhen(true)] out VolumeComponentArchetypeDefaultState extension)
-            => archetype.GetOrAddExtension<VolumeComponentArchetypeDefaultState, VolumeComponentArchetypeDefaultState.Factory>(out extension);
-    }
 }
