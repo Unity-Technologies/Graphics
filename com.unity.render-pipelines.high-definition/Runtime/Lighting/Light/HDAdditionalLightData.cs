@@ -1979,7 +1979,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary> A callback allowing the creation of a new Matrix4x4 based on the lightLocalToWorld matrix </summary>
         public delegate Matrix4x4 CustomViewCallback(Matrix4x4 lightLocalToWorldMatrix);
+		
+        /// <summary> Change the View matrix for Spot Light </summary>
         public CustomViewCallback CustomViewCallbackEvent;
 
         void OnDestroy()
