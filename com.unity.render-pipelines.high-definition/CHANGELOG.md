@@ -74,10 +74,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compilation issue related to shader stripping in ray tracing.
 - Fixed flipped UV for directional light cookie on PBR Sky (case 1382656).
 - Fixing missing doc API for RTAS Debug display.
-- Fixed AO dissapearing when DRS would be turned off through a camera, while hardware drs is active in DX12 or Vulkan (case 1383093).
-- Fixed misc shader warnings.
-- Fixed a shader warning in UnityInstancing.hlsl
-- Fixed for APV debug mode breaking rendering when switching to an asset with APV disabled.
+- Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.

@@ -488,7 +488,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float groundShadowSize = settings.shadowDistance.value;
 
                 // The world space camera will be required but the global constant buffer will not be injected yet.
-                cb._WorldSpaceShadowCenter = new Vector2(hdCamera.camera.transform.position.x, hdCamera.camera.transform.position.z);
+                cb._WorldSpaceShadowCenter = new Vector4(hdCamera.camera.transform.position.x, hdCamera.camera.transform.position.y, hdCamera.camera.transform.position.z, 0.0f);
 
                 if (HasVolumetricCloudsShadows(hdCamera, settings))
                 {
