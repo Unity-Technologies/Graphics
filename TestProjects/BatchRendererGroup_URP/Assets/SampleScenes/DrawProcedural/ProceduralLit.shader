@@ -150,7 +150,7 @@ Shader "Hackweek/ProceduralLit"
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
-            #pragma vertex HackweekVertexProcedural
+            #pragma vertex LitProceduralVertex
             #pragma fragment LitPassFragment
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
@@ -163,16 +163,16 @@ Shader "Hackweek/ProceduralLit"
             ByteAddressBuffer GeometryTangentBuffer;
             ByteAddressBuffer GeometryUV0Buffer;
 
-            Varyings HackweekVertexProcedural(uint vertexID : SV_VertexID)
+            Varyings LitProceduralVertex(uint vertexID : SV_VertexID)
             {
-                Varyings output = (Varyings)0;
-
                 float3 positionOS = asfloat(GeometryPositionBuffer.Load3(3 * 4 * vertexID));
                 float3 normalOS = asfloat(GeometryNormalBuffer.Load3(3 * 4 * vertexID));
                 float4 tangentOS = asfloat(GeometryTangentBuffer.Load4(4 * 4 * vertexID));
                 float2 uv0 = asfloat(GeometryUV0Buffer.Load2(2 * 4 * vertexID));
                 float2 staticLightmapUV = float2(0,0);
                 float2 dynamicLightmapUV = float2(0,0);
+
+                Varyings output = (Varyings)0;
 
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS);
 
@@ -230,7 +230,7 @@ Shader "Hackweek/ProceduralLit"
                 return output;
             }
 #else
-            Varyings HackweekVertexProcedural(Attributes input)
+            Varyings LitProceduralVertex(Attributes input)
             {
                 return LitPassVertex(input);
             }
@@ -269,11 +269,57 @@ Shader "Hackweek/ProceduralLit"
             // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
             #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
 
-            #pragma vertex ShadowPassVertex
+            #pragma vertex ProceduralShadowPassVertex
             #pragma fragment ShadowPassFragment
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
+
+#ifdef DOTS_INSTANCING_ON
+
+            ByteAddressBuffer GeometryPositionBuffer;
+            ByteAddressBuffer GeometryNormalBuffer;
+            ByteAddressBuffer GeometryUV0Buffer;
+
+            Varyings ProceduralShadowPassVertex(uint vertexID : SV_VertexID)
+            {
+                float3 positionOS = asfloat(GeometryPositionBuffer.Load3(3 * 4 * vertexID));
+                float3 normalOS = asfloat(GeometryNormalBuffer.Load3(3 * 4 * vertexID));
+                float2 uv0 = asfloat(GeometryUV0Buffer.Load2(2 * 4 * vertexID));
+
+                Varyings output = (Varyings)0;
+
+                float3 positionWS = TransformObjectToWorld(positionOS.xyz);
+                float3 normalWS = TransformObjectToWorldNormal(normalOS);
+
+            #if _CASTING_PUNCTUAL_LIGHT_SHADOW
+                float3 lightDirectionWS = normalize(_LightPosition - positionWS);
+            #else
+                float3 lightDirectionWS = _LightDirection;
+            #endif
+
+                float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
+
+            #if UNITY_REVERSED_Z
+                positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE);
+            #else
+                positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE);
+            #endif
+
+                output.uv = TRANSFORM_TEX(uv0, _BaseMap);
+                output.positionCS = positionCS;
+                return output;
+            }
+
+#else
+
+            Varyings ProceduralShadowPassVertex(Attributes input)
+            {
+                return ShadowPassVertex(input);
+            }
+
+#endif
+
             ENDHLSL
         }
 
@@ -357,7 +403,7 @@ Shader "Hackweek/ProceduralLit"
             #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
-            #pragma vertex DepthOnlyVertex
+            #pragma vertex ProceduralDepthOnlyVertex
             #pragma fragment DepthOnlyFragment
 
             // -------------------------------------
@@ -372,6 +418,33 @@ Shader "Hackweek/ProceduralLit"
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
+
+#ifdef DOTS_INSTANCING_ON
+
+            ByteAddressBuffer GeometryPositionBuffer;
+            ByteAddressBuffer GeometryUV0Buffer;
+
+            Varyings ProceduralDepthOnlyVertex(uint vertexID : SV_VertexID)
+            {
+                float3 positionOS = asfloat(GeometryPositionBuffer.Load3(3 * 4 * vertexID));
+                float2 uv0 = asfloat(GeometryUV0Buffer.Load2(2 * 4 * vertexID));
+
+                Varyings output = (Varyings)0;
+
+                output.uv = TRANSFORM_TEX(uv0, _BaseMap);
+                output.positionCS = TransformObjectToHClip(positionOS);
+                return output;
+            }
+
+#else
+
+            Varyings ProceduralDepthOnlyVertex(Attributes input)
+            {
+                return DepthOnlyVertex(input);
+            }
+
+#endif
+
             ENDHLSL
         }
 
