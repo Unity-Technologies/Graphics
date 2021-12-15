@@ -296,6 +296,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault) },
                     { PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault) },
+                    { LitPasses.MotionVectors },
                 },
             };
 
@@ -519,7 +520,32 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas.Instanced,
                 includes = CoreIncludes.DepthNormalsOnly,
             };
-        }
+
+            public static readonly PassDescriptor MotionVectors = new PassDescriptor()
+            {
+                // Definition
+                displayName = "MotionVectors",
+                referenceName = "SHADERPASS_MOTIONVECTORS",
+                lightMode = "MotionVectors",
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = LitRequiredFields.MotionVectors,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.Default,
+                pragmas = CorePragmas.DOTSInstanced,
+                includes = LitIncludes.MotionVectors,
+            };
+		}
 #endregion
 
 #region PortMasks
@@ -591,6 +617,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+            };
+
+            public static readonly FieldCollection MotionVectors = new FieldCollection()
+            {
+                StructFields.Attributes.uv4,                   // needed for previousPositionOS
+                UniversalStructFields.Varyings.curPositionCS,
+                UniversalStructFields.Varyings.prevPositionCS,
             };
 
             public static readonly FieldCollection GBuffer = new FieldCollection()
@@ -703,6 +736,7 @@ static class LitDefines
             const string kPBRGBufferPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl";
             const string kLightingMetaPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
             const string k2DPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBR2DPass.hlsl";
+            const string kMotionVectors = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/OculusMotionVectors.hlsl";
 
             public static readonly IncludeCollection Forward = new IncludeCollection
             {
@@ -750,6 +784,17 @@ static class LitDefines
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { k2DPass, IncludeLocation.Postgraph },
+            };
+
+            public static readonly IncludeCollection MotionVectors = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kMotionVectors, IncludeLocation.Postgraph },
             };
         }
 #endregion

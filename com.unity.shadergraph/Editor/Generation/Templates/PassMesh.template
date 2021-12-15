@@ -43,6 +43,7 @@ Pass
     $Attributes.uv1:                    #define ATTRIBUTES_NEED_TEXCOORD1
     $Attributes.uv2:                    #define ATTRIBUTES_NEED_TEXCOORD2
     $Attributes.uv3:                    #define ATTRIBUTES_NEED_TEXCOORD3
+    $Attributes.uv4:                    #define ATTRIBUTES_NEED_TEXCOORD4
     $Attributes.color:                  #define ATTRIBUTES_NEED_COLOR
     $Varyings.positionWS:               #define VARYINGS_NEED_POSITION_WS
     $Varyings.normalWS:                 #define VARYINGS_NEED_NORMAL_WS
@@ -57,6 +58,8 @@ Pass
     $Varyings.screenPosition:           #define VARYINGS_NEED_SCREENPOSITION
     $Varyings.fogFactorAndVertexLight:  #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
     $Varyings.cullFace:                 #define VARYINGS_NEED_CULLFACE
+    $Varyings.curPositionCS:            #define VARYINGS_NEED_CURRENT_POSITION_CS
+    $Varyings.prevPositionCS:           #define VARYINGS_NEED_PREVIOUS_POSITION_CS
     $features.graphVertex:              #define FEATURES_GRAPH_VERTEX
     $Universal.UseLegacySpriteBlocks:   #define UNIVERSAL_USELEGACYSPRITEBLOCKS
     $splice(PassInstancing)

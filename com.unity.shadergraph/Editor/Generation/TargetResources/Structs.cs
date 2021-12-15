@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph
                 StructFields.Attributes.uv1,
                 StructFields.Attributes.uv2,
                 StructFields.Attributes.uv3,
+                StructFields.Attributes.uv4,
                 StructFields.Attributes.color,
                 StructFields.Attributes.instanceID,
                 StructFields.Attributes.weights,

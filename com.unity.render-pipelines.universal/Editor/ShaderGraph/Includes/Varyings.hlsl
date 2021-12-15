@@ -110,6 +110,25 @@ Varyings BuildVaryings(Attributes input)
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 #endif
 
+#ifdef VARYINGS_NEED_CURRENT_POSITION_CS
+    float3 curWS = TransformObjectToWorld(input.positionOS.xyz);
+    output.curPositionCS = TransformWorldToHClip(curWS);
+#endif
+
+#ifdef VARYINGS_NEED_PREVIOUS_POSITION_CS
+    if (unity_MotionVectorsParams.y == 0.0)
+    {
+        output.prevPositionCS = float4(0.0, 0.0, 0.0, 1.0);
+    }
+    else
+    {
+        bool hasDeformation = unity_MotionVectorsParams.x > 0.0;
+        float3 effectivePositionOS = (hasDeformation ? input.uv4.xyz : input.positionOS.xyz);
+        float3 previousWS = TransformPreviousObjectToWorld(effectivePositionOS);
+        output.prevPositionCS = TransformWorldToPrevHClip(previousWS);
+    }
+#endif
+
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     output.shadowCoord = GetShadowCoord(vertexInput);
 #endif
