@@ -21,6 +21,12 @@ namespace UnityEngine.Rendering.Tests
         {
             bool Property(VolumeComponentType[] types, int seed)
             {
+                void CallOnEnable(VolumeComponent volumeComponent)
+                {
+                    volumeComponent.GetType().GetMethod("OnEnable", BindingFlags.Instance | BindingFlags.NonPublic)
+                        .Invoke(volumeComponent, Array.Empty<object>());
+                }
+
                 var archetype = VolumeComponentArchetype.FromTypes(types);
                 if (!archetype.GetOrAddDefaultState(out var extension))
                     return false;
@@ -32,8 +38,7 @@ namespace UnityEngine.Rendering.Tests
                 foreach (var pair in stack.components)
                 {
                     // Run OnEnable to make sure parameters are available
-                    pair.Value.GetType().GetMethod("OnEnable", BindingFlags.Instance | BindingFlags.NonPublic)
-                        .Invoke(pair.Value, Array.Empty<object>());
+                    CallOnEnable(pair.Value);
 
                     foreach (var parameter in pair.Value.parameters)
                     {
@@ -62,7 +67,9 @@ namespace UnityEngine.Rendering.Tests
                     }
 
                     // Check default value
-                    var defaultInstance = (VolumeComponent)Activator.CreateInstance(pair.Value.GetType());
+                    var defaultInstance = (VolumeComponent)ScriptableObject.CreateInstance(pair.Value.GetType());
+                    CallOnEnable(defaultInstance);
+
                     var c = pair.Value.parameters.Count;
                     for (var i = 0; i < c; i++)
                     {

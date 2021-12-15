@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering
     ///     Use this attribute to specify that a type is compatible with another.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    [ExcludeFromCodeCoverage] // Trivial constructor and accessor
     public class SupportedOnAttribute : Attribute
     {
         /// <summary>
@@ -34,6 +35,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     public static class IsSupportedOn
     {
+        [ExcludeFromCodeCoverage] // Can't test static constructor and trivial
         static IsSupportedOn()
         {
             if (!SupportedOnAttributeSetter.isLoaded)
@@ -111,6 +113,8 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="subject">Which type will support <paramref name="target" />.</param>
         /// <param name="target">Defines what to support.</param>
+        // Defer implementation to `s_Relations.RegisterRelation(subject, target);` which is covered
+        [ExcludeFromCodeCoverage]
         internal static void RegisterDynamicRelation([DisallowNull] Type subject, [DisallowNull] Type target)
         {
             s_Relations.RegisterRelation(subject, target);
@@ -177,6 +181,7 @@ namespace UnityEngine.Rendering
     // ReSharper disable once UnusedTypeParameter
     public struct IsSupportedOn<TSubject, TTarget>
     {
+        [ExcludeFromCodeCoverage] // Trivial
         public static bool IsExplicit { get; set; } = false;
 
         /// <summary>

@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering
                         continue;
 
                     // Look for the attributes of this volume component and decide how is added and if it needs to be skipped
+                    var isSkipped = false;
                     foreach (var attr in attrs)
                     {
                         switch (attr)
@@ -46,10 +47,15 @@ namespace UnityEngine.Rendering
                             }
                             case HideInInspector:
                             case ObsoleteAttribute:
-                                continue;
+                                isSkipped = true;
+                                break;
                         }
-                    }
 
+                        if (isSkipped)
+                            break;
+                    }
+                    if (isSkipped)
+                        continue;
 #if UNITY_EDITOR
 
                     // If no attribute or in case something went wrong when grabbing it, fallback to a
