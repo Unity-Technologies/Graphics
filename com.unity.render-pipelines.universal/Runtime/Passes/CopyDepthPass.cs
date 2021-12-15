@@ -56,11 +56,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.msaaSamples = 1;
 #if UNITY_EDITOR
             // This is a temporary workaround for Editor as not setting any depth here
-            // would lead to overwriting depth in certain scenarios (mostly reproducable while running DX11 tests)
-            ConfigureTarget(destination, destination);
-#else
-            ConfigureTarget(destination);
+            // would lead to overwriting depth in certain scenarios (reproducable while running DX11 tests)
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11)
+                ConfigureTarget(destination, destination);
+            else
 #endif
+            ConfigureTarget(destination);
             if (m_ShouldClear)
                 ConfigureClear(ClearFlag.All, Color.black);
         }
