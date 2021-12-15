@@ -49,3 +49,9 @@ This Sample includes the following Lens Flare examples that you can use in your 
 - A scene you can use to preview Lens Flare Assets
 - A scene to showcases the use of Lens Flares with interior lighting
 - A scene to showcases the use of Lens Flares with a directional light
+
+## Fullscreen Samples
+
+This Sample includes various prefab using Fullscreen effect done through Shadergraph.
+
+
