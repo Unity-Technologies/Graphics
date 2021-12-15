@@ -1,30 +1,10 @@
 # Deferred Rendering Path in URP
 
-URP Universal Renderer supports two Rendering Paths: Forward and Deferred.
-
-For information on differences between the rendering paths, see section [Rendering Path comparison](../urp-universal-renderer.md#rendering-path-comparison).
-
-This section describes the Deferred Rendering Path.
+This section describes the Deferred Rendering Path. For maximum platform compatibility, the URP Deferred Rendering Path uses the light stencil volume technique to render light volumes and apply deferred shading. To select the Rendering Path, see [Rendering](../urp-universal-renderer.md#rendering) in the URP Universal Renderer asset.
 
 ![Scene rendered with the Deferred Rendering Path](../Images/rendering-deferred/deferred-intro-image.png)<br/>*Sample Scene rendered with the Deferred Rendering Path.*
 
-This section contains the following topics:
-
-* [How to select the Deferred Rendering Path](#how-to-enable)
-
-* [Unity Player system requirements](#requirements)
-
-* [Implementation details](#implementation-details)
-
-* [Relevant code files](#relevant-code-files)
-
-* [ShaderLab Pass tags](#shaderlab-pass-tags)
-
-* [Limitations and performance](#limitations-and-performance)
-
 ## <a name="how-to-enable"></a>How to select the Deferred Rendering Path
-
-To select the Rendering Path, use the property **Lighting** > **Rendering Path** in the URP Universal Renderer asset.
 
 ![Select the Rendering Path in the URP Universal Renderer asset](../Images/rendering-deferred/urp-renderer-select-deferred-path.png)
 
@@ -316,10 +296,6 @@ Examples of such shaders:
 * **Custom shaders**: Unity renders the shaders that do not declare the Pass tags required by the Deferred Rendering Path as Forward-only. The required Pass tags are: `LightMode`, and `UniversalMaterialType`. For more information, see [URP Pass tags](../urp-shaders/urp-shaderlab-pass-tags.md).
 
 Unity renders Materials with such shaders in the Forward Rendering Path. For the SSAO Renderer Feature to be able to calculate ambient occlusion for the Materials using the **Complex Lit** shader, Unity must render such Materials in the depth and normal prepass first. This is because Unity does not render those Materials in the G-buffer pass (GBufferPass). For more information, see [URP Pass tags](../urp-shaders/urp-shaderlab-pass-tags.md).
-
-#### General implementation notes
-
-For maximum platform compatibility, the URP Deferred Rendering Path uses the light stencil volume technique to render light volumes and apply deferred shading.
 
 ## Relevant code files
 
