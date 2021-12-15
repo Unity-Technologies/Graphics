@@ -171,6 +171,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        // !!! This is very weird, but for some reason the change of this field is not registered when changed.
+        //     Because it is important to trigger the rebuild of the light entity (for the burst light loop) and it
+        //     happens only when a change in editor happens !!!
+        //     The issue is likely on the C# trunk side with the GUI Dropdown.
+        static int s_OldLightBakeType = (int)LightmapBakeType.Realtime;
+
         static void DrawGeneralContent(SerializedHDLight serialized, Editor owner, bool isPreset = false)
         {
             EditorGUI.BeginChangeCheck();
@@ -226,9 +232,19 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             EditorGUI.showMixedValue = false;
 
+            // We need to trigger an update if the bake mode changes
+            var lightBakeType = ((Light)owner.target).lightmapBakeType;
+
             // Draw the mode, for Tube and Disc lights, there is only one choice, so we can disable the enum.
             using (new EditorGUI.DisabledScope(updatedLightType == HDLightType.Area && (serialized.areaLightShape == AreaLightShape.Tube || serialized.areaLightShape == AreaLightShape.Disc)))
                 serialized.settings.DrawLightmapping();
+
+
+            if (s_OldLightBakeType != serialized.settings.lightmapping.intValue)
+            {
+                s_OldLightBakeType = serialized.settings.lightmapping.intValue;
+                GUI.changed = true;
+            }
 
             if (updatedLightType == HDLightType.Area)
             {
@@ -1225,8 +1241,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.useScreenSpaceShadows, s_Styles.useScreenSpaceShadows);
                     if (HDRenderPipeline.assetSupportsRayTracing)
                     {
-                        bool showRayTraced = serialized.useScreenSpaceShadows.boolValue && fullShadowMask;
-                        using (new EditorGUI.DisabledScope(showRayTraced))
+                        bool showRayTraced = serialized.useScreenSpaceShadows.boolValue && !fullShadowMask;
+                        using (new EditorGUI.DisabledScope(!showRayTraced))
                         {
                             EditorGUI.indentLevel++;
                             EditorGUILayout.PropertyField(serialized.useRayTracedShadows, s_Styles.useRayTracedShadows);

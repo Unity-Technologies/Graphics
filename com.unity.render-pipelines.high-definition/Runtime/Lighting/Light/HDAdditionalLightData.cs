@@ -400,6 +400,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_NonLightmappedOnly = value;
                 legacyLight.lightShadowCasterMode = value ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
+                // We need to update the ray traced shadow flag as we don't want ray traced shadows with shadow mask.
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).useRayTracedShadows = m_UseRayTracedShadows && !m_NonLightmappedOnly;
+
             }
         }
 
@@ -3606,8 +3610,13 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.volumetricFadeDistance = m_VolumetricFadeDistance;
             lightRenderData.includeForRayTracing = m_IncludeForRayTracing;
             lightRenderData.useScreenSpaceShadows = m_UseScreenSpaceShadows;
+
             // If we are pure shadowmask, we disable raytraced shadows.
-            lightRenderData.useRayTracedShadows = !nonLightmappedOnly && m_UseRayTracedShadows;
+            if (legacyLight.lightmapBakeType == LightmapBakeType.Mixed)
+                lightRenderData.useRayTracedShadows = !m_NonLightmappedOnly && m_UseRayTracedShadows;
+            else
+                lightRenderData.useRayTracedShadows = m_UseRayTracedShadows;
+
             lightRenderData.colorShadow = m_ColorShadow;
             lightRenderData.lightDimmer = m_LightDimmer;
             lightRenderData.volumetricDimmer = m_VolumetricDimmer;
