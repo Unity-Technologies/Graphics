@@ -53,11 +53,16 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             if (renderingData.cameraData.cameraType == CameraType.Game)
+                renderer.EnqueuePass(m_RenderPass);
+        }
+
+        public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
+        {
+            if (renderingData.cameraData.cameraType == CameraType.Game)
             {
                 //Calling ConfigureInput with the ScriptableRenderPassInput.Color argument ensures that the opaque texture is available to the Render Pass
                 m_RenderPass.ConfigureInput(ScriptableRenderPassInput.Color);
                 m_RenderPass.SetTarget(renderer.cameraColorTarget, m_Intensity);
-                renderer.EnqueuePass(m_RenderPass);
             }
         }
 
