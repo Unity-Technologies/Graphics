@@ -214,10 +214,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public float causticsPlaneOffset = 0.0f;
 
         /// <summary>
-        /// Sets the blending distance for the water caustics.
+        /// Sets the vertical blending distance for the water caustics.
         /// </summary>
-        [Tooltip("Sets the blending distance for the water caustics.")]
-        public float causticsPlaneBlendDistance = 0.0f;
+        [Tooltip("Sets the vertical blending distance for the water caustics.")]
+        public float causticsPlaneBlendDistance = 1.0f;
 
         /// <summary>
         /// Defines what algorithm is used for caustics rendering.
@@ -231,9 +231,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Specifies the type of algorithm that is used to evaluate the caustics.
+        /// Specifies the algorithm used to evaluate the caustics. Procedural is completely uncorrelated to the water simulation. Simulation relies on the normals of the selected band and has a higher cost.
         /// </summary>
-        [Tooltip("Specifies the type of algorithm that is used to evaluate the caustics.")]
+        [Tooltip("Specifies the algorithm used to evaluate the caustics. Procedural is completely uncorrelated to the water simulation. Simulation relies on the normals of the selected band and has a higher cost.")]
         public WaterCausticsType causticsAlgorithm = WaterCausticsType.Simulation;
         #endregion
 
@@ -264,9 +264,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public int causticsBand = 1;
 
         /// <summary>
-        /// Sets the distance of the virtual caustics receiving plane.
+        /// Sets the distance at which the simulated caustics are projected. High values generate sharper caustics but can cause artefacts.
         /// </summary>
-        [Tooltip("Sets the distance of the virtual caustics receiving plane.")]
+        [Tooltip("Sets the distance at which the simulated caustics are projected. High values generate sharper caustics but can cause artefacts.")]
         public float virtualPlaneDistance = 5.0f;
         #endregion
 
