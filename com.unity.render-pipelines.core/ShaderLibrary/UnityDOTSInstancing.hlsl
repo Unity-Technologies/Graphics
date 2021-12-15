@@ -293,24 +293,24 @@ float2x4 LoadDOTSInstancedData_float2x4(float2x4 default_value, uint metadata)
 
 float4  LoadDOTSInstancedData_RenderingLayer()
 {
-    return float4(asfloat(unity_SampledDOTSVisibleData.VisibleData.z), 0,0,0);
+    return float4(asfloat(unity_DOTSVisibleInstances[0].VisibleData.z), 0,0,0);
 }
 
 float4 LoadDOTSInstancedData_MotionVectorsParams()
 {
-    uint flags = unity_SampledDOTSVisibleData.VisibleData.w;
+    uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
     return float4(0, flags & kDOTSInstancingFlagForceZeroMotion ? 0.0f : 1.0f, -0.001f, flags & kDOTSInstancingFlagCameraMotion ? 0.0f : 1.0f);
 }
 
 float4 LoadDOTSInstancedData_WorldTransformParams()
 {
-    uint flags = unity_SampledDOTSVisibleData.VisibleData.w;
+    uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
     return float4(0, 0, 0, flags & kDOTSInstancingFlagFlipWinding ? -1.0f : 1.0f);
 }
 
 float4 LoadDOTSInstancedData_LightData()
 {
-    uint flags = unity_SampledDOTSVisibleData.VisibleData.w;
+    uint flags = unity_DOTSVisibleInstances[0].VisibleData.w;
     // X channel = light start index (not supported in DOTS instancing)
     // Y channel = light count (not supported in DOTS instancing)
     // Z channel = main light strength
