@@ -14,9 +14,9 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
 {
     private BatchRendererGroup m_BatchRendererGroup;
     private GraphicsBuffer m_GPUPersistentInstanceData;
-    private GraphicsBuffer m_GeometryBuffer;
+    private GraphicsBuffer m_GeometryPositionBuffer;
+    private GraphicsBuffer m_GeometryUV0Buffer;
     private GraphicsBuffer m_GeometryIndexBuffer;
-
     private BatchID m_batchID;
     private bool m_initialized;
 
@@ -412,8 +412,9 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
 
         m_instances = new NativeList<DrawInstance>(1024, Allocator.Persistent);
 
-        var geometryBufferData = new List<Vector3>();
-        var geometryIndexBufferData = new List<int>();
+        var geometryPositionBuffer = new List<Vector3>();
+        var geometryUV0Buffer = new List<Vector2>();
+        var geometryIndexBuffer = new List<int>();
 
         var meshIndexOffsetTable = new Dictionary<Mesh, int>();
         int meshIndexOffset = 0;
@@ -430,7 +431,8 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                 var vertices = mesh.vertices;
 
                 meshIndexOffsetTable.Add(mesh, meshIndexOffset);
-                geometryBufferData.AddRange(vertices);
+                geometryPositionBuffer.AddRange(vertices);
+                geometryUV0Buffer.AddRange(mesh.uv);
 
                 for (int j = 0; j < mesh.subMeshCount; ++j)
                 {
@@ -441,7 +443,7 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                         indices[k] += meshVertexOffset;
                     }
 
-                    geometryIndexBufferData.AddRange(indices);
+                    geometryIndexBuffer.AddRange(indices);
 
                     meshIndexOffset += indices.Length;
                 }
@@ -450,13 +452,17 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
             }
         }
 
-        m_GeometryBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, geometryBufferData.Count, sizeof(Vector3));
-        m_GeometryBuffer.SetData(geometryBufferData);
+        m_GeometryPositionBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, geometryPositionBuffer.Count, sizeof(Vector3));
+        m_GeometryPositionBuffer.SetData(geometryPositionBuffer);
 
-        m_GeometryIndexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Index, geometryIndexBufferData.Count, sizeof(int));
-        m_GeometryIndexBuffer.SetData(geometryIndexBufferData);
+        m_GeometryUV0Buffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, geometryUV0Buffer.Count, sizeof(Vector2));
+        m_GeometryUV0Buffer.SetData(geometryUV0Buffer);
 
-        Shader.SetGlobalBuffer("GeometryBuffer", m_GeometryBuffer);
+        m_GeometryIndexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Index, geometryIndexBuffer.Count, sizeof(int));
+        m_GeometryIndexBuffer.SetData(geometryIndexBuffer);
+
+        Shader.SetGlobalBuffer("GeometryPositionBuffer", m_GeometryPositionBuffer);
+        Shader.SetGlobalBuffer("GeometryUV0Buffer", m_GeometryUV0Buffer);
 
         for (int i = 0; i < renderers.Length; i++)
         {
@@ -682,7 +688,8 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
             // NOTE: Don't need to remove batch or unregister BatchRendererGroup resources. BRG.Dispose takes care of that.
             m_BatchRendererGroup.Dispose();
             m_GPUPersistentInstanceData.Dispose();
-            m_GeometryBuffer.Dispose();
+            m_GeometryPositionBuffer.Dispose();
+            m_GeometryUV0Buffer.Dispose();
             m_GeometryIndexBuffer.Dispose();
 
             m_renderers.Dispose();

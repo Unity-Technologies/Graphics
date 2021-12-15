@@ -1,4 +1,4 @@
-Shader "Hackweek/DrawProcedural"
+Shader "Hackweek/ProceduralUnlit"
 {
     Properties
     {
@@ -64,7 +64,8 @@ Shader "Hackweek/DrawProcedural"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitForwardPass.hlsl"
 
-            ByteAddressBuffer GeometryBuffer;
+            ByteAddressBuffer GeometryPositionBuffer;
+            ByteAddressBuffer GeometryUV0Buffer;
 
             Varyings HackweekVertexProcedural(Attributes input, uint vertexID : SV_VertexID)
             {
@@ -77,13 +78,13 @@ Shader "Hackweek/DrawProcedural"
 
                 int instanceID = unity_InstanceID;
 
-                int stride = 12;
-                float3 position = asfloat(GeometryBuffer.Load3(stride * vertexID));
+                float3 position = asfloat(GeometryPositionBuffer.Load3(3 * 4 * vertexID));
+                float2 uv0 = asfloat(GeometryUV0Buffer.Load2(2 * 4 * vertexID));
 
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(position);
 
                 output.positionCS = vertexInput.positionCS;
-                output.uv = TRANSFORM_TEX(float2(0,0), _BaseMap);
+                output.uv = TRANSFORM_TEX(uv0, _BaseMap);
 
                 return output;
 #else
