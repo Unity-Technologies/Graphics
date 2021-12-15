@@ -1226,7 +1226,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool renderSunDisk;
         }
 
-        public void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, string passName)
+        public void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, string passName, ProfilingSampler sampler = null)
         {
             if (hdCamera.clearColorMode != HDAdditionalCameraData.ClearColorMode.Sky ||
                 // If the luxmeter is enabled, we don't render the sky
@@ -1236,7 +1236,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var skyContext = hdCamera.visualSky;
             if (skyContext.IsValid())
             {
-                using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Sky", out var passData, ProfilingSampler.Get(HDProfileId.RenderSky)))
+                using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Sky", out var passData, profilingSampler))
                 {
                     passData.colorBuffer = builder.WriteTexture(colorBuffer);
                     passData.depthBuffer = builder.WriteTexture(depthBuffer);
