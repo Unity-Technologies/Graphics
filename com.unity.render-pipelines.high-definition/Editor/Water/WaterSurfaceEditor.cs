@@ -58,9 +58,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_WaterMaskOffset;
 
         // Foam
-        SerializedProperty m_SimulationFoamSmoothness;
         SerializedProperty m_SimulationFoamIntensity;
         SerializedProperty m_SimulationFoamAmount;
+        SerializedProperty m_SimulationFoamSmoothness;
         SerializedProperty m_SimulationFoamTiling;
         SerializedProperty m_FoamMask;
         SerializedProperty m_FoamMaskExtent;
@@ -127,9 +127,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CausticsPlaneBlendDistance = o.Find(x => x.causticsPlaneBlendDistance);
 
             // Foam
-            m_SimulationFoamSmoothness = o.Find(x => x.simulationFoamSmoothness);
             m_SimulationFoamIntensity = o.Find(x => x.simulationFoamIntensity);
             m_SimulationFoamAmount = o.Find(x => x.simulationFoamAmount);
+            m_SimulationFoamSmoothness = o.Find(x => x.simulationFoamSmoothness);
             m_SimulationFoamTiling = o.Find(x => x.simulationFoamTiling);
             m_FoamMask = o.Find(x => x.foamMask);
             m_FoamMaskExtent = o.Find(x => x.foamMaskExtent);
@@ -333,9 +333,9 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new IndentLevelScope())
             {
                 // Surface foam
-                m_SimulationFoamSmoothness.floatValue = EditorGUILayout.Slider(k_SimulationFoamSmoothness, m_SimulationFoamSmoothness.floatValue, 0.0f, 1.0f);
                 m_SimulationFoamIntensity.floatValue = EditorGUILayout.Slider(k_SimulationFoamIntensity, m_SimulationFoamIntensity.floatValue, 0.0f, 1.0f);
                 m_SimulationFoamAmount.floatValue = EditorGUILayout.Slider(k_SimulationFoamAmount, m_SimulationFoamAmount.floatValue, 0.0f, 1.0f);
+                m_SimulationFoamSmoothness.floatValue = EditorGUILayout.Slider(k_SimulationFoamSmoothness, m_SimulationFoamSmoothness.floatValue, 0.0f, 1.0f);
                 EditorGUILayout.PropertyField(m_SimulationFoamTiling);
                 m_SimulationFoamTiling.floatValue = Mathf.Max(m_SimulationFoamTiling.floatValue, 0.01f);
 
