@@ -1981,7 +1981,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary> A callback allowing the creation of a new Matrix4x4 based on the lightLocalToWorld matrix </summary>
         public delegate Matrix4x4 CustomViewCallback(Matrix4x4 lightLocalToWorldMatrix);
-		
+
         /// <summary> Change the View matrix for Spot Light </summary>
         public CustomViewCallback CustomViewCallbackEvent;
 
@@ -2230,10 +2230,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         out shadowRequest.view, out invViewProjection, out shadowRequest.projection,
                         out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
                     );
-					if (CustomViewCallbackEvent != null)
+                    if (CustomViewCallbackEvent != null)
                     {
-						shadowRequest.view = CustomViewCallbackEvent(visibleLight.localToWorldMatrix);
-					}
+                        shadowRequest.view = CustomViewCallbackEvent(visibleLight.localToWorldMatrix);
+                    }
                     break;
                 case HDLightType.Directional:
                     UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, shadowIndex, lightIndex, cameraPos, shadowRequest, out invViewProjection);
