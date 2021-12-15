@@ -504,7 +504,7 @@ void EvaluateFoamData(float3 surfaceGradient, float3 lowFrequencySurfaceGradient
     foamTex = PositivePow(foamTex, lerp(2.0, 0.75, saturate(lowFrequencyHeight)));
 
     // Compute the deep foam color
-    float3 deepFoam = _DeepFoamAmount * simulationFoam.x * lerp(0.5, 0.8, saturate(lowFrequencyHeight)) * foamMask.x * _DeepFoamColor;
+    float3 deepFoam = _DeepFoamAmount * simulationFoam.x * lerp(0.5, 0.8, saturate(lowFrequencyHeight)) * foamMask.x * _DeepFoamColor.rgb;
 
     // Compute the top foam color
     float topFoam = saturate((simulationFoam.y + customFoam) * foamMask.y * _SurfaceFoamIntensity * _WindFoamAttenuation * foamTex);
@@ -662,14 +662,14 @@ void EvaluateScatteringData(float3 waterPosRWS, float3 waterNormal, float3 lowFr
     }
 
     // Evaluate the absorption tint
-    float3 absorptionCoefficients = refractedWaterDistance * _OutScatteringCoefficient * (1.f - _TransparencyColor);
+    float3 absorptionCoefficients = refractedWaterDistance * _OutScatteringCoefficient * (1.f - _TransparencyColor.rgb);
     float3 absorptionTint = exp(-absorptionCoefficients);
 
     // Evlaute the scattering color (where the refraction doesn't happen)
     float heightBasedScattering = EvaluateHeightBasedScattering(lowFrequencyHeight);
     float displacementScattering = EvaluateDisplacementScattering(lowFrequencyDisplacement);
     float3 scatteringCoefficients = (displacementScattering + heightBasedScattering) * (1.f - _ScatteringColorTips.rgb);
-    float3 scatteringTint = _ScatteringColorTips * exp(-scatteringCoefficients);
+    float3 scatteringTint = _ScatteringColorTips.rgb * exp(-scatteringCoefficients);
     float lambertCompensation = lerp(_ScatteringLambertLighting.z, _ScatteringLambertLighting.w, sssMask);
     scatteringData.scatteringColor =  scatteringTint * (1.f - absorptionTint) * lambertCompensation * _ScatteringIntensity * (1.0 - foamIntensity);
 

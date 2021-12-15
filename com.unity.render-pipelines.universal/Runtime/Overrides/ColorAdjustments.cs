@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Pushes the intensity of all colors.")]
         public ClampedFloatParameter saturation = new ClampedFloatParameter(0f, -100f, 100f);
 
+        /// <inheritdoc/>
         public bool IsActive()
         {
             return postExposure.value != 0f
@@ -29,6 +30,7 @@ namespace UnityEngine.Rendering.Universal
                 || saturation != 0f;
         }
 
+        /// <inheritdoc/>
         public bool IsTileCompatible() => true;
     }
 }
