@@ -322,6 +322,8 @@ namespace UnityEditor.VFX
 
             if (hasExposure && useExposureWeight)
                 yield return slotExpressions.First(o => o.name == "exposureWeight");
+            if (isRaytraced)
+                yield return slotExpressions.First(o => o.name == "rayTracingDecimationFactor");
         }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
@@ -396,6 +398,9 @@ namespace UnityEditor.VFX
 
                 if (hasExposure && useExposureWeight)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "exposureWeight", new RangeAttribute(0.0f, 1.0f)), 1.0f);
+                if (isRaytraced)
+                    yield return new VFXPropertyWithValue(
+                        new VFXProperty(typeof(uint), "rayTracingDecimationFactor", new MinAttribute(1)), 1);
                 if (HasCustomSortingCriterion())
                 {
                     foreach (var property in PropertiesFromType("InputPropertiesSortKey"))

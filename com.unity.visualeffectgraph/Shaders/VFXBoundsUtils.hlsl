@@ -153,22 +153,28 @@ struct AABB
 
 RWStructuredBuffer<AABB> aabbBuffer;
 
-void FillAabbBuffer(VFXAttributes attributes, float3 size3, uint index, float4x4 worldToLocal)
+void FillAabbBuffer(VFXAttributes attributes, float3 size3, uint index, float4x4 worldToLocal, uint decimationFactor)
 {
     AABB aabb;
-    if (attributes.alive)
+
+    uint aabbIndex = index / decimationFactor;
+    uint remainder = index % decimationFactor;
+    if(remainder == 0)
     {
-        float3 localPos;
-        float radius = GetBoundingRadiusBillboard(attributes, size3, worldToLocal, localPos);
-        aabb.boxMin = localPos - float3(radius, radius, radius);
-        aabb.boxMax = localPos + float3(radius, radius, radius);
-        aabbBuffer[index] = aabb;
-    }
-    else
-    {
-        aabb.boxMin = float3(VFX_NAN, VFX_NAN, VFX_NAN);
-        aabb.boxMax = float3(VFX_NAN, VFX_NAN, VFX_NAN);
-        aabbBuffer[index] = aabb;
+        if (attributes.alive)
+        {
+            float3 localPos;
+            float radius = GetBoundingRadiusBillboard(attributes, size3, worldToLocal, localPos);
+            aabb.boxMin = localPos - float3(radius, radius, radius);
+            aabb.boxMax = localPos + float3(radius, radius, radius);
+            aabbBuffer[aabbIndex] = aabb;
+        }
+        else
+        {
+            aabb.boxMin = float3(VFX_NAN, VFX_NAN, VFX_NAN);
+            aabb.boxMax = float3(VFX_NAN, VFX_NAN, VFX_NAN);
+            aabbBuffer[aabbIndex] = aabb;
+        }
     }
 }
 #endif
