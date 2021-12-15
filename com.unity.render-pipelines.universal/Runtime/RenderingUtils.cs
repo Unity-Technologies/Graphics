@@ -490,8 +490,6 @@ namespace UnityEngine.Rendering.Universal
             if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer)
                 return false;
 
-            return false;
-
             // Should we also check if the format has stencil and check stencil resolve capability only in that case?
             return SystemInfo.supportsMultisampleResolveDepth && SystemInfo.supportsMultisampleResolveStencil;
         }
