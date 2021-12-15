@@ -413,11 +413,11 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
         m_instances = new NativeList<DrawInstance>(1024, Allocator.Persistent);
 
         var geometryBufferData = new List<Vector3>();
-        var geometryIndexBufferData = new List<UInt16>();
+        var geometryIndexBufferData = new List<int>();
 
-        var meshIndexOffsetTable = new Dictionary<Mesh, uint>();
-        uint meshIndexOffset = 0;
-        ushort meshVertexOffset = 0;
+        var meshIndexOffsetTable = new Dictionary<Mesh, int>();
+        int meshIndexOffset = 0;
+        int meshVertexOffset = 0;
 
         for (int i = 0; i < renderers.Length; i++)
         {
@@ -434,27 +434,26 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
 
                 for (int j = 0; j < mesh.subMeshCount; ++j)
                 {
-                    var indices32 = mesh.GetIndices(j);
-                    var indices = new ushort[indices32.Length];
+                    int[] indices = mesh.GetIndices(j);
 
                     for (int k = 0; k < indices.Length; ++k)
                     {
-                        indices[k] = (ushort)(meshVertexOffset + indices32[k]);
+                        indices[k] += meshVertexOffset;
                     }
 
                     geometryIndexBufferData.AddRange(indices);
 
-                    meshIndexOffset += (uint)indices.Length;
+                    meshIndexOffset += indices.Length;
                 }
 
-                meshVertexOffset += (ushort)vertices.Length;
+                meshVertexOffset += vertices.Length;
             }
         }
 
         m_GeometryBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, geometryBufferData.Count, sizeof(Vector3));
         m_GeometryBuffer.SetData(geometryBufferData);
 
-        m_GeometryIndexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Index, geometryIndexBufferData.Count, sizeof(ushort));
+        m_GeometryIndexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Index, geometryIndexBufferData.Count, sizeof(int));
         m_GeometryIndexBuffer.SetData(geometryIndexBufferData);
 
         Shader.SetGlobalBuffer("GeometryBuffer", m_GeometryBuffer);
@@ -503,15 +502,15 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
             for (int matIndex = 0; matIndex < sharedMaterials.Count; matIndex++)
             {
                 uint vertexOffset = 0;
-                uint vertexCount = 0;//(uint)mesh.vertexCount;
+                uint vertexCount = (uint)mesh.vertexCount;
                 uint indexCount = mesh.GetIndexCount(matIndex);
 
-                uint indexOffset;
+                int indexOffset;
                 if (!meshIndexOffsetTable.TryGetValue(mesh, out indexOffset))
                 {
                     Debug.LogError("Could not find mesh in hash map");
                 }
-                indexOffset += mesh.GetIndexStart(matIndex);
+                indexOffset += (int)mesh.GetIndexStart(matIndex);
 
                 var material = m_BatchRendererGroup.RegisterMaterial(sharedMaterials[matIndex]);
 
@@ -522,7 +521,7 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                     vertexCount = vertexCount,
                     vertexOffset = vertexOffset,
                     indexCount = indexCount,
-                    indexOffset = indexOffset,
+                    indexOffset = (uint)indexOffset,
                     indexBufferHandle = m_GeometryIndexBuffer.bufferHandle,
                     instanceCount = 0,
                     instanceOffset = 0
