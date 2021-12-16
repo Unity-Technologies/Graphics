@@ -267,6 +267,7 @@ public unsafe class BRGSetup : MonoBehaviour
     {
         if (m_initialized)
         {
+            m_bufferPool.Dispose();
             m_BatchRendererGroup.RemoveBatch(m_batchID);
             if (m_material) m_BatchRendererGroup.UnregisterMaterial(m_materialID);
             if (m_mesh) m_BatchRendererGroup.UnregisterMesh(m_meshID);
