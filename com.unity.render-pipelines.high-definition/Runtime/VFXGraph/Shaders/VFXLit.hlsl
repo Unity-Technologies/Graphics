@@ -30,10 +30,13 @@
     #ifdef HDRP_MATERIAL_TYPE_SIMPLE
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
         #define _DISABLE_SSR
+        #if defined(SHADER_STAGE_RAY_TRACING)
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLitRayTracing.hlsl"
+        #endif
     #else
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
         #if defined(SHADER_STAGE_RAY_TRACING)
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
         #endif
     #endif
 
@@ -43,10 +46,13 @@
 
     #ifdef HDRP_MATERIAL_TYPE_SIMPLE
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLit.hlsl"
+        #if defined(SHADER_STAGE_RAY_TRACING)
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/SimpleLitRayTracing.hlsl"
+        #endif
     #else
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
         #if defined(SHADER_STAGE_RAY_TRACING)
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
         #endif
     #endif
 #endif // (SHADERPASS == SHADERPASS_FORWARD)
