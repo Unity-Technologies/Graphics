@@ -505,7 +505,8 @@ MonoBehaviour:
   xrCompatible: 1
   xrThresholdMultiplier: 1
   checkMemoryAllocation: 1
-  renderPipelineAsset: {fileID: 0}
+  renderPipelineAsset: {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7,
+    type: 2}
 --- !u!114 &1579749113
 MonoBehaviour:
   m_ObjectHideFlags: 0
