@@ -9,6 +9,9 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.Universal
 {
+    /// <summary>
+    /// Editor script for a <c>ScriptableRendererData</c> class.
+    /// </summary>
     [CustomEditor(typeof(ScriptableRendererData), true)]
     public class ScriptableRendererDataEditor : Editor
     {
@@ -53,6 +56,7 @@ namespace UnityEditor.Rendering.Universal
             ClearEditorsList();
         }
 
+        /// <inheritdoc/>
         public override void OnInspectorGUI()
         {
             if (m_RendererFeatures == null)
