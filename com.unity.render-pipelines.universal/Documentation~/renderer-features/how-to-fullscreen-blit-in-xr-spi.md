@@ -62,7 +62,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
             {
                 //Calling ConfigureInput with the ScriptableRenderPassInput.Color argument ensures that the opaque texture is available to the Render Pass
                 m_RenderPass.ConfigureInput(ScriptableRenderPassInput.Color);
-                m_RenderPass.SetTarget(renderer.cameraColorTarget, m_Intensity);
+                m_RenderPass.SetTarget(renderer.cameraColorTargetHandle, m_Intensity);
             }
         }
 
@@ -96,7 +96,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
     {
         ProfilingSampler m_ProfilingSampler = new ProfilingSampler("ColorBlit");
         Material m_Material;
-        RenderTargetIdentifier m_CameraColorTarget;
+        RTHandle m_CameraColorTarget;
         float m_Intensity;
 
         public ColorBlitPass(Material material)
@@ -105,7 +105,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
             renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
         }
 
-        public void SetTarget(RenderTargetIdentifier colorHandle, float intensity)
+        public void SetTarget(RTHandle colorHandle, float intensity)
         {
             m_CameraColorTarget = colorHandle;
             m_Intensity = intensity;
@@ -113,7 +113,7 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            ConfigureTarget(new RenderTargetIdentifier(m_CameraColorTarget, 0, CubemapFace.Unknown, -1));
+            ConfigureTarget(m_CameraColorTarget);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -129,7 +129,6 @@ Follow these steps to create a [custom Renderer Feature](https://docs.unity3d.co
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 m_Material.SetFloat("_Intensity", m_Intensity);
-                cmd.SetRenderTarget(new RenderTargetIdentifier(m_CameraColorTarget, 0, CubemapFace.Unknown, -1));
                 //The RenderingUtils.fullscreenMesh argument specifies that the mesh to draw is a quad.
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material);
             }
