@@ -309,13 +309,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var maxChannel = color.x > color.y ? color.x : color.y;
             maxChannel = maxChannel > color.z ? maxChannel : color.z;
-            
+
             // This byte value in M will result in the color range [0, 1].
             const float multiplierToByteScale = 32f;
-            
+
             byte m = (byte)Mathf.CeilToInt(maxChannel * multiplierToByteScale);
             color *= 255f * multiplierToByteScale / m;
-            
+
             uint packedOutput = 0;
 
             packedOutput |= (uint)Mathf.Min(255f, color.x) << 0;
@@ -423,6 +423,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             RTHandles.Release(dummyColor);
 #endif
+            _sortedAxisSharpness = -1;
             ProbeVolume.CleanupBuffer(_sortedNeighborAxisLookupsBuffer);
         }
 
