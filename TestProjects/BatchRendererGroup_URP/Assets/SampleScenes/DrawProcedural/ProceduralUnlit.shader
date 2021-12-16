@@ -1,4 +1,4 @@
-Shader "Hackweek/DrawProcedural"
+Shader "Hackweek/ProceduralUnlit"
 {
     Properties
     {
@@ -26,6 +26,12 @@ Shader "Hackweek/DrawProcedural"
         [HideInInspector] _Color("Base Color", Color) = (0.5, 0.5, 0.5, 1)
         [HideInInspector] _SampleGI("SampleGI", float) = 0.0 // needed from bakedlit
     }
+
+    HLSLINCLUDE
+
+    #pragma enable_d3d11_debug_symbols
+
+    ENDHLSL
 
     SubShader
     {
@@ -63,57 +69,31 @@ Shader "Hackweek/DrawProcedural"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitForwardPass.hlsl"
 
-            static const float3 CubeVertices[] =
-            {
-                float3(0.50, -0.50, 0.50),
-                float3(-0.50, -0.50, 0.50),
-                float3(0.50, 0.50, 0.50),
-                float3(-0.50, 0.50, 0.50),
-                float3(0.50, 0.50, -0.50),
-                float3(-0.50, 0.50, -0.50),
-                float3(0.50, -0.50, -0.50),
-                float3(-0.50, -0.50, -0.50),
-                float3(0.50, 0.50, 0.50),
-                float3(-0.50, 0.50, 0.50),
-                float3(0.50, 0.50, -0.50),
-                float3(-0.50, 0.50, -0.50),
-                float3(0.50, -0.50, -0.50),
-                float3(0.50, -0.50, 0.50),
-                float3(-0.50, -0.50, 0.50),
-                float3(-0.50, -0.50, -0.50),
-                float3(-0.50, -0.50, 0.50),
-                float3(-0.50, 0.50, 0.50),
-                float3(-0.50, 0.50, -0.50),
-                float3(-0.50, -0.50, -0.50),
-                float3(0.50, -0.50, -0.50),
-                float3(0.50, 0.50, -0.50),
-                float3(0.50, 0.50, 0.50),
-                float3(0.50, -0.50, 0.50)
-            };
-
-            Varyings HackweekVertexProcedural(Attributes input, uint vertexID : SV_VertexID)
-            {
 #ifdef DOTS_INSTANCING_ON
+
+            ByteAddressBuffer GeometryPositionBuffer;
+            ByteAddressBuffer GeometryUV0Buffer;
+
+            Varyings HackweekVertexProcedural(uint vertexID : SV_VertexID)
+            {
                 Varyings output = (Varyings)0;
 
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_TRANSFER_INSTANCE_ID(input, output);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-
-                int instanceID = unity_InstanceID;
-
-                float3 positionOS = CubeVertices[vertexID];
+                float3 positionOS = asfloat(GeometryPositionBuffer.Load3(3 * 4 * vertexID));
+                float2 uv0 = asfloat(GeometryUV0Buffer.Load2(2 * 4 * vertexID));
 
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS);
 
                 output.positionCS = vertexInput.positionCS;
-                output.uv = TRANSFORM_TEX(float2(0,0), _BaseMap);
+                output.uv = TRANSFORM_TEX(uv0, _BaseMap);
 
                 return output;
-#else
-                return UnlitPassVertex(input);
-#endif
             }
+#else
+            Varyings HackweekVertexProcedural(Attributes input)
+            {
+                return UnlitPassVertex(input);
+            }
+#endif
 
             ENDHLSL
         }
