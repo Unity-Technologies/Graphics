@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a warning because of a null texture in the lens flare pass.
 - Fixed a nullref when enabling raycount without ray tracing.
 - Fixed error thrown when layered lit material has an invalid material type.
+- Fixed AO dissapearing when DRS would be turned off through a camera, while hardware drs is active in DX12 or Vulkan (case 1383093).
 - Fixed HDRP build issues with DOTS_INSTANCING_ON shader variant.
 - Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
 - Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
@@ -68,6 +69,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the water system not working on metal.
 - Fixed the missing debug menus to visualize the ray tracing acceleration structure (case 1371410).
 - Fixed compilation issue related to shader stripping in ray tracing.
+- Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
