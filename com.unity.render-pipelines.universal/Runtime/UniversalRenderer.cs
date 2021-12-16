@@ -237,6 +237,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_CopyDepthPass = new CopyDepthPass(copyDepthAfterTransparents ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial, true);
             m_CopyDepthPass.m_CopyResolvedDepth = RenderingUtils.MultisampleDepthResolveSupported() && copyDepthAfterTransparents;
+
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
@@ -769,8 +770,7 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
                 m_RenderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
 
-                if (SystemInfo.usesLoadStoreActions)
-                    m_RenderOpaqueForwardPass.ConfigureClear(ClearFlag.All, Color.black);
+                m_RenderOpaqueForwardPass.ConfigureClear((cameraData.renderType == CameraRenderType.Base) ? ClearFlag.Color : ClearFlag.None, Color.black);
 
                 EnqueuePass(m_RenderOpaqueForwardPass);
             }

@@ -19,5 +19,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _SsrColorPyramidMaxMip;
         public int _SsrReflectsSky;
         public float _SsrAccumulationAmount;
+
+        public float _SsrPBRSpeedRejection;
+        public float _SsrPBRBias;
+        public float _SsrPRBSpeedRejectionScalerFactor;
+        public float _SsrPBRPad0;
     }
 }
