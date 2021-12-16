@@ -230,6 +230,7 @@ namespace UnityEditor.VFX
                 if (HasFeature(Features.FillRaytracingAABB)) //TODO : helper to check all positional attributes
                 {
                     yield return "VFX_COMPUTE_AABBS";
+                    yield return "VFX_RT_DECIMATION_FACTOR " + output.GetRaytracingDecimationFactor();
                 }
             }
         }

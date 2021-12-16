@@ -153,12 +153,12 @@ struct AABB
 
 RWStructuredBuffer<AABB> aabbBuffer;
 
-void FillAabbBuffer(VFXAttributes attributes, float3 size3, uint index, float4x4 worldToLocal, uint decimationFactor)
+void FillAabbBuffer(VFXAttributes attributes, float3 size3, uint index, float4x4 worldToLocal, int decimationFactor)
 {
     AABB aabb;
+    int aabbIndex = index / decimationFactor;
+    int remainder = index % decimationFactor;
 
-    uint aabbIndex = index / decimationFactor;
-    uint remainder = index % decimationFactor;
     if(remainder == 0)
     {
         if (attributes.alive)

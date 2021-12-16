@@ -2,12 +2,12 @@
             void IntersectionShader()
             {
                 UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
-                
+
                 VFXAttributes attributes;
                 ZERO_INITIALIZE(VFXAttributes, attributes);
-                
+
                 // Index needs to be available in the context for the attribute load to work
-                uint index = PrimitiveIndex();
+                ${VFXGetIndexFromRTPrimitiveIndex}
 
                 // Load the VFX attributes that we need for this
                 ${VFXLoadAttributes}

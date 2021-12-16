@@ -589,7 +589,6 @@ namespace UnityEditor.VFX
 
         public bool NeedsSharedAabbBuffer()
         {
-            //TODO : can lead to useless computation if all outputs have a transform
             return compilableOwners.OfType<VFXAbstractParticleOutput>().Any(o => !o.NeedsOwnAabbBuffer() && o.IsRaytraced());
         }
 
@@ -617,23 +616,21 @@ namespace UnityEditor.VFX
                     outputsSharingAABB.Add(output);
             }
 
-            VFXGPUBufferDesc aabbBufferDesc =
-                new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 24 };
-
             int sharedAABBCount = outputsSharingAABB.Count;
             if (sharedAABBCount > 0)
             {
                 sharedAabbBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(aabbBufferDesc);
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 24 });
                 systemBufferMappings.Add(new VFXMapping("aabbBuffer", sharedAabbBufferIndex));
             }
 
             int outputId = 0;
             foreach (var output in listOutputsOwningAABB)
             {
+                uint aabbBufferSize = (capacity + (uint)output.GetRaytracingDecimationFactor() - 1) / (uint)output.GetRaytracingDecimationFactor();
                 int bufferIndex = outBufferDescs.Count;
                 outputsOwningAABB.Add(output, bufferIndex);
-                outBufferDescs.Add(aabbBufferDesc);
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = aabbBufferSize, stride = 24 });
                 systemBufferMappings.Add(new VFXMapping("aabbBuffer" + outputId++, bufferIndex));
             }
         }

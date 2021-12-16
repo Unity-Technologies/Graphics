@@ -42,7 +42,7 @@
             [shader("closesthit")]
             void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
             {
-                uint index = PrimitiveIndex();
+                ${VFXGetIndexFromRTPrimitiveIndex}
                 VFXAttributes attributes = (VFXAttributes)0;
                 ${VFXLoadAttributes}
                 rayIntersection.color = SampleTexture(VFX_SAMPLER(mainTexture), attributeData.barycentrics) * (1.0f/GetCurrentExposureMultiplier()) *  attributes.color;
@@ -110,7 +110,7 @@
             [shader("intersection")]
             void IntersectionShader()
             {
-                uint index = PrimitiveIndex();
+                ${VFXGetIndexFromRTPrimitiveIndex}
 
                 AABB particleAABB = aabbBuffer[index];
                 float3 boxMin = TransformObjectToWorld(particleAABB.boxMin);

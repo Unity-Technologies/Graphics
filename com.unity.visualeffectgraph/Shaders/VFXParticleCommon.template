@@ -356,4 +356,8 @@ ${VFXBegin:VFXFeedSortingKeys}
                 output.sortKey *= SORTING_SIGN;
 ${VFXEnd}
 
+${VFXBegin:VFXGetIndexFromRTPrimitiveIndex}
+int rayTracingDecimationFactor = VFX_RT_DECIMATION_FACTOR;
+uint index = PrimitiveIndex() * rayTracingDecimationFactor;
+${VFXEnd}
 

@@ -134,7 +134,10 @@ void CSMain(uint3 groupId          : SV_GroupID,
         InitReduction(attributes, size3, tid, worldToLocal);
     #endif
     #if VFX_COMPUTE_AABBS
-        ${VFXLoadParameter:{rayTracingDecimationFactor}}
+        #ifndef VFX_RT_DECIMATION_FACTOR
+        #define VFX_RT_DECIMATION_FACTOR 1
+        #endif
+        int rayTracingDecimationFactor = VFX_RT_DECIMATION_FACTOR;
         FillAabbBuffer(attributes, size3, index, worldToLocal, rayTracingDecimationFactor);
     #endif
 #endif

@@ -124,6 +124,11 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField, Tooltip("When enabled, particles will be participate in the ray traced effects.")]
         protected bool isRaytraced = false;
 
+        [VFXSetting, Delayed, Min(1), SerializeField, Tooltip("Will keep one out of [rayTracingDecimationFactor] particles in the ray traced effects.")]
+        protected int rayTracingDecimationFactor = 1;
+
+
+
 
         protected virtual bool bypassExposure { get { return true; } } // In case exposure weight is not used, tell whether pre exposure should be applied or not
 
@@ -149,6 +154,8 @@ namespace UnityEditor.VFX
         {
             return isRaytraced;
         }
+
+        public int GetRaytracingDecimationFactor() { return rayTracingDecimationFactor; }
 
         public bool needsOwnSort = false;
 
@@ -320,8 +327,11 @@ namespace UnityEditor.VFX
 
             if (hasExposure && useExposureWeight)
                 yield return slotExpressions.First(o => o.name == "exposureWeight");
-            if (isRaytraced)
-                yield return slotExpressions.First(o => o.name == "rayTracingDecimationFactor");
+            // if (isRaytraced)
+            // {
+            //     var namedExpr = slotExpressions.First(o => o.name == "rayTracingDecimationFactor");
+            //     yield return namedExpr;
+            // }
         }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
@@ -396,9 +406,9 @@ namespace UnityEditor.VFX
 
                 if (hasExposure && useExposureWeight)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "exposureWeight", new RangeAttribute(0.0f, 1.0f)), 1.0f);
-                if (isRaytraced)
-                    yield return new VFXPropertyWithValue(
-                        new VFXProperty(typeof(uint), "rayTracingDecimationFactor", new MinAttribute(1)), 1);
+                // if (isRaytraced)
+                //     yield return new VFXPropertyWithValue(
+                //         new VFXProperty(typeof(int), "rayTracingDecimationFactor", new MinAttribute(1)), 1);
                 if (HasCustomSortingCriterion())
                 {
                     foreach (var property in PropertiesFromType("InputPropertiesSortKey"))
@@ -503,6 +513,8 @@ namespace UnityEditor.VFX
 
                 if (HasStrips(false))
                     yield return "HAS_STRIPS";
+                if (isRaytraced)
+                    yield return "VFX_RT_DECIMATION_FACTOR " + rayTracingDecimationFactor;
             }
         }
 
@@ -555,6 +567,9 @@ namespace UnityEditor.VFX
                     yield return "sortMode";
                     yield return "revertSorting";
                 }
+
+                if (!isRaytraced)
+                    yield return "rayTracingDecimationFactor";
             }
         }
 
@@ -736,6 +751,24 @@ namespace UnityEditor.VFX
                             $"The sorting mode depends on the Age attribute, which is neither set nor updated in this system.");
                 }
             }
+
+            if (isRayTraced)
+            {
+                if (GetData().GetGraph().visualEffectResource.cullingFlags.HasFlag(VFXCullingFlags.CullSimulation))
+                {
+                    manager.RegisterError("NoUpdateRaytracing", VFXErrorType.Warning,
+                        $"The ray traced reflection of the effect might appear still when the system bounds are out of the camera view." +
+                        $" Consider using 'Always recompute bounds and simulate' is the Visual Effect Asset inspector ");
+                }
+
+                if (!SystemInfo.supportsRayTracing)
+                {
+                    manager.RegisterError("RaytracingNotSupported", VFXErrorType.Warning,
+                        $"Ray tracing is not supported on this machine. You can still enable it in the graph for a use on another device.");
+                }
+
+            }
+
         }
     }
 }
