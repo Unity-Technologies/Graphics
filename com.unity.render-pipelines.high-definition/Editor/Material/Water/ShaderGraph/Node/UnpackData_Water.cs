@@ -27,14 +27,14 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kLowFrequencyHeightOutputSlotId = 1;
         const string kLowFrequencyHeightSlotName = "LowFrequencyHeight";
 
-        const int kCustomFoamOutputSlotId = 2;
-        const string kCustomFoamSlotName = "CustomFoam";
+        const int kHorizontalDisplacementOutputSlotId = 2;
+        const string kHorizontalDisplacementSlotName = "HorizontalDisplacement";
 
         const int kSSSMaskOutputSlotId = 3;
         const string kSSSMaskSlotName = "SSSMask";
 
-        const int kHorizontalDisplacementOutputSlotId = 4;
-        const string kHorizontalDisplacementSlotName = "HorizontalDisplacement";
+        const int kCustomFoamOutputSlotId = 4;
+        const string kCustomFoamSlotName = "CustomFoam";
 
         public override bool hasPreview { get { return false; } }
 
@@ -45,9 +45,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Outputs
             AddSlot(new Vector1MaterialSlot(kLowFrequencyHeightOutputSlotId, kLowFrequencyHeightSlotName, kLowFrequencyHeightSlotName, SlotType.Output, 0));
-            AddSlot(new Vector1MaterialSlot(kCustomFoamOutputSlotId, kCustomFoamSlotName, kCustomFoamSlotName, SlotType.Output, 0));
-            AddSlot(new Vector1MaterialSlot(kSSSMaskOutputSlotId, kSSSMaskSlotName, kSSSMaskSlotName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(kHorizontalDisplacementOutputSlotId, kHorizontalDisplacementSlotName, kHorizontalDisplacementSlotName, SlotType.Output, 0));
+            AddSlot(new Vector1MaterialSlot(kSSSMaskOutputSlotId, kSSSMaskSlotName, kSSSMaskSlotName, SlotType.Output, 0));
+            AddSlot(new Vector1MaterialSlot(kCustomFoamOutputSlotId, kCustomFoamSlotName, kCustomFoamSlotName, SlotType.Output, 0));
 
             RemoveSlotsNameNotMatching(new[]
             {
@@ -56,9 +56,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Outputs
                 kLowFrequencyHeightOutputSlotId,
-                kCustomFoamOutputSlotId,
+                kHorizontalDisplacementOutputSlotId,
                 kSSSMaskOutputSlotId,
-                kHorizontalDisplacementOutputSlotId
+                kCustomFoamOutputSlotId
             });
         }
 
