@@ -8,7 +8,7 @@
 
 		${VFXShaderTags}
 		${VFXInclude("Shaders/VFXParticleCommon.template")}
-		${VFXOutputRenderState}	
+		${VFXOutputRenderState}
 
 		// Required passes
 		${VFXInclude("Shaders/ParticlePlanarPrimitives/PassSelection.template")}
@@ -22,7 +22,7 @@
 	{
 	    Tags{ "RenderPipeline" = "HDRenderPipeline" }
 
-		${VFXInclude("Shaders/VFXParticleCommonRT.template")}
+		${VFXInclude("Shaders/VFXParticleCommon.template")}
 
 		// Requires passes by ray tracing
 		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/PassVisibilityDXR.template")}

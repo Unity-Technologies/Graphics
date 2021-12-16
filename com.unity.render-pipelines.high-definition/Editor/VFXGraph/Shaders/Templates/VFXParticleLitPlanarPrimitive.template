@@ -5,10 +5,10 @@
 	{
 	    Tags{ "RenderPipeline" = "HDRenderPipeline" }
 		Cull Off
-		
+
 		${VFXShaderTags}
 		${VFXInclude("Shaders/VFXParticleCommon.template")}
-		${VFXOutputRenderState}	
+		${VFXOutputRenderState}
 
 		${VFXIncludeRP("Templates/PlanarPrimitive/PassSelection.template")}
 		${VFXIncludeRP("Templates/PlanarPrimitive/PassDepth.template"),IS_OPAQUE_PARTICLE}
@@ -22,7 +22,7 @@
 	{
 	    Tags{ "RenderPipeline" = "HDRenderPipeline" }
 
-		${VFXInclude("Shaders/VFXParticleCommonRT.template")}
+		${VFXInclude("Shaders/VFXParticleCommon.template")}
 
 		// Requires passes by ray tracing
 		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/PassVisibilityDXRLit.template")}
