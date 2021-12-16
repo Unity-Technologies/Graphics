@@ -1431,8 +1431,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                         srcRt.SetCustomHandleProperties(newProps);
                                         dstRt.SetCustomHandleProperties(newProps);
 
-                                        ScreenCoordOverrideUtils.SetKeyword(ctx.cmd, m_ScreenCoordOverride);
-
                                         // Temporary: see comment above
                                         ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
                                         ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
