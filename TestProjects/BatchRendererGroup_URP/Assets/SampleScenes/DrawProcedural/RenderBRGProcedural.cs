@@ -110,8 +110,6 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
         }
     }
 
-    [SerializeField] Material m_ProceduralLitMaterial;
-
     private BatchRendererGroup m_BatchRendererGroup;
     private GraphicsBuffer m_GPUPersistentInstanceData;
     private GraphicsBuffer m_GeometryPositionBuffer;
@@ -230,6 +228,7 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
             for (int i = 0; i < instanceIndices.Length; i++)
             {
                 var remappedIndex = drawIndices[activeBatch];   // DrawIndices remap to get DrawCommands ordered by DrawRange
+                DrawBatch drawBatch = drawBatches[remappedIndex];
                 var rendererIndex = instanceIndices[i];
                 uint visibleMask = (uint)((rendererVisibility[rendererIndex / 8] >> ((rendererIndex % 8) * 8)) & 0xfful);
 
@@ -248,11 +247,11 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                                 visibleOffset = (uint)batchStartIndex,
                                 visibleCount = (uint)visibleCount,
                                 batchID = batchID,
-                                materialID = drawBatches[remappedIndex].key.material,
+                                materialID = drawBatch.key.material,
                                 regular = new BatchDrawCommandRegular
                                 {
-                                    meshID = drawBatches[remappedIndex].key.meshID,
-                                    submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
+                                    meshID = drawBatch.key.meshID,
+                                    submeshIndex = (ushort)drawBatch.key.submeshIndex,
                                 },
                                 splitVisibilityMask = (ushort)visibleMaskPrev,
                                 sortingPosition = 0
@@ -275,24 +274,6 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                     var visibleCount = outIndex - batchStartIndex;
                     if (visibleCount > 0)
                     {
-                        /*draws.drawCommands[outBatch] = new BatchDrawCommand
-                        {
-                            flags = BatchDrawCommandFlags.None,
-                            visibleOffset = (uint)batchStartIndex,
-                            visibleCount = (uint)visibleCount,
-                            batchID = batchID,
-                            materialID = drawBatches[remappedIndex].key.material,
-                            regular = new BatchDrawCommandRegular
-                            {
-                                meshID = drawBatches[remappedIndex].key.meshID,
-                                submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
-                            },
-                            splitVisibilityMask = (ushort)visibleMaskPrev,
-                            sortingPosition = 0
-                        };*/
-
-                        DrawBatch drawBatch = drawBatches[remappedIndex];
-
                         draws.drawCommands[outBatch] = new BatchDrawCommand
                         {
                             flags = BatchDrawCommandFlags.Procedural | BatchDrawCommandFlags.Indexed,
@@ -564,8 +545,6 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
         Shader.SetGlobalBuffer("GeometryUV0Buffer", m_GeometryUV0Buffer);
         Shader.SetGlobalBuffer("GeometryUV1Buffer", m_GeometryUV1Buffer);
 
-        var allShaders = new HashSet<Shader>();
-
         for (int i = 0; i < renderers.Length; i++)
         {
             var renderer = renderers[i];
@@ -612,6 +591,7 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                 uint vertexOffset = 0;
                 uint vertexCount = (uint)mesh.vertexCount;
                 uint indexCount = mesh.GetIndexCount(matIndex);
+                uint submeshIndex = (uint)matIndex;
 
                 int indexOffset;
                 if (!meshIndexOffsetTable.TryGetValue(mesh, out indexOffset))
@@ -621,17 +601,14 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                 indexOffset += (int)mesh.GetIndexStart(matIndex);
 
                 var material = sharedMaterials[matIndex];
-                allShaders.Add(material.shader);
-                //material.shader = m_ProceduralLitMaterial.shader;
-                //var material = m_ProceduralLitMaterial;
                 var materialID = m_BatchRendererGroup.RegisterMaterial(material);
 
-                var key = new DrawKey { material = materialID, meshID = meshID, submeshIndex = (uint)matIndex, shadows = shadows, pickableObjectInstanceID = instanceID };
+                var key = new DrawKey { material = materialID, meshID = meshID, submeshIndex = submeshIndex, shadows = shadows, pickableObjectInstanceID = instanceID };
                 var drawBatch = new DrawBatch
                 {
                     key = key,
-                    vertexCount = vertexCount,
                     vertexOffset = vertexOffset,
+                    vertexCount = vertexCount,
                     indexCount = indexCount,
                     indexOffset = (uint)indexOffset,
                     indexBufferHandle = m_GeometryIndexBuffer.bufferHandle,
@@ -680,11 +657,6 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                 drawBatch.instanceCount++;
                 m_drawBatches[drawBatchIndex] = drawBatch;
             }
-        }
-
-        foreach (var s in allShaders)
-        {
-            Debug.Log(s.name);
         }
 
         m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Raw, (int)bigDataBufferVector4Count * 16 / 4, 4);
