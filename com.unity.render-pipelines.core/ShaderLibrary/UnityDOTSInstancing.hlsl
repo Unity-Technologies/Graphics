@@ -329,6 +329,7 @@ ByteAddressBuffer GeometryPositionBuffer;
 ByteAddressBuffer GeometryNormalBuffer;
 ByteAddressBuffer GeometryTangentBuffer;
 ByteAddressBuffer GeometryUV0Buffer;
+ByteAddressBuffer GeometryUV1Buffer;
 
 float3 LoadBRGProcedural_Position(uint vertexID)
 {
@@ -348,6 +349,16 @@ float4 LoadBRGProcedural_Tangent(uint vertexID)
 float2 LoadBRGProcedural_UV0(uint vertexID)
 {
     return asfloat(GeometryUV0Buffer.Load2(2 * 4 * vertexID));
+}
+
+float2 LoadBRGProcedural_UV1(uint vertexID)
+{
+    return asfloat(GeometryUV1Buffer.Load2(2 * 4 * vertexID));
+}
+
+float2 LoadBRGProcedural_UV2(uint vertexID)
+{
+    return float2(0,0);
 }
 
 float2 LoadBRGProcedural_StaticLightmapUV(uint vertexID)

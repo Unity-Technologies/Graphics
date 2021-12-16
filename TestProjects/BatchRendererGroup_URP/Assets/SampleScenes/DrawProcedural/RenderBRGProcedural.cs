@@ -118,6 +118,7 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
     private GraphicsBuffer m_GeometryNormalBuffer;
     private GraphicsBuffer m_GeometryTangentBuffer;
     private GraphicsBuffer m_GeometryUV0Buffer;
+    private GraphicsBuffer m_GeometryUV1Buffer;
     private GraphicsBuffer m_GeometryIndexBuffer;
     private BatchID m_batchID;
     private bool m_initialized;
@@ -427,46 +428,25 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
         return jobHandleOutput;
     }
 
-#if UNITY_EDITOR
-    public static Material LoadPickingMaterial()
-    {
-        Shader shader = Shader.Find("Hidden/Universal Render Pipeline/BRGPicking");
-
-        if (shader == null) return null;
-
-        Material material = new Material(shader);
-
-        // Prevent Material unloading when switching scene
-        material.hideFlags = HideFlags.HideAndDontSave;
-
-        return material;
-    }
-
-    Material m_pickingMaterial;
-
-#endif
-
 
     // Start is called before the first frame update
     void Start()
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
-#if UNITY_EDITOR
-        m_pickingMaterial = LoadPickingMaterial();
-        m_BatchRendererGroup.SetPickingMaterial(m_pickingMaterial);
-#endif
         var allRenderers = FindObjectsOfType<MeshRenderer>();
 
         Debug.Log("Converting " + allRenderers.Length + " renderers...");
 
         var renderers = allRenderers.Where((MeshRenderer renderer) =>
         {
-            if (!renderer) return false;
+            if (!renderer || !renderer.enabled || renderer.material.shader == null) return false;
 
             var meshFilter = renderer.GetComponent<MeshFilter>();
 
-            return meshFilter != null && meshFilter.sharedMesh != null && renderer.enabled;
+            if (meshFilter == null || meshFilter.sharedMesh == null) return false;
+
+            return true;
         })
         .ToArray();
 
@@ -518,6 +498,7 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
         var geometryNormalBuffer = new List<Vector3>();
         var geometryTangentBuffer = new List<Vector4>();
         var geometryUV0Buffer = new List<Vector2>();
+        var geometryUV1Buffer = new List<Vector2>();
         var geometryIndexBuffer = new List<int>();
 
         var meshIndexOffsetTable = new Dictionary<Mesh, int>();
@@ -539,6 +520,7 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                 geometryNormalBuffer.AddRange(mesh.normals);
                 geometryTangentBuffer.AddRange(mesh.tangents);
                 geometryUV0Buffer.AddRange(mesh.uv);
+                geometryUV1Buffer.AddRange(mesh.uv2);
 
                 for (int j = 0; j < mesh.subMeshCount; ++j)
                 {
@@ -570,6 +552,9 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
         m_GeometryUV0Buffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, geometryUV0Buffer.Count, sizeof(Vector2));
         m_GeometryUV0Buffer.SetData(geometryUV0Buffer);
 
+        m_GeometryUV1Buffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, geometryUV1Buffer.Count, sizeof(Vector2));
+        m_GeometryUV1Buffer.SetData(geometryUV1Buffer);
+
         m_GeometryIndexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Index, geometryIndexBuffer.Count, sizeof(int));
         m_GeometryIndexBuffer.SetData(geometryIndexBuffer);
 
@@ -577,6 +562,9 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
         Shader.SetGlobalBuffer("GeometryNormalBuffer", m_GeometryNormalBuffer);
         Shader.SetGlobalBuffer("GeometryTangentBuffer", m_GeometryTangentBuffer);
         Shader.SetGlobalBuffer("GeometryUV0Buffer", m_GeometryUV0Buffer);
+        Shader.SetGlobalBuffer("GeometryUV1Buffer", m_GeometryUV1Buffer);
+
+        var allShaders = new HashSet<Shader>();
 
         for (int i = 0; i < renderers.Length; i++)
         {
@@ -632,8 +620,10 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                 }
                 indexOffset += (int)mesh.GetIndexStart(matIndex);
 
-                //var material = sharedMaterials[matIndex];
-                var material = m_ProceduralLitMaterial;
+                var material = sharedMaterials[matIndex];
+                allShaders.Add(material.shader);
+                //material.shader = m_ProceduralLitMaterial.shader;
+                //var material = m_ProceduralLitMaterial;
                 var materialID = m_BatchRendererGroup.RegisterMaterial(material);
 
                 var key = new DrawKey { material = materialID, meshID = meshID, submeshIndex = (uint)matIndex, shadows = shadows, pickableObjectInstanceID = instanceID };
@@ -690,6 +680,11 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                 drawBatch.instanceCount++;
                 m_drawBatches[drawBatchIndex] = drawBatch;
             }
+        }
+
+        foreach (var s in allShaders)
+        {
+            Debug.Log(s.name);
         }
 
         m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Raw, (int)bigDataBufferVector4Count * 16 / 4, 4);
@@ -808,6 +803,7 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
             m_GeometryNormalBuffer.Dispose();
             m_GeometryTangentBuffer.Dispose();
             m_GeometryUV0Buffer.Dispose();
+            m_GeometryUV1Buffer.Dispose();
             m_GeometryIndexBuffer.Dispose();
 
             m_renderers.Dispose();
@@ -818,10 +814,6 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
             m_instances.Dispose();
             m_instanceIndices.Dispose();
             m_drawIndices.Dispose();
-
-#if UNITY_EDITOR
-            DestroyImmediate(m_pickingMaterial);
-#endif
         }
     }
 }
