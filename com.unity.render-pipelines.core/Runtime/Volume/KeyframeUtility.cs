@@ -192,7 +192,7 @@ namespace UnityEngine.Rendering
         /// in the curve, this method will create a new curve from the union of times between both curves. However, to avoid creating
         /// garbage, this function will always replace the keys of lhsCurve with the final result, and return lhsCurve.
         /// </summary>
-        /// <param name="lhsAndRetCurve">The start value. Additionaly, this instance will be reused and returned as the result.</param>
+        /// <param name="lhsAndResultCurve">The start value. Additionaly, this instance will be reused and returned as the result.</param>
         /// <param name="rhsCurve">The end value.</param>
         /// <param name="t">The interpolation factor in range [0,1].</param>
         static public void InterpAnimationCurve(ref AnimationCurve lhsAndResultCurve, [DisallowNull] AnimationCurve rhsCurve, float t)
