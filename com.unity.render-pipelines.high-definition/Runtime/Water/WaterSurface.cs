@@ -224,9 +224,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public enum WaterCausticsType
         {
-            // The water simulation is used to evaluate the caustics.
+            /// <summary>
+            /// The water simulation is used to evaluate the caustics.
+            /// </summary>
             Simulation,
-            // A procedural approach is used for the caustics
+            /// <summary>
+            /// A procedural approach is used for the caustics
+            /// </summary>
             Procedural
         }
 
@@ -243,11 +247,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public enum WaterCausticsResolution
         {
-            // The water caustics are rendered at 256x256
+            /// <summary>
+            /// The water caustics are rendered at 256x256
+            /// </summary>
             Caustics256 = 256,
-            // The water caustics are rendered at 512x512
+            /// <summary>
+            /// The water caustics are rendered at 512x512
+            /// </summary>
             Caustics512 = 512,
-            // The water caustics are rendered at 1024x1024
+            /// <summary>
+            /// The water caustics are rendered at 1024x1024
+            /// </summary>
             Caustics1024 = 1024,
         }
 
