@@ -4,7 +4,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(GradientSky))]
+    [CustomEditor(typeof(GradientSky))]
     class GradientSkySettingsEditor : SkySettingsEditor
     {
         SerializedDataParameter m_Bottom;

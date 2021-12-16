@@ -5,37 +5,37 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    public static class SimpleLitGUI
+    internal static class SimpleLitGUI
     {
-        public enum SpecularSource
+        internal enum SpecularSource
         {
             SpecularTextureAndColor,
             NoSpecular
         }
 
-        public enum SmoothnessMapChannel
+        internal enum SmoothnessMapChannel
         {
             SpecularAlpha,
             AlbedoAlpha,
         }
 
-        public static class Styles
+        private static class Styles
         {
             public static GUIContent specularMapText =
                 EditorGUIUtility.TrTextContent("Specular Map", "Designates a Specular Map and specular color determining the apperance of reflections on this Material's surface.");
         }
 
-        public struct SimpleLitProperties
+        internal struct SimpleLitProperties
         {
             // Surface Input Props
-            public MaterialProperty specColor;
-            public MaterialProperty specGlossMap;
-            public MaterialProperty specHighlights;
-            public MaterialProperty smoothnessMapChannel;
-            public MaterialProperty smoothness;
-            public MaterialProperty bumpMapProp;
+            internal MaterialProperty specColor;
+            internal MaterialProperty specGlossMap;
+            internal MaterialProperty specHighlights;
+            internal MaterialProperty smoothnessMapChannel;
+            internal MaterialProperty smoothness;
+            internal MaterialProperty bumpMapProp;
 
-            public SimpleLitProperties(MaterialProperty[] properties)
+            internal SimpleLitProperties(MaterialProperty[] properties)
             {
                 // Surface Input Props
                 specColor = BaseShaderGUI.FindProperty("_SpecColor", properties);
@@ -47,13 +47,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
         }
 
-        public static void Inputs(SimpleLitProperties properties, MaterialEditor materialEditor, Material material)
+        internal static void Inputs(SimpleLitProperties properties, MaterialEditor materialEditor, Material material)
         {
             DoSpecularArea(properties, materialEditor, material);
             BaseShaderGUI.DrawNormalArea(materialEditor, properties.bumpMapProp);
         }
 
-        public static void Advanced(SimpleLitProperties properties)
+        internal static void Advanced(SimpleLitProperties properties)
         {
             SpecularSource specularSource = (SpecularSource)properties.specHighlights.floatValue;
             EditorGUI.BeginChangeCheck();
@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             EditorGUI.showMixedValue = false;
         }
 
-        public static void DoSpecularArea(SimpleLitProperties properties, MaterialEditor materialEditor, Material material)
+        internal static void DoSpecularArea(SimpleLitProperties properties, MaterialEditor materialEditor, Material material)
         {
             SpecularSource specSource = (SpecularSource)properties.specHighlights.floatValue;
             EditorGUI.BeginDisabledGroup(specSource == SpecularSource.NoSpecular);
@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             EditorGUI.EndDisabledGroup();
         }
 
-        public static void SetMaterialKeywords(Material material)
+        internal static void SetMaterialKeywords(Material material)
         {
             UpdateMaterialSpecularSource(material);
         }

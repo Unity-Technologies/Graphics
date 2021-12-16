@@ -111,19 +111,17 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                     float LdotV    = -dot(L, V);
                     float rad      = acos(LdotV);
                     float radInner = 0.5 * light.angularDiameter;
-                    float cosInner = cos(radInner);
-                    float cosOuter = cos(radInner + light.flareSize);
 
-                    float solidAngle = TWO_PI * (1 - cosInner);
+                    float solidAngle = TWO_PI * (1 - light.flareCosInner);
 
-                    if (LdotV >= cosOuter)
+                    if (LdotV >= light.flareCosOuter)
                     {
                         // Sun flare is visible. Sun disk may or may not be visible.
                         // Assume uniform emission.
                         float3 color = light.color.rgb;
                         float  scale = rcp(solidAngle);
 
-                        if (LdotV >= cosInner) // Sun disk.
+                        if (LdotV >= light.flareCosInner) // Sun disk.
                         {
                             tFrag = lightDist;
 
@@ -132,7 +130,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                                 // The cookie code de-normalizes the axes.
                                 float2 proj   = float2(dot(-V, normalize(light.right)), dot(-V, normalize(light.up)));
                                 float2 angles = HALF_PI - acos(proj);
-                                float2 uv     = angles * rcp(radInner) * 0.5 + 0.5;
+                                float2 uv     = angles * rcp(radInner) * float2(-0.5, 0.5) + 0.5;
 
                                 color *= SampleCookie2D(uv, light.surfaceTextureScaleOffset);
                                 // color *= SAMPLE_TEXTURE2D_ARRAY(_CookieTextures, s_linear_clamp_sampler, uv, light.surfaceTextureIndex).rgb;

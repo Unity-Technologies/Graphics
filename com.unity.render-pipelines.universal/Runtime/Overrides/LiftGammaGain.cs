@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Use this to increase and apply a hue to the signal and make highlights brighter.")]
         public Vector4Parameter gain = new Vector4Parameter(new Vector4(1f, 1f, 1f, 0f));
 
+        /// <inheritdoc/>
         public bool IsActive()
         {
             var defaultState = new Vector4(1f, 1f, 1f, 0f);
@@ -22,6 +23,7 @@ namespace UnityEngine.Rendering.Universal
                 || gain != defaultState;
         }
 
+        /// <inheritdoc/>
         public bool IsTileCompatible() => true;
     }
 }

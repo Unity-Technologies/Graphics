@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using UnityEditor.Graphing;
 using UnityEngine;
-using UnityEditor.UIElements;
+
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Slots

@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!162 &1
+EditorUserSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 4
+  m_ConfigSettings:
+    RecentlyUsedSceneGuid-0:
+      value: 5606575604560f585b5c5f2612255c44464f19792a7e7f31282a4430e1b8626b
+      flags: 0
+    RecentlyUsedSceneGuid-1:
+      value: 5308005e0002505a5a0a0d7713215e4415161a7d747975357a784b35e7e36139
+      flags: 0
+    RecentlyUsedScenePath-0:
+      value: 22424703114646680c031c2e15105c1518120b65182d35241e22143dece53015e7f43eecf475131e0a31fa3e373d0431f7441c05ff1f13
+      flags: 0
+    RecentlyUsedScenePath-1:
+      value: 22424703114646680c031c2e15105c1518120b65182d35241e22143dece53015e7f43eecf4751c333412fa28010d143dc1090c05f3451f05181ae4
+      flags: 0
+    RecentlyUsedScenePath-2:
+      value: 22424703114646680c031c2e15105c1518120b65182d35241e22143dece53015e7f43eecf4742a323016f6
+      flags: 0
+    RecentlyUsedScenePath-3:
+      value: 224247031146466f081d18315f065b1902180a65092c2f2420261936d6e5272cf1a813edee2e32333d07d06c546f4f2afc031d12
+      flags: 0
+    UnityEditor.ShaderGraph.FloatingWindowsLayout2:
+      value: 181344140043005e1a220d3b1f364b524c0c5a27130c293326201334cee5322ca0bd30e8eb293a707b0fd0180b3d0a36fc0d3d04e649500d1002ee0b5dbd1d2c27c00ad113cb1e10e41f1addc80993b9859884a69ae6d8f0d1cda9e8fbfefaf9f9dea3fdb9ade882f0ffb0e1e380cafbf2c3adc18e9cd285a2908b87ee819c80808fdc868bd48c888ed8eccfbbd2fdf0c0f7eac1ccfcc0f3cac9c5e039e5f737317a75f6febaba81beb26f8c736280a4736e896c63c8d597cb9f40a89b8d9a864c9db59e408fd8c1758c589b2d0d6d5c455a6b5e6356685854792e04497f3476696429451e7e653c272c314e6b46785b405577116b761c1c7832712930405e4e5e54135550795f51192735615476766d796a572b162421312c5f6a0670f8756eb7646da8b579ab22afb4bb54a24d6fedebbbba070d1b12151f39ef16d4c9110ff1ce0ccc8540045e01a09548b44eaf4f9ea8f0a98cb8b3b2bfb784b7a88ca8aaa7f1a0f1a9ffa8e1b6
+      flags: 0
+    vcSharedLogLevel:
+      value: 0d5e400f0650
+      flags: 0
+  m_VCAutomaticAdd: 1
+  m_VCDebugCom: 0
+  m_VCDebugCmd: 0
+  m_VCDebugOut: 0
+  m_SemanticMergeMode: 2
+  m_DesiredImportWorkerCount: 32
+  m_StandbyImportWorkerCount: 2
+  m_IdleImportWorkerShutdownDelay: 60000
+  m_VCShowFailedCheckout: 1
+  m_VCOverwriteFailedCheckoutAssets: 1
+  m_VCProjectOverlayIcons: 1
+  m_VCHierarchyOverlayIcons: 1
+  m_VCOtherOverlayIcons: 1
+  m_VCAllowAsyncUpdate: 0
+  m_ArtifactGarbageCollection: 1

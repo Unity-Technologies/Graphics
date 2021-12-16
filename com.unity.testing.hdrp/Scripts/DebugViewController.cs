@@ -20,6 +20,8 @@ public class DebugViewController : MonoBehaviour
     [Header("Lighting")]
     [SerializeField] bool lightlayers = false;
     [SerializeField] int lightingFullScreenDebugMode = 0;
+    [SerializeField] int lightingFullScreenDebugRTASView = 0;
+    [SerializeField] int lightingFullScreenDebugRTASMode = 0;
 
     [ContextMenu("Set Debug View")]
     public void SetDebugView()
@@ -35,6 +37,11 @@ public class DebugViewController : MonoBehaviour
                 hdPipeline.debugDisplaySettings.SetDebugLightLayersMode(lightlayers);
                 hdPipeline.debugDisplaySettings.data.lightingDebugSettings.debugLightLayersFilterMask = (DebugLightLayersMask)0b10111101;
                 hdPipeline.debugDisplaySettings.SetFullScreenDebugMode((FullScreenDebugMode)lightingFullScreenDebugMode);
+                if ((FullScreenDebugMode)lightingFullScreenDebugMode == FullScreenDebugMode.RayTracingAccelerationStructure)
+                {
+                    hdPipeline.debugDisplaySettings.SetRTASDebugMode((RTASDebugMode)lightingFullScreenDebugRTASMode);
+                    hdPipeline.debugDisplaySettings.SetRTASDebugView((RTASDebugView)lightingFullScreenDebugRTASView);
+                }
                 break;
             case SettingType.Rendering:
                 hdPipeline.debugDisplaySettings.SetFullScreenDebugMode((FullScreenDebugMode)fullScreenDebugMode);

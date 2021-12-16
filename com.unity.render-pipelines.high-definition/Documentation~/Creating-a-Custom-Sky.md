@@ -10,13 +10,13 @@ To create your own sky, create some scripts to handle the following:
 
 ## Using your sky renderer
 
-When you complete all of the above steps, your new sky automatically appears in the **Sky Type** drop-down in the [Visual Environment](Override-Visual-Environment.md) override for [Volumes](Volumes.md) in your Unity Project.
+When you complete the above steps, your new sky automatically appears in the **Sky Type** drop-down in the [Visual Environment](Override-Visual-Environment.md) override for [Volumes](Volumes.md) in your Unity Project.
 
 <a name="SkySettings"></a>
 
 ## Sky Settings
 
-Firstly, create a new class that inherits from **SkySettings**. This new class contains all of the properties specific to the particular sky renderer you want.
+Create a new class that inherits from [**SkySettings**](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/api/UnityEngine.Rendering.HighDefinition.SkySettings.html). This new class contains all the properties specific to the particular sky renderer you want.
 
 You must include the following in this class:
 
@@ -72,7 +72,7 @@ public class NewSky : SkySettings
 
 ## Sky Renderer
 
-Now you must create the class that actually renders the sky, either into a cubemap for lighting or visually for the background. This is where you must implement specific rendering features.
+You must create the class that renders the sky either into a cubemap for lighting or visually for the background. This is where you must implement specific rendering features.
 
 Your SkyRenderer must implement the SkyRenderer interface:
 ```c#
@@ -148,7 +148,7 @@ class NewSkyRenderer : SkyRenderer
     // Project dependent way to retrieve a shader.
     Shader GetNewSkyShader()
     {
-        // Implement me
+        // Implement your shader here to render it.
         return null;
     }
 
@@ -164,7 +164,7 @@ class NewSkyRenderer : SkyRenderer
 
     public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
     {
-        using (new ProfilingSample(builtinParams.commandBuffer, "Draw sky"))
+        using (new ProfilingScope(builtinParams.commandBuffer, "Draw sky"))
         {
             var newSky = builtinParams.skySettings as NewSky;
 
@@ -183,16 +183,19 @@ class NewSkyRenderer : SkyRenderer
 
 ```
 ### Important note:
-If your sky renderer has to manage heavy data (like precomputed textures or similar things) then particular care has to be taken. Indeed, one instance of the renderer will exist per camera so by default if this data is a member of the renderer, it will also be duplicated in memory.
-Since each sky renderer can have very different needs, the responsbility to share this kind of data is the renderer's and need to be implemented by the user.
+If your sky renderer has to manage heavy data (for example, precomputed textures) then take particular care. One instance of the renderer exists for each Camera. By default, if this data is a member of the renderer, HDRP also duplicates it in memory.
+Each sky renderer can have different needs. This means the responsbility to share this kind of data is the renderer's and you need to implement it manually.
 
 <a name="RenderingShader"></a>
 
 ## Sky rendering Shader
 
-Finally, you need to actually create the Shader for your sky. The content of this Shader depends on the effects you want to include.
+The content of your sky Shader depends on the effects you want to include.
 
-For example, here’s the [HDRI sky](Override-HDRI-Sky.md) implementation of the SkyRenderer.
+For example, the below code describes the [HDRI sky](Override-HDRI-Sky.md) implementation of the SkyRenderer.
+
+The following example uses two passes. The first pass uses a depth test to render the sky in the background (so that geometry occludes it correctly). The second pass doesn't use a Depth Test and renders the sky into the reflection cubemap:
+
 ```
 Shader "Hidden/HDRP/Sky/NewSky"
 {
@@ -312,4 +315,3 @@ Shader "Hidden/HDRP/Sky/NewSky"
 }
 
 ```
-**Note**: The NewSky example uses two passes, one that uses a Depth Test for rendering the sky in the background (so that geometry occludes it correctly), and the other that does not use a Depth Test and renders the sky into the reflection cubemap.

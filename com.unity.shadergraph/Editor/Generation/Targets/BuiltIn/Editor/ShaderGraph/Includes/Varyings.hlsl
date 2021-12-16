@@ -111,10 +111,6 @@ Varyings BuildVaryings(Attributes input)
     output.color = input.color;
 #endif
 
-#ifdef VARYINGS_NEED_VIEWDIRECTION_WS
-    output.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
-#endif
-
 #ifdef VARYINGS_NEED_SCREENPOSITION
     output.screenPosition = vertexInput.positionNDC;
 #endif
