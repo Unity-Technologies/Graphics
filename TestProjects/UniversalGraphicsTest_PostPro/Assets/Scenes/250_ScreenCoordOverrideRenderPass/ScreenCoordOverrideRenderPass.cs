@@ -23,7 +23,11 @@ public class ScreenCoordOverrideRenderPass : ScriptableRenderPass
 
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
-        Assert.IsNotNull(m_Material);
+        // Why can't we rely on the API implied lifecycle?
+        if (m_Material == null)
+        {
+            return;
+        }
 
         var target = renderingData.cameraData.renderer.cameraColorTargetHandle;
         var descriptor = renderingData.cameraData.cameraTargetDescriptor;
