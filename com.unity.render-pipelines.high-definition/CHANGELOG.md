@@ -82,6 +82,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed potential asymmetrical resource release in the volumetric clouds (case 1388218).
 - Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
 - Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
+- Fixed the intensity of the sky being reduced signficantly even if there is no clouds (case 1388279).
 - Fixed a crash with render graph viewer when render graph is not provided with an execution name.
 
 ### Changed
