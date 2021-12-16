@@ -229,7 +229,6 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_ActiveWaterSimulation = false;
         MaterialPropertyBlock m_WaterMaterialPropertyBlock;
         ShaderVariablesWater m_ShaderVariablesWater = new ShaderVariablesWater();
-        ShaderVariablesWaterRendering m_ShaderVariablesWaterRendering = new ShaderVariablesWaterRendering();
         WaterSimulationResolution m_WaterBandResolution = WaterSimulationResolution.Medium128;
 
         // Handles the water profiles
