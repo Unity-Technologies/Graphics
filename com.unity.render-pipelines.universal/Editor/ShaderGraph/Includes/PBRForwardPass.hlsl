@@ -54,9 +54,45 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     #endif
 }
 
-PackedVaryings vert(Attributes input)
+PackedVaryings vert
+(
+#ifdef BRG_DRAW_PROCEDURAL
+    uint vertexID : SV_VertexID
+#else
+    Attributes input
+#endif
+)
 {
     Varyings output = (Varyings)0;
+
+#ifdef BRG_DRAW_PROCEDURAL
+    Attributes input = (Attributes)0;
+
+    #if defined(KEYWORD_PERMUTATION_0) || defined(KEYWORD_PERMUTATION_1)
+        input.positionOS = LoadBRGProcedural_Position(vertexID);
+    #endif
+    #if defined(KEYWORD_PERMUTATION_0) || defined(KEYWORD_PERMUTATION_1)
+        input.normalOS = LoadBRGProcedural_Normal(vertexID);
+    #endif
+    #if defined(KEYWORD_PERMUTATION_0) || defined(KEYWORD_PERMUTATION_1)
+        input.tangentOS = LoadBRGProcedural_Tangent(vertexID);
+    #endif
+    #if defined(KEYWORD_PERMUTATION_0) || defined(KEYWORD_PERMUTATION_1)
+        input.uv0 = float4(LoadBRGProcedural_UV0(vertexID), 0, 0);
+    #endif
+    #if defined(KEYWORD_PERMUTATION_0) || defined(KEYWORD_PERMUTATION_1)
+        input.uv1 = float4(LoadBRGProcedural_UV1(vertexID), 0, 0);
+    #endif
+    #if defined(KEYWORD_PERMUTATION_0) || defined(KEYWORD_PERMUTATION_1)
+        input.uv2 = float4(LoadBRGProcedural_UV2(vertexID), 0, 0);
+    #endif
+    #if UNITY_ANY_INSTANCING_ENABLED
+    #if defined(KEYWORD_PERMUTATION_0) || defined(KEYWORD_PERMUTATION_1)
+        input.instanceID = unity_InstanceID;
+    #endif
+    #endif
+#endif
+
     output = BuildVaryings(input);
     PackedVaryings packedOutput = (PackedVaryings)0;
     packedOutput = PackVaryings(output);
