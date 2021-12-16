@@ -155,21 +155,21 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_Choppiness = EditorGUIUtility.TrTextContent("Choppiness", "Controls the choppiness factor the waves. Higher values may introduce visual artifacts.");
         static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Controls the speed of the water simulation.This allows to slow down the wave's speed or to accelerate it.");
         static public readonly GUIContent k_WaterSmoothness = EditorGUIUtility.TrTextContent("Water Smoothness", "Control the smoothness used to render the water surface.");
-        static public readonly GUIContent k_MaxRefractionDistance = EditorGUIUtility.TrTextContent("Maximum Refraction Distance", "Controls the maximum distance used to clamp the under water refraction depth.");
-        static public readonly GUIContent k_MaxAbsorptionDistance = EditorGUIUtility.TrTextContent("Maximum Absorption Distance", "Controls the maximum distance that the camera can perceive under the water surface.");
+        static public readonly GUIContent k_MaxRefractionDistance = EditorGUIUtility.TrTextContent("Maximum Refraction Distance", "Controls the maximum distance in meters used to clamp the under water refraction depth. Higher value increases the distortion amount.");
+        static public readonly GUIContent k_MaxAbsorptionDistance = EditorGUIUtility.TrTextContent("Maximum Absorption Distance", "Controls the maximum distance in meters that the camera can perceive under the water surface.");
 
-        static public readonly GUIContent k_ScatteringFactor = EditorGUIUtility.TrTextContent("Scattering Factor", "Controls the color that is used to simulate the under-water scattering.");
-        static public readonly GUIContent k_HeightScattering = EditorGUIUtility.TrTextContent("Height Scattering", "Controls the intensity of the height based scattering.");
-        static public readonly GUIContent k_DisplacementScattering = EditorGUIUtility.TrTextContent("Displacement Scattering", "Controls the intensity of the displacement based scattering.");
-        static public readonly GUIContent k_DirectLightTipScattering = EditorGUIUtility.TrTextContent("Direct Light Tip Scattering", "Controls the intensity of the direct light scattering on the tip of the waves.");
-        static public readonly GUIContent k_DirectLightBodyScattering = EditorGUIUtility.TrTextContent("Direct Light Body Scattering", "Controls the intensity of the direct light scattering on the tip of the waves.");
+        static public readonly GUIContent k_ScatteringFactor = EditorGUIUtility.TrTextContent("Scattering Factor", "Controls the multiplier that is used to simulate the under-water scattering globally.");
+        static public readonly GUIContent k_HeightScattering = EditorGUIUtility.TrTextContent("Height Scattering", "Controls the intensity of the height based scattering. The higher the vertical displacement, the more the water receives scattering. This can be adjusted for artistic purposes.");
+        static public readonly GUIContent k_DisplacementScattering = EditorGUIUtility.TrTextContent("Displacement Scattering", "Controls the intensity of the displacement based scattering. The bigger horizontal displacement, the more the water receives scattering. This can be adjusted for artistic purposes.");
+        static public readonly GUIContent k_DirectLightTipScattering = EditorGUIUtility.TrTextContent("Direct Light Tip Scattering", "Controls the intensity of the direct light scattering on the tip of the waves. The effect is more perceivable at grazing angles.");
+        static public readonly GUIContent k_DirectLightBodyScattering = EditorGUIUtility.TrTextContent("Direct Light Body Scattering", "Controls the intensity of the direct light scattering on the body of the waves. The effect is more perceivable at grazing angles.");
 
         static public readonly GUIContent k_CausticsDispersionAmount = EditorGUIUtility.TrTextContent("Caustics Dispersion Amount", "Controls the amount of dispersion of the caustics.");
         static public readonly GUIContent k_CausticsBand = EditorGUIUtility.TrTextContent("Caustics Band", "Controls which band is used for the caustics evaluation.");
 
         static public readonly GUIContent k_SimulationFoamSmoothness = EditorGUIUtility.TrTextContent("Simulation Foam Smoothness", "Controls the simulation foam smoothness.");
-        static public readonly GUIContent k_SimulationFoamIntensity = EditorGUIUtility.TrTextContent("Simulation Foam Intensity", "Controls the simulation foam intensity.");
-        static public readonly GUIContent k_SimulationFoamAmount = EditorGUIUtility.TrTextContent("Simulation Foam Amount", "Controls the simulation foam amount.");
+        static public readonly GUIContent k_SimulationFoamIntensity = EditorGUIUtility.TrTextContent("Simulation Foam Intensity", "Controls the simulation foam brightness.");
+        static public readonly GUIContent k_SimulationFoamAmount = EditorGUIUtility.TrTextContent("Simulation Foam Amount", "Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and chopiness values.");
 
         static public readonly GUIContent k_WindSpeed = EditorGUIUtility.TrTextContent("Wind Speed", "Controls the wind speed in kilometers per hour.");
         static public readonly GUIContent k_WindAffectsCurrent = EditorGUIUtility.TrTextContent("Wind Affects current", "Controls the proportion in which the wind affects the current of the water.");
@@ -333,8 +333,8 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new IndentLevelScope())
             {
                 // Surface foam
-                m_SimulationFoamIntensity.floatValue = EditorGUILayout.Slider(k_SimulationFoamIntensity, m_SimulationFoamIntensity.floatValue, 0.0f, 1.0f);
                 m_SimulationFoamAmount.floatValue = EditorGUILayout.Slider(k_SimulationFoamAmount, m_SimulationFoamAmount.floatValue, 0.0f, 1.0f);
+                m_SimulationFoamIntensity.floatValue = EditorGUILayout.Slider(k_SimulationFoamIntensity, m_SimulationFoamIntensity.floatValue, 0.0f, 1.0f);
                 m_SimulationFoamSmoothness.floatValue = EditorGUILayout.Slider(k_SimulationFoamSmoothness, m_SimulationFoamSmoothness.floatValue, 0.0f, 1.0f);
                 EditorGUILayout.PropertyField(m_SimulationFoamTiling);
                 m_SimulationFoamTiling.floatValue = Mathf.Max(m_SimulationFoamTiling.floatValue, 0.01f);
