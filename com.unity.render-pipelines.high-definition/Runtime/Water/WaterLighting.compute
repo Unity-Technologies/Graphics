@@ -12,6 +12,7 @@
 // Include and define the shader pass
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_DEFERRED_LIGHTING
+#define LIGHT_EVALUATION_NO_CONTACT_SHADOWS
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal
 
