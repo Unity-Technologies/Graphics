@@ -36,6 +36,13 @@ namespace UnityEngine.Rendering
         private static readonly int m_ShaderPropertyIDInputMouse = Shader.PropertyToID("_ShaderDebugPrintInputMouse");
         private static readonly int m_ShaderPropertyIDInputFrame = Shader.PropertyToID("_ShaderDebugPrintInputFrame");
 
+        // A static "container" for all profiler markers.
+        private static class Profiling
+        {
+            // Uses nameof to avoid aliasing
+            public static readonly ProfilingSampler BufferReadComplete = new ProfilingSampler($"{nameof(ShaderDebugPrintManager)}.{nameof(BufferReadComplete)}");
+        }
+
         // Should match: com.unity.render-pipelines.core/ShaderLibrary/ShaderDebugPrint.hlsl
         enum DebugValueType
         {
@@ -118,6 +125,8 @@ namespace UnityEngine.Rendering
 
         private void BufferReadComplete(Rendering.AsyncGPUReadbackRequest request)
         {
+            using var profScope = new ProfilingScope(null, Profiling.BufferReadComplete);
+
             Assert.IsTrue(request.done);
 
             if (!request.hasError)
