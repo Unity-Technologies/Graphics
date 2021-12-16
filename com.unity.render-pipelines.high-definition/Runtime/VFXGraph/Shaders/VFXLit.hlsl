@@ -13,7 +13,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
-#if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT)
+#if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
 
     // The light loop (or lighting architecture) is in charge to:
