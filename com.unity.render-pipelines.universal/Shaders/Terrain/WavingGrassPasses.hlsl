@@ -180,7 +180,7 @@ inline void InitializeSimpleLitSurfaceData(GrassVertexOutput input, out SurfaceD
     half3 diffuse = diffuseAlpha.rgb * input.color.rgb;
 
 #if defined(_ALPHATEST_ON)
-    half alpha = AlphaClip(diffuseAlpha.a, _Cutoff);
+    half alpha = AlphaClip(diffuseAlpha.a, _Cutoff, _Surface);
 #endif
 
     alpha *= input.color.a;
@@ -219,7 +219,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
 #else
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    return half4(color.rgb, OutputAlpha(surfaceData.alpha));
+    return half4(color.rgb, OutputAlpha(surfaceData.alpha, _Surface));
 #endif
 };
 
@@ -268,7 +268,7 @@ GrassVertexDepthOnlyOutput DepthOnlyVertex(GrassVertexDepthOnlyInput v)
 
 half4 DepthOnlyFragment(GrassVertexDepthOnlyOutput input) : SV_TARGET
 {
-    Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)).a, input.color, _Cutoff);
+    Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)).a, input.color, _Cutoff, _Surface);
     return input.clipPos.z;
 }
 #endif

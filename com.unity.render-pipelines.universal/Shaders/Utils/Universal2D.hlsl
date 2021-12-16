@@ -32,7 +32,7 @@ half4 frag(Varyings input) : SV_Target
     half alpha = texColor.a * _BaseColor.a;
 
 #if defined(_ALPHATEST_ON)
-    AlphaClip(alpha, _Cutoff);
+    AlphaClip(alpha, _Cutoff, _Surface);
 #endif
 
 #ifdef _ALPHAPREMULTIPLY_ON

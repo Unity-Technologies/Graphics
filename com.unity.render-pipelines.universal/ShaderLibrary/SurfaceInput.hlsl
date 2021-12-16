@@ -18,7 +18,7 @@ SAMPLER(sampler_EmissionMap);
 ///////////////////////////////////////////////////////////////////////////////
 //                      Material Property Helpers                            //
 ///////////////////////////////////////////////////////////////////////////////
-half Alpha(half albedoAlpha, half4 color, half cutoff)
+half Alpha(half albedoAlpha, half4 color, half cutoff, half surfaceType)
 {
 #if !defined(_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A) && !defined(_GLOSSINESS_FROM_BASE_ALPHA)
     half alpha = albedoAlpha * color.a;
@@ -27,7 +27,7 @@ half Alpha(half albedoAlpha, half4 color, half cutoff)
 #endif
 
 #if defined(_ALPHATEST_ON)
-    alpha = AlphaClip(alpha, cutoff);
+    alpha = AlphaClip(alpha, cutoff, surfaceType);
 #endif
 
     return alpha;

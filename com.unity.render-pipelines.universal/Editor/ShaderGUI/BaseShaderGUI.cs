@@ -614,12 +614,14 @@ namespace UnityEditor
                 SurfaceType surfaceType = (SurfaceType)material.GetFloat(Property.SurfaceType);
                 bool zwrite = false;
                 CoreUtils.SetKeyword(material, ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT, surfaceType == SurfaceType.Transparent);
+                bool alphaToMask = false;
                 if (surfaceType == SurfaceType.Opaque)
                 {
                     if (alphaClip)
                     {
                         renderQueue = (int)RenderQueue.AlphaTest;
                         material.SetOverrideTag("RenderType", "TransparentCutout");
+                        alphaToMask = true;
                     }
                     else
                     {
@@ -717,6 +719,8 @@ namespace UnityEditor
                     material.EnableKeyword(ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT);
                     renderQueue = (int)RenderQueue.Transparent;
                 }
+
+                material.SetFloat(Property.AlphaToMask, alphaToMask ? 1.0f : 0.0f);
 
                 // check for override enum
                 if (material.HasProperty(Property.ZWriteControl))

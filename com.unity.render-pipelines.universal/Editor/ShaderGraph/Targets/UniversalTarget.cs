@@ -702,7 +702,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         internal static void AddAlphaToMaskControlToPass(ref PassDescriptor pass, UniversalTarget target)
         {
             // TODO: Does this also need to run when allowMaterialOverride is true?
-            if (target.alphaClip)
+            if (target.alphaClip && (target.surfaceType == SurfaceType.Opaque))
             {
                 pass.renderStates.Add(RenderState.AlphaToMask("On"));
             }

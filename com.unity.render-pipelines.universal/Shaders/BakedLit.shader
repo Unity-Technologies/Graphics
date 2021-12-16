@@ -18,6 +18,7 @@ Shader "Universal Render Pipeline/Baked Lit"
         [HideInInspector] _SrcBlendAlpha("__srcA", Float) = 1.0
         [HideInInspector] _DstBlendAlpha("__dstA", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
+        [HideInInspector] _AlphaToMask("__alphaToMask", Float) = 0.0
 
         // Editmode props
         _QueueOffset("Queue offset", Float) = 0.0
@@ -41,7 +42,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Name "BakedLit"
             Tags{ "LightMode" = "UniversalForwardOnly" }
 
-            AlphaToMask[_AlphaClip]
+            AlphaToMask[_AlphaToMask]
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
@@ -243,7 +244,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Name "BakedLit"
             Tags{ "LightMode" = "UniversalForwardOnly" }
 
-            AlphaToMask[_AlphaClip]
+            AlphaToMask[_AlphaToMask]
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11

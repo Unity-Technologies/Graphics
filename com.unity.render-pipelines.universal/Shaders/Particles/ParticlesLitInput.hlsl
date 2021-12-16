@@ -50,7 +50,7 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
     albedo = MixParticleColor(albedo, half4(particleColor), colorAddSubDiff);
 
 #if defined(_ALPHATEST_ON)
-    AlphaClip(albedo.a, _Cutoff);
+    AlphaClip(albedo.a, _Cutoff, _Surface);
 #endif
 
 #if defined(_SOFTPARTICLES_ON)
@@ -76,7 +76,7 @@ half4 SampleAlbedo(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), ParticleParams
     albedo = MixParticleColor(albedo, half4(params.vertexColor), colorAddSubDiff);
 
 #if defined(_ALPHATEST_ON)
-    AlphaClip(albedo.a, _Cutoff);
+    AlphaClip(albedo.a, _Cutoff, _Surface);
 #endif
 
 #if defined(_SOFTPARTICLES_ON)

@@ -380,7 +380,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     half alpha = diffuse.a * input.interpolated.color.a;
 
 #if defined(_ALPHATEST_ON)
-    AlphaClip(alpha, 0.3333);
+    AlphaClip(alpha, 0.3333, _Surface);
 #endif
 
     half3 albedo = diffuse.rgb;
@@ -511,7 +511,7 @@ half4 SpeedTree8FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
     half alpha = diffuse.a * input.color.a;
 
 #if defined(_ALPHATEST_ON)
-    AlphaClip(alpha, 0.3333);
+    AlphaClip(alpha, 0.3333, _Surface);
 #endif
 
     #if defined(SCENESELECTIONPASS)
@@ -578,7 +578,7 @@ half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Ta
     half alpha = diffuse.a * input.interpolated.color.a;
 
 #if defined(_ALPHATEST_ON)
-    AlphaClip(alpha, 0.3333);
+    AlphaClip(alpha, 0.3333, _Surface);
 #endif
 
     // normal

@@ -104,7 +104,7 @@ namespace UnityEditor.Rendering.Universal
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5, UpgradeV6 };
+        internal static readonly Action<Material, ShaderID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5, UpgradeV6, UpgradeV7 };
 
         static internal void SaveAssetsToDisk()
         {
@@ -372,6 +372,21 @@ namespace UnityEditor.Rendering.Universal
                         BaseShaderGUI.SetMaterialKeywords(material);
                     }
                 }
+            }
+        }
+
+        static void UpgradeV7(Material material, ShaderID shaderID)
+        {
+            var surfacePropertyID = Shader.PropertyToID("_Surface");
+            var alphaClipPropertyID = Shader.PropertyToID("_AlphaClip");
+            if (material.HasProperty(surfacePropertyID) && material.HasProperty(alphaClipPropertyID))
+            {
+                bool isOpaque = material.GetFloat(surfacePropertyID) < 1.0f;
+                bool isAlphaClipEnabled = material.GetFloat(alphaClipPropertyID) > 0.0f;
+
+                float alphaToMask = (isOpaque && isAlphaClipEnabled) ? 1.0f : 0.0f;
+
+                material.SetFloat(Shader.PropertyToID(Property.AlphaToMask), alphaToMask);
             }
         }
     }

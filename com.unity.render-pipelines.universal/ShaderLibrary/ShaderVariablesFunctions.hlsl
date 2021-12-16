@@ -157,33 +157,47 @@ bool IsAlphaToMaskEnabled()
     return (_AlphaToMaskEnabled != 0.0);
 }
 
-half AlphaClip(half alpha, half cutoff)
+half AlphaClip(half alpha, half cutoff, half surfaceType)
 {
-    // Produce 0.0 if the input value would be clipped by traditional alpha clipping and produce the original input value otherwise.
-    half clippedAlpha = (alpha >= cutoff) ? alpha : 0.0;
+    if (surfaceType == 1)
+    {
+        clip(alpha - cutoff);
+    }
+    else
+    {
+        // Produce 0.0 if the input value would be clipped by traditional alpha clipping and produce the original input value otherwise.
+        half clippedAlpha = (alpha >= cutoff) ? alpha : 0.0;
 
-    // Calculate a "sharpened" alpha value that should be used when alpha-to-coverage is enabled
-    half sharpenedAlpha = SharpenAlpha(alpha, cutoff);
+        // Calculate a "sharpened" alpha value that should be used when alpha-to-coverage is enabled
+        half sharpenedAlpha = SharpenAlpha(alpha, cutoff);
 
-    // When alpha-to-coverage is enabled: Use the sharpened value which will be exported from the shader and combined with the MSAA coverage mask.
-    // When alpha-to-coverage is disabled: Use the "clipped" value. A clipped value will always result in thread termination via the clip() logic below.
-    alpha = IsAlphaToMaskEnabled() ? sharpenedAlpha : clippedAlpha;
+        // When alpha-to-coverage is enabled: Use the sharpened value which will be exported from the shader and combined with the MSAA coverage mask.
+        // When alpha-to-coverage is disabled: Use the "clipped" value. A clipped value will always result in thread termination via the clip() logic below.
+        alpha = IsAlphaToMaskEnabled() ? sharpenedAlpha : clippedAlpha;
 
-    // Terminate any threads that have an alpha value of 0.0 since we know they won't contribute anything to the final image
-    clip(alpha - 0.0001);
+        // Terminate any threads that have an alpha value of 0.0 since we know they won't contribute anything to the final image
+        clip(alpha - 0.0001);
+    }
 
     return alpha;
 }
 #endif
 
-half OutputAlpha(half alpha, half surfaceType = half(0.0))
+half OutputAlpha(half alpha, half surfaceType)
 {
-    #if defined(_ALPHATEST_ON)
+    if (surfaceType == 1)
+    {
+        return alpha;
+    }
+    else
+    {
+#if defined(_ALPHATEST_ON)
         // Opaque materials should always export an alpha value of 1.0 unless alpha-to-coverage is enabled
         return IsAlphaToMaskEnabled() ? alpha : 1.0;
-    #else
-        return surfaceType == 1 ? alpha : 1.0;
-    #endif
+#else
+        return 1.0;
+#endif
+    }
 }
 
 half3 AlphaModulate(half3 albedo, half alpha)
