@@ -1272,8 +1272,24 @@ DirectLighting EvaluateBSDF_Rect_MRP(LightLoopContext lightLoopContext,
             posInput.positionWS += -lightData.forward * GetSplineOffsetForShadowBias(bsdfData);
         #endif
 
-            SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
+            float distToLC = length(lightData.positionRWS);
+            float3 dirToLC = lightData.positionRWS / distToLC;
+
+
+            SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, dirToLC, distToLC);
             lightColor *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
+
+            #ifdef LIGHT_EVALUATION_SPLINE_SHADOW_VISIBILITY_SAMPLE
+            if ((lightData.shadowIndex >= 0) && (lightData.shadowDimmer > 0))
+            {
+                // Evaluate the shadow map a second time (this time unbiased for the spline).
+                bsdfData.splineVisibility = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, GetNormalForShadowBias(bsdfData), dirToLC, distToLC).x;
+            }
+            else
+            {
+                bsdfData.splineVisibility = -1;
+            }
+            #endif
         }
     #endif
 
