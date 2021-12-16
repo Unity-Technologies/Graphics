@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a button in the Probe Volume Baking window to open the Probe Volume debug panel.
 - Added importance sampling of the sky in path tracing (aka environment sampling).
 - Added the overlay render queue to custom passes.
+- Added Expose SSR parameters to control speed rejection from Motion Vector including computing Motion Vector in World Space.
 - Improvements done to the water system (Deferred, Decals, SSR, Foam, Caustics, etc.).
 
 ### Fixed
@@ -79,6 +80,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed misc shader warnings.
 - Fixed a shader warning in UnityInstancing.hlsl
 - Fixed for APV debug mode breaking rendering when switching to an asset with APV disabled.
+- Fixed potential asymmetrical resource release in the volumetric clouds (case 1388218).
+- Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
+- Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
@@ -86,6 +90,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
 - The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
 - Render Graph object pools are now cleared with render graph cleanup
+- Updated Physically Based Sky documentation with more warnings about warmup cost.
 
 ## [13.1.2] - 2021-11-05
 

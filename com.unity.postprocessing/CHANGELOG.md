@@ -4,8 +4,10 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [3.2.1] - 2021-11-15
+## [3.2.1] - 2021-12-16
 
+### Fixed
+- Fixed missing XR warnings for XR non-friendly effects when using XR plugins (case 1328062)
 
 ## [3.2.0] - 2021-11-15
 
