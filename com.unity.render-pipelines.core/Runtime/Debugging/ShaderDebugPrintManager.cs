@@ -60,8 +60,33 @@ namespace UnityEngine.Rendering
             TypeFloat4 = 12,
             TypeBool = 13,
         };
-
         private const uint k_TypeHasTag = 128;
+
+        private int DebugValueTypeToElemSize(DebugValueType type)
+        {
+            switch (type)
+            {
+                case DebugValueType.TypeUint:
+                case DebugValueType.TypeInt:
+                case DebugValueType.TypeFloat:
+                case DebugValueType.TypeBool:
+                    return 1;
+                case DebugValueType.TypeUint2:
+                case DebugValueType.TypeInt2:
+                case DebugValueType.TypeFloat2:
+                    return 2;
+                case DebugValueType.TypeUint3:
+                case DebugValueType.TypeInt3:
+                case DebugValueType.TypeFloat3:
+                    return 3;
+                case DebugValueType.TypeUint4:
+                case DebugValueType.TypeInt4:
+                case DebugValueType.TypeFloat4:
+                    return 4;
+                default:
+                    return 0;
+            }
+        }
 
         private ShaderDebugPrintManager()
         {
@@ -149,17 +174,16 @@ namespace UnityEngine.Rendering
                 unsafe // Need to do ugly casts via pointers
                 {
                     uint* ptr = (uint*)data.GetUnsafePtr();
-                    for (int i = 1; i + 1 < count;) // ensure space for a payload after the header
+                    for (int i = 1; i < count;)
                     {
                         DebugValueType type = (DebugValueType)(data[i] & 0x0f);
-                        if ((data[i] & k_TypeHasTag) == k_TypeHasTag)
+                        bool hasTag = (data[i] & k_TypeHasTag) == k_TypeHasTag;
+
+                        // ensure elem for tag after the header
+                        if (hasTag && i + 1 < count)
                         {
                             uint tagEncoded = data[i + 1];
                             i++;
-
-                            // ensure space for a payload after a tag
-                            if (i + 1 >= count)
-                                break;
 
                             for (int j = 0; j < 4; j++)
                             {
@@ -174,101 +198,97 @@ namespace UnityEngine.Rendering
                             newOutputLine += " ";
                         }
 
+                        // ensure elem for payload after the header/tag
+                        int elemSize = DebugValueTypeToElemSize(type);
+                        if (i + elemSize > count)
+                            break;
+
+                        i++; // [i] == payload
+
                         switch (type)
                         {
                             case DebugValueType.TypeUint:
                             {
-                                newOutputLine += data[i + 1];
-                                i += 2;
+                                newOutputLine += $"{data[i]}u";
                                 break;
                             }
                             case DebugValueType.TypeInt:
                             {
-                                int valueInt = *(int*)&ptr[i + 1];
+                                int valueInt = *(int*)&ptr[i];
                                 newOutputLine += valueInt;
-                                i += 2;
                                 break;
                             }
                             case DebugValueType.TypeFloat:
                             {
-                                float valueFloat = *(float*)&ptr[i + 1];
-                                newOutputLine += valueFloat;
-                                i += 2;
+                                float valueFloat = *(float*)&ptr[i];
+                                newOutputLine += $"{valueFloat}f";
                                 break;
                             }
                             case DebugValueType.TypeUint2:
                             {
-                                uint* valueUint2 = &ptr[i + 1];
-                                newOutputLine += $"({valueUint2[0]}, {valueUint2[1]})";
-                                i += 3;
+                                uint* valueUint2 = &ptr[i];
+                                newOutputLine += $"uint2({valueUint2[0]}, {valueUint2[1]})";
                                 break;
                             }
                             case DebugValueType.TypeInt2:
                             {
-                                int* valueInt2 = (int*)&ptr[i + 1];
-                                newOutputLine += $"({valueInt2[0]}, {valueInt2[1]})";
-                                i += 3;
+                                int* valueInt2 = (int*)&ptr[i];
+                                newOutputLine += $"int2({valueInt2[0]}, {valueInt2[1]})";
                                 break;
                             }
                             case DebugValueType.TypeFloat2:
                             {
-                                float* valueFloat2 = (float*)&ptr[i + 1];
-                                newOutputLine += $"({valueFloat2[0]}, {valueFloat2[1]})";
-                                i += 3;
+                                float* valueFloat2 = (float*)&ptr[i];
+                                newOutputLine += $"float2({valueFloat2[0]}, {valueFloat2[1]})";
                                 break;
                             }
                             case DebugValueType.TypeUint3:
                             {
-                                uint* valueUint3 = &ptr[i + 1];
-                                newOutputLine += $"({valueUint3[0]}, {valueUint3[1]}, {valueUint3[2]})";
-                                i += 4;
+                                uint* valueUint3 = &ptr[i];
+                                newOutputLine += $"uint3({valueUint3[0]}, {valueUint3[1]}, {valueUint3[2]})";
                                 break;
                             }
                             case DebugValueType.TypeInt3:
                             {
-                                int* valueInt3 = (int*)&ptr[i + 1];
-                                newOutputLine += $"({valueInt3[0]}, {valueInt3[1]}, {valueInt3[2]})";
-                                i += 4;
+                                int* valueInt3 = (int*)&ptr[i];
+                                newOutputLine += $"int3({valueInt3[0]}, {valueInt3[1]}, {valueInt3[2]})";
                                 break;
                             }
                             case DebugValueType.TypeFloat3:
                             {
-                                float* valueFloat3 = (float*)&ptr[i + 1];
-                                newOutputLine += $"({valueFloat3[0]}, {valueFloat3[1]}, {valueFloat3[2]})";
-                                i += 4;
+                                float* valueFloat3 = (float*)&ptr[i];
+                                newOutputLine += $"float3({valueFloat3[0]}, {valueFloat3[1]}, {valueFloat3[2]})";
                                 break;
                             }
                             case DebugValueType.TypeUint4:
                             {
-                                uint* valueUint4 = &ptr[i + 1];
-                                newOutputLine += $"({valueUint4[0]}, {valueUint4[1]}, {valueUint4[2]}, {valueUint4[3]})";
-                                i += 5;
+                                uint* valueUint4 = &ptr[i];
+                                newOutputLine += $"uint4({valueUint4[0]}, {valueUint4[1]}, {valueUint4[2]}, {valueUint4[3]})";
                                 break;
                             }
                             case DebugValueType.TypeInt4:
                             {
-                                int* valueInt4 = (int*)&ptr[i + 1];
-                                newOutputLine += $"({valueInt4[0]}, {valueInt4[1]}, {valueInt4[2]}, {valueInt4[3]})";
-                                i += 5;
+                                int* valueInt4 = (int*)&ptr[i];
+                                newOutputLine += $"int4({valueInt4[0]}, {valueInt4[1]}, {valueInt4[2]}, {valueInt4[3]})";
                                 break;
                             }
                             case DebugValueType.TypeFloat4:
                             {
-                                float* valueFloat4 = (float*)&ptr[i + 1];
-                                newOutputLine += $"({valueFloat4[0]}, {valueFloat4[1]}, {valueFloat4[2]}, {valueFloat4[3]})";
-                                i += 5;
+                                float* valueFloat4 = (float*)&ptr[i];
+                                newOutputLine += $"float4({valueFloat4[0]}, {valueFloat4[1]}, {valueFloat4[2]}, {valueFloat4[3]})";
                                 break;
                             }
                             case DebugValueType.TypeBool:
                             {
-                                newOutputLine += ((data[i + 1] == 0) ? "False" : "True");
-                                i += 2;
+                                newOutputLine += ((data[i] == 0) ? "False" : "True");
                                 break;
                             }
                             default:
                                 i = (int)count;  // Cannot handle the rest if there is an unknown type
                                 break;
                         }
+
+                        i += elemSize;
 
                         newOutputLine += " ";
                     }
