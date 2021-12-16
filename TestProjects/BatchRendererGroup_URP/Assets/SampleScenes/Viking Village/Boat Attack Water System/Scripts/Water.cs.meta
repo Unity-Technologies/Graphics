@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b6edb8448c9b94f018953ca2a6fa5891
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _rampTexture: {instanceID: 0}
+  - settingsData: {fileID: 11400000, guid: a4cacf74654e54b35b9eaea74fd20b4e, type: 2}
+  - surfaceData: {fileID: 11400000, guid: 846f3dc3b5341447a86687211f741bc7, type: 2}
+  - resources: {fileID: 11400000, guid: 40615c805d6e84ce7800418367985fe1, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

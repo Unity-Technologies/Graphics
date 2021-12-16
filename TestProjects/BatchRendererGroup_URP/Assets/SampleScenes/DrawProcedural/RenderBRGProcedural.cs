@@ -110,6 +110,8 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
         }
     }
 
+    [SerializeField] Material m_ProceduralLitMaterial;
+
     private BatchRendererGroup m_BatchRendererGroup;
     private GraphicsBuffer m_GPUPersistentInstanceData;
     private GraphicsBuffer m_GeometryPositionBuffer;
@@ -630,9 +632,11 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                 }
                 indexOffset += (int)mesh.GetIndexStart(matIndex);
 
-                var material = m_BatchRendererGroup.RegisterMaterial(sharedMaterials[matIndex]);
+                //var material = sharedMaterials[matIndex];
+                var material = m_ProceduralLitMaterial;
+                var materialID = m_BatchRendererGroup.RegisterMaterial(material);
 
-                var key = new DrawKey { material = material, meshID = meshID, submeshIndex = (uint)matIndex, shadows = shadows, pickableObjectInstanceID = instanceID };
+                var key = new DrawKey { material = materialID, meshID = meshID, submeshIndex = (uint)matIndex, shadows = shadows, pickableObjectInstanceID = instanceID };
                 var drawBatch = new DrawBatch
                 {
                     key = key,

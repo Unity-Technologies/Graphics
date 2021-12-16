@@ -1,0 +1,115 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6520459608929871533
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1650942096471433627}
+  - component: {fileID: 2158674806023431710}
+  m_Layer: 0
+  m_Name: Water
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1650942096471433627
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6520459608929871533}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -226.4848, y: -35.62282, z: -39.306763}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2158674806023431710
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6520459608929871533}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6edb8448c9b94f018953ca2a6fa5891, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  computeOverride: 0
+  _depthTex: {fileID: 0}
+  bakedDepthTex: {fileID: 0}
+  _waves:
+  - amplitude: 0.050453532
+    direction: -88.46054
+    wavelength: 2.3355312
+    origin:
+      x: 0
+      y: 0
+    onmiDir: 0
+  - amplitude: 0.050761487
+    direction: -264.46985
+    wavelength: 2.9956238
+    origin:
+      x: 0
+      y: 0
+    onmiDir: 0
+  - amplitude: 0.08646932
+    direction: -248.35088
+    wavelength: 3.3039434
+    origin:
+      x: 0
+      y: 0
+    onmiDir: 0
+  - amplitude: 0.07555562
+    direction: -134.96402
+    wavelength: 4.0615964
+    origin:
+      x: 0
+      y: 0
+    onmiDir: 0
+  - amplitude: 0.10680426
+    direction: -224.16226
+    wavelength: 4.70241
+    origin:
+      x: 0
+      y: 0
+    onmiDir: 0
+  - amplitude: 0.11498753
+    direction: -180.3995
+    wavelength: 5.2528195
+    origin:
+      x: 0
+      y: 0
+    onmiDir: 0
+  - amplitude: 0.094697304
+    direction: -264.3355
+    wavelength: 4.356646
+    origin:
+      x: 0
+      y: 0
+    onmiDir: 0
+  - amplitude: 0.14944941
+    direction: -142.20044
+    wavelength: 6.0470476
+    origin:
+      x: 0
+      y: 0
+    onmiDir: 0
+  - amplitude: 0.13771258
+    direction: -123.16942
+    wavelength: 7.656253
+    origin:
+      x: 0
+      y: 0
+    onmiDir: 0
+  settingsData: {fileID: 11400000, guid: 51d5286b580b54b69a91da9e3338548f, type: 2}
+  surfaceData: {fileID: 11400000, guid: 9e1c83d2d3fac4b94b91c7b3a80ce964, type: 2}
+  resources: {fileID: 11400000, guid: 40615c805d6e84ce7800418367985fe1, type: 2}

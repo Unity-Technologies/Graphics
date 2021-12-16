@@ -1,0 +1,242 @@
+fileFormatVersion: 2
+guid: fb2f5cec30b474b89b778e3aab6f3dfe
+ModelImporter:
+  serializedVersion: 20200
+  internalIDToNameTable:
+  - first:
+      1: 100000
+    second: //RootNode
+  - first:
+      1: 100002
+    second: WaterBlock_50m_LOD0
+  - first:
+      1: 100004
+    second: WaterBlock_50m_LOD1
+  - first:
+      1: 100006
+    second: WaterBlock_50m_LOD2
+  - first:
+      1: 100008
+    second: WaterBlock_tessellation_1k
+  - first:
+      4: 400000
+    second: //RootNode
+  - first:
+      4: 400002
+    second: WaterBlock_50m_LOD0
+  - first:
+      4: 400004
+    second: WaterBlock_50m_LOD1
+  - first:
+      4: 400006
+    second: WaterBlock_50m_LOD2
+  - first:
+      4: 400008
+    second: WaterBlock_tessellation_1k
+  - first:
+      21: 2100000
+    second: Water
+  - first:
+      23: 2300000
+    second: //RootNode
+  - first:
+      23: 2300002
+    second: WaterBlock_50m_LOD0
+  - first:
+      23: 2300004
+    second: WaterBlock_50m_LOD1
+  - first:
+      23: 2300006
+    second: WaterBlock_50m_LOD2
+  - first:
+      23: 2300008
+    second: WaterBlock_tessellation_1k
+  - first:
+      33: 3300000
+    second: //RootNode
+  - first:
+      33: 3300002
+    second: WaterBlock_50m_LOD0
+  - first:
+      33: 3300004
+    second: WaterBlock_50m_LOD1
+  - first:
+      33: 3300006
+    second: WaterBlock_50m_LOD2
+  - first:
+      33: 3300008
+    second: WaterBlock_tessellation_1k
+  - first:
+      43: 4300000
+    second: WaterBlock
+  - first:
+      43: 4300002
+    second: WaterBlock_50m_LOD0
+  - first:
+      43: 4300004
+    second: WaterBlock_tessellation_1k
+  - first:
+      43: 4300006
+    second: WaterBlock_50m_LOD1
+  - first:
+      43: 4300008
+    second: WaterBlock_50m_LOD2
+  - first:
+      74: 7400000
+    second: Take 001
+  - first:
+      95: 9500000
+    second: //RootNode
+  - first:
+      205: 20500000
+    second: //RootNode
+  - first:
+      41386430: 2186277476908879412
+    second: ImportLogs
+  - first:
+      41386430: 2186277476908879414
+    second: ImportLogs
+  - first:
+      41386430: 2186277476908879416
+    second: ImportLogs
+  - first:
+      41386430: 2186277476908879418
+    second: ImportLogs
+  - first:
+      41386430: 2186277476908879420
+    second: ImportLogs
+  - first:
+      41386430: 2186277476908879422
+    second: ImportLogs
+  - first:
+      41386430: 2186277476908879424
+    second: ImportLogs
+  - first:
+      41386430: 2186277476908879426
+    second: ImportLogs
+  - first:
+      41386430: 2186277476908879428
+    second: ImportLogs
+  - first:
+      41386430: 2186277476908879430
+    second: ImportLogs
+  - first:
+      41386430: 2186277476908879432
+    second: ImportLogs
+  - first:
+      41386430: 2186277476908879434
+    second: ImportLogs
+  - first:
+      41386430: 2186277476908879436
+    second: ImportLogs
+  - first:
+      41386430: 2186277476908879438
+    second: ImportLogs
+  - first:
+      41386430: 2186277476908879440
+    second: ImportLogs
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Default
+    second: {fileID: 2100000, guid: 4849d4d15a9cb42eb9533ae935e2630b, type: 2}
+  materials:
+    materialImportMode: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages:
+    - 0.25
+    - 0.125
+    - 0.01
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 0
+    importBlendShapes: 0
+    importCameras: 0
+    importLights: 0
+    fileIdsGeneration: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 1
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 0
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
+    indexFormat: 2
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 0
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 2
+    tangentImportMode: 2
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 1
+    blendShapeNormalImportMode: 2
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 0
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 0
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
