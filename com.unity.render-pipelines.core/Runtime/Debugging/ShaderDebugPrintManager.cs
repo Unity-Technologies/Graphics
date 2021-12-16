@@ -6,6 +6,11 @@ using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Internal development tool.
+    /// Manages gpu-buffers for shader debug printing.
+    /// </summary>
+
     public sealed class ShaderDebugPrintManager
     {
         private static readonly ShaderDebugPrintManager s_Instance = new ShaderDebugPrintManager();
@@ -63,8 +68,16 @@ namespace UnityEngine.Rendering
             m_OutputAction = DefaultOutput;
         }
 
+        /// <summary>
+        /// Get the current instance.
+        /// </summary>
         public static ShaderDebugPrintManager instance => s_Instance;
 
+        /// <summary>
+        /// Set shader input constants.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to store the commands.</param>
+        /// <param name="input">Input parameters for the constants.</param>
         public void SetShaderDebugPrintInputConstants(CommandBuffer cmd, ShaderDebugPrintInput input)
         {
             var mouse = new Vector4(input.pos.x, input.pos.y, input.leftDown ? 1 : 0, input.rightDown ? 1 : 0);
@@ -72,6 +85,10 @@ namespace UnityEngine.Rendering
             cmd.SetGlobalInt(m_ShaderPropertyIDInputFrame, m_FrameCounter);
         }
 
+        /// <summary>
+        /// Binds the gpu-buffers for current frame.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to store the commands.</param>
         public void SetShaderDebugPrintBindings(CommandBuffer cmd)
         {
             int index = m_FrameCounter % k_FramesInFlight;
@@ -262,6 +279,10 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Initiate async read-back of the GPU buffer to the CPU.
+        /// Prepare a new GPU buffer for the next frame.
+        /// </summary>
         public void EndFrame()
         {
             int index = m_FrameCounter % k_FramesInFlight;
@@ -272,33 +293,76 @@ namespace UnityEngine.Rendering
         }
 
         // Custom output API
+
+        /// <summary>
+        /// Get current print line.
+        /// </summary>
         public string outputLine { get => m_OutputLine; }
+
+        /// <summary>
+        /// Action taken for each print line. By default prints to the debug log.
+        /// </summary>
         public Action<string> outputAction { set => m_OutputAction = value; }
+
+        /// <summary>
+        /// The default output action. Print to the debug log.
+        /// </summary>
+        /// <param name="line">Line to be printed.</param>
         public void DefaultOutput(string line)
         {
             Debug.Log(line);
         }
     }
 
+    /// <summary>
+    /// Shader constant input parameters.
+    /// </summary>
     public struct ShaderDebugPrintInput
     {
-        // Mouse input
-        // GameView bottom-left == (0,0) top-right == (surface.width, surface.height) where surface == game display surface/rendertarget
-        // For screen pixel coordinates, game-view should be set to "Free Aspect".
-        // Works only in PlayMode
+        // Mouse input for the shader
+
+        /// <summary>
+        /// Mouse position.
+        /// GameView bottom-left == (0,0) top-right == (surface.width, surface.height) where surface == game display surface/rendertarget
+        /// For screen pixel coordinates, game-view should be set to "Free Aspect".
+        /// Works only in PlayMode.
+        /// </summary>
         public Vector2 pos { get; set; }
+
+        /// <summary>
+        /// Left mouse button is pressed.
+        /// </summary>
         public bool leftDown { get; set; }
+
+        /// <summary>
+        /// Right mouse button is pressed.
+        /// </summary>
         public bool rightDown { get; set; }
+
+        /// <summary>
+        /// Middle mouse button is pressed.
+        /// </summary>
         public bool middleDown { get; set; }
 
+        /// <summary>
+        /// Pretty print parameters for debug purposes.
+        /// </summary>
+        // NOTE: Separate from ToString on purpose.
         public string String()
         {
             return $"Mouse: {pos.x}x{pos.y}  Btns: Left:{leftDown} Right:{rightDown} Middle:{middleDown} ";
         }
     }
 
+    /// <summary>
+    /// Reads system input to produce ShaderDebugPrintInput parameters.
+    /// </summary>
     public static class ShaderDebugPrintInputProducer
     {
+        /// <summary>
+        /// Read system input.
+        /// </summary>
+        /// <returns>Input parameters for ShaderDebugPrintManager.</returns>
         static public ShaderDebugPrintInput Get()
         {
             var r = new ShaderDebugPrintInput();
