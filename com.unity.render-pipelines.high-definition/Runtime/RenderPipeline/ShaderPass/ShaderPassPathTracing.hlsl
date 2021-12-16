@@ -313,7 +313,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
     AOVData aovData;
     {
-        aovData.albedo = bsdfData.color;
+        aovData.albedo = surfaceData.color;
         aovData.normal = fragInput.tangentToWorld[2];
     }
 

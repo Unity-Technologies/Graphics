@@ -29,30 +29,4 @@ int GetCurrentDepth(PathIntersection pathIntersection)
     return _RaytracingMaxRecursion - pathIntersection.remainingDepth;
 }
 
-// Helper functions to read and write AOV values in the payload, hijacking other existing member variables
-void SetAlbedo(inout PathIntersection payload, float3 albedo)
-{
-    payload.cone.width = albedo.x;
-    payload.cone.spreadAngle = albedo.y;
-    payload.remainingDepth = asint(albedo.z);
-}
-
-float3 GetAlbedo(in PathIntersection payload)
-{
-    return float3(payload.cone.width, payload.cone.spreadAngle, asfloat(payload.remainingDepth));
-}
-
-void SetNormal(inout PathIntersection payload, float3 normal)
-{
-    payload.pixelCoord.x = asint(normal.x);
-    payload.pixelCoord.y = asint(normal.y);
-    payload.maxRoughness = normal.z;
-}
-
-float3 GetNormal(inout PathIntersection payload)
-{
-    return float3(asfloat(payload.pixelCoord.x), asfloat(payload.pixelCoord.y), payload.maxRoughness);
-}
-
-
 #endif // UNITY_PATH_TRACING_INTERSECTION_INCLUDED

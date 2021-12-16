@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_MaxDepth = Unpack(o.Find(x => x.maximumDepth));
             m_MaxIntensity = Unpack(o.Find(x => x.maximumIntensity));
             m_SkyImportanceSampling = Unpack(o.Find(x => x.skyImportanceSampling));
-            m_Denoising = Unpack(o.Find(x => x.denoise));
+
 #if ENABLE_UNITY_DENOISERS
             m_Denoising = Unpack(o.Find(x => x.denoising));
             m_UseAOV = Unpack(o.Find(x => x.useAOVs));
@@ -71,18 +71,20 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                         var denoiserType = m_Denoising.value.GetEnumValue<DenoiserType>();
                         bool supported = Denoiser.IsDenoiserTypeSupported(denoiserType);
 
-                        if (supported && m_Denoising.value.intValue != (int) DenoiserType.None)
+                        if (m_Denoising.value.intValue != (int) DenoiserType.None)
                         {
                             using (new IndentLevelScope())
                             {
-                                PropertyField(m_UseAOV);
-                                PropertyField(m_Temporal);
+                                if (supported)
+                                {
+                                    PropertyField(m_UseAOV);
+                                    PropertyField(m_Temporal);
+                                }
+                                else
+                                {
+                                    EditorGUILayout.HelpBox($"The selected denoiser is not supported by this hardware configuration.", MessageType.Error, wide: true);
+                                }
                             }
-                        }
-
-                        if (!supported)
-                        {
-                            EditorGUILayout.HelpBox($"The selected denoiser is not supported by this hardware configuration.", MessageType.Error, wide: true);
                         }
 #endif
                     }

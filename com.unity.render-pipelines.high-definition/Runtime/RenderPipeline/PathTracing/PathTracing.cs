@@ -493,9 +493,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
                         // AOVs
-                        ctx.cmd.SetRayTracingTextureParam(data.pathTracingShader, HDShaderIDs._AlbedoAOV, data.albedoAOV);
-                        ctx.cmd.SetRayTracingTextureParam(data.pathTracingShader, HDShaderIDs._NormalAOV, data.normalAOV);
-                        ctx.cmd.SetRayTracingTextureParam(data.pathTracingShader, HDShaderIDs._MotionVectorAOV, data.motionVectorAOV);
+                        ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._AlbedoAOV, data.albedoAOV);
+                        ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._NormalAOV, data.normalAOV);
+                        ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._MotionVectorAOV, data.motionVectorAOV);
 
                         // Run the computation
                         ctx.cmd.DispatchRays(data.shader, "RayGen", (uint)data.width, (uint)data.height, 1);
@@ -560,7 +560,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (RenderSkySamplingPassData data, RenderGraphContext ctx) =>
                     {
-                        data.skyManager.RenderSky(data.hdCamera, data.sunLight, data.colorBuffer, data.depthTexture, data.debugDisplaySettings, context.cmd);
+                        //data.skyManager.RenderSky(data.hdCamera, data.sunLight, data.colorBuffer, data.depthTexture, data.debugDisplaySettings, context.cmd);
                         ctx.cmd.SetComputeIntParam(data.shader, HDShaderIDs._PathTracingSkyTextureWidth, data.size * 2);
                         ctx.cmd.SetComputeIntParam(data.shader, HDShaderIDs._PathTracingSkyTextureHeight, data.size);
 
@@ -575,7 +575,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // This is the method to call from the main render loop
-        TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle motionVectors)
+        TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
         {
             m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
@@ -647,8 +647,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                RenderPathTracing(m_RenderGraph, hdCamera, camData, m_FrameTexture, albedo, normal, motionVector);
-            }
+                RenderPathTracingFrame(m_RenderGraph, hdCamera, camData, m_FrameTexture, albedo, normal, motionVector);
 
 #if ENABLE_UNITY_DENOISERS
                 bool denoise = m_PathTracingSettings.denoising.value != DenoiserType.None;
