@@ -85,6 +85,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
 - Fixed the intensity of the sky being reduced signficantly even if there is no clouds (case 1388279).
 - Fixed a crash with render graph viewer when render graph is not provided with an execution name.
+- Fixed rendering in the editor when an incompatible API is added (case 1384634).
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
