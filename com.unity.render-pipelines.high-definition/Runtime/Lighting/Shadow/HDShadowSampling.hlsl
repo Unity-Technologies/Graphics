@@ -318,6 +318,7 @@ float SampleShadow_PCSS(float3 posTCAtlas, float2 posSS, float2 scale, float2 of
 
     //2) Penumbra Estimation
     maxSampleZDistance *= isPerspective ? PenumbraSizePunctual(posTCAtlas.z, averageBlockerDepth) : PenumbraSizeDirectional(posTCAtlas.z, averageBlockerDepth, zParams.x);
+    maxSampleZDistance = max(maxSampleZDistance, minFilterRadius);
 
     //3) Filter
     // Note: we can't early out of the function if blockers are not found since Vulkan triggers a warning otherwise. Hence, we check for blockerFound here.
