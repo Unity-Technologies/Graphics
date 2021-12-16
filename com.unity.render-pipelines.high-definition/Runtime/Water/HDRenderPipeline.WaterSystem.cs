@@ -281,11 +281,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializeWaterSystem()
         {
+            m_ActiveWaterSimulation = m_Asset.currentPlatformRenderPipelineSettings.supportWater;
+
             // If the asset doesn't support water surfaces, nothing to do here
-            if (!m_Asset.currentPlatformRenderPipelineSettings.supportWater)
+            if (!m_ActiveWaterSimulation)
                 return;
 
-            m_ActiveWaterSimulation = true;
             m_WaterBandResolution = m_Asset.currentPlatformRenderPipelineSettings.waterSimulationResolution;
 
             // Simulation shader and kernels
@@ -327,7 +328,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void ReleaseWaterSystem()
         {
             // If the asset doesn't support water surfaces, nothing to do here
-            if (!m_Asset.currentPlatformRenderPipelineSettings.supportWater)
+            if (!m_ActiveWaterSimulation)
                 return;
 
             // Grab all the water surfaces in the scene
@@ -344,11 +345,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Release the caustics geometry
             CoreUtils.Destroy(m_CausticsMaterial);
-            m_CausticsGeometry.Dispose();
+            CoreUtils.SafeRelease(m_CausticsGeometry);
 
             // Release the water profile array
-            m_WaterProfileArrayGPU.Dispose();
-
+            CoreUtils.SafeRelease(m_WaterProfileArrayGPU);
+            
             // Release all the RTHandles
             RTHandles.Release(m_FFTRowPassIs);
             RTHandles.Release(m_FFTRowPassRs);
