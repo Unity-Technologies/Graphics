@@ -190,7 +190,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Interpolates two AnimationCurves. Since both curves likely have control points at different places
         /// in the curve, this method will create a new curve from the union of times between both curves. However, to avoid creating
-        /// garbage, this function will always replace the keys of lhsCurve with the final result, and return lhsCurve.
+        /// garbage, this function will always replace the keys of lhsAndResultCurve with the final result, and return lhsAndResultCurve.
         /// </summary>
         /// <param name="lhsAndResultCurve">The start value. Additionaly, this instance will be reused and returned as the result.</param>
         /// <param name="rhsCurve">The end value.</param>
