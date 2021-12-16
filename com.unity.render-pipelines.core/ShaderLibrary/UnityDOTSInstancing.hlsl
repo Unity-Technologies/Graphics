@@ -8,6 +8,7 @@
 #endif
 
 #if defined(SHADER_API_D3D11)
+//#define UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
 #define UNITY_DOTS_INSTANCING_TEXTURE
 #endif
 
@@ -190,6 +191,7 @@ uint ComputeDOTSInstanceDataAddress(uint metadata, uint stride)
     return baseAddress + offset;
 }
 
+// here we know metadata bit 31 is set
 uint ComputeDOTSInstanceDataAddressOverridden(uint metadata, uint stride)
 {
     uint baseAddress  = metadata & 0x7fffffff;
@@ -261,7 +263,7 @@ type LoadDOTSInstancedData_##type(uint metadata) \
 type LoadDOTSInstancedData_##type(type default_value, uint metadata) \
 { \
     return IsDOTSInstancedProperty(metadata) ? \
-        conv(DOTSInstanceData_Load(ComputeDOTSInstanceDataAddress(metadata, sizeof_type))) : default_value; \
+        conv(DOTSInstanceData_Load(ComputeDOTSInstanceDataAddressOverridden(metadata, sizeof_type))) : default_value; \
 }
 
 #define DEFINE_DOTS_LOAD_INSTANCE_VECTOR(type, width, conv, sizeof_type) \
@@ -272,7 +274,7 @@ type##width LoadDOTSInstancedData_##type##width(uint metadata) \
 type##width LoadDOTSInstancedData_##type##width(type##width default_value, uint metadata) \
 { \
     return IsDOTSInstancedProperty(metadata) ? \
-        conv(DOTSInstanceData_Load##width(ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width))) : default_value; \
+        conv(DOTSInstanceData_Load##width(ComputeDOTSInstanceDataAddressOverridden(metadata, sizeof_type * width))) : default_value; \
 }
 
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(float, asfloat, 4)
