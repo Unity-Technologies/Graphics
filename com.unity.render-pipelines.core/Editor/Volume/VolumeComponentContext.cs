@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering
     {
         // what archetype to use when displaying an Add Volume Override menu
         [NotNull]
+        [ExcludeFromCodeCoverage] // trivial
         public VolumeComponentArchetype contextualArchetype { get; private set; } = VolumeComponentArchetype.Empty;
 
         HashSet<VolumeComponentArchetype> s_Includes = new HashSet<VolumeComponentArchetype>();

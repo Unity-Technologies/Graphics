@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering
         }
 
         [ExcludeFromCodeCoverage]
-        public override string ToString() => $"VolumeComponentType({m_Type.Name})";
+        public override string ToString() => $"VolumeComponentType({m_Type?.Name})";
 
         public static bool operator ==(in VolumeComponentType l, in VolumeComponentType r) => l.Equals(r);
         public static bool operator !=(in VolumeComponentType l, in VolumeComponentType r) => !l.Equals(r);

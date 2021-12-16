@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using FsCheck;
+using Microsoft.FSharp.Core;
 using UnityEditor;
 
 namespace UnityEngine.Rendering.Tests
@@ -31,10 +32,21 @@ namespace UnityEngine.Rendering.Tests
             public override Gen<VolumeComponentType> Generator => Gen.Elements(s_Types);
         }
 
+        public class ArbitraryVolumeComponentArchetype : Arbitrary<VolumeComponentArchetype>
+        {
+            public override Gen<VolumeComponentArchetype> Generator => Gen.Map(
+                (FSharpFunc<VolumeComponentType[], VolumeComponentArchetype>)VolumeComponentArchetype.FromTypes,
+                Gen.ArrayOf(Arbitraries.GetVolumeComponentType().Generator)
+            );
+        }
+
         public partial class Arbitraries
         {
             public static Arbitrary<VolumeComponentType> GetVolumeComponentType()
                 => new ArbitraryVolumeComponentType();
+
+            public static Arbitrary<VolumeComponentArchetype> GetVolumeComponentArchetype()
+                => new ArbitraryVolumeComponentArchetype();
         }
 
         class ArbitraryType : Arbitrary<Type>

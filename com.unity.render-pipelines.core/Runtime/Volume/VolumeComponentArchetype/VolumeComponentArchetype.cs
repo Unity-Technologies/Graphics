@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using JetBrains.Annotations;
 
 using NotNullAttribute = System.Diagnostics.CodeAnalysis.NotNullAttribute;
@@ -87,6 +88,12 @@ namespace UnityEngine.Rendering
         [return: NotNull]
         public VolumeComponentType[] AsArray() => typeArray;
         public bool ContainsType(VolumeComponentType type) => typeSet.Contains(type);
+
+        [ExcludeFromCodeCoverage] // Trivial
+        public override string ToString()
+        {
+            return $"{nameof(VolumeComponentArchetype)}({typeArray.ToDebugString()})";
+        }
 
         /// <summary>
         /// Adds an extension if it does not exists

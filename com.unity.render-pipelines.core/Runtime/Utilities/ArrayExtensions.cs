@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Text;
 using Unity.Collections;
 using UnityEngine.Jobs;
 
@@ -57,6 +59,27 @@ namespace UnityEngine.Rendering
             }
 
             Array.Resize<T>(ref array, capacity);
+        }
+
+        /// <summary>
+        /// Create a debug string of an array of values
+        /// </summary>
+        /// <param name="values"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        internal static string ToDebugString<T>(this T[] values)
+        {
+            var sb = new StringBuilder();
+            sb.Append('[');
+            sb = values.Aggregate(sb, (acc, v) =>
+            {
+                if (acc.Length > 0)
+                    acc.Append('|');
+                acc.Append(v);
+                return acc;
+            });
+            sb.Append(']');
+            return sb.ToString();
         }
     }
 }

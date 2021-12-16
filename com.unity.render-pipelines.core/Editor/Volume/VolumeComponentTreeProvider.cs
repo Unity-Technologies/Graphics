@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -16,7 +17,7 @@ namespace UnityEditor.Rendering
     /// </summary>
     class VolumeComponentTreeProvider : IProvider
     {
-        class VolumeComponentElement : Element
+        internal class VolumeComponentElement : Element
         {
             public VolumeComponentType type;
 
@@ -29,30 +30,45 @@ namespace UnityEditor.Rendering
             }
         }
 
+        [ExcludeFromCodeCoverage] // trivial
         public Vector2 position { get; set; }
 
         VolumeProfile m_Target;
         VolumeComponentListEditor m_TargetEditor;
+        readonly VolumeComponentArchetype m_ArchetypeOverride;
 
-        public VolumeComponentTreeProvider(VolumeProfile target, VolumeComponentListEditor targetEditor)
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="targetEditor"></param>
+        /// <param name="archetypeOverride">
+        /// Use this value to override which archetype to use to create the tree.
+        /// By default it will use the <see cref="VolumeComponentUserExperience.displayedArchetype"/>
+        /// </param>
+        public VolumeComponentTreeProvider(
+            [DisallowNull] VolumeProfile target,
+            [DisallowNull] VolumeComponentListEditor targetEditor,
+            [AllowNull] VolumeComponentArchetype archetypeOverride)
         {
             m_Target = target;
             m_TargetEditor = targetEditor;
+            m_ArchetypeOverride = archetypeOverride;
         }
 
-        public void CreateComponentTree(List<Element> tree)
+        public void CreateComponentTree([DisallowNull] List<Element> tree)
         {
             tree.Add(new GroupElement(0, "Volume Overrides"));
 
-            VolumeComponentArchetypeTreeProvider extension = null;
-            if (!VolumeComponentUserExperience.displayedArchetype.GetOrAddTreeProvider(out extension))
+            var archetype = m_ArchetypeOverride ?? VolumeComponentUserExperience.displayedArchetype;
+            if (!archetype.GetOrAddTreeProvider(out var extension))
                 return;
 
             // Recursively add all elements to the tree
             Traverse(extension.root, 1, tree);
         }
 
-        public bool GoToChild(Element element, bool addIfComponent)
+        public bool GoToChild([DisallowNull] Element element, bool addIfComponent)
         {
             if (element is VolumeComponentElement volumeComponentElement)
             {
@@ -63,7 +79,11 @@ namespace UnityEditor.Rendering
             return false;
         }
 
-        void Traverse(VolumeComponentArchetypeTreeProvider.PathNode node, int depth, List<Element> tree)
+        void Traverse(
+            [DisallowNull] VolumeComponentArchetypeTreeProvider.PathNode node,
+            int depth,
+            [DisallowNull] List<Element> tree
+        )
         {
             node.nodes.Sort();
 

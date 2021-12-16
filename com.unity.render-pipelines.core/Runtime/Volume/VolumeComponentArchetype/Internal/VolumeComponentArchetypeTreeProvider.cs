@@ -54,11 +54,16 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal class PathNode : IEquatable<PathNode>
+        internal class PathNode : IEquatable<PathNode>, IComparable<PathNode>
         {
             public List<PathNode> nodes { get; } = new List<PathNode>();
             public string name { get; }
             public VolumeComponentType type { get; }
+
+            /// <summary>
+            /// String used to compare nodes
+            /// </summary>
+            string comparedString => $"{name}{type}";
 
             public PathNode(string name, VolumeComponentType type)
             {
@@ -88,6 +93,13 @@ namespace UnityEngine.Rendering
 
             public static bool operator ==(PathNode l, PathNode r) => l?.Equals(r) ?? ReferenceEquals(null, r);
             public static bool operator !=(PathNode l, PathNode r) => !(l?.Equals(r) ?? ReferenceEquals(null, r));
+
+            public int CompareTo(PathNode other)
+            {
+                if (ReferenceEquals(this, other)) return 0;
+                if (ReferenceEquals(null, other)) return 1;
+                return string.Compare(comparedString, other.comparedString, StringComparison.Ordinal);
+            }
         }
 
         [NotNull]
