@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Normal Map assiignation when importing FBX Materials.
 - Fixed rendering in the editor when an incompatible API is added (case 1384634).
 - Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
+- Fixed issue with typed loads on RGBA16F in Volumetric Lighting Filtering.
 
 ## [13.1.4] - 2021-12-04
 
