@@ -264,9 +264,12 @@ namespace UnityEditor.VFX.UI
                 LoadResource(m_DisplayedResource);
             }
 
-            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + "/VFX/"
-                + (EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark.png" : "vfx_graph_icon_gray_light.png"));
-            titleContent.image = icon;
+            if (titleContent.image == null)
+            {
+                var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + "/VFX/"
+                    + (EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark.png" : "vfx_graph_icon_gray_light.png"));
+                titleContent.image = icon;
+            }
         }
 
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
