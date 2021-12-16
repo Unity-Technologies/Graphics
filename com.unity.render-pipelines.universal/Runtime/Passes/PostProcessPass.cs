@@ -344,6 +344,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
 
             bool useTemporalAA = (cameraData.taaPersistentData != null) && (cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing) && (m_Descriptor.msaaSamples == 1);
+            int taaQuality = 3; // [0,3]
 
             if (!useTemporalAA && cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing)
             {
@@ -466,7 +467,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.TemporalAA)))
                 {
-                    DoTemporalAA(cameraData, cmd, GetSource(), GetDestination());
+                    DoTemporalAA(cameraData, cmd, GetSource(), GetDestination(), taaQuality);
                     Swap(ref renderer);
                 }
             }
@@ -994,7 +995,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 
         #region Temporal AA
-        void DoTemporalAA(CameraData cameraData, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination)
+        void DoTemporalAA(CameraData cameraData, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, int quality)
         {
             var material = m_Materials.temporalAntialiasing;
 
@@ -1007,8 +1008,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
 
-            Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, 0);
-            Blit(cmd, destination, cameraData.taaPersistentData.m_AccumulationTexture, material, 1);
+            Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, 3);
+            Blit(cmd, destination, cameraData.taaPersistentData.m_AccumulationTexture, material, 4);
         }
 
         #endregion

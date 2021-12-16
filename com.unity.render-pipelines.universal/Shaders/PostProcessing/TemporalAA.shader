@@ -11,23 +11,27 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
-#define YCOCG 1
-
-
-#ifndef YCOCG
-#define YCOCG 1
+#ifndef TAA_YCOCG
+#define TAA_YCOCG 1
 #endif
 
-#ifndef URP_GAMMA_SPACE_POST
-#define URP_GAMMA_SPACE_POST 0
+#ifndef TAA_GAMMA_SPACE_POST
+#define TAA_GAMMA_SPACE_POST 0
 #endif
 
-#ifndef PERCEPTUAL_SPACE
-#define PERCEPTUAL_SPACE 1
+#ifndef TAA_PERCEPTUAL_SPACE
+#define TAA_PERCEPTUAL_SPACE 1
+#endif
+
+#ifndef TAA_PER_OBJECT_MOTION_VECTORS
+#define TAA_PER_OBJECT_MOTION_VECTORS 0
 #endif
 
         TEXTURE2D_X(_SourceTex);
         float4 _SourceTex_TexelSize;
+
+        TEXTURE2D_X(_MotionVectorTexture);
+        float4 _MotionVectorTexture_TexelSize;
 
         TEXTURE2D_X(_AccumulationTex);
 #if defined(USING_STEREO_MATRICES)
@@ -71,6 +75,10 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
         // Per-pixel camera velocity
         half2 GetCameraVelocityWithOffset(float4 uv, half2 depthOffsetUv)
         {
+#if TAA_PER_OBJECT_MOTION_VECTORS
+            half2 offsetUv = SAMPLE_TEXTURE2D_X(_MotionVectorTexture, sampler_LinearClamp, uv.xy + _MotionVectorTexture_TexelSize.xy * depthOffsetUv).r;
+            return offsetUv;
+#else
             float depth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_PointClamp, uv.xy + _SourceTex_TexelSize.xy * depthOffsetUv).r;
 
         #if UNITY_REVERSED_Z
@@ -90,6 +98,7 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
             half2 curPosCS = curClipPos.xy / curClipPos.w;
 
             return prevPosCS - curPosCS;
+#endif
         }
 
         half3 GatherSample(half sampleNumber, half2 velocity, half invSampleCount, float2 centerUV, half randomVal, half velocitySign)
@@ -117,7 +126,7 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
 
         float GetLuma(float3 color)
         {
-#if YCOCG
+#if TAA_YCOCG
             // We work in YCoCg hence the luminance is in the first channel.
             return color.x;
 #else
@@ -127,7 +136,7 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
 
         float PerceptualWeight(float3 c)
         {
-#if PERCEPTUAL_SPACE
+#if TAA_PERCEPTUAL_SPACE
             return rcp(GetLuma(c) + 1.0);
 #else
             return 1;
@@ -136,7 +145,7 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
 
         float PerceptualInvWeight(float3 c)
         {
-#if PERCEPTUAL_SPACE
+#if TAA_PERCEPTUAL_SPACE
             return rcp(1.0 - GetLuma(c));
 #else
             return 1;
@@ -158,7 +167,7 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
         half3 PostFxSpaceToLinear(float3 src)
         {
 // gamma 2.0 is a good enough approximation
-#if URP_GAMMA_SPACE_POST
+#if TAA_GAMMA_SPACE_POST
             return src*src;
 #else
             return src;
@@ -167,7 +176,7 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
 
         half3 LinearToPostFxSpace(float3 src)
         {
-#if URP_GAMMA_SPACE_POST
+#if TAA_GAMMA_SPACE_POST
             return sqrt(src);
 #else
             return src;
@@ -179,7 +188,7 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
         half3 SceneToWorkingSpace(half3 src)
         {
             half3 linColor = PostFxSpaceToLinear(src);
-#if YCOCG
+#if TAA_YCOCG
             half3 dst = RGBToYCoCg(linColor);
 #else
             half3 dst = src;
@@ -189,7 +198,7 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
 
         half3 WorkingSpaceToScene(half3 src)
         {
-#if YCOCG
+#if TAA_YCOCG
             half3 linColor = YCoCgToRGB(src);
 #else
             half3 linColor = src;
@@ -326,7 +335,7 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
 
         Pass
         {
-            Name "TemporalAA - Accumulate"
+            Name "TemporalAA - Accumulate - Quality 0"
 
             HLSLPROGRAM
 
@@ -335,7 +344,58 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
 
                 half4 Frag(VaryingsCMB input) : SV_Target
                 {
-                    return DoTemporalAA(input, 0, 2);
+                    return DoTemporalAA(input, 0, 0);
+                }
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "TemporalAA - Accumulate - Quality 1"
+
+            HLSLPROGRAM
+
+                #pragma vertex VertCMB
+                #pragma fragment Frag
+
+                half4 Frag(VaryingsCMB input) : SV_Target
+                {
+                    return DoTemporalAA(input, 0, 1);
+                }
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "TemporalAA - Accumulate - Quality 2"
+
+            HLSLPROGRAM
+
+                #pragma vertex VertCMB
+                #pragma fragment Frag
+
+                half4 Frag(VaryingsCMB input) : SV_Target
+                {
+                    return DoTemporalAA(input, 1, 1);
+                }
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "TemporalAA - Accumulate - Quality 3"
+
+            HLSLPROGRAM
+
+                #pragma vertex VertCMB
+                #pragma fragment Frag
+
+                half4 Frag(VaryingsCMB input) : SV_Target
+                {
+                    return DoTemporalAA(input, 1, 2);
                 }
 
             ENDHLSL
