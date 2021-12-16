@@ -415,7 +415,11 @@
             "m_Id": "9035753e27f64690b5629a149e16f1d6"
         }
     ],
-    "m_StickyNoteDatas": [],
+    "m_StickyNoteDatas": [
+        {
+            "m_Id": "44d0312656bf4cc9ba45a04923bb0ba7"
+        }
+    ],
     "m_Edges": [
         {
             "m_OutputSlot": {
@@ -3933,6 +3937,26 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
+    "m_ObjectId": "44d0312656bf4cc9ba45a04923bb0ba7",
+    "m_Title": "",
+    "m_Content": "This will work on hair geometry that is a very thin, almost collapsed, ribbon, with texture coordinates taking all of the UV space. ",
+    "m_TextSize": 0,
+    "m_Theme": 0,
+    "m_Position": {
+        "serializedVersion": "2",
+        "x": 1054.6666259765625,
+        "y": -709.3333740234375,
+        "width": 200.0,
+        "height": 160.00003051757813
+    },
+    "m_Group": {
+        "m_Id": ""
     }
 }
 

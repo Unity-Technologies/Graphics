@@ -466,6 +466,12 @@
     "m_StickyNoteDatas": [
         {
             "m_Id": "22cc967a1388405fbc212a7641d062e3"
+        },
+        {
+            "m_Id": "faebe955f6e642e392cc1e94035e1289"
+        },
+        {
+            "m_Id": "8c4fff2f586d48b894093e3f706a8b9f"
         }
     ],
     "m_Edges": [
@@ -3878,10 +3884,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1474.0,
-            "y": 457.3333435058594,
+            "x": -1433.33349609375,
+            "y": 563.3333129882813,
             "width": 147.3333740234375,
-            "height": 131.99996948242188
+            "height": 131.99993896484376
         }
     },
     "m_Slots": [
@@ -7425,6 +7431,26 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
+    "m_ObjectId": "8c4fff2f586d48b894093e3f706a8b9f",
+    "m_Title": "Recalculate Vertex Normal",
+    "m_Content": "This is to have a better behaviour of the Hair Cards normals, don't use this if you already edited the normals on your hair model.",
+    "m_TextSize": 0,
+    "m_Theme": 0,
+    "m_Position": {
+        "serializedVersion": "2",
+        "x": 2440.0,
+        "y": -454.6666564941406,
+        "width": 282.0,
+        "height": 100.0
+    },
+    "m_Group": {
+        "m_Id": ""
+    }
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.MultiplyNode",
     "m_ObjectId": "8e467236b45847f58f852104d57ba24c",
     "m_Group": {
@@ -10101,10 +10127,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1186.6666259765625,
-            "y": 435.3333435058594,
+            "x": -1146.0001220703125,
+            "y": 541.3333129882813,
             "width": 118.6666259765625,
-            "height": 36.000030517578128
+            "height": 35.99993896484375
         }
     },
     "m_Slots": [
@@ -11203,10 +11229,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1220.666748046875,
-            "y": 524.6666870117188,
-            "width": 131.3333740234375,
-            "height": 119.99993896484375
+            "x": -1180.0001220703125,
+            "y": 630.6666259765625,
+            "width": 131.333251953125,
+            "height": 120.0
         }
     },
     "m_Slots": [
@@ -11501,8 +11527,8 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1432.6666259765625,
-            "y": 622.6665649414063,
+            "x": -1392.0001220703125,
+            "y": 728.6666259765625,
             "width": 106.0,
             "height": 36.0
         }
@@ -12220,10 +12246,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -936.6666870117188,
-            "y": 512.6666259765625,
-            "width": 209.3333740234375,
-            "height": 438.6666259765625
+            "x": -892.6665649414063,
+            "y": 630.6665649414063,
+            "width": 209.33331298828126,
+            "height": 438.66668701171877
         }
     },
     "m_Slots": [
@@ -12522,6 +12548,26 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
+    "m_ObjectId": "faebe955f6e642e392cc1e94035e1289",
+    "m_Title": "RGB Mask Texture",
+    "m_Content": "R:Smoothness, G: Ambient Occlusion, B: Strands Index",
+    "m_TextSize": 0,
+    "m_Theme": 0,
+    "m_Position": {
+        "serializedVersion": "2",
+        "x": -880.0,
+        "y": 494.0000305175781,
+        "width": 186.7750244140625,
+        "height": 100.0
+    },
+    "m_Group": {
+        "m_Id": ""
     }
 }
 

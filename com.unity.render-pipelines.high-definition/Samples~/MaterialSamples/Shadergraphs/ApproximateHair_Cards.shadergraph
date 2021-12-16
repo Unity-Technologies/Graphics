@@ -544,6 +544,12 @@
     "m_StickyNoteDatas": [
         {
             "m_Id": "22cc967a1388405fbc212a7641d062e3"
+        },
+        {
+            "m_Id": "d650fed9c7984873a875b9524a677f62"
+        },
+        {
+            "m_Id": "b4cf522ab5c84a19beb19a71ed2278a5"
         }
     ],
     "m_Edges": [
@@ -10567,6 +10573,26 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
+    "m_ObjectId": "b4cf522ab5c84a19beb19a71ed2278a5",
+    "m_Title": "RGB Mask Texture",
+    "m_Content": "R:Smoothness, G: Ambient Occlusion, B: Strands Index",
+    "m_TextSize": 0,
+    "m_Theme": 0,
+    "m_Position": {
+        "serializedVersion": "2",
+        "x": -1257.3333740234375,
+        "y": 769.3333129882813,
+        "width": 186.6666259765625,
+        "height": 100.0
+    },
+    "m_Group": {
+        "m_Id": ""
+    }
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
     "m_ObjectId": "b58d65f31b0944239273177c72c19fc4",
     "m_Id": 1,
@@ -12919,6 +12945,26 @@
         "y": 0.0,
         "z": 0.0,
         "w": 0.0
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
+    "m_ObjectId": "d650fed9c7984873a875b9524a677f62",
+    "m_Title": "Recalculate Vertex Normal",
+    "m_Content": "This is to have a better behaviour of the Hair Cards normals, don't use this if you already edited the normals on your hair model.",
+    "m_TextSize": 0,
+    "m_Theme": 0,
+    "m_Position": {
+        "serializedVersion": "2",
+        "x": 3000.666748046875,
+        "y": -612.6666870117188,
+        "width": 282.0,
+        "height": 100.0
+    },
+    "m_Group": {
+        "m_Id": ""
     }
 }
 
