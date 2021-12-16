@@ -1,7 +1,9 @@
 #if VFX_HAS_TIMELINE
 using System;
 using System.Linq;
-using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
 
@@ -29,6 +31,10 @@ namespace UnityEngine.VFX
         [SerializeField, NotKeyable]
         public ReinitMode reinit = ReinitMode.OnBindingEnableOrDisable;
 
+#if UNITY_EDITOR
+        private VisualEffect m_CurrentVisualEffect;
+#endif
+
         public bool IsUpToDate()
         {
             return m_VFXVersion == kCurrentVersion;
@@ -43,6 +49,42 @@ namespace UnityEngine.VFX
                 m_VFXVersion = kCurrentVersion;
             }
         }
+
+#if UNITY_EDITOR
+        protected override void OnCreateClip(TimelineClip clip)
+        {
+            base.OnCreateClip(clip);
+            if (clip.asset is VisualEffectControlClip vfxClip)
+            {
+                if (m_CurrentVisualEffect != null)
+                {
+                    //Copy Seed settings
+                    vfxClip.startSeed = m_CurrentVisualEffect.startSeed;
+
+                    //Copy Prewarm settings
+                    vfxClip.prewarm.eventName = m_CurrentVisualEffect.initialEventName;
+                    if (m_CurrentVisualEffect.visualEffectAsset != null)
+                    {
+                        using var resourceObject = new SerializedObject(m_CurrentVisualEffect.visualEffectAsset);
+                        var prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
+                        var prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
+                        if (prewarmDeltaTime != null && prewarmStepCount != null)
+                        {
+                            if (prewarmStepCount.uintValue != 0u)
+                            {
+                                vfxClip.prewarm.stepCount = prewarmStepCount.uintValue;
+                                vfxClip.prewarm.deltaTime = prewarmDeltaTime.floatValue;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Unexpected clip added : " + clip.asset);
+            }
+        }
+#endif
 
         public override Playable CreateTrackMixer(PlayableGraph graph, GameObject go, int inputCount)
         {
@@ -71,8 +113,11 @@ namespace UnityEngine.VFX
 
         public override void GatherProperties(PlayableDirector director, IPropertyCollector driver)
         {
-            if (director.GetGenericBinding(this) is VisualEffect)
+            if (director.GetGenericBinding(this) is VisualEffect vfx)
             {
+#if UNITY_EDITOR
+                m_CurrentVisualEffect = vfx;
+#endif
                 base.GatherProperties(director, driver);
             }
         }
