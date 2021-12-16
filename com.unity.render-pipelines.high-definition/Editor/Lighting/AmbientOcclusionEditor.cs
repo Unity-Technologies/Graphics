@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(AmbientOcclusion))]
+    [CustomEditor(typeof(AmbientOcclusion))]
     class AmbientOcclusionEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_Intensity;

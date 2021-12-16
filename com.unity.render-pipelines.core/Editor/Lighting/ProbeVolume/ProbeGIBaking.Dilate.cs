@@ -193,6 +193,7 @@ namespace UnityEngine.Experimental.Rendering
             parameters.viewBias = 0;
             parameters.scaleBiasByMinDistanceBetweenProbes = false;
             parameters.samplingNoise = 0;
+            parameters.weight = 1f;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
 
 

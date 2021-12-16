@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(VolumetricClouds))]
+    [CustomEditor(typeof(VolumetricClouds))]
     class VolumetricCloudsEditor : VolumeComponentEditor
     {
         // General

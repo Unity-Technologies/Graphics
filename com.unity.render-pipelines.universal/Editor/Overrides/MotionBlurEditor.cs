@@ -2,7 +2,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [VolumeComponentEditor(typeof(MotionBlur))]
+    [CustomEditor(typeof(MotionBlur))]
     sealed class MotionBlurEditor : VolumeComponentEditor
     {
         //SerializedDataParameter m_Mode;
