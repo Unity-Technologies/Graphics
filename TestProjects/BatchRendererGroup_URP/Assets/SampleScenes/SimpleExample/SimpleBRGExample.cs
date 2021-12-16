@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
@@ -27,6 +28,9 @@ public class SimpleBRGExample : MonoBehaviour
     private GraphicsBuffer m_IB;
 
     private GraphicsBuffer m_IndirectBuffer;
+    private NativeArray<int> m_LateEndCount;
+    private JobHandle m_JobHandle;
+    private int m_CallbackCounter = 0;
 
     // Some helper constants to make calculations later a bit more convenient.
     private const int kSizeOfMatrix = sizeof(float) * 4 * 4;
@@ -96,14 +100,16 @@ public class SimpleBRGExample : MonoBehaviour
         material.SetInteger("VertexBufferOffset", offset);
         material.SetInteger("VertexBufferStride", stride);
 
-        m_IndirectBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 1, GraphicsBuffer.IndirectDrawIndexedArgs.size);
+        m_IndirectBuffer = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, GraphicsBuffer.UsageFlags.LockBufferForWrite,1, GraphicsBuffer.IndirectDrawIndexedArgs.size);
         var args = new GraphicsBuffer.IndirectDrawIndexedArgs[1];
-        args[0].indexCountPerInstance = (uint)m_IB.count;
-        args[0].instanceCount = kNumInstances;
+        args[0].indexCountPerInstance = 0;
+        args[0].instanceCount = 0;
         args[0].startIndex = 0;
         args[0].baseVertexIndex = 0;
         args[0].startInstance = 0;
         m_IndirectBuffer.SetData(args);
+
+        m_LateEndCount = new NativeArray<int>(1, Allocator.Persistent);
 
         // Create the BatchRendererGroup and register assets
         m_BRG = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
@@ -197,10 +203,40 @@ public class SimpleBRGExample : MonoBehaviour
     private void OnDisable()
     {
         m_InstanceData.Dispose();
+        m_LateEndCount.Dispose();
         m_BRG.Dispose();
         m_IndirectBuffer.Dispose();
         m_IB.Dispose();
         m_VB.Dispose();
+    }
+
+    private void Update()
+    {
+        m_CallbackCounter = 0;
+    }
+
+    private unsafe struct UploadJob : IJob
+    {
+        public NativeArray<GraphicsBuffer.IndirectDrawIndexedArgs> Args;
+        [NativeDisableUnsafePtrRestriction]
+        public int* LateCount;
+        public uint IndexCount;
+        public uint InstanceCount;
+
+        public void Execute()
+        {
+            var arg = new GraphicsBuffer.IndirectDrawIndexedArgs
+            {
+                indexCountPerInstance = IndexCount,
+                instanceCount = InstanceCount,
+                startIndex = 0,
+                baseVertexIndex = 0,
+                startInstance = 0,
+            };
+            Args[0] = arg;
+
+            *LateCount = 1;
+        }
     }
 
     // The callback method called by Unity whenever it visibility culls to determine which
@@ -278,6 +314,29 @@ public class SimpleBRGExample : MonoBehaviour
         // Performance sensitive applications are encouraged to use Burst jobs to implement
         // culling and draw command output, in which case we would return a handle here that
         // completes when those jobs have finished.
-        return new JobHandle();
+
+        if (m_CallbackCounter == 0)
+        {
+            m_CallbackCounter += 1;
+
+            m_JobHandle.Complete();
+
+            var args = m_IndirectBuffer.LockBufferForWrite<GraphicsBuffer.IndirectDrawIndexedArgs>(0, 1);
+            var job = new UploadJob
+            {
+                IndexCount = (uint)m_IB.count,
+                InstanceCount = (uint)(Time.time) % (kNumInstances + 1),
+                LateCount = (int*)m_LateEndCount.GetUnsafePtr(),
+                Args = args
+            };
+            m_JobHandle = job.Schedule();
+            m_IndirectBuffer.UnlockBufferAfterWriteOnCompletion<GraphicsBuffer.IndirectDrawIndexedArgs>(m_JobHandle, m_LateEndCount);
+
+            return m_JobHandle;
+        }
+        else
+        {
+            return new JobHandle();
+        }
     }
 }
