@@ -298,9 +298,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public float simulationFoamIntensity = 0.5f;
 
         /// <summary>
-        /// Controls the simulation foam amount. Higher values generates larger foam patches.
+        /// Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and chopiness values.
         /// </summary>
-        [Tooltip("Controls the simulation foam amount. Higher values generates larger foam patches.")]
+        [Tooltip("Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and chopiness values.")]
         public float simulationFoamAmount = 0.5f;
 
         /// <summary>
