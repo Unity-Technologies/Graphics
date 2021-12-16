@@ -98,6 +98,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Force Alpha To Coverage to be enabled when MSAA is enabled. Remove the Alpha to Mask UI control.
 - Improved the probe placement of APV when dealing with scenes that contains objects smaller than a brick.
 - Replaced the geometry distance offset in the Probe Volume component by a minimum renderer volume threshold to ignore small objects when placing probes.
+- Small improvement changes in the UX for the Unlit Distortion field.
 
 ## [13.1.2] - 2021-11-05
 
