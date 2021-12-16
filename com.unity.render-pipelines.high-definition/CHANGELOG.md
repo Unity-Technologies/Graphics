@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
 - Fixed issue with typed loads on RGBA16F in Volumetric Lighting Filtering.
 - Fixed potential asymmetrical resource release in the volumetric clouds (case 1388218).
+- Fixed the intensity of the sky being reduced signficantly even if there is no clouds (case 1388279).
 
 ## [13.1.4] - 2021-12-04
 
