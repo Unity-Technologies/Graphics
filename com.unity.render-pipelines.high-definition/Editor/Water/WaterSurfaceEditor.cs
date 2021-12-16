@@ -288,7 +288,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     EditorGUILayout.PropertyField(m_CausticsPlaneOffset);
                     m_CausticsPlaneOffset.floatValue = Mathf.Max(m_CausticsPlaneOffset.floatValue, 0.0f);
-                    
+
                     EditorGUILayout.PropertyField(m_CausticsPlaneBlendDistance);
                     m_CausticsPlaneBlendDistance.floatValue = Mathf.Max(m_CausticsPlaneBlendDistance.floatValue, 0.0f);
 

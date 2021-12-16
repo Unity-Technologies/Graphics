@@ -684,13 +684,13 @@ IndirectLighting EvaluateBSDF_ScreenspaceRefraction(LightLoopContext lightLoopCo
     float refractedWaterDistance;
     float3 absorptionTint;
     ComputeWaterRefractionParams(posInput.positionWS, bsdfData.normalWS, bsdfData.lowFrequencyNormalWS,
-        posInput.positionSS * _ScreenSize.zw, V, 
+        posInput.positionSS * _ScreenSize.zw, V,
         preLightData.maxRefractionDistance, preLightData.transparencyColor, preLightData.outScatteringCoefficient,
         refractedWaterPosRWS, distortedWaterNDC, refractedWaterDistance, absorptionTint);
 
     // Evaluate the color at the bed of the water surface (wrong absorption tint, but we accept it)
     float3 waterBedColor = LoadCameraColor(distortedWaterNDC * _ScreenSize.xy) * absorptionTint;
-    
+
     // Add the caustics's contribution
     waterBedColor *= bsdfData.caustics;
 

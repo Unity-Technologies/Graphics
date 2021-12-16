@@ -689,7 +689,7 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float2 distortedWa
         float3 causticsUV = EvaluateCausticsUV(causticPosAWS);
         float2 uv0, uv1, uv2;
         GetTriplanarCoordinate(causticsUV, uv0, uv1, uv2);
-        
+
         // Evaluate the caustic s
         causticsValues.x = VoronoiNoise(uv0);
         causticsValues.y = VoronoiNoise(uv1);

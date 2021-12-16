@@ -348,7 +348,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Release the water profile array
             CoreUtils.SafeRelease(m_WaterProfileArrayGPU);
-            
+
             // Release all the RTHandles
             RTHandles.Release(m_FFTRowPassIs);
             RTHandles.Release(m_FFTRowPassRs);
