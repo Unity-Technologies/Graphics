@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a button in the Probe Volume Baking window to open the Probe Volume debug panel.
 - Added importance sampling of the sky in path tracing (aka environment sampling).
 - Added the overlay render queue to custom passes.
+- Added a callback to override the View matrix of Spot Lights.
 - Added Expose SSR parameters to control speed rejection from Motion Vector including computing Motion Vector in World Space.
 
 ### Fixed
