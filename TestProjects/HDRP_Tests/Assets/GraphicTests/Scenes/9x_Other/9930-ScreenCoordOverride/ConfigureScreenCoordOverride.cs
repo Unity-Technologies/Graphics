@@ -76,4 +76,3 @@ public class ConfigureScreenCoordOverride : MonoBehaviour
         return new Vector4(value.x, value.y, 1.0f / value.x, 1.0f / value.y);
     }
 }
-
