@@ -257,7 +257,7 @@ ${VFXFeedSortingKeys}
             }
 		}
         #if VFX_COMPUTE_AABBS
-                ${VFXLoadSize}
+                ${VFXLoadSizeRT}
             #if VFX_WORLD_SPACE
                 ${VFXLoadParameter:{worldToLocal}}
             #else

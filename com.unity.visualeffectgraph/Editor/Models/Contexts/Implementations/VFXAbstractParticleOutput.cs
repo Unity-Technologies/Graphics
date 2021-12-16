@@ -121,11 +121,11 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField, Tooltip("Specifies the layout of the flipbook. It can either use a single texture with multiple frames, or a Texture2DArray with multiple slices.")]
         protected FlipbookLayout flipbookLayout = FlipbookLayout.Texture2D;
 
-        [VFXSetting, SerializeField, Tooltip("When enabled, particles will be participate in the ray traced effects.")]
+        [VFXSetting, SerializeField, Header("Ray Tracing"), Tooltip("When enabled, particles will be participate in the ray traced effects.")]
         protected bool isRaytraced = false;
 
         [VFXSetting, Delayed, Min(1), SerializeField, Tooltip("Will keep one out of [rayTracingDecimationFactor] particles in the ray traced effects.")]
-        protected int rayTracingDecimationFactor = 1;
+        protected int decimationFactor = 1;
 
 
 
@@ -155,7 +155,7 @@ namespace UnityEditor.VFX
             return isRaytraced;
         }
 
-        public int GetRaytracingDecimationFactor() { return rayTracingDecimationFactor; }
+        public int GetRaytracingDecimationFactor() { return decimationFactor; }
 
         public bool needsOwnSort = false;
 
@@ -514,7 +514,7 @@ namespace UnityEditor.VFX
                 if (HasStrips(false))
                     yield return "HAS_STRIPS";
                 if (isRaytraced)
-                    yield return "VFX_RT_DECIMATION_FACTOR " + rayTracingDecimationFactor;
+                    yield return "VFX_RT_DECIMATION_FACTOR " + decimationFactor;
             }
         }
 
@@ -569,7 +569,7 @@ namespace UnityEditor.VFX
                 }
 
                 if (!isRaytraced)
-                    yield return "rayTracingDecimationFactor";
+                    yield return "decimationFactor";
             }
         }
 

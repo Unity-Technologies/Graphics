@@ -62,6 +62,20 @@ size3.z *= attributes.scaleZ;
 #endif
 ${VFXEnd}
 
+${VFXBegin:VFXLoadSizeRT}
+float3 size3 = float3(attributes.size,attributes.size,attributes.size);
+size3 *= sqrt(VFX_RT_DECIMATION_FACTOR);
+#if VFX_USE_SCALEX_CURRENT
+size3.x *= attributes.scaleX;
+#endif
+#if VFX_USE_SCALEY_CURRENT
+size3.y *= attributes.scaleY;
+#endif
+#if VFX_USE_SCALEZ_CURRENT
+size3.z *= attributes.scaleZ;
+#endif
+${VFXEnd}
+
 ${VFXBegin:VFXVertexSetFlipbooksInterpolants}
 #if USE_FLIPBOOK && defined(VFX_VARYING_UV)
 	#if USE_FLIPBOOK_ARRAY_LAYOUT
