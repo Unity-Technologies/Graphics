@@ -1233,9 +1233,15 @@ namespace UnityEngine.Rendering.Universal
             // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
             Shader.SetGlobalColor(ShaderPropertyId.rendererColor, Color.white);
 
-            Texture2D blueNoiseTexture = PostProcessData.GetDefaultPostProcessData().textures.blueNoise64LTex;
-            Shader.SetGlobalTexture(ShaderPropertyId.blueNoiseDitheringTexture, blueNoiseTexture);
             Shader.SetGlobalInt(ShaderPropertyId.lodCrossFadeType, (int)asset.lodCrossFadeType);
+
+            if (asset.lodCrossFadeType == LODCrossFadeType.BlueNoiseDither)
+            { 
+                UniversalRendererData renderData = asset.scriptableRendererData as UniversalRendererData;
+                Shader.SetGlobalTexture(ShaderPropertyId.blueNoiseDitheringTexture, renderData?.postProcessData?.textures.blueNoise64LTex);
+            }
+
+            LODGroup.crossFadeAnimationDuration = 2.0f;
         }
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)
