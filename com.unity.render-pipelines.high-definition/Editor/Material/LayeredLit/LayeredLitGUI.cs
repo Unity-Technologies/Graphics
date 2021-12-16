@@ -71,7 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // put the name in the exclusionList below
         public static void SynchronizeLayerProperties(Material material, int layerIndex, Material layerMaterial, bool includeUVMappingProperties)
         {
-            string[] exclusionList = { kTexWorldScale, kUVBase, kUVMappingMask, kUVDetail, kUVDetailsMappingMask };
+            string[] exclusionList = { kTexWorldScale, kUVBase, kUVMappingMask, kUVDetail, kUVDetailsMappingMask, kObjectSpaceUVMapping };
 
             if (layerMaterial != null)
             {

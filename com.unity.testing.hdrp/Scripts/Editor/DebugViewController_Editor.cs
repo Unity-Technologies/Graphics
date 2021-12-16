@@ -14,6 +14,9 @@ public class DebugViewController_Editor : Editor
     SerializedProperty s_fullScreenDebugMode;
     SerializedProperty s_lightingFullScreenDebugMode;
 
+    SerializedProperty s_lightingFullScreenDebugRTASView;
+    SerializedProperty s_lightingFullScreenDebugRTASMode;
+
     SerializedProperty s_lightlayers;
 
     public void OnEnable()
@@ -24,6 +27,9 @@ public class DebugViewController_Editor : Editor
         s_fullScreenDebugMode = serializedObject.FindProperty("fullScreenDebugMode");
         s_lightingFullScreenDebugMode = serializedObject.FindProperty("lightingFullScreenDebugMode");
         s_lightlayers = serializedObject.FindProperty("lightlayers");
+
+        s_lightingFullScreenDebugRTASView = serializedObject.FindProperty("lightingFullScreenDebugRTASView");
+        s_lightingFullScreenDebugRTASMode = serializedObject.FindProperty("lightingFullScreenDebugRTASMode");
     }
 
     public override void OnInspectorGUI()
@@ -48,6 +54,11 @@ public class DebugViewController_Editor : Editor
                 case DebugViewController.SettingType.Lighting:
                     s_lightlayers.boolValue = GUILayout.Toggle(s_lightlayers.boolValue, "Light Layers Visualization");
                     s_lightingFullScreenDebugMode.intValue = EditorGUILayout.IntPopup(new GUIContent("Fullscreen Debug Mode"), s_lightingFullScreenDebugMode.intValue, DebugDisplaySettings.lightingFullScreenDebugStrings, DebugDisplaySettings.lightingFullScreenDebugValues);
+                    if ((FullScreenDebugMode)s_lightingFullScreenDebugMode.intValue == FullScreenDebugMode.RayTracingAccelerationStructure)
+                    {
+                        s_lightingFullScreenDebugRTASView.intValue = EditorGUILayout.IntPopup(new GUIContent("Ray Tracing Acceleration Structure Debug View"), s_lightingFullScreenDebugRTASView.intValue, DebugDisplaySettings.lightingFullScreenRTASDebugViewStrings, DebugDisplaySettings.lightingFullScreenRTASDebugViewValues);
+                        s_lightingFullScreenDebugRTASMode.intValue = EditorGUILayout.IntPopup(new GUIContent("Ray Tracing Acceleration Structure Debug Mode"), s_lightingFullScreenDebugRTASMode.intValue, DebugDisplaySettings.lightingFullScreenRTASDebugModeStrings, DebugDisplaySettings.lightingFullScreenRTASDebugModeValues);
+                    }
                     break;
 
                 case DebugViewController.SettingType.Rendering:
