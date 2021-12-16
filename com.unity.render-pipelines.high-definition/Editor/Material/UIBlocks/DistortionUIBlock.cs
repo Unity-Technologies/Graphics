@@ -11,8 +11,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static GUIContent distortionEnableText = new GUIContent("Distortion", "When enabled, HDRP processes distortion for this Material.");
             public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "When enabled, HDRP only uses this Material to render distortion.");
-            public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "When enabled, HDRP calculates a depth test for distortion.");
-            public static GUIContent distortionVectorMapText = new GUIContent("Distortion Vector Map (RGB)", "Specifies the Vector Map HDRP uses for the distortion effect\nDistortion 2D vector (RG) and Blur amount (B)\nHDRP applies the scale and bias to the distortion vector only, not the blur amount.");
+            public static GUIContent distortionDepthTestText = new GUIContent("Distortion Depth Test", "When enabled, HDRP calculates a depth test for distortion, clipping the distortion contribution if it is occluded.");
+            public static GUIContent distortionVectorMapText = new GUIContent("Distortion Vector Map (RGB)", "Specifies the Vector Map HDRP used for the distortion effect.\n\nDistortion 2D vector (RG) and Blur amount (B)\n\nHDRP first applies the scale as a multiplicative, and then the bias additively, to the distortion vector only; not the blur amount.");
             public static GUIContent distortionBlendModeText = new GUIContent("Distortion Blend Mode", "Specifies the mode HDRP uses to calculate distortion.");
             public static GUIContent distortionScaleText = new GUIContent("Distortion Scale", "Sets the scale HDRP applies to the Distortion Vector Map.");
             public static GUIContent distortionBlurScaleText = new GUIContent("Distortion Blur Scale", "Sets the scale HDRP applies to the distortion blur effect.");
@@ -82,8 +82,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.indentLevel++;
                     materialEditor.TexturePropertySingleLine(Styles.distortionVectorMapText, distortionVectorMap, distortionVectorScale, distortionVectorBias);
                     EditorGUI.indentLevel++;
+
+                    if (distortionVectorMap.textureValue != null)
+                        materialEditor.TextureScaleOffsetProperty(distortionVectorMap);
+
                     materialEditor.ShaderProperty(distortionScale, Styles.distortionScaleText);
+
+                    EditorGUI.BeginChangeCheck();
                     materialEditor.ShaderProperty(distortionBlurScale, Styles.distortionBlurScaleText);
+                    if (EditorGUI.EndChangeCheck())
+                        distortionBlurScale.floatValue = Mathf.Max(0f, distortionBlurScale.floatValue);
+
                     float remapMin = distortionBlurRemapMin.floatValue;
                     float remapMax = distortionBlurRemapMax.floatValue;
                     EditorGUI.BeginChangeCheck();
