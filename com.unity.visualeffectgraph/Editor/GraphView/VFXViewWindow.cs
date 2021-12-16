@@ -15,6 +15,16 @@ namespace UnityEditor.VFX.UI
     [Serializable]
     class VFXViewWindow : EditorWindow
     {
+        private static Dictionary<Tuple<Type, bool>, string> vfxIconMap = new()
+        {
+            { new Tuple<Type, bool>(typeof(VisualEffectSubgraphOperator), true), "d_subgraph-operator.png" },
+            { new Tuple<Type, bool>(typeof(VisualEffectSubgraphBlock), true), "d_subgraph-block.png" },
+            { new Tuple<Type, bool>(typeof(VFXGraph), true), "vfx_graph_icon_gray_dark.png" },
+            { new Tuple<Type, bool>(typeof(VisualEffectSubgraphOperator), false), "subgraph-operator.png" },
+            { new Tuple<Type, bool>(typeof(VisualEffectSubgraphBlock), false), "subgraph-block.png" },
+            { new Tuple<Type, bool>(typeof(VFXGraph), false), "vfx_graph_icon_gray_light.png" },
+        };
+
         static List<VFXViewWindow> s_VFXWindows = new();
 
         ShortcutHandler m_ShortcutHandler;
@@ -149,13 +159,16 @@ namespace UnityEditor.VFX.UI
             if (graphView?.controller == null || graphView.controller.model != resource)
             {
                 InternalLoadResource(resource);
-
             }
 
             var asset = effectToAttach == null ? m_pendingAttachment : effectToAttach;
             graphView?.TryAttachTo(asset, true);
 
             titleContent.text = resource.name;
+
+            var iconFilePath = vfxIconMap[new Tuple<Type, bool>(resource.isSubgraph ? resource.subgraph.GetType() : resource.graph.GetType(), EditorGUIUtility.isProSkin)];
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{VisualEffectAssetEditorUtility.editorResourcesPath}/VFX/{iconFilePath}");
+            titleContent.image = icon;
         }
 
         VisualEffect GetVisualEffectFromID(int id) => EditorUtility.InstanceIDToObject(id) as VisualEffect;
