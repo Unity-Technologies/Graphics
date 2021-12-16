@@ -20,12 +20,14 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Controls global screen scaling for the distortion effect. Use this to hide screen borders when using high \"Intensity.\"")]
         public ClampedFloatParameter scale = new ClampedFloatParameter(1f, 0.01f, 5f);
 
+        /// <inheritdoc/>
         public bool IsActive()
         {
             return Mathf.Abs(intensity.value) > 0
                 && (xMultiplier.value > 0f || yMultiplier.value > 0f);
         }
 
+        /// <inheritdoc/>
         public bool IsTileCompatible() => false;
     }
 }
