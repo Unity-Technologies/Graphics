@@ -150,91 +150,11 @@ Shader "Hackweek/ProceduralLit"
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
-            #pragma vertex LitProceduralVertex
+            #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
-
-#ifdef DOTS_INSTANCING_ON
-
-            ByteAddressBuffer GeometryPositionBuffer;
-            ByteAddressBuffer GeometryNormalBuffer;
-            ByteAddressBuffer GeometryTangentBuffer;
-            ByteAddressBuffer GeometryUV0Buffer;
-
-            Varyings LitProceduralVertex(uint vertexID : SV_VertexID)
-            {
-                float3 positionOS = asfloat(GeometryPositionBuffer.Load3(3 * 4 * vertexID));
-                float3 normalOS = asfloat(GeometryNormalBuffer.Load3(3 * 4 * vertexID));
-                float4 tangentOS = asfloat(GeometryTangentBuffer.Load4(4 * 4 * vertexID));
-                float2 uv0 = asfloat(GeometryUV0Buffer.Load2(2 * 4 * vertexID));
-                float2 staticLightmapUV = float2(0,0);
-                float2 dynamicLightmapUV = float2(0,0);
-
-                Varyings output = (Varyings)0;
-
-                VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS);
-
-                // normalWS and tangentWS already normalize.
-                // this is required to avoid skewing the direction during interpolation
-                // also required for per-vertex lighting and SH evaluation
-                VertexNormalInputs normalInput = GetVertexNormalInputs(normalOS, tangentOS);
-
-                half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
-
-                half fogFactor = 0;
-                #if !defined(_FOG_FRAGMENT)
-                    fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
-                #endif
-
-                output.uv = TRANSFORM_TEX(uv0, _BaseMap);
-
-                // already normalized from normal transform to WS.
-                output.normalWS = normalInput.normalWS;
-            #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR) || defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-                real sign = tangentOS.w * GetOddNegativeScale();
-                half4 tangentWS = half4(normalInput.tangentWS.xyz, sign);
-            #endif
-            #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
-                output.tangentWS = tangentWS;
-            #endif
-
-            #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-                half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
-                half3 viewDirTS = GetViewDirectionTangentSpace(tangentWS, output.normalWS, viewDirWS);
-                output.viewDirTS = viewDirTS;
-            #endif
-
-                OUTPUT_LIGHTMAP_UV(staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
-            #ifdef DYNAMICLIGHTMAP_ON
-                output.dynamicLightmapUV = dynamicLightmapUV.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
-            #endif
-                OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
-            #ifdef _ADDITIONAL_LIGHTS_VERTEX
-                output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
-            #else
-                output.fogFactor = fogFactor;
-            #endif
-
-            #if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
-                output.positionWS = vertexInput.positionWS;
-            #endif
-
-            #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-                output.shadowCoord = GetShadowCoord(vertexInput);
-            #endif
-
-                output.positionCS = vertexInput.positionCS;
-
-                return output;
-            }
-#else
-            Varyings LitProceduralVertex(Attributes input)
-            {
-                return LitPassVertex(input);
-            }
-#endif
 
             ENDHLSL
         }
@@ -269,56 +189,11 @@ Shader "Hackweek/ProceduralLit"
             // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
             #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
 
-            #pragma vertex ProceduralShadowPassVertex
+            #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
-
-#ifdef DOTS_INSTANCING_ON
-
-            ByteAddressBuffer GeometryPositionBuffer;
-            ByteAddressBuffer GeometryNormalBuffer;
-            ByteAddressBuffer GeometryUV0Buffer;
-
-            Varyings ProceduralShadowPassVertex(uint vertexID : SV_VertexID)
-            {
-                float3 positionOS = asfloat(GeometryPositionBuffer.Load3(3 * 4 * vertexID));
-                float3 normalOS = asfloat(GeometryNormalBuffer.Load3(3 * 4 * vertexID));
-                float2 uv0 = asfloat(GeometryUV0Buffer.Load2(2 * 4 * vertexID));
-
-                Varyings output = (Varyings)0;
-
-                float3 positionWS = TransformObjectToWorld(positionOS.xyz);
-                float3 normalWS = TransformObjectToWorldNormal(normalOS);
-
-            #if _CASTING_PUNCTUAL_LIGHT_SHADOW
-                float3 lightDirectionWS = normalize(_LightPosition - positionWS);
-            #else
-                float3 lightDirectionWS = _LightDirection;
-            #endif
-
-                float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
-
-            #if UNITY_REVERSED_Z
-                positionCS.z = min(positionCS.z, UNITY_NEAR_CLIP_VALUE);
-            #else
-                positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE);
-            #endif
-
-                output.uv = TRANSFORM_TEX(uv0, _BaseMap);
-                output.positionCS = positionCS;
-                return output;
-            }
-
-#else
-
-            Varyings ProceduralShadowPassVertex(Attributes input)
-            {
-                return ShadowPassVertex(input);
-            }
-
-#endif
 
             ENDHLSL
         }
@@ -403,7 +278,7 @@ Shader "Hackweek/ProceduralLit"
             #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
-            #pragma vertex ProceduralDepthOnlyVertex
+            #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
 
             // -------------------------------------
@@ -418,32 +293,6 @@ Shader "Hackweek/ProceduralLit"
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
-
-#ifdef DOTS_INSTANCING_ON
-
-            ByteAddressBuffer GeometryPositionBuffer;
-            ByteAddressBuffer GeometryUV0Buffer;
-
-            Varyings ProceduralDepthOnlyVertex(uint vertexID : SV_VertexID)
-            {
-                float3 positionOS = asfloat(GeometryPositionBuffer.Load3(3 * 4 * vertexID));
-                float2 uv0 = asfloat(GeometryUV0Buffer.Load2(2 * 4 * vertexID));
-
-                Varyings output = (Varyings)0;
-
-                output.uv = TRANSFORM_TEX(uv0, _BaseMap);
-                output.positionCS = TransformObjectToHClip(positionOS);
-                return output;
-            }
-
-#else
-
-            Varyings ProceduralDepthOnlyVertex(Attributes input)
-            {
-                return DepthOnlyVertex(input);
-            }
-
-#endif
 
             ENDHLSL
         }

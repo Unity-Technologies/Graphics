@@ -24,10 +24,31 @@ struct Varyings
     float4 positionCS   : SV_POSITION;
 };
 
-float4 GetShadowPositionHClip(Attributes input)
+Varyings ShadowPassVertex
+(
+#ifdef BRG_DRAW_PROCEDURAL
+    uint vertexID : SV_VertexID
+#else
+    Attributes input
+#endif
+)
 {
-    float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
-    float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+    Varyings output = (Varyings)0;
+
+#ifdef BRG_DRAW_PROCEDURAL
+    float3 positionOS = LoadBRGProcedural_Position(vertexID);
+    float3 normalOS = LoadBRGProcedural_Normal(vertexID);
+    float2 uv0 = LoadBRGProcedural_UV0(vertexID);
+#else
+    UNITY_SETUP_INSTANCE_ID(input);
+
+    float3 positionOS = input.positionOS.xyz;
+    float3 normalOS = input.normalOS;
+    float2 uv0 = input.texcoord;
+#endif
+
+    float3 positionWS = TransformObjectToWorld(positionOS.xyz);
+    float3 normalWS = TransformObjectToWorldNormal(normalOS);
 
 #if _CASTING_PUNCTUAL_LIGHT_SHADOW
     float3 lightDirectionWS = normalize(_LightPosition - positionWS);
@@ -43,16 +64,8 @@ float4 GetShadowPositionHClip(Attributes input)
     positionCS.z = max(positionCS.z, UNITY_NEAR_CLIP_VALUE);
 #endif
 
-    return positionCS;
-}
-
-Varyings ShadowPassVertex(Attributes input)
-{
-    Varyings output;
-    UNITY_SETUP_INSTANCE_ID(input);
-
-    output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
-    output.positionCS = GetShadowPositionHClip(input);
+    output.uv = TRANSFORM_TEX(uv0, _BaseMap);
+    output.positionCS = positionCS;
     return output;
 }
 

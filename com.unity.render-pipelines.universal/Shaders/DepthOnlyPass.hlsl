@@ -18,14 +18,30 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-Varyings DepthOnlyVertex(Attributes input)
+Varyings DepthOnlyVertex
+(
+#ifdef BRG_DRAW_PROCEDURAL
+    uint vertexID : SV_VertexID
+#else
+    Attributes input
+#endif
+)
 {
     Varyings output = (Varyings)0;
+
+#ifdef BRG_DRAW_PROCEDURAL
+    float3 positionOS = LoadBRGProcedural_Position(vertexID);
+    float2 uv0 = LoadBRGProcedural_UV0(vertexID);
+#else
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
-    output.positionCS = TransformObjectToHClip(input.position.xyz);
+    float3 positionOS = input.position.xyz;
+    float2 uv0 = input.texcoord;
+#endif
+
+    output.uv = TRANSFORM_TEX(uv0, _BaseMap);
+    output.positionCS = TransformObjectToHClip(positionOS);
     return output;
 }
 

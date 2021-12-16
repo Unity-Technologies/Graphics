@@ -128,20 +128,43 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 ///////////////////////////////////////////////////////////////////////////////
 
 // Used in Standard (Physically Based) shader
-Varyings LitPassVertex(Attributes input)
+Varyings LitPassVertex
+(
+#ifdef BRG_DRAW_PROCEDURAL
+    uint vertexID : SV_VertexID
+#else
+    Attributes input
+#endif
+)
 {
     Varyings output = (Varyings)0;
 
+#ifdef BRG_DRAW_PROCEDURAL
+    float3 positionOS = LoadBRGProcedural_Position(vertexID);
+    float3 normalOS = LoadBRGProcedural_Normal(vertexID);
+    float4 tangentOS = LoadBRGProcedural_Tangent(vertexID);
+    float2 uv0 = LoadBRGProcedural_UV0(vertexID);
+    float2 staticLightmapUV = LoadBRGProcedural_StaticLightmapUV(vertexID);
+    float2 dynamicLightmapUV = LoadBRGProcedural_DynamicLightmapUV(vertexID);
+#else
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+    float3 positionOS = input.positionOS.xyz;
+    float3 normalOS = input.normalOS;
+    float4 tangentOS = input.tangentOS;
+    float2 uv0 = input.texcoord;
+    float2 staticLightmapUV = input.staticLightmapUV;
+    float2 dynamicLightmapUV = input.dynamicLightmapUV;
+#endif
+
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS);
 
     // normalWS and tangentWS already normalize.
     // this is required to avoid skewing the direction during interpolation
     // also required for per-vertex lighting and SH evaluation
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+    VertexNormalInputs normalInput = GetVertexNormalInputs(normalOS, tangentOS);
 
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
 
@@ -150,12 +173,12 @@ Varyings LitPassVertex(Attributes input)
         fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
     #endif
 
-    output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
+    output.uv = TRANSFORM_TEX(uv0, _BaseMap);
 
     // already normalized from normal transform to WS.
     output.normalWS = normalInput.normalWS;
 #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR) || defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-    real sign = input.tangentOS.w * GetOddNegativeScale();
+    real sign = tangentOS.w * GetOddNegativeScale();
     half4 tangentWS = half4(normalInput.tangentWS.xyz, sign);
 #endif
 #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
@@ -168,9 +191,9 @@ Varyings LitPassVertex(Attributes input)
     output.viewDirTS = viewDirTS;
 #endif
 
-    OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
+    OUTPUT_LIGHTMAP_UV(staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
 #ifdef DYNAMICLIGHTMAP_ON
-    output.dynamicLightmapUV = input.dynamicLightmapUV.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+    output.dynamicLightmapUV = dynamicLightmapUV.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
 #endif
     OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
 #ifdef _ADDITIONAL_LIGHTS_VERTEX

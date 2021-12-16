@@ -321,6 +321,47 @@ float4 LoadDOTSInstancedData_LODFade()
 #undef DEFINE_DOTS_LOAD_INSTANCE_SCALAR
 #undef DEFINE_DOTS_LOAD_INSTANCE_VECTOR
 
+#define BRG_DRAW_PROCEDURAL
+
+#ifdef BRG_DRAW_PROCEDURAL
+
+ByteAddressBuffer GeometryPositionBuffer;
+ByteAddressBuffer GeometryNormalBuffer;
+ByteAddressBuffer GeometryTangentBuffer;
+ByteAddressBuffer GeometryUV0Buffer;
+
+float3 LoadBRGProcedural_Position(uint vertexID)
+{
+    return asfloat(GeometryPositionBuffer.Load3(3 * 4 * vertexID));
+}
+
+float3 LoadBRGProcedural_Normal(uint vertexID)
+{
+    return asfloat(GeometryNormalBuffer.Load3(3 * 4 * vertexID));
+}
+
+float4 LoadBRGProcedural_Tangent(uint vertexID)
+{
+    return asfloat(GeometryTangentBuffer.Load4(4 * 4 * vertexID));
+}
+
+float2 LoadBRGProcedural_UV0(uint vertexID)
+{
+    return asfloat(GeometryUV0Buffer.Load2(2 * 4 * vertexID));
+}
+
+float2 LoadBRGProcedural_StaticLightmapUV(uint vertexID)
+{
+    return float2(0,0);
+}
+
+float2 LoadBRGProcedural_DynamicLightmapUV(uint vertexID)
+{
+    return float2(0,0);
+}
+
+#endif
+
 #endif // UNITY_DOTS_INSTANCING_ENABLED
 
 #endif // UNITY_DOTS_INSTANCING_INCLUDED
