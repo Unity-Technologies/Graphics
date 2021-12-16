@@ -68,13 +68,21 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                         PropertyField(m_SkyImportanceSampling);
 #if ENABLE_UNITY_DENOISERS
                         PropertyField(m_Denoising);
-                        if (m_Denoising.value.intValue != (int) DenoiserType.None)
+                        var denoiserType = m_Denoising.value.GetEnumValue<DenoiserType>();
+                        bool supported = Denoiser.IsDenoiserTypeSupported(denoiserType);
+
+                        if (supported && m_Denoising.value.intValue != (int) DenoiserType.None)
                         {
                             using (new IndentLevelScope())
                             {
                                 PropertyField(m_UseAOV);
                                 PropertyField(m_Temporal);
                             }
+                        }
+
+                        if (!supported)
+                        {
+                            EditorGUILayout.HelpBox($"The selected denoiser is not supported by this hardware configuration.", MessageType.Error, wide: true);
                         }
 #endif
                     }
