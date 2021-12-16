@@ -343,7 +343,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera;
             bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
 
-            bool useTemporalAA = cameraData.taaPersistentData != null;
+            bool useTemporalAA = (cameraData.taaPersistentData != null) && (cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing) && (m_Descriptor.msaaSamples == 1);
+
+            if (!useTemporalAA && cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing)
+            {
+                if (cameraData.taaPersistentData == null)
+                {
+                    Debug.LogWarning("Disabling TAA due to invalid persistent data.");
+                }
+                if (m_Descriptor.msaaSamples != 1)
+                {
+                    Debug.LogWarning("Disabling TAA because MSAA is on.");
+                }
+            }
 
             int amountOfPassesRemaining = (useStopNan ? 1 : 0) + (useSubPixeMorpAA ? 1 : 0) + (useDepthOfField ? 1 : 0) + (useLensFlare ? 1 : 0) + (useTemporalAA ? 1 : 0) + (useMotionBlur ? 1 : 0) + (usePaniniProjection ? 1 : 0);
 
