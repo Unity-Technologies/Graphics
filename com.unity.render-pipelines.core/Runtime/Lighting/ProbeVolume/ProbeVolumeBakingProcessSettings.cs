@@ -23,11 +23,19 @@ namespace UnityEngine.Experimental.Rendering
         public float searchMultiplier;
     }
 
-    // TODO: Use this structure in the actual authoring component rather than just a mean to group output parameters.
+    [System.Serializable]
+    internal struct ExtraInvalidationSettings
+    {
+        public bool enableExtraInvalidation;
+        public float checkRange;
+    }
+
+
     [System.Serializable]
     internal struct ProbeVolumeBakingProcessSettings
     {
         public ProbeDilationSettings dilationSettings;
         public VirtualOffsetSettings virtualOffsetSettings;
+        public ExtraInvalidationSettings invalidationSettings;
     }
 }

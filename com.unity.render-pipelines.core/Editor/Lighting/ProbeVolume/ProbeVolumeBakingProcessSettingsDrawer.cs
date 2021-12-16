@@ -17,9 +17,13 @@ namespace UnityEngine.Experimental.Rendering
             public static readonly GUIContent virtualOffsetSearchMultiplier = EditorGUIUtility.TrTextContent("Search multiplier", "A multiplier to be applied on the distance between two probes to derive the search distance out of geometry.");
             public static readonly GUIContent virtualOffsetBiasOutGeometry = EditorGUIUtility.TrTextContent("Bias out geometry", "Determines how much a probe is pushed out of the geometry on top of the distance to closest hit.");
 
+            public static readonly GUIContent autoInvalidate = EditorGUIUtility.TrTextContent("Auto Invalidate", "TODO_FCC ADD ME.");
+            public static readonly GUIContent checkRange = EditorGUIUtility.TrTextContent("Invalidate range", "TODO_FCC ADD ME.");
+
             public static readonly string dilationSettingsTitle = "Dilation Settings";
             public static readonly string advancedTitle = "Advanced";
             public static readonly string virtualOffsetSettingsTitle = "Virtual Offset Settings";
+            public static readonly string invalidateSettingsTitle = "Additional Invalidate";
         }
 
         // Draw the property inside the given rect
@@ -27,6 +31,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             var dilationSettings = property.FindPropertyRelative("dilationSettings");
             var virtualOffsetSettings = property.FindPropertyRelative("virtualOffsetSettings");
+            var invalidationSettings = property.FindPropertyRelative("invalidationSettings");
 
             // Using BeginProperty / EndProperty on the parent property means that
             // prefab override logic works on the entire property.
@@ -38,6 +43,10 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUILayout.Space();
             EditorGUILayout.Space();
             DrawVirtualOffsetSettings(virtualOffsetSettings);
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
+            DrawInvalidateSettings(invalidationSettings);
+
             EditorGUI.EndProperty();
 
             property.serializedObject.ApplyModifiedProperties();
@@ -73,20 +82,31 @@ namespace UnityEngine.Experimental.Rendering
 
         void DrawVirtualOffsetSettings(SerializedProperty virtualOffsetSettings)
         {
-
-            var m_EnableVirtualOffset = virtualOffsetSettings.FindPropertyRelative("useVirtualOffset");
-            var m_VirtualOffsetGeometrySearchMultiplier = virtualOffsetSettings.FindPropertyRelative("searchMultiplier");
-            var m_VirtualOffsetBiasOutOfGeometry = virtualOffsetSettings.FindPropertyRelative("outOfGeoOffset");
+            var enableVirtualOffset = virtualOffsetSettings.FindPropertyRelative("useVirtualOffset");
+            var virtualOffsetGeometrySearchMultiplier = virtualOffsetSettings.FindPropertyRelative("searchMultiplier");
+            var virtualOffsetBiasOutOfGeometry = virtualOffsetSettings.FindPropertyRelative("outOfGeoOffset");
 
             EditorGUILayout.LabelField(Styles.virtualOffsetSettingsTitle, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            m_EnableVirtualOffset.boolValue = EditorGUILayout.Toggle(Styles.useVirtualOffset, m_EnableVirtualOffset.boolValue);
-            EditorGUI.BeginDisabledGroup(!m_EnableVirtualOffset.boolValue);
-            m_VirtualOffsetGeometrySearchMultiplier.floatValue = Mathf.Clamp01(EditorGUILayout.FloatField(Styles.virtualOffsetSearchMultiplier, m_VirtualOffsetGeometrySearchMultiplier.floatValue));
-            m_VirtualOffsetBiasOutOfGeometry.floatValue = EditorGUILayout.FloatField(Styles.virtualOffsetBiasOutGeometry, m_VirtualOffsetBiasOutOfGeometry.floatValue);
+            enableVirtualOffset.boolValue = EditorGUILayout.Toggle(Styles.useVirtualOffset, enableVirtualOffset.boolValue);
+            EditorGUI.BeginDisabledGroup(!enableVirtualOffset.boolValue);
+            virtualOffsetGeometrySearchMultiplier.floatValue = Mathf.Clamp01(EditorGUILayout.FloatField(Styles.virtualOffsetSearchMultiplier, virtualOffsetGeometrySearchMultiplier.floatValue));
+            virtualOffsetBiasOutOfGeometry.floatValue = EditorGUILayout.FloatField(Styles.virtualOffsetBiasOutGeometry, virtualOffsetBiasOutOfGeometry.floatValue);
             EditorGUI.indentLevel--;
             EditorGUI.EndDisabledGroup();
 
         }
+
+        void DrawInvalidateSettings(SerializedProperty invalidateSettings)
+        {
+            var enableExtraInvalidation = invalidateSettings.FindPropertyRelative("enableExtraInvalidation");
+            var checkRange = invalidateSettings.FindPropertyRelative("checkRange");
+            EditorGUILayout.LabelField(Styles.invalidateSettingsTitle, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            enableExtraInvalidation.boolValue = EditorGUILayout.Toggle(Styles.autoInvalidate, enableExtraInvalidation.boolValue);
+            checkRange.floatValue = EditorGUILayout.FloatField(Styles.checkRange, checkRange.floatValue);
+            EditorGUI.indentLevel--;
+        }
+
     }
 }

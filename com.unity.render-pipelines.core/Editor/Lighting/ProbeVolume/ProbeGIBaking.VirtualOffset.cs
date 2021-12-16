@@ -129,5 +129,36 @@ namespace UnityEngine.Experimental.Rendering
 
             return worldPosition;
         }
+
+        public bool HasColliderAround(Vector3 worldPosition, float distanceSearch)
+        {
+            int hitsFound = 0;
+            const int necessaryHits = 2;
+
+            for (int x = -1; x <= 1; ++x)
+            {
+                for (int y = -1; y <= 1; ++y)
+                {
+                    for (int z = -1; z <= 1; ++z)
+                    {
+                        Vector3 searchDir = new Vector3(x, y, z);
+                        Vector3 normDir = searchDir.normalized;
+                        Vector3 ray = normDir * distanceSearch;
+                        var collisionLayerMask = ~0;
+                        RaycastHit[] outBoundHits = Physics.RaycastAll(worldPosition, normDir, distanceSearch, collisionLayerMask);
+                        RaycastHit[] inBoundHits = Physics.RaycastAll(worldPosition + ray, -1.0f * normDir, distanceSearch, collisionLayerMask);
+
+                        float distanceForDir = 0;
+                        if (HasMeshColliderHits(outBoundHits, inBoundHits, normDir, -normDir, distanceSearch, out distanceForDir))
+                        {
+                            hitsFound++;
+                            if (hitsFound > necessaryHits) return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
     }
 }

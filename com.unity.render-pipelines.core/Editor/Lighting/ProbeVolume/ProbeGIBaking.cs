@@ -30,6 +30,10 @@ namespace UnityEngine.Experimental.Rendering
         // Can be probably done cleaner.
         public Dictionary<Vector3, int> uniqueBrickSubdiv = new Dictionary<Vector3, int>();
 
+        // Mapping for explicit invalidation, whether it comes from the auto finding of occluders or from the touch up volumes
+        public Dictionary<Vector3, bool> invalidatedPositions = new Dictionary<Vector3, bool>();
+
+
         private BakingBatch() {}
 
         public BakingBatch(int index)
@@ -201,7 +205,7 @@ namespace UnityEngine.Experimental.Rendering
 
             SetBakingContext(perSceneDataList);
 
-            if (m_BakingSettings.virtualOffsetSettings.useVirtualOffset)
+            if (m_BakingSettings.virtualOffsetSettings.useVirtualOffset || m_BakingSettings.invalidationSettings.enableExtraInvalidation)
                 AddOccluders();
 
             RunPlacement();
@@ -888,6 +892,18 @@ namespace UnityEngine.Experimental.Rendering
                     float scaleForSearchDist = voSettings.searchMultiplier;
                     positions[i] = PushPositionOutOfGeometry(positions[i], scaleForSearchDist * searchDistance, voSettings.outOfGeoOffset);
                 }
+            }
+
+            ExtraInvalidationSettings invalSettings = m_BakingSettings.invalidationSettings;
+
+            if (invalSettings.enableExtraInvalidation)
+            {
+
+            }
+
+
+            if (m_BakingSettings.invalidationSettings.enableExtraInvalidation || voSettings.useVirtualOffset)
+            {
                 CleanupOccluders();
             }
 

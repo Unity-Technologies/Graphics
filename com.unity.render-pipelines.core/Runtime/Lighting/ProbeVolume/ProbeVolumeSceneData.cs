@@ -255,6 +255,11 @@ namespace UnityEngine.Experimental.Rendering
                     useVirtualOffset = true,
                     outOfGeoOffset = 0.01f,
                     searchMultiplier = 0.2f,
+                },
+                invalidationSettings = new ExtraInvalidationSettings
+                {
+                    enableExtraInvalidation = false,
+                    checkRange = 0.1f,
                 }
             };
         }
