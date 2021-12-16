@@ -40,13 +40,37 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        static readonly bool s_UseDropDownMenu = true;
+
+        void ChangeSpace(object val)
+        {
+            space = (VFXCoordinateSpace)val;
+        }
+
         void OnButtonClick()
         {
             var values = (VFXCoordinateSpace[])Enum.GetValues(space.GetType());
-            var spaceCount = values.Length;
-            var index = Array.IndexOf(values, space);
-            var nextIndex = (index + 1) % spaceCount;
-            space = values[nextIndex];
+
+            if (s_UseDropDownMenu)
+            {
+                var menu = new GenericMenu();
+                foreach (var spaceOption in values)
+                {
+                    menu.AddItem(
+                        new GUIContent(ObjectNames.NicifyVariableName(spaceOption.ToString())),
+                        spaceOption == space,
+                        ChangeSpace,
+                        spaceOption);
+                }
+                menu.DropDown(m_Button.worldBound);
+            }
+            else
+            {
+                var spaceCount = values.Length;
+                var index = Array.IndexOf(values, space);
+                var nextIndex = (index + 1) % spaceCount;
+                space = values[nextIndex];
+            }
         }
 
         public override void UpdateGUI(bool force)
