@@ -4,7 +4,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(ProceduralSky))]
+    [CustomEditor(typeof(ProceduralSky))]
     class ProceduralSkySettingsEditor
         : SkySettingsEditor
     {
