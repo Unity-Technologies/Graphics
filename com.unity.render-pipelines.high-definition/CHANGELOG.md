@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added importance sampling of the sky in path tracing (aka environment sampling).
 - Added the overlay render queue to custom passes.
 - Added a callback to override the View matrix of Spot Lights.
+- Added Expose SSR parameters to control speed rejection from Motion Vector including computing Motion Vector in World Space.
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
@@ -79,6 +80,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed misc shader warnings.
 - Fixed a shader warning in UnityInstancing.hlsl
 - Fixed for APV debug mode breaking rendering when switching to an asset with APV disabled.
+- Fixed potential asymmetrical resource release in the volumetric clouds (case 1388218).
+- Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
+- Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
+- Fixed the intensity of the sky being reduced signficantly even if there is no clouds (case 1388279).
+- Fixed a crash with render graph viewer when render graph is not provided with an execution name.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
@@ -86,6 +92,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
 - The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
 - Render Graph object pools are now cleared with render graph cleanup
+- Updated Physically Based Sky documentation with more warnings about warmup cost.
+- Force Alpha To Coverage to be enabled when MSAA is enabled. Remove the Alpha to Mask UI control.
 
 ## [13.1.2] - 2021-11-05
 

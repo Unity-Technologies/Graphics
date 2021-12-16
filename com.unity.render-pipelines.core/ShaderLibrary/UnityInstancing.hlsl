@@ -238,6 +238,12 @@
     #define UNITY_ACCESS_INSTANCED_PROP(arr, var)   var
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityDOTSInstancing.hlsl"
+    #if defined(UNITY_SETUP_INSTANCE_ID)
+        #undef UNITY_SETUP_INSTANCE_ID
+        #define UNITY_SETUP_INSTANCE_ID(input) {\
+            DEFAULT_UNITY_SETUP_INSTANCE_ID(input);\
+            SetupDOTSVisibleInstancingData();}
+    #endif
 
 #else
     #define UNITY_INSTANCING_BUFFER_START(buf)      UNITY_INSTANCING_CBUFFER_SCOPE_BEGIN(UnityInstancing_##buf) struct {
