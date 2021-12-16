@@ -15,8 +15,10 @@ namespace UnityEngine.Rendering.Universal
         public TextureCurveParameter satVsSat = new TextureCurveParameter(new TextureCurve(new Keyframe[] { }, 0.5f, false, new Vector2(0f, 1f)));
         public TextureCurveParameter lumVsSat = new TextureCurveParameter(new TextureCurve(new Keyframe[] { }, 0.5f, false, new Vector2(0f, 1f)));
 
+        /// <inheritdoc/>
         public bool IsActive() => true;
 
+        /// <inheritdoc/>
         public bool IsTileCompatible() => true;
     }
 }

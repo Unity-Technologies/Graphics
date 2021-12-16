@@ -66,6 +66,12 @@ float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
 
 #endif // _ENABLE_SHADOW_MATTE
 
+float3 ClampValue(float3 value)
+{
+    float intensity = Luminance(value) * GetCurrentExposureMultiplier();
+    return intensity > _RaytracingIntensityClamp ? value * _RaytracingIntensityClamp / intensity : value;
+}
+
 // Function responsible for surface scattering
 void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes, float4 inputSample)
 {
@@ -85,7 +91,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     }
 
     // Grab depth information
-    uint currentDepth = _RaytracingMaxRecursion - pathIntersection.remainingDepth;
+    uint currentDepth = GetCurrentDepth(pathIntersection);
 
     // Make sure to add the additional travel distance
     pathIntersection.cone.width += pathIntersection.t * abs(pathIntersection.cone.spreadAngle);
@@ -121,10 +127,10 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     // Check if we want to compute direct and emissive lighting for current depth
     bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
 
+#ifndef SHADER_UNLIT
+
     // Compute the bsdf data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
-
-#ifndef SHADER_UNLIT
 
     // Override the geometric normal (otherwise, it is merely the non-mapped smooth normal)
     // Also make sure that it is in the same hemisphere as the shading normal (which may have been flipped)
@@ -246,7 +252,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
 #else // SHADER_UNLIT
 
-    pathIntersection.value = computeDirect ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
+    pathIntersection.value = computeDirect ? surfaceData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
 
     // Apply shadow matte if requested
     #ifdef _ENABLE_SHADOW_MATTE
@@ -269,7 +275,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
         PathIntersection nextPathIntersection = pathIntersection;
         nextPathIntersection.remainingDepth--;
 
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, rayDescriptor, nextPathIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 3, rayDescriptor, nextPathIntersection);
 
         pathIntersection.value = lerp(nextPathIntersection.value, pathIntersection.value, builtinData.opacity);
     }
@@ -295,7 +301,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     }
 
     // Grab depth information
-    int currentDepth = _RaytracingMaxRecursion - pathIntersection.remainingDepth;
+    int currentDepth = GetCurrentDepth(pathIntersection);
     bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
 
     float4 inputSample = 0.0;
@@ -339,13 +345,9 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
         // Apply the volume/surface pdf
         pathIntersection.value /= pdf;
 
+        // Apply clamping on indirect values (can darken the result slightly, but significantly reduces fireflies)
         if (currentDepth)
-        {
-            // Bias the result (making it too dark), but reduces fireflies a lot
-            float intensity = Luminance(pathIntersection.value) * GetCurrentExposureMultiplier();
-            if (intensity > _RaytracingIntensityClamp)
-                pathIntersection.value *= _RaytracingIntensityClamp / intensity;
-        }
+            pathIntersection.value = ClampValue(pathIntersection.value);
     }
 }
 
