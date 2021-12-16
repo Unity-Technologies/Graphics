@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     bool accumulateInPost = m_PostProcessEnabled && m_DepthOfField.IsActive();
                     if (!accumulateInPost && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
                     {
-                        RenderAccumulation(m_RenderGraph, hdCamera, colorBuffer, colorBuffer, HDCameraFrameHistoryType.PathTracing, false);
+                        RenderAccumulation(m_RenderGraph, hdCamera, colorBuffer, colorBuffer, null, false);
                     }
 
                     // Render gizmos that should be affected by post processes

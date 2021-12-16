@@ -293,6 +293,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public SubFrameManager subFrameManager;
             public bool needExposure;
             public HDCamera hdCamera;
+            public Vector4 frameWeights;
 
             public TextureHandle input;
             public TextureHandle output;
@@ -305,7 +306,23 @@ namespace UnityEngine.Rendering.HighDefinition
             public LocalKeyword outputKeyword;
         }
 
-        void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, HDCameraFrameHistoryType historyType, bool needExposure)
+        void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, List<Tuple<TextureHandle, HDCameraFrameHistoryType>> AOVs, bool needExposure)
+        {
+            int camID = hdCamera.camera.GetInstanceID();
+            Vector4 frameWeights = m_SubFrameManager.ComputeFrameWeights(camID);
+
+            if (AOVs != null)
+            {
+                foreach (var aov in AOVs)
+                {
+                    RenderAccumulation(renderGraph, hdCamera, aov.Item1, TextureHandle.nullHandle, aov.Item2, frameWeights, needExposure);
+                }
+            }
+
+            RenderAccumulation(renderGraph, hdCamera, inputTexture, outputTexture, HDCameraFrameHistoryType.PathTracing, frameWeights, needExposure);
+        }
+
+        void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, HDCameraFrameHistoryType historyType, Vector4 frameWeights, bool needExposure)
         {
             using (var builder = renderGraph.AddRenderPass<RenderAccumulationPassData>("Render Accumulation", out var passData))
             {
@@ -317,6 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.hdCamera = hdCamera;
                 passData.inputKeyword = new LocalKeyword(passData.accumulationCS, "INPUT_FROM_FRAME_TEXTURE");
                 passData.outputKeyword = new LocalKeyword(passData.accumulationCS, "WRITE_TO_OUTPUT_TEXTURE");
+                passData.frameWeights = frameWeights;
 
                 TextureHandle history = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)historyType)
                     ?? hdCamera.AllocHistoryFrameRT((int)historyType, PathTracingHistoryBufferAllocatorFunction, 1));
@@ -351,7 +369,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Get the per-camera data
                         int camID = data.hdCamera.camera.GetInstanceID();
-                        Vector4 frameWeights = data.subFrameManager.ComputeFrameWeights(camID);
                         CameraData camData = data.subFrameManager.GetCameraData(camID);
 
                         // Accumulate the path tracing results
@@ -365,7 +382,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (data.useInputTexture)
                             ctx.cmd.SetComputeTextureParam(accumulationShader, data.accumulationKernel, HDShaderIDs._FrameTexture, data.input);
 
-                        ctx.cmd.SetComputeVectorParam(accumulationShader, HDShaderIDs._AccumulationWeights, frameWeights);
+                        ctx.cmd.SetComputeVectorParam(accumulationShader, HDShaderIDs._AccumulationWeights, data.frameWeights);
                         ctx.cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNeedsExposure, data.needExposure ? 1 : 0);
                         ctx.cmd.DispatchCompute(accumulationShader, data.accumulationKernel, (data.hdCamera.actualWidth + 7) / 8, (data.hdCamera.actualHeight + 7) / 8, data.hdCamera.viewCount);
 

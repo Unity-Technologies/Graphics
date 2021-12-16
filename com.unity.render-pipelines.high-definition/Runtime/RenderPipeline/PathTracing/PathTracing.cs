@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -147,6 +148,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int m_skySamplingSize;     // value used for the latlon sky texture (width = 2*size, height = size)
 
+		List<Tuple<TextureHandle, HDCameraFrameHistoryType>> pathTracedAOVs;
+		
         void InitPathTracing()
         {
 #if UNITY_EDITOR
@@ -185,6 +188,8 @@ namespace UnityEngine.Rendering.HighDefinition
             td.width = m_skySamplingSize;
             td.height = 1;
             m_SkyMarginalTexture = m_RenderGraph.CreateSharedTexture(td, true);
+            
+            pathTracedAOVs = new List<Tuple<TextureHandle, HDCameraFrameHistoryType>>(3);
         }
 
         void ReleasePathTracing()
@@ -625,6 +630,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
 
+            pathTracedAOVs.Clear();
+
             if (camData.currentIteration < m_SubFrameManager.subFrameCount)
             {
                 // Keep a sky texture around, that we compute only once per accumulation (except when recording, with potential camera motion blur)
@@ -647,19 +654,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool denoise = m_PathTracingSettings.denoising.value != DenoiserType.None;
                 if (denoise && m_PathTracingSettings.useAOVs.value)
                 {
-                    RenderAccumulation(m_RenderGraph, hdCamera, albedo, TextureHandle.nullHandle, HDCameraFrameHistoryType.AlbedoAOV, true);
-                    RenderAccumulation(m_RenderGraph, hdCamera, normal, TextureHandle.nullHandle, HDCameraFrameHistoryType.NormalAOV, true);
+                    pathTracedAOVs.Add(new Tuple<TextureHandle, HDCameraFrameHistoryType>(albedo, HDCameraFrameHistoryType.AlbedoAOV));
+                    pathTracedAOVs.Add(new Tuple<TextureHandle, HDCameraFrameHistoryType>(normal, HDCameraFrameHistoryType.NormalAOV));
                 }
 
                 if (denoise && m_PathTracingSettings.temporal.value)
                 {
-                    RenderAccumulation(m_RenderGraph, hdCamera, motionVector, TextureHandle.nullHandle, HDCameraFrameHistoryType.MotionVectorAOV, true);
+                    pathTracedAOVs.Add(new Tuple<TextureHandle, HDCameraFrameHistoryType>(motionVector, HDCameraFrameHistoryType.MotionVectorAOV));
                 }
 #endif
             }
 
-            // Color should be accumulated after AOVs (order is important)
-            RenderAccumulation(m_RenderGraph, hdCamera, m_FrameTexture, colorBuffer, HDCameraFrameHistoryType.PathTracing, true);
+            RenderAccumulation(m_RenderGraph, hdCamera, m_FrameTexture, colorBuffer, pathTracedAOVs, true);
 
             RenderDenoisePass(m_RenderGraph, hdCamera, colorBuffer);
 
