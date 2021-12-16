@@ -88,6 +88,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a crash with render graph viewer when render graph is not provided with an execution name.
 - Fixed rendering in the editor when an incompatible API is added (case 1384634).
 - Fixed issue with typed loads on RGBA16F in Volumetric Lighting Filtering.
+- Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
