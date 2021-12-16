@@ -861,7 +861,7 @@ namespace UnityEngine.Rendering.HighDefinition
             profile.transparencyColor = new Vector3(Mathf.Min(waterSurface.refractionColor.r, 0.99f),
                                                     Mathf.Min(waterSurface.refractionColor.g, 0.99f),
                                                     Mathf.Min(waterSurface.refractionColor.b, 0.99f));
-            profile.outScatteringCoefficient = -Mathf.Log(0.02f) / waterSurface.maxAbsorptionDistance;;
+            profile.outScatteringCoefficient = -Mathf.Log(0.02f) / waterSurface.maxAbsorptionDistance;
             m_WaterSurfaceProfileArray[waterSurfaceIndex] = profile;
         }
 
