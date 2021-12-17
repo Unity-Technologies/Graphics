@@ -683,7 +683,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static readonly string dstBlend = "[_DstBlend]";
             public static readonly string alphaSrcBlend = "[_AlphaSrcBlend]";
             public static readonly string alphaDstBlend = "[_AlphaDstBlend]";
-            public static readonly string alphaCutoffEnable = "[_AlphaCutoffEnable]";
+            public static readonly string alphaToMask = "[_AlphaToMask]";
             public static readonly string cullMode = "[_CullMode]";
             public static readonly string cullModeForward = "[_CullModeForward]";
             public static readonly string zTestDepthEqualForOpaque = "[_ZTestDepthEqualForOpaque]";
@@ -739,7 +739,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.AlphaToMask(Uniforms.alphaCutoffEnable), new FieldCondition(Fields.AlphaToMask, true) },
+            { RenderState.AlphaToMask(Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMaskDepth,
@@ -753,7 +753,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.AlphaToMask(Uniforms.alphaCutoffEnable), new FieldCondition(Fields.AlphaToMask, true) },
+            { RenderState.AlphaToMask(Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMaskMV,
@@ -1400,6 +1400,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local
+        };
+
+        public static KeywordDescriptor AlphaToMask = new KeywordDescriptor()
+        {
+            displayName = "Alpha To Mask",
+            referenceName = "_ALPHATOMASK_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
         };
 
         public static KeywordDescriptor TransparentColorShadow = new KeywordDescriptor()
