@@ -436,6 +436,8 @@ namespace UnityEngine.Experimental.Rendering
             var bakingCells = m_BakingBatch.cells;
             var numCells = bakingCells.Count;
 
+            bool supportsDynamicPropagation = probeRefVolume.SupportsDynamicPropagation();
+
             int numUniqueProbes = m_BakingBatch.uniqueProbeCount;
 
             var sh = new NativeArray<SphericalHarmonicsL2>(numUniqueProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -478,6 +480,10 @@ namespace UnityEngine.Experimental.Rendering
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
                 cell.minSubdiv = probeRefVolume.GetMaxSubdivision();
+                if (supportsDynamicPropagation)
+                {
+                    cell.extraData = new ProbeExtraData[numProbes];
+                }
 
                 for (int i = 0; i < numProbes; ++i)
                 {

@@ -352,8 +352,9 @@ namespace UnityEngine.Experimental.Rendering
     {
         const int kTemporaryDataLocChunkCount = 8;
 
+        // TODO_FCC: CAN WE AVOID PUBLIC?
         [System.Serializable]
-        internal class Cell
+        public class Cell
         {
             public int index;
             public Vector3Int position;
@@ -364,10 +365,25 @@ namespace UnityEngine.Experimental.Rendering
             public int minSubdiv;
             public int indexChunkCount;
             public int shChunkCount;
+
+            // TODO_FCC: Shall we store elsewhere? YES MOVE TO CELL INFO.
+            public ProbeExtraData[] extraData;
+            public ProbeExtraDataBuffers probeExtraDataBuffers;
+            public int[] chunkIndices;
+            public bool extraDataBufferInit = false;
+
+            public void Dispose()
+            {
+                if (instance.SupportsDynamicPropagation())
+                {
+                    probeExtraDataBuffers.Dispose();
+                }
+            }
         }
 
+        // TODO_FCC: Really don't need as public. Here for porting.
         [DebuggerDisplay("Index = {cell.index} Loaded = {loaded}")]
-        internal class CellInfo : IComparable<CellInfo>
+        public class CellInfo : IComparable<CellInfo>
         {
             public Cell cell;
             public List<Chunk> chunkList = new List<Chunk>();
@@ -579,6 +595,66 @@ namespace UnityEngine.Experimental.Rendering
         public Action<ExtraDataActionInput> retrieveExtraDataAction;
 
 
+        /// <summary>
+        ///  TODO_FCC:  MORE THAN LIKELY WE NEED TO COMBINE THIS WITH  retrieveExtraDataAction .
+        /// </summary>
+        public Action<Vector3, Vector3> generateExtraDataAction;
+
+        /// <summary>
+        ///  todo
+        /// </summary>
+        public List<Cell> GetCellsWithExtraDataToInit()
+        {
+            List<Cell> cellsWithExtraBuffersToInit = new List<Cell>();
+            foreach (var cell in cells.Values)
+            {
+                if (!cell.cell.extraDataBufferInit)
+                    cellsWithExtraBuffersToInit.Add(cell.cell);
+            }
+            return cellsWithExtraBuffersToInit;
+        }
+
+        /// <summary>
+        ///  todo
+        /// </summary>
+        /// <returns></returns>
+        public List<ProbeExtraDataBuffers> GetExtraDataBuffers()
+        {
+            List<ProbeExtraDataBuffers> extraDataBuffers = new List<ProbeExtraDataBuffers>(cells.Count);
+            foreach (var cell in cells.Values)
+            {
+                if (cell.cell.extraDataBufferInit)
+                    extraDataBuffers.Add(cell.cell.probeExtraDataBuffers);
+            }
+
+            return extraDataBuffers;
+        }
+
+        public void SwapIrradianceCaches()
+        {
+            foreach (var cell in cells.Values)
+            {
+                if (cell.cell.extraDataBufferInit)
+                    cell.cell.probeExtraDataBuffers.SwapIrradianceCache();
+            }
+        }
+
+        /// <summary>
+        ///  todo
+        /// </summary>
+        /// <returns></returns>
+        public List<int[]> GetChunkIndices()
+        {
+            List<int[]> indicesList = new List<int[]>(cells.Count);
+            foreach (var cell in cells.Values)
+            {
+                if (cell.cell.extraDataBufferInit)
+                    indicesList.Add(cell.cell.chunkIndices);
+            }
+
+            return indicesList;
+        }
+
         bool m_BricksLoaded = false;
 
         // Information of the probe volume asset that is being loaded (if one is pending)
@@ -639,6 +715,16 @@ namespace UnityEngine.Experimental.Rendering
         public float probeVolumesWeight { get => m_ProbeVolumesWeight; set => m_ProbeVolumesWeight = Mathf.Clamp01(value); }
 
         static ProbeReferenceVolume _instance = new ProbeReferenceVolume();
+
+        /// <summary>
+        /// TODO
+        /// </summary>
+        public Vector3Int poolDimension { get { return m_Pool.GetPoolDimensions(); } }
+        /// <summary>
+        /// TODO
+        /// </summary>
+        public int chunkSizeInProbes { get { return ProbeBrickPool.GetChunkSizeInProbeCount(); } }
+
 
         /// <summary>
         /// Get the instance of the probe reference volume (singleton).
@@ -758,6 +844,9 @@ namespace UnityEngine.Experimental.Rendering
                         m_ToBeLoadedCells.Remove(cellInfo);
                     }
 
+                    if (SupportsDynamicPropagation() && (cell.probeExtraDataBuffers != null && cell.probeExtraDataBuffers.finalExtraDataBuffer != null))
+                        cell.probeExtraDataBuffers.Dispose();
+
                     m_CellInfoPool.Release(cellInfo);
                 }
             }
@@ -775,6 +864,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 ReleaseBricks(cellInfo);
 
+                cellInfo.cell.Dispose(); // TODO_FCC: Move to cell info.
                 cellInfo.loaded = false;
                 cellInfo.updateInfo = new ProbeBrickIndex.CellIndexUpdateInfo();
 
@@ -862,6 +952,44 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
             return true;
+        }
+
+        /// <summary>
+        /// Return a list of array, one per cell, containing the probe locations.
+        /// </summary>
+        /// <returns>A list of array, one per cell, containing the probe locations</returns>
+        public List<Vector3[]> GetProbeLocations()
+        {
+            List<Vector3[]> outList = new List<Vector3[]>(cells.Count);
+
+            foreach (var cell in cells.Values)
+            {
+                outList.Add(cell.cell.probePositions);
+            }
+
+            return outList;
+        }
+
+        /// <summary>
+        /// Return a list of array, one per cell, containing the probe validity.
+        /// </summary>
+        /// <returns>A list of array, one per cell, containing the probe validity</returns>
+        public List<float[]> GetProbesValidity()
+        {
+            List<float[]> outList = new List<float[]>(cells.Count);
+
+            foreach (var cell in cells.Values)
+            {
+                outList.Add(cell.cell.validity);
+            }
+
+            return outList;
+        }
+
+        internal bool SupportsDynamicPropagation()
+        {
+            var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+            return (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset");
         }
 
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
@@ -1195,6 +1323,8 @@ namespace UnityEngine.Experimental.Rendering
         internal int GetMaxSubdivision() => m_MaxSubdivision;
         internal int GetMaxSubdivision(float multiplier) => Mathf.CeilToInt(m_MaxSubdivision * multiplier);
         internal float GetDistanceBetweenProbes(int subdivisionLevel) => BrickSize(subdivisionLevel) / 3.0f;
+        // TODO_FCC: FOR DYNAMIC GI THIS NEEDS TO BE PER CELL. WE HAVE CUSTOM MIN/MAX SUBDIV OVERRIDES NOW. SO NEED TO CHANGE ACCORDINGLY.
+        //            --- actually now we have the data in the cell meta data when loading from index, can we use that? TODO_FCC: IMPORTANT!!
         internal float MinDistanceBetweenProbes() => GetDistanceBetweenProbes(0);
 
         /// <summary>
@@ -1210,6 +1340,15 @@ namespace UnityEngine.Experimental.Rendering
             {
                 m_Pool.Clear();
                 m_Index.Clear();
+
+                if (SupportsDynamicPropagation())
+                {
+                    foreach (var cell in cells.Values)
+                    {
+                        cell.cell.probeExtraDataBuffers.Dispose();
+                    }
+                }
+
                 cells.Clear();
             }
 
@@ -1282,6 +1421,12 @@ namespace UnityEngine.Experimental.Rendering
             // Update CellInfo
             cellInfo.updateInfo = cellUpdateInfo;
             cellInfo.loaded = true;
+            cell.chunkIndices = new int[cellInfo.chunkList.Count];
+            for (int i = 0; i < cellInfo.chunkList.Count; ++i)
+            {
+                cell.chunkIndices[i] = cellInfo.chunkList[i].flattenIndex(m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
+            }
+            cell.extraDataBufferInit = false;
 
             // Update indirection buffer
             m_CellIndices.UpdateCell(cellInfo.flatIdxInCellIndices, cellUpdateInfo);

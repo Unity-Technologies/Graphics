@@ -11,7 +11,8 @@ using Cell = UnityEngine.Experimental.Rendering.ProbeReferenceVolume.Cell;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    internal class ProbeBrickIndex
+    // TODO_FCC: Really don't need as public. Here for porting.
+    public class ProbeBrickIndex
     {
         // a few constants
         internal const int kMaxSubdivisionLevels = 7; // 3 bits

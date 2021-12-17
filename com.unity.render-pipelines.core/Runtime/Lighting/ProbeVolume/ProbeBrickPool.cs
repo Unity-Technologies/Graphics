@@ -5,7 +5,8 @@ using UnityEngine.Profiling;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    internal class ProbeBrickPool
+    // TODO_FCC: NO NEED FOR PUBLIC, NEED TO DO SOME CHECK ON WHAT NEEDS TO BE PUBLIC/INTERNAL
+    public class ProbeBrickPool
     {
         const int kProbePoolChunkSize = 128;
 
