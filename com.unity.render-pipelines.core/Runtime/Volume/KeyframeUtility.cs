@@ -42,7 +42,6 @@ namespace UnityEngine.Rendering
     /// }
     /// </code>
     /// </example>
-
     /// </summary>
     public class KeyframeUtility
     {
