@@ -10,24 +10,29 @@ int _LODCrossFadeType;
 TEXTURE2D(_BlueNoiseDitheringTexture);
 SAMPLER(sampler_BlueNoiseDitheringTexture);
 
-float GetBlueNoiseDithering(uint2 seed)
+half CopySign(half x, half s)
 {
-    const float blueNoiseTexSize = 64.0;
+    return (s >= 0) ? abs(x) : -abs(x);
+}
 
-    float2 uv = seed / blueNoiseTexSize;
+half GetBlueNoiseDithering(uint2 seed)
+{
+    const half k_BlueNoiseTexSize = 64.0;
+
+    half2 uv = seed / k_BlueNoiseTexSize;
 
     return SAMPLE_TEXTURE2D(_BlueNoiseDitheringTexture, sampler_BlueNoiseDitheringTexture, uv).a;
 }
 
 //@ We can make white noise camera rotation independent. See ComputeFadeMaskSeed. But that would require world space view vector for all passes.
-float GetWhiteNoiseDithering(uint2 seed)
+half GetWhiteNoiseDithering(uint2 seed)
 {
     return GenerateHashedRandomFloat(seed);
 }
 
-float GetBayerMatrixDithering(uint2 seed)
+half GetBayerMatrixDithering(uint2 seed)
 {
-    const float4x4 k_BayerMatrix = 
+    const half4x4 k_BayerMatrix = 
     {
         1.0 / 17.0, 9.0 / 17.0, 3.0 / 17.0, 11.0 / 17.0,
         13.0 / 17.0, 5.0 / 17.0, 15.0 / 17.0, 7.0 / 17.0,
@@ -38,9 +43,9 @@ float GetBayerMatrixDithering(uint2 seed)
     return k_BayerMatrix[seed.x % 4][seed.y % 4];
 }
 
-float GetLODDithering(float2 crossFadeSeed, float crossFadeFactor)
+half GetLODDithering(float2 crossFadeSeed, half crossFadeFactor)
 {
-    float d;
+    half d;
 
     switch (_LODCrossFadeType)
     {
@@ -62,7 +67,7 @@ float GetLODDithering(float2 crossFadeSeed, float crossFadeFactor)
 void ApplyLODCrossFade(float4 positionCS)
 {
 #ifdef LOD_FADE_CROSSFADE
-    float d = GetLODDithering(positionCS.xy, unity_LODFade.x);
+    half d = GetLODDithering(positionCS.xy, unity_LODFade.x);
 
     clip(d);
 #endif
@@ -83,7 +88,7 @@ void ApplyLODCrossFade(float4 positionCS, inout half4 color)
         }
         else
         {
-            float d = GetLODDithering(positionCS.xy, unity_LODFade.x);
+            half d = GetLODDithering(positionCS.xy, unity_LODFade.x);
 
             color.a = d * 5.0 + 1.0;
 
