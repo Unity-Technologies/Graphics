@@ -53,7 +53,7 @@ void KMainCoCMinMax(uint3 dispatchThreadId : SV_DispatchThreadID)
         for (uint i = 0; i < TILE_RES; i++)
         {
             uint2 tiledCoords = dispatchThreadId.xy * TILE_RES + uint2(i, j);
-            tiledCoords = min(tiledCoords, _ScreenSize.xy - uint2(1, 1));
+            tiledCoords = min(tiledCoords, _PostProcessScreenSize.xy - uint2(1, 1));
             float CoC = _InputTexture[COORD_TEXTURE2D_X(tiledCoords)].x;
 
             UpdateMinMaxTile(minMaxTile, CoC);

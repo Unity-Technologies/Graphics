@@ -70,6 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the missing debug menus to visualize the ray tracing acceleration structure (case 1371410).
 - Fixed compilation issue related to shader stripping in ray tracing.
 - Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
+- Fixed PBR Dof using the wrong resolution for COC min/max filter, and also using the wrong parameters when running post TAAU stabilization. (case 1388961)
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
