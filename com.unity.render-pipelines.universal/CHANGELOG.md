@@ -4,6 +4,24 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [14.0.0] - 2021-11-17
+
+### Added
+- Renderer Features can now use the HelpURLAttribute to specify a documentation URL to be used in the inspector.
+- Added inspector documentation URLs to the SSAO, Decal, and Render Objects renderer features.
+- Changed "_USE_DRAW_PROCEDURAL" to be used only in vertex shader in Post Processing related shaders as they are not needed for fragment shaders. In result we now generate less shader variants.
+- Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
+
+### Fixed
+- Fix shadow rendering correctly to work with shader stripping in WebGl. [case 1381881](https://issuetracker.unity3d.com/issues/webgl-urp-mesh-is-not-rendered-in-the-scene-on-webgl-build)
+- VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
+- Fixed inspector documentation URLs for the URP asset and Universal Renderer asset.
+- Fixed render scale setting unintentionally affecting the scene view camera.
+- Fixed property wrappers around material properties.
+- Fixed incorrect light indexing on Windows Editor with Android target. [case 1378103](https://issuetracker.unity3d.com/product/unity/issues/guid/1378103/)
+- Fixed missing depth for Depth of Field in an overlay camera. [case 1365623](https://issuetracker.unity3d.com/product/unity/issues/guid/1365623/)
+- Fixed FXAA quality issues when render scale is not 1.0.
+
 ## [13.1.2] - 2021-11-05
 
 ### Added
@@ -14,6 +32,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Converted internal render targets to use `RTHandle` targets instead of `RenderTargetHandle` and `RenderTargetIdentifier`.
 - Set usage of `RenderTargetHandle` and public functions using `RenderTargetIdentifier` as obsolete for future removal.
 - Split RendererFeatures `AddRenderPasses` into two functions with `SetupRenderPasses` so render targets can be used after allocation.
+- The "Add Renderer Feature" menu now supports filtering.
+- Removed the name input for the SSAO and Screen Space Shadows renderer features.
 
 ### Fixed
 - Fixed an issue where 2D global lights with shadows enabled could break light layer batching [case 1376487](https://issuetracker.unity3d.com/issues/2d-urp-upgrading-global-light-sets-shadow-settings-to-enabled)
@@ -24,6 +44,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with MSAA falling back to the incorrect value when sample count 2 is not supported on some Android GPUs
 - Fixed decals to work with native render pass [case 1353141](https://issuetracker.unity3d.com/issues/urp-decals-are-not-visible-in-game-view-after-modifying-urp-asset-properties)
 - Fixed decals to work with render scale [1353885](https://issuetracker.unity3d.com/issues/urp-builtin-to-urp-render-pipeline-converter-freezes-the-editor-when-converting-rendering-settings)
+- Fixed an issue in where the _ScreenParams is not setup correctly.
+- Fixed an issue where intermediate rendertextures were not scaled when a camera was rendering to a texture [case 1342895](https://issuetracker.unity3d.com/issues/camera-rendertocubemap-offsets-and-stretches-out-the-ambient-occlusionl-layer-when-the-render-scale-is-not-equal-to-1)
 
 ## [13.1.1] - 2021-10-04
 
@@ -45,6 +67,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Multiply blend now keeps DstAlpha as it's RGB only.
 - Particle AlphaModulate() renamed to AlphaModulateAndPremultiply() as it does both. Moved separate AlphaModulate() and AlphaPremultiply() to URP shader library. Fix double alpha multiply for ParticleLit.
 - Improved blending modes trigger a material update which tries to keep the existing look intact. This is not always possible and manual blend mode changes might be required.
+- Reverted intermediate texture behavior.
+- Shader Variant Log Level moved from the URP Asset to URP Global Settings.
 
 ### Fixed
 - Fixed incorrect premultiply blend mode. case 1260085, case 1357703, [case 1347301](https://issuetracker.unity3d.com/product/unity/issues/guid/1347301/)
@@ -59,6 +83,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed disabled debug lighting modes on Vulkan and OpenGL following a shader compiler fix. [case 1334240]
 - Fixed an issue in where the Convert Renderering Settings would cause a freeze. [case 1353885](https://issuetracker.unity3d.com/issues/urp-builtin-to-urp-render-pipeline-converter-freezes-the-editor-when-converting-rendering-settings)
 - Fixed incorrect behavior of Reflections with Smoothness lighting debug mode. [case 1374181]
+- Fixed a performance regression in the 2D renderer regarding the PostProcessPass [case 1347893]
+- Fixed light banding artifacts on some mobile platforms. [case 1375791](https://issuetracker.unity3d.com/issues/mobile-urp-banding-like-artifacts-are-visible-when-smooth-material-is-lit-by-light)
 
 ## [13.1.0] - 2021-09-24
 ### Added
