@@ -623,12 +623,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (VolumeVoxelizationPassData data, RenderGraphContext ctx) =>
                     {
-                        VolumeVoxelizationPass( data.parameters,
-                                                data.densityBuffer,
-                                                data.visibleVolumeBoundsBuffer,
-                                                data.visibleVolumeDataBuffer,
-                                                data.bigTileLightListBuffer,
-                                                ctx.cmd);
+                        if (data.parameters.tiledLighting)
+                        {
+                            VolumeVoxelizationPass( data.parameters,
+                                data.densityBuffer,
+                                data.visibleVolumeBoundsBuffer,
+                                data.visibleVolumeDataBuffer,
+                                data.bigTileLightListBuffer,
+                                ctx.cmd);
+                        }
+                        else
+                        {
+                            VolumeVoxelizationPass( data.parameters,
+                                data.densityBuffer,
+                                data.visibleVolumeBoundsBuffer,
+                                data.visibleVolumeDataBuffer,
+                                ctx.cmd);
+                        }
                     });
 
                     return passData.densityBuffer;

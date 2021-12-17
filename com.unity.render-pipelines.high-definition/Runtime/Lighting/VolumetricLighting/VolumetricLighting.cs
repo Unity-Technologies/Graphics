@@ -951,6 +951,15 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.tiledLighting)
                 cmd.SetComputeBufferParam(parameters.voxelizationCS, parameters.voxelizationKernel, HDShaderIDs.g_vBigTileLightList, bigTileLightList);
 
+            VolumeVoxelizationPass(in parameters, densityBuffer, visibleVolumeBoundsBuffer, visibleVolumeDataBuffer, cmd);
+        }
+
+        static void VolumeVoxelizationPass( in VolumeVoxelizationParameters parameters,
+                                            RTHandle                        densityBuffer,
+                                            ComputeBuffer                   visibleVolumeBoundsBuffer,
+                                            ComputeBuffer                   visibleVolumeDataBuffer,
+                                            CommandBuffer                   cmd)
+        {
             cmd.SetComputeTextureParam(parameters.voxelizationCS, parameters.voxelizationKernel, HDShaderIDs._VBufferDensity,  densityBuffer);
             cmd.SetComputeBufferParam( parameters.voxelizationCS, parameters.voxelizationKernel, HDShaderIDs._VolumeBounds,    visibleVolumeBoundsBuffer);
             cmd.SetComputeBufferParam( parameters.voxelizationCS, parameters.voxelizationKernel, HDShaderIDs._VolumeData,      visibleVolumeDataBuffer);
