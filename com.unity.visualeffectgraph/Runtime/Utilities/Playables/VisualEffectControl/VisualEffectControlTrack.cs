@@ -56,6 +56,9 @@ namespace UnityEngine.VFX
             base.OnCreateClip(clip);
             if (clip.asset is VisualEffectControlClip vfxClip)
             {
+                vfxClip.clipStart = clip.start;
+                vfxClip.clipEnd = clip.end;
+
                 if (m_CurrentVisualEffect != null)
                 {
                     //Copy Seed settings
