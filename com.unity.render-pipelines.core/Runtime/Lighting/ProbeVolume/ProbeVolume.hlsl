@@ -13,6 +13,9 @@
 #define _NormalBias _Biases_CellInMinBrick_MinBrickSize.x
 #define _ViewBias _Biases_CellInMinBrick_MinBrickSize.y
 #define _MinBrickSize _Biases_CellInMinBrick_MinBrickSize.w
+#define _AntiLeakMethod _LeakReductionParams.x
+#define _AntiLeakWeightInfluence _LeakReductionParams.y
+#define _MinDotProduct _LeakReductionParams.z
 
 
 #ifndef DECODE_SH
@@ -133,7 +136,7 @@ float GetNormalWeight(int3 offset, float3 posWS, float3 sample0Pos, float3 norma
     // TODO: This can be optimized.
     float3 samplePos = sample0Pos + offset * ProbeDistance(subdiv);
     float3 vecToProbe = normalize((samplePos)-posWS);
-    float weight = saturate(dot(vecToProbe, normalWS) - _LeakReductionParams.z);
+    float weight = saturate(dot(vecToProbe, normalWS) - _MinDotProduct);
     return weight;
 
 }
@@ -442,7 +445,9 @@ void WarpUVWLeakReduction(APVResources apvRes, float3 posWS, float3 normalWS, in
 
         float geoW = GetNormalWeight(offset, posWS, positionCentralProbe, normalWS, subdiv);
 
-        weights[i] = max(0.0001f, saturate(trilinearW * geoW * validityWeight));
+        float antiLeakWeight = max(0.0001f, saturate(trilinearW * geoW * validityWeight));
+
+        weights[i] = lerp(trilinearW, antiLeakWeight, _AntiLeakWeightInfluence);
         totalW += weights[i];
     }
 
@@ -466,12 +471,12 @@ APVSample SampleAPV(APVResources apvRes, float3 posWS, float3 biasNormalWS, floa
     if (TryToGetPoolUVWAndSubdiv(apvRes, posWS, biasNormalWS, viewDir, pool_uvw, subdiv, biasedPosWS))
     {
 #if MANUAL_FILTERING == 1
-        if (_LeakReductionParams.x != 0)
+        if (_AntiLeakMethod != 0)
             outSample = ManuallyFilteredSample(apvRes, posWS, biasNormalWS, subdiv, biasedPosWS, pool_uvw);
         else
             outSample = SampleAPV(apvRes, pool_uvw);
 #else
-        if (_LeakReductionParams.x != 0)
+        if (_AntiLeakMethod != 0)
         {
             WarpUVWLeakReduction(apvRes, posWS, biasNormalWS, subdiv, biasedPosWS, pool_uvw);
         }
