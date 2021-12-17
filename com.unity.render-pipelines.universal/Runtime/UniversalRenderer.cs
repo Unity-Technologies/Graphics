@@ -773,7 +773,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 // workaround for DX11 and DX12 XR test failures.
                 // XRTODO: investigate DX XR clear issues.
-                if (SystemInfo.usesLoadStoreActions || !cameraData.xr.enabled)
+                if (SystemInfo.usesLoadStoreActions)
 #endif
                     m_RenderOpaqueForwardPass.ConfigureClear((cameraData.renderType == CameraRenderType.Base) ? ClearFlag.Color : ClearFlag.None, Color.black);
 
