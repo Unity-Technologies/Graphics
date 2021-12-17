@@ -377,16 +377,19 @@ namespace UnityEditor.Rendering.Universal
 
         static void UpgradeV7(Material material, ShaderID shaderID)
         {
-            var surfacePropertyID = Shader.PropertyToID("_Surface");
-            var alphaClipPropertyID = Shader.PropertyToID("_AlphaClip");
-            if (material.HasProperty(surfacePropertyID) && material.HasProperty(alphaClipPropertyID))
+            var surfacePropertyID = Shader.PropertyToID(Property.SurfaceType);
+            var alphaClipPropertyID = Shader.PropertyToID(Property.AlphaClip);
+            var alphaToMaskPropertyID = Shader.PropertyToID(Property.AlphaToMask);
+            if (material.HasProperty(surfacePropertyID) &&
+                material.HasProperty(alphaClipPropertyID) &&
+                material.HasProperty(alphaToMaskPropertyID))
             {
                 bool isOpaque = material.GetFloat(surfacePropertyID) < 1.0f;
                 bool isAlphaClipEnabled = material.GetFloat(alphaClipPropertyID) > 0.0f;
 
                 float alphaToMask = (isOpaque && isAlphaClipEnabled) ? 1.0f : 0.0f;
 
-                material.SetFloat(Shader.PropertyToID(Property.AlphaToMask), alphaToMask);
+                material.SetFloat(alphaToMaskPropertyID, alphaToMask);
             }
         }
     }

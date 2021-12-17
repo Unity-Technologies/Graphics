@@ -720,7 +720,10 @@ namespace UnityEditor
                     renderQueue = (int)RenderQueue.Transparent;
                 }
 
-                material.SetFloat(Property.AlphaToMask, alphaToMask ? 1.0f : 0.0f);
+                if (material.HasProperty(Property.AlphaToMask))
+                {
+                    material.SetFloat(Property.AlphaToMask, alphaToMask ? 1.0f : 0.0f);
+                }
 
                 // check for override enum
                 if (material.HasProperty(Property.ZWriteControl))

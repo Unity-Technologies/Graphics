@@ -695,13 +695,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     static class CorePasses
     {
         /// <summary>
-        ///  Automatically enables Alpha-To-Coverage in the provided pass targets using alpha clipping
+        ///  Automatically enables Alpha-To-Coverage in the provided opaque pass targets using alpha clipping
         /// </summary>
         /// <param name="pass">The pass to modify</param>
         /// <param name="target">The target to query</param>
         internal static void AddAlphaToMaskControlToPass(ref PassDescriptor pass, UniversalTarget target)
         {
-            // TODO: Does this also need to run when allowMaterialOverride is true?
             if (target.alphaClip && (target.surfaceType == SurfaceType.Opaque))
             {
                 pass.renderStates.Add(RenderState.AlphaToMask("On"));
