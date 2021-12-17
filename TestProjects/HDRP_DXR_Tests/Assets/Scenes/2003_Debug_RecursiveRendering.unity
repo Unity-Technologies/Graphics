@@ -334,6 +334,26 @@ PrefabInstance:
       propertyPath: m_Version
       value: 11
       objectReference: {fileID: 0}
+    - target: {fileID: 4691666882576034955, guid: 6f709ee34ef3654408ec4e18f30ad560,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691666883190696306, guid: 6f709ee34ef3654408ec4e18f30ad560,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691666883722393471, guid: 6f709ee34ef3654408ec4e18f30ad560,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4691666883897253444, guid: 6f709ee34ef3654408ec4e18f30ad560,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_AddedGameObjects: []
   m_SourcePrefab: {fileID: 100100000, guid: 6f709ee34ef3654408ec4e18f30ad560, type: 3}
