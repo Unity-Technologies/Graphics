@@ -71,7 +71,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed for changes of color curves not being applied immediately.
 - Fixed the rendering order of decals that have a similar draw order value.
 - Fixed HDRP build issues with DOTS_INSTANCING_ON shader variant.
-- Fixed edges and ghosting appearing on shadow matte due to the shadow being black outside the range of the light (case 1371441).
 
 ## [13.1.2] - 2021-11-05
 
