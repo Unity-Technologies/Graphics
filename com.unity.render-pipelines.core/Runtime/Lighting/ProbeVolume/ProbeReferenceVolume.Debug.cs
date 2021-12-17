@@ -82,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering
         List<CellInstancedDebugProbes> m_CellDebugData = new List<CellInstancedDebugProbes>();
         Plane[] m_DebugFrustumPlanes = new Plane[6];
 
-        internal float dilationValidtyThreshold = 0.25f; // We ned to store this here to access it
+        internal ProbeVolumeBakingProcessSettings bakingProcessSettings; /* DEFAULTS would be better but is implemented in PR#6174 = ProbeVolumeBakingProcessSettings.Defaults; */
 
         // Field used for the realtime subdivision preview
         internal Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>> realtimeSubdivisionInfo = new Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>>();
@@ -150,6 +150,9 @@ namespace UnityEngine.Experimental.Rendering
 
         void RegisterDebug()
         {
+            const float kProbeSizeMin = 0.05f, kProbeSizeMax = 10.0f;
+            const float kOffsetSizeMin = 0.001f, kOffsetSizeMax = 0.1f;
+
             var widgetList = new List<DebugUI.Widget>();
 
             var subdivContainer = new DebugUI.Container() { displayName = "Subdivision Visualization" };
@@ -182,7 +185,7 @@ namespace UnityEngine.Experimental.Rendering
                     setIndex = value => debugDisplay.probeShading = (DebugProbeShadingMode)value,
                     onValueChanged = RefreshDebug
                 });
-                probeContainerChildren.children.Add(new DebugUI.FloatField { displayName = "Probe Size", getter = () => debugDisplay.probeSize, setter = value => debugDisplay.probeSize = value, min = () => 0.1f, max = () => 10.0f });
+                probeContainerChildren.children.Add(new DebugUI.FloatField { displayName = "Probe Size", getter = () => debugDisplay.probeSize, setter = value => debugDisplay.probeSize = value, min = () => kProbeSizeMin, max = () => kProbeSizeMax });
                 if (debugDisplay.probeShading == DebugProbeShadingMode.SH || debugDisplay.probeShading == DebugProbeShadingMode.SHL0 || debugDisplay.probeShading == DebugProbeShadingMode.SHL0L1)
                     probeContainerChildren.children.Add(new DebugUI.FloatField { displayName = "Probe Exposure Compensation", getter = () => debugDisplay.exposureCompensation, setter = value => debugDisplay.exposureCompensation = value });
 
@@ -198,10 +201,24 @@ namespace UnityEngine.Experimental.Rendering
                 probeContainer.children.Add(probeContainerChildren);
             }
 
-            probeContainer.children.Add(new DebugUI.BoolField { displayName = "Virtual Offset", getter = () => debugDisplay.drawVirtualOffsetPush, setter = value => debugDisplay.drawVirtualOffsetPush = value, onValueChanged = RefreshDebug });
+            probeContainer.children.Add(new DebugUI.BoolField {
+                displayName = "Virtual Offset",
+                getter = () => debugDisplay.drawVirtualOffsetPush,
+                setter = value => {
+                    debugDisplay.drawVirtualOffsetPush = value;
+
+                    if (debugDisplay.drawVirtualOffsetPush && debugDisplay.drawProbes)
+                    {
+                        // If probes are being drawn when enabling offset, automatically scale them down to a reasonable size so the arrows aren't obscured by the probes.
+                        var searchDistance = CellSize(0) * MinBrickSize() / ProbeBrickPool.kBrickCellCount * bakingProcessSettings.virtualOffsetSettings.searchMultiplier + bakingProcessSettings.virtualOffsetSettings.outOfGeoOffset;
+                        debugDisplay.probeSize = Mathf.Min(debugDisplay.probeSize, Mathf.Clamp(searchDistance, kProbeSizeMin, kProbeSizeMax));
+                    }
+                },
+                onValueChanged = RefreshDebug
+            });
             if (debugDisplay.drawVirtualOffsetPush)
             {
-                var voOffset = new DebugUI.FloatField { displayName = "Offset Size", getter = () => debugDisplay.offsetSize, setter = value => debugDisplay.offsetSize = value, min = () => 0.001f, max = () => 0.1f };
+                var voOffset = new DebugUI.FloatField { displayName = "Offset Size", getter = () => debugDisplay.offsetSize, setter = value => debugDisplay.offsetSize = value, min = () => kOffsetSizeMin, max = () => kOffsetSizeMax };
                 probeContainer.children.Add(new DebugUI.Container { children = { voOffset } });
             }
 
@@ -276,7 +293,7 @@ namespace UnityEngine.Experimental.Rendering
                     props.SetFloat("_ProbeSize", debugDisplay.probeSize);
                     props.SetFloat("_CullDistance", debugDisplay.probeCullingDistance);
                     props.SetInt("_MaxAllowedSubdiv", debugDisplay.maxSubdivToVisualize);
-                    props.SetFloat("_ValidityThreshold", dilationValidtyThreshold);
+                    props.SetFloat("_ValidityThreshold", bakingProcessSettings.dilationSettings.dilationValidityThreshold);
                     props.SetFloat("_OffsetSize", debugDisplay.offsetSize);
 
                     if (debugDisplay.drawProbes)
