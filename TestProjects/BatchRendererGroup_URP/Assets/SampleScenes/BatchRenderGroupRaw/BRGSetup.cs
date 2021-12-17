@@ -83,7 +83,7 @@ public unsafe class BRGSetup : MonoBehaviour
             }
         }; 
 
-        drawCommands.visibleInstances = Malloc<int>(m_itemCount);
+        drawCommands.visibleInstances = null;
 
         int n = 0;
         int radius = (itemGridSize / 2) * (itemGridSize / 2);       // (grid/2)^2
@@ -104,7 +104,6 @@ public unsafe class BRGSetup : MonoBehaviour
                 if (visible)
                 {
                     var index = r * itemGridSize + i;
-                    drawCommands.visibleInstances[n] = index;
                     uploadBuffer.gpuData[n] = (uint)index;
                     n++;
                 }

@@ -38,8 +38,8 @@ public unsafe class UploadBufferPool
         m_buffers = new GraphicsBuffer[numBuffers];
         for (int i = 0; i < m_buffers.Length; ++i)
         {
-            // TODO: Use vertex buffer instead of raw buffer!
-            m_buffers[i] = new GraphicsBuffer(GraphicsBuffer.Target.Raw, GraphicsBuffer.UsageFlags.LockBufferForWrite, bufferSizeBytes / 4, 4);
+            m_buffers[i] = new GraphicsBuffer(GraphicsBuffer.Target.Vertex, GraphicsBuffer.UsageFlags.LockBufferForWrite, bufferSizeBytes / 4, 4);
+            m_bufferHandles[i] = m_buffers[i].bufferHandle;
         }
 
         m_usedFrame = new NativeArray<int>(numBuffers, Allocator.Persistent, NativeArrayOptions.ClearMemory);
