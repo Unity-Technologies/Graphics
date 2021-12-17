@@ -154,7 +154,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
     diffuse.a *= _Color.a;
 
     #ifdef SPEEDTREE_ALPHATEST
-        AlphaClip(diffuse.a, _Cutoff, _Surface);
+        AlphaClip(diffuse.a, _Cutoff);
     #endif
 
     half3 diffuseColor = diffuse.rgb;
@@ -215,7 +215,6 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
     #else
         half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
         color.rgb = MixFog(color.rgb, inputData.fogCoord);
-        color.a = OutputAlpha(color.a, _Surface);
         return color;
     #endif
 }
@@ -236,7 +235,7 @@ half4 SpeedTree7FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
     diffuse.a *= _Color.a;
 
     #ifdef SPEEDTREE_ALPHATEST
-        AlphaClip(diffuse.a, _Cutoff, _Surface);
+        AlphaClip(diffuse.a, _Cutoff);
     #endif
 
     #if defined(SCENESELECTIONPASS)
@@ -268,7 +267,7 @@ half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Tar
     diffuse.a *= _Color.a;
 
     #ifdef SPEEDTREE_ALPHATEST
-        AlphaClip(diffuse.a, _Cutoff, _Surface);
+        AlphaClip(diffuse.a, _Cutoff);
     #endif
 
     #if defined(EFFECT_BUMP)

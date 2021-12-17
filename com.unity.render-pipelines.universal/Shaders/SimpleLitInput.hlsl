@@ -55,7 +55,7 @@ inline void InitializeSimpleLitSurfaceData(float2 uv, out SurfaceData outSurface
     outSurfaceData.alpha = albedoAlpha.a * _BaseColor.a;
 
 #if defined(_ALPHATEST_ON)
-    AlphaClip(outSurfaceData.alpha, _Cutoff, _Surface);
+    AlphaClip(outSurfaceData.alpha, _Cutoff);
 #endif
 
     outSurfaceData.albedo = albedoAlpha.rgb * _BaseColor.rgb;

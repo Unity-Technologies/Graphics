@@ -100,7 +100,7 @@ half4 UnlitPassFragment(Varyings input) : SV_Target
     half alpha = texColor.a * _BaseColor.a;
 
 #if defined(_ALPHATEST_ON)
-    AlphaClip(alpha, _Cutoff, _Surface);
+    AlphaClip(alpha, _Cutoff);
 #endif
 
     color = AlphaModulate(color, alpha);

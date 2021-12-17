@@ -59,7 +59,7 @@ float4 DepthNormalsFragment(Varyings input) : SV_TARGET
     half alpha = texColor.a * _BaseColor.a;
 
 #if defined(_ALPHATEST_ON)
-    AlphaClip(alpha, _Cutoff, _Surface);
+    AlphaClip(alpha, _Cutoff);
 #endif
 
     #if defined(_GBUFFER_NORMALS_OCT)
