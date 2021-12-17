@@ -13,6 +13,15 @@ namespace UnityEditor.VFX
     [CustomTimelineEditor(typeof(VisualEffectControlTrack))]
     class VisualEffectControlTrackEditor : TrackEditor
     {
+        public override void OnCreate(TrackAsset track, TrackAsset copiedFrom)
+        {
+            base.OnCreate(track, copiedFrom);
+            if (copiedFrom == null && track.isEmpty)
+            {
+                track.CreateClip<VisualEffectControlClip>();
+            }
+        }
+
         public override TrackDrawOptions GetTrackOptions(TrackAsset track, UnityEngine.Object binding)
         {
             var options = base.GetTrackOptions(track, binding);
