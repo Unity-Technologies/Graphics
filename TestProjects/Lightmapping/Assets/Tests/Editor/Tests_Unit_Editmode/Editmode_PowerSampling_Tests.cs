@@ -55,7 +55,6 @@ public class Editmode_PowerSampling_Tests
         Application.OpenURL(fullpath);
     }
 
-    /* Unstable. Tracked here: Case 1386902.
         // Case 1352923
         [Test]
         public void GPULM_BakeSceneWithProgressiveUpdates_MatchesBakeWithoutProgressiveUpdates()
@@ -138,5 +137,4 @@ public class Editmode_PowerSampling_Tests
             clearAll();
             AssetDatabase.DeleteAsset(sceneOutputPath);
         }
-    */
 }
