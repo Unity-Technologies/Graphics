@@ -514,6 +514,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", probeVolume.propagationBuffers.hitRadianceCache);
             cmd.SetComputeIntParam(shader, "_HitRadianceCacheAxisCount", probeVolume.propagationBuffers.hitRadianceCache.count);
 
+            // TODO: replace with real one
+            cmd.SetComputeTextureParam(shader, kernel, "_HierarchicalVarianceScreenSpaceShadowsTexture", TextureXR.GetWhiteTexture());
+
             float infBounce = giSettings.infiniteBounce.value;
             if (_overrideInfiniteBounce)
             {
