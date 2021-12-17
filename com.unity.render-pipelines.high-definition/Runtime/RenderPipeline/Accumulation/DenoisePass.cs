@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderDenoisePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle outputTexture)
         {
-#if ENABLE_UNITY_DENOISERS
+#if ENABLE_UNITY_DENOISER_PLUGIN
             using (var builder = renderGraph.AddRenderPass<RenderDenoisePassData>("Denoise Pass", out var passData))
             {
                 passData.blitAndExposeCS = m_Asset.renderPipelineResources.shaders.blitAndExposeCS;
