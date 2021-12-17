@@ -290,6 +290,7 @@ public class SimpleBRGExample : MonoBehaviour
             indexBufferHandle = m_IB.bufferHandle,
             indirectBufferHandle = m_IndirectBuffer.bufferHandle,
             indirectBufferOffset = 0,
+            indirectCommandCount = 1,
             topology = MeshTopology.Triangles,
         };
         drawCommands->drawCommands[0].splitVisibilityMask = 0xff;
