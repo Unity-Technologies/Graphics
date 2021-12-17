@@ -56,6 +56,12 @@ namespace UnityEngine.Experimental.Rendering
         public APVLeakReductionModeParameter leakReductionMode = new APVLeakReductionModeParameter(APVLeakReductionMode.None);
 
         /// <summary>
+        /// Influence of the leak reduction weights.
+        /// </summary>
+        [AdditionalProperty, Tooltip("Influence of the leak reduction weights.")]
+        public ClampedFloatParameter leakWeightsInfluence = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
+        /// <summary>
         /// The minimum value that the dot product between the sample position normal and the vector to contributing probe need to have to have the probe considered.
         /// </summary>
         [AdditionalProperty, Tooltip("The minimum value that the dot product between the sample position normal and the vector to contributing probe need to have to have the probe considered.")]
