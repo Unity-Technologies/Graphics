@@ -82,6 +82,7 @@
 
                 // Fill the attributes
                 ${VFXVertexCommonProcess}
+                ${VFXHDRPLitFillVaryings}
 
                 // Object <-> primtive matrices
                 const float4x4 objectToPrimitive = GetVFXToElementMatrix(attributes.axisX, attributes.axisY, attributes.axisZ,
