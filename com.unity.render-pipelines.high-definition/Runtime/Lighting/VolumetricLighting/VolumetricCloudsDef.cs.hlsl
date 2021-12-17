@@ -61,7 +61,8 @@ CBUFFER_START(ShaderVariablesClouds)
     int _ShadowCookieResolution;
     float _ShadowPlaneOffset;
     float2 _ShadowRegionSize;
-    float2 _WorldSpaceShadowCenter;
+    float2 _PaddingVC0;
+    float4 _WorldSpaceShadowCenter;
     float4x4 _CameraViewProjection_NO;
     float4x4 _CameraInverseViewProjection_NO;
     float4x4 _CameraPrevViewProjection_NO;

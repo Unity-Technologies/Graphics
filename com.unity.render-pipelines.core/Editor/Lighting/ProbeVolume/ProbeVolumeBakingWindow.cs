@@ -419,10 +419,10 @@ namespace UnityEngine.Experimental.Rendering
                 if (m_ProbeVolumeProfileEditor.target != set.profile)
                     Editor.CreateCachedEditor(set.profile, m_ProbeVolumeProfileEditor.GetType(), ref m_ProbeVolumeProfileEditor);
 
-                EditorGUILayout.LabelField("Probe Volume Profile", EditorStyles.largeLabel);
+                EditorGUILayout.LabelField("Probe Volume Profile", EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
                 m_ProbeVolumeProfileEditor.OnInspectorGUI();
-
-                EditorGUILayout.Space();
+                EditorGUI.indentLevel--;
 
                 var serializedSets = m_ProbeSceneData.FindPropertyRelative("serializedBakingSets");
                 var serializedSet = serializedSets.GetArrayElementAtIndex(m_BakingSets.index);
