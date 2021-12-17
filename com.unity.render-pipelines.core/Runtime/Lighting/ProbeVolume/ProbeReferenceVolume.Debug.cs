@@ -67,6 +67,8 @@ namespace UnityEngine.Experimental.Rendering
 
         const int kProbesPerBatch = 511;
 
+        public static readonly string k_DebugPanelName = "Probe Volume";
+
         internal ProbeVolumeDebug debugDisplay { get; } = new ProbeVolumeDebug();
 
         /// <summary>Colors that can be used for debug visualization of the brick structure subdivision.</summary>
@@ -213,16 +215,16 @@ namespace UnityEngine.Experimental.Rendering
             widgetList.Add(streamingContainer);
 
             m_DebugItems = widgetList.ToArray();
-            var panel = DebugManager.instance.GetPanel("Probe Volume", true);
+            var panel = DebugManager.instance.GetPanel(k_DebugPanelName, true);
             panel.children.Add(m_DebugItems);
         }
 
         void UnregisterDebug(bool destroyPanel)
         {
             if (destroyPanel)
-                DebugManager.instance.RemovePanel("Probe Volume");
+                DebugManager.instance.RemovePanel(k_DebugPanelName);
             else
-                DebugManager.instance.GetPanel("Probe Volume", false).children.Remove(m_DebugItems);
+                DebugManager.instance.GetPanel(k_DebugPanelName, false).children.Remove(m_DebugItems);
         }
 
         bool ShouldCullCell(Vector3 cellPosition, Transform cameraTransform, Plane[] frustumPlanes)
@@ -243,6 +245,9 @@ namespace UnityEngine.Experimental.Rendering
 
         void DrawProbeDebug(Camera camera)
         {
+		    if (!enabledBySRP || !isInitialized)
+                return;
+
             if (!debugDisplay.drawProbes && !debugDisplay.drawVirtualOffsetPush)
                 return;
 

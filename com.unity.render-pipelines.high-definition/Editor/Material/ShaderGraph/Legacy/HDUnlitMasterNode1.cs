@@ -34,7 +34,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy
         public bool m_DistortionOnly;
         public bool m_DistortionDepthTest;
         public bool m_AlphaTest;
-        public bool m_AlphaToMask;
         public int m_SortPriority;
         public bool m_DoubleSided;
         public bool m_ZWrite;

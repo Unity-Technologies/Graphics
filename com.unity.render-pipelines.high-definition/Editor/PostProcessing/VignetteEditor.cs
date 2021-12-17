@@ -4,7 +4,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [VolumeComponentEditor(typeof(Vignette))]
+    [CustomEditor(typeof(Vignette))]
     sealed class VignetteEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Mode;

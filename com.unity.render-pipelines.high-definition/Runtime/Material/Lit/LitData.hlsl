@@ -141,7 +141,17 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
                       float3 positionRWS, float3 vertexNormalWS, inout LayerTexCoord layerTexCoord)
 {
     layerTexCoord.vertexNormalWS = vertexNormalWS;
-    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(vertexNormalWS);
+    float objectSpaceMapping = false;
+    float3 normalToComputeWeights = layerTexCoord.vertexNormalWS;
+#ifndef LAYERED_LIT_SHADER
+    objectSpaceMapping = _ObjectSpaceUVMapping;
+    if (objectSpaceMapping)
+    {
+        normalToComputeWeights = TransformWorldToObjectNormal(normalToComputeWeights);
+    }
+#endif
+
+    layerTexCoord.triplanarWeights = ComputeTriplanarWeights(normalToComputeWeights);
 
     int mappingType = UV_MAPPING_UVSET;
 #if defined(_MAPPING_PLANAR)
@@ -150,11 +160,12 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
 
+
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
     ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask, _UVDetailsMappingMask,
                             _BaseColorMap_ST.xy, _BaseColorMap_ST.zw, _DetailMap_ST.xy, _DetailMap_ST.zw, 1.0, _LinkDetailsWithBase,
                             positionRWS, _TexWorldScale,
-                            mappingType, layerTexCoord);
+                            mappingType, objectSpaceMapping, layerTexCoord);
 }
 
 // This is call only in this file
