@@ -147,9 +147,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle motionVectorBufferRG;
         }
 
-        enum Version
+        internal enum Version
         {
             Initial,
+            RenderGraphUpdate,
         }
 
         [SerializeField]
@@ -158,6 +159,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get => m_Version;
             set => m_Version = value;
+        }
+
+        // Because C#. Don't want to make version public but can't make it internal because it's an interface
+        internal Version GetVersion()
+        {
+            return m_Version;
         }
 
         internal bool WillBeExecuted(HDCamera hdCamera)
@@ -206,7 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return output;
         }
 
-        internal void ExecuteInternal(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResult, in RenderTargets targets, CustomPassVolume owner)
+        internal void ExecuteInternalObsolete(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResult, in RenderTargets targets, CustomPassVolume owner)
         {
             this.owner = owner;
             this.currentRenderTarget = targets;
@@ -275,6 +282,75 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal void ExecuteInternal(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResult, in RenderTargets targets, CustomPassVolume owner)
+        {
+            //this.owner = owner;
+            //this.currentRenderTarget = targets;
+            //this.currentHDCamera = hdCamera;
+
+            //using (var builder = renderGraph.AddRenderPass<ExecutePassData>(name, out ExecutePassData passData, profilingSampler))
+            //{
+            //    passData.customPass = this;
+            //    passData.cullingResult = cullingResult;
+            //    passData.cameraCullingResult = cameraCullingResult;
+            //    passData.hdCamera = hdCamera;
+
+            //    this.currentRenderTarget = ReadRenderTargets(builder, targets);
+
+            //    builder.SetRenderFunc(
+            //        (ExecutePassData data, RenderGraphContext ctx) =>
+            //        {
+            //            var customPass = data.customPass;
+
+            //            ctx.cmd.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)customPass.injectionPoint);
+            //            if (customPass.currentRenderTarget.colorBufferRG.IsValid() && customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
+            //                ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);
+
+            //            if (customPass.currentRenderTarget.motionVectorBufferRG.IsValid() && (customPass.injectionPoint != CustomPassInjectionPoint.BeforeRendering))
+            //                ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, customPass.currentRenderTarget.motionVectorBufferRG);
+
+            //            if (customPass.currentRenderTarget.normalBufferRG.IsValid() && customPass.injectionPoint != CustomPassInjectionPoint.AfterPostProcess)
+            //                ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, customPass.currentRenderTarget.normalBufferRG);
+
+            //            if (customPass.currentRenderTarget.customColorBuffer.IsValueCreated)
+            //                ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomColorTexture, customPass.currentRenderTarget.customColorBuffer.Value);
+            //            if (customPass.currentRenderTarget.customDepthBuffer.IsValueCreated)
+            //                ctx.cmd.SetGlobalTexture(HDShaderIDs._CustomDepthTexture, customPass.currentRenderTarget.customDepthBuffer.Value);
+
+            //            if (!customPass.isSetup)
+            //            {
+            //                customPass.Setup(ctx.renderContext, ctx.cmd);
+            //                customPass.isSetup = true;
+            //            }
+
+            //            customPass.SetCustomPassTarget(ctx.cmd);
+
+            //            var outputColorBuffer = customPass.currentRenderTarget.colorBufferRG;
+
+            //            // Create the custom pass context:
+            //            CustomPassContext customPassCtx = new CustomPassContext(
+            //                ctx.renderContext, ctx.cmd, data.hdCamera,
+            //                data.cullingResult, data.cameraCullingResult,
+            //                outputColorBuffer,
+            //                customPass.currentRenderTarget.depthBufferRG,
+            //                customPass.currentRenderTarget.normalBufferRG,
+            //                customPass.currentRenderTarget.motionVectorBufferRG,
+            //                customPass.currentRenderTarget.customColorBuffer,
+            //                customPass.currentRenderTarget.customDepthBuffer,
+            //                ctx.renderGraphPool.GetTempMaterialPropertyBlock()
+            //            );
+
+            //            customPass.isExecuting = true;
+            //            customPass.Execute(customPassCtx);
+            //            customPass.isExecuting = false;
+
+            //            // Set back the camera color buffer if we were using a custom buffer as target
+            //            if (customPass.targetDepthBuffer != TargetBuffer.Camera)
+            //                CoreUtils.SetRenderTarget(ctx.cmd, outputColorBuffer);
+            //        });
+            //}
+        }
+
         internal void InternalAggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera hdCamera) => AggregateCullingParameters(ref cullingParameters, hdCamera);
 
         /// <summary>
@@ -336,7 +412,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cmd"></param>
         /// <param name="hdCamera"></param>
         /// <param name="cullingResult"></param>
-        [Obsolete("This Execute signature is obsolete and will be removed in the future. Please use Execute(CustomPassContext) instead")]
+        [Obsolete("This Execute signature is obsolete and will be removed in the future. Please use Execute(CustomPassContext) instead", true)]
         protected virtual void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult) { }
 
         /// <summary>
@@ -344,11 +420,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="ctx">The context of the custom pass. Contains command buffer, render context, buffer, etc.</param>
         // TODO: move this function to abstract when we remove the method above
+        [Obsolete("Please use the render graph version.")]
         protected virtual void Execute(CustomPassContext ctx)
         {
-#pragma warning disable CS0618 // Member is obsolete
-            Execute(ctx.renderContext, ctx.cmd, ctx.hdCamera, ctx.cullingResults);
-#pragma warning restore CS0618
         }
 
         /// <summary>
@@ -357,7 +431,30 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="renderContext">The render context</param>
         /// <param name="cmd">Current command buffer of the frame</param>
+        [Obsolete("Please use the render graph version")]
         protected virtual void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd) { }
+
+        // TODO: The next Execute and Setup function should be made absrtract when all previous implementations are removed.
+
+        /// <summary>
+        /// Called when your pass needs to be executed by a camera
+        /// </summary>
+        /// <param name="renderGraph">Current render graph.</param>
+        /// <param name="ctx">The context of the custom pass. Contains command buffer, render context, buffer, etc.</param>
+        protected virtual void Execute(RenderGraph renderGraph, CustomPassContext ctx)
+        {
+
+        }
+
+        /// <summary>
+        /// Called before the first execution of the pass occurs.
+        /// Allow you to allocate custom buffers.
+        /// </summary>
+        /// <param name="renderGraph">Current render graph.</param>
+        protected virtual void Setup(RenderGraph renderGraph)
+        {
+
+        }
 
         /// <summary>
         /// Called when HDRP is destroyed.

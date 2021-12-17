@@ -172,7 +172,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (pass != null && pass.WillBeExecuted(hdCamera))
                 {
-                    pass.ExecuteInternal(renderGraph, hdCamera, cullingResult, cameraCullingResult, targets, this);
+                    if (pass.GetVersion() < CustomPass.Version.RenderGraphUpdate)
+                        pass.ExecuteInternalObsolete(renderGraph, hdCamera, cullingResult, cameraCullingResult, targets, this);
+                    else
+                        pass.ExecuteInternal(renderGraph, hdCamera, cullingResult, cameraCullingResult, targets, this);
                     executed = true;
                 }
             }
