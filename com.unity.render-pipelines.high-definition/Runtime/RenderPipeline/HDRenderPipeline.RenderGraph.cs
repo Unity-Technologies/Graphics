@@ -39,7 +39,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // We need to initalize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
             // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.
-            m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(RTHandles.rtHandleProperties.currentRenderTargetSize);
+            Vector2Int viewportSize = new Vector2Int(
+                Mathf.RoundToInt(RTHandles.rtHandleProperties.currentRenderTargetSize.x * RTHandles.rtHandleProperties.rtHandleScale.x),
+                Mathf.RoundToInt(RTHandles.rtHandleProperties.currentRenderTargetSize.y * RTHandles.rtHandleProperties.rtHandleScale.y)
+            );
+            m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(viewportSize);
 
 #if UNITY_EDITOR
             var showGizmos = camera.cameraType == CameraType.Game
