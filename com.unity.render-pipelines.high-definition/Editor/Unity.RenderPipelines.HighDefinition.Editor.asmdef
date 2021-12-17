@@ -9,7 +9,7 @@
         "Unity.ugui.Editor",
         "Unity.VisualEffectGraph.Editor",
         "Unity.PackageManagerDocTools.Editor",
-		"Unity.Rendering.Denoiser.Runtime",
+        "Unity.Rendering.Denoiser.Runtime",
         "Unity.RenderPipelines.HighDefinition.Config.Runtime"
     ],
     "includePlatforms": [

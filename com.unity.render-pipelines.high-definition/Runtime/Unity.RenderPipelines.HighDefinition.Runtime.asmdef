@@ -6,7 +6,7 @@
         "Unity.Mathematics",
         "Unity.Burst",
         "Unity.RenderPipelines.HighDefinition.Config.Runtime",
-		"Unity.Rendering.Denoiser.Runtime",
+        "Unity.Rendering.Denoiser.Runtime",
         "Unity.VisualEffectGraph.Runtime"
     ],
     "includePlatforms": [],
@@ -57,7 +57,7 @@
             "expression": "2.0.0",
             "define": "ENABLE_SENSOR_SDK"
         },
-		{
+        {
             "name": "com.unity.rendering.denoising",
             "expression": "1.0.0",
             "define": "ENABLE_UNITY_DENOISERS"

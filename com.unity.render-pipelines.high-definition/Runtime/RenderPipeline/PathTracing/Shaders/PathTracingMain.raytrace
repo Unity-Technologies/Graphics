@@ -220,9 +220,10 @@ void RayGen()
     _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathIntersection.value, pathIntersection.alpha);
     _AlbedoAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(GetAlbedo(pathIntersection), 1.0);
     _NormalAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(GetNormal(pathIntersection), 1.0);
+    //_NormalAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(0.5 + 0.5 * GetNormal(pathIntersection), 1.0);
 
-    float2 mv = pathIntersection.motionVector - jitteredPixelCoord.xy;
-    _MotionVectorAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(mv.x, mv.y, 0, 1.0);
+    float2 delta = pathIntersection.motionVector - jitteredPixelCoord.xy;
+    _MotionVectorAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(delta.x, delta.y, 0, 1.0);
 }
 
 // This should never be called, return magenta just in case

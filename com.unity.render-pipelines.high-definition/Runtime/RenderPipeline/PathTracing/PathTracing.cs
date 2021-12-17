@@ -444,10 +444,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.output = builder.WriteTexture(pathTracingBuffer);
 
+                // AOVs
                 passData.albedoAOV = builder.WriteTexture(albedo);
-
                 passData.normalAOV = builder.WriteTexture(normal);
-
                 passData.motionVectorAOV = builder.WriteTexture(motionVector);
 
                 builder.SetRenderFunc(
