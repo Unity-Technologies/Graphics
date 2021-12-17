@@ -150,9 +150,13 @@ static const uint kDOTSInstancingFlagCameraMotion     = (1 << 2); // Object uses
 static const uint kDOTSInstancingFlagHasPrevPosition  = (1 << 3); // Object has a separate previous frame position vertex streams (e.g. for deformed objects)
 static const uint kDOTSInstancingFlagMainLightEnabled = (1 << 4); // Object should receive direct lighting from the main light (e.g. light not baked into lightmap)
 
+// Instance frequency vertex buffer provides the instance data for DOTS_INSTANCING_ON variant
+#undef UNITY_VERTEX_INPUT_INSTANCE_ID
+#define UNITY_VERTEX_INPUT_INSTANCE_ID uint instanceID : INSTANCEDATA;
+
 uint GetDOTSInstanceIndex()
 {
-    return unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.x;
+    return unity_InstanceID;
 }
 
 int GetDOTSInstanceCrossfadeSnorm8()
