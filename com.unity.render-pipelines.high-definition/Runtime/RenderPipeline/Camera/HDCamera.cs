@@ -329,7 +329,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private Vector4 m_PostProcessRTScalesHistory = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
         internal Vector2 postProcessRTScales { get { return new Vector2(m_PostProcessRTScales.x, m_PostProcessRTScales.y); } }
-        internal Vector2 postProcessRTScalesHistory { get { return new Vector2(m_PostProcessRTScalesHistory.x, m_PostProcessRTScalesHistory.y); } }
+        internal Vector4 postProcessRTScalesHistory { get { return m_PostProcessRTScalesHistory; } }
 
         // This property is ray tracing specific. It allows us to track for the RayTracingShadow history which light was using which slot.
         // This avoid ghosting and many other problems that may happen due to an unwanted history usage
@@ -987,7 +987,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RTHandles.SetReferenceSize(actualWidth, actualHeight);
             m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight);
-            m_PostProcessRTScalesHistory = m_HistoryRTSystem.CalculateRatioAgainstMaxSize(actualWidth, actualHeight);
             SetPostProcessScreenSize(actualWidth, actualHeight);
 
             foreach (var aovHistory in m_AOVHistoryRTSystem)
@@ -1000,9 +999,13 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void SetPostProcessScreenSize(int width, int height)
         {
             m_PostProcessScreenSize = new Vector4((float)width, (float)height, 1.0f / (float)width, 1.0f / (float)height);
-
             Vector2 scales = RTHandles.CalculateRatioAgainstMaxSize(width, height);
             m_PostProcessRTScales = new Vector4(scales.x, scales.y, m_PostProcessRTScales.x, m_PostProcessRTScales.y);
+        }
+
+        internal void SetPostProcessHistoryScales(float xScale, float yScale)
+        {
+            m_PostProcessRTScalesHistory = new Vector4(xScale, yScale, m_PostProcessRTScalesHistory.x, m_PostProcessRTScalesHistory.y);
         }
 
         // Updating RTHandle needs to be done at the beginning of rendering (not during update of HDCamera which happens in batches)
