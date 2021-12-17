@@ -74,29 +74,6 @@ float3 ClampValue(float3 value)
     return intensity > _RaytracingIntensityClamp ? value * _RaytracingIntensityClamp / intensity : value;
 }
 
-void WriteAOVs(inout PathIntersection pathIntersection, SurfaceData surfaceData, BuiltinData builtinData, float3 positionWS)
-{
-    float3 albedo = 0.0;
-
-#ifdef DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR
-    bool foo;
-    GetGeneratedSurfaceDataDebug(DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR, surfaceData, albedo, foo);
-#endif
-
-    SetAlbedo(pathIntersection, albedo);
-    SetNormal(pathIntersection, surfaceData.normalWS);
-
-    // Compute motion vector
-    float3 prevPosWS = mul(unity_MatrixPreviousM, float4(positionWS, 1.0)).xyz;
-    float4 prevClipPos = mul(UNITY_MATRIX_PREV_VP, prevPosWS);
-    prevClipPos.xy /= prevClipPos.w;
-    prevClipPos.y = -prevClipPos.y;
-    float2 prevFramePos = (prevClipPos.xy * 0.5 + 0.5) * _ScreenSize.xy;
-
-    if (prevFramePos.x > 0 && prevFramePos.y > 0 && prevFramePos.x < _ScreenSize.x && prevFramePos.y < _ScreenSize.z)
-        pathIntersection.motionVector = prevFramePos;
-}
-
 // Function responsible for surface scattering
 void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes, float4 inputSample)
 {

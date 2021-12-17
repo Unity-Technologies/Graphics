@@ -38,12 +38,15 @@ void ClearAOVData(inout PathIntersection payload)
 {
     SetAlbedo(payload, 0.0);
     SetNormal(payload, 0.0);
+    payload.motionVector = 0;
 }
 
 void WriteAOVData(inout PathIntersection pathIntersection, AOVData aovData, float3 positionWS)
 {
     SetAlbedo(pathIntersection, aovData.albedo);
     SetNormal(pathIntersection, aovData.normal);
+
+    float2 jitteredPixelCoord = pathIntersection.motionVector;
 
     // Compute motion vector
     float3 prevPosWS = mul(unity_MatrixPreviousM, float4(positionWS, 1.0)).xyz;
@@ -53,7 +56,7 @@ void WriteAOVData(inout PathIntersection pathIntersection, AOVData aovData, floa
     float2 prevFramePos = (prevClipPos.xy * 0.5 + 0.5) * _ScreenSize.xy;
 
     if (prevFramePos.x > 0 && prevFramePos.y > 0 && prevFramePos.x < _ScreenSize.x && prevFramePos.y < _ScreenSize.z)
-        pathIntersection.motionVector = prevFramePos;
+        pathIntersection.motionVector = prevFramePos - jitteredPixelCoord;
 }
 
 #endif //UNITY_PATH_TRACING_AOV_INCLUDED

@@ -34,6 +34,8 @@ float4      _PathTracingTilingParameters; // xy: tile count, zw: current tile in
 
 // Output(s)
 RW_TEXTURE2D_X(float4, _FrameTexture);
+
+// AOVs
 RW_TEXTURE2D_X(float4, _AlbedoAOV);
 RW_TEXTURE2D_X(float4, _NormalAOV);
 RW_TEXTURE2D_X(float4, _MotionVectorAOV);
@@ -93,6 +95,9 @@ void MissCamera(inout PathIntersection pathIntersection : SV_RayPayload)
         // Reinject the environment value
         pathIntersection.value += envValue;
     }
+
+    // Need to be cleared since these values are hijacked for AOVs
+    ClearAOVData(pathIntersection);
 }
 
 [shader("miss")]
@@ -127,9 +132,6 @@ void MissTransparentUnlitMaterial(inout PathIntersection pathIntersection : SV_R
     // Misses from Transparent Unlit are special in that they always are straight up continuation rays
     pathIntersection.value = currentDepth > 1 ? GetMaterialMissValue() : GetCameraMissValue(pathIntersection.pixelCoord).rgb;
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.value);
-
-    // Need to be cleared since these values are hijacked for AOVs
-    ClearAOVData(pathIntersection);
 }
 
 void ApplyDepthOfField(uint2 pixelCoord, float dotDirection, inout float3 origin, inout float3 direction)
@@ -154,12 +156,8 @@ void ApplyDepthOfField(uint2 pixelCoord, float dotDirection, inout float3 origin
     direction = normalize(focusPoint - origin);
 }
 
-[shader("raygeneration")]
-void RayGen()
+PathIntersection GenerateRay(uint2 pixelCoord)
 {
-    // Get the current pixel coordinates
-    uint2 pixelCoord = DispatchRaysIndex().xy;
-
     // Get the current tile coordinates (for interleaved tiling) and update pixel coordinates accordingly
     uint2 tileCount = uint2(_PathTracingTilingParameters.xy);
     uint2 tileIndex = uint2(_PathTracingTilingParameters.zw);
@@ -217,13 +215,32 @@ void RayGen()
     // Evaluate the ray intersection
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, ray, pathIntersection);
 
+    return pathIntersection;
+}
+
+[shader("raygeneration")]
+void RayGen()
+{
+    // Get the current pixel coordinates
+    uint2 pixelCoord = DispatchRaysIndex().xy;
+
+    PathIntersection pathIntersection = GenerateRay(pixelCoord);
+
+    _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathIntersection.value, pathIntersection.alpha);
+}
+
+[shader("raygeneration")]
+void RayGenAOV()
+{
+    // Get the current pixel coordinates
+    uint2 pixelCoord = DispatchRaysIndex().xy;
+
+     PathIntersection pathIntersection = GenerateRay(pixelCoord);
+
     _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathIntersection.value, pathIntersection.alpha);
     _AlbedoAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(GetAlbedo(pathIntersection), 1.0);
     _NormalAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(GetNormal(pathIntersection), 1.0);
-    //_NormalAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(0.5 + 0.5 * GetNormal(pathIntersection), 1.0);
-
-    float2 delta = pathIntersection.motionVector - jitteredPixelCoord.xy;
-    _MotionVectorAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(delta.x, delta.y, 0, 1.0);
+    _MotionVectorAOV[COORD_TEXTURE2D_X(pixelCoord)] = float4(pathIntersection.motionVector.x, pathIntersection.motionVector.y, 0.0, 1.0);
 }
 
 // This should never be called, return magenta just in case

@@ -395,10 +395,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public TextureHandle output;
 
+            public bool enableAOVs;
             public TextureHandle albedoAOV;
             public TextureHandle normalAOV;
             public TextureHandle motionVectorAOV;
-            
+
 #if ENABLE_SENSOR_SDK
             public Action<UnityEngine.Rendering.CommandBuffer> prepareDispatchRays;
 #endif
@@ -445,9 +446,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.output = builder.WriteTexture(pathTracingBuffer);
 
                 // AOVs
-                passData.albedoAOV = builder.WriteTexture(albedo);
-                passData.normalAOV = builder.WriteTexture(normal);
-                passData.motionVectorAOV = builder.WriteTexture(motionVector);
+                passData.enableAOVs = albedo.IsValid() && normal.IsValid() && motionVector.IsValid();
+                if (passData.enableAOVs)
+                {
+                    passData.albedoAOV = builder.WriteTexture(albedo);
+                    passData.normalAOV = builder.WriteTexture(normal);
+                    passData.motionVectorAOV = builder.WriteTexture(motionVector);
+                }
 
                 builder.SetRenderFunc(
                     (RenderPathTracingData data, RenderGraphContext ctx) =>
@@ -492,12 +497,15 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
                         // AOVs
-                        ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._AlbedoAOV, data.albedoAOV);
-                        ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._NormalAOV, data.normalAOV);
-                        ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._MotionVectorAOV, data.motionVectorAOV);
+                        if (data.enableAOVs)
+                        {
+                            ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._AlbedoAOV, data.albedoAOV);
+                            ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._NormalAOV, data.normalAOV);
+                            ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._MotionVectorAOV, data.motionVectorAOV);
+                        }    
 
                         // Run the computation
-                        ctx.cmd.DispatchRays(data.shader, "RayGen", (uint)data.width, (uint)data.height, 1);
+                        ctx.cmd.DispatchRays(data.shader, data.enableAOVs ? "RayGenAOV" : "RayGen", (uint)data.width, (uint)data.height, 1);
                     });
             }
         }
@@ -578,21 +586,33 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
-            TextureDesc aovDesc = new TextureDesc(hdCamera.actualWidth, hdCamera.actualHeight, true, true)
+            bool needsAOVs = false;
+            var motionVector = TextureHandle.nullHandle;
+            var albedo = TextureHandle.nullHandle;
+            var normal = TextureHandle.nullHandle;
+
+#if ENABLE_UNITY_DENOISERS
+            needsAOVs = m_PathTracingSettings.denoising.value != DenoiserType.None && (m_PathTracingSettings.useAOVs.value || m_PathTracingSettings.temporal.value);
+
+            if (needsAOVs)
             {
-                colorFormat = GraphicsFormat.R32G32B32A32_SFloat,
-                bindTextureMS = false,
-                msaaSamples = MSAASamples.None,
-                clearBuffer = true,
-                clearColor = Color.black,
-                enableRandomWrite = true,
-                useMipMap = false,
-                autoGenerateMips = false,
-                name = "Path traced AOV buffer"
-            };
-            var motionVector = renderGraph.CreateTexture(aovDesc);
-            var albedo = renderGraph.CreateTexture(aovDesc);
-            var normal = renderGraph.CreateTexture(aovDesc);
+                TextureDesc aovDesc = new TextureDesc(hdCamera.actualWidth, hdCamera.actualHeight, true, true)
+                {
+                    colorFormat = GraphicsFormat.R32G32B32A32_SFloat,
+                    bindTextureMS = false,
+                    msaaSamples = MSAASamples.None,
+                    clearBuffer = true,
+                    clearColor = Color.black,
+                    enableRandomWrite = true,
+                    useMipMap = false,
+                    autoGenerateMips = false,
+                    name = "Path traced AOV buffer"
+                };
+                motionVector = renderGraph.CreateTexture(aovDesc);
+                albedo = renderGraph.CreateTexture(aovDesc);
+                normal = renderGraph.CreateTexture(aovDesc);
+            }
+#endif
 
             // Check the validity of the state before moving on with the computation
             if (!m_GlobalSettings.renderPipelineRayTracingResources.pathTracingRT || !m_PathTracingSettings.enable.value)
