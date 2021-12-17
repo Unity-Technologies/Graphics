@@ -101,7 +101,7 @@ Pass
     // --------------------------------------------------
     // Build Surface Data
 
-    void GetVolumeData(FragInputs fragInputs, float3 V, PositionInputs posInput, out float3 scatteringColor, out float density)
+    void GetVolumeData(FragInputs fragInputs, float3 V, out float3 scatteringColor, out float density)
     {
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);

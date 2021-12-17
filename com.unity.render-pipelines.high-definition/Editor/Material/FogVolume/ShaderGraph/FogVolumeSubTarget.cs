@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = HDShaderPasses.GenerateStructs(null, TargetsVFX(), false),
                 pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false),
                 defines = HDShaderPasses.GenerateDefines(null, TargetsVFX(), false),
-                renderStates = FogVolumeRenderStates.Voxelize,
+                renderStates = FogVolumeRenderStates.DepthPass,
                 includes = FogVolumeIncludes.WriteDepth,
                 customInterpolators = CoreCustomInterpolators.Common,
             };
@@ -151,10 +151,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             //     { RenderState.Cull(Cull.Back) },
             // };
 
+            public static RenderStateCollection DepthPass = new RenderStateCollection
+            {
+                { RenderState.Cull(Cull.Back) },
+                { RenderState.ZTest(ZTest.Always) },
+                { RenderState.ZWrite(ZWrite.Off) },
+                { RenderState.ZClip("Off") },
+            };
+
             public static RenderStateCollection Voxelize = new RenderStateCollection
             {
-                { RenderState.Cull(Cull.Front) },
-                { RenderState.ZTest(ZTest.Greater) },
+                { RenderState.Cull(Cull.Front) }, // When we do the ray marching, we don't want the camera to clip in the geometry
+                { RenderState.ZTest(ZTest.Always) },
                 { RenderState.ZWrite(ZWrite.Off) },
             };
         }

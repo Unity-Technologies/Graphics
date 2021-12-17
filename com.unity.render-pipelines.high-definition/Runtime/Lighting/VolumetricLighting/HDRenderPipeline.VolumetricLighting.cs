@@ -944,7 +944,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var renderListDesc = new UnityEngine.Rendering.RendererUtils.RendererListDesc(m_FogVolumeRenderersPasses, cullingResults, hdCamera.camera)
                     {
-                        rendererConfiguration = 0,
+                        rendererConfiguration = PerObjectData.None,
                         renderQueueRange = HDRenderQueue.k_RenderQueue_All,
                         sortingCriteria = SortingCriteria.CommonTransparent,
                         excludeObjectMotionVectors = false
@@ -955,11 +955,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Tell that this pass requires that at least one object in the scene is compatible with the fog volume mesh shader, otherwise the pass is culled.
                     builder.DependsOn(passData.fogVolumeRenderList);
 
-                    Debug.Log(s_CurrentVolumetricBufferSize);
                     passData.fogVolumeDepth = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
                     {
                         colorFormat = GraphicsFormat.R16_SFloat,
-                        dimension = TextureDimension.Tex2D,
+                        dimension = TextureXR.dimension,
                         enableRandomWrite = true,
                         name = "Fog Volume Depth" 
                     }));
@@ -977,8 +976,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._FogVolumeDepth, data.fogVolumeDepth);
                         ctx.cmd.SetRandomWriteTarget(1, data.densityBuffer);
-                        Debug.Log(data.densityBuffer.IsValid());
-                        CoreUtils.SetRenderTarget(ctx.cmd, data.fogVolumeDepth);
+                        ctx.cmd.SetRandomWriteTarget(2, data.fogVolumeDepth);
+                        CoreUtils.SetRenderTarget(ctx.cmd, data.fogVolumeDepth, ClearFlag.Color, Color.clear);
                         ctx.cmd.SetViewport(new Rect(0, 0, currParams.viewportSize.x, currParams.viewportSize.y));
                         CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, data.fogVolumeRenderList);
                         ctx.cmd.ClearRandomWriteTargets();
