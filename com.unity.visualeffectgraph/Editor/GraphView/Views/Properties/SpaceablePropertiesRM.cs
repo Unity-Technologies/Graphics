@@ -9,12 +9,32 @@ namespace UnityEditor.VFX.UI
 {
     class SpaceablePropertyRM<T> : PropertyRM<T>
     {
+        static readonly bool s_UseDropDownMenu = true;
+        static readonly bool s_UseHovering = true;
+
+        void OnMouseHover(EventBase evt)
+        {
+            if (m_Button == null || !m_Button.enabledSelf)
+                return;
+
+            if (evt.eventTypeId == MouseEnterEvent.TypeId())
+                m_Button.AddToClassList("hovered");
+            else
+                m_Button.RemoveFromClassList("hovered");
+        }
+
         public SpaceablePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_Button = new VisualElement() { name = "spacebutton" };
             m_Button.AddManipulator(new Clickable(OnButtonClick));
             Add(m_Button);
             AddToClassList("spaceablepropertyrm");
+
+            if (s_UseHovering)
+            {
+                RegisterCallback<MouseEnterEvent>(OnMouseHover);
+                RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+            }
         }
 
         public override float GetPreferredControlWidth()
@@ -39,8 +59,6 @@ namespace UnityEditor.VFX.UI
                 m_Provider.space = value;
             }
         }
-
-        static readonly bool s_UseDropDownMenu = true;
 
         void ChangeSpace(object val)
         {
