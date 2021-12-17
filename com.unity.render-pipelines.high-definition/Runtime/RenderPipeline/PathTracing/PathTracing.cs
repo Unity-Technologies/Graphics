@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Enables denoising with albedo and normal AOVs")]
         [InspectorName("Use AOVs")]
-        public BoolParameter useAOVs = new BoolParameter(false);
+        public BoolParameter useAOVs = new BoolParameter(true);
 
         /// <summary>
         /// Enables temporally stable denoising (not all denosing backends support this option)
