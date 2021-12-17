@@ -627,7 +627,7 @@ namespace UnityEditor.VFX
             int outputId = 0;
             foreach (var output in listOutputsOwningAABB)
             {
-                uint aabbBufferSize = (capacity + (uint)output.GetRaytracingDecimationFactor() - 1) / (uint)output.GetRaytracingDecimationFactor();
+                uint aabbBufferSize = (capacity + output.GetRaytracingDecimationFactor() - 1) / output.GetRaytracingDecimationFactor();
                 int bufferIndex = outBufferDescs.Count;
                 outputsOwningAABB.Add(output, bufferIndex);
                 outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = aabbBufferSize, stride = 24 });

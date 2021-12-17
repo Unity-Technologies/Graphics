@@ -125,7 +125,7 @@ namespace UnityEditor.VFX
         protected bool isRaytraced = false;
 
         [VFXSetting, Delayed, Min(1), SerializeField, Tooltip("Will keep one out of [rayTracingDecimationFactor] particles in the ray traced effects.")]
-        protected int decimationFactor = 1;
+        protected uint decimationFactor = 1;
 
 
 
@@ -155,7 +155,7 @@ namespace UnityEditor.VFX
             return isRaytraced;
         }
 
-        public int GetRaytracingDecimationFactor() { return decimationFactor; }
+        public uint GetRaytracingDecimationFactor() { return decimationFactor; }
 
         public bool needsOwnSort = false;
 
@@ -327,11 +327,6 @@ namespace UnityEditor.VFX
 
             if (hasExposure && useExposureWeight)
                 yield return slotExpressions.First(o => o.name == "exposureWeight");
-            // if (isRaytraced)
-            // {
-            //     var namedExpr = slotExpressions.First(o => o.name == "rayTracingDecimationFactor");
-            //     yield return namedExpr;
-            // }
         }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
@@ -406,9 +401,6 @@ namespace UnityEditor.VFX
 
                 if (hasExposure && useExposureWeight)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "exposureWeight", new RangeAttribute(0.0f, 1.0f)), 1.0f);
-                // if (isRaytraced)
-                //     yield return new VFXPropertyWithValue(
-                //         new VFXProperty(typeof(int), "rayTracingDecimationFactor", new MinAttribute(1)), 1);
                 if (HasCustomSortingCriterion())
                 {
                     foreach (var property in PropertiesFromType("InputPropertiesSortKey"))
