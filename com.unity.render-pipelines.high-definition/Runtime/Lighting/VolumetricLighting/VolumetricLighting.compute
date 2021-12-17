@@ -72,6 +72,10 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
 
+#if SHADEROPTIONS_IS_CUSTOM_PROJECT
+    #include "Assets/Code/OverrideBakedLightingTransform/Shaders/LitOverrideBakedLightingCode2.hlsl"
+#endif
+
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
@@ -497,7 +501,11 @@ float3 EvaluateVoxelDiffuseGI(PositionInputs posInput, JitteredRay ray, float t0
     float3 apvDiffuseGI;
     // Note here we don't need undo the convolution by the cosine kernel as we only sample L0 and don't support anisotropy yet, so undoing cosine and convolve with phase function
     // for L0 term it'd just cancel out as both are just constant factors.
+#if SHADEROPTIONS_IS_CUSTOM_PROJECT
+    OverrideEvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS), posInput.positionSS, apvDiffuseGI);
+#else
     EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS), posInput.positionSS, apvDiffuseGI);
+#endif
 
     const float cornetteShanksZonalHarmonicL0 = sqrt(4.0f * PI);
     weight *= PI * cornetteShanksZonalHarmonicL0;
