@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering
     /// curves and reuses them to avoid creating garbage. The number of curves needed is quite small, since curves only need
     /// to be used when interpolating multiple volumes together with different curve parameters. The underlying interp
     /// function isn't allowed to fail, so in the case where we run out of memory we fall back to returning a single keyframe.
+    /// </summary>
     ///
     /// <example>Example:
     /// <code>
@@ -42,7 +43,6 @@ namespace UnityEngine.Rendering
     /// }
     /// </code>
     /// </example>
-    /// </summary>
     public class KeyframeUtility
     {
         /// <summary>
