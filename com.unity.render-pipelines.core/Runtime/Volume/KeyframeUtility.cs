@@ -17,7 +17,6 @@ namespace UnityEngine.Rendering
     /// if one curve has a keypoint at a time that is missing in the other curve (which is the most common case),
     /// InterpAnimationCurve calculates a synthetic keypoint at that time based on value and derivative, and interpolates
     /// the resulting keys.
-    ///
     /// Note that this function should only be called by internal rendering code. It creates a small pool of animation
     /// curves and reuses them to avoid creating garbage. The number of curves needed is quite small, since curves only need
     /// to be used when interpolating multiple volumes together with different curve parameters. The underlying interp
