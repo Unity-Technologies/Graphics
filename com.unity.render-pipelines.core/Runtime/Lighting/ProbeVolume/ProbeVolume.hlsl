@@ -403,14 +403,15 @@ APVSample ManuallyFilteredSample(APVResources apvRes, float3 posWS, float3 norma
 
         float validityWeight = GetValidityWeight(i, validityMask);
 
-        if (validityWeight > 0)
+     //   if (validityWeight > 0)
         {
             APVSample apvSample = LoadAndDecodeAPV(apvRes, texCoordInt + offset);
             float geoW = GetNormalWeight(offset, posWS, positionCentralProbe, normalWS, subdiv);
+            float antiLeakWeight = max(0.0001f, saturate(trilinearW * geoW * validityWeight));
 
-            float finalW = geoW * trilinearW;
-            AccumulateSamples(baseSample, apvSample, finalW);
-            totalW += finalW;
+           // float finalW = geoW * trilinearW;
+            AccumulateSamples(baseSample, apvSample, antiLeakWeight);
+            totalW += antiLeakWeight;
         }
     }
 
