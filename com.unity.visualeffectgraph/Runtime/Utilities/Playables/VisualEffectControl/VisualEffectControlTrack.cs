@@ -113,6 +113,10 @@ namespace UnityEngine.VFX
 
         public override void GatherProperties(PlayableDirector director, IPropertyCollector driver)
         {
+#if UNITY_EDITOR
+            m_CurrentVisualEffect = null;
+#endif
+
             if (director.GetGenericBinding(this) is VisualEffect vfx)
             {
 #if UNITY_EDITOR
