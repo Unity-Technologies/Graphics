@@ -178,7 +178,8 @@ half AlphaClip(half alpha, half cutoff)
 
 half OutputAlpha(half alpha, half surfaceType)
 {
-    if (surfaceType == 1)
+    bool isTransparent = (surfaceType == 1.0);
+    if (isTransparent)
     {
         return alpha;
     }
@@ -186,6 +187,8 @@ half OutputAlpha(half alpha, half surfaceType)
     {
 #if defined(_ALPHATEST_ON)
         // Opaque materials should always export an alpha value of 1.0 unless alpha-to-coverage is enabled
+        // TODO: This comment should be updated and the IsAlphaToMaskEnabled() stuff should be renamed to better reflect the actual conditions.
+        // (it really means is multisampling AND opaque, a2c is ALWAYS enabled for all opaque materials that use alpha clipping.)
         return IsAlphaToMaskEnabled() ? alpha : 1.0;
 #else
         return 1.0;
