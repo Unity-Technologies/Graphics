@@ -285,7 +285,7 @@ namespace UnityEngine.Rendering.Universal
     public enum UpscalingFilterSelection
     {
         /// <summary>
-        /// Use this to have URP handle upscaling automatically.
+        /// Indicates that URP will select an appropriate upscaling filter automatically.
         /// </summary>
         [InspectorName("Automatic")]
         Auto,
