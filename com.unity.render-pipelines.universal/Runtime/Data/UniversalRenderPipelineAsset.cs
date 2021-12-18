@@ -297,7 +297,7 @@ namespace UnityEngine.Rendering.Universal
         Linear,
 
         /// <summary>
-        /// Use this to use Nearest-Neighbour filtering when performing upscaling.
+        /// Indicates that Nearest-Neighbour filtering will be used when performing upscaling.
         /// </summary>
         [InspectorName("Nearest-Neighbor")]
         Point
