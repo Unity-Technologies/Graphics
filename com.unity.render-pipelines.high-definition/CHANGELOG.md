@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
 - Fixed a crash with render graph viewer when render graph is not provided with an execution name.
 - Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
+- Fixed the behavior the max ray length for recursive rendering to match RTR and rasterization.
 
 ## [13.1.4] - 2021-12-04
 
