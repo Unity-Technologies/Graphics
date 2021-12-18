@@ -71,6 +71,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
 - Fixed the intensity of the sky being reduced signficantly even if there is no clouds (case 1388279).
 - Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
+- Fixed the behavior the max ray length for recursive rendering to match RTR and rasterization.
 
 ## [12.1.3] - 2021-11-17
 
