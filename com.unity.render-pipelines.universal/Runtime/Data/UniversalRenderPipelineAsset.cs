@@ -291,7 +291,7 @@ namespace UnityEngine.Rendering.Universal
         Auto,
 
         /// <summary>
-        /// Use this to use Bilinear Filtering when performing upscaling.
+        /// Indicates that Bilinear filtering will be used when performing upscaling.
         /// </summary>
         [InspectorName("Bilinear")]
         Linear,
