@@ -176,6 +176,23 @@ half AlphaClip(half alpha, half cutoff)
 }
 #endif
 
+half OutputAlpha(half alpha, half surfaceType)
+{
+    if (surfaceType == 1)
+    {
+        return alpha;
+    }
+    else
+    {
+#if defined(_ALPHATEST_ON)
+        // Opaque materials should always export an alpha value of 1.0 unless alpha-to-coverage is enabled
+        return IsAlphaToMaskEnabled() ? alpha : 1.0;
+#else
+        return 1.0;
+#endif
+    }
+}
+
 half3 AlphaModulate(half3 albedo, half alpha)
 {
     // Fake alpha for multiply blend by lerping albedo towards 1 (white) using alpha.

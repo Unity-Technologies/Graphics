@@ -138,5 +138,6 @@ half4 BakedLitForwardPassFragment(Varyings input) : SV_Target
 
     half4 finalColor = UniversalFragmentBakedLit(inputData, color, alpha, normalTS);
 
+    finalColor.a = OutputAlpha(finalColor.a, _Surface);
     return finalColor;
 }

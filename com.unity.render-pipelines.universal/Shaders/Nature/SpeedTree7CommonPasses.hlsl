@@ -215,6 +215,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
     #else
         half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
         color.rgb = MixFog(color.rgb, inputData.fogCoord);
+        color.a = OutputAlpha(color.a, _Surface);
         return color;
     #endif
 }
