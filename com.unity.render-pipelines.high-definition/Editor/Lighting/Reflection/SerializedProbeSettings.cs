@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty type;
         internal SerializedProperty mode;
         internal SerializedProperty realtimeMode;
+        internal SerializedProperty timeSlicing;
         internal SerializedProperty lightingMultiplier;
         internal SerializedProperty lightingWeight;
         internal SerializedProperty lightingFadeDistance;
@@ -53,6 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
             type = root.Find((ProbeSettings p) => p.type);
             mode = root.Find((ProbeSettings p) => p.mode);
             realtimeMode = root.Find((ProbeSettings p) => p.realtimeMode);
+            timeSlicing = root.Find((ProbeSettings p) => p.timeSlicing);
             lightingMultiplier = root.FindPropertyRelative("lighting.multiplier");
             lightingWeight = root.FindPropertyRelative("lighting.weight");
             lightingFadeDistance = root.FindPropertyRelative("lighting.fadeDistance");

@@ -1249,6 +1249,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (DictionaryPool<HDProbe, List<(int index, float weight)>>.Get(out Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible))
             using (ListPool<CameraSettings>.Get(out List<CameraSettings> cameraSettings))
             using (ListPool<CameraPositionSettings>.Get(out List<CameraPositionSettings> cameraPositionSettings))
+            using (ListPool<CubemapFace>.Get(out List<CubemapFace> cameraCubemapFaces))
             {
                 // With XR multi-pass enabled, each camera can be rendered multiple times with different parameters
                 var multipassCameras = m_XRSystem.SetupFrame(cameras, m_Asset.currentPlatformRenderPipelineSettings.xrSettings.singlePass, m_DebugDisplaySettings.data.xrSinglePassTestMode);
@@ -1324,6 +1325,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Reset pooled variables
                     cameraSettings.Clear();
                     cameraPositionSettings.Clear();
+                    cameraCubemapFaces.Clear();
                     skipClearCullingResults.Clear();
 
                     var cullingResults = UnsafeGenericPool<HDCullingResults>.Get();
@@ -1465,8 +1467,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         // doesn't apply if probe is enable any frame other than the very first. Also note that we are likely to be re-rendering the probe anyway due to the issue on sky ambient probe
                         // (see m_SkyManager.HasSetValidAmbientProbe in this function).
                         // Also, we need to set the probe as rendered only if we'll actually render it and this won't happen if visibility is not > 0.
-                        if (m_FrameCount > 1 && visibility > 0.0f)
+                        if (visibility > 0.0f)
+                        {
                             probe.SetIsRendered();
+                            if (m_FrameCount <= 1)
+                                probe.RequestRenderNextUpdate();
+                        }
 
                         if (!renderRequestIndicesWhereTheProbeIsVisible.TryGetValue(probe, out var visibleInIndices))
                         {
@@ -1569,15 +1575,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     ref List<HDProbe.RenderData> renderDatas
                 )
                 {
+                    var renderSteps = visibleProbe.GetNextRenderSteps();
+
                     var position = ProbeCapturePositionSettings.ComputeFrom(
                         visibleProbe,
                         viewerTransform
                     );
                     cameraSettings.Clear();
                     cameraPositionSettings.Clear();
+                    cameraCubemapFaces.Clear();
                     HDRenderUtilities.GenerateRenderingSettingsFor(
                         visibleProbe.settings, position,
-                        cameraSettings, cameraPositionSettings, overrideSceneCullingMask,
+                        cameraSettings, cameraPositionSettings, cameraCubemapFaces, overrideSceneCullingMask, renderSteps,
                         referenceFieldOfView: referenceFieldOfView,
                         referenceAspect: referenceAspect
                     );
@@ -1764,29 +1773,23 @@ namespace UnityEngine.Rendering.HighDefinition
                             // TODO: store DecalCullResult
                         };
 
-                        if (m_SkyManager.HasSetValidAmbientProbe(hdCamera))
+                        CubemapFace face = cameraCubemapFaces[j];
+                        if (face != CubemapFace.Unknown)
                         {
-                            // As we render realtime texture on GPU side, we must tag the texture so our texture array cache detect that something have change
-                            visibleProbe.realtimeTexture.IncrementUpdateCount();
-
-                            if (cameraSettings.Count > 1)
+                            request.target = new RenderRequest.Target
                             {
-                                var face = (CubemapFace)j;
-                                request.target = new RenderRequest.Target
-                                {
-                                    copyToTarget = visibleProbe.realtimeTextureRTH,
-                                    face = face
-                                };
-                            }
-                            else
+                                copyToTarget = visibleProbe.realtimeTextureRTH,
+                                face = face
+                            };
+                        }
+                        else
+                        {
+                            request.target = new RenderRequest.Target
                             {
-                                request.target = new RenderRequest.Target
-                                {
-                                    id = visibleProbe.realtimeTextureRTH,
-                                    targetDepth = visibleProbe.realtimeDepthTextureRTH,
-                                    face = CubemapFace.Unknown
-                                };
-                            }
+                                id = visibleProbe.realtimeTextureRTH,
+                                targetDepth = visibleProbe.realtimeDepthTextureRTH,
+                                face = CubemapFace.Unknown
+                            };
                         }
 
                         renderRequests.Add(request);
@@ -1795,6 +1798,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         foreach (var visibility in visibilities)
                             renderRequests[visibility.index].dependsOnRenderRequestIndices.Add(request.index);
                     }
+
+                    // As we render realtime texture on GPU side, we must tag the texture so our texture array cache detect that something have change
+                    if (renderSteps.HasFlag(ProbeRenderSteps.IncrementRenderCount))
+                        visibleProbe.realtimeTexture.IncrementUpdateCount();
                 }
 
                 // TODO: Refactor into a method. If possible remove the intermediate target

@@ -8,6 +8,37 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [Flags]
+    public enum ProbeRenderSteps
+    {
+        None = 0,
+        CubeFace0 = (1 << 0),
+        CubeFace1 = (1 << 1),
+        CubeFace2 = (1 << 2),
+        CubeFace3 = (1 << 3),
+        CubeFace4 = (1 << 4),
+        CubeFace5 = (1 << 5),
+        Planar = (1 << 6),
+        IncrementRenderCount = (1 << 7),
+        AllFaces = CubeFace0 | CubeFace1 | CubeFace2 | CubeFace3 | CubeFace4 | CubeFace5,
+        AllFacesAndIncrementRenderCount = AllFaces | IncrementRenderCount,
+        PlanarAndIncrementRenderCount = Planar | IncrementRenderCount,
+    }
+
+    public static class ProbeRenderStepsExt
+    {
+        public static bool HasFace(this ProbeRenderSteps steps, int face)
+        {
+            return (steps & (ProbeRenderSteps)(1 << face)) != ProbeRenderSteps.None;
+        }
+
+        public static ProbeRenderSteps LowestSetBit(this ProbeRenderSteps steps)
+        {
+            int bits = (int)steps;
+            return (ProbeRenderSteps)(bits & -bits);
+        }
+    }
+
     /// <summary>
     /// Base class for reflection like probes.
     /// </summary>
@@ -121,7 +152,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_RealtimeTexture;
         RTHandle m_RealtimeDepthBuffer;
         RenderData m_RealtimeRenderData;
+        bool m_HasPendingRenderRequest = false;
         bool m_WasRenderedSinceLastOnDemandRequest = true;
+        ProbeRenderSteps m_RemainingRenderSteps = ProbeRenderSteps.None;
 #if UNITY_EDITOR
         bool m_WasRenderedDuringAsyncCompilation = false;
         int m_SHRequestID = -1;
@@ -152,23 +185,80 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ProbeExposureValue;
         }
 
+        internal ProbeRenderSteps GetNextRenderSteps()
+        {
+            ProbeRenderSteps allSteps = ProbeRenderSteps.None;
+            bool doTimeSlice = false;
+            switch (type)
+            {
+                case ProbeSettings.ProbeType.ReflectionProbe:
+                    allSteps = ProbeRenderSteps.AllFacesAndIncrementRenderCount;
+                    doTimeSlice = timeSlicing;
+                    break;
+                case ProbeSettings.ProbeType.PlanarProbe:
+                    allSteps = ProbeRenderSteps.PlanarAndIncrementRenderCount;
+                    break;
+            }
+
+            if (mode != ProbeSettings.Mode.Realtime)
+                return allSteps;
+
+            m_RemainingRenderSteps &= allSteps;
+            if (m_RemainingRenderSteps == ProbeRenderSteps.None && m_HasPendingRenderRequest)
+            {
+                m_RemainingRenderSteps = allSteps;
+                m_HasPendingRenderRequest = false;
+            }
+
+            ProbeRenderSteps nextSteps = doTimeSlice ? m_RemainingRenderSteps.LowestSetBit() : m_RemainingRenderSteps;
+            m_RemainingRenderSteps &= ~nextSteps;
+
+            if (nextSteps.HasFlag(ProbeRenderSteps.IncrementRenderCount))
+                hasEverRendered = true;
+
+            return nextSteps;
+        }
+
+        internal bool HasRemainingRenderSteps()
+        {
+            return m_HasPendingRenderRequest || m_RemainingRenderSteps != ProbeRenderSteps.None;
+
+        }
+
         internal bool requiresRealtimeUpdate
         {
             get
             {
 #if UNITY_EDITOR
                 if (m_WasRenderedDuringAsyncCompilation && !ShaderUtil.anythingCompiling)
+                {
+                    m_HasPendingRenderRequest = true;
                     return true;
+                }
 #endif
                 if (mode != ProbeSettings.Mode.Realtime)
                     return false;
                 switch (realtimeMode)
                 {
-                    case ProbeSettings.RealtimeMode.EveryFrame: return true;
-                    case ProbeSettings.RealtimeMode.OnEnable: return !wasRenderedAfterOnEnable;
-                    case ProbeSettings.RealtimeMode.OnDemand: return !m_WasRenderedSinceLastOnDemandRequest;
-                    default: throw new ArgumentOutOfRangeException(nameof(realtimeMode));
+                    case ProbeSettings.RealtimeMode.EveryFrame:
+                        m_HasPendingRenderRequest = true;
+                        break;
+                    case ProbeSettings.RealtimeMode.OnEnable:
+                        if (!wasRenderedAfterOnEnable)
+                        {
+                            m_HasPendingRenderRequest = true;
+                            wasRenderedAfterOnEnable = true;
+                        }
+                        break;
+                    case ProbeSettings.RealtimeMode.OnDemand:
+                        if (!m_WasRenderedSinceLastOnDemandRequest)
+                        {
+                            m_HasPendingRenderRequest = true;
+                            m_WasRenderedSinceLastOnDemandRequest = true;
+                        }
+                        break;
                 }
+                return HasRemainingRenderSteps();
             }
         }
 
@@ -392,6 +482,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public ProbeSettings.RealtimeMode realtimeMode { get => m_ProbeSettings.realtimeMode; set => m_ProbeSettings.realtimeMode = value; }
         /// <summary>
+        /// Whether the realtime probe uses time slicing
+        public bool timeSlicing {  get => m_ProbeSettings.timeSlicing; set => m_ProbeSettings.timeSlicing = value; }
+        /// </summary>
+        /// <summary>
         /// Resolution of the probe.
         /// </summary>
         public PlanarReflectionAtlasResolution resolution
@@ -511,9 +605,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             m_WasRenderedDuringAsyncCompilation = ShaderUtil.anythingCompiling;
 #endif
-            m_WasRenderedSinceLastOnDemandRequest = true;
-            wasRenderedAfterOnEnable = true;
-            hasEverRendered = true;
         }
 
         // API
