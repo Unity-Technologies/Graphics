@@ -5,8 +5,7 @@
         "Unity.RenderPipelines.HighDefinition.Editor",
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.RenderPipelines.Core.Editor",
-        "Unity.RenderPipelines.Core.Runtime",
-        "Unity.InputSystem"
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
