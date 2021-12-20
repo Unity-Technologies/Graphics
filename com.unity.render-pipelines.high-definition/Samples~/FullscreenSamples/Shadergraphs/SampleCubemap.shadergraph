@@ -5,6 +5,9 @@
     "m_Properties": [
         {
             "m_Id": "e9b73e8edde24c56bd0ceb99281cb19a"
+        },
+        {
+            "m_Id": "1428a93502ae4cc0bb80264b6606b132"
         }
     ],
     "m_Keywords": [
@@ -233,6 +236,34 @@
 }
 
 {
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
+    "m_ObjectId": "1428a93502ae4cc0bb80264b6606b132",
+    "m_Guid": {
+        "m_GuidSerialized": "7b916c61-568d-4eae-9d7f-33e536cab544"
+    },
+    "m_Name": "Float",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "Float",
+    "m_DefaultReferenceName": "_Float",
+    "m_OverrideReferenceName": "",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "m_Hidden": false,
+    "m_Value": 0.0,
+    "m_FloatType": 0,
+    "m_RangeValues": {
+        "x": 0.0,
+        "y": 1.0
+    }
+}
+
+{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.ColorRGBMaterialSlot",
     "m_ObjectId": "15da0dc570474887b4a12124745d3d72",
@@ -335,6 +366,9 @@
         },
         {
             "m_Id": "d868655786704c519b7c46926a87e0f5"
+        },
+        {
+            "m_Id": "1428a93502ae4cc0bb80264b6606b132"
         }
     ]
 }
@@ -704,6 +738,7 @@
     "m_DistortionDepthTest": true,
     "m_AddPrecomputedVelocity": false,
     "m_TransparentWritesMotionVec": false,
+    "m_AlphaToMask": false,
     "m_DepthOffset": false,
     "m_ConservativeDepthOffset": false,
     "m_TransparencyFog": true,
