@@ -238,38 +238,38 @@ namespace UnityEngine.Rendering.Universal
 
     public class TaaPersistentData
     {
-        public bool m_WasCleared;
-        public RenderTextureDescriptor m_Rtd;
-        public RenderTexture m_AccumulationTexture;
-        public RenderTexture m_AccumulationTextureCopy;
+        public RenderTextureDescriptor m_Rtd { get; set; }
+        public RenderTexture m_AccumulationTexture { get; set; }
+        public RenderTexture m_AccumulationTextureCopy { get; set; }
 
         public TaaPersistentData()
         {
-            m_WasCleared = false;
         }
 
         public void Init(int sizeX, int sizeY)
         {
             if (m_Rtd.width != sizeX || m_Rtd.height != sizeY || m_AccumulationTexture == null || m_AccumulationTextureCopy == null)
             {
-                m_Rtd = new RenderTextureDescriptor();
+                RenderTextureDescriptor rtd = new RenderTextureDescriptor();
 
-                m_Rtd.width = sizeX;
-                m_Rtd.height = sizeY;
-                m_Rtd.msaaSamples = 1;
-                m_Rtd.volumeDepth = 1;
-                m_Rtd.mipCount = 0;
-                m_Rtd.graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
-                m_Rtd.sRGB = false;
-                m_Rtd.depthBufferBits = 0;
-                m_Rtd.dimension = TextureDimension.Tex2D;
-                m_Rtd.vrUsage = VRTextureUsage.None;
-                m_Rtd.memoryless = RenderTextureMemoryless.None;
-                m_Rtd.useMipMap = false;
-                m_Rtd.autoGenerateMips = false;
-                m_Rtd.enableRandomWrite = true;
-                m_Rtd.bindMS = false;
-                m_Rtd.useDynamicScale = false;
+                rtd.width = sizeX;
+                rtd.height = sizeY;
+                rtd.msaaSamples = 1;
+                rtd.volumeDepth = 1;
+                rtd.mipCount = 0;
+                rtd.graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat;
+                rtd.sRGB = false;
+                rtd.depthBufferBits = 0;
+                rtd.dimension = TextureDimension.Tex2D;
+                rtd.vrUsage = VRTextureUsage.None;
+                rtd.memoryless = RenderTextureMemoryless.None;
+                rtd.useMipMap = false;
+                rtd.autoGenerateMips = false;
+                rtd.enableRandomWrite = true;
+                rtd.bindMS = false;
+                rtd.useDynamicScale = false;
+
+                m_Rtd = rtd;
 
                 m_AccumulationTexture = null;
                 m_AccumulationTextureCopy = null;

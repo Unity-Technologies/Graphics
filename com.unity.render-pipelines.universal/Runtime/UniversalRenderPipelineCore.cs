@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering.Universal
             return m_JitterMatrix * m_ProjectionMatrix;
         }
 
-        public Matrix4x4 GetProjectionMatrixNoJitter(int viewIndex = 0)
+        internal Matrix4x4 GetProjectionMatrixNoJitter(int viewIndex = 0)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
@@ -194,6 +194,11 @@ namespace UnityEngine.Rendering.Universal
             return true;
         }
 
+        internal bool IsTemporalAAEnabled()
+        {
+            return (taaPersistentData != null) && (antialiasing == AntialiasingMode.TemporalAntiAliasing) && (cameraTargetDescriptor.msaaSamples == 1);
+        }
+
         public SortingCriteria defaultOpaqueSortFlags;
 
         internal XRPass xr;
@@ -236,6 +241,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public Color backgroundColor;
 
+        /// <summary>
+        /// Persistent taa data, primarily for the accumulation texture.
+        /// </summary>
         public TaaPersistentData taaPersistentData;
     }
 

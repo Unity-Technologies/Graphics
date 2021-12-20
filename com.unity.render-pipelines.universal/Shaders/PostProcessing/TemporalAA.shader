@@ -28,23 +28,25 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
 #endif
 
         TEXTURE2D_X(_SourceTex);
-        float4 _SourceTex_TexelSize;
-
         TEXTURE2D_X(_MotionVectorTexture);
-        float4 _MotionVectorTexture_TexelSize;
-
         TEXTURE2D_X(_AccumulationTex);
+
+        CBUFFER_START(TemporalAAData)
+            float4 _SourceTex_TexelSize;
+            float4 _MotionVectorTexture_TexelSize;
+
 #if defined(USING_STEREO_MATRICES)
-        float4x4 _PrevViewProjMStereo[2];
+            float4x4 _PrevViewProjMStereo[2];
 #define _PrevViewProjM  _PrevViewProjMStereo[unity_StereoEyeIndex]
 #define _ViewProjM unity_MatrixVP
 #else
-        float4x4 _ViewProjM;
-        float4x4 _PrevViewProjM;
+            float4x4 _ViewProjM;
+            float4x4 _PrevViewProjM;
 #endif
-        half4 _SourceSize;
+            half4 _SourceSize;
 
-        half _TemporalAAFrameInfl;
+            half _TemporalAAFrameInfl;
+        CBUFFER_END
 
         struct VaryingsCMB
         {
@@ -291,6 +293,7 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
 
             half3 workingColor = ApplyHistoryColorLerp(clampAccum, colorCenter, _TemporalAAFrameInfl);
 
+            // included for debugging as a sanity check if the depth seems flipped
 #if 0
             float depth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_PointClamp, uv.xy).r;
 
@@ -301,9 +304,6 @@ Shader "Hidden/Universal Render Pipeline/TemporalAA"
             depth = 2.0 * depth - 1.0;
 #endif
 
-            //color = depthOffsetUv.x*.5+.5;
-            //color = depth;
-            //color = half3(saturate(velocity * 10.0f + 0.5f), 0.0f);
             half3 dstSceneColor = WorkingSpaceToScene(workingColor);
 
             return half4(dstSceneColor, 1.0);

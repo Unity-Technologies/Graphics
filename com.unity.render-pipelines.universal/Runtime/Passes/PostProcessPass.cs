@@ -327,6 +327,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
         {
             ref CameraData cameraData = ref renderingData.cameraData;
@@ -343,7 +344,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool useMotionBlur = m_MotionBlur.IsActive() && !isSceneViewCamera;
             bool usePaniniProjection = m_PaniniProjection.IsActive() && !isSceneViewCamera;
 
-            bool useTemporalAA = (cameraData.taaPersistentData != null) && (cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing) && (m_Descriptor.msaaSamples == 1);
+            // Note that enableing jitters uses the same CameraData::IsTemporalAAEnabled(). So if we add any other kind of overrides (like
+            // disable useTemporalAA if another feature is disabled) then we need to put it in CameraData::IsTemporalAAEnabled() as opposed
+            // to tweaking the value here.
+            bool useTemporalAA = cameraData.IsTemporalAAEnabled();
             int taaQuality = 3; // [0,3]
 
             if (!useTemporalAA && cameraData.antialiasing == AntialiasingMode.TemporalAntiAliasing)
@@ -995,7 +999,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
 
         #region Temporal AA
-        void DoTemporalAA(CameraData cameraData, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, int quality)
+        internal void DoTemporalAA(CameraData cameraData, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, int quality)
         {
             var material = m_Materials.temporalAntialiasing;
 
@@ -1019,7 +1023,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Hold the stereo matrices to avoid allocating arrays every frame
         internal static readonly Matrix4x4[] viewProjMatrixStereo = new Matrix4x4[2];
 #endif
-        void UpdateMotionBlurMatrices(ref Material material, CameraData cameraData)
+        internal void UpdateMotionBlurMatrices(ref Material material, CameraData cameraData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled && cameraData.xr.singlePassEnabled)
