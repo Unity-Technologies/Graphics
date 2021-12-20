@@ -225,7 +225,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // Evaluate the contact shadow index of this light
-            contactShadowMask = 1 << m_ContactShadowIndex++;
+            contactShadowMask = 1 << m_ContactShadowIndex;
+            m_ContactShadowIndex++; // Update the index for next light that will need to cast contact shadows.
 
             // If this light has ray traced contact shadow
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && hdAdditionalLightData.rayTraceContactShadow)
