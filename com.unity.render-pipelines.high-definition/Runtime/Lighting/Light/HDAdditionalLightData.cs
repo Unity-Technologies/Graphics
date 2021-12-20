@@ -1177,6 +1177,16 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_LinkShadowLayers = value;
         }
 
+        [SerializeField]
+        bool m_AffectDynamicGI = false;
+        /// <summary>
+        /// </summary>
+        public bool affectDynamicGI
+        {
+            get => m_AffectDynamicGI;
+            set => m_AffectDynamicGI = value;
+        }
+
         /// <summary>
         /// Returns a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1
         /// </summary>
@@ -2734,11 +2744,11 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_AreaLightShadowCone = m_AreaLightShadowCone;
             data.m_UseScreenSpaceShadows = m_UseScreenSpaceShadows;
             data.m_InteractsWithSky = m_InteractsWithSky;
-            data.m_AngularDiameter = m_AngularDiameter;
             data.m_AreaLightShadowCone = m_AreaLightShadowCone;
             data.m_UseScreenSpaceShadows = m_UseScreenSpaceShadows;
             data.m_InteractsWithSky = m_InteractsWithSky;
             data.m_AngularDiameter = m_AngularDiameter;
+            data.affectDynamicGI = affectDynamicGI;
             data.m_FlareSize = m_FlareSize;
             data.m_FlareTint = m_FlareTint;
             data.m_FlareFalloff = m_FlareFalloff;

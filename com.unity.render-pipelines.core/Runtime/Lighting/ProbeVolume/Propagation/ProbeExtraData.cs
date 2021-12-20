@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public int probeCount = 0;
 
-        internal ProbeExtraDataBuffers(ProbeReferenceVolume.Cell cell, int axisCount)
+        public ProbeExtraDataBuffers(ProbeReferenceVolume.Cell cell, int axisCount)
         {
             m_ComputeBufferFilled = false;
             int probeCount = cell.probePositions.Length;

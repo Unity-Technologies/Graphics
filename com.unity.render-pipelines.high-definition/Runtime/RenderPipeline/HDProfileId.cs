@@ -39,6 +39,10 @@ namespace UnityEngine.Rendering.HighDefinition
         SSGIUpscale,
         SSGIConvert,
 
+        // Dynamic GI
+        InjectInDynamicAPV,
+        CombineDynamicGI,
+
         ForwardOpaque,
         ForwardOpaqueDebug,
         ForwardTransparent,

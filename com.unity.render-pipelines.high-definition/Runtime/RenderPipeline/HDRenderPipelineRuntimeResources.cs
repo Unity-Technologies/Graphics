@@ -379,6 +379,14 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/RenderPipeline/Raytracing/Shaders/Denoising/DiffuseDenoiser.compute")]
             public ComputeShader diffuseDenoiserCS;
 
+            // Dynamic GI from Probe Volumes
+            [Reload("Runtime/Lighting/ProbeVolume/Propagation/CombineProbeVolumes.compute")]
+            public ComputeShader combineProbeVolumesCS;
+            [Reload("Runtime/Lighting/ProbeVolume/Propagation/FirstBounceGeneration.compute")]
+            public ComputeShader probeGIInjectionCS;
+            [Reload("Runtime/Lighting/ProbeVolume/Propagation/ExtractGIData.compute")]
+            public ComputeShader extactProbeExtraDataCS;
+
 #if UNITY_EDITOR
             // Furnace Testing (BSDF Energy Conservation)
             [Reload("Tests/Editor/Utilities/FurnaceTests.compute")]

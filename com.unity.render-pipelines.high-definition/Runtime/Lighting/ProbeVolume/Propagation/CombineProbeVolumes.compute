@@ -1,0 +1,216 @@
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/Propagation/APVDynamicGICommon.hlsl"
+
+// TODO: Better abstraction of output representation.
+
+#pragma kernel CombineIrradianceCacheAndPV
+// For UAV limit we need to split history and combining in separate kernels
+#pragma kernel WriteToHistory HISTORY_COMBINING
+
+#define GROUP_SIZE 64
+
+TEXTURE3D(_APVResL0_L1Rx);
+TEXTURE3D(_APVResL1G_L1Ry);
+TEXTURE3D(_APVResL1B_L1Rz);
+
+#if OUTPUT_TYPE == SHL2
+TEXTURE3D(_APVResL2_0);
+TEXTURE3D(_APVResL2_1);
+TEXTURE3D(_APVResL2_2);
+TEXTURE3D(_APVResL2_3);
+#endif
+
+float4 _PVCombineParameters;
+
+#define _FirstBlendFactor  _PVCombineParameters.x
+#define _SecondBlendFactor _PVCombineParameters.y
+#define _ProbeCount (uint)_PVCombineParameters.z
+
+#define _DeringingFactor _PVCombineParameters.w
+
+#define ONLY_FIRST 1
+#define ONLY_SECOND 2
+#define DEBUG ONLY_SECOND
+
+
+//#pragma enable_d3d11_debug_symbols
+
+
+
+StructuredBuffer<float3> _IrradianceCache;
+
+
+
+// -------------------------------------------------------------
+// Deringing stuff
+// -------------------------------------------------------------
+
+#define HANNING 0
+#define LANCZOS 1
+#define GAUSSIAN 2
+#define FILTER LANCZOS
+
+void ConvolveWithWindowing(inout OutputRepresentation result, float w)
+{
+#if OUTPUT_IS_SH
+
+#if FILTER == HANNING
+    float factor = (1.0f + cos(PI * rcp(w))) * 0.5f;
+#elif FILTER == LANCZOS
+    float factor = sin(PI * rcp(w)) / (PI * rcp(w));
+
+#elif FILTER == GAUSSIAN
+    float factor = exp(-pow(PI * rcp(w), 2.0) / 2.0);
+#endif
+
+    result.L1_0 *= factor;
+    result.L1_1 *= factor;
+    result.L1_2 *= factor;
+
+    // TODO: Implement deringing for L2 too...
+
+#endif
+}
+
+// -------------------------------------------------------------
+// Project to final space
+// -------------------------------------------------------------
+
+OutputRepresentation ProjectToOutput(uint probeIndex)
+{
+    OutputRepresentation output;
+    ZERO_INITIALIZE(OutputRepresentation, output);
+
+    uint localIndex = probeIndex * AXIS_COUNT;
+    for (int axis = 0; axis < AXIS_COUNT; ++axis)
+    {
+        float3 irradiance = _IrradianceCache[localIndex].xyz;
+        float3 dir = _RayAxis[axis].xyz;
+        AddToOutputRepresentation(irradiance, dir, output);
+        localIndex++;
+    }
+
+    return output;
+}
+
+#if (OUTPUT_TYPE != SHL2) || defined(HISTORY_COMBINING)
+
+    RW_TEXTURE3D(float4, _PrevAPVResL0_L1Rx);
+    RW_TEXTURE3D(float4, _PrevAPVResL1G_L1Ry);
+    RW_TEXTURE3D(float4, _PrevAPVResL1B_L1Rz);
+    #if OUTPUT_TYPE == SHL2
+    RW_TEXTURE3D(float4, _PrevAPVResL2_0);
+    RW_TEXTURE3D(float4, _PrevAPVResL2_1);
+    RW_TEXTURE3D(float4, _PrevAPVResL2_2);
+    RW_TEXTURE3D(float4, _PrevAPVResL2_3);
+    #endif
+
+
+
+void WriteToHistory(OutputRepresentation outputSpace, uint probeIndex)
+{
+    uint3 indexInPool = ProbeIndexToTexLocation(probeIndex);
+
+    float3 L1_R = float3(outputSpace.L1_0.x, outputSpace.L1_1.x, outputSpace.L1_2.x);
+    float3 L1_G = float3(outputSpace.L1_0.y, outputSpace.L1_1.y, outputSpace.L1_2.y);
+    float3 L1_B = float3(outputSpace.L1_0.z, outputSpace.L1_1.z, outputSpace.L1_2.z);
+
+    L1_R = EncodeSHL1(outputSpace.L0.x, L1_R);
+    L1_G = EncodeSHL1(outputSpace.L0.y, L1_G);
+    L1_B = EncodeSHL1(outputSpace.L0.z, L1_B);
+
+#if OUTPUT_TYPE == SHL2
+    float4 L2_R = float4(outputSpace.L2_0.r, outputSpace.L2_1.r, outputSpace.L2_2.r, outputSpace.L2_3.r);
+    float4 L2_G = float4(outputSpace.L2_0.g, outputSpace.L2_1.g, outputSpace.L2_2.g, outputSpace.L2_3.g);
+    float4 L2_B = float4(outputSpace.L2_0.b, outputSpace.L2_1.b, outputSpace.L2_2.b, outputSpace.L2_3.b);
+    float4 L2_C = float4(outputSpace.L2_4, 1.0f);
+
+    L2_R = EncodeSHL2(outputSpace.L0.r, L2_R, L2_C.r);
+    L2_G = EncodeSHL2(outputSpace.L0.g, L2_G, L2_C.g);
+    L2_B = EncodeSHL2(outputSpace.L0.b, L2_B, L2_C.b);
+#endif
+
+
+    if (AnyIsInf(outputSpace.L0) || AnyIsNaN(outputSpace.L0))
+    {
+        L1_R = 0;
+        L1_G = 0;
+        L1_B = 0;
+        outputSpace.L0 = 0;
+
+#if OUTPUT_TYPE == SHL2
+        L2_R = 0;
+        L2_G = 0;
+        L2_B = 0;
+        L2_C = 0;
+#endif
+    }
+
+    _PrevAPVResL0_L1Rx[indexInPool] = float4(outputSpace.L0.xyz, L1_R.x);
+    _PrevAPVResL1G_L1Ry[indexInPool] = float4(L1_G.xyz, L1_R.y);
+    _PrevAPVResL1B_L1Rz[indexInPool] = float4(L1_B.xyz, L1_R.z);
+#if OUTPUT_TYPE == SHL2
+    _PrevAPVResL2_0[indexInPool] = L2_R;
+    _PrevAPVResL2_1[indexInPool] = L2_G;
+    _PrevAPVResL2_2[indexInPool] = L2_B;
+    _PrevAPVResL2_3[indexInPool] = L2_C;
+#endif
+}
+
+#endif
+
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void CombineIrradianceCacheAndPV(uint3 id : SV_DispatchThreadID)
+{
+    uint probeIndex = id.x;
+    if (probeIndex < _ProbeCount)
+    {
+        uint3 dstLoc = ProbeIndexToTexLocation(probeIndex);
+
+        OutputRepresentation dynamicPV = ProjectToOutput(probeIndex);
+#if (OUTPUT_TYPE != SHL2)
+        WriteToHistory(dynamicPV, probeIndex);
+#endif
+
+        if (_DeringingFactor > 0.0f)
+        {
+            ConvolveWithWindowing(dynamicPV, _DeringingFactor);
+        }
+
+#if DEBUG == ONLY_FIRST
+        ZERO_INITIALIZE(OutputRepresentation, dynamicPV);
+#endif
+        OutputRepresentation staticPV;
+
+
+#if DEBUG == ONLY_SECOND
+        ZERO_INITIALIZE(OutputRepresentation, staticPV);
+#else
+
+        SamplesToRepresentation(staticPV, _APVResL0_L1Rx[dstLoc], _APVResL1G_L1Ry[dstLoc], _APVResL1B_L1Rz[dstLoc]
+#if OUTPUT_TYPE == SHL2
+            , _APVResL2_0[dstLoc], _APVResL2_1[dstLoc], _APVResL2_2[dstLoc], _APVResL2_3[dstLoc]
+#endif
+        );
+#endif
+
+        OutputRepresentation finalPV = SumOutput(staticPV, _FirstBlendFactor, dynamicPV, _SecondBlendFactor);
+
+        WriteToOutput(finalPV, probeIndex);
+    }
+}
+
+#ifdef HISTORY_COMBINING
+[numthreads(GROUP_SIZE, 1, 1)]
+void WriteToHistory(uint3 id : SV_DispatchThreadID)
+{
+    uint probeIndex = id.x;
+    if (probeIndex < _ProbeCount)
+    {
+        uint3 dstLoc = ProbeIndexToTexLocation(probeIndex);
+
+        OutputRepresentation dynamicPV = ProjectToOutput(probeIndex);
+        WriteToHistory(dynamicPV, probeIndex);
+    }
+}
+#endif

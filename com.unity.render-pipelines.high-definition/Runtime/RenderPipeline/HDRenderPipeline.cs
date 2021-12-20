@@ -244,6 +244,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly SkyManager m_SkyManager = new SkyManager();
         internal SkyManager skyManager { get { return m_SkyManager; } }
+        readonly ProbeDynamicGISystem m_DynamicGI;
 
         bool m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
         bool m_IsDepthBufferCopyValid;
@@ -388,6 +389,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaterialList = HDUtils.GetRenderPipelineMaterialList();
 
             InitializePostProcess();
+            // TODO_FCC: Do only if needed
+            m_DynamicGI = new ProbeDynamicGISystem(asset, defaultResources);
 
             // Initialize various compute shader resources
             m_SsrTracingKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
@@ -506,6 +509,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Initialize screen space shadows
             InitializeScreenSpaceShadows();
+
+            // TODO_FCC: TODO ONLY WHEN AVAILABLE
+#if UNITY_EDITOR
+            ProbeDynamicGIManager.instance.Allocate(defaultResources);
+            ProbeReferenceVolume.instance.generateExtraDataAction = null;
+            ProbeReferenceVolume.instance.generateExtraDataAction += ProbeDynamicGIManager.instance.GenerateExtraDataForDynamicGI;
+#endif
 
             CameraCaptureBridge.enabled = true;
 
@@ -764,6 +774,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugDisplaySettingsUI.UnregisterDebug();
             m_DebugDisplaySettings.UnregisterDebug();
 
+            m_DynamicGI.CleanupDynamicGIResources();
             CleanupLightLoop();
 
             ReleaseVolumetricClouds();

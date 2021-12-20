@@ -171,6 +171,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph, hdCamera, ref prepassOutput, clearCoatMask, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), transparent: false);
                     lightingBuffers.ssgiLightingBuffer = RenderScreenSpaceIndirectDiffuse(hdCamera, prepassOutput, rayCountTexture, historyValidationTexture, gpuLightListOutput.lightList);
 
+                    // TODO_FCC: MOVE.
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.DynamicProbeVolumeGI))
+                    {
+                        //  ProbeReferenceVolume.instance.generateExtraDataAction?.Invoke(Vector3.zero, Vector3.one * 10000.0f);
+
+
+                        m_DynamicGI.LightPropagation(m_RenderGraph, hdCamera, ProbeReferenceVolume.instance.AnAssetHasBeenUnloadedThisFrame());
+                        m_DynamicGI.CombineDynamicAndStaticPV(m_RenderGraph, hdCamera);
+                        ProbeReferenceVolume.instance.SwapIrradianceCaches();
+                    }
+
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingClusterState())
                     {
                         HDRaytracingLightCluster lightCluster = RequestLightCluster();

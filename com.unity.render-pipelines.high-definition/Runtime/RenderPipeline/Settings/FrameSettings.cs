@@ -350,6 +350,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP uses probe volumes to normalize the data sampled from reflection probes so they better match the lighting at the sampling location.</summary>
         [FrameSettingsField(1, customOrderInGroup: 4, displayedName: "Normalize Reflection Probes", positiveDependencies: new[] { ProbeVolume })]
         NormalizeReflectionProbeWithProbeVolume = 126,
+        [FrameSettingsField(1, customOrderInGroup: 5, displayedName: "Dynamic GI", positiveDependencies: new[] { ProbeVolume })]
+        DynamicProbeVolumeGI = 119,
 
         //async settings (group 2)
         /// <summary>When enabled, HDRP executes certain Compute Shader commands in parallel. This only has an effect if the target platform supports async compute.</summary>

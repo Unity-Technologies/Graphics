@@ -696,6 +696,7 @@ namespace UnityEngine.Experimental.Rendering
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
         ProbeVolumeSHBands m_SHBands;
         float m_ProbeVolumesWeight;
+        private bool assetHasBeenUnloadedThisFrame = false;
 
         /// <summary>
         /// The <see cref="ProbeVolumeSHBands"/>
@@ -1183,6 +1184,11 @@ namespace UnityEngine.Experimental.Rendering
             {
                 m_PendingAssetsToBeUnloaded.Clear(); // If we are not init, we have not loaded yet.
             }
+            if (m_PendingAssetsToBeUnloaded.Count == 0)
+            {
+                assetHasBeenUnloadedThisFrame = false;
+                return;
+            }
 
             var dictionaryValues = m_PendingAssetsToBeUnloaded.Values;
             foreach (var asset in dictionaryValues)
@@ -1191,6 +1197,16 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             m_PendingAssetsToBeUnloaded.Clear();
+            assetHasBeenUnloadedThisFrame = true;
+        }
+
+        /// <summary>
+        /// Verify if there is any asset that is has been unloaded this frame.
+        /// </summary>
+        /// <returns>True if an asset is has been unloaded</returns>
+        public bool AnAssetHasBeenUnloadedThisFrame()
+        {
+            return assetHasBeenUnloadedThisFrame;
         }
 
         internal int GetNumberOfBricksAtSubdiv(Cell cell, out Vector3Int minValidLocalIdxAtMaxRes, out Vector3Int sizeOfValidIndicesAtMaxRes)
@@ -1325,7 +1341,7 @@ namespace UnityEngine.Experimental.Rendering
         internal float GetDistanceBetweenProbes(int subdivisionLevel) => BrickSize(subdivisionLevel) / 3.0f;
         // TODO_FCC: FOR DYNAMIC GI THIS NEEDS TO BE PER CELL. WE HAVE CUSTOM MIN/MAX SUBDIV OVERRIDES NOW. SO NEED TO CHANGE ACCORDINGLY.
         //            --- actually now we have the data in the cell meta data when loading from index, can we use that? TODO_FCC: IMPORTANT!!
-        internal float MinDistanceBetweenProbes() => GetDistanceBetweenProbes(0);
+        public float MinDistanceBetweenProbes() => GetDistanceBetweenProbes(0);
 
         /// <summary>
         /// Returns whether any brick data has been loaded.

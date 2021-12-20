@@ -47,16 +47,34 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResIndex, rr.index);
                     cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResCellIndices, rr.cellIndices);
 
-                    cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0_L1Rx, rr.L0_L1rx);
-                    cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1G_L1Ry, rr.L1_G_ry);
-                    cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1B_L1Rz, rr.L1_B_rz);
-
-                    if (refVolume.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.DynamicProbeVolumeGI))
                     {
-                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_0, rr.L2_0);
-                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_1, rr.L2_1);
-                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_2, rr.L2_2);
-                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_3, rr.L2_3);
+                        var dynamicRR = m_DynamicGI.GetRuntimeResources();
+                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0_L1Rx, dynamicRR.L0_L1Rx);
+                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1G_L1Ry, dynamicRR.L1_G_ry);
+                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1B_L1Rz, dynamicRR.L1_B_rz);
+
+                        if (m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                        {
+                            cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_0, dynamicRR.L2_0);
+                            cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_1, dynamicRR.L2_1);
+                            cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_2, dynamicRR.L2_2);
+                            cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_3, dynamicRR.L2_3);
+                        }
+                    }
+                    else
+                    {
+                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0_L1Rx, rr.L0_L1rx);
+                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1G_L1Ry, rr.L1_G_ry);
+                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1B_L1Rz, rr.L1_B_rz);
+
+                        if (m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                        {
+                            cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_0, rr.L2_0);
+                            cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_1, rr.L2_1);
+                            cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_2, rr.L2_2);
+                            cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL2_3, rr.L2_3);
+                        }
                     }
 
                     needToBindNeutral = false;

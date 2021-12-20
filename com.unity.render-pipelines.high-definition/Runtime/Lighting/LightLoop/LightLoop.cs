@@ -941,6 +941,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
                 {
                     ProbeReferenceVolume.instance.PerformPendingOperations();
+
+                    // TODO_FCC: DYNAMIC_GI_PORT_TODO --- Need to uncomment when done.
+                    m_DynamicGI.AllocateDynamicGIResources(ProbeReferenceVolume.instance.poolDimension);
+                    ProbeDynamicGIManager.instance.InitExtraDataBuffers(ProbeReferenceVolume.instance.GetCellsWithExtraDataToInit());
+
                     if (hdCamera.camera.cameraType != CameraType.Reflection &&
                         hdCamera.camera.cameraType != CameraType.Preview)
                     {

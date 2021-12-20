@@ -614,6 +614,13 @@ namespace UnityEngine.Experimental.Rendering
                 probeVolume.OnBakeCompleted();
             }
 
+            if (supportsDynamicPropagation)
+            {
+                // TODO_FCC : THIS SHOULD ONLY BE IN THE COMBINED VOLUME OF ALL VOLUMES, NOT REF VOLUME. we have the info
+                ProbeReferenceVolume.instance.generateExtraDataAction?.Invoke(Vector3.zero,
+                                                                              Vector3.one * 1024.0f);
+            }
+
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
             probeRefVolume.clearAssetsOnVolumeClear = false;

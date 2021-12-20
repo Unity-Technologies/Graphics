@@ -642,6 +642,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDStructFields.FragInputs.texCoord3,
         };
 
+        public static FieldCollection DynamicGIDataSample = new FieldCollection()
+        {
+            HDStructFields.FragInputs.tangentToWorld,
+            HDStructFields.AttributesMesh.uv0,
+            HDStructFields.AttributesMesh.color,
+        };
+
         public static FieldCollection Basic = new FieldCollection()
         {
         };
@@ -1040,6 +1047,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         // Public Postgraph Pass
         public const string kPassLightTransport = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl";
+        public const string kPassDynamicGIExtraDataSample = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDynamicGIDataSample.hlsl";
         public const string kPassDepthOnly = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl";
         public const string kPassGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassGBuffer.hlsl";
         public const string kPassMotionVectors = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassMotionVectors.hlsl";
