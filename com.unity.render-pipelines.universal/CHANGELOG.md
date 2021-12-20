@@ -12,6 +12,8 @@ The version number for this package has increased due to a version update of a r
 ## Fixed
 - Fixed a performance regression in the 2D renderer regarding the PostProcessPass [case 1385385]
 - Fixed a regression where filtering the scene view yielded incorrect visual results [case 1388171] (https://issuetracker.unity3d.com/product/unity/issues/guid/1360233)
+- Fixed incorrect light indexing on Windows Editor with Android target. [case 1378103](https://issuetracker.unity3d.com/product/unity/issues/guid/1378103/)
+
 
 ## [13.1.3] - 2021-11-17
 
@@ -24,6 +26,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed inspector documentation URLs for the URP asset and Universal Renderer asset.
 - Fixed inspector documentation URLs to the SSAO, Decal, and Render Objects renderer features.
 - Fixed "Add Renderer Feature" filtering in menu
+- Fixed property wrappers around material properties.
 
 ## [13.1.2] - 2021-11-05
 
