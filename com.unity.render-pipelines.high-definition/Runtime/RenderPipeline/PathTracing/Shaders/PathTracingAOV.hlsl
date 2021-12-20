@@ -55,8 +55,7 @@ void WriteAOVData(inout PathIntersection pathIntersection, AOVData aovData, floa
     prevClipPos.y = -prevClipPos.y;
     float2 prevFramePos = (prevClipPos.xy * 0.5 + 0.5) * _ScreenSize.xy;
 
-    if (prevFramePos.x > 0 && prevFramePos.y > 0 && prevFramePos.x < _ScreenSize.x && prevFramePos.y < _ScreenSize.z)
-        pathIntersection.motionVector = prevFramePos - jitteredPixelCoord;
+    pathIntersection.motionVector = prevFramePos - jitteredPixelCoord;
 }
 
 #endif //UNITY_PATH_TRACING_AOV_INCLUDED
