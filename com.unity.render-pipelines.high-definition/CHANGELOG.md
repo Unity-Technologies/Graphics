@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
 - Fixed for changes of color curves not being applied immediately.
 - Fixed the rendering order of decals that have a similar draw order value.
+- Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
 
 ## [13.1.2] - 2021-11-05
 
