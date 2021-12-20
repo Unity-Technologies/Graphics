@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed write to VT feedback in debug modes (case 1376874)
 - Fixed a shader warning in UnityInstancing.hlsl
 - Fixed misc shader warnings.
+- Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
 
 ## [12.1.2] - 2021-10-22
 
