@@ -6,11 +6,11 @@ using UnityEngine;
 public class LinkDirectionalToCustomNightSky : MonoBehaviour
 {
     public Material SkyMat;
-    public Transform DirectionalLightTransform;
+    public Transform Moonlight_transform;
 
     void Update()
     {
-        SkyMat.SetVector("_Moonlight_Forward_Direction", DirectionalLightTransform.forward);
+        SkyMat.SetVector("_Moonlight_Forward_Direction", Moonlight_transform.forward);
     }
 
 }
