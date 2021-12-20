@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 
+using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Profiling;
@@ -18,7 +19,7 @@ namespace UnityEditor.VFX
     {
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            List<string> assetToReimport = null;
+            List<string> assetToReimport = new List<string>();
 
             foreach (var assetPath in importedAssets)
             {
@@ -38,14 +39,18 @@ namespace UnityEditor.VFX
                             graph.SanitizeForImport();
                             if (!wasGraphSanitized && graph.sanitized)
                             {
-                                if (assetToReimport == null)
-                                    assetToReimport = new List<string>();
                                 assetToReimport.Add(assetPath);
                             }
                         }
                         catch (Exception exception)
                         {
                             Debug.LogErrorFormat("Exception during sanitization of {0} : {1}", assetPath, exception);
+                        }
+
+                        var window = VFXViewWindow.GetWindow(graph, false, false);
+                        if (window != null)
+                        {
+                            window.UpdateTitle(assetPath);
                         }
                     }
                     else
@@ -56,18 +61,15 @@ namespace UnityEditor.VFX
             }
 
             //Relaunch previously skipped OnCompileResource
-            if (assetToReimport != null)
+            foreach (var assetPath in assetToReimport)
             {
-                foreach (var assetPath in assetToReimport)
+                try
                 {
-                    try
-                    {
-                        AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
-                    }
-                    catch (Exception exception)
-                    {
-                        Debug.LogErrorFormat("Exception during reimport of {0} : {1}", assetPath, exception);
-                    }
+                    AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogErrorFormat("Exception during reimport of {0} : {1}", assetPath, exception);
                 }
             }
         }
