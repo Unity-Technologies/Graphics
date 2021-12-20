@@ -6,13 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.1.3] - 2021-11-17
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+
+ - Fixed the behavior of checkerboard node with raytracing
+
+### Fixed
+  - Fixed a validation error in ShaderGraph when using the SimpleNoise node both inside and outside a subgraph [1383046] (https://issuetracker.unity3d.com/issues/validation-error-is-usually-thrown-when-simple-noise-node-is-both-in-a-shadergraph-and-in-a-sub-graph)
 
 ## [12.1.2] - 2021-10-22
 
 ### Fixed
-  - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
+ - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
 
 ## [12.1.1] - 2021-10-04
 
@@ -28,6 +32,7 @@ The version number for this package has increased due to a version update of a r
 ### Fixed
   - Fixed bug where an exception was thrown on undo operation after adding properties to a category [1348910] (https://fogbugz.unity3d.com/f/cases/1348910/)
   - Fixed unhandled exception when loading a subgraph with duplicate slots [1369039].
+  - Fixed how graph errors were displayed when variant limits were reached [1355815]
 
 ## [12.0.0] - 2021-01-11
 
