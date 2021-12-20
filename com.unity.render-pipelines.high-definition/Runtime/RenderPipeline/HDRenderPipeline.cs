@@ -1469,9 +1469,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Also, we need to set the probe as rendered only if we'll actually render it and this won't happen if visibility is not > 0.
                         if (visibility > 0.0f)
                         {
-                            probe.SetIsRendered();
-                            if (m_FrameCount <= 1)
-                                probe.RequestRenderNextUpdate();
+                            bool skipThisFrame = (m_FrameCount <= 2);
+                            probe.SetIsRendered(skipThisFrame);
                         }
 
                         if (!renderRequestIndicesWhereTheProbeIsVisible.TryGetValue(probe, out var visibleInIndices))
@@ -1687,7 +1686,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // So we enqueue another rendering and then we will not set the probe texture until we have rendered with valid ambient probe.
                         if (!m_SkyManager.HasSetValidAmbientProbe(hdCamera))
                         {
-                            visibleProbe.ForceRenderingNextUpdate();
+                            visibleProbe.SkipRenderingThisFrameAndRestartNextFrame();
                         }
 
                         bool useFetchedGpuExposure = false;
@@ -1798,10 +1797,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         foreach (var visibility in visibilities)
                             renderRequests[visibility.index].dependsOnRenderRequestIndices.Add(request.index);
                     }
-
-                    // As we render realtime texture on GPU side, we must tag the texture so our texture array cache detect that something have change
-                    if (renderSteps.HasFlag(ProbeRenderSteps.IncrementRenderCount))
-                        visibleProbe.realtimeTexture.IncrementUpdateCount();
                 }
 
                 // TODO: Refactor into a method. If possible remove the intermediate target

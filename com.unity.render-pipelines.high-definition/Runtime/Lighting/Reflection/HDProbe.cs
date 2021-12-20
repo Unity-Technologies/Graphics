@@ -12,14 +12,15 @@ namespace UnityEngine.Rendering.HighDefinition
     public enum ProbeRenderSteps
     {
         None = 0,
-        CubeFace0 = (1 << 0),
-        CubeFace1 = (1 << 1),
-        CubeFace2 = (1 << 2),
-        CubeFace3 = (1 << 3),
-        CubeFace4 = (1 << 4),
-        CubeFace5 = (1 << 5),
-        Planar = (1 << 6),
-        IncrementRenderCount = (1 << 7),
+        SkipFrame = (1 << 0),
+        CubeFace0 = (1 << 1),
+        CubeFace1 = (1 << 2),
+        CubeFace2 = (1 << 3),
+        CubeFace3 = (1 << 4),
+        CubeFace4 = (1 << 5),
+        CubeFace5 = (1 << 6),
+        Planar = (1 << 7),
+        IncrementRenderCount = (1 << 8),
         AllFaces = CubeFace0 | CubeFace1 | CubeFace2 | CubeFace3 | CubeFace4 | CubeFace5,
         AllFacesAndIncrementRenderCount = AllFaces | IncrementRenderCount,
         PlanarAndIncrementRenderCount = Planar | IncrementRenderCount,
@@ -29,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public static bool HasFace(this ProbeRenderSteps steps, int face)
         {
-            return (steps & (ProbeRenderSteps)(1 << face)) != ProbeRenderSteps.None;
+            return (steps & (ProbeRenderSteps)((int)ProbeRenderSteps.CubeFace0 << face)) != ProbeRenderSteps.None;
         }
 
         public static ProbeRenderSteps LowestSetBit(this ProbeRenderSteps steps)
@@ -155,6 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_HasPendingRenderRequest = false;
         bool m_WasRenderedSinceLastOnDemandRequest = true;
         ProbeRenderSteps m_RemainingRenderSteps = ProbeRenderSteps.None;
+        uint m_RealtimeRenderCount = 0;
 #if UNITY_EDITOR
         bool m_WasRenderedDuringAsyncCompilation = false;
         int m_SHRequestID = -1;
@@ -203,7 +205,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (mode != ProbeSettings.Mode.Realtime)
                 return allSteps;
 
-            m_RemainingRenderSteps &= allSteps;
+            m_RemainingRenderSteps &= (allSteps | ProbeRenderSteps.SkipFrame);
             if (m_RemainingRenderSteps == ProbeRenderSteps.None && m_HasPendingRenderRequest)
             {
                 m_RemainingRenderSteps = allSteps;
@@ -214,9 +216,21 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RemainingRenderSteps &= ~nextSteps;
 
             if (nextSteps.HasFlag(ProbeRenderSteps.IncrementRenderCount))
-                hasEverRendered = true;
+                m_RealtimeRenderCount += 1;
 
             return nextSteps;
+        }
+
+        internal uint GetTextureHash()
+        {
+            uint textureHash = m_RealtimeRenderCount;
+            // For baked probes in the editor we need to factor in the actual hash of texture because we can't increment the render count of a texture that's baked on the disk.
+#if UNITY_EDITOR
+            if (m_BakedTexture != null)
+                textureHash += (uint)m_BakedTexture.imageContentsHash.GetHashCode();
+#endif
+            return textureHash;
+
         }
 
         internal bool HasRemainingRenderSteps()
@@ -598,13 +612,15 @@ namespace UnityEngine.Rendering.HighDefinition
             : influenceToWorld;
 
         internal bool wasRenderedAfterOnEnable { get; private set; } = false;
-        internal bool hasEverRendered { get; private set; } = false;
+        internal bool hasEverRendered { get { return m_RealtimeRenderCount != 0; } }
 
-        internal void SetIsRendered()
+        internal void SetIsRendered(bool skipFrame)
         {
 #if UNITY_EDITOR
             m_WasRenderedDuringAsyncCompilation = ShaderUtil.anythingCompiling;
 #endif
+            if (skipFrame)
+                m_RemainingRenderSteps |= ProbeRenderSteps.SkipFrame;
         }
 
         // API
@@ -711,10 +727,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Forces the re-rendering for both OnDemand and OnEnable
-        internal void ForceRenderingNextUpdate()
+        internal void SkipRenderingThisFrameAndRestartNextFrame()
         {
-            m_WasRenderedSinceLastOnDemandRequest = false;
-            wasRenderedAfterOnEnable = false;
+            m_HasPendingRenderRequest = true;
+            m_RemainingRenderSteps = ProbeRenderSteps.SkipFrame;
         }
 
 #if UNITY_EDITOR
