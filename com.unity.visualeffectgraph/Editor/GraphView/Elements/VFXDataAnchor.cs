@@ -435,6 +435,11 @@ namespace UnityEditor.VFX.UI
                 {
                     if (viewController.CreateLink(direction == Direction.Input ? controller : port, direction == Direction.Input ? port : controller))
                     {
+                        var portNode = view.GetDataAnchorByController(port);
+                        var connectorElement = portNode.Q<VisualElement>("connector");
+                        var newNode = view.GetNodeByController(newNodeController);
+                        var offset = newNode.worldBound.position - connectorElement.worldBound.position;
+                        newNodeController.model.position += offset ;
                         break;
                     }
                 }
