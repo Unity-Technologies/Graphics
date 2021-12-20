@@ -9,100 +9,101 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using FrustumPlanes = Unity.Rendering.FrustumPlanes.FrustumPlanes;
 
-public struct RangeKey : IEquatable<RangeKey>
-{
-    public ShadowCastingMode shadows;
-
-    public bool Equals(RangeKey other)
-    {
-        return shadows == other.shadows;
-    }
-}
-
-public struct DrawRange
-{
-    public RangeKey key;
-    public int drawCount;
-    public int drawOffset;
-}
-
-public struct DrawKey : IEquatable<DrawKey>
-{
-    public BatchMeshID meshID;
-    public uint submeshIndex;
-    public BatchMaterialID material;
-    public ShadowCastingMode shadows;
-    public int pickableObjectInstanceID;
-
-    public bool Equals(DrawKey other)
-    {
-        return
-            meshID == other.meshID &&
-            submeshIndex == other.submeshIndex &&
-            material == other.material &&
-            shadows == other.shadows &&
-            pickableObjectInstanceID == other.pickableObjectInstanceID;
-    }
-}
-
-public struct DrawBatch
-{
-    public DrawKey key;
-    public int instanceCount;
-    public int instanceOffset;
-}
-
-public struct DrawInstance
-{
-    public DrawKey key;
-    public int instanceIndex;
-}
-public struct DrawRenderer
-{
-    public AABB bounds;
-}
-
-struct SHProperties
-{
-    public float4 SHAr;
-    public float4 SHAg;
-    public float4 SHAb;
-    public float4 SHBr;
-    public float4 SHBg;
-    public float4 SHBb;
-    public float4 SHC;
-
-    public SHProperties(SphericalHarmonicsL2 sh)
-    {
-        SHAr = GetSHA(sh, 0);
-        SHAg = GetSHA(sh, 1);
-        SHAb = GetSHA(sh, 2);
-
-        SHBr = GetSHB(sh, 0);
-        SHBg = GetSHB(sh, 1);
-        SHBb = GetSHB(sh, 2);
-
-        SHC = GetSHC(sh);
-    }
-
-    static float4 GetSHA(SphericalHarmonicsL2 sh, int i)
-    {
-        return new float4(sh[i, 3], sh[i, 1], sh[i, 2], sh[i, 0] - sh[i, 6]);
-    }
-
-    static float4 GetSHB(SphericalHarmonicsL2 sh, int i)
-    {
-        return new float4(sh[i, 4], sh[i, 5], sh[i, 6] * 3f, sh[i, 7]);
-    }
-
-    static float4 GetSHC(SphericalHarmonicsL2 sh)
-    {
-        return new float4(sh[0, 8], sh[1, 8], sh[2, 8], 1);
-    }
-}
-
 public unsafe class RenderBRG : MonoBehaviour
 {
+    public struct RangeKey : IEquatable<RangeKey>
+    {
+        public ShadowCastingMode shadows;
+
+        public bool Equals(RangeKey other)
+        {
+            return shadows == other.shadows;
+
+        }
+    }
+
+    public struct DrawRange
+    {
+        public RangeKey key;
+        public int drawCount;
+        public int drawOffset;
+    }
+
+    public struct DrawKey : IEquatable<DrawKey>
+    {
+        public BatchMeshID meshID;
+        public uint submeshIndex;
+        public BatchMaterialID material;
+        public ShadowCastingMode shadows;
+        public int pickableObjectInstanceID;
+
+        public bool Equals(DrawKey other)
+        {
+            return
+                meshID == other.meshID &&
+                submeshIndex == other.submeshIndex &&
+                material == other.material &&
+                shadows == other.shadows &&
+                pickableObjectInstanceID == other.pickableObjectInstanceID;
+        }
+    }
+
+    public struct DrawBatch
+    {
+        public DrawKey key;
+        public int instanceCount;
+        public int instanceOffset;
+    }
+
+    public struct DrawInstance
+    {
+        public DrawKey key;
+        public int instanceIndex;
+    }
+    public struct DrawRenderer
+    {
+        public AABB bounds;
+    }
+
+    struct SHProperties
+    {
+        public float4 SHAr;
+        public float4 SHAg;
+        public float4 SHAb;
+        public float4 SHBr;
+        public float4 SHBg;
+        public float4 SHBb;
+        public float4 SHC;
+
+        public SHProperties(SphericalHarmonicsL2 sh)
+        {
+            SHAr = GetSHA(sh, 0);
+            SHAg = GetSHA(sh, 1);
+            SHAb = GetSHA(sh, 2);
+
+            SHBr = GetSHB(sh, 0);
+            SHBg = GetSHB(sh, 1);
+            SHBb = GetSHB(sh, 2);
+
+            SHC = GetSHC(sh);
+        }
+
+        static float4 GetSHA(SphericalHarmonicsL2 sh, int i)
+        {
+            return new float4(sh[i, 3], sh[i, 1], sh[i, 2], sh[i, 0] - sh[i, 6]);
+        }
+
+        static float4 GetSHB(SphericalHarmonicsL2 sh, int i)
+        {
+            return new float4(sh[i, 4], sh[i, 5], sh[i, 6] * 3f, sh[i, 7]);
+        }
+
+        static float4 GetSHC(SphericalHarmonicsL2 sh)
+        {
+            return new float4(sh[0, 8], sh[1, 8], sh[2, 8], 1);
+        }
+    }
+
     private BatchRendererGroup m_BatchRendererGroup;
     private GraphicsBuffer m_GPUPersistentInstanceData;
 
@@ -407,6 +408,7 @@ public unsafe class RenderBRG : MonoBehaviour
     }
 
     Material m_pickingMaterial;
+
 #endif
 
 
@@ -465,6 +467,7 @@ public unsafe class RenderBRG : MonoBehaviour
         var worldToLocalOffset = localToWorldOffset + m_renderers.Length * 3;
 
         m_instances = new NativeList<DrawInstance>(1024, Allocator.Persistent);
+
 
         for (int i = 0; i < renderers.Length; i++)
         {
@@ -541,7 +544,7 @@ public unsafe class RenderBRG : MonoBehaviour
                     {
                         key = rangeKey,
                         drawCount = 0,
-                        drawOffset = 0,
+                        drawOffset = 0
                     };
 
                     int drawRangeIndex;
