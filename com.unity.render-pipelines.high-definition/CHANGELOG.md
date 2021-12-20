@@ -89,6 +89,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed rendering in the editor when an incompatible API is added (case 1384634).
 - Fixed issue with typed loads on RGBA16F in Volumetric Lighting Filtering.
 - Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
+- Fixed issue of index for APV running out space way before it should.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
