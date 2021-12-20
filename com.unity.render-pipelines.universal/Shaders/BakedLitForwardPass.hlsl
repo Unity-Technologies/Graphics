@@ -70,17 +70,38 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     #endif
 }
 
-Varyings BakedLitForwardPassVertex(Attributes input)
+Varyings BakedLitForwardPassVertex
+(
+#ifdef BRG_DRAW_PROCEDURAL
+    uint vertexID : SV_VertexID
+#else
+    Attributes input
+#endif
+)
 {
     Varyings output;
 
+#ifdef BRG_DRAW_PROCEDURAL
+    float3 positionOS = LoadBRGProcedural_Position(vertexID);
+    float3 normalOS = LoadBRGProcedural_Normal(vertexID);
+    float4 tangentOS = LoadBRGProcedural_Tangent(vertexID);
+    float2 uv0 = LoadBRGProcedural_UV0(vertexID);
+    float2 staticLightmapUV = LoadBRGProcedural_StaticLightmapUV(vertexID);
+#else
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+    float3 positionOS = input.positionOS.xyz;
+    float3 normalOS = input.normalOS;
+    float4 tangentOS = input.tangentOS;
+    float2 uv0 = input.uv;
+    float2 staticLightmapUV = input.staticLightmapUV;
+#endif
+
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS.xyz);
     output.positionCS = vertexInput.positionCS;
-    output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _BaseMap);
+    output.uv0AndFogCoord.xy = TRANSFORM_TEX(uv0, _BaseMap);
     #if defined(_FOG_FRAGMENT)
     output.uv0AndFogCoord.z = vertexInput.positionVS.z;
     #else
@@ -90,13 +111,13 @@ Varyings BakedLitForwardPassVertex(Attributes input)
     // normalWS and tangentWS already normalize.
     // this is required to avoid skewing the direction during interpolation
     // also required for per-vertex SH evaluation
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+    VertexNormalInputs normalInput = GetVertexNormalInputs(normalOS, tangentOS);
     output.normalWS = normalInput.normalWS;
     #if defined(_NORMALMAP)
-    real sign = input.tangentOS.w * GetOddNegativeScale();
+    real sign = tangentOS.w * GetOddNegativeScale();
     output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
     #endif
-    OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
+    OUTPUT_LIGHTMAP_UV(staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
     OUTPUT_SH(output.normalWS, output.vertexSH);
 
     #if defined(DEBUG_DISPLAY)

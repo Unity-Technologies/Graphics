@@ -1,0 +1,12 @@
+{
+  "name": "com.verasl.water-system",
+  "description": "A water system for URP.",
+  "version": "1.4.0-preview.1",
+  "unity": "2019.4",
+  "displayName": "Boat Attack Water System",
+  "dependencies": {
+    "com.unity.mathematics": "1.1.0",
+    "com.unity.burst": "1.2.3",
+    "com.unity.render-pipelines.universal": "7.4.1"
+  }
+}

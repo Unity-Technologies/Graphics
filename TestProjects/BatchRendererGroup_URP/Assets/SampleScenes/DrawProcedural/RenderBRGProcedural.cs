@@ -12,12 +12,111 @@ using FrustumPlanes = Unity.Rendering.FrustumPlanes.FrustumPlanes;
 
 public unsafe class RenderBRGProcedural : MonoBehaviour
 {
+    public struct RangeKey : IEquatable<RangeKey>
+    {
+        public ShadowCastingMode shadows;
+
+        public bool Equals(RangeKey other)
+        {
+            return shadows == other.shadows;
+
+        }
+    }
+
+    public struct DrawRange
+    {
+        public RangeKey key;
+        public int drawCount;
+        public int drawOffset;
+    }
+
+    public struct DrawKey : IEquatable<DrawKey>
+    {
+        public BatchMeshID meshID;
+        public uint submeshIndex;
+        public BatchMaterialID material;
+        public ShadowCastingMode shadows;
+        public int pickableObjectInstanceID;
+
+        public bool Equals(DrawKey other)
+        {
+            return
+                meshID == other.meshID &&
+                submeshIndex == other.submeshIndex &&
+                material == other.material &&
+                shadows == other.shadows &&
+                pickableObjectInstanceID == other.pickableObjectInstanceID;
+        }
+    }
+
+    public struct DrawBatch
+    {
+        public DrawKey key;
+        public uint vertexOffset;
+        public uint vertexCount;
+        public uint indexOffset;
+        public uint indexCount;
+        public int instanceCount;
+        public int instanceOffset;
+        public GraphicsBufferHandle indexBufferHandle;
+    }
+
+    public struct DrawInstance
+    {
+        public DrawKey key;
+        public int instanceIndex;
+    }
+    public struct DrawRenderer
+    {
+        public AABB bounds;
+    }
+
+    struct SHProperties
+    {
+        public float4 SHAr;
+        public float4 SHAg;
+        public float4 SHAb;
+        public float4 SHBr;
+        public float4 SHBg;
+        public float4 SHBb;
+        public float4 SHC;
+
+        public SHProperties(SphericalHarmonicsL2 sh)
+        {
+            SHAr = GetSHA(sh, 0);
+            SHAg = GetSHA(sh, 1);
+            SHAb = GetSHA(sh, 2);
+
+            SHBr = GetSHB(sh, 0);
+            SHBg = GetSHB(sh, 1);
+            SHBb = GetSHB(sh, 2);
+
+            SHC = GetSHC(sh);
+        }
+
+        static float4 GetSHA(SphericalHarmonicsL2 sh, int i)
+        {
+            return new float4(sh[i, 3], sh[i, 1], sh[i, 2], sh[i, 0] - sh[i, 6]);
+        }
+
+        static float4 GetSHB(SphericalHarmonicsL2 sh, int i)
+        {
+            return new float4(sh[i, 4], sh[i, 5], sh[i, 6] * 3f, sh[i, 7]);
+        }
+
+        static float4 GetSHC(SphericalHarmonicsL2 sh)
+        {
+            return new float4(sh[0, 8], sh[1, 8], sh[2, 8], 1);
+        }
+    }
+
     private BatchRendererGroup m_BatchRendererGroup;
     private GraphicsBuffer m_GPUPersistentInstanceData;
     private GraphicsBuffer m_GeometryPositionBuffer;
     private GraphicsBuffer m_GeometryNormalBuffer;
     private GraphicsBuffer m_GeometryTangentBuffer;
     private GraphicsBuffer m_GeometryUV0Buffer;
+    private GraphicsBuffer m_GeometryUV1Buffer;
     private GraphicsBuffer m_GeometryIndexBuffer;
     private BatchID m_batchID;
     private bool m_initialized;
@@ -129,6 +228,7 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
             for (int i = 0; i < instanceIndices.Length; i++)
             {
                 var remappedIndex = drawIndices[activeBatch];   // DrawIndices remap to get DrawCommands ordered by DrawRange
+                DrawBatch drawBatch = drawBatches[remappedIndex];
                 var rendererIndex = instanceIndices[i];
                 uint visibleMask = (uint)((rendererVisibility[rendererIndex / 8] >> ((rendererIndex % 8) * 8)) & 0xfful);
 
@@ -147,11 +247,11 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                                 visibleOffset = (uint)batchStartIndex,
                                 visibleCount = (uint)visibleCount,
                                 batchID = batchID,
-                                materialID = drawBatches[remappedIndex].key.material,
+                                materialID = drawBatch.key.material,
                                 regular = new BatchDrawCommandRegular
                                 {
-                                    meshID = drawBatches[remappedIndex].key.meshID,
-                                    submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
+                                    meshID = drawBatch.key.meshID,
+                                    submeshIndex = (ushort)drawBatch.key.submeshIndex,
                                 },
                                 splitVisibilityMask = (ushort)visibleMaskPrev,
                                 sortingPosition = 0
@@ -174,24 +274,6 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                     var visibleCount = outIndex - batchStartIndex;
                     if (visibleCount > 0)
                     {
-                        /*draws.drawCommands[outBatch] = new BatchDrawCommand
-                        {
-                            flags = BatchDrawCommandFlags.None,
-                            visibleOffset = (uint)batchStartIndex,
-                            visibleCount = (uint)visibleCount,
-                            batchID = batchID,
-                            materialID = drawBatches[remappedIndex].key.material,
-                            regular = new BatchDrawCommandRegular
-                            {
-                                meshID = drawBatches[remappedIndex].key.meshID,
-                                submeshIndex = (ushort)drawBatches[remappedIndex].key.submeshIndex,
-                            },
-                            splitVisibilityMask = (ushort)visibleMaskPrev,
-                            sortingPosition = 0
-                        };*/
-
-                        DrawBatch drawBatch = drawBatches[remappedIndex];
-
                         draws.drawCommands[outBatch] = new BatchDrawCommand
                         {
                             flags = BatchDrawCommandFlags.Procedural | BatchDrawCommandFlags.Indexed,
@@ -327,46 +409,25 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
         return jobHandleOutput;
     }
 
-#if UNITY_EDITOR
-    public static Material LoadPickingMaterial()
-    {
-        Shader shader = Shader.Find("Hidden/Universal Render Pipeline/BRGPicking");
-
-        if (shader == null) return null;
-
-        Material material = new Material(shader);
-
-        // Prevent Material unloading when switching scene
-        material.hideFlags = HideFlags.HideAndDontSave;
-
-        return material;
-    }
-
-    Material m_pickingMaterial;
-
-#endif
-
 
     // Start is called before the first frame update
     void Start()
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
-#if UNITY_EDITOR
-        m_pickingMaterial = LoadPickingMaterial();
-        m_BatchRendererGroup.SetPickingMaterial(m_pickingMaterial);
-#endif
         var allRenderers = FindObjectsOfType<MeshRenderer>();
 
         Debug.Log("Converting " + allRenderers.Length + " renderers...");
 
         var renderers = allRenderers.Where((MeshRenderer renderer) =>
         {
-            if (!renderer) return false;
+            if (!renderer || !renderer.enabled || renderer.material.shader == null) return false;
 
             var meshFilter = renderer.GetComponent<MeshFilter>();
 
-            return meshFilter != null && meshFilter.sharedMesh != null && renderer.enabled;
+            if (meshFilter == null || meshFilter.sharedMesh == null) return false;
+
+            return true;
         })
         .ToArray();
 
@@ -418,6 +479,7 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
         var geometryNormalBuffer = new List<Vector3>();
         var geometryTangentBuffer = new List<Vector4>();
         var geometryUV0Buffer = new List<Vector2>();
+        var geometryUV1Buffer = new List<Vector2>();
         var geometryIndexBuffer = new List<int>();
 
         var meshIndexOffsetTable = new Dictionary<Mesh, int>();
@@ -439,6 +501,7 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                 geometryNormalBuffer.AddRange(mesh.normals);
                 geometryTangentBuffer.AddRange(mesh.tangents);
                 geometryUV0Buffer.AddRange(mesh.uv);
+                geometryUV1Buffer.AddRange(mesh.uv2);
 
                 for (int j = 0; j < mesh.subMeshCount; ++j)
                 {
@@ -470,6 +533,9 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
         m_GeometryUV0Buffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, geometryUV0Buffer.Count, sizeof(Vector2));
         m_GeometryUV0Buffer.SetData(geometryUV0Buffer);
 
+        m_GeometryUV1Buffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, geometryUV1Buffer.Count, sizeof(Vector2));
+        m_GeometryUV1Buffer.SetData(geometryUV1Buffer);
+
         m_GeometryIndexBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Index, geometryIndexBuffer.Count, sizeof(int));
         m_GeometryIndexBuffer.SetData(geometryIndexBuffer);
 
@@ -477,6 +543,7 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
         Shader.SetGlobalBuffer("GeometryNormalBuffer", m_GeometryNormalBuffer);
         Shader.SetGlobalBuffer("GeometryTangentBuffer", m_GeometryTangentBuffer);
         Shader.SetGlobalBuffer("GeometryUV0Buffer", m_GeometryUV0Buffer);
+        Shader.SetGlobalBuffer("GeometryUV1Buffer", m_GeometryUV1Buffer);
 
         for (int i = 0; i < renderers.Length; i++)
         {
@@ -524,6 +591,7 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                 uint vertexOffset = 0;
                 uint vertexCount = (uint)mesh.vertexCount;
                 uint indexCount = mesh.GetIndexCount(matIndex);
+                uint submeshIndex = (uint)matIndex;
 
                 int indexOffset;
                 if (!meshIndexOffsetTable.TryGetValue(mesh, out indexOffset))
@@ -532,14 +600,15 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
                 }
                 indexOffset += (int)mesh.GetIndexStart(matIndex);
 
-                var material = m_BatchRendererGroup.RegisterMaterial(sharedMaterials[matIndex]);
+                var material = sharedMaterials[matIndex];
+                var materialID = m_BatchRendererGroup.RegisterMaterial(material);
 
-                var key = new DrawKey { material = material, meshID = meshID, submeshIndex = (uint)matIndex, shadows = shadows, pickableObjectInstanceID = instanceID };
+                var key = new DrawKey { material = materialID, meshID = meshID, submeshIndex = submeshIndex, shadows = shadows, pickableObjectInstanceID = instanceID };
                 var drawBatch = new DrawBatch
                 {
                     key = key,
-                    vertexCount = vertexCount,
                     vertexOffset = vertexOffset,
+                    vertexCount = vertexCount,
                     indexCount = indexCount,
                     indexOffset = (uint)indexOffset,
                     indexBufferHandle = m_GeometryIndexBuffer.bufferHandle,
@@ -706,6 +775,7 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
             m_GeometryNormalBuffer.Dispose();
             m_GeometryTangentBuffer.Dispose();
             m_GeometryUV0Buffer.Dispose();
+            m_GeometryUV1Buffer.Dispose();
             m_GeometryIndexBuffer.Dispose();
 
             m_renderers.Dispose();
@@ -716,10 +786,6 @@ public unsafe class RenderBRGProcedural : MonoBehaviour
             m_instances.Dispose();
             m_instanceIndices.Dispose();
             m_drawIndices.Dispose();
-
-#if UNITY_EDITOR
-            DestroyImmediate(m_pickingMaterial);
-#endif
         }
     }
 }

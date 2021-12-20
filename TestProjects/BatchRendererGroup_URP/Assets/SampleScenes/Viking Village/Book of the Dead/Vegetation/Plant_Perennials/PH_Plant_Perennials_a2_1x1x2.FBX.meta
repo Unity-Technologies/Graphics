@@ -1,0 +1,158 @@
+fileFormatVersion: 2
+guid: adda25f0fcd79eb4581aecbe210dea31
+timeCreated: 1482470294
+licenseType: Pro
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: Plant_Perennials_a2_1x1x2_LOD0
+    100004: Plant_Perennials_a2_1x1x2_LOD1
+    100006: Plant_Perennials_a2_1x1x2_LOD2
+    100008: Plant_Perennials_a2_1x1x2_A_LOD0
+    100010: Plant_Perennials_a2_1x1x2_A_LOD1
+    100012: Plant_Perennials_a2_1x1x2_A_LOD2
+    100014: Plant_Perennials_a2_1x1x2_B_LOD0
+    100016: Plant_Perennials_a2_1x1x2_B_LOD1
+    100018: Plant_Perennials_a2_1x1x2_B_LOD2
+    100020: Plant_Perennials_a2_1x1x2_C_LOD0
+    100022: Plant_Perennials_a2_1x1x2_C_LOD1
+    100024: Plant_Perennials_a2_1x1x2_C_LOD2
+    400000: //RootNode
+    400002: Plant_Perennials_a2_1x1x2_LOD0
+    400004: Plant_Perennials_a2_1x1x2_LOD1
+    400006: Plant_Perennials_a2_1x1x2_LOD2
+    400008: Plant_Perennials_a2_1x1x2_A_LOD0
+    400010: Plant_Perennials_a2_1x1x2_A_LOD1
+    400012: Plant_Perennials_a2_1x1x2_A_LOD2
+    400014: Plant_Perennials_a2_1x1x2_B_LOD0
+    400016: Plant_Perennials_a2_1x1x2_B_LOD1
+    400018: Plant_Perennials_a2_1x1x2_B_LOD2
+    400020: Plant_Perennials_a2_1x1x2_C_LOD0
+    400022: Plant_Perennials_a2_1x1x2_C_LOD1
+    400024: Plant_Perennials_a2_1x1x2_C_LOD2
+    2300000: Plant_Perennials_a2_1x1x2_LOD0
+    2300002: Plant_Perennials_a2_1x1x2_LOD1
+    2300004: Plant_Perennials_a2_1x1x2_LOD2
+    2300006: Plant_Perennials_a2_1x1x2_A_LOD0
+    2300008: Plant_Perennials_a2_1x1x2_A_LOD1
+    2300010: Plant_Perennials_a2_1x1x2_A_LOD2
+    2300012: Plant_Perennials_a2_1x1x2_B_LOD0
+    2300014: Plant_Perennials_a2_1x1x2_B_LOD1
+    2300016: Plant_Perennials_a2_1x1x2_B_LOD2
+    2300018: Plant_Perennials_a2_1x1x2_C_LOD0
+    2300020: Plant_Perennials_a2_1x1x2_C_LOD1
+    2300022: Plant_Perennials_a2_1x1x2_C_LOD2
+    3300000: Plant_Perennials_a2_1x1x2_LOD0
+    3300002: Plant_Perennials_a2_1x1x2_LOD1
+    3300004: Plant_Perennials_a2_1x1x2_LOD2
+    3300006: Plant_Perennials_a2_1x1x2_A_LOD0
+    3300008: Plant_Perennials_a2_1x1x2_A_LOD1
+    3300010: Plant_Perennials_a2_1x1x2_A_LOD2
+    3300012: Plant_Perennials_a2_1x1x2_B_LOD0
+    3300014: Plant_Perennials_a2_1x1x2_B_LOD1
+    3300016: Plant_Perennials_a2_1x1x2_B_LOD2
+    3300018: Plant_Perennials_a2_1x1x2_C_LOD0
+    3300020: Plant_Perennials_a2_1x1x2_C_LOD1
+    3300022: Plant_Perennials_a2_1x1x2_C_LOD2
+    4300000: Plant_Perennials_a2_1x1x2_LOD0
+    4300002: Plant_Perennials_a2_1x1x2_LOD1
+    4300004: Plant_Perennials_a2_1x1x2_LOD2
+    4300006: Plant_Perennials_a2_1x1x2_A_LOD1
+    4300008: Plant_Perennials_a2_1x1x2_A_LOD2
+    4300010: Plant_Perennials_a2_1x1x2_A_LOD0
+    4300012: Plant_Perennials_a2_1x1x2_B_LOD0
+    4300014: Plant_Perennials_a2_1x1x2_B_LOD1
+    4300016: Plant_Perennials_a2_1x1x2_B_LOD2
+    4300018: Plant_Perennials_a2_1x1x2_C_LOD0
+    4300020: Plant_Perennials_a2_1x1x2_C_LOD1
+    4300022: Plant_Perennials_a2_1x1x2_C_LOD2
+    20500000: //RootNode
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Plant_Perennials_a
+    second: {fileID: 2100000, guid: 6525e97cfdd272b40b6322786a06160f, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 1
+    materialSearch: 1
+    materialLocation: 0
+  animations:
+    legacyGenerateAnimations: 0
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages:
+    - 0.25
+    - 0.125
+    - 0.01
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 0
+    importBlendShapes: 0
+    importCameras: 0
+    importLights: 0
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 0
+  importAnimation: 0
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: model_processed_v01
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e73e41b71c5f541679f1bb37dee026c1, type: 3}
+  m_Name: WaterResources
+  m_EditorClassIdentifier: 
+  defaultFoamRamp: {fileID: 2800000, guid: 4098762bce32f44b9b7c56531d1a988e, type: 3}
+  defaultFoamMap: {fileID: 2800000, guid: ca439406e806ecf44a9586510be9477d, type: 3}
+  defaultSurfaceMap: {fileID: 2800000, guid: f395b7d64f44848c6a3cba1f1173fe90, type: 3}
+  defaultSeaMaterial: {fileID: 2100000, guid: 4849d4d15a9cb42eb9533ae935e2630b, type: 2}
+  defaultWaterMeshes:
+  - {fileID: 4300036, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300050, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300038, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300048, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300040, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300046, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300042, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300044, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300026, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300024, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300022, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300020, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300018, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300014, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300012, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300006, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300004, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300034, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300032, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300030, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300028, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300010, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300016, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300008, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
+  - {fileID: 4300002, guid: 074aa8ca109924e18baf19f3e26665b6, type: 3}
