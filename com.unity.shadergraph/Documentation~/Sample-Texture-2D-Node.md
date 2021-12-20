@@ -34,7 +34,7 @@ If you experience texture sampling errors while using this node in a graph which
 |  Type                    | Dropdown | Default, Normal | Selects the texture type |
 |  Space                   | Dropdown | Tangent, Object | Selects the space of the normal map. If Type is not Normal, this control is ignored. |
 |  Use Global Mip Bias  | Toggle   | On, Off         | Enables the automatic global mip bias imposed by the runtime. This bias is set during certain dynamic resolution scaling algorithms to improve detail reconstruction. |
-|  Mip Sampling Mode  | Dropdown   | Standard, LOD, Gradient, Bias | Chooses different types of mip sampling modes. Standard calculates the mip automatically. LOD mode specifies a mip explicitely. Bias applies a bias (in addition of the global bias). Gradient utilizes explicit gradients for the UVs. |
+|  Mip Sampling Mode  | Dropdown   | Standard, LOD, Gradient, Bias | Chooses different types of mip sampling modes. Standard calculates the mip automatically. LOD mode specifies a mip explicitely. Bias mode applies an offset bias to regular texture sampling. If "Use Global Mip Bias" is enabled, this bias gets added to the Global Mip Bias. Gradient utilizes explicit gradients for the UVs. |
 
 ## Generated Code Example
 

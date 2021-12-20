@@ -32,7 +32,7 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** shader stage.
 | Name                     | Type     | Options         | Description |
 |:------------------------ |:---------|:----------------|:-------------------------|
 |  Use Global Mip Bias | Toggle   | On, Off         | Enables the global mipmap bias that Unity automatically imposes at runtime. Unity sets this bias during certain dynamic resolution scaling algorithms to improve detail reconstruction. |
-|  Mip Sampling Mode  | Dropdown   | Standard, LOD, Gradient, Bias | Chooses different types of mip sampling modes. Standard calculates the mip automatically. LOD mode specifies a mip explicitely. Bias applies a bias (in addition of the global bias). Gradient utilizes explicit gradients for the UVs. |
+|  Mip Sampling Mode  | Dropdown   | Standard, LOD, Gradient, Bias | Chooses different types of mip sampling modes. Standard calculates the mip automatically. LOD mode specifies a mip explicitely. Bias mode applies an offset bias to regular texture sampling. If "Use Global Mip Bias" is enabled, this bias gets added to the Global Mip Bias. Gradient utilizes explicit gradients for the UVs. |
 
 
 ## Generated Code Example
