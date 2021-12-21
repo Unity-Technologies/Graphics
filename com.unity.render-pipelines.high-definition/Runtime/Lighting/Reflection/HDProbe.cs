@@ -40,9 +40,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public static class ProbeRenderStepsExt
     {
+        public static bool IsNone(this ProbeRenderSteps steps)
+        {
+            return steps == ProbeRenderSteps.None;
+        }
+
         public static bool HasCubeFace(this ProbeRenderSteps steps, int face)
         {
-            return (steps & (ProbeRenderSteps)((int)ProbeRenderSteps.CubeFace0 << face)) != ProbeRenderSteps.None;
+            return steps.HasFlag((ProbeRenderSteps)((int)ProbeRenderSteps.CubeFace0 << face));
         }
 
         public static ProbeRenderSteps LowestSetBit(this ProbeRenderSteps steps)
@@ -199,32 +204,46 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ProbeExposureValue;
         }
 
-        internal ProbeRenderSteps PopNextRenderSteps()
+        private void HandlePendingRenderRequest()
         {
-            ProbeRenderSteps allSteps = ProbeRenderSteps.None;
-            bool doTimeSlice = false;
-            switch (type)
+            if (m_RemainingRenderSteps.IsNone() && m_HasPendingRenderRequest)
             {
+                switch (type)
+                {
                 case ProbeSettings.ProbeType.ReflectionProbe:
-                    allSteps = ProbeRenderSteps.ReflectionProbeMask;
-                    doTimeSlice = timeSlicing; // only time slice cubemap probes
+                    m_RemainingRenderSteps = ProbeRenderSteps.ReflectionProbeMask;
                     break;
                 case ProbeSettings.ProbeType.PlanarProbe:
-                    allSteps = ProbeRenderSteps.PlanarProbeMask;
+                    m_RemainingRenderSteps = ProbeRenderSteps.PlanarProbeMask;
                     break;
-            }
-
-            if (mode != ProbeSettings.Mode.Realtime)
-                return allSteps;
-
-            m_RemainingRenderSteps &= (allSteps | ProbeRenderSteps.SkipFrame);
-            if (m_RemainingRenderSteps == ProbeRenderSteps.None && m_HasPendingRenderRequest)
-            {
-                m_RemainingRenderSteps = allSteps;
+                }
                 m_HasPendingRenderRequest = false;
             }
+        }
 
-            ProbeRenderSteps nextSteps = doTimeSlice ? m_RemainingRenderSteps.LowestSetBit() : m_RemainingRenderSteps;
+        // Forces the re-rendering for both OnDemand and OnEnable, cancelling any render already in progress
+        internal void ForceRealtimeRenderAfterThisFrame()
+        {
+            HandlePendingRenderRequest();
+            m_HasPendingRenderRequest = true;
+        }
+
+        internal void SkipThisFrameAndRestartRealtimeRender()
+        {
+            m_RemainingRenderSteps = ProbeRenderSteps.SkipFrame;
+            m_HasPendingRenderRequest = true;
+        }
+
+        internal ProbeRenderSteps NextRenderSteps()
+        {
+            HandlePendingRenderRequest();
+
+            bool doSkip = m_RemainingRenderSteps.HasFlag(ProbeRenderSteps.SkipFrame);
+            bool doTimeSlicing = (type == ProbeSettings.ProbeType.ReflectionProbe) && timeSlicing;
+            ProbeRenderSteps nextSteps =
+                doSkip ? ProbeRenderSteps.SkipFrame :
+                doTimeSlicing ? m_RemainingRenderSteps.LowestSetBit() : m_RemainingRenderSteps;
+
             m_RemainingRenderSteps &= ~nextSteps;
 
             if (nextSteps.HasFlag(ProbeRenderSteps.IncrementRenderCount))
@@ -242,12 +261,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 textureHash += (uint)m_BakedTexture.imageContentsHash.GetHashCode();
 #endif
             return textureHash;
-
-        }
-
-        internal bool HasRemainingRenderSteps()
-        {
-            return m_HasPendingRenderRequest || m_RemainingRenderSteps != ProbeRenderSteps.None;
 
         }
 
@@ -284,7 +297,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                         break;
                 }
-                return HasRemainingRenderSteps();
+                return m_HasPendingRenderRequest || !m_RemainingRenderSteps.IsNone();
             }
         }
 
@@ -626,13 +639,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool wasRenderedAfterOnEnable { get; private set; } = false;
         internal bool hasEverRendered { get { return m_RealtimeRenderCount != 0; } }
 
-        internal void SetIsRendered(bool skipFrame)
+        internal void SetIsRendered()
         {
 #if UNITY_EDITOR
             m_WasRenderedDuringAsyncCompilation = ShaderUtil.anythingCompiling;
 #endif
-            if (skipFrame)
-                m_RemainingRenderSteps |= ProbeRenderSteps.SkipFrame;
         }
 
         // API
@@ -736,13 +747,6 @@ namespace UnityEngine.Rendering.HighDefinition
             outL2_2 = ColorUtils.Luminance(new Color(L2_4.x, L2_4.y, L2_4.z));
 
             return true;
-        }
-
-        // Forces the re-rendering for both OnDemand and OnEnable
-        internal void SkipRenderingThisFrameAndRestartNextFrame()
-        {
-            m_HasPendingRenderRequest = true;
-            m_RemainingRenderSteps = ProbeRenderSteps.SkipFrame;
         }
 
 #if UNITY_EDITOR

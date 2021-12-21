@@ -1469,8 +1469,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Also, we need to set the probe as rendered only if we'll actually render it and this won't happen if visibility is not > 0.
                         if (visibility > 0.0f)
                         {
-                            bool skipThisFrame = (m_FrameCount <= 2);
-                            probe.SetIsRendered(skipThisFrame);
+                            if (m_FrameCount <= 1)
+                                probe.ForceRealtimeRenderAfterThisFrame();
                         }
 
                         if (!renderRequestIndicesWhereTheProbeIsVisible.TryGetValue(probe, out var visibleInIndices))
@@ -1574,7 +1574,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ref List<HDProbe.RenderData> renderDatas
                 )
                 {
-                    var renderSteps = visibleProbe.PopNextRenderSteps();
+                    var renderSteps = visibleProbe.NextRenderSteps();
 
                     var position = ProbeCapturePositionSettings.ComputeFrom(
                         visibleProbe,
@@ -1686,7 +1686,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // So we enqueue another rendering and then we will not set the probe texture until we have rendered with valid ambient probe.
                         if (!m_SkyManager.HasSetValidAmbientProbe(hdCamera))
                         {
-                            visibleProbe.SkipRenderingThisFrameAndRestartNextFrame();
+                            visibleProbe.SkipThisFrameAndRestartRealtimeRender();
                         }
 
                         bool useFetchedGpuExposure = false;
