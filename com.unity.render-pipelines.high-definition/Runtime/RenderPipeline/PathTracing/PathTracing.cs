@@ -148,8 +148,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int m_skySamplingSize;     // value used for the latlon sky texture (width = 2*size, height = size)
 
-		List<Tuple<TextureHandle, HDCameraFrameHistoryType>> pathTracedAOVs;
-		
+        List<Tuple<TextureHandle, HDCameraFrameHistoryType>> pathTracedAOVs;
+
         void InitPathTracing()
         {
 #if UNITY_EDITOR
@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
             td.width = m_skySamplingSize;
             td.height = 1;
             m_SkyMarginalTexture = m_RenderGraph.CreateSharedTexture(td, true);
-            
+
             pathTracedAOVs = new List<Tuple<TextureHandle, HDCameraFrameHistoryType>>(3);
         }
 
@@ -502,7 +502,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._AlbedoAOV, data.albedoAOV);
                             ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._NormalAOV, data.normalAOV);
                             ctx.cmd.SetRayTracingTextureParam(data.shader, HDShaderIDs._MotionVectorAOV, data.motionVectorAOV);
-                        }    
+                        }
 
                         // Run the computation
                         ctx.cmd.DispatchRays(data.shader, data.enableAOVs ? "RayGenAOV" : "RayGen", (uint)data.width, (uint)data.height, 1);
