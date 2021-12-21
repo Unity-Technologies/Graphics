@@ -248,7 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     for (int i = 0; i < 6; ++i)
                     {
-                        if (!renderSteps.HasFace(i))
+                        if (!renderSteps.HasCubeFace(i))
                             continue;
                         var cameraPositionCopy = cameraPositionSettings;
                         cameraPositionCopy.rotation = cameraPositionCopy.rotation * Quaternion.Euler(

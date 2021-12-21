@@ -1574,7 +1574,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ref List<HDProbe.RenderData> renderDatas
                 )
                 {
-                    var renderSteps = visibleProbe.GetNextRenderSteps();
+                    var renderSteps = visibleProbe.PopNextRenderSteps();
 
                     var position = ProbeCapturePositionSettings.ComputeFrom(
                         visibleProbe,

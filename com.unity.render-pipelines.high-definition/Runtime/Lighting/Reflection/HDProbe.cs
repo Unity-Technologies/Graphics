@@ -8,27 +8,39 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>Rendering steps for time slicing realtime reflection probes.</summary>
     [Flags]
     public enum ProbeRenderSteps
     {
+        /// <summary>No rendering steps needed.</summary>
         None = 0,
+        /// <summary>Skip rendering this frame, used to delay rendering to the next frame.</summary>
         SkipFrame = (1 << 0),
+        /// <summary>Render reflection probe cube face 0.</summary>
         CubeFace0 = (1 << 1),
+        /// <summary>Render reflection probe cube face 1.</summary>
         CubeFace1 = (1 << 2),
+        /// <summary>Render reflection probe cube face 2.</summary>
         CubeFace2 = (1 << 3),
+        /// <summary>Render reflection probe cube face 3.</summary>
         CubeFace3 = (1 << 4),
+        /// <summary>Render reflection probe cube face 4.</summary>
         CubeFace4 = (1 << 5),
+        /// <summary>Render reflection probe cube face 5.</summary>
         CubeFace5 = (1 << 6),
+        /// <summary>Render planar reflection.</summary>
         Planar = (1 << 7),
+        /// <summary>Increment the realtime render count, which also updates the cache for cubemap probes.</summary>
         IncrementRenderCount = (1 << 8),
-        AllFaces = CubeFace0 | CubeFace1 | CubeFace2 | CubeFace3 | CubeFace4 | CubeFace5,
-        AllFacesAndIncrementRenderCount = AllFaces | IncrementRenderCount,
-        PlanarAndIncrementRenderCount = Planar | IncrementRenderCount,
+        /// <summary>All steps required for a reflection probe.</summary>
+        ReflectionProbeMask = CubeFace0 | CubeFace1 | CubeFace2 | CubeFace3 | CubeFace4 | CubeFace5 | IncrementRenderCount,
+        /// <summary>Render planar reflection probe, always only one step.</summary>
+        PlanarProbeMask = Planar | IncrementRenderCount,
     }
 
     public static class ProbeRenderStepsExt
     {
-        public static bool HasFace(this ProbeRenderSteps steps, int face)
+        public static bool HasCubeFace(this ProbeRenderSteps steps, int face)
         {
             return (steps & (ProbeRenderSteps)((int)ProbeRenderSteps.CubeFace0 << face)) != ProbeRenderSteps.None;
         }
@@ -187,18 +199,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ProbeExposureValue;
         }
 
-        internal ProbeRenderSteps GetNextRenderSteps()
+        internal ProbeRenderSteps PopNextRenderSteps()
         {
             ProbeRenderSteps allSteps = ProbeRenderSteps.None;
             bool doTimeSlice = false;
             switch (type)
             {
                 case ProbeSettings.ProbeType.ReflectionProbe:
-                    allSteps = ProbeRenderSteps.AllFacesAndIncrementRenderCount;
-                    doTimeSlice = timeSlicing;
+                    allSteps = ProbeRenderSteps.ReflectionProbeMask;
+                    doTimeSlice = timeSlicing; // only time slice cubemap probes
                     break;
                 case ProbeSettings.ProbeType.PlanarProbe:
-                    allSteps = ProbeRenderSteps.PlanarAndIncrementRenderCount;
+                    allSteps = ProbeRenderSteps.PlanarProbeMask;
                     break;
             }
 
