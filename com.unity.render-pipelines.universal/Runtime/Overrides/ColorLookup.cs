@@ -12,8 +12,10 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("How much of the lookup texture will contribute to the color grading effect.")]
         public ClampedFloatParameter contribution = new ClampedFloatParameter(1f, 0f, 1f);
 
+        /// <inheritdoc/>
         public bool IsActive() => contribution.value > 0f && ValidateLUT();
 
+        /// <inheritdoc/>
         public bool IsTileCompatible() => true;
 
         public bool ValidateLUT()

@@ -49,7 +49,7 @@ color_spaces:
   - gamma
 test_platforms:
   - type: Standalone
-    allow_cache: True
+    allow_cache: False
     disable_split_build_run_for: [OSX_Metal, OSX_Apple_Silicon_Metal]
     utr_flags:
       - [OSX_Metal, OSX_Apple_Silicon_Metal]: '%CACHE_ARGS%'
@@ -157,7 +157,7 @@ test_platforms:
     after_build:
       - [OSX_OpenGlCore, iPhone_Metal, Linux_OpenGlCore, Linux_Vulkan]: <shared.platform.commands.log_parser>
   - type: playmode
-    allow_cache: True
+    allow_cache: False
     utr_flags:
       - [all]: '%CACHE_ARGS%'
       - [all]: --testfilter=%TEST_FILTER%
