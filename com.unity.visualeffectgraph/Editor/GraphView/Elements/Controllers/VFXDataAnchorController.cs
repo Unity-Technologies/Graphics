@@ -739,7 +739,7 @@ namespace UnityEditor.VFX.UI
                         var newValue = o[o.Count - 1];
                         var target = o[o.Count - 2];
 
-                        if (field.FieldType != newValue.GetType())
+                        if (newValue != null && field.FieldType != newValue.GetType())
                         {
                             object convertedValue;
                             if (!VFXConverter.TryConvertTo(newValue, field.FieldType, out convertedValue))
