@@ -210,12 +210,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 switch (type)
                 {
-                case ProbeSettings.ProbeType.ReflectionProbe:
-                    m_RemainingRenderSteps = ProbeRenderSteps.ReflectionProbeMask;
-                    break;
-                case ProbeSettings.ProbeType.PlanarProbe:
-                    m_RemainingRenderSteps = ProbeRenderSteps.PlanarProbeMask;
-                    break;
+                    case ProbeSettings.ProbeType.ReflectionProbe:
+                        m_RemainingRenderSteps = ProbeRenderSteps.ReflectionProbeMask;
+                        break;
+                    case ProbeSettings.ProbeType.PlanarProbe:
+                        m_RemainingRenderSteps = ProbeRenderSteps.PlanarProbeMask;
+                        break;
                 }
                 m_HasPendingRenderRequest = false;
             }
@@ -521,7 +521,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ProbeSettings.RealtimeMode realtimeMode { get => m_ProbeSettings.realtimeMode; set => m_ProbeSettings.realtimeMode = value; }
         /// <summary>
         /// Whether the realtime probe uses time slicing
-        public bool timeSlicing {  get => m_ProbeSettings.timeSlicing; set => m_ProbeSettings.timeSlicing = value; }
+        public bool timeSlicing { get => m_ProbeSettings.timeSlicing; set => m_ProbeSettings.timeSlicing = value; }
         /// </summary>
         /// <summary>
         /// Resolution of the probe.
