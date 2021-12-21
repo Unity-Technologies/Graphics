@@ -184,4 +184,50 @@ float2 ShadowMoments_Decode16VSM(float2 moments)
 
     return moments;
 }
+
+float4 ShadowMoments_Encode16EVSM(float depth, float2 exponents)
+{
+    float2 warpedDepth = ShadowMoments_WarpDepth(depth, exponents);
+    warpedDepth.y = -warpedDepth.y; // flip to make the negative exponent positive.
+
+    // Remap warpedDepth to [0, 1] range over [-1, 1] normalized depth range.
+    float2 warpedMin = exp(-exponents);
+    float2 warpedMax = exp(exponents);
+    warpedDepth -= warpedMin;
+    warpedDepth /= warpedMax - warpedMin;
+    warpedDepth = saturate(warpedDepth); // for precision.
+
+    float2x2 mat = { 1.0, 4.0,
+                     0.0, -4.0 };
+
+    float4 moments;
+    moments.xz = mul(float2(warpedDepth.x, warpedDepth.x * warpedDepth.x), mat);
+    moments.yw = mul(float2(warpedDepth.y, warpedDepth.y * warpedDepth.y), mat);
+
+    return moments;
+}
+
+float4 ShadowMoments_Decode16EVSM(float4 moments, float2 exponents)
+{
+    float2x2 mat = { 1.0, 0.0,
+                     4.0, -4.0 };
+
+    float2x2 matInverse = { 1.0, 1.0,
+                            0.0, -0.25 };
+
+    moments.xz = mul(moments.xz, matInverse);
+    moments.yw = mul(moments.yw, matInverse);
+
+    float2 warpedMin = exp(-exponents);
+    float2 warpedMax = exp(exponents);
+
+    moments.xy = moments.xy * (warpedMax - warpedMin) + warpedMin;
+
+    moments.zw = sqrt(moments.zw) * (warpedMax - warpedMin) + warpedMin;
+    moments.zw *= moments.zw;
+
+    moments.y = -moments.y;
+
+    return moments;
+}
 #endif
