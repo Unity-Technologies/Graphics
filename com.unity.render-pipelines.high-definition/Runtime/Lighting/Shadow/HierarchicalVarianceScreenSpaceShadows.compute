@@ -12,23 +12,29 @@
 
 // #pragma enable_d3d11_debug_symbols
 
-
 #pragma kernel RaymarchScreenSpaceShadowsVSM32 RaymarchScreenSpaceShadows=RaymarchScreenSpaceShadowsVSM32  KERNEL_SIZE=8 _HVSSS_MODE_VSM_32
 #pragma kernel RaymarchScreenSpaceShadowsVSM16 RaymarchScreenSpaceShadows=RaymarchScreenSpaceShadowsVSM16 KERNEL_SIZE=8 _HVSSS_MODE_VSM_16
 #pragma kernel RaymarchScreenSpaceShadowsMoments16 RaymarchScreenSpaceShadows=RaymarchScreenSpaceShadowsMoments16 KERNEL_SIZE=8 _HVSSS_MODE_MOMENTS_16
+#pragma kernel RaymarchScreenSpaceShadowsEVSM32 RaymarchScreenSpaceShadows=RaymarchScreenSpaceShadowsEVSM32  KERNEL_SIZE=8 _HVSSS_MODE_EVSM_32
+#pragma kernel RaymarchScreenSpaceShadowsEVSM16 RaymarchScreenSpaceShadows=RaymarchScreenSpaceShadowsEVSM16 KERNEL_SIZE=8 _HVSSS_MODE_EVSM_16
 
-// TODO: Currently the transmission accumulator is only supported with VSM
 #pragma kernel RaymarchScreenSpaceShadowsVSM32TransmissionAccumulator RaymarchScreenSpaceShadows=RaymarchScreenSpaceShadowsVSM32TransmissionAccumulator KERNEL_SIZE=8 _HVSSS_MODE_VSM_32 TRANSMISSION_ACCUMULATOR_ENABLED
 #pragma kernel RaymarchScreenSpaceShadowsVSM16TransmissionAccumulator RaymarchScreenSpaceShadows=RaymarchScreenSpaceShadowsVSM16TransmissionAccumulator KERNEL_SIZE=8 _HVSSS_MODE_VSM_16 TRANSMISSION_ACCUMULATOR_ENABLED
-#pragma kernel RaymarchScreenSpaceShadowsMoments16TransmissionAccumulator RaymarchScreenSpaceShadows=RaymarchScreenSpaceShadowsMoments16TransmissionAccumulator KERNEL_SIZE=8 _HVSSS_MODE_MOMENTS_16
+#pragma kernel RaymarchScreenSpaceShadowsMoments16TransmissionAccumulator RaymarchScreenSpaceShadows=RaymarchScreenSpaceShadowsMoments16TransmissionAccumulator KERNEL_SIZE=8 _HVSSS_MODE_MOMENTS_16 TRANSMISSION_ACCUMULATOR_ENABLED
+#pragma kernel RaymarchScreenSpaceShadowsEVSM32TransmissionAccumulator RaymarchScreenSpaceShadows=RaymarchScreenSpaceShadowsEVSM32TransmissionAccumulator KERNEL_SIZE=8 _HVSSS_MODE_EVSM_32 TRANSMISSION_ACCUMULATOR_ENABLED
+#pragma kernel RaymarchScreenSpaceShadowsEVSM16TransmissionAccumulator RaymarchScreenSpaceShadows=RaymarchScreenSpaceShadowsEVSM16TransmissionAccumulator KERNEL_SIZE=8 _HVSSS_MODE_EVSM_16 TRANSMISSION_ACCUMULATOR_ENABLED
 
 #pragma kernel SeperableBilateralBlurVSM32 SeperableBilateralBlur=SeperableBilateralBlurVSM32 KERNEL_SIZE=8 _HVSSS_MODE_VSM_32
 #pragma kernel SeperableBilateralBlurVSM16 SeperableBilateralBlur=SeperableBilateralBlurVSM16 KERNEL_SIZE=8 _HVSSS_MODE_VSM_16
 #pragma kernel SeperableBilateralBlurMoments16 SeperableBilateralBlur=SeperableBilateralBlurMoments16 KERNEL_SIZE=8 _HVSSS_MODE_MOMENTS_16
+#pragma kernel SeperableBilateralBlurEVSM32 SeperableBilateralBlur=SeperableBilateralBlurEVSM32 KERNEL_SIZE=8 _HVSSS_MODE_EVSM_32
+#pragma kernel SeperableBilateralBlurEVSM16 SeperableBilateralBlur=SeperableBilateralBlurEVSM16 KERNEL_SIZE=8 _HVSSS_MODE_EVSM_16
 
 #pragma kernel BilateralUpsampleVSM32 BilateralUpsample=BilateralUpsampleVSM32 KERNEL_SIZE=8 _HVSSS_MODE_VSM_32
 #pragma kernel BilateralUpsampleVSM16 BilateralUpsample=BilateralUpsampleVSM16 KERNEL_SIZE=8 _HVSSS_MODE_VSM_16
 #pragma kernel BilateralUpsampleMoments16 BilateralUpsample=BilateralUpsampleMoments16 KERNEL_SIZE=8 _HVSSS_MODE_MOMENTS_16
+#pragma kernel BilateralUpsampleEVSM32 BilateralUpsample=BilateralUpsampleEVSM32 KERNEL_SIZE=8 _HVSSS_MODE_EVSM_32
+#pragma kernel BilateralUpsampleEVSM16 BilateralUpsample=BilateralUpsampleEVSM16 KERNEL_SIZE=8 _HVSSS_MODE_EVSM_16
 
 // #define HIGH_QUALITY_UPSAMPLE_ENABLED
 // #define SCREEN_EDGE_VIGNETTE_ENABLED
@@ -48,10 +54,45 @@ CBUFFER_START(cb)
     float4 _HVSSSDepthScaleBias;
     float4 _HVSSSThickness; // {min, max, 0, 0}
     float4 _HVSSSRaymarchLODBiasMinMax;
-    int _HVSSSDitherMode;
+    float4 _HVSSSUpsampleBlurRadiusPixelsAndInverseSquared; // {radius, 1.0 / (radius * radius), 0.0, 0.0}
+    float4 _HVSSSContrastAndBlackpointAndDitherMode; // {contrast, blackpoint, ditherMode, 0.0}
+    float4 _HVSSSEVSMExponents;
 CBUFFER_END
 
-float ComputeHVSSSRaymarchSampleShadow(float sampleDepth, float2 sampleMoments, float samplesStartEndAlpha, uint lodCurrent, float thicknessScale)
+float ComputeChebyshevsInequalityWithThickness(float2 sampleMoments, float sampleDepth, float thickness, float varianceMin, float lightLeakBiasMax)
+{
+    // variance sig^2 = E(x^2) - E(x)^2
+    float sampleVariance = max(sampleMoments.y - (sampleMoments.x * sampleMoments.x), 1e-7);
+
+    float deviation = sampleDepth - sampleMoments.x;
+    float deviationThickness = (sampleDepth + thickness) - sampleMoments.x;
+    deviation = abs(deviation) <= abs(deviationThickness) ? deviation : deviationThickness;
+    float p = sampleVariance / (sampleVariance + deviation * deviation);
+
+    // Automatically compute a bias such that the midpoint between our distributions (halfway through our virtual walls),
+    // which is the minimum probabilistic upper bound,
+    // remaps to zero.
+    // When the distributions heavily overlap (when thickness is small), the estimate is noisy, so avoid biasing too much.
+    float lightLeakBias = min(lightLeakBiasMax, sampleVariance / (sampleVariance + thickness * thickness * 0.25));
+    p = saturate((p - lightLeakBias) / (1.0 - lightLeakBias));
+    
+    return ((sampleDepth <= sampleMoments.x) || (sampleDepth > (sampleMoments.x + thickness))) ? 1.0 : p;
+}
+
+float ComputeChebyshevsInequalityWithThicknessTransmission(float2 sampleMoments, float sampleDepth, float thickness, float varianceMin, float blackpoint)
+{
+    float sampleVariance = max(sampleMoments.y - (sampleMoments.x * sampleMoments.x), varianceMin);
+    float deviation = sampleDepth - sampleMoments.x;
+    float deviationThickness = deviation - thickness;
+
+    float sampleProbability = (deviation < 0.0) ? 1.0 : (sampleVariance / (sampleVariance + deviation * deviation));
+    float sampleThicknessProbability = (deviationThickness > 0.0) ? 1.0 : (sampleVariance / (sampleVariance + deviationThickness * deviationThickness));
+
+    float sampleShadow = (1.0 - sampleProbability) - sampleThicknessProbability;
+    return saturate((sampleShadow - blackpoint) / (1.0 - blackpoint));
+}
+
+float ComputeHVSSSRaymarchSampleShadowVSM(float sampleDepth, float2 sampleMoments, float samplesStartEndAlpha, uint lodCurrent, float thicknessScale, float blackpoint)
 {
     float sampleShadow = 1.0;
 
@@ -65,77 +106,100 @@ float ComputeHVSSSRaymarchSampleShadow(float sampleDepth, float2 sampleMoments, 
     float thickness = thicknessScale * lerp(1.0, 2.0, samplesStartEndAlpha);
 
 #if defined(TRANSMISSION_ACCUMULATOR_ENABLED)
-
-    float sampleVariance = max(sampleMoments.y - (sampleMoments.x * sampleMoments.x), 1e-7);
-    float deviation = sampleDepth - sampleMoments.x;
-    float deviationThickness = deviation - thickness;
-
-    float sampleProbability = (deviation < 0.0) ? 1.0 : (sampleVariance / (sampleVariance + deviation * deviation));
-    float sampleThicknessProbability = (deviationThickness > 0.0) ? 1.0 : (sampleVariance / (sampleVariance + deviationThickness * deviationThickness));
-
-    sampleShadow = max(0.0, (1.0 - sampleProbability) - sampleThicknessProbability);
+    sampleShadow = ComputeChebyshevsInequalityWithThicknessTransmission(sampleMoments, sampleDepth, thickness, 1e-7, blackpoint);
 #else
 
-    // variance sig^2 = E(x^2) - E(x)^2
-    float sampleVariance = max(sampleMoments.y - (sampleMoments.x * sampleMoments.x), 1e-7);
-
-    float deviation = sampleDepth - sampleMoments.x;
-    float deviationThickness = (sampleDepth + thickness) - sampleMoments.x;
-    deviation = abs(deviation) <= abs(deviationThickness) ? deviation : deviationThickness;
-    float p = sampleVariance / (sampleVariance + deviation * deviation);
-
-    // Automatically compute a bias such that the midpoint between our distributions (halfway through our virtual walls),
-    // which is the minimum probabilistic upper bound,
-    // remaps to zero.
-    // When the distributions heavily overlap (when thickness is small), the estimate is noisy, so avoid biasing too much.
-    const float LIGHT_LEAK_BIAS_MAX = 0.5;
-    float lightLeakBias = min(LIGHT_LEAK_BIAS_MAX, sampleVariance / (sampleVariance + thickness * thickness * 0.25));
-    p = saturate((p - lightLeakBias) / (1.0 - lightLeakBias));
-    
-    sampleShadow = ((sampleDepth <= sampleMoments.x) || (sampleDepth > (sampleMoments.x + thickness))) ? 1.0 : p;
+    const float LIGHT_LEAK_BIAS_MAX = 0.0;
+    sampleShadow = ComputeChebyshevsInequalityWithThickness(sampleMoments, sampleDepth, thickness, 1e-7, blackpoint);
 #endif
     return sampleShadow;
 }
 
-float ComputeHVSSSRaymarchSampleShadowFourMomentsInner(float sampleDepthNormalized, float4 sampleMomentsDecoded)
+float ComputeHVSSSRaymarchSampleShadowEVSM(float sampleDepthLinear, float4 sampleMoments, float samplesStartEndAlpha, uint lodCurrent, float thicknessScale, float4 hvsssDepthScaleBias, float4 hvsssEVSMExponents, float blackpoint)
+{
+    float sampleShadow = 1.0;
+
+    // probabilistic upper bound
+    // Because we are raymarching, rather than doing standard shadow map VSM evaluation, we evaluate 2x distributions:
+    // 1) The depthMean
+    // 2) the depthMean + Thickness
+    // and take the max probabilistic upper bound of the two distributions.
+    // Rather than evaluating the probabilistic upper bound of both, we can simply evaluate it once, using the nearest distribution.
+    // This works because the variance used for both distributions is the same.
+    float thickness = thicknessScale * lerp(1.0, 2.0, samplesStartEndAlpha);
+
+    float sampleDepthNormalized = sampleDepthLinear * hvsssDepthScaleBias.x + hvsssDepthScaleBias.y;
+    float2 sampleDepthWarped = ShadowMoments_WarpDepth(sampleDepthNormalized, hvsssEVSMExponents.xy);
+
+    // Derivative of warping at depth
+    float2 depthScale = 1e-7 * hvsssEVSMExponents.xy * sampleDepthWarped;
+    float2 varianceMin = depthScale * depthScale;
+
+    // 0.1 tuned to match rough visual appearance of VSM so that they are comparable.
+    float2 thicknessWarped = float2(0.1, -0.1) * thickness * hvsssEVSMExponents.xy * sampleDepthWarped;
+
+#if defined(TRANSMISSION_ACCUMULATOR_ENABLED)
+    float contributionPositive = ComputeChebyshevsInequalityWithThicknessTransmission(sampleMoments.xz, sampleDepthWarped.x, thicknessWarped.x, varianceMin.x, blackpoint);
+    float contributionNegative = ComputeChebyshevsInequalityWithThicknessTransmission(sampleMoments.yw, sampleDepthWarped.y, thicknessWarped.y, varianceMin.y, blackpoint);
+    sampleShadow = max(contributionPositive, contributionNegative);
+#else
+  const float LIGHT_LEAK_BIAS_MAX = 0.0;
+  float contributionPositive = ComputeChebyshevsInequalityWithThickness(sampleMoments.xz, sampleDepthWarped.x, thicknessWarped.x, varianceMin.x, blackpoint);
+  float contributionNegative = ComputeChebyshevsInequalityWithThickness(sampleMoments.yw, sampleDepthWarped.y, thicknessWarped.y, varianceMin.y, blackpoint);
+  sampleShadow = min(contributionPositive, contributionNegative);
+#endif
+
+    return sampleShadow;
+}
+
+float ComputeHVSSSRaymarchSampleShadowFourMomentsInner(float sampleDepthNormalized, float4 sampleMomentsDecoded, float blackpoint)
 {
     float3 z;
     float4 b;
-    float momentBias = 1e-7;
-    ShadowMoments_SolveMSM(sampleMomentsDecoded, sampleDepthNormalized, momentBias, z, b);
+    const float MOMENT_BIAS = 0.05;
+    ShadowMoments_SolveMSM(sampleMomentsDecoded, sampleDepthNormalized, MOMENT_BIAS, z, b);
 
-    const bool useHamburger = false;
-    const float lightLeakBias = 0.0;
-
-    float sampleShadow = 1.0;
-    if (useHamburger)
-        sampleShadow = ShadowMoments_SolveDelta3MSM(z, b.xy, lightLeakBias);
-    else
-        sampleShadow = (z[1] < 0.0 || z[2] > 1.0) ? ShadowMoments_SolveDelta4MSM(z, b, lightLeakBias) : ShadowMoments_SolveDelta3MSM(z, b.xy, lightLeakBias);
-
-    sampleShadow = smoothstep(0.935, 0.96, sampleShadow);
-
-    return sampleShadow;
+    return (z[1] < 0.0 || z[2] > 1.0) ? ShadowMoments_SolveDelta4MSM(z, b, blackpoint) : ShadowMoments_SolveDelta3MSM(z, b.xy, blackpoint);
 } 
 
-float ComputeHVSSSRaymarchSampleShadowFourMoments(float sampleDepth, float4 sampleMoments, float samplesStartEndAlpha, uint lodCurrent, float thicknessScale)
+float ComputeHVSSSRaymarchSampleShadowFourMoments(float sampleDepth, float4 sampleMoments, float samplesStartEndAlpha, uint lodCurrent, float thicknessScale, float4 hvsssDepthScaleBias, float blackpoint)
 {
-    // return ComputeHVSSSRaymarchSampleShadow(sampleDepth, sampleMoments.xy, samplesStartEndAlpha, lodCurrent);
-    // sampleDepth -= sampleDepth * 0.001 * (1 << lodCurrent);
     sampleMoments = ShadowMoments_Decode16MSM(sampleMoments);
-    sampleDepth = sampleDepth * _HVSSSDepthScaleBias.x + _HVSSSDepthScaleBias.y;
+    sampleDepth = sampleDepth * hvsssDepthScaleBias.x + hvsssDepthScaleBias.y;
 
     float thickness = thicknessScale * lerp(1.0, 2.0, samplesStartEndAlpha);
-    float depthThicknessMidpoint = sampleMoments.x + (thickness * 0.5 * _HVSSSDepthScaleBias.x);
+    float depthThicknessMidpoint = sampleMoments.x + (thickness * 0.5 * hvsssDepthScaleBias.x);
 
+#if defined(TRANSMISSION_ACCUMULATOR_ENABLED)
+    float sampleProbability = ComputeHVSSSRaymarchSampleShadowFourMomentsInner(sampleDepth, sampleMoments, blackpoint);
+    float sampleDepthThickness = sampleDepth;
+
+    sampleDepthThickness += sampleDepthThickness + thickness * hvsssDepthScaleBias.x;
+    float sampleThicknessProbability = ComputeHVSSSRaymarchSampleShadowFourMomentsInner(sampleDepthThickness, sampleMoments, blackpoint);
+    return max(0.0, (1.0 - sampleThicknessProbability) - sampleProbability);
+#else
     if (sampleDepth > depthThicknessMidpoint)
     {
         // In order to gracefully handle our second thickness distribution, simply mirror our depth value about the thickness midpoint.
         // This makes it effectively fade out as it exits the thickness.
-        sampleDepth -= (sampleDepth - depthThicknessMidpoint) + thickness * 0.5 * _HVSSSDepthScaleBias.x;
+        sampleDepth -= (sampleDepth - depthThicknessMidpoint) + thickness * 0.5 * hvsssDepthScaleBias.x;
     }
 
-    return ComputeHVSSSRaymarchSampleShadowFourMomentsInner(sampleDepth, sampleMoments);
+    return ComputeHVSSSRaymarchSampleShadowFourMomentsInner(sampleDepth, sampleMoments, blackpoint);
+#endif
+}
+
+float ComputeHVSSSRaymarchSampleShadow(float sampleDepth, float4 sampleMoments, float samplesStartEndAlpha, uint lodCurrent, float thicknessScale, float4 hvsssDepthScaleBias, float4 hvsssEVSMExponents, float blackpoint)
+{
+#if defined(_HVSSS_MODE_MOMENTS_16)
+    return ComputeHVSSSRaymarchSampleShadowFourMoments(sampleDepth, sampleMoments, samplesStartEndAlpha, lodCurrent, thicknessScale, hvsssDepthScaleBias, blackpoint);
+#elif defined(_HVSSS_MODE_VSM_16) || defined(_HVSSS_MODE_VSM_32)
+    return ComputeHVSSSRaymarchSampleShadowVSM(sampleDepth, sampleMoments.xy, samplesStartEndAlpha, lodCurrent, thicknessScale, blackpoint);
+#elif defined(_HVSSS_MODE_EVSM_16) || defined(_HVSSS_MODE_EVSM_32)
+    return ComputeHVSSSRaymarchSampleShadowEVSM(sampleDepth, sampleMoments, samplesStartEndAlpha, lodCurrent, thicknessScale, hvsssDepthScaleBias, hvsssEVSMExponents, blackpoint);
+#else
+    #error "ComputeHVSSSRaymarchSampleShadow not implemented for variant"
+#endif
 }
 
 // Taken from ContactShadows.compute
@@ -159,6 +223,183 @@ float CompositeShadows(float a, float b)
 #else
     return min(a, b);
 #endif
+}
+
+bool IsFinalBlit(bool isRaymarchPass)
+{
+    return isRaymarchPass
+        ? (_LODCurrentAndNextAndMax.x == 0)
+        : (_LODCurrentAndNextAndMax.y == 0);
+}
+
+float ComputeContrast(float x)
+{
+    return pow(abs(x), lerp(1.0, 4.0, _HVSSSContrastAndBlackpointAndDitherMode.x));
+}
+
+float4 ComputeContrast(float4 x)
+{
+    return pow(abs(x), lerp(1.0, 4.0, _HVSSSContrastAndBlackpointAndDitherMode.x));
+}
+
+float ReadChannelDynamicBranch(float4 data, int channel)
+{
+    float res = 0.0;
+    if (channel == 0) { res = data.x; }
+    else if (channel == 1) { res = data.y; }
+    else if (channel == 2) { res = data.z; }
+    else if (channel == 3) { res = data.w; }
+    return res;
+}
+
+float4 WriteChannelDynamicBranch(float source, float4 destination, int channel)
+{
+    float4 res = destination;
+    if (channel == 0) { res.x = source; }
+    else if (channel == 1) { res.y = source; }
+    else if (channel == 2) { res.z = source; }
+    else if (channel == 3) { res.w = source; }
+    return res;
+}
+
+float LoadDepthLinearFromTexelCoord(uint2 sampleDepthLODTexelCoord, float4 hvsssDepthScaleBias, float4 hvsssEVSMExponents)
+{
+#if defined(_HVSSS_MODE_MOMENTS_16)
+    float4 sampleMoments = LOAD_TEXTURE2D_X(_DepthMomentsMipChain, sampleDepthLODTexelCoord);
+    sampleMoments = ShadowMoments_Decode16MSM(sampleMoments);
+    sampleMoments.x = sampleMoments.x * hvsssDepthScaleBias.z + hvsssDepthScaleBias.w;
+#elif defined(_HVSSS_MODE_VSM_16)
+    float2 sampleMoments = LOAD_TEXTURE2D_X(_DepthMomentsMipChain, sampleDepthLODTexelCoord).xy;
+    sampleMoments = ShadowMoments_Decode16VSM(sampleMoments);
+    sampleMoments.x = sampleMoments.x * hvsssDepthScaleBias.z + hvsssDepthScaleBias.w;
+#elif defined(_HVSSS_MODE_VSM_32)
+    float2 sampleMoments = LOAD_TEXTURE2D_X(_DepthMomentsMipChain, sampleDepthLODTexelCoord).xy;
+#elif defined(_HVSSS_MODE_EVSM_32)
+    float4 sampleMoments = LOAD_TEXTURE2D_X(_DepthMomentsMipChain, sampleDepthLODTexelCoord);
+
+    // sampleMoments.x = e^(exponent * sampleDepth)
+    // log(sampleMoments.x) = log(e^(exponent * sampleDepth))
+    // log(sampleMoments.x) = exponent * sampleDepth
+    // log(sampleMoments.x) / exponent = sampleDepth
+    sampleMoments.x = log(sampleMoments.x) * hvsssEVSMExponents.z * 0.5 + 0.5; // [-1, 1] -> [0.0, 1.0] space
+    sampleMoments.x = sampleMoments.x * hvsssDepthScaleBias.z + hvsssDepthScaleBias.w;
+#elif defined(_HVSSS_MODE_EVSM_16)
+    float4 sampleMoments = LOAD_TEXTURE2D_X(_DepthMomentsMipChain, sampleDepthLODTexelCoord);
+    sampleMoments = ShadowMoments_Decode16EVSM(sampleMoments, hvsssEVSMExponents.xy);
+
+    // sampleMoments.x = e^(exponent * sampleDepth)
+    // log(sampleMoments.x) = log(e^(exponent * sampleDepth))
+    // log(sampleMoments.x) = exponent * sampleDepth
+    // log(sampleMoments.x) / exponent = sampleDepth
+    sampleMoments.x = log(sampleMoments.x) * hvsssEVSMExponents.z * 0.5 + 0.5; // [-1, 1] -> [0.0, 1.0] space
+    sampleMoments.x = sampleMoments.x * hvsssDepthScaleBias.z + hvsssDepthScaleBias.w;
+#else
+    #error "LoadDepthLinearFromTexelCoord not implemented for variant"
+#endif
+
+    return sampleMoments.x;  
+}
+
+float ComputeVignetteWeight(float2 positionNDC)
+{
+    float2 sampleVignetteUV = saturate(positionNDC);
+    float2 sampleVignetteCS = sampleVignetteUV * 2.0 - 1.0;
+    float sampleVignetteWeight = saturate(max(abs(sampleVignetteCS.x), abs(sampleVignetteCS.y)) * 2.5 - 1.5);
+    sampleVignetteWeight *= sampleVignetteWeight;
+    return sampleVignetteWeight;
+}
+
+float ComputeThicknessScale(
+    float2 thicknessMinMax,
+    float2 positionNDC,
+    float surfaceToLightDistanceNDC,
+    float4 lightPositionNonHomogenizedCS,
+    float sampleCountScale,
+    float2 sampleRayDistanceNormalizedStartEnd,
+    float4 zBufferParams,
+    float4 projectionParams,
+    float lodCurrent,
+    float raymarchLODBias,
+    float raymarchLODMin)
+{
+    float thicknessScale = lerp(thicknessMinMax.x, thicknessMinMax.y, saturate(max(abs(positionNDC.x * 2.0 - 1.0), abs(positionNDC.y * 2.0 - 1.0))));
+
+    float4 rayOrthoViewSpace = float4(lightPositionNonHomogenizedCS.xyz * lightPositionNonHomogenizedCS.w, lightPositionNonHomogenizedCS.w) + float4(GetViewToHClipMatrix()[0][2], GetViewToHClipMatrix()[1][2], GetViewToHClipMatrix()[2][2], GetViewToHClipMatrix()[3][2]) * surfaceToLightDistanceNDC;
+    rayOrthoViewSpace = rayOrthoViewSpace / rayOrthoViewSpace.w;
+
+    float compareThreshold = GetDepthCompareThreshold(sampleCountScale / (sampleRayDistanceNormalizedStartEnd.y - sampleRayDistanceNormalizedStartEnd.x), lightPositionNonHomogenizedCS.z, rayOrthoViewSpace.z);
+
+    thicknessScale *= (LinearEyeDepth(compareThreshold, zBufferParams) - projectionParams.y) * exp2(max(0.0, lodCurrent - raymarchLODBias + raymarchLODMin));
+
+#if defined(_HVSSS_MODE_VSM_32) || defined(_HVSSS_MODE_VSM_16) || defined(_HVSSS_MODE_EVSM_32) || defined(_HVSSS_MODE_EVSM_16)
+    thicknessScale *= 0.000225;
+#elif defined(_HVSSS_MODE_MOMENTS_16)
+    thicknessScale *= 0.002;
+#else
+    #error "ComputeThicknessScale not implemented for variant"
+#endif
+
+    return thicknessScale;
+}
+
+float4 ComputeSampleJitter(uint2 centerTexelCoord, int ditherMode, uint frameCount)
+{
+    float4 sampleJitter = 0.5;
+    if (ditherMode == 1)
+    {
+        sampleJitter = float4(
+            GetBNDSequenceSample(centerTexelCoord, frameCount & 7u, 0),
+            GetBNDSequenceSample(centerTexelCoord, frameCount & 7u, 1),
+            GetBNDSequenceSample(centerTexelCoord, frameCount & 7u, 2),
+            GetBNDSequenceSample(centerTexelCoord, frameCount & 7u, 3)
+        );
+    }
+    return sampleJitter;
+}
+
+float ComputeShadowAccumulatorTransform(float sampleShadow, int sampleIndex, float sampleCountScale, float sampleCountBias, float3 centerPositionVS, float3 samplePositionVSStart, float3 samplePositionVSEnd, float samplesStartEndAlpha, inout float rayDistancePrevious)
+{
+#if defined(TRANSMISSION_ACCUMULATOR_ENABLED)
+    float rayDistanceCurrent = length(lerp(samplePositionVSStart, samplePositionVSEnd, (sampleIndex * sampleCountScale + sampleCountBias).xxx) - samplePositionVSStart);
+    float stepDistance = rayDistanceCurrent - rayDistancePrevious;
+    rayDistancePrevious = rayDistanceCurrent;
+
+    float3 samplePositionVS = lerp(samplePositionVSStart, samplePositionVSEnd, samplesStartEndAlpha);
+    float distanceWeight = stepDistance / (sampleCountScale * length(samplePositionVS - centerPositionVS));
+    sampleShadow = exp(-sampleShadow * distanceWeight);
+#endif
+    return sampleShadow;
+}
+
+float4 SampleMomentsFromDepthMomentsMipChain(float2 sampleUV)
+{
+#if defined(_HVSSS_MODE_MOMENTS_16) || defined(_HVSSS_MODE_EVSM_16) || defined(_HVSSS_MODE_EVSM_32)
+    float4 sampleMoments = SAMPLE_TEXTURE2D_X_LOD(_DepthMomentsMipChain, s_linear_clamp_sampler, sampleUV, 0);
+#elif defined(_HVSSS_MODE_VSM_16) || defined(_HVSSS_MODE_VSM_32)
+    float4 sampleMoments = float4(SAMPLE_TEXTURE2D_X_LOD(_DepthMomentsMipChain, s_linear_clamp_sampler, sampleUV, 0).xy, 0.0, 0.0); 
+#else
+    #error "SampleMomentsFromDepthMomentsMipChain not implemented for variant"
+#endif
+
+    return sampleMoments;
+}
+
+float4 DecodeMomentsForEvaluation(float4 moments, float4 hvsssDepthScaleBias, float4 hvsssEVSMExponents)
+{
+#if defined(_HVSSS_MODE_VSM_16)
+    moments.xy = ShadowMoments_Decode16VSM(moments.xy);
+
+    moments.x = moments.x * hvsssDepthScaleBias.z + hvsssDepthScaleBias.w;
+    moments.y = pow(sqrt(moments.y) * hvsssDepthScaleBias.z + hvsssDepthScaleBias.w, 2.0);
+
+#elif defined(_HVSSS_MODE_EVSM_16)
+    moments = ShadowMoments_Decode16EVSM(moments, hvsssEVSMExponents.xy);
+
+    // EVSM evaluation function expects moments in a [0, exponentMax] exponential space,
+    // unlike VSM_16 no conversion from [0, 1] to [0, depthMax] occurs. 
+#endif
+
+    return moments;
 }
 
 [numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
@@ -193,23 +434,13 @@ void RaymarchScreenSpaceShadows(uint3 dispatchThreadId : SV_DispatchThreadID)
         float2 lightPositionSS = lightPositionNDC * depthLODRaymarchSize;
         lightPositionSS = clamp(lightPositionSS, 0, depthLODRaymarchLimit - depthLODRaymarchOffset);
 
-#if defined(_HVSSS_MODE_MOMENTS_16)
-        float4 centerMoments = LOAD_TEXTURE2D_X(_DepthMomentsMipChain, depthLODDstTexelCoord);
-        centerMoments = ShadowMoments_Decode16MSM(centerMoments);
-        centerMoments.x = centerMoments.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-#elif defined(_HVSSS_MODE_VSM_16)
-        float2 centerMoments = LOAD_TEXTURE2D_X(_DepthMomentsMipChain, depthLODDstTexelCoord).xy;
-        centerMoments = ShadowMoments_Decode16VSM(centerMoments);
-        centerMoments.x = centerMoments.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-#elif defined(_HVSSS_MODE_VSM_32)
-        float2 centerMoments = LOAD_TEXTURE2D_X(_DepthMomentsMipChain, depthLODDstTexelCoord).xy;
-#endif
+        float centerDepth = LoadDepthLinearFromTexelCoord(depthLODDstTexelCoord, _HVSSSDepthScaleBias, _HVSSSEVSMExponents);
 
         float2 centerPositionSS = (float2)hvsssTexelCoord + 0.5;
         centerPositionSS *= (float2)depthLODRaymarchSize / (float2)depthLODDstSize;
 
         float2 centerPositionNDC = centerPositionSS / depthLODRaymarchSize;
-        float3 centerPositionVS = ComputePositionVS(centerPositionNDC, centerMoments.x);
+        float3 centerPositionVS = ComputePositionVS(centerPositionNDC, centerDepth);
 
         float2 surfaceToLightOffsetSS = lightPositionSS - centerPositionSS;
         float surfaceToLightDistancePixels = length(surfaceToLightOffsetSS);
@@ -225,19 +456,12 @@ void RaymarchScreenSpaceShadows(uint3 dispatchThreadId : SV_DispatchThreadID)
         // Do not raymarch outside of the depth range of our light sources.
         // With this current check - if we had multiple light sources raymarching, this would be a conservative test that only earlys out
         // when outside of the range of all light sources. Could add some additional data to constrain the raymarch range per light.
-        bool killRay = abs(0.5 - (centerMoments.x * _HVSSSDepthScaleBias.x + _HVSSSDepthScaleBias.y)) > 0.5;
+        bool killRay = abs(0.5 - (centerDepth * _HVSSSDepthScaleBias.x + _HVSSSDepthScaleBias.y)) > 0.5;
 
         float3 lightOffsetVS = centerPositionVS.xyz - lightPositionVS.xyz;
         float lightDistanceSquaredVS = dot(lightOffsetVS, lightOffsetVS);
         float lightRangeSquared = _HVSSSLightPositionWS.w * _HVSSSLightPositionWS.w;
         killRay = killRay || (lightDistanceSquaredVS >= lightRangeSquared);
-
-#if defined(SCREEN_EDGE_VIGNETTE_ENABLED)
-        float2 sampleVignetteUV = saturate(centerPositionNDC);
-        float2 sampleVignetteCS = sampleVignetteUV * 2.0 - 1.0;
-        float sampleVignetteWeight = saturate(max(abs(sampleVignetteCS.x), abs(sampleVignetteCS.y)) * 2.5 - 1.5);
-        sampleVignetteWeight *= sampleVignetteWeight;
-#endif
 
         if (!killRay)
         {
@@ -251,39 +475,19 @@ void RaymarchScreenSpaceShadows(uint3 dispatchThreadId : SV_DispatchThreadID)
             sampleUVStartEnd *= _DepthMomentsMipChainSize.zwzw;
             float4 sampleUVBoundsMinMax = float4((float2)depthLODRaymarchOffset + 0.5, depthLODRaymarchLimit + 0.5) * _DepthMomentsMipChainSize.zwzw;
             float2 sampleRayDistanceNormalizedStartEnd = float2(cascadeRaymarchDistanceStart, cascadeRaymarchDistanceEnd) * surfaceToLightDistancePixelsNormalization;
-            float2 sampleDepthStartEnd = lerp(centerMoments.x, lightDepthLinear, sampleRayDistanceNormalizedStartEnd);
+            float2 sampleDepthStartEnd = lerp(centerDepth, lightDepthLinear, sampleRayDistanceNormalizedStartEnd);
             float3 samplePositionVSStart = lerp(centerPositionVS, lightPositionVS, sampleRayDistanceNormalizedStartEnd.x);
             float3 samplePositionVSEnd = lerp(centerPositionVS, lightPositionVS, sampleRayDistanceNormalizedStartEnd.y);
 
             float2 centerUV = centerPositionSS / depthLODRaymarchSize;
-            float thicknessScale = lerp(_HVSSSThickness.x, _HVSSSThickness.y, saturate(max(abs(centerUV.x * 2.0 - 1.0), abs(centerUV.y * 2.0 - 1.0))));
+            float2 surfaceToLightOffsetNDC = surfaceToLightOffsetSS / depthLODRaymarchSize;
+            float surfaceToLightDistanceNDC = length(surfaceToLightOffsetNDC);
+            float thicknessScale = ComputeThicknessScale(_HVSSSThickness.xy, centerUV, surfaceToLightDistanceNDC, lightPositionCS, sampleCountScale, sampleRayDistanceNormalizedStartEnd, _ZBufferParams, _ProjectionParams, _LODCurrentAndNextAndMax.x, _HVSSSRaymarchLODBiasMinMax.x, _HVSSSRaymarchLODBiasMinMax.y);
 
-            float4 rayOrthoViewSpace = float4(lightPositionCS.xyz * lightPositionCS.w, lightPositionCS.w) + float4(GetViewToHClipMatrix()[0][2], GetViewToHClipMatrix()[1][2], GetViewToHClipMatrix()[2][2], GetViewToHClipMatrix()[3][2]) * length(surfaceToLightOffsetSS / depthLODRaymarchSize);
-            rayOrthoViewSpace = rayOrthoViewSpace / rayOrthoViewSpace.w;
+            int ditherMode = (int)floor(_HVSSSContrastAndBlackpointAndDitherMode.z + 0.5);
+            float4 sampleCountBias = sampleCountScale * ComputeSampleJitter(hvsssTexelCoord, ditherMode, _FrameCount);
 
-            float compareThreshold = GetDepthCompareThreshold(sampleCountScale / (sampleRayDistanceNormalizedStartEnd.y - sampleRayDistanceNormalizedStartEnd.x), lightPositionCS.z, rayOrthoViewSpace.z);
-            thicknessScale *= (LinearEyeDepth(compareThreshold, _ZBufferParams) - _ProjectionParams.y) * exp2(max(0.0, _LODCurrentAndNextAndMax.x - _HVSSSRaymarchLODBiasMinMax.y + _HVSSSRaymarchLODBiasMinMax.x));
-
-#if defined(_HVSSS_MODE_VSM_32)
-            thicknessScale *= 0.000225;
-#elif defined(_HVSSS_MODE_VSM_16)
-            thicknessScale *= 0.000225;
-#elif defined(_HVSSS_MODE_MOMENTS_16)
-            thicknessScale *= 0.002;
-#endif
-
-            float4 sampleJitter = 0.5;
-            if (_HVSSSDitherMode == 1)
-            {
-                sampleJitter = float4(
-                    GetBNDSequenceSample(hvsssTexelCoord, _FrameCount & 7u, 0),
-                    GetBNDSequenceSample(hvsssTexelCoord, _FrameCount & 7u, 1),
-                    GetBNDSequenceSample(hvsssTexelCoord, _FrameCount & 7u, 2),
-                    GetBNDSequenceSample(hvsssTexelCoord, _FrameCount & 7u, 3)
-                );
-            }
-            float4 sampleCountBias = sampleJitter * sampleCountScale;
-
+            float rayDistancePrevious = 0.0;
             [loop] for (int i = 0; (i < sampleCount) && (shadowData > 1e-5); i += 4)
             {
                 float4 samplesStartEndAlpha = saturate(float4(i, i + 1, i + 2, i + 3) * sampleCountScale + sampleCountBias);
@@ -301,118 +505,70 @@ void RaymarchScreenSpaceShadows(uint3 dispatchThreadId : SV_DispatchThreadID)
                 sampleUV3 = clamp(sampleUV3, sampleUVBoundsMinMax.xy, sampleUVBoundsMinMax.zw);
 
                 float4 samplesDepth = lerp(sampleDepthStartEnd.xxxx, sampleDepthStartEnd.yyyy, samplesStartEndAlpha);
+
+                float4 sampleMoments0 = SampleMomentsFromDepthMomentsMipChain(sampleUV0);
+                float4 sampleMoments1 = SampleMomentsFromDepthMomentsMipChain(sampleUV1);
+                float4 sampleMoments2 = SampleMomentsFromDepthMomentsMipChain(sampleUV2);
+                float4 sampleMoments3 = SampleMomentsFromDepthMomentsMipChain(sampleUV3);
+
+                sampleMoments0 = DecodeMomentsForEvaluation(sampleMoments0, _HVSSSDepthScaleBias, _HVSSSEVSMExponents);
+                sampleMoments1 = DecodeMomentsForEvaluation(sampleMoments1, _HVSSSDepthScaleBias, _HVSSSEVSMExponents);
+                sampleMoments2 = DecodeMomentsForEvaluation(sampleMoments2, _HVSSSDepthScaleBias, _HVSSSEVSMExponents);
+                sampleMoments3 = DecodeMomentsForEvaluation(sampleMoments3, _HVSSSDepthScaleBias, _HVSSSEVSMExponents);
+
+                float sampleShadow0 = ComputeHVSSSRaymarchSampleShadow(samplesDepth.x, sampleMoments0, samplesStartEndAlpha.x, lodCurrent, thicknessScale, _HVSSSDepthScaleBias, _HVSSSEVSMExponents, _HVSSSContrastAndBlackpointAndDitherMode.y);
+                sampleShadow0 = ComputeShadowAccumulatorTransform(sampleShadow0, i + 0, sampleCountScale, sampleCountBias.x, centerPositionVS.xyz, samplePositionVSStart, samplePositionVSEnd, samplesStartEndAlpha.x, rayDistancePrevious);
+                shadowData = CompositeShadows(shadowData, sampleShadow0);
+
+                float sampleShadow1 = ComputeHVSSSRaymarchSampleShadow(samplesDepth.y, sampleMoments1, samplesStartEndAlpha.y, lodCurrent, thicknessScale, _HVSSSDepthScaleBias, _HVSSSEVSMExponents, _HVSSSContrastAndBlackpointAndDitherMode.y);
+                sampleShadow1 = ComputeShadowAccumulatorTransform(sampleShadow1, i + 1, sampleCountScale, sampleCountBias.y, centerPositionVS.xyz, samplePositionVSStart, samplePositionVSEnd, samplesStartEndAlpha.y, rayDistancePrevious);
+                shadowData = CompositeShadows(shadowData, sampleShadow1);
+
+                float sampleShadow2 = ComputeHVSSSRaymarchSampleShadow(samplesDepth.z, sampleMoments2, samplesStartEndAlpha.z, lodCurrent, thicknessScale, _HVSSSDepthScaleBias, _HVSSSEVSMExponents, _HVSSSContrastAndBlackpointAndDitherMode.y);
+                sampleShadow2 = ComputeShadowAccumulatorTransform(sampleShadow2, i + 2, sampleCountScale, sampleCountBias.z, centerPositionVS.xyz, samplePositionVSStart, samplePositionVSEnd, samplesStartEndAlpha.z, rayDistancePrevious);
+                shadowData = CompositeShadows(shadowData, sampleShadow2);
                 
-#if defined(_HVSSS_MODE_MOMENTS_16)
-                float4 sampleMoments0 = SAMPLE_TEXTURE2D_X_LOD(_DepthMomentsMipChain, s_linear_clamp_sampler, sampleUV0, 0);
-                float4 sampleMoments1 = SAMPLE_TEXTURE2D_X_LOD(_DepthMomentsMipChain, s_linear_clamp_sampler, sampleUV1, 0);
-                float4 sampleMoments2 = SAMPLE_TEXTURE2D_X_LOD(_DepthMomentsMipChain, s_linear_clamp_sampler, sampleUV2, 0);
-                float4 sampleMoments3 = SAMPLE_TEXTURE2D_X_LOD(_DepthMomentsMipChain, s_linear_clamp_sampler, sampleUV3, 0);
-
-                float sampleShadow0 = ComputeHVSSSRaymarchSampleShadowFourMoments(samplesDepth.x, sampleMoments0, samplesStartEndAlpha.x, lodCurrent, thicknessScale);
-                shadowData = CompositeShadows(shadowData, sampleShadow0);
-                float sampleShadow1 = ComputeHVSSSRaymarchSampleShadowFourMoments(samplesDepth.y, sampleMoments1, samplesStartEndAlpha.y, lodCurrent, thicknessScale);
-                shadowData = CompositeShadows(shadowData, sampleShadow1);
-                float sampleShadow2 = ComputeHVSSSRaymarchSampleShadowFourMoments(samplesDepth.z, sampleMoments2, samplesStartEndAlpha.z, lodCurrent, thicknessScale);
-                shadowData = CompositeShadows(shadowData, sampleShadow2);
-                float sampleShadow3 = ComputeHVSSSRaymarchSampleShadowFourMoments(samplesDepth.w, sampleMoments3, samplesStartEndAlpha.w, lodCurrent, thicknessScale);
+                float sampleShadow3 = ComputeHVSSSRaymarchSampleShadow(samplesDepth.w, sampleMoments3, samplesStartEndAlpha.w, lodCurrent, thicknessScale, _HVSSSDepthScaleBias, _HVSSSEVSMExponents, _HVSSSContrastAndBlackpointAndDitherMode.y);
+                sampleShadow3 = ComputeShadowAccumulatorTransform(sampleShadow3, i + 3, sampleCountScale, sampleCountBias.w, centerPositionVS.xyz, samplePositionVSStart, samplePositionVSEnd, samplesStartEndAlpha.w, rayDistancePrevious);
                 shadowData = CompositeShadows(shadowData, sampleShadow3);
-#elif defined(_HVSSS_MODE_VSM_16) || defined(_HVSSS_MODE_VSM_32)
-                float2 sampleMoments0 = SAMPLE_TEXTURE2D_X_LOD(_DepthMomentsMipChain, s_linear_clamp_sampler, sampleUV0, 0).xy;
-                float2 sampleMoments1 = SAMPLE_TEXTURE2D_X_LOD(_DepthMomentsMipChain, s_linear_clamp_sampler, sampleUV1, 0).xy;
-                float2 sampleMoments2 = SAMPLE_TEXTURE2D_X_LOD(_DepthMomentsMipChain, s_linear_clamp_sampler, sampleUV2, 0).xy;
-                float2 sampleMoments3 = SAMPLE_TEXTURE2D_X_LOD(_DepthMomentsMipChain, s_linear_clamp_sampler, sampleUV3, 0).xy;
-
-#if defined(_HVSSS_MODE_VSM_16)
-                sampleMoments0 = ShadowMoments_Decode16VSM(sampleMoments0);
-                sampleMoments1 = ShadowMoments_Decode16VSM(sampleMoments1);
-                sampleMoments2 = ShadowMoments_Decode16VSM(sampleMoments2);
-                sampleMoments3 = ShadowMoments_Decode16VSM(sampleMoments3);
-
-                sampleMoments0.x = sampleMoments0.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-                sampleMoments0.y = pow(sqrt(sampleMoments0.y) * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w, 2.0);
-
-                sampleMoments1.x = sampleMoments1.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-                sampleMoments1.y = pow(sqrt(sampleMoments1.y) * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w, 2.0);
-
-                sampleMoments2.x = sampleMoments2.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-                sampleMoments2.y = pow(sqrt(sampleMoments2.y) * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w, 2.0);
-
-                sampleMoments3.x = sampleMoments3.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-                sampleMoments3.y = pow(sqrt(sampleMoments3.y) * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w, 2.0);
-#endif
-
-                float sampleShadow0 = ComputeHVSSSRaymarchSampleShadow(samplesDepth.x, sampleMoments0, samplesStartEndAlpha.x, lodCurrent, thicknessScale);
-#if defined(TRANSMISSION_ACCUMULATOR_ENABLED)
-                float rayDistancePrevious = length(lerp(samplePositionVSStart, samplePositionVSEnd, ((i > 0) ? ((i - 1) * sampleCountScale + sampleCountBias.w) : 0.0).xxx) - samplePositionVSStart);
-                float rayDistanceCurrent = length(lerp(samplePositionVSStart, samplePositionVSEnd, (i * sampleCountScale + sampleCountBias.x).xxx) - samplePositionVSStart);
-                float stepDistance0 = rayDistanceCurrent - rayDistancePrevious;
-                float3 samplePositionVS0 = lerp(samplePositionVSStart, samplePositionVSEnd, samplesStartEndAlpha.xxx);
-                float distanceWeight0 = stepDistance0 / (sampleCountScale * length(samplePositionVS0 - centerPositionVS.xyz));
-                sampleShadow0 = exp(-sampleShadow0 * distanceWeight0);
-#endif
-                shadowData = CompositeShadows(shadowData, sampleShadow0);
-                float sampleShadow1 = ComputeHVSSSRaymarchSampleShadow(samplesDepth.y, sampleMoments1, samplesStartEndAlpha.y, lodCurrent, thicknessScale);
-#if defined(TRANSMISSION_ACCUMULATOR_ENABLED)
-                rayDistancePrevious = rayDistanceCurrent;
-                rayDistanceCurrent = length(lerp(samplePositionVSStart, samplePositionVSEnd, ((i + 1) * sampleCountScale + sampleCountBias.y).xxx) - samplePositionVSStart);
-                float stepDistance1 = rayDistanceCurrent - rayDistancePrevious;
-                float3 samplePositionVS1 = lerp(samplePositionVSStart, samplePositionVSEnd, samplesStartEndAlpha.yyy);
-                float distanceWeight1 = stepDistance1 / (sampleCountScale * length(samplePositionVS1 - centerPositionVS.xyz));
-                sampleShadow1 = exp(-sampleShadow1 * distanceWeight1);
-#endif
-                shadowData = CompositeShadows(shadowData, sampleShadow1);
-                float sampleShadow2 = ComputeHVSSSRaymarchSampleShadow(samplesDepth.z, sampleMoments2, samplesStartEndAlpha.z, lodCurrent, thicknessScale);
-#if defined(TRANSMISSION_ACCUMULATOR_ENABLED)
-                rayDistancePrevious = rayDistanceCurrent;
-                rayDistanceCurrent = length(lerp(samplePositionVSStart, samplePositionVSEnd, ((i + 2) * sampleCountScale + sampleCountBias.z).xxx) - samplePositionVSStart);
-                float stepDistance2 = rayDistanceCurrent - rayDistancePrevious;
-                float3 samplePositionVS2 = lerp(samplePositionVSStart, samplePositionVSEnd, samplesStartEndAlpha.zzz);
-                float distanceWeight2 = stepDistance2 / (sampleCountScale * length(samplePositionVS2 - centerPositionVS.xyz));
-                sampleShadow2 = exp(-sampleShadow2 * distanceWeight2);
-#endif
-                shadowData = CompositeShadows(shadowData, sampleShadow2);
-                float sampleShadow3 = ComputeHVSSSRaymarchSampleShadow(samplesDepth.w, sampleMoments3, samplesStartEndAlpha.w, lodCurrent, thicknessScale);
-#if defined(TRANSMISSION_ACCUMULATOR_ENABLED)
-                rayDistancePrevious = rayDistanceCurrent;
-                rayDistanceCurrent = length(lerp(samplePositionVSStart, samplePositionVSEnd, ((i + 3) * sampleCountScale + sampleCountBias.w).xxx) - samplePositionVSStart);
-                float stepDistance3 = rayDistanceCurrent - rayDistancePrevious;
-                float3 samplePositionVS3 = lerp(samplePositionVSStart, samplePositionVSEnd, samplesStartEndAlpha.www);
-                float distanceWeight3 = stepDistance3 / (sampleCountScale * length(samplePositionVS3 - centerPositionVS.xyz));
-                sampleShadow3 = exp(-sampleShadow3 * distanceWeight3);
-#endif
-                shadowData = CompositeShadows(shadowData, sampleShadow3);
-
-#endif
             }
         }
 
 #if defined(SCREEN_EDGE_VIGNETTE_ENABLED)
+        float sampleVignetteWeight = ComputeVignetteWeight(centerPositionNDC);
         shadowData = lerp(shadowData, 1.0, sampleVignetteWeight);
 #endif
 
         float4 hvsss = _HVSSSDestinationTexture[COORD_TEXTURE2D_X(hvsssTexelCoord)];
-        if (channel == 0)
+
+        float hvsssCurrent = ReadChannelDynamicBranch(hvsss, channel);
+        hvsssCurrent = (_LODCurrentAndNextAndMax.x == _LODCurrentAndNextAndMax.z) ? 1.0 : hvsssCurrent;
+        hvsssCurrent = CompositeShadows(hvsssCurrent, shadowData);
+        if (IsFinalBlit(true))
         {
-            hvsss.x = (_LODCurrentAndNextAndMax.x == _LODCurrentAndNextAndMax.z) ? 1.0 : hvsss.x;
-            hvsss.x = CompositeShadows(hvsss.x, shadowData);
+            hvsssCurrent = ComputeContrast(hvsssCurrent);
         }
-        else if (channel == 1)
-        {
-            hvsss.y = (_LODCurrentAndNextAndMax.x == _LODCurrentAndNextAndMax.z) ? 1.0 : hvsss.y;
-            hvsss.y = CompositeShadows(hvsss.y, shadowData);
-        }
-        else if (channel == 2)
-        {
-            hvsss.z = (_LODCurrentAndNextAndMax.x == _LODCurrentAndNextAndMax.z) ? 1.0 : hvsss.z;
-            hvsss.z = CompositeShadows(hvsss.z, shadowData);
-        }
-        else
-        {
-            hvsss.w = (_LODCurrentAndNextAndMax.x == _LODCurrentAndNextAndMax.z) ? 1.0 : hvsss.w;
-            hvsss.w = CompositeShadows(hvsss.w, shadowData);
-        }
+        hvsss = WriteChannelDynamicBranch(hvsssCurrent, hvsss, channel);
+
         _HVSSSDestinationTexture[COORD_TEXTURE2D_X(hvsssTexelCoord)] = hvsss;
     }
+}
+
+float ComputeGaussianWeight(float sampleDistancePixels, float gaussianRadiusInverseSquared)
+{
+    // Sharpness of 3.375 is the exp2 equivalent of an exp sharpness of 2.29.
+    // 2.29 is from the gaussian fit of a blackman-harris filter, used in TAA resolve.
+    // Just a reasonably good gaussian filter for discrete kernels of fairly small sizes.
+    const float SHARPNESS = 3.375;
+    return exp2(-SHARPNESS * gaussianRadiusInverseSquared * sampleDistancePixels * sampleDistancePixels);
+}
+
+float ComputeBilateralDepthSimilarityWeight(float sharpness, float depthA, float depthB, float lodCurrent)
+{
+    float depthDifference = depthB - depthA;
+
+    // * exp2(-x) == 1.0 / exp2(x)
+    return exp2(-sharpness * depthDifference * depthDifference * exp2(-lodCurrent));
 }
 
 [numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
@@ -433,43 +589,27 @@ void SeperableBilateralBlur(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     if (all(hvsssTexelCoord <= hvsssLimit))
     {
-#if defined(_HVSSS_MODE_MOMENTS_16)
-        float4 centerMoments = LOAD_TEXTURE2D_X(_DepthMomentsMipChain, depthLODTexelCoord);
-        centerMoments = ShadowMoments_Decode16MSM(centerMoments);
-        centerMoments.x = centerMoments.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-#elif defined(_HVSSS_MODE_VSM_16)
-        float2 centerMoments = LOAD_TEXTURE2D_X(_DepthMomentsMipChain, depthLODTexelCoord).xy;
-        centerMoments.x = centerMoments.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-#elif defined(_HVSSS_MODE_VSM_32)
-        float2 centerMoments = LOAD_TEXTURE2D_X(_DepthMomentsMipChain, depthLODTexelCoord).xy;
-#endif
+        float centerDepth = LoadDepthLinearFromTexelCoord(depthLODTexelCoord, _HVSSSDepthScaleBias, _HVSSSEVSMExponents);
 
         float4 shadowDataAccumulated = 0.0;
         float weightAccumulated = 0.0;
-        for (int i = -1; i <= 1; ++i)
+        int kernelRadius = (int)floor(_HVSSSUpsampleBlurRadiusPixelsAndInverseSquared.x + 0.5);
+        for (int i = -kernelRadius; i <= kernelRadius; ++i)
         {
             int2 sampleTexelOffset = axis ? int2(0, i) : int2(i, 0);
             int2 sampleTexelCoord = (int2)hvsssTexelCoord + sampleTexelOffset;
             sampleTexelCoord = clamp(sampleTexelCoord, 0, (int2)hvsssLimit);
             uint2 sampleDepthLODTexelCoord = (uint2)sampleTexelCoord + depthLODOffset;
 
-#if defined(_HVSSS_MODE_MOMENTS_16)
-            float4 sampleMoments = LOAD_TEXTURE2D_X(_DepthMomentsMipChain, sampleDepthLODTexelCoord);
-            sampleMoments = ShadowMoments_Decode16MSM(sampleMoments);
-            sampleMoments.x = sampleMoments.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-#elif defined(_HVSSS_MODE_VSM_16)
-            float2 sampleMoments = LOAD_TEXTURE2D_X(_DepthMomentsMipChain, sampleDepthLODTexelCoord).xy;
-            sampleMoments = ShadowMoments_Decode16VSM(sampleMoments);
-            sampleMoments.x = sampleMoments.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-#elif defined(_HVSSS_MODE_VSM_32)
-            float2 sampleMoments = LOAD_TEXTURE2D_X(_DepthMomentsMipChain, sampleDepthLODTexelCoord).xy;
-#endif
+            float sampleDepth = LoadDepthLinearFromTexelCoord(sampleDepthLODTexelCoord, _HVSSSDepthScaleBias, _HVSSSEVSMExponents);
 
             float4 shadowData = _HVSSSSourceTexture[COORD_TEXTURE2D_X((uint2)sampleTexelCoord)];
-            float weight = 1.0;
-            const float SHARPNESS = 100.0;
-            weight = exp2(-SHARPNESS * pow(sampleMoments.x - centerMoments.x, 2.0) / exp2(_LODCurrentAndNextAndMax.x));
+
+            float weight = (kernelRadius > 1) ? ComputeGaussianWeight((float)i, _HVSSSUpsampleBlurRadiusPixelsAndInverseSquared.y) : 1.0;
+            const float BILATERAL_DEPTH_SIMILARITY_SHARPNESS = 100.0;
+            weight *= ComputeBilateralDepthSimilarityWeight(BILATERAL_DEPTH_SIMILARITY_SHARPNESS, sampleDepth, centerDepth, (float)_LODCurrentAndNextAndMax.x);
             weight = max(1e-5, weight);
+            
             weightAccumulated += weight;
             shadowDataAccumulated += shadowData * weight;
         }
@@ -521,16 +661,7 @@ void BilateralUpsample(uint3 dispatchThreadId : SV_DispatchThreadID)
         float4 shadowDataAccumulated = 0.0;
         float weightAccumulated = 0.0;
 
-#if defined(_HVSSS_MODE_MOMENTS_16)
-        float4 centerMoments = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(centerDepthLODTexelCoord + uint2(0u, 0u), depthLODDestinationLimit))];
-        centerMoments = ShadowMoments_Decode16MSM(centerMoments);
-        centerMoments.x = centerMoments.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-#elif defined(_HVSSS_MODE_VSM_16)
-        float2 centerMoments = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(centerDepthLODTexelCoord + uint2(0u, 0u), depthLODDestinationLimit))].xy;
-        centerMoments.x = centerMoments.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-#elif defined(_HVSSS_MODE_VSM_32)
-        float2 centerMoments = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(centerDepthLODTexelCoord + uint2(0u, 0u), depthLODDestinationLimit))].xy;
-#endif
+        float centerDepth = LoadDepthLinearFromTexelCoord(min(centerDepthLODTexelCoord + uint2(0u, 0u), depthLODDestinationLimit), _HVSSSDepthScaleBias, _HVSSSEVSMExponents);
 
         for (int x = -2; x < 2; ++x)
         {
@@ -539,26 +670,14 @@ void BilateralUpsample(uint3 dispatchThreadId : SV_DispatchThreadID)
                 float2 sampleSourcePixel = centerSourcePixel + float2(x, y) + 0.5;
                 sampleSourcePixel = clamp(sampleSourcePixel, 0.5, (depthLODDestinationLimit - depthLODDestinationOffset) + 0.5);
                 float2 sampleKernelOffset = sampleSourcePixel - centerSourcePixel;
-                // const float SHARPNESS_SPATIAL = 1.5;
-                // float weight = exp2(-SHARPNESS_SPATIAL * dot(sampleKernelOffset, sampleKernelOffset));
                 float weight = ComputeWeightBicubic(length(sampleKernelOffset), dot(sampleKernelOffset, sampleKernelOffset), 3.0 / 3.0, 0.0 / 3.0);
                 uint2 sampleDepthLODSourceTexelCoord = (uint2)floor(sampleSourcePixel) + depthLODDestinationOffset;
                 sampleDepthLODSourceTexelCoord = min(sampleDepthLODSourceTexelCoord, depthLODDestinationLimit);
 
-#if defined(_HVSSS_MODE_MOMENTS_16)
-                float4 sampleMoments = _DepthMomentsMipChain[COORD_TEXTURE2D_X(sampleDepthLODSourceTexelCoord)];
-                sampleMoments = ShadowMoments_Decode16MSM(sampleMoments);
-                sampleMoments.x = sampleMoments.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-#elif defined(_HVSSS_MODE_VSM_16)
-                float2 sampleMoments = _DepthMomentsMipChain[COORD_TEXTURE2D_X(sampleDepthLODSourceTexelCoord)].xy;
-                sampleMoments = ShadowMoments_Decode16VSM(sampleMoments);
-                sampleMoments.x = sampleMoments.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-#elif defined(_HVSSS_MODE_VSM_32)
-                float2 sampleMoments = _DepthMomentsMipChain[COORD_TEXTURE2D_X(sampleDepthLODSourceTexelCoord)].xy;
-#endif
+                float sampleDepth = LoadDepthLinearFromTexelCoord(sampleDepthLODSourceTexelCoord, _HVSSSDepthScaleBias, _HVSSSEVSMExponents);
 
-                const float SHARPNESS_DEPTH_COMPARE = 100.0;
-                weight *= exp2(-SHARPNESS_DEPTH_COMPARE * pow(sampleMoments.x - centerMoments.x, 2.0) / exp2(_LODCurrentAndNextAndMax.y));
+                const float SHARPNESS_DEPTH_COMPARE = 0.5;
+                weight *= ComputeBilateralDepthSimilarityWeight(SHARPNESS_DEPTH_COMPARE, sampleDepth, centerDepth, (float)_LODCurrentAndNextAndMax.y);
 
                 weight = max(1e-4, weight);
 
@@ -567,62 +686,25 @@ void BilateralUpsample(uint3 dispatchThreadId : SV_DispatchThreadID)
             }
         }
         float weightAccumulatedNormalization = (weightAccumulated > 1e-5) ? rcp(weightAccumulated) : 0.0;
-        _HVSSSDestinationTexture[COORD_TEXTURE2D_X(hvsssDestinationTexelCoord)] = shadowDataAccumulated * weightAccumulatedNormalization;
+        shadowDataAccumulated *= weightAccumulatedNormalization;
+
 #else
         uint2 hvsssSourceTexelCoordUL = hvsssDestinationTexelCoord >> 1;
         uint2 sampleDepthLODTexelCoordUL = depthLODSourceOffset + hvsssSourceTexelCoordUL;
-        uint2 centerDepthLODTexelCoord = depthLODDestinationOffset + hvsssDestinationTexelCoord;  
+        uint2 centerDepthLODTexelCoord = depthLODDestinationOffset + hvsssDestinationTexelCoord;
 
-#if defined(_HVSSS_MODE_MOMENTS_16)
-        float4 moments00 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(sampleDepthLODTexelCoordUL + uint2(0u, 0u), depthLODSourceLimit))];
-        float4 moments10 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(sampleDepthLODTexelCoordUL + uint2(1u, 0u), depthLODSourceLimit))];
-        float4 moments01 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(sampleDepthLODTexelCoordUL + uint2(0u, 1u), depthLODSourceLimit))];
-        float4 moments11 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(sampleDepthLODTexelCoordUL + uint2(1u, 1u), depthLODSourceLimit))];
+        float centerDepth = LoadDepthLinearFromTexelCoord(min(centerDepthLODTexelCoord + uint2(0u, 0u), depthLODDestinationLimit),  _HVSSSDepthScaleBias, _HVSSSEVSMExponents);
 
-        moments00 = ShadowMoments_Decode16MSM(moments00);
-        moments10 = ShadowMoments_Decode16MSM(moments10);
-        moments01 = ShadowMoments_Decode16MSM(moments01);
-        moments11 = ShadowMoments_Decode16MSM(moments11);
+        float sampleDepth00 = LoadDepthLinearFromTexelCoord(min(sampleDepthLODTexelCoordUL + uint2(0u, 0u), depthLODSourceLimit), _HVSSSDepthScaleBias, _HVSSSEVSMExponents);
+        float sampleDepth10 = LoadDepthLinearFromTexelCoord(min(sampleDepthLODTexelCoordUL + uint2(1u, 0u), depthLODSourceLimit), _HVSSSDepthScaleBias, _HVSSSEVSMExponents);
+        float sampleDepth01 = LoadDepthLinearFromTexelCoord(min(sampleDepthLODTexelCoordUL + uint2(0u, 1u), depthLODSourceLimit), _HVSSSDepthScaleBias, _HVSSSEVSMExponents);
+        float sampleDepth11 = LoadDepthLinearFromTexelCoord(min(sampleDepthLODTexelCoordUL + uint2(1u, 1u), depthLODSourceLimit), _HVSSSDepthScaleBias, _HVSSSEVSMExponents);
 
-        moments00.x = moments00.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-        moments10.x = moments10.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-        moments01.x = moments01.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-        moments11.x = moments11.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-
-        float4 centerMoments = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(centerDepthLODTexelCoord + uint2(0u, 0u), depthLODDestinationLimit))];
-        centerMoments = ShadowMoments_Decode16MSM(centerMoments);
-        centerMoments.x = centerMoments.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-#elif defined(_HVSSS_MODE_VSM_16) || defined(_HVSSS_MODE_VSM_32)
-        float2 moments00 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(sampleDepthLODTexelCoordUL + uint2(0u, 0u), depthLODSourceLimit))].xy;
-        float2 moments10 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(sampleDepthLODTexelCoordUL + uint2(1u, 0u), depthLODSourceLimit))].xy;
-        float2 moments01 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(sampleDepthLODTexelCoordUL + uint2(0u, 1u), depthLODSourceLimit))].xy;
-        float2 moments11 = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(sampleDepthLODTexelCoordUL + uint2(1u, 1u), depthLODSourceLimit))].xy;
-
-#if defined(_HVSSS_MODE_VSM_16)
-        moments00 = ShadowMoments_Decode16VSM(moments00);
-        moments10 = ShadowMoments_Decode16VSM(moments10);
-        moments01 = ShadowMoments_Decode16VSM(moments01);
-        moments11 = ShadowMoments_Decode16VSM(moments11);
-
-        moments00.x = moments00.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-        moments10.x = moments10.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-        moments01.x = moments01.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-        moments11.x = moments11.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-#endif
-
-        float2 centerMoments = _DepthMomentsMipChain[COORD_TEXTURE2D_X(min(centerDepthLODTexelCoord + uint2(0u, 0u), depthLODDestinationLimit))].xy;
-
-#if defined(_HVSSS_MODE_VSM_16)
-        centerMoments = ShadowMoments_Decode16VSM(centerMoments);
-        centerMoments.x = centerMoments.x * _HVSSSDepthScaleBias.z + _HVSSSDepthScaleBias.w;
-#endif
-
-#endif
         const float SHARPNESS = 100.0;
-        float weight00 = exp2(-SHARPNESS * pow(moments00.x - centerMoments.x, 2.0) / exp2(_LODCurrentAndNextAndMax.y));
-        float weight10 = exp2(-SHARPNESS * pow(moments10.x - centerMoments.x, 2.0) / exp2(_LODCurrentAndNextAndMax.y));
-        float weight01 = exp2(-SHARPNESS * pow(moments01.x - centerMoments.x, 2.0) / exp2(_LODCurrentAndNextAndMax.y));
-        float weight11 = exp2(-SHARPNESS * pow(moments11.x - centerMoments.x, 2.0) / exp2(_LODCurrentAndNextAndMax.y));
+        float weight00 = ComputeBilateralDepthSimilarityWeight(SHARPNESS, sampleDepth00, centerDepth, (float)_LODCurrentAndNextAndMax.y);
+        float weight10 = ComputeBilateralDepthSimilarityWeight(SHARPNESS, sampleDepth10, centerDepth, (float)_LODCurrentAndNextAndMax.y);
+        float weight01 = ComputeBilateralDepthSimilarityWeight(SHARPNESS, sampleDepth01, centerDepth, (float)_LODCurrentAndNextAndMax.y);
+        float weight11 = ComputeBilateralDepthSimilarityWeight(SHARPNESS, sampleDepth11, centerDepth, (float)_LODCurrentAndNextAndMax.y);
 
         weight00 = max(1e-4, weight00);
         weight10 = max(1e-4, weight10);
@@ -630,7 +712,15 @@ void BilateralUpsample(uint3 dispatchThreadId : SV_DispatchThreadID)
         weight11 = max(1e-4, weight11);
 
         float weightAccumulated = weight00 + weight10 + weight01 + weight11;
-        float weightNormalization = (weightAccumulated > 1e-5) ? rcp(weightAccumulated) : 0.0;
+        
+        const float BILATERAL_WEIGHT_THRESHOLD = 1e-2;
+        weight00 = (weightAccumulated > BILATERAL_WEIGHT_THRESHOLD) ? weight00 : 0.25;
+        weight10 = (weightAccumulated > BILATERAL_WEIGHT_THRESHOLD) ? weight10 : 0.25;
+        weight01 = (weightAccumulated > BILATERAL_WEIGHT_THRESHOLD) ? weight01 : 0.25;
+        weight11 = (weightAccumulated > BILATERAL_WEIGHT_THRESHOLD) ? weight11 : 0.25;
+        weightAccumulated = (weightAccumulated > BILATERAL_WEIGHT_THRESHOLD) ? weightAccumulated : 1.0;
+
+        float weightNormalization = rcp(weightAccumulated);
 
         uint2 hvsssSourceLimit = depthLODSourceLimit - depthLODSourceOffset;
         float4 shadowDataAccumulated = 0.0;
@@ -639,8 +729,13 @@ void BilateralUpsample(uint3 dispatchThreadId : SV_DispatchThreadID)
         shadowDataAccumulated += weight01 * _HVSSSSourceTexture[COORD_TEXTURE2D_X(min(hvsssSourceTexelCoordUL + uint2(0u, 1u), hvsssSourceLimit))];
         shadowDataAccumulated += weight11 * _HVSSSSourceTexture[COORD_TEXTURE2D_X(min(hvsssSourceTexelCoordUL + uint2(1u, 1u), hvsssSourceLimit))];
         shadowDataAccumulated *= weightNormalization;
+#endif
+
+        if (IsFinalBlit(false))
+        {
+            shadowDataAccumulated = ComputeContrast(shadowDataAccumulated);
+        }
 
         _HVSSSDestinationTexture[COORD_TEXTURE2D_X(hvsssDestinationTexelCoord)] = shadowDataAccumulated;
-#endif
     }
 }

@@ -992,6 +992,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _HVSSSThickness = Shader.PropertyToID("_HVSSSThickness");
         public static readonly int _HVSSSRaymarchLODBiasMinMax = Shader.PropertyToID("_HVSSSRaymarchLODBiasMinMax");
         public static readonly int _HVSSSDitherMode = Shader.PropertyToID("_HVSSSDitherMode");
+        public static readonly int _HVSSSUpsampleBlurRadiusPixelsAndInverseSquared = Shader.PropertyToID("_HVSSSUpsampleBlurRadiusPixelsAndInverseSquared");
+        public static readonly int _HVSSSContrastAndBlackpointAndDitherMode = Shader.PropertyToID("_HVSSSContrastAndBlackpointAndDitherMode");
+        public static readonly int _HVSSSEVSMExponents = Shader.PropertyToID("_HVSSSEVSMExponents");
     }
 
     // Shared material property names
