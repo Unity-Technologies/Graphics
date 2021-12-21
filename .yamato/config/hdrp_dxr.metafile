@@ -21,8 +21,8 @@ platforms:
       default:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:latest
-        flavor: b1.xlarge
-        model: gtx1080
+        flavor: b1.large
+        model: rtx2080
 
 jobs:
   - name: PR <PROJECT_NAME>
