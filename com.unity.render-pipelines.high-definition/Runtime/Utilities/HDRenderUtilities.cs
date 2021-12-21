@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="position">The probe position to use.</param>
         /// <param name="cameras">Will receives the camera settings.</param>
         /// <param name="cameraPositions">Will receives the camera position settings.</param>
-        /// <param name="cubeFaces">Will receive the cube face settings.</param>
+        /// <param name="cameraCubeFaces">Will receive the camera cube face settings.</param>
         /// <param name="overrideSceneCullingMask">Override of the scene culling mask.</param>
         /// <param name="renderSteps">The rendering steps to perform for this probe.</param>
         /// <param name="forceFlipY">Whether to force the Y axis flipping.</param>

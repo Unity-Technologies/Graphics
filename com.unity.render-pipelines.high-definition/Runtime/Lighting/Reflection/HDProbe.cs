@@ -40,16 +40,32 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public static class ProbeRenderStepsExt
     {
+        /// <summary>
+        /// Test if any bits are set.
+        /// </summary>
+        /// <param name="steps">The probe rendering steps.</param>
+        /// <returns>True if any bits are set, false otherwise.</returns>
         public static bool IsNone(this ProbeRenderSteps steps)
         {
             return steps == ProbeRenderSteps.None;
         }
 
+        /// <summary>
+        /// Test if the bit for the given cubemap face is set.
+        /// </summary>
+        /// <param name="steps">The probe rendering steps.</param>
+        /// <param name="face">The cubemap face index.</param>
+        /// <returns>True if the cubemap face bit is set, false otherwise.</returns>
         public static bool HasCubeFace(this ProbeRenderSteps steps, int face)
         {
             return steps.HasFlag((ProbeRenderSteps)((int)ProbeRenderSteps.CubeFace0 << face));
         }
 
+        /// <summary>
+        /// Extract the lowest set bit.
+        /// </summary>
+        /// <param name="steps">The probe rendering steps.</param>
+        /// <returns>The lowest set bit, or None.</returns>
         public static ProbeRenderSteps LowestSetBit(this ProbeRenderSteps steps)
         {
             int bits = (int)steps;
@@ -521,8 +537,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ProbeSettings.RealtimeMode realtimeMode { get => m_ProbeSettings.realtimeMode; set => m_ProbeSettings.realtimeMode = value; }
         /// <summary>
         /// Whether the realtime probe uses time slicing
-        public bool timeSlicing { get => m_ProbeSettings.timeSlicing; set => m_ProbeSettings.timeSlicing = value; }
         /// </summary>
+        public bool timeSlicing { get => m_ProbeSettings.timeSlicing; set => m_ProbeSettings.timeSlicing = value; }
         /// <summary>
         /// Resolution of the probe.
         /// </summary>
