@@ -221,7 +221,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // Forces the re-rendering for both OnDemand and OnEnable, cancelling any render already in progress
         internal void ForceRealtimeRenderAfterThisFrame()
         {
             HandlePendingRenderRequest();
