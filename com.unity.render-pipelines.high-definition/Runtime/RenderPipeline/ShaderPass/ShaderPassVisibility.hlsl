@@ -34,7 +34,7 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 void Frag(
     PackedVaryingsToPS packedInput,
     out uint outVisibility0 : SV_Target0,
-    out uint outVisibility1 : SV_Target1)
+    out uint2 outVisibility1 : SV_Target1)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);

@@ -99,37 +99,48 @@ Varyings Vert(Attributes inputMesh)
 
 #define INTERPOLATE_ATTRIBUTE(A0, A1, A2, BARYCENTRIC_COORDINATES) (A0 * BARYCENTRIC_COORDINATES.x + A1 * BARYCENTRIC_COORDINATES.y + A2 * BARYCENTRIC_COORDINATES.z)
 
-float3 ComputeBarycentricCoords(float2 p, float2 a, float2 b, float2 c)
+// Analytical derivatives, Hable 2021
+//http://filmicworlds.com/blog/visibility-buffer-rendering-with-material-graphs/
+struct BarycentricDeriv
 {
-    float2 v0 = b - a, v1 = c - a, v2 = p - a;
-    float d00 = dot(v0, v0);
-    float d01 = dot(v0, v1);
-    float d11 = dot(v1, v1);
-    float d20 = dot(v2, v0);
-    float d21 = dot(v2, v1);
-    float denom = d00 * d11 - d01 * d01;
-    float3 barycentricCoords;
-    barycentricCoords.y = (d11 * d20 - d01 * d21) / denom;
-    barycentricCoords.z = (d00 * d21 - d01 * d20) / denom;
-    barycentricCoords.x = 1.0f - barycentricCoords.y - barycentricCoords.z;
-    return barycentricCoords;
+    float3 m_lambda;
+    float3 m_ddx;
+    float3 m_ddy;
+};
+
+BarycentricDeriv CalcFullBary(float4 pt0, float4 pt1, float4 pt2, float2 pixelNdc, float2 winSize)
+{
+    BarycentricDeriv ret = (BarycentricDeriv)0;
+
+    float3 invW = rcp(float3(pt0.w, pt1.w, pt2.w));
+
+    float2 ndc0 = pt0.xy * invW.x;
+    float2 ndc1 = pt1.xy * invW.y;
+    float2 ndc2 = pt2.xy * invW.z;
+
+    float invDet = rcp(determinant(float2x2(ndc2 - ndc1, ndc0 - ndc1)));
+    ret.m_ddx = float3(ndc1.y - ndc2.y, ndc2.y - ndc0.y, ndc0.y - ndc1.y) * invDet;
+    ret.m_ddy = float3(ndc2.x - ndc1.x, ndc0.x - ndc2.x, ndc1.x - ndc0.x) * invDet;
+
+    float2 deltaVec = pixelNdc - ndc0;
+    float interpInvW = (invW.x + deltaVec.x * dot(invW, ret.m_ddx) + deltaVec.y * dot(invW, ret.m_ddy));
+    float interpW = rcp(interpInvW);
+
+    ret.m_lambda.x = interpW * (invW[0] + deltaVec.x * ret.m_ddx.x * invW[0] + deltaVec.y * ret.m_ddy.x * invW[0]);
+    ret.m_lambda.y = interpW * (0.0f    + deltaVec.x * ret.m_ddx.y * invW[1] + deltaVec.y * ret.m_ddy.y * invW[1]);
+    ret.m_lambda.z = interpW * (0.0f    + deltaVec.x * ret.m_ddx.z * invW[2] + deltaVec.y * ret.m_ddy.z * invW[2]);
+
+    ret.m_ddx *= (2.0f/winSize.x);
+    ret.m_ddy *= (2.0f/winSize.y);
+
+    ret.m_ddy *= -1.0f;
+
+    return ret;
 }
 
-float2 DecompressVector2(uint direction)
-{
-    float x = f16tof32(direction);
-    float y = f16tof32(direction >> 16);
-    return float2(x,y);
-}
-
-float3 DecompressVector3(uint direction)
-{
-    float x = f16tof32(direction);
-    float y = f16tof32(direction >> 16);
-    return UnpackNormalOctQuadEncode(float2(x,y) * 2.0 - 1.0);
-}
 
 FragInputs EvaluateFragInput(
+    float2 ndc,
     float4 posSS,
     in GeoPoolMetadataEntry geoMetadata,
     in Visibility::VisibilityData visData,
@@ -148,22 +159,14 @@ FragInputs EvaluateFragInput(
     float3 pos1WS = TransformObjectToWorld(v1.pos);
     float3 pos2WS = TransformObjectToWorld(v2.pos);
 
-    // Compute the supporting plane properties
-    float3 triangleCenter = (pos0WS + pos1WS + pos2WS) / 3.0;
-    float3 triangleNormal = normalize(cross(pos2WS - pos0WS, pos1WS - pos0WS));
+    float4 p0h = mul(GetWorldToHClipMatrix(), float4(pos0WS, 1.0));
+    float4 p1h = mul(GetWorldToHClipMatrix(), float4(pos1WS, 1.0));
+    float4 p2h = mul(GetWorldToHClipMatrix(), float4(pos2WS, 1.0));
 
-    // Compute the world to plane matrix
-    float3 yLocalPlane = normalize(pos1WS - pos0WS);
-    float3x3 worldToPlaneMatrix = float3x3(cross(yLocalPlane, triangleNormal), yLocalPlane, triangleNormal);
-
-    // Project all point onto the 2d supporting plane
-    float3 projectedWS = mul(worldToPlaneMatrix, posWS - dot(posWS - triangleCenter, triangleNormal) * triangleNormal);
-    float3 projected0WS = mul(worldToPlaneMatrix, pos0WS - dot(pos0WS - triangleCenter, triangleNormal) * triangleNormal);
-    float3 projected1WS = mul(worldToPlaneMatrix, pos1WS - dot(pos1WS - triangleCenter, triangleNormal) * triangleNormal);
-    float3 projected2WS = mul(worldToPlaneMatrix, pos2WS - dot(pos2WS - triangleCenter, triangleNormal) * triangleNormal);
+    BarycentricDeriv baryResult = CalcFullBary(p0h, p1h, p2h, ndc, (float2)_ScreenSize.xy);
 
     // Evaluate the barycentrics
-    float3 barycentricCoordinates = ComputeBarycentricCoords(projectedWS.xy, projected0WS.xy, projected1WS.xy, projected2WS.xy);
+    float3 barycentricCoordinates = baryResult.m_lambda;
 
     // Get normal at position
     float3 normalOS0 = v0.N;
@@ -220,8 +223,6 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     //Setup visibility buffer
     {
         DOTSVisibleData dotsVisData;
-        //TODO: hack hack hack, this is so the runtime can recognize this as a DOTS visibility cbuffer, and we can run with the proper dots
-        // mask.
         dotsVisData.VisibleData = uint4(visData.DOTSInstanceIndex, 0, 0, 0);
         unity_SampledDOTSVisibleData = dotsVisData;
     }
@@ -238,17 +239,15 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     float depthValue = LOAD_TEXTURE2D_X(_VisBufferDepthTexture, pixelCoord);
     float2 ndc = pixelCoord * _ScreenSize.zw;
     float3 posWS = ComputeWorldSpacePosition(ndc, depthValue, UNITY_MATRIX_I_VP);
+    ndc = (ndc * 2.0 - 1.0) * float2(1.0, -1.0);
     float3 V = GetWorldSpaceNormalizeViewDir(posWS);
 
     float3 debugValue = float3(0,0,0);
-    FragInputs input = EvaluateFragInput(packedInput.positionCS, geometryMetadata, visData, posWS, V, debugValue);
-    //outColor = float4(Visibility::DebugVisIndexToRGB(visData.primitiveID), 1.0);
+    FragInputs input = EvaluateFragInput(ndc, packedInput.positionCS, geometryMetadata, visData, posWS, V, debugValue);
 
     int2 tileCoord = (float2)input.positionSS.xy / GetTileSize();
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
 
-    //TODO: figure out lightmap / probe sampling
-    //unity_LightmapST = float4(0,0,0,0);//instanceVData.lightmapST;
     SurfaceData surfaceData;
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);

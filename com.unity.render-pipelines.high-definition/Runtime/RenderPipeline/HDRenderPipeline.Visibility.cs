@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var visibilityMaterial = currentAsset.VisibilityMaterial;
             var visFormat0 = GraphicsFormat.R32_UInt;
-            var visFormat1 = GraphicsFormat.R8_UInt;
+            var visFormat1 = GraphicsFormat.R8G8_UInt;
             output.vbuffer.valid = true;
 
             TextureHandle vbuffer0, vbuffer1;

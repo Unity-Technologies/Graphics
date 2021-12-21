@@ -6,7 +6,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 
 TEXTURE2D_X_UINT(_VisBufferTexture0);
-TEXTURE2D_X_UINT(_VisBufferTexture1);
+TEXTURE2D_X_UINT2(_VisBufferTexture1);
 
 TEXTURE2D_X_UINT(_VisBufferFeatureTiles);
 TEXTURE2D_X_UINT2(_VisBufferMaterialTiles);
@@ -50,30 +50,23 @@ float3 DebugVisIndexToRGB(uint index, uint maxCol = 512)
     return saturate(float3(R,G,B));
 }
 
-uint PackVisibilityData(in VisibilityData data)
-{
-    uint packedData = 0;
-    packedData |= (data.DOTSInstanceIndex & 0xffff);
-    packedData |= (data.primitiveID & 0x7fff) << 16;
-    packedData |= (data.valid ? 1 : 0) << 31;
-    return packedData;
-}
-
-void PackVisibilityData(in VisibilityData data, out uint packedData0, out uint packedData1)
+void PackVisibilityData(in VisibilityData data, out uint packedData0, out uint2 packedData1)
 {
     packedData0 = 0;
     packedData0 |= (data.DOTSInstanceIndex & 0xffff);
     packedData0 |= (data.primitiveID & 0x7fff) << 16;
     packedData0 |= (data.valid ? 1 : 0) << 31;
-    packedData1 = data.batchID;
+    packedData1.x = data.batchID;
+    packedData1.y = (data.primitiveID >> 15) & 0xFF;
 }
 
-void UnpackVisibilityData(uint packedData0, uint packedData1, out VisibilityData data)
+void UnpackVisibilityData(uint packedData0, uint2 packedData1, out VisibilityData data)
 {
     data.valid = (packedData0 >> 31) != 0;
     data.DOTSInstanceIndex = (packedData0 & 0xffff);
-    data.primitiveID = (packedData0 >> 16) & 0x7fff;
-    data.batchID = packedData1;
+    data.primitiveID = ((packedData0 >> 16) & 0x7fff ) | (packedData1.y << 15);
+    data.batchID = packedData1.x;
+
 }
 
 uint GetMaterialKey(in VisibilityData visData, out GeoPoolMetadataEntry metadataEntry)
@@ -91,7 +84,7 @@ uint GetMaterialKey(in VisibilityData visData, out GeoPoolMetadataEntry metadata
 VisibilityData LoadVisibilityData(uint2 coord)
 {
     uint value0 = LOAD_TEXTURE2D_X(_VisBufferTexture0, (uint2)coord.xy).x;
-    uint value1 = LOAD_TEXTURE2D_X(_VisBufferTexture1, (uint2)coord.xy).x;
+    uint2 value1 = LOAD_TEXTURE2D_X(_VisBufferTexture1, (uint2)coord.xy).xy;
     VisibilityData visData;
     Visibility::UnpackVisibilityData(value0, value1, visData);
     return visData;
