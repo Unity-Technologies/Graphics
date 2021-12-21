@@ -558,7 +558,8 @@ namespace UnityEngine.Experimental.Rendering
                     cell.validity[i] = validity[j];
                 }
 
-                cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out _, out _);
+                cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out _, out _)
+                                       / 243; // TESTING WORKAROUND
                 cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Length);
 
                 m_BakedCells[cell.index] = cell;
