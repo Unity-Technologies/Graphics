@@ -20,7 +20,7 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: graphics-qa/win10-gfx:v1.0.0-770719
+        image: automation-tooling/win-10:latest
         flavor: b1.large
         model: gtx1080
 
