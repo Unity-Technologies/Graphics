@@ -45,20 +45,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.slices = hdCamera.viewCount;
 
                 // Grab the history buffer
-                TextureHandle history = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
-                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1));
+                TextureHandle history = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing));
 
-                passData.color = builder.WriteTexture(history);
+                passData.color = builder.ReadWriteTexture(history);
 
                 passData.outputTexture = builder.WriteTexture(outputTexture);
 
                 if (m_PathTracingSettings.useAOVs.value)
                 {
-                    TextureHandle albedoHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AlbedoAOV)
-                        ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AlbedoAOV, PathTracingHistoryBufferAllocatorFunction, 1));
+                    TextureHandle albedoHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AlbedoAOV));
 
-                    TextureHandle normalHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.NormalAOV)
-                        ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.NormalAOV, PathTracingHistoryBufferAllocatorFunction, 1));
+                    TextureHandle normalHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.NormalAOV));
 
                     passData.albedoAOV = builder.ReadTexture(albedoHistory);
                     passData.normalAOV = builder.ReadTexture(normalHistory);
@@ -66,8 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_PathTracingSettings.temporal.value)
                 {
-                    TextureHandle motionVectorHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.MotionVectorAOV)
-                        ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.MotionVectorAOV, PathTracingHistoryBufferAllocatorFunction, 1));
+                    TextureHandle motionVectorHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.MotionVectorAOV));
                     passData.motionVectorAOV = builder.ReadTexture(motionVectorHistory);
                 }
 
