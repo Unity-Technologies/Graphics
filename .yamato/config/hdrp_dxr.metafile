@@ -21,7 +21,7 @@ platforms:
       default:
         type: Unity::VM::GPU
         image: automation-tooling/win-10:latest
-        flavor: b1.large
+        flavor: b1.xlarge
         model: gtx1080
 
 jobs:
