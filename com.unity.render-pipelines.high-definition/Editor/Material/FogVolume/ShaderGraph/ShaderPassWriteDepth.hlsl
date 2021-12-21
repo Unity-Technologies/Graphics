@@ -22,8 +22,19 @@ void Frag(PackedVaryingsToPS packedInput, out float4 outColor : SV_Target0)
 
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);
-
+    
+    float3 positionVS = TransformWorldToView(input.positionRWS);
+    // if (positionVS.z <= 0) // it's okay to do this because we only support convex meshes
+    // {
+    //     _FogVolumeDepth[COORD_TEXTURE2D_X(posInput.positionSS.xy)] = 0;
+    // }
     // TODO: check is front face and disable ZClip + CullMode to avoid camera clipping issues
-
-    _FogVolumeDepth[COORD_TEXTURE2D_X(posInput.positionSS.xy)] = length(input.positionRWS);
+    if (input.isFrontFace)
+    {
+        _FogVolumeDepth[COORD_TEXTURE2D_X(posInput.positionSS.xy)] = length(input.positionRWS);
+    }
+    // else if (positionVS.z > 0)
+    // {
+    //     _FogVolumeDepth[COORD_TEXTURE2D_X(posInput.positionSS.xy)] = 0.1;
+    // }
 }

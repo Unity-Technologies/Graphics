@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     internal static class CreateFogVolumeShaderGraph
     {
-        [MenuItem("Assets/Create/Shader Graph/HDRP/Fog Volume Shader Graph", priority = CoreUtils.Sections.section4 + CoreUtils.Priorities.assetsCreateShaderMenuPriority + 8)]
+        [MenuItem("Assets/Create/Shader Graph/HDRP/Fog Volume Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 8)]
         public static void Create()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));

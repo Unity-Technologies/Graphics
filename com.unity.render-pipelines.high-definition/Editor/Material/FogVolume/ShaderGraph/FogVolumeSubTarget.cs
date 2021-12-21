@@ -61,6 +61,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             yield return PostProcessSubShader(subShader);
         }
 
+        public static StructDescriptor Varyings = new StructDescriptor()
+        {
+            name = "Varyings",
+            packFields = true,
+            populateWithCustomInterpolators = false,
+            fields = new FieldDescriptor[]
+            {
+                StructFields.Varyings.positionCS,
+                StructFields.Varyings.cullFace,
+            }
+        };
+
         PassDescriptor GetWriteDepthPass()
         {
             return new PassDescriptor()
@@ -73,13 +85,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Port mask
                 validPixelBlocks = FogVolumeBlocks.FragmentDefault,
+                requiredFields = new FieldCollection{ StructFields.SurfaceDescriptionInputs.FaceSign },
 
+                // structs = HDShaderPasses.GenerateStructs(new StructCollection
+                // {
+                //     { Structs.SurfaceDescriptionInputs },
+                //     { Varyings },
+                //     { Structs.VertexDescriptionInputs },
+                // }, TargetsVFX(), false),
                 structs = HDShaderPasses.GenerateStructs(null, TargetsVFX(), false),
                 pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false),
                 defines = HDShaderPasses.GenerateDefines(null, TargetsVFX(), false),
                 renderStates = FogVolumeRenderStates.DepthPass,
                 includes = FogVolumeIncludes.WriteDepth,
-                customInterpolators = CoreCustomInterpolators.Common,
             };
         }
 
@@ -101,7 +119,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = HDShaderPasses.GenerateDefines(null, TargetsVFX(), false),
                 renderStates = FogVolumeRenderStates.Voxelize,
                 includes = FogVolumeIncludes.Voxelize,
-                customInterpolators = CoreCustomInterpolators.Common,
             };
         }
 
@@ -153,7 +170,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             public static RenderStateCollection DepthPass = new RenderStateCollection
             {
-                { RenderState.Cull(Cull.Back) },
+                { RenderState.Cull(Cull.Off) },
                 { RenderState.ZTest(ZTest.Always) },
                 { RenderState.ZWrite(ZWrite.Off) },
                 { RenderState.ZClip("Off") },

@@ -56,21 +56,11 @@ void Frag(PackedVaryingsToPS packedInput, out float4 outColor : SV_Target0)
     float stopDistance = length(input.positionRWS);
 
     // Calculate the number of voxels/froxels to write:
-    int startVoxelIndex = 0; //DepthToSlice(startDistance);
-    int stopVoxelIndex = 20; //DepthToSlice(stopDistance);
+    int startVoxelIndex = DepthToSlice(startDistance);
+    int stopVoxelIndex = DepthToSlice(stopDistance);
 
     float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
     float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
-
-    // float3 objPos = TransformWorldToObject(input.positionRWS);
-
-    // uint3 voxelCoord = uint3(posInput.positionSS.xy, 0);
-    // _VBufferDensity[voxelCoord] = float4(input.positionRWS, 0.1);
-    // return;
-    // float3 p = input.positionRWS;
-
-    float4 color = 0;
-    // uint3 voxelCoord = 0;
 
     for (int voxelDepthIndex = startVoxelIndex; voxelDepthIndex <= stopVoxelIndex; voxelDepthIndex++)
     {
@@ -92,10 +82,9 @@ void Frag(PackedVaryingsToPS packedInput, out float4 outColor : SV_Target0)
 
         GetVolumeData(input, V, scatteringColor, density);
 
-        // voxelCoord = uint3(posInput.positionSS.xy, voxelDepthIndex + _VBufferSliceCount * unity_StereoEyeIndex);
-        color += float4(scatteringColor, density);
+        uint3 voxelCoord = uint3(posInput.positionSS.xy, voxelDepthIndex + _VBufferSliceCount * unity_StereoEyeIndex);
+        _VBufferDensity[voxelCoord] += max(0, float4(scatteringColor, density));
     }
-    _VBufferDensity[uint3(posInput.positionSS.xy, 0)] = color;
 
     // TODO: set color mask to 0 and remove this line
     outColor = 0;
