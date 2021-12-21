@@ -184,7 +184,10 @@ namespace UnityEditor.VFX.UI
             if (scrollView != null)
             {
                 var addOutputButton  = scrollView.Q<Button>("addOutputButton");
-                addOutputButton.style.left = -scrollView.horizontalScroller.highValue + scrollView.horizontalScroller.value;
+                if (addOutputButton != null)
+                {
+                    addOutputButton.style.left = -scrollView.horizontalScroller.highValue + scrollView.horizontalScroller.value;
+                }
             }
         }
 
