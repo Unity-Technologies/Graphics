@@ -104,7 +104,25 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader m_ScreenSpaceReflectionsCS { get { return defaultResources.shaders.screenSpaceReflectionsCS; } }
         int m_SsrTracingKernel = -1;
         int m_SsrReprojectionKernel = -1;
-        int m_SsrAccumulateKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionBothKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionSurfaceKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionHitKernel = -1;
+        int m_SsrAccumulateHardThresholdSpeedRejectionBothKernel = -1;
+        int m_SsrAccumulateHardThresholdSpeedRejectionSurfaceKernel = -1;
+        int m_SsrAccumulateHardThresholdSpeedRejectionHitKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionBothKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionSurfaceKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionHitKernel = -1;
+
+        int m_SsrAccumulateNoWorldSpeedRejectionBothDebugKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionSurfaceDebugKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionHitDebugKernel = -1;
+        int m_SsrAccumulateHardThresholdSpeedRejectionBothDebugKernel = -1;
+        int m_SsrAccumulateHardThresholdSpeedRejectionSurfaceDebugKernel = -1;
+        int m_SsrAccumulateHardThresholdSpeedRejectionHitDebugKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionBothDebugKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel = -1;
 
         Material m_ApplyDistortionMaterial;
         Material m_FinalBlitWithOETF;
@@ -374,7 +392,25 @@ namespace UnityEngine.Rendering.HighDefinition
             // Initialize various compute shader resources
             m_SsrTracingKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
             m_SsrReprojectionKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsReprojection");
-            m_SsrAccumulateKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulate");
+            m_SsrAccumulateNoWorldSpeedRejectionBothKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth");
+            m_SsrAccumulateNoWorldSpeedRejectionSurfaceKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly");
+            m_SsrAccumulateNoWorldSpeedRejectionHitKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly");
+            m_SsrAccumulateHardThresholdSpeedRejectionBothKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth");
+            m_SsrAccumulateHardThresholdSpeedRejectionSurfaceKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly");
+            m_SsrAccumulateHardThresholdSpeedRejectionHitKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly");
+            m_SsrAccumulateSmoothSpeedRejectionBothKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth");
+            m_SsrAccumulateSmoothSpeedRejectionSurfaceKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly");
+            m_SsrAccumulateSmoothSpeedRejectionHitKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly");
+
+            m_SsrAccumulateNoWorldSpeedRejectionBothDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBothDebug");
+            m_SsrAccumulateNoWorldSpeedRejectionSurfaceDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnlyDebug");
+            m_SsrAccumulateNoWorldSpeedRejectionHitDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnlyDebug");
+            m_SsrAccumulateHardThresholdSpeedRejectionBothDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBothDebug");
+            m_SsrAccumulateHardThresholdSpeedRejectionSurfaceDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnlyDebug");
+            m_SsrAccumulateHardThresholdSpeedRejectionHitDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnlyDebug");
+            m_SsrAccumulateSmoothSpeedRejectionBothDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBothDebug");
+            m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnlyDebug");
+            m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnlyDebug");
 
             m_CopyDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyDepthBufferPS);
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
@@ -462,7 +498,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 InitRayTracedIndirectDiffuse();
                 InitRaytracingDeferred();
                 InitRecursiveRenderer();
-                InitPathTracing(m_RenderGraph);
+                InitPathTracing();
                 InitRayTracingAmbientOcclusion();
             }
 

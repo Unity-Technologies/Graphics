@@ -215,34 +215,34 @@ namespace UnityEngine.Rendering.HighDefinition
     public enum TileClusterCategoryDebug : int
     {
         /// <summary>Punctual lights.</summary>
-        Punctual = 1,
+        Punctual = (1 << LightCategory.Punctual),
         /// <summary>Area lights.</summary>
-        Area = 2,
+        Area = (1 << LightCategory.Area),
         /// <summary>Area and punctual lights.</summary>
         [InspectorName("Area and Punctual")]
-        AreaAndPunctual = 3,
+        AreaAndPunctual = Area | Punctual,
         /// <summary>Environment lights.</summary>
         [InspectorName("Reflection Probes")]
-        Environment = 4,
+        Environment = (1 << LightCategory.Env),
         /// <summary>Environment and punctual lights.</summary>
         [InspectorName("Reflection Probes and Punctual")]
-        EnvironmentAndPunctual = 5,
+        EnvironmentAndPunctual = Environment | Punctual,
         /// <summary>Environment and area lights.</summary>
         [InspectorName("Reflection Probes and Area")]
-        EnvironmentAndArea = 6,
+        EnvironmentAndArea = Environment | Area,
         /// <summary>All lights.</summary>
         [InspectorName("Reflection Probes, Area and Punctual")]
-        EnvironmentAndAreaAndPunctual = 7,
+        EnvironmentAndAreaAndPunctual = Environment | Area | Punctual,
         /// <summary>Decals.</summary>
-        Decal = 8,
+        Decal = (1 << LightCategory.Decal),
         /// <summary>Capsule Occluders.</summary>
-        CapsuleOccluder = 16,
+        CapsuleOccluder = (1 << LightCategory.CapsuleOccluder),
         /// <summary>Local Volumetric Fog.</summary>
-        LocalVolumetricFog = 32,
+        LocalVolumetricFog = (1 << LightCategory.LocalVolumetricFog),
         /// <summary>Local Volumetric Fog.</summary>
         [Obsolete("Use LocalVolumetricFog", false)]
         [InspectorName("Local Volumetric Fog")]
-        DensityVolumes = 32
+        DensityVolumes = LocalVolumetricFog
     };
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
