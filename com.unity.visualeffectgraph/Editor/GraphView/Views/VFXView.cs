@@ -1991,7 +1991,6 @@ namespace UnityEditor.VFX.UI
             if (objectSelected.Length > 0)
             {
                 Selection.objects = objectSelected;
-                Selection.objects = objectSelected;
                 return;
             }
 
@@ -2049,10 +2048,8 @@ namespace UnityEditor.VFX.UI
 
         public override void ClearSelection()
         {
-            bool selectionEmpty = selection.Count() == 0;
             base.ClearSelection();
-            if (!selectionEmpty)
-                UpdateGlobalSelection();
+            Selection.objects = null;
         }
 
         VFXBlackboard m_Blackboard;
