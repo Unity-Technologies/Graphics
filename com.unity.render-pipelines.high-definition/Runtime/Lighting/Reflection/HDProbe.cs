@@ -269,11 +269,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal uint GetTextureHash()
         {
-            uint textureHash = m_RealtimeRenderCount;
+            uint textureHash = (mode == ProbeSettings.Mode.Realtime) ? m_RealtimeRenderCount : texture.updateCount;
             // For baked probes in the editor we need to factor in the actual hash of texture because we can't increment the render count of a texture that's baked on the disk.
 #if UNITY_EDITOR
-            if (m_BakedTexture != null)
-                textureHash += (uint)m_BakedTexture.imageContentsHash.GetHashCode();
+            textureHash += (uint)texture.imageContentsHash.GetHashCode();
 #endif
             return textureHash;
 
