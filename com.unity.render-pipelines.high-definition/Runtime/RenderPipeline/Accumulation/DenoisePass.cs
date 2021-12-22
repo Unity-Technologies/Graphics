@@ -76,8 +76,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (camData.currentIteration == (data.subFrameManager.subFrameCount) && camData.denoiser.type != DenoiserType.None)
                     {
-                        bool useAsync = false;
-
                         if (!camData.denoiser.denoised)
                         {
                             camData.denoiser.denoised = true;
@@ -96,22 +94,15 @@ namespace UnityEngine.Rendering.HighDefinition
                                 camData.denoiser.DenoiseRequest(ctx.cmd, "flow", data.motionVectorAOV);
                             }
 
-                            if (!useAsync)
-                            {
-                                camData.denoiser.WaitForCompletion();
-                                camData.denoiser.GetResults(ctx.cmd, data.color);
+                            camData.denoiser.WaitForCompletion(ctx.renderContext, ctx.cmd);
 
-                                // Blit the denoised image from the history buffer and apply exposure.
-                                ctx.cmd.SetComputeTextureParam(data.blitAndExposeCS, data.blitAndExposeKernel, HDShaderIDs._InputTexture, data.color);
-                                ctx.cmd.SetComputeTextureParam(data.blitAndExposeCS, data.blitAndExposeKernel, HDShaderIDs._OutputTexture, data.outputTexture);
-                                ctx.cmd.DispatchCompute(data.blitAndExposeCS, data.blitAndExposeKernel, (data.width + 7) / 8, (data.height + 7) / 8, data.slices);
-                            }
-                        }
-
-                        // if denoised frame is ready, blit it
-                        if (useAsync && camData.denoiser.QueryCompletion())
-                        {
                             camData.denoiser.GetResults(ctx.cmd, data.color);
+
+                            // Blit the denoised image from the history buffer and apply exposure.
+                            ctx.cmd.SetComputeTextureParam(data.blitAndExposeCS, data.blitAndExposeKernel, HDShaderIDs._InputTexture, data.color);
+                            ctx.cmd.SetComputeTextureParam(data.blitAndExposeCS, data.blitAndExposeKernel, HDShaderIDs._OutputTexture, data.outputTexture);
+                            ctx.cmd.DispatchCompute(data.blitAndExposeCS, data.blitAndExposeKernel, (data.width + 7) / 8, (data.height + 7) / 8, data.slices);
+                            
                         }
                     }
                 });
