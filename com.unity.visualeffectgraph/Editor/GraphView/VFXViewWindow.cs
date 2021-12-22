@@ -217,6 +217,7 @@ namespace UnityEditor.VFX.UI
             InternalLoadResource(m_ResourceHistory.Last());
 
             m_ResourceHistory.RemoveAt(m_ResourceHistory.Count - 1);
+            graphView.ClearSelection();
         }
 
         protected void CreateGUI()
