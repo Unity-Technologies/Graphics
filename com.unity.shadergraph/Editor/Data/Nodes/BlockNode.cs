@@ -5,6 +5,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using UnityEngine.Rendering.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -30,6 +31,8 @@ namespace UnityEditor.ShaderGraph
 
         public override bool canCutNode => false;
         public override bool canCopyNode => false;
+
+        public override string documentationURL => Documentation.GetPageLink("Block-Node");
 
         // Because the GraphData is deserialized after its child elements
         // the descriptor list is not built (and owner is not set)
