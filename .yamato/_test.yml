@@ -1,3 +1,8 @@
+{% metadata_file .yamato/_cache_config.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+
+---
+
 Affected_jobs:
     name: Affected jobs
     variables:
