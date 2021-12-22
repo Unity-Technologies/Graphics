@@ -4,6 +4,8 @@ project:
 test_platforms:
   - type: Standalone
   - type: playmode
+    utr_flags:
+      - [all]: --timeout=2400
   - type: playmode
     name: playmode_XR
     utr_flags:
