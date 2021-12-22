@@ -2049,9 +2049,14 @@ namespace UnityEditor.VFX.UI
         public override void ClearSelection()
         {
             base.ClearSelection();
-            Selection.objects = controller.model != null
+            Selection.objects = controller != null && controller.model != null
                 ? new [] { controller.model.isSubgraph ? controller.model.subgraph : (VisualEffectObject)controller.model.asset }
                 : null;
+        }
+
+        public void ClearSelectionOnly()
+        {
+            base.ClearSelection();
         }
 
         VFXBlackboard m_Blackboard;
