@@ -6,36 +6,6 @@ using UnityEngine.UIElements;
 
 namespace UnityEngine.Rendering
 {
-    [GenerateHLSL]
-    public enum CapsuleShadowMethod
-    {
-        FlattenThenClosestSphere,
-        ClosestSphere,
-        Ellipsoid
-    }
-
-    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
-    public struct ShaderVariablesCapsuleOccluders
-    {
-        public int _CapsuleOccluderCount;
-        public int _CapsuleOccluderShadowMethod;
-        public int _CapsuleOccluderFadeSelfShadow;
-        public int _CapsuleOccluderPad1;
-    }
-
-    [GenerateHLSL(needAccessors = false)]
-    public struct CapsuleOccluderData
-    {
-        public Vector3 centerRWS;
-        public float radius;
-        public Vector3 axisDirWS;
-        public float offset;
-        public uint lightLayers;
-        public float pad0;
-        public float pad1;
-        public float pad2;
-    }
-
     /// <summary>Light Layers.</summary>
     [Flags]
     public enum CapsuleOccluderLightLayer
@@ -93,27 +63,6 @@ namespace UnityEngine.Rendering
         private void OnDisable()
         {
             CapsuleOccluderManager.instance.DeregisterCapsule(this);
-        }
-
-        public CapsuleOccluderData GetOccluderData(Vector3 originWS)
-        {
-            Transform tr = transform;
-            Matrix4x4 localToWorld = this.capsuleToWorld;
-
-            float offset = Mathf.Max(0.0f, 0.5f * height - radius);
-
-            Vector3 centerRWS = localToWorld.MultiplyPoint3x4(Vector3.zero) - originWS;
-            Vector3 axisDirWS = localToWorld.MultiplyVector(Vector3.forward).normalized;
-            float radiusWS = localToWorld.MultiplyVector(radius * Vector3.right).magnitude;
-
-            return new CapsuleOccluderData
-            {
-                centerRWS = centerRWS,
-                radius = radiusWS,
-                axisDirWS = axisDirWS,
-                offset = offset,
-                lightLayers = (uint)lightLayersMask,
-            };
         }
     }
 }

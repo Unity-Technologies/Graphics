@@ -2,16 +2,16 @@
 // This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
-#ifndef CAPSULEOCCLUDER_CS_HLSL
-#define CAPSULEOCCLUDER_CS_HLSL
+#ifndef CAPSULEOCCLUDERDATA_CS_HLSL
+#define CAPSULEOCCLUDERDATA_CS_HLSL
 //
-// UnityEngine.Rendering.CapsuleShadowMethod:  static fields
+// UnityEngine.Rendering.HighDefinition.CapsuleShadowMethod:  static fields
 //
 #define CAPSULESHADOWMETHOD_FLATTEN_THEN_CLOSEST_SPHERE (0)
 #define CAPSULESHADOWMETHOD_CLOSEST_SPHERE (1)
 #define CAPSULESHADOWMETHOD_ELLIPSOID (2)
 
-// Generated from UnityEngine.Rendering.ShaderVariablesCapsuleOccluders
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesCapsuleOccluders
 // PackingRules = Exact
 CBUFFER_START(ShaderVariablesCapsuleOccluders)
     int _CapsuleOccluderCount;
@@ -20,7 +20,7 @@ CBUFFER_START(ShaderVariablesCapsuleOccluders)
     int _CapsuleOccluderPad1;
 CBUFFER_END
 
-// Generated from UnityEngine.Rendering.CapsuleOccluderData
+// Generated from UnityEngine.Rendering.HighDefinition.CapsuleOccluderData
 // PackingRules = Exact
 struct CapsuleOccluderData
 {

@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [Serializable, VolumeComponentMenuForRenderPipeline("Shadowing/Capsule Shadows", typeof(HDRenderPipeline))]
-    public class CapsuleShadows : VolumeComponent
+    public class CapsuleShadowsVolumeComponent : VolumeComponent
     {
         /// <summary>
         /// When enabled, HDRP processes Capsule Shadows for this Volume.
@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: move to settings/debug?
         public BoolParameter fadeSelfShadow = new BoolParameter(true);
 
-        CapsuleShadows()
+        CapsuleShadowsVolumeComponent()
         {
             displayName = "Capsule Shadows";
         }

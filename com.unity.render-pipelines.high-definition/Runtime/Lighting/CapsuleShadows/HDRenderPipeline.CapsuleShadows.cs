@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleCapsuleOccluderBounds.Clear();
             m_VisibleCapsuleOccluderData.Clear();
 
-            CapsuleShadows capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadows>();
+            CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
             if (capsuleShadows.enable.value)
             {
                 var occluders = CapsuleOccluderManager.instance.occluders;
