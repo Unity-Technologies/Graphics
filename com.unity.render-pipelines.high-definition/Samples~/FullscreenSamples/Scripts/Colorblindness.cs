@@ -24,14 +24,14 @@ public sealed class Colorblindness : CustomPostProcessVolumeComponent, IPostProc
     // Do not forget to add this post process in the Custom Post Process Orders list (Project Settings > Graphics > HDRP Settings).
     public override CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.AfterPostProcess;
 
-    const string kShaderName = "Fullscreen/SG_ColorBlindness";
+    const string kShaderName = "HDRPSamples/Colorblind";
 
     public override void Setup()
     {
         if (Shader.Find(kShaderName) != null)
             m_Material = new Material(Shader.Find(kShaderName));
         else
-            Debug.LogError($"Unable to find shader '{kShaderName}'. Post Process Volume CustomPP_ColorBlindness is unable to load.");
+            Debug.LogError($"Unable to find shader '{kShaderName}'. Post Process ColorBlindness is unable to load.");
     }
 
     public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)

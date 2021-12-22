@@ -715,7 +715,7 @@
         },
         "preventRotation": false
     },
-    "m_Path": "Fullscreen",
+    "m_Path": "HDRPSamples",
     "m_GraphPrecision": 1,
     "m_PreviewMode": 2,
     "m_OutputNode": {
@@ -3228,6 +3228,9 @@
     "m_Datas": [
         {
             "m_Id": "860255ef9ffb44b78f9debcb5480ad92"
+        },
+        {
+            "m_Id": "f2f53206d657480dacfb4c38b7688d80"
         }
     ],
     "m_CustomEditorGUI": "",
@@ -4709,6 +4712,13 @@
     "m_Value": 0.017750000581145288,
     "m_DefaultValue": 0.0,
     "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.Rendering.HighDefinition.ShaderGraph.HDFullscreenData",
+    "m_ObjectId": "f2f53206d657480dacfb4c38b7688d80",
+    "m_ShowOnlyHDStencilBits": true
 }
 
 {
