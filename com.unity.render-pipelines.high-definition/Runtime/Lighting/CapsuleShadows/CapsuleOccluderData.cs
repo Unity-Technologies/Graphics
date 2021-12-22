@@ -11,15 +11,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Ellipsoid
     }
 
-    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
-    internal struct ShaderVariablesCapsuleOccluders
-    {
-        public int _CapsuleOccluderCount;
-        public int _CapsuleOccluderShadowMethod;
-        public int _CapsuleOccluderFadeSelfShadow;
-        public int _CapsuleOccluderPad1;
-    }
-
     [GenerateHLSL(needAccessors = false)]
     internal struct CapsuleOccluderData
     {

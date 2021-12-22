@@ -9,8 +9,9 @@ StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;
 
 uint GetDefaultCapsuleShadowFeatureBits()
 {
+#ifdef DEBUG_DISPLAY
     uint featureBits = 0;
-    switch (_CapsuleOccluderShadowMethod) {
+    switch (_DebugCapsuleShadowMethod) {
     case CAPSULESHADOWMETHOD_ELLIPSOID:
         featureBits |= CAPSULE_SHADOW_FEATURE_ELLIPSOID;
         break;
@@ -18,10 +19,13 @@ uint GetDefaultCapsuleShadowFeatureBits()
         featureBits |= CAPSULE_SHADOW_FEATURE_FLATTEN;
         break;
     }
-    if (_CapsuleOccluderFadeSelfShadow) {
+    if (_DebugCapsuleFadeSelfShadow) {
         featureBits |= CAPSULE_SHADOW_FEATURE_FADE_SELF_SHADOW;
     }
     return featureBits;
+#else
+    return CAPSULE_SHADOW_FEATURE_FLATTEN | CAPSULE_SHADOW_FEATURE_FADE_SELF_SHADOW;
+#endif
 }
 
 float EvaluateCapsuleShadow(

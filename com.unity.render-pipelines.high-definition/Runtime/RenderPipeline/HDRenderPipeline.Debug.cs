@@ -214,6 +214,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._DebugSingleShadowIndex = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection ? m_DebugSelectedLightShadowIndex : (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowMapIndex;
 
                 cb._DebugAOVOutput = aovOutput ? 1 : 0;
+                cb._DebugCapsuleShadowMethod = (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleShadowMethod;
+                cb._DebugCapsuleFadeSelfShadow = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.fadeCapsuleSelfShadow ? 1 : 0;
 
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesDebugDisplayCB, HDShaderIDs._ShaderVariablesDebugDisplay);
 

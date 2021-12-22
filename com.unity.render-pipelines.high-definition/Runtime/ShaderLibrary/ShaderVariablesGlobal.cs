@@ -244,6 +244,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _EnableDecals;
         public uint _DecalCount;
 
+        // Capsule shadows
+        public uint _CapsuleOccluderCount;
+        public uint _CapsuleShadowPad0;
+        public uint _CapsuleShadowPad1;
+        public uint _CapsuleShadowPad2;
+
         public float _OffScreenDownsampleFactor;
         public uint _OffScreenRendering;
         public uint _XRViewCount;

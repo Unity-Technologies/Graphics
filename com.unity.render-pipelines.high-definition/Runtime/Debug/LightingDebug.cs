@@ -260,7 +260,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 || overrideAmbientOcclusion
                 || overrideSpecularColor
                 || overrideEmissiveColor
-                || shadowDebugMode == ShadowMapDebugMode.SingleShadow;
+                || shadowDebugMode == ShadowMapDebugMode.SingleShadow
+                || capsuleShadowMethod != CapsuleShadowMethod.FlattenThenClosestSphere
+                || !fadeCapsuleSelfShadow;
         }
 
         /// <summary>Current Light Filtering.</summary>
@@ -291,6 +293,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public float shadowResolutionScaleFactor = 1.0f;
         /// <summary>Clear shadow atlases each frame.</summary>
         public bool clearShadowAtlas = false;
+
+        /// <summary>Choose between alternative capsule shadow methods.</summary>
+        public CapsuleShadowMethod capsuleShadowMethod = CapsuleShadowMethod.FlattenThenClosestSphere;
+        /// <summary>Fade self-shadowing from capsule occluders.</summary>
+        public bool fadeCapsuleSelfShadow = true;
 
         /// <summary>Override smoothness of the whole scene for lighting debug.</summary>
         public bool overrideSmoothness = false;

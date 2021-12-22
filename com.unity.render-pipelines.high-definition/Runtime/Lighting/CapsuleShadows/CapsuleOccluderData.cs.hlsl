@@ -11,15 +11,6 @@
 #define CAPSULESHADOWMETHOD_CLOSEST_SPHERE (1)
 #define CAPSULESHADOWMETHOD_ELLIPSOID (2)
 
-// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesCapsuleOccluders
-// PackingRules = Exact
-CBUFFER_START(ShaderVariablesCapsuleOccluders)
-    int _CapsuleOccluderCount;
-    int _CapsuleOccluderShadowMethod;
-    int _CapsuleOccluderFadeSelfShadow;
-    int _CapsuleOccluderPad1;
-CBUFFER_END
-
 // Generated from UnityEngine.Rendering.HighDefinition.CapsuleOccluderData
 // PackingRules = Exact
 struct CapsuleOccluderData

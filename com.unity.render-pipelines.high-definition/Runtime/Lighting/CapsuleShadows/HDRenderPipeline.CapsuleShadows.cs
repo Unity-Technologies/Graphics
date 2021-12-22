@@ -139,20 +139,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_VisibleCapsuleOccluderDataBuffer.SetData(m_VisibleCapsuleOccluderData);
 
-            ShaderVariablesCapsuleOccluders shaderVariables = new ShaderVariablesCapsuleOccluders
-            {
-                _CapsuleOccluderCount = m_VisibleCapsuleOccluderData.Count,
-                _CapsuleOccluderShadowMethod = (int)capsuleShadows.shadowMethodDebug.value,
-                _CapsuleOccluderFadeSelfShadow = capsuleShadows.fadeSelfShadow.value ? 1 : 0,
-            };
-            ConstantBuffer.PushGlobal(cmd, shaderVariables, HDShaderIDs._ShaderVariablesCapsuleOccluders);
-
             return new CapsuleOccluderList
             {
                 useSphereBounds = !optimiseBoundsForLight,
                 bounds = m_VisibleCapsuleOccluderBounds,
                 occluders = m_VisibleCapsuleOccluderData,
             };
+        }
+
+        internal void UpdateShaderVariablesGlobalCapsuleShadows(ref ShaderVariablesGlobal cb)
+        {
+            cb._CapsuleOccluderCount = (uint)m_VisibleCapsuleOccluderData.Count;
         }
 
         internal void BindGlobalCapsuleShadowBuffers(CommandBuffer cmd)
