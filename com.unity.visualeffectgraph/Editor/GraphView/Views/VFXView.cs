@@ -2050,7 +2050,7 @@ namespace UnityEditor.VFX.UI
         {
             base.ClearSelection();
             Selection.objects = controller != null && controller.model != null
-                ? new [] { controller.model.isSubgraph ? controller.model.subgraph : (VisualEffectObject)controller.model.asset }
+                ? new[] { controller.model.isSubgraph ? controller.model.subgraph : (VisualEffectObject)controller.model.asset }
                 : null;
         }
 
