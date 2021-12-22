@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.06363195, g: 0.09120439, b: 0.23138237, a: 1}
+  m_IndirectSpecularColor: {r: 0.06358582, g: 0.079199135, b: 0.20533466, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -123,7 +123,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &116440773
+--- !u!1 &86660178
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -131,95 +131,61 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 116440774}
-  - component: {fileID: 116440777}
-  - component: {fileID: 116440776}
-  - component: {fileID: 116440775}
+  - component: {fileID: 86660179}
+  - component: {fileID: 86660180}
+  - component: {fileID: 86660181}
   m_Layer: 0
-  m_Name: ExampleSphere
+  m_Name: Colorblindness_VolumeProfile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &116440774
+--- !u!4 &86660179
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 116440773}
+  m_GameObject: {fileID: 86660178}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.33780813, y: 0.46724808, z: 0.89119613}
-  m_LocalScale: {x: 0.8668, y: 0.8668, z: 0.8668}
+  m_LocalPosition: {x: 0, y: 1.38, z: 2.8}
+  m_LocalScale: {x: 1.3938, y: 1.2362, z: 1.868862}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1679313949}
+  m_Father: {fileID: 765527579}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &116440775
-SphereCollider:
+--- !u!114 &86660180
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 116440773}
+  m_GameObject: {fileID: 86660178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IsGlobal: 0
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: 58b42196c7c0c304b80ecb8261cd1d99, type: 2}
+--- !u!65 &86660181
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 86660178}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.5
+  m_Size: {x: 5, y: 5, z: 5}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!23 &116440776
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 116440773}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 257
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 024e36e7fe268cf44aa0a2273aa63134, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &116440777
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 116440773}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &195554486
 GameObject:
   m_ObjectHideFlags: 0
@@ -344,11 +310,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 205610645}
   m_LocalRotation: {x: 0.11832133, y: -0, z: -0, w: 0.99297535}
-  m_LocalPosition: {x: -0.33780813, y: -0.17175186, z: 2.5481963}
-  m_LocalScale: {x: 4.3033867, y: 0.407075, z: 1.5644864}
+  m_LocalPosition: {x: 0, y: -0.63899994, z: 1.8380002}
+  m_LocalScale: {x: 4.3033867, y: 0.407075, z: 1.5644863}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1679313949}
+  m_Father: {fileID: 765527579}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 13.59, y: 0, z: 0}
 --- !u!65 &205610647
@@ -502,7 +468,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Custom Render Texture Example : Nightsky Cubemap
 
-    
+
 
     In the Volume
     profile in "Night Sky Rendering Settings", there is an override for HDRi Sky
@@ -671,16 +637,16 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 468949317}
   m_LocalRotation: {x: -0, y: 0.7858569, z: -0.61840844, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 3.5171962}
+  m_LocalPosition: {x: 0, y: 0, z: 2.694}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1679313949}
+  m_Father: {fileID: 765527579}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 76.4, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.33780813, y: -0.16575193}
+  m_AnchoredPosition: {x: 0, y: -0.623}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &468949319
@@ -703,7 +669,13 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Custom Post Process example : Colorblindness Simulation filter'
+  m_text: "Custom Post Process example : Colorblindness Simulation \n\nThis effect
+    is made with the Fullscreen Shadergraph \"ColorBlindness.shadergraph\", tied
+    to a script \"Colorblindness.cs\" that creates a new custom post process, as
+    a new possible override to Volume Profile components. \n\nFor HDRP to be aware
+    of this new filter, add \"Colorblindness\" to the Custom Post Process Orders
+    list (Project Settings > Graphics > HDRP Settings). Then you will be able to
+    add a new override to a Volume Profile Component under Post Processing > Custom."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -844,11 +816,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 706714541}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.33780813, y: -0.35275185, z: 1.7101961}
+  m_LocalPosition: {x: 0, y: -0.81999993, z: 1}
   m_LocalScale: {x: 5.3088, y: 0.407075, z: 3.6344488}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1679313949}
+  m_Father: {fileID: 765527579}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &706714543
@@ -941,7 +913,12 @@ Transform:
   m_LocalPosition: {x: -0.33780813, y: 0.46724808, z: 0.71019614}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 706714542}
+  - {fileID: 205610646}
+  - {fileID: 468949318}
+  - {fileID: 86660179}
+  - {fileID: 2007166281}
   m_Father: {fileID: 1679313949}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -990,7 +967,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1679313949}
   m_Layer: 0
-  m_Name: NightVision
+  m_Name: ColorBlindness
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1009,10 +986,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 765527579}
-  - {fileID: 706714542}
-  - {fileID: 205610646}
-  - {fileID: 116440774}
-  - {fileID: 468949318}
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1259,6 +1232,104 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1888692238}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &2007166280
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2007166281}
+  - component: {fileID: 2007166284}
+  - component: {fileID: 2007166283}
+  - component: {fileID: 2007166282}
+  m_Layer: 0
+  m_Name: Quad
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2007166281
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2007166280}
+  m_LocalRotation: {x: -0, y: 0.9416671, z: -0.33654588, w: 0}
+  m_LocalPosition: {x: 0, y: 0.091, z: -0.145}
+  m_LocalScale: {x: 4, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 765527579}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 39.333, y: 180, z: 0}
+--- !u!64 &2007166282
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2007166280}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &2007166283
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2007166280}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 257
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: af2470da7c343dd408611b7c8acf2319, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &2007166284
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2007166280}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1001 &5307182104566320517
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1280,11 +1351,35 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 5307182104566320518}
     - target: {fileID: 5307182104454631038, guid: 34346c51b5dbbb04591618064390597d, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.3727
+      objectReference: {fileID: 0}
+    - target: {fileID: 5307182104454631038, guid: 34346c51b5dbbb04591618064390597d, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.2162
+      objectReference: {fileID: 0}
+    - target: {fileID: 5307182104454631038, guid: 34346c51b5dbbb04591618064390597d, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.5891
+      objectReference: {fileID: 0}
+    - target: {fileID: 5307182104454631038, guid: 34346c51b5dbbb04591618064390597d, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.5
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5307182104454631038, guid: 34346c51b5dbbb04591618064390597d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.38
+      objectReference: {fileID: 0}
+    - target: {fileID: 5307182104454631038, guid: 34346c51b5dbbb04591618064390597d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 2.8
       objectReference: {fileID: 0}
     - target: {fileID: 5307182104454631039, guid: 34346c51b5dbbb04591618064390597d, type: 3}
       propertyPath: priority
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5307182104454631039, guid: 34346c51b5dbbb04591618064390597d, type: 3}
+      propertyPath: m_IsGlobal
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5307182104783676437, guid: 34346c51b5dbbb04591618064390597d, type: 3}
