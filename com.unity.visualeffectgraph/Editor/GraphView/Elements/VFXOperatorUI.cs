@@ -39,6 +39,7 @@ namespace UnityEditor.VFX.UI
                 if (m_EditContainer.parent != null)
                 {
                     m_EditContainer.RemoveFromHierarchy();
+                    style.minWidth = 0;
                 }
                 else
                 {
