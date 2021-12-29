@@ -265,11 +265,11 @@ namespace UnityEngine.Rendering
                 if (cachedTransforms[index].Equals(m))
                     return;
 
-                AABB srcAABB = meshAABB[sourceAABBIndex[index]];
-                boundsToUpdate[index] = AABB.Transform(transform.localToWorldMatrix, srcAABB);
+                int instanceIndex = inputIndices[index];
+                AABB srcAABB = meshAABB[sourceAABBIndex[instanceIndex]];
+                boundsToUpdate[instanceIndex] = AABB.Transform(transform.localToWorldMatrix, srcAABB);
 
                 int outputIndex = IncrementCounter(QueueType.Transform);
-                int instanceIndex = inputIndices[index];
                 transformUpdateIndexQueue[outputIndex] = instanceIndex;
 
                 /*  mat4x3 packed like this:
@@ -380,9 +380,11 @@ namespace UnityEngine.Rendering
         public void RegisterTransformObject(int instanceIndex, Transform transformObject, Mesh mesh, bool hasLightProbe)
         {
             int newLen = m_Length + 1;
-            if (newLen == m_Capacity)
+            int instanceLen = instanceIndex + 1;
+            int newCapacity = Math.Max(instanceLen, newLen);
+            if (newCapacity >= m_Capacity)
             {
-                m_Capacity += sBlockSize;
+                m_Capacity = Math.Max(m_Capacity, newCapacity) + sBlockSize;
                 m_Transforms.ResizeArray(m_Capacity);
                 m_Indices.ResizeArray(m_Capacity);
                 m_HasProbes.ResizeArray(m_Capacity);
@@ -393,8 +395,8 @@ namespace UnityEngine.Rendering
                 m_ProbeUpdateIndexQueue.ResizeArray(m_Capacity);
                 m_ProbeUpdateDataQueue.ResizeArray(m_Capacity);
                 m_ProbeOcclusionUpdateDataQueue.ResizeArray(m_Capacity);
-                m_QueryProbePosition.ResizeArray(m_Capacity);
                 m_DrawData.Resize(m_Capacity);
+                m_QueryProbePosition.ResizeArray(m_Capacity);
                 RecreteGpuBuffers();
             }
 
@@ -411,10 +413,10 @@ namespace UnityEngine.Rendering
             int boundsIndex = RegisterMesh(mesh);
             var localAABB = mesh.bounds.ToAABB();
             m_MeshBounds[boundsIndex] = localAABB;
-            m_DrawData.sourceAABBIndex[m_Length] = boundsIndex;
-            m_DrawData.bounds[m_Length] = AABB.Transform(transformObject.localToWorldMatrix, mesh.bounds.ToAABB());
+            m_DrawData.sourceAABBIndex[instanceIndex] = boundsIndex;
+            m_DrawData.bounds[instanceIndex] = AABB.Transform(transformObject.localToWorldMatrix, mesh.bounds.ToAABB());
             m_Length = newLen;
-            m_DrawData.length = newLen;
+            m_DrawData.length = Math.Max(instanceLen, m_DrawData.length);
         }
 
         public void StartUpdateJobs()
