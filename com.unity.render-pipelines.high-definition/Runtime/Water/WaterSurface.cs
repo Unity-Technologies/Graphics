@@ -194,7 +194,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public float directLightBodyScattering = 0.5f;
         #endregion
 
-        #region Water Caustics
+        #region Water Caustics General
+        /// <summary>
+        /// When enabled, the water surface will render caustics.
+        /// </summary>
+        [Tooltip("When enabled, the water surface will render caustics.")]
+        public bool caustics = true;
+
         /// <summary>
         /// Sets the intensity of the under-water caustics.
         /// </summary>
@@ -202,11 +208,79 @@ namespace UnityEngine.Rendering.HighDefinition
         public float causticsIntensity = 0.5f;
 
         /// <summary>
-        /// Controls the amount of dispersion of the caustics. A higher value induces more shift in the lower frequencies (red tinted) of the visible spectrum.
+        /// Sets the vertical plane offset in meters at which the caustics start.
         /// </summary>
-        [Tooltip("Controls the amount of dispersion of the caustics. A higher value induces more shift in the lower frequencies (red tinted) of the visible spectrum.")]
-        public float causticsDispersionAmount = 0.5f;
+        [Tooltip("Sets the vertical plane offset in meters at which the caustics start.")]
+        public float causticsPlaneOffset = 0.0f;
 
+        /// <summary>
+        /// Sets the vertical blending distance for the water caustics.
+        /// </summary>
+        [Tooltip("Sets the vertical blending distance for the water caustics.")]
+        public float causticsPlaneBlendDistance = 1.0f;
+
+        /// <summary>
+        /// Defines what algorithm is used for caustics rendering.
+        /// </summary>
+        public enum WaterCausticsType
+        {
+            /// <summary>
+            /// The water simulation is used to evaluate the caustics.
+            /// </summary>
+            Simulation,
+            /// <summary>
+            /// A procedural approach is used for the caustics
+            /// </summary>
+            Procedural
+        }
+
+        /// <summary>
+        /// Specifies the algorithm used to evaluate the caustics. Procedural is completely uncorrelated to the water simulation. Simulation relies on the normals of the selected band and has a higher cost.
+        /// </summary>
+        [Tooltip("Specifies the algorithm used to evaluate the caustics. Procedural is completely uncorrelated to the water simulation. Simulation relies on the normals of the selected band and has a higher cost.")]
+        public WaterCausticsType causticsAlgorithm = WaterCausticsType.Simulation;
+        #endregion
+
+        #region Water Caustics Simulation
+        /// <summary>
+        /// Defines the resolution a which caustics are rendered (simulation only).
+        /// </summary>
+        public enum WaterCausticsResolution
+        {
+            /// <summary>
+            /// The water caustics are rendered at 256x256
+            /// </summary>
+            Caustics256 = 256,
+            /// <summary>
+            /// The water caustics are rendered at 512x512
+            /// </summary>
+            Caustics512 = 512,
+            /// <summary>
+            /// The water caustics are rendered at 1024x1024
+            /// </summary>
+            Caustics1024 = 1024,
+        }
+
+        /// <summary>
+        /// Specifies the resolution at which the water caustics are rendered (simulation only).
+        /// </summary>
+        [Tooltip("Specifies the resolution at which the water caustics are rendered (simulation only).")]
+        public WaterCausticsResolution causticsResolution = WaterCausticsResolution.Caustics512;
+
+        /// <summary>
+        /// Controls which band is used for the caustics evaluation.
+        /// </summary>
+        [Tooltip("Controls which band is used for the caustics evaluation.")]
+        public int causticsBand = 1;
+
+        /// <summary>
+        /// Sets the distance at which the simulated caustics are projected. High values generate sharper caustics but can cause artefacts.
+        /// </summary>
+        [Tooltip("Sets the distance at which the simulated caustics are projected. High values generate sharper caustics but can cause artefacts.")]
+        public float virtualPlaneDistance = 5.0f;
+        #endregion
+
+        #region Water Caustics Procedural
         /// <summary>
         /// Sets the tiling factor of the under-water caustics.
         /// </summary>
@@ -218,57 +292,37 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Sets the scrolling speed of the under-water caustics.")]
         public float causticsSpeed = 0.0f;
-
-        /// <summary>
-        /// Sets the vertical plane offset in meters at which the caustics start.
-        /// </summary>
-        [Tooltip("Sets the vertical plane offset in meters at which the caustics start.")]
-        public float causticsPlaneOffset = 0.0f;
         #endregion
 
         #region Water Foam
         /// <summary>
-        /// Controls the surface foam smoothness.
+        /// Controls the simulation foam smoothness.
         /// </summary>
         [Tooltip("Controls the surface foam smoothness.")]
-        public float surfaceFoamSmoothness = 0.3f;
+        public float simulationFoamSmoothness = 0.3f;
 
         /// <summary>
-        /// Controls the surface foam brightness.
+        /// Controls the simulation foam brightness.
         /// </summary>
-        [Tooltip("Controls the surface foam brightness.")]
-        public float surfaceFoamIntensity = 0.5f;
+        [Tooltip("Controls the simulation foam brightness.")]
+        public float simulationFoamIntensity = 0.5f;
 
         /// <summary>
-        /// Controls the surface foam amount. Higher values generates larger foam patches.
+        /// Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and chopiness values.
         /// </summary>
-        [Tooltip("Controls the surface foam amount. Higher values generates larger foam patches.")]
-        public float surfaceFoamAmount = 0.5f;
+        [Tooltip("Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and chopiness values.")]
+        public float simulationFoamAmount = 0.5f;
 
         /// <summary>
-        /// Controls the surface foam tiling.
+        /// Controls the simulation foam tiling.
         /// </summary>
-        [Tooltip("Controls the surface foam tiling.")]
-        public float surfaceFoamTiling = 1.0f;
+        [Tooltip("Controls the simulation foam tiling.")]
+        public float simulationFoamTiling = 1.0f;
 
         /// <summary>
-        /// Sets the deep foam brightness.
+        /// Set the texture used to attenuate or supress the simulation foam.
         /// </summary>
-        /// TODO: Rename to deepFoamIntensity.
-        [Tooltip("Sets the deep foam brightness.")]
-        public float deepFoam = 0.3f;
-
-        /// <summary>
-        /// Sets the deep foam color.
-        /// </summary>
-        [Tooltip("Sets the deep foam color.")]
-        [ColorUsage(false)]
-        public Color deepFoamColor = new Color(1.0f, 1.0f, 1.0f);
-
-        /// <summary>
-        /// Set the texture used to attenuate or supress the deep (red channel) or surface (green channel) foam.
-        /// </summary>
-        [Tooltip("Sets the texture used to attenuate or supress the deep (red channel) or surface (green channel) foam.")]
+        [Tooltip("Sets the texture used to attenuate or supress the simulation foam.")]
         public Texture2D foamMask = null;
 
         /// <summary>
@@ -330,6 +384,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public AnimationCurve windFoamCurve = new AnimationCurve(new Keyframe(0f, 0.0f), new Keyframe(0.2f, 0.0f), new Keyframe(0.3f, 1.0f), new Keyframe(1.0f, 1.0f));
         #endregion
 
+        #region Water Rendering
+        /// <summary>
+        /// Specifies the decal layers that affect the water surface.
+        /// </summary>
+        [Tooltip("Specifies the decal layers that affect the water surface.")]
+        public DecalLayerEnum decalLayerMask = DecalLayerEnum.DecalLayerDefault;
+
+        /// <summary>
+        /// Specifies the light layers that affect the water surface.
+        /// </summary>
+        [Tooltip("Specifies the light layers that affect the water surface.")]
+        public LightLayerEnum lightLayerMask = LightLayerEnum.LightLayerDefault;
+        #endregion
+
         // Internal simulation data
         internal WaterSimulationResources simulation = null;
 
@@ -346,7 +414,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else if (!simulation.ValidResources(bandResolution, bandCount))
             {
-                simulation.ReleaseSmmulationResources();
+                simulation.ReleaseSimulationResources();
                 simulation.AllocateSmmulationResources(bandResolution, bandCount);
                 needUpdate = true;
                 initialAllocation = true;
@@ -381,6 +449,18 @@ namespace UnityEngine.Rendering.HighDefinition
             RegisterInstance(this);
         }
 
+        private void OnEnable()
+        {
+            // Add this water surface to the internal surface management
+            RegisterInstance(this);
+        }
+
+        private void OnDisable()
+        {
+            // Remove this water surface from the internal surface management
+            UnregisterInstance(this);
+        }
+
         void UpdateSimulationData()
         {
             simulation.windSpeed = windSpeed;
@@ -397,7 +477,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Make sure to release the resources if they have been created (before HDRP destroys them)
             if (simulation != null && simulation.AllocatedTextures())
-                simulation.ReleaseSmmulationResources();
+                simulation.ReleaseSimulationResources();
         }
     }
 }
