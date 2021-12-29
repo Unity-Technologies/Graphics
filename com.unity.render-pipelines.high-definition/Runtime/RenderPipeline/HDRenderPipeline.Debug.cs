@@ -1271,6 +1271,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
+                // Create the depth texture that will be used for the display debug
+                TextureHandle depth = CreateDepthBuffer(renderGraph, true, hdCamera.msaaSamples);
+
+                // Render the debug water
+                RenderWaterDebug(renderGraph, hdCamera, msaa, output, depthBuffer);
+
                 using (var builder = renderGraph.AddRenderPass<DebugViewMaterialData>("DisplayDebug ViewMaterial", out var passData, ProfilingSampler.Get(HDProfileId.DisplayDebugViewMaterial)))
                 {
                     passData.frameSettings = hdCamera.frameSettings;
@@ -1278,7 +1284,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
                     builder.UseColorBuffer(vtFeedbackBuffer, 1);
 #endif
-                    passData.outputDepth = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, true, hdCamera.msaaSamples), DepthAccess.ReadWrite);
+                    passData.outputDepth = builder.UseDepthBuffer(depth, DepthAccess.ReadWrite);
 
                     // When rendering debug material we shouldn't rely on a depth prepass for optimizing the alpha clip test. As it is control on the material inspector side
                     // we must override the state here.
@@ -1322,9 +1328,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             DrawTransparentRendererList(context, data.frameSettings, data.transparentRendererList);
                         });
                 }
-
-                // Render the debug water
-                RenderWaterSurfaces(renderGraph, hdCamera, output, depthBuffer, renderGraph.defaultResources.blackTexture);
             }
 
             return output;

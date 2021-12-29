@@ -43,6 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             builtinData.transparencyFog = eyeMasterNode.m_TransparencyFog;
             builtinData.addPrecomputedVelocity = eyeMasterNode.m_AddPrecomputedVelocity;
             builtinData.depthOffset = eyeMasterNode.m_depthOffset;
+            builtinData.alphaToMask = eyeMasterNode.m_AlphaToMask;
 
             lightingData.blendPreserveSpecular = eyeMasterNode.m_BlendPreserveSpecular;
             lightingData.receiveDecals = eyeMasterNode.m_ReceiveDecals;

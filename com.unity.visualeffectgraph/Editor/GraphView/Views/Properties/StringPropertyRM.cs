@@ -135,8 +135,8 @@ namespace UnityEditor.VFX.UI
                 if (isDelayed)
                 {
                     VisualElement input = m_StringFieldPushButton.textfield.Q("unity-text-input");
-                    input.RegisterCallback<BlurEvent>(OnFocusLost);
-                    input.RegisterCallback<KeyDownEvent>(OnKeyDown);
+                    input.RegisterCallback<BlurEvent>(OnFocusLost, TrickleDown.TrickleDown);
+                    input.RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
                 }
                 return m_StringFieldPushButton;
             }
@@ -146,8 +146,8 @@ namespace UnityEditor.VFX.UI
                 if (isDelayed)
                 {
                     VisualElement input = m_StringField.textfield.Q("unity-text-input");
-                    input.RegisterCallback<BlurEvent>(OnFocusLost);
-                    input.RegisterCallback<KeyDownEvent>(OnKeyDown);
+                    input.RegisterCallback<BlurEvent>(OnFocusLost, TrickleDown.TrickleDown);
+                    input.RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
                 }
                 return m_StringField;
             }
@@ -168,13 +168,13 @@ namespace UnityEditor.VFX.UI
                         VisualElement input = m_StringField.textfield.Q("unity-text-input");
                         if (isDelayed)
                         {
-                            input.RegisterCallback<BlurEvent>(OnFocusLost);
-                            input.RegisterCallback<KeyDownEvent>(OnKeyDown);
+                            input.RegisterCallback<BlurEvent>(OnFocusLost, TrickleDown.TrickleDown);
+                            input.RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
                         }
                         else
                         {
-                            input.UnregisterCallback<BlurEvent>(OnFocusLost);
-                            input.UnregisterCallback<KeyDownEvent>(OnKeyDown);
+                            input.UnregisterCallback<BlurEvent>(OnFocusLost, TrickleDown.TrickleDown);
+                            input.UnregisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
                         }
                     }
 
@@ -183,13 +183,13 @@ namespace UnityEditor.VFX.UI
                         VisualElement input = m_StringFieldPushButton.textfield.Q("unity-text-input");
                         if (isDelayed)
                         {
-                            input.RegisterCallback<BlurEvent>(OnFocusLost);
-                            input.RegisterCallback<KeyDownEvent>(OnKeyDown);
+                            input.RegisterCallback<BlurEvent>(OnFocusLost, TrickleDown.TrickleDown);
+                            input.RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
                         }
                         else
                         {
-                            input.UnregisterCallback<BlurEvent>(OnFocusLost);
-                            input.UnregisterCallback<KeyDownEvent>(OnKeyDown);
+                            input.UnregisterCallback<BlurEvent>(OnFocusLost, TrickleDown.TrickleDown);
+                            input.UnregisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
                         }
                     }
                 }

@@ -310,8 +310,8 @@ namespace UnityEditor.VFX.UI
             public OperandInfo(VFXCascadedOperatorEdit owner, VFXOperatorNumericCascadedUnified op, int index) : base(owner, op, index)
             {
                 field = new TextField();
-                field.Q("unity-text-input").RegisterCallback<BlurEvent>(OnChangeValue);
-                field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown);
+                field.Q("unity-text-input").RegisterCallback<BlurEvent>(OnChangeValue, TrickleDown.TrickleDown);
+                field.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
 
                 Insert(0, field);
             }
