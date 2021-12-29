@@ -44,6 +44,8 @@ namespace UnityEngine.Rendering.HighDefinition
             AfterPostprocessTransparent = 3700,
             AfterPostprocessTransparentLast = 3700 + k_TransparentPriorityQueueRangeStep,
 
+            OrderIndependentTransparent = 3900,
+
             Overlay = RenderQueue.Overlay,
 
             Visibility = Overlay + 500
@@ -62,6 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Transparent,
             LowTransparent,
             AfterPostprocessTransparent,
+            OrderIndependentTransparent,
 
             Overlay,
 
@@ -100,6 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly RenderQueueRange k_RenderQueue_LowTransparent = new RenderQueueRange { lowerBound = (int)Priority.LowTransparentFirst, upperBound = (int)Priority.LowTransparentLast };
         public static readonly RenderQueueRange k_RenderQueue_AllTransparent = new RenderQueueRange { lowerBound = (int)Priority.PreRefractionFirst, upperBound = (int)Priority.TransparentLast };
         public static readonly RenderQueueRange k_RenderQueue_AllTransparentWithLowRes = new RenderQueueRange { lowerBound = (int)Priority.PreRefractionFirst, upperBound = (int)Priority.LowTransparentLast };
+        public static readonly RenderQueueRange k_RenderQueue_AllTransparentOIT = new RenderQueueRange { lowerBound = (int)Priority.OrderIndependentTransparent, upperBound = (int)Priority.OrderIndependentTransparent };
 
         public static readonly RenderQueueRange k_RenderQueue_AfterPostProcessTransparent = new RenderQueueRange { lowerBound = (int)Priority.AfterPostprocessTransparentFirst, upperBound = (int)Priority.AfterPostprocessTransparentLast };
 
@@ -132,9 +136,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 return RenderQueueType.LowTransparent;
             if (k_RenderQueue_AfterPostProcessTransparent.Contains(renderQueue))
                 return RenderQueueType.AfterPostprocessTransparent;
+            if (renderQueue == (int)Priority.OrderIndependentTransparent)
+                return RenderQueueType.OrderIndependentTransparent;
             if (renderQueue == (int)Priority.Overlay)
                 return RenderQueueType.Overlay;
             return RenderQueueType.Unknown;
+        }
+
+        public static bool SupportsTransparencySortingPriority(int renderQueue)
+        {
+            return renderQueue != (int)Priority.OrderIndependentTransparent;
         }
 
         public static int ChangeType(RenderQueueType targetType, int offset = 0, bool alphaTest = false, bool receiveDecal = false)
@@ -157,6 +168,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return (int)Priority.LowTransparent + offset;
                 case RenderQueueType.AfterPostprocessTransparent:
                     return (int)Priority.AfterPostprocessTransparent + offset;
+                case RenderQueueType.OrderIndependentTransparent:
+                    return (int)Priority.OrderIndependentTransparent;
                 case RenderQueueType.Overlay:
                     return (int)Priority.Overlay;
                 default:
@@ -187,6 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case RenderQueueType.PreRefraction:
                 case RenderQueueType.Transparent:
+                case RenderQueueType.OrderIndependentTransparent:
                 case RenderQueueType.LowTransparent:
                     return RenderQueueType.Opaque;
                 case RenderQueueType.AfterPostprocessTransparent:
@@ -212,7 +226,8 @@ namespace UnityEngine.Rendering.HighDefinition
             BeforeRefraction,
             Default,
             LowResolution,
-            AfterPostProcessing
+            AfterPostProcessing,
+            OrderIndependent
         }
 
         public static OpaqueRenderQueue ConvertToOpaqueRenderQueue(RenderQueueType renderQueue)
@@ -253,6 +268,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return TransparentRenderQueue.LowResolution;
                 case RenderQueueType.AfterPostprocessTransparent:
                     return TransparentRenderQueue.AfterPostProcessing;
+                case RenderQueueType.OrderIndependentTransparent:
+                    return TransparentRenderQueue.OrderIndependent;
                 default:
                     throw new ArgumentException("Cannot map to TransparentRenderQueue, was " + renderQueue);
             }
@@ -270,6 +287,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return RenderQueueType.LowTransparent;
                 case TransparentRenderQueue.AfterPostProcessing:
                     return RenderQueueType.AfterPostprocessTransparent;
+                case TransparentRenderQueue.OrderIndependent:
+                    return RenderQueueType.OrderIndependentTransparent;
                 default:
                     throw new ArgumentException("Unknown TransparentRenderQueue, was " + transparentRenderqueue);
             }
@@ -281,7 +300,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // that start before RenderQueue.Transparent value
             if (k_RenderQueue_AllTransparent.Contains(index)
                 || k_RenderQueue_AfterPostProcessTransparent.Contains(index)
-                || k_RenderQueue_LowTransparent.Contains(index))
+                || k_RenderQueue_LowTransparent.Contains(index)
+                || index == (int)Priority.OrderIndependentTransparent)
             {
                 int v = (index - (int)RenderQueue.Transparent);
                 return "Transparent" + ((v < 0) ? "" : "+") + v;

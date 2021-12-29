@@ -1,0 +1,55 @@
+#if SHADERPASS != SHADERPASS_VISIBILITY_OIT_COUNT && SHADERPASS != SHADERPASS_VISIBILITY_OIT_STORAGE
+#error SHADERPASS_is_not_correctly_define
+#endif
+
+#ifndef ATTRIBUTES_NEED_VERTEX_ID
+    #error Attributes_requires_vertex_id
+#endif
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityOITResources.hlsl"
+
+PackedVaryingsType Vert(AttributesMesh inputMesh)
+{
+    VaryingsType varyingsType;
+    varyingsType.vmesh = VertMesh(inputMesh);
+    varyingsType.vpass.batchID = (int)_DeferredMaterialInstanceData.y;
+    return PackVaryingsType(varyingsType);
+}
+
+void FragEmpty(PackedVaryingsToPS packedInput)
+{
+    //empty fragment shader :)
+}
+
+
+RWByteAddressBuffer _OITOutputSublistCounter : register(u1);
+RWByteAddressBuffer _OITOutputSamples : register(u2);
+
+void FragStoreVis(PackedVaryingsToPS packedInput)
+{
+#ifdef DOTS_INSTANCING_ON
+    uint2 texelCoord = (uint2)packedInput.vmesh.positionCS.xy;
+    uint pixelOffset = texelCoord.y * (uint)_ScreenSize.x + texelCoord.x;
+    uint listCount = _VisOITListsCounts.Load(pixelOffset << 2);
+    if (listCount == 0)
+        return;
+
+    uint globalOffset = _VisOITListsOffsets.Load(pixelOffset << 2);
+
+    uint outputSublistOffset = 0;
+    _OITOutputSublistCounter.InterlockedAdd(pixelOffset << 2, 1, outputSublistOffset);
+
+    FragInputs input = UnpackVaryingsToFragInputs(packedInput);
+
+    Visibility::VisibilityData visData;
+    visData.valid = true;
+    visData.DOTSInstanceIndex = GetDOTSInstanceIndex();
+    visData.primitiveID = input.primitiveID;
+    visData.batchID = packedInput.vpass.batchID;
+
+    uint3 outPackedData;
+    VisibilityOIT::PackVisibilityData(visData, texelCoord, outPackedData);
+    _OITOutputSamples.Store3(((globalOffset + outputSublistOffset) * 3) << 2, outPackedData); 
+#endif
+}

@@ -149,6 +149,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VisibilityBucketID,
         /// <summary>Display lighting result of visibility buffer.</summary>
         VisibilityBufferLighting,
+        /// <summary>Maximum count of visibility OIT stencil buffer.</summary>
+        VisibilityOITStencilCount,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 

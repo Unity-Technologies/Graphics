@@ -16,6 +16,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_ForwardOnlyStr = "ForwardOnly";
         /// <summary>VBuffer pass name.</summary>
         public static readonly string s_VBufferStr = "VBuffer";
+        /// <summary>VBuffer OIT Count pass name.</summary>
+        public static readonly string s_VBufferOITCountStr = "VBufferOITCount";
+        /// <summary>VBuffer OIT Storage pass name.</summary>
+        public static readonly string s_VBufferOITStorageStr = "VBufferOITStorage";
         /// <summary>GBuffer pass name.</summary>
         public static readonly string s_GBufferStr = "GBuffer";
         /// <summary>VBufferLighting pass name.</summary>
@@ -77,6 +81,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_ForwardOnlyName = new ShaderTagId(s_ForwardOnlyStr);
         /// <summary>VBuffer shader tag id.</summary>
         public static readonly ShaderTagId s_VBufferName = new ShaderTagId(s_VBufferStr);
+        /// <summary>VBuffer OIT Count shader tag id.</summary>
+        public static readonly ShaderTagId s_VBufferOITCountName = new ShaderTagId(s_VBufferOITCountStr);
+        /// <summary>VBuffer OIT Storage shader tag id.</summary>
+        public static readonly ShaderTagId s_VBufferOITStorageName = new ShaderTagId(s_VBufferOITStorageStr);
         /// <summary>GBuffer shader tag id.</summary>
         public static readonly ShaderTagId s_GBufferName = new ShaderTagId(s_GBufferStr);
         /// <summary>VBufferLighting shader tag id.</summary>
@@ -1036,6 +1044,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AOPackedBlurred = Shader.PropertyToID("_AOPackedBlurred");
         public static readonly int _AOOutputHistory = Shader.PropertyToID("_AOOutputHistory");
 
+        //Prefix sum utility
+        public static readonly int _InputBuffer = Shader.PropertyToID("_InputBuffer");
+        public static readonly int _OutputBuffer = Shader.PropertyToID("_OutputBuffer");
+        public static readonly int _InputCountBuffer = Shader.PropertyToID("_InputCountBuffer");
+        public static readonly int _TotalLevelsBuffer = Shader.PropertyToID("_TotalLevelsBuffer");
+        public static readonly int _OutputTotalLevelsBuffer = Shader.PropertyToID("_OutputTotalLevelsBuffer");
+        public static readonly int _OutputDispatchLevelArgsBuffer = Shader.PropertyToID("_OutputDispatchLevelArgsBuffer");
+        public static readonly int _LevelsOffsetsBuffer = Shader.PropertyToID("_LevelsOffsetsBuffer");
+        public static readonly int _OutputLevelsOffsetsBuffer = Shader.PropertyToID("_OutputLevelsOffsetsBuffer");
+        public static readonly int _PrefixSumIntArgs = Shader.PropertyToID("_PrefixSumIntArgs");
+
         // Contrast Adaptive Sharpening
         public static readonly int _Sharpness = Shader.PropertyToID("Sharpness");
         public static readonly int _InputTextureDimensions = Shader.PropertyToID("InputTextureDimensions");
@@ -1087,6 +1106,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VisBufferMaterialTiles = Shader.PropertyToID("_VisBufferMaterialTiles");
         public static readonly int _VisBufferBucketTiles = Shader.PropertyToID("_VisBufferBucketTiles");
         public static readonly int _VisBufferDepthTexture = Shader.PropertyToID("_VisBufferDepthTexture");
+        public static readonly int _VisOITBuffer = Shader.PropertyToID("_VisOITBuffer");
+        public static readonly int _VisOITCount = Shader.PropertyToID("_VisOITCount");
+        public static readonly int _OITDitherTexture = Shader.PropertyToID("_OITDitherTexture");
+        public static readonly int _VisOITHistogramOutput = Shader.PropertyToID("_VisOITHistogramOutput");
+        public static readonly int _VisOITHistogramBuffer = Shader.PropertyToID("_VisOITHistogramBuffer");
+        public static readonly int _VisOITPrefixedHistogramBuffer = Shader.PropertyToID("_VisOITPrefixedHistogramBuffer");
+        public static readonly int _OITOutputActiveCounts = Shader.PropertyToID("_OITOutputActiveCounts");
+        public static readonly int _OITOutputSublistCounter = Shader.PropertyToID("_OITOutputSublistCounter");
+        public static readonly int _VisOITListsCounts = Shader.PropertyToID("_VisOITListsCounts");
+        public static readonly int _VisOITListsOffsets = Shader.PropertyToID("_VisOITListsOffsets");
+        public static readonly int _VisOITSubListsCounts = Shader.PropertyToID("_VisOITSubListsCounts");
+        public static readonly int _PackedOITTileHistogramArgs = Shader.PropertyToID("_PackedOITTileHistogramArgs");
 
         //Visibility classification
         public static readonly int _VisBufferFeatureTileOutput = Shader.PropertyToID("_VisBufferFeatureTileOutput");

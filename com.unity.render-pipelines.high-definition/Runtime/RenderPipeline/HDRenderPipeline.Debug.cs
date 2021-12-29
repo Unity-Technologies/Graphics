@@ -350,12 +350,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle output;
             public TextureHandle input;
             public VBufferInformation vBufferInfo;
+            public VBufferOITOutput vBufferOIT;
             public TextureHandle depthPyramid;
             public ComputeBufferHandle fullscreenBuffer;
             public RenderBRGBindingData BRGBindData;
         }
 
-        TextureHandle ResolveFullScreenDebug(RenderGraph renderGraph, TextureHandle inputFullScreenDebug, VBufferInformation vBufferInfo, TextureHandle depthPyramid, HDCamera hdCamera, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat)
+        TextureHandle ResolveFullScreenDebug(RenderGraph renderGraph, TextureHandle inputFullScreenDebug, VBufferInformation vBufferInfo, VBufferOITOutput vBufferOIT, TextureHandle depthPyramid, HDCamera hdCamera, GraphicsFormat rtFormat = GraphicsFormat.R16G16B16A16_SFloat)
         {
             using (var builder = renderGraph.AddRenderPass<ResolveFullScreenDebugPassData>("ResolveFullScreenDebug", out var passData))
             {
@@ -364,6 +365,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugFullScreenMaterial = m_DebugFullScreen;
                 passData.input = builder.ReadTexture(inputFullScreenDebug);
                 passData.vBufferInfo = vBufferInfo.Read(builder);
+                passData.vBufferOIT = vBufferOIT.Read(builder);
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.depthPyramidMip = (int)(m_CurrentDebugDisplaySettings.data.fullscreenDebugMip * hdCamera.depthBufferMipChainInfo.mipLevelCount);
                 passData.depthPyramidOffsets = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
@@ -386,7 +388,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
                         ComputeBuffer fullscreenBuffer = data.fullscreenBuffer;
 
-                        if (data.vBufferInfo.valid)
+                        if (data.vBufferInfo.valid || data.vBufferOIT.valid)
                             data.debugFullScreenMaterial.EnableKeyword("DOTS_INSTANCING_ON");
                         else
                             data.debugFullScreenMaterial.DisableKeyword("DOTS_INSTANCING_ON");
@@ -405,6 +407,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         mpb.SetFloat(HDShaderIDs._QuadOverdrawMaxQuadCost, (float)data.debugDisplaySettings.data.maxQuadCost);
                         mpb.SetFloat(HDShaderIDs._VertexDensityMaxPixelCost, (float)data.debugDisplaySettings.data.maxVertexDensity);
                         mpb.SetFloat(HDShaderIDs._MinMotionVector, data.debugDisplaySettings.data.minMotionVectorLength);
+
+                        if (data.vBufferOIT.valid)
+                        {
+                            mpb.SetTexture(HDShaderIDs._VisOITCount, data.vBufferOIT.stencilBuffer, RenderTextureSubElement.Stencil);
+                            mpb.SetBuffer(HDShaderIDs._VisOITHistogramBuffer, data.vBufferOIT.histogramBuffer);
+                            mpb.SetBuffer(HDShaderIDs._VisOITPrefixedHistogramBuffer, data.vBufferOIT.prefixedHistogramBuffer);
+                            mpb.SetBuffer(HDShaderIDs._VisOITListsCounts, data.vBufferOIT.sampleListCountBuffer);
+                            mpb.SetBuffer(HDShaderIDs._VisOITListsOffsets, data.vBufferOIT.sampleListOffsetBuffer);
+                        }
 
                         if (fullscreenBuffer != null)
                             ctx.cmd.SetRandomWriteTarget(1, fullscreenBuffer);
@@ -1166,6 +1177,7 @@ namespace UnityEngine.Rendering.HighDefinition
             HDCamera hdCamera,
             TextureHandle colorBuffer,
             VBufferInformation vBufferInfo,
+            VBufferOITOutput vBufferOIT,
             TextureHandle depthBuffer,
             TextureHandle depthPyramidTexture,
             TextureHandle colorPickerDebugTexture,
@@ -1184,7 +1196,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (NeedsFullScreenDebugMode() && m_FullScreenDebugPushed)
             {
-                output = ResolveFullScreenDebug(renderGraph, m_DebugFullScreenTexture, vBufferInfo, depthPyramidTexture, hdCamera, colorFormat);
+                output = ResolveFullScreenDebug(renderGraph, m_DebugFullScreenTexture, vBufferInfo, vBufferOIT, depthPyramidTexture, hdCamera, colorFormat);
 
                 // If we have full screen debug, this is what we want color picked, so we replace color picker input texture with the new one.
                 if (NeedColorPickerDebug(m_CurrentDebugDisplaySettings))

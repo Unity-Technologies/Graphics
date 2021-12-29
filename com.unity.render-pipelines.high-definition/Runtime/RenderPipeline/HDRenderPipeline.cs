@@ -84,6 +84,8 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_PreviousEnableCookiesInLightmapper = true;
 #endif
 
+        GpuPrefixSum m_PrefixSumSystem;
+
         /// <summary>
         /// This functions allows the user to have an approximation of the number of rays that were traced for a given frame.
         /// </summary>
@@ -381,6 +383,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_MipGenerator = new MipGenerator(defaultResources);
             m_BlueNoise = new BlueNoise(defaultResources);
+            m_PrefixSumSystem = new GpuPrefixSum();
+            m_PrefixSumSystem.Initialize(defaultResources);
 
             EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(defaultResources.shaders.encodeBC6HCS);
 
@@ -800,9 +804,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_IBLFilterArray[bsdfIdx].Cleanup();
             }
 
+            m_PrefixSumSystem.Dispose();
+
             CleanupPostProcess();
             m_BlueNoise.Cleanup();
-
             HDCamera.ClearAll();
 
             m_MipGenerator.Release();

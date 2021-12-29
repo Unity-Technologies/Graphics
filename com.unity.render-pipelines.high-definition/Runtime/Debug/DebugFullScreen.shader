@@ -30,6 +30,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/FullScreenDebug.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityOITResources.hlsl"
 
             CBUFFER_START (UnityDebug)
             float _FullScreenDebugMode;
@@ -390,6 +391,29 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     #endif
 
                     return float4(Visibility::DebugVisIndexToRGB(debugIndex), 1.0f);
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_OITSTENCIL_COUNT)
+                {
+                    #ifdef DOTS_INSTANCING_ON
+                    float2 sampleUV = input.texcoord.xy / _RTHandleScale.xy;
+                    uint2 samplePosition = (uint2)(sampleUV * _DebugViewportSize.xy);
+                    uint pixelOffset = samplePosition.y * _DebugViewportSize.x + samplePosition.x;
+
+
+                    uint stencilSample = GetStencilValue(LOAD_TEXTURE2D_X(_VisOITCount, samplePosition));
+
+                    float3 bgColor = (sampleUV.yyy * sampleUV.yyy * float3(0,0,0.08));
+
+                    uint activeCount = _VisOITListsCounts.Load(pixelOffset << 2);
+                    float3 activeColor = activeCount > 0 ? float3(1,1,1) : float3(1.0,0.0,0.0);
+
+                    float3 stencilColor = stencilSample == 0u ? bgColor : ((float)stencilSample / 255.0).xxx * activeColor;
+                    stencilColor = sqrt(stencilColor);
+                    float4 debugHistogram = DebugDrawOITHistogram(sampleUV, (float2)_ScreenSize.xy);
+                    return float4(lerp(stencilColor.rgb, debugHistogram.rgb, debugHistogram.a), 1.0);
+                    #else
+                        return float4(1,0,0,0);
+                    #endif
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_PRE_REFRACTION_COLOR_PYRAMID
                     || _FullScreenDebugMode == FULLSCREENDEBUGMODE_FINAL_COLOR_PYRAMID)

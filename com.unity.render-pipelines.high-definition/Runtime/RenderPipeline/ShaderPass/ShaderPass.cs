@@ -33,6 +33,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RayTracingDebug,
         Constant,
         Visibility,
+        VisibilityOitCount,
+        VisibilityOitStorage,
         FullScreenDebug,
     }
 }

@@ -1,0 +1,74 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityOITResources.hlsl"
+
+#pragma enable_d3d11_debug_symbols
+
+#pragma kernel MainClearHistogram
+#pragma kernel MainCreateStencilHistogram
+#pragma kernel MainFlatEnableActiveCounts
+
+#define GROUP_SIZE_Y 8
+#define GROUP_SIZE_X 8
+#define GROUP_SIZE 64
+
+float4 _PackedOITTileHistogramArgs;
+
+Texture2D<float> _OITDitherTexture;
+RWByteAddressBuffer _VisOITHistogramOutput;
+
+uint GetPixelIndex(int2 pixelCoordinates)
+{
+    return (uint)((DITHER_TILE_TOTAL_PIXELS) * _OITDitherTexture[(uint2)pixelCoordinates % uint2(DITHER_TILE_SIZE, DITHER_TILE_SIZE)]);
+}
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void MainClearHistogram(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (dispatchThreadID.x >= DITHER_TILE_TOTAL_PIXELS)
+        return;
+
+    _VisOITHistogramOutput.Store(dispatchThreadID.x << 2,  0);
+}
+
+[numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
+void MainCreateStencilHistogram(int3 dispatchThreadID : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadID.z);
+
+    if (any(dispatchThreadID.xy >= (int2)_ScreenSize.xy))
+        return;
+
+    uint pixelIndex = GetPixelIndex(dispatchThreadID.xy);
+    uint countVal = GetStencilValue(_VisOITCount[COORD_TEXTURE2D_X(dispatchThreadID.xy)].xy);
+    int dummy;
+    _VisOITHistogramOutput.InterlockedAdd(pixelIndex << 2, countVal, dummy);
+}
+
+RWByteAddressBuffer _OITOutputActiveCounts;
+RWByteAddressBuffer _OITOutputSublistCounter;
+
+[numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
+void MainFlatEnableActiveCounts(int3 dispatchThreadID : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadID.z);
+
+    if (any(dispatchThreadID.xy >= (int2)_ScreenSize.xy))
+        return;
+
+    uint maxMaterialSampleCount = asuint(_PackedOITTileHistogramArgs.x);
+
+    uint pixelIndex = GetPixelIndex(dispatchThreadID.xy);
+    uint prefixCountVal = _VisOITPrefixedHistogramBuffer.Load(pixelIndex << 2);
+
+    uint outputPixel = dispatchThreadID.y * (int)_ScreenSize.x + dispatchThreadID.x;
+
+    uint storageValue = 0u;
+
+    [branch]
+    if (prefixCountVal <= maxMaterialSampleCount)
+        storageValue = GetStencilValue(_VisOITCount[COORD_TEXTURE2D_X(dispatchThreadID.xy)].xy);
+
+    _OITOutputActiveCounts.Store(outputPixel << 2, storageValue);
+    _OITOutputSublistCounter.Store(outputPixel << 2, 0); //initialize buffer to 0
+}
