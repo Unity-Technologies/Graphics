@@ -120,9 +120,9 @@ real PenumbraSizeDirectional(real receiver, real blocker, real rangeScale)
     return abs(receiver - blocker) * rangeScale;
 }
 
-void FilterScaleOffset(real3 coord, real maxSampleZDistance, real atlasResFactor, out real2 filterScalePos, out real2 filterScaleNeg, out real2 filterOffset)
+void FilterScaleOffset(real3 coord, real maxSampleZDistance, real shadowmapSamplingScale, out real2 filterScalePos, out real2 filterScaleNeg, out real2 filterOffset)
 {
-    real d = atlasResFactor * maxSampleZDistance / (1 - coord.z);
+    real d = shadowmapSamplingScale * maxSampleZDistance / (1 - coord.z);
     real2 target = (coord.xy + 0.5) * 0.5;
 
     filterScalePos = target * d;
@@ -130,7 +130,7 @@ void FilterScaleOffset(real3 coord, real maxSampleZDistance, real atlasResFactor
     filterOffset = (target - coord.xy) * d;
 }
 
-bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real maxSampleZDistance, real2 posTCAtlas, real3 posTCShadowmap, real2 sampleJitter, Texture2D shadowMap, SamplerState pointSampler, int sampleCount, real atlasResFactor)
+bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real maxSampleZDistance, real2 posTCAtlas, real3 posTCShadowmap, real2 sampleJitter, Texture2D shadowMap, SamplerState pointSampler, int sampleCount, real shadowmapSamplingScale)
 {
     real blockerSum = 0.0;
     real sampleCountInverse = rcp((real)sampleCount);
@@ -138,7 +138,7 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
 
     real2 filterScalePos, filterScaleNeg;
     real2 filterOffset;
-    FilterScaleOffset(posTCShadowmap, maxSampleZDistance, atlasResFactor, filterScalePos, filterScaleNeg, filterOffset);
+    FilterScaleOffset(posTCShadowmap, maxSampleZDistance, shadowmapSamplingScale, filterScalePos, filterScaleNeg, filterOffset);
 
     for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
     {
@@ -159,18 +159,18 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
             numBlockers += 1.0;
         }
     }
-    averageBlockerDepth = blockerSum / numBlockers;
+    averageBlockerDepth = numBlockers > 0 ? blockerSum / numBlockers : posTCShadowmap.z;
 
     return numBlockers >= 1;
 }
 
-real PCSS(real2 posTCAtlas, real3 posTCShadowmap, real maxSampleZDistance, real2 scale, real2 offset, real2 sampleJitter, Texture2D shadowMap, SamplerComparisonState compSampler, int sampleCount, real atlasResFactor)
+real PCSS(real2 posTCAtlas, real3 posTCShadowmap, real maxSampleZDistance, real2 shadowmapInAtlasScale, real2 shadowmapInAtlasOffset, real2 sampleJitter, Texture2D shadowMap, SamplerComparisonState compSampler, int sampleCount, real shadowmapSamplingScale)
 {
-    real UMin = offset.x;
-    real UMax = offset.x + scale.x;
+    real UMin = shadowmapInAtlasOffset.x;
+    real UMax = shadowmapInAtlasOffset.x + shadowmapInAtlasScale.x;
 
-    real VMin = offset.y;
-    real VMax = offset.y + scale.y;
+    real VMin = shadowmapInAtlasOffset.y;
+    real VMax = shadowmapInAtlasOffset.y + shadowmapInAtlasScale.y;
 
     real sum = 0.0;
     real sampleCountInverse = rcp((real)sampleCount);
@@ -179,7 +179,7 @@ real PCSS(real2 posTCAtlas, real3 posTCShadowmap, real maxSampleZDistance, real2
 
     real2 filterScalePos, filterScaleNeg;
     real2 filterOffset;
-    FilterScaleOffset(posTCShadowmap, maxSampleZDistance, atlasResFactor, filterScalePos, filterScaleNeg, filterOffset);
+    FilterScaleOffset(posTCShadowmap, maxSampleZDistance, shadowmapSamplingScale, filterScalePos, filterScaleNeg, filterOffset);
 
     for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
     {
