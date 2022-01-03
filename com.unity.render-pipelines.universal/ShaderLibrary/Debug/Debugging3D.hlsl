@@ -199,8 +199,20 @@ half3 CalculateDebugShadowCascadeColor(in InputData inputData)
 
 half4 CalculateDebugLightingComplexityColor(in InputData inputData, in SurfaceData surfaceData)
 {
+#if USE_CLUSTERED_LIGHTING
+    int numLights = _AdditionalLightsDirectionalCount;
+    ClusteredLightLoop cll = ClusteredLightLoopInit(inputData.normalizedScreenSpaceUV, inputData.positionWS);
+    [loop] while (ClusteredLightLoopNextWord(cll))
+    {
+        [loop] while (ClusteredLightLoopNextLight(cll))
+        {
+            numLights++;
+        }
+    }
+#else
     // Assume a main light and add 1 to the additional lights.
     int numLights = GetAdditionalLightsCount() + 1;
+#endif
 
     const uint2 tileSize = uint2(32,32);
     const uint maxLights = 9;
