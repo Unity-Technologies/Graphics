@@ -52,9 +52,9 @@ namespace UnityEditor.Rendering.Universal
             UpgradeSelectedMaterials(false);
         }
 
-        // Added bool var in case this method were used.
-        // But since the menuitem should behave as it did before.
-        // And then we didn't have the Animation clips upgrader
+        // Added bool variable in case this method was used by anyone.
+        // Doing this, since the menuitem should behave as it did before,
+        // and then we didn't have the Animation clips upgrader
         private static void UpgradeSelectedMaterials(bool UpgradeAnimationClips = true)
         {
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
