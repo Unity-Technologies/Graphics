@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.Universal
         [MenuItem("Window/Rendering/Convert Selected Built-in Materials to URP", priority = 51)]
         private static void UpgradeSelectedMaterialsMenuItem()
         {
-            UpgradeSelectedMaterials();
+            UpgradeSelectedMaterials(false);
         }
 
         // Added bool var in case this method were used.
