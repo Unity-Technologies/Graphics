@@ -6,7 +6,7 @@
         "Unity.Mathematics",
         "Unity.Burst",
         "Unity.RenderPipelines.HighDefinition.Config.Runtime",
-        "Unity.Rendering.Denoiser.Runtime",
+        "Unity.Rendering.Denoising.Runtime",
         "Unity.VisualEffectGraph.Runtime"
     ],
     "includePlatforms": [],
@@ -60,7 +60,7 @@
         {
             "name": "com.unity.rendering.denoising",
             "expression": "1.0.0",
-            "define": "ENABLE_UNITY_DENOISER_PLUGIN"
+            "define": "ENABLE_UNITY_DENOISING_PLUGIN"
         }
     ],
     "noEngineReferences": false
