@@ -195,7 +195,8 @@ namespace UnityEngine.VFX
                 if (previousChunk.scrubbing)
                     throw new InvalidOperationException();
 #endif
-                ProcessNoScrubbingEvents(previousChunk, m_LastPlayableTime, leavingGoingBeforeClip ? previousChunk.begin : previousChunk.end);
+                //Using infinity as virtual limit to force include events where time is exactly 0 or duration.
+                ProcessNoScrubbingEvents(previousChunk, m_LastPlayableTime, leavingGoingBeforeClip ? double.NegativeInfinity : double.PositiveInfinity);
             }
 
             RestoreVFXState(previousChunk.scrubbing, previousChunk.reinitEnter);
@@ -441,7 +442,9 @@ namespace UnityEngine.VFX
             for (int i = startIndex; i < chunk.events.Length; ++i)
             {
                 var currentEvent = chunk.events[i];
-                if (currentEvent.time > maxTime)
+                //We are retrieving events between [minTime, maxTime[
+                //If currentEvent.time == maxTime, skip, it prevents the multiple sending of the same event.
+                if (currentEvent.time >= maxTime)
                     break;
 
                 if (minTime <= currentEvent.time)
