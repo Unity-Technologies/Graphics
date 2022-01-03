@@ -4,6 +4,7 @@ To configure and use the Universal Render Pipeline (URP), you must first:
 
 - create the Universal Render Pipeline Asset
 - add the Asset to the Graphics settings for your Project
+- ensure that no other Scriptable Render Pipeline Asset is assigned in any of the quality levels
 
 To read more about each step, see below.
 
@@ -29,3 +30,7 @@ To use the Universal Render Pipeline, you have to add the newly created URP Asse
 2. In the __Scriptable Render Pipeline Settings__ field, add the URP Asset you created earlier.
 
 **Note:** When you add the UP Asset, the available settings in URP immediately changes. This is because you've effectively instructed Unity to use the URP specific settings instead of those for the built-in render pipeline.
+
+
+## SRPs and quality settings
+The pipeline asset contains settings that will often need to be configures based on device performance. This is achieved by having unique pipeline assets for each quality level. A Unity project will always look to the quality settings first for a pipeline asset. If no pipeline is assigned to the current quality level, Unity falls back to the pipeline asset assigned in project settings (built-in render pipeline if nothing is assigned).
