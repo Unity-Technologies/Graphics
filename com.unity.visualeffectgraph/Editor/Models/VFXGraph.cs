@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 
+using UnityEditor.VFX.UI;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Profiling;
@@ -38,14 +39,19 @@ namespace UnityEditor.VFX
                             graph.SanitizeForImport();
                             if (!wasGraphSanitized && graph.sanitized)
                             {
-                                if (assetToReimport == null)
-                                    assetToReimport = new List<string>();
+                                assetToReimport ??= new List<string>();
                                 assetToReimport.Add(assetPath);
                             }
                         }
                         catch (Exception exception)
                         {
                             Debug.LogErrorFormat("Exception during sanitization of {0} : {1}", assetPath, exception);
+                        }
+
+                        var window = VFXViewWindow.GetWindow(graph, false, false);
+                        if (window != null)
+                        {
+                            window.UpdateTitle(assetPath);
                         }
                     }
                     else
