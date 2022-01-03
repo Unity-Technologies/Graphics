@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Collision with zero scale lead to undefined behavior [Case 1381562](https://issuetracker.unity3d.com/product/unity/issues/guid/1381562/)
 - Enable/disable state of VFX blocks and operators are preserved after copy/paste
 - Blackboard "Add" button for output could be hidden when the panel is too small (https://issuetracker.unity3d.com/product/unity/issues/guid/1389927/)
+- No more exception raised when selecting all nodes with CTRL+A and then deleting them
 
 ## [12.1.3] - 2021-11-17
 ### Fixed
