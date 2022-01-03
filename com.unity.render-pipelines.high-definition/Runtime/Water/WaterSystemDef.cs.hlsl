@@ -4,6 +4,20 @@
 
 #ifndef WATERSYSTEMDEF_CS_HLSL
 #define WATERSYSTEMDEF_CS_HLSL
+// Generated from UnityEngine.Rendering.HighDefinition.WaterSurfaceProfile
+// PackingRules = Exact
+struct WaterSurfaceProfile
+{
+    float3 waterAmbientProbe;
+    float tipScatteringHeight;
+    float bodyScatteringHeight;
+    float maxRefractionDistance;
+    uint lightLayers;
+    float padding0;
+    float3 transparencyColor;
+    float outScatteringCoefficient;
+};
+
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWater
 // PackingRules = Exact
 CBUFFER_START(ShaderVariablesWater)
@@ -17,11 +31,12 @@ CBUFFER_START(ShaderVariablesWater)
     float2 _WindDirection;
     float _Choppiness;
     float _DeltaTime;
-    float _SurfaceFoamIntensity;
-    float _SurfaceFoamAmount;
-    float _DeepFoamAmount;
+    float _SimulationFoamSmoothness;
+    float _SimulationFoamIntensity;
+    float _SimulationFoamAmount;
     float _SSSMaskCoefficient;
-    float2 _PaddingW0;
+    float _DispersionAmount;
+    float _ScatteringBlur;
     float _MaxRefractionDistance;
     float _WaterSmoothness;
     float2 _FoamOffsets;
@@ -29,20 +44,16 @@ CBUFFER_START(ShaderVariablesWater)
     float _WindFoamAttenuation;
     float4 _TransparencyColor;
     float4 _ScatteringColorTips;
-    float _DispersionAmount;
-    float _RefractionLow;
-    float _MaxAbsorptionDistance;
-    float _ScatteringBlur;
     float _DisplacementScattering;
     float _ScatteringIntensity;
-    float _BodyScatteringWeight;
-    float _TipScatteringWeight;
+    int _SurfaceIndex;
+    float _CausticsRegionSize;
     float4 _ScatteringLambertLighting;
     float4 _DeepFoamColor;
     float _OutScatteringCoefficient;
     float _FoamSmoothness;
     float _HeightBasedScattering;
-    float _PaddingW1;
+    float _PaddingW0;
     float4 _FoamJacobianLambda;
 CBUFFER_END
 
@@ -64,6 +75,10 @@ CBUFFER_START(ShaderVariablesWaterRendering)
     float2 _CausticsOffset;
     float _CausticsTiling;
     float _CausticsPlaneOffset;
+    float _CausticsPlaneBlendDistance;
+    int _WaterCausticsType;
+    uint _WaterDecalLayer;
+    int _InfiniteSurface;
 CBUFFER_END
 
 

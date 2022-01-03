@@ -184,6 +184,7 @@ namespace UnityEditor.VFX.UI
             {
                 Node blk = block;
                 VFXBlock newBlock = PasteAndInitializeNode<VFXBlock>(viewController, ref blk);
+                newBlock.enabled = (blk.flags & Node.Flags.Enabled) == Node.Flags.Enabled;
 
                 if (targetModelContext.AcceptChild(newBlock, targetIndex))
                 {
