@@ -82,10 +82,10 @@ namespace UnityEditor.VFX
         public static void ShadowLabel(Rect rect, GUIContent content, GUIStyle textStyle, GUIStyle shadowStyle)
         {
             var shadowRect = rect;
-            shadowRect.xMin += 2.0f;
-            shadowRect.yMin += 2.0f;
-            shadowRect.width += 2.0f;
-            shadowRect.height += 2.0f;
+            shadowRect.xMin += Style.kShadowDistance;
+            shadowRect.yMin += Style.kShadowDistance;
+            shadowRect.width += Style.kShadowDistance;
+            shadowRect.height += Style.kShadowDistance;
             GUI.Label(shadowRect, content, shadowStyle);
             GUI.Label(rect, content, textStyle);
         }
@@ -140,14 +140,21 @@ namespace UnityEditor.VFX
 
             public static GUIStyle scrubbingDisabled = new GUIStyle(GUI.skin.GetStyle("Label"));
             public static GUIStyle scrubbingDisabledShadow = new GUIStyle(GUI.skin.GetStyle("Label"));
-            public static readonly float kScrubbingBarHeight = 16.0f;
-            public static readonly float kEventNameHeight = 16.0f;
 
             public static readonly float kIconScale = 1.0f;
 
             public static readonly float kMinimalBarHeight = 2.0f;
             public static readonly float kBarPadding = 1.0f;
             public static readonly float kSingleEventWidth = use2xMarker ? 2.0f : 1.0f;
+
+            private static readonly bool useBiggerFont = false;
+
+            private static readonly float kLineHeight = useBiggerFont ? 16.0f : 14.0f;
+            public static readonly float kScrubbingBarHeight = kLineHeight;
+            public static readonly float kEventNameHeight = kLineHeight;
+
+            public static readonly int kFontSize = useBiggerFont ? 12 : 10;
+            public static readonly float kShadowDistance = useBiggerFont ? 0.5f : 1.0f;
 
             static Style()
             {
@@ -175,11 +182,12 @@ namespace UnityEditor.VFX
                     = eventRightAlign.fontSize
                     = eventLeftAlignShadow.fontSize
                     = eventRightAlignShadow.fontSize
-                    = 12;
+                    = scrubbingDisabled.fontSize
+                    = scrubbingDisabledShadow.fontSize
+                    = kFontSize;
 
                 scrubbingDisabled.alignment = scrubbingDisabledShadow.alignment = TextAnchor.UpperCenter;
                 scrubbingDisabled.fontStyle = scrubbingDisabledShadow.fontStyle = FontStyle.Bold;
-                scrubbingDisabled.fontSize = scrubbingDisabledShadow.fontSize = 12;
             }
         }
 
