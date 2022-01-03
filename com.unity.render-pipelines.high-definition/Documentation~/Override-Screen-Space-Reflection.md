@@ -8,9 +8,16 @@ HDRP implements [ray-traced reflection](Ray-Traced-Reflections.md) on top of thi
 
 [!include[](snippets/Volume-Override-Enable-Override.md)]
 
-For this feature:
-The property to enable in your HDRP Asset is: **Lighting > Reflections > Screen Space Reflection**.
-The property to enable in your Frame Settings is: **Lighting > Screen Space Reflection**.
+To enable Screen Space Reflection:
+
+1. In your HDRP Asset Inspector window, go to **Lighting** > **Reflections** and enable **Screen Space Reflection**
+
+2. Enable Screen Space Reflection in Frame Settings
+
+   * If you want to enable Screen Space Reflection for all cameras, go to **Edit** > **Project Settings** > **Graphics** > **HDRP Global Settings** > **Frame Settings (Default Values)** > **Lighting** and enable **Screen Space Reflection**
+   * If you want to enable Screen Space Reflection for specific cameras, in the Inspector window of each camera:
+      1. Go to **Rendering** and enable **Custom Frame Settings**
+      2. Go to **Frame Settings Overrides** > **Lighting** and enable **Screen Space Reflection**
 
 ## Using Screen Space Reflection
 
@@ -46,6 +53,31 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 | **Quality**                   | Specifies the quality level to use for this effect. Each quality level applies different preset values. Unity also stops you from editing the properties that the preset overrides. If you want to set your own values for every property, select **Custom**. |
 | - **Max Ray Steps**           | Sets the maximum number of iterations that the algorithm can execute before it stops trying to find an intersection with a Mesh. For example, if you set the number of iterations to 1000 and the algorithm only needs 10 to find an intersection, the algorithm terminates after 10 iterations. If you set this value too low, the algorithm may terminate too early and abruptly stop reflections. |
 | **Accumulation Factor**       | The speed of the accumulation convergence. 0 means no accumulation. 1 means accumulation is very slow which is useful for fixed images. The more accumulation, the more accurate the result but the more ghosting occurs when moving. When using accumulation, it is important to find a balance between convergence quality and the ghosting artifact. Also note that rougher reflective surfaces require more accumulation to produce a converged image without noise.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
+| **World Space Speed Rejection**   | When enabled, HDRP calculates speed in world space to reject samples.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
+| **Speed Rejection**               | Controls the likelihood that HDRP rejects history based on the previous frame motion vectors of both the surface and the GameObject that the sample hits.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation** and enable **Additional Properties** from the contextual menu. |
+| **Speed Rejection Scaler Factor** | Controls the upper range of speed. The faster a GameObject or the Camera move, the higher this number is.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation** enable **Additional Properties** from the contextual menu. |
+| **Speed From Reflecting Surface** | When enabled, HDRP rejects samples based on the reflecting surface movement. You must check this property or **Speed From Reflected Surface**.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation** enable **Additional Properties** from the contextual menu. |
+| **Speed From Reflected Surface**  | When enabled, HDRP rejects samples based on the reflected surface movement. You must check this property or **Speed From Reflecting Surface**.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation** enable **Additional Properties** from the contextual menu. |
+| **Speed Smooth Rejection**        | When enabled, HDRP can partially reject history for moving objects to create a smoother transition. When disabled, HDRP either rejects or keeps history.<br/>This property only appears if you enable **World Space Speed Rejection** enable **Additional Properties** from the contextual menu. |
+| **Roughness Bias**            | Controls the relative roughness offset. A low value means material roughness stays the same, a high value results in smoother reflections.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation** enable **Additional Properties** from the contextual menu. |
+
+## Debugging Speed Rejection
+
+HDRP includes a **Fullscreen Debug Mode** called **Screen Space Reflection Speed Rejection** (menu: **Lighting > Fullscreen debug mode > Screen Space Reflection Speed Rejection**) that you can use to visualise the contribution of the following properties:
+
+- **Speed Rejection**
+- **Speed Rejection Scaler Factor**
+- **Speed From Reflecting Surface**
+- **Speed From Reflected Surface**
+- **Speed Smooth Rejection**
+
+This fullscreen debug mode uses a color scale from green to red. Green areas indicate the sample is accumulated according to the **Accumulation Factor** and red areas indicate that HDRP rejects this sample. Orange areas indicate a that HDRP accumulates some samples and rejects some samples in this area.
+
+In the following example image, the car GameObject is in the center of the Camera's view. This means the car has no relative motion to the Camera.
+
+This example image uses **Speed From Reflected Surface** to accumulate the samples from the car and partially accumulate the samples from the sky. This makes the car and its reflection appear green, and the surface that reflects the sky appear orange.
+
+![](Images/ScreenSpaceReflectionPBR_SpeedRejectionSmooth.gif)
 
 ### Ray-traced
 
