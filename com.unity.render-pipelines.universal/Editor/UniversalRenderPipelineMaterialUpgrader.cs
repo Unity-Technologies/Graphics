@@ -46,7 +46,18 @@ namespace UnityEditor.Rendering.Universal
             AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(m_Upgraders, "Upgrade Animation Clips to URP Materials");
         }
 
-        [MenuItem("Window/Rendering/Convert Selected Built-in Materials to URP", priority = 51)]
+        [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to URP", true)]
+        static bool MaterialValidate(MenuCommand command)
+        {
+            foreach (var obj in Selection.objects)
+            {
+                if (obj is not Material) return false;
+            }
+
+            return true;
+        }
+
+        [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority + 1)]
         private static void UpgradeSelectedMaterialsMenuItem()
         {
             UpgradeSelectedMaterials(false);
