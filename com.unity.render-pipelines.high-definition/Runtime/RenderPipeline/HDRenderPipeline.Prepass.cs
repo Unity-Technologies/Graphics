@@ -474,7 +474,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward)
                 {
-                    RenderStateBlock? stateBlock = hdCamera.msaaEnabled ? null : m_AlphaToMaskBlock;
+                    RenderStateBlock? stateBlock = null;
+                    if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
+                        stateBlock = m_AlphaToMaskBlock;
 
                     passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(
                         CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, stateBlock: stateBlock, excludeObjectMotionVectors: objectMotionEnabled)));
@@ -540,7 +542,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 BindMotionVectorPassColorBuffers(builder, output, decalBuffer, hdCamera);
 
                 RenderStateBlock? stateBlock = null;
-                if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred || !hdCamera.msaaEnabled)
+                if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
                     stateBlock = m_AlphaToMaskBlock;
                 passData.rendererList = builder.UseRendererList(
                     renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_MotionVectorsName, PerObjectData.MotionVectors, stateBlock: stateBlock)));
