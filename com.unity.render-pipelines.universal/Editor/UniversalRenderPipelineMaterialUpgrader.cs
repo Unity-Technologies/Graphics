@@ -46,7 +46,16 @@ namespace UnityEditor.Rendering.Universal
             AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(m_Upgraders, "Upgrade Animation Clips to URP Materials");
         }
 
-        private static void UpgradeSelectedMaterials()
+        [MenuItem("Window/Rendering/Convert Selected Built-in Materials to URP", priority = 51)]
+        private static void UpgradeSelectedMaterialsMenuItem()
+        {
+            UpgradeSelectedMaterials();
+        }
+
+        // Added bool var in case this method were used.
+        // But since the menuitem should behave as it did before.
+        // And then we didn't have the Animation clips upgrader
+        private static void UpgradeSelectedMaterials(bool UpgradeAnimationClips = true)
         {
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
             GetUpgraders(ref upgraders);
@@ -55,8 +64,11 @@ namespace UnityEditor.Rendering.Universal
             GetShaderNamesToIgnore(ref shaderNamesToIgnore);
 
             MaterialUpgrader.UpgradeSelection(upgraders, shaderNamesToIgnore, "Upgrade to URP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
-            // TODO: return upgrade paths and pass to AnimationClipUpgrader
-            AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(upgraders, "Upgrade Animation Clips to URP Materials");
+            if (UpgradeAnimationClips)
+            {
+                // TODO: return upgrade paths and pass to AnimationClipUpgrader
+                AnimationClipUpgrader.DoUpgradeAllClipsMenuItem(upgraders, "Upgrade Animation Clips to URP Materials");
+            }
         }
 
         private static void GetShaderNamesToIgnore(ref HashSet<string> shadersToIgnore)
