@@ -3,166 +3,6 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    /// <summary>
-    /// Enum that defines the sets of resolution at which the water simulation can be evaluated
-    /// </summary>
-    public enum WaterSimulationResolution
-    {
-        /// <summary>
-        /// The water simulation will be ran at a resolution of 64x64 samples per band.
-        /// </summary>
-        Low64 = 64,
-        /// <summary>
-        /// The water simulation will be ran at a resolution of 128x128 samples per band.
-        /// </summary>
-        Medium128 = 128,
-        /// <summary>
-        /// The water simulation will be ran at a resolution of 256x256 samples per band.
-        /// </summary>
-        High256 = 256,
-        /// <summary>
-        /// The water simulation will be ran at a resolution of 512x512 samples per band.
-        /// </summary>
-        Ultra512 = 512
-    }
-
-    internal class WaterSimulationResources
-    {
-        // Overall time that has passed since Unity has been initialized
-        private float m_Time = 0;
-
-        // Current simulation time (used to compute the dispersion of the Phillips spectrum)
-        public float simulationTime = 0;
-
-        // Delta time of the current frame
-        public float deltaTime = 0;
-
-        // Texture that holds the Phillips spectrum
-        public RTHandle phillipsSpectrumBuffer = null;
-
-        // Texture that holds the displacement buffers
-        public RTHandle displacementBuffer = null;
-
-        // Texture that holds the additional data buffers (normal + foam)
-        public RTHandle additionalDataBuffer = null;
-
-        // Texture that holds the caustics
-        public RTHandle causticsBuffer = null;
-
-        // Resolution at which the water system is ran
-        public int simulationResolution = 0;
-
-        // The number bands that we will be running the simulation at
-        public int numBands = 0;
-
-        // The wind speed, orientation and weight used to evaluate the Phillips spectrum
-        public float windSpeed = 0;
-        public float windOrientation = 0;
-        public float windAffectCurrent = 0;
-
-        // Value that defines the patch sizes of the bands (up to 4)
-        public Vector4 patchSizes = Vector4.zero;
-
-        // Value that defines the wind speed that is applied to each patch (up to 4)
-        public Vector4 patchWindSpeed = Vector4.zero;
-
-        // Function that allocates the resources and keep track of the resolution and number of bands
-        public void AllocateSmmulationResources(int simulationRes, int nbBands)
-        {
-            // Keep track of the values that constraint the texture allocation.
-            simulationResolution = simulationRes;
-            numBands = nbBands;
-
-            // Allocate the buffers
-            phillipsSpectrumBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
-            displacementBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
-            additionalDataBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false);
-        }
-
-        // Function that validates the resources (size and if allocated)
-        public bool ValidResources(int simulationRes, int nbBands)
-        {
-            return (simulationRes == simulationResolution)
-                && (nbBands == numBands)
-                && AllocatedTextures();
-        }
-
-        // Function that makes sure that all the textures are allocated
-        public bool AllocatedTextures()
-        {
-            return (phillipsSpectrumBuffer != null)
-                && (displacementBuffer != null)
-                && (additionalDataBuffer != null);
-        }
-
-        public void CheckCausticsResources(bool used, int causticsResolution)
-        {
-            if (used)
-            {
-                bool needsAllocation = true;
-                if (causticsBuffer != null)
-                {
-                    needsAllocation = causticsBuffer.rt.width != causticsResolution;
-                    if (needsAllocation)
-                        RTHandles.Release(causticsBuffer);
-                }
-
-                if (needsAllocation)
-                    causticsBuffer = RTHandles.Alloc(causticsResolution, causticsResolution, 1, dimension: TextureDimension.Tex2D, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat, useMipMap: true, autoGenerateMips: false);
-            }
-            else
-            {
-                if (causticsBuffer != null)
-                {
-                    RTHandles.Release(causticsBuffer);
-                    causticsBuffer = null;
-                }
-            }
-        }
-
-        // Function that computes the delta time for the frame
-        public void Update(float totalTime, float timeMultiplier)
-        {
-            deltaTime = (totalTime - m_Time) * timeMultiplier;
-            simulationTime += deltaTime;
-            m_Time = totalTime;
-        }
-
-        // Function that releases the resources and resets all the internal variables
-        public void ReleaseSimulationResources()
-        {
-            // Release the textures
-            RTHandles.Release(additionalDataBuffer);
-            additionalDataBuffer = null;
-            RTHandles.Release(displacementBuffer);
-            displacementBuffer = null;
-            RTHandles.Release(phillipsSpectrumBuffer);
-            phillipsSpectrumBuffer = null;
-
-            // Release the caustics resources if allocated
-            if (causticsBuffer != null)
-            {
-                RTHandles.Release(causticsBuffer);
-                causticsBuffer = null;
-            }
-
-            // Reset the resolution data
-            simulationResolution = 0;
-            numBands = 0;
-
-            // Reset the simulation time
-            m_Time = 0;
-            simulationTime = 0;
-            deltaTime = 0;
-
-            // Reset the simulation parameters
-            windSpeed = 0;
-            windOrientation = 0;
-            windAffectCurrent = 0;
-            patchSizes = Vector4.zero;
-        }
-    }
-
     public partial class HDRenderPipeline
     {
         // Number of bands when the water is rendered at high band count
@@ -170,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Number of bands when the water is rendered at low band count
         const int k_WaterLowBandCount = 2;
         // Minimal size that a patch can reach (in meters)
-        const float k_MinPatchSize = 10.0f;
+        const float k_MinPatchSize = 5.0f;
         // Minimal quad resolution when rendering a water patch
         const int k_WaterMinGridSize = 2;
 
@@ -202,6 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_InitializePhillipsSpectrumKernel;
         int m_EvaluateDispersionKernel;
         int m_EvaluateNormalsFoamKernel;
+        int m_CopyAdditionalDataKernel;
         int m_PrepareCausticsGeometryKernel;
 
         // FFT shader and kernels
@@ -219,6 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_HtIs = null;
         RTHandle m_FFTRowPassRs = null;
         RTHandle m_FFTRowPassIs = null;
+        RTHandle m_AdditionalData = null;
 
         // The shader passes used to render the water
         Material m_InternalWaterMaterial;
@@ -293,6 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_InitializePhillipsSpectrumKernel = m_WaterSimulationCS.FindKernel("InitializePhillipsSpectrum");
             m_EvaluateDispersionKernel = m_WaterSimulationCS.FindKernel("EvaluateDispersion");
             m_EvaluateNormalsFoamKernel = m_WaterSimulationCS.FindKernel("EvaluateNormalsFoam");
+            m_CopyAdditionalDataKernel = m_WaterSimulationCS.FindKernel("CopyAdditionalData");
             m_PrepareCausticsGeometryKernel = m_WaterSimulationCS.FindKernel("PrepareCausticsGeometry");
 
             // Water rendering
@@ -310,6 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_HtIs = RTHandles.Alloc(textureRes, textureRes, k_WaterHighBandCount, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
             m_FFTRowPassRs = RTHandles.Alloc(textureRes, textureRes, k_WaterHighBandCount, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
             m_FFTRowPassIs = RTHandles.Alloc(textureRes, textureRes, k_WaterHighBandCount, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
+            m_AdditionalData = RTHandles.Alloc(textureRes, textureRes, k_WaterHighBandCount, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);
 
             // Allocate the additional rendering data
             m_WaterMaterialPropertyBlock = new MaterialPropertyBlock();
@@ -350,74 +194,12 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_WaterProfileArrayGPU);
 
             // Release all the RTHandles
+            RTHandles.Release(m_AdditionalData);
             RTHandles.Release(m_FFTRowPassIs);
             RTHandles.Release(m_FFTRowPassRs);
             RTHandles.Release(m_HtIs);
             RTHandles.Release(m_HtRs);
             CoreUtils.Destroy(m_InternalWaterMaterial);
-        }
-
-        Vector2 OrientationToDirection(float orientation)
-        {
-            float orientationRad = orientation * Mathf.Deg2Rad;
-            float directionX = Mathf.Cos(orientationRad);
-            float directionY = Mathf.Sin(orientationRad);
-            return new Vector2(directionX, directionY);
-        }
-
-        // Function that guesses the maximal wave height from the wind speed
-        static internal float MaximumWaveHeightFunction(float windSpeed)
-        {
-            return 1.0f - Mathf.Exp(-k_PhillipsWindFalloffCoefficient * windSpeed * windSpeed);
-        }
-
-        // Function that loops thought all the current waves and computes the maximal wave height
-        internal float ComputeMaximumWaveHeight(Vector4 normalizedWaveAmplitude, float waterWindSpeed, int numBands)
-        {
-            float maxiumumWaveHeight = 0.01f;
-            for (int i = 0; i < numBands; ++i)
-            {
-                float A = k_WaterAmplitudeNormalization * normalizedWaveAmplitude[i];
-                maxiumumWaveHeight = Mathf.Max(A * MaximumWaveHeightFunction(waterWindSpeed), maxiumumWaveHeight);
-            }
-            return maxiumumWaveHeight;
-        }
-
-        static internal float MaximumWindForPatch(float patchSize)
-        {
-            float a = Mathf.Sqrt(-1.0f / Mathf.Log(0.999f * 0.999f));
-            float b = (0.001f * Mathf.PI * 2.0f) / patchSize;
-            float c = k_PhillipsWindScalar * Mathf.Sqrt((1.0f / k_PhillipsGravityConstant) * (a / b));
-            return c;
-        }
-
-        static float EvaluatePolynomial(float x, float k_4, float k_3, float k_2, float k_1, float k_0)
-        {
-            float x2 = x * x;
-            float x3 = x2 * x;
-            float x4 = x2 * x2;
-            return x4 * k_4 + x3 * k_3 + x2 * k_2 + x * k_1 + k_0;
-        }
-
-        static internal Vector4 ComputeBandPatchSizes(float maxPatchSize)
-        {
-            float minPatchSize = Mathf.Max(k_MinPatchSize, maxPatchSize / 200.0f);
-            float range = maxPatchSize - minPatchSize;
-            float b0 = maxPatchSize;
-            float b1 = maxPatchSize - 7.0f / 8.0f * range;
-            float b2 = maxPatchSize - 31.0f / 32.0f * range;
-            float b3 = maxPatchSize - 63.0f / 64.0f * range;
-            return new Vector4(b0, b1, b2, b3);
-        }
-
-        static internal Vector4 ComputeWindSpeeds(float windSpeed, Vector4 patchSizes)
-        {
-            float normalizedWindSpeed = Mathf.Sqrt(windSpeed / 100.0f);
-            float b0 = MaximumWindForPatch(patchSizes.x) * normalizedWindSpeed;
-            float b1 = MaximumWindForPatch(patchSizes.y) * normalizedWindSpeed;
-            float b2 = MaximumWindForPatch(patchSizes.z) * normalizedWindSpeed;
-            float b3 = MaximumWindForPatch(patchSizes.w) * normalizedWindSpeed;
-            return new Vector4(b0, b1, b2, b3);
         }
 
         void UpdateShaderVariablesWater(WaterSurface currentWater, int surfaceIndex, ref ShaderVariablesWater cb)
@@ -426,19 +208,20 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._BandResolution = (uint)m_WaterBandResolution;
 
             // Maximal possible wave height of the current setup
-            cb._MaxWaveHeight = ComputeMaximumWaveHeight(currentWater.amplitude, currentWater.simulation.patchWindSpeed.x, currentWater.highBandCount ? k_WaterHighBandCount : k_WaterLowBandCount);
+            ComputeMaximumWaveHeight(currentWater.amplitude, currentWater.simulation.patchWindSpeed.x, currentWater.highBandCount, out cb._WaveAmplitude, out cb._MaxWaveHeight);
+
+            // Choppiness factor
+            cb._Choppiness = currentWater.choppiness;
+
+            // Horizontal displacement due to each band
+            cb._WaveDisplacement = cb._WaveAmplitude * currentWater.choppiness;
+            cb._MaxWaveDisplacement = cb._MaxWaveHeight * currentWater.choppiness;
 
             // Current simulation time
             cb._SimulationTime = currentWater.simulation.simulationTime;
 
             // Controls how much the wind affect the current of the waves
             cb._DirectionDampener = 1.0f - currentWater.windAffectCurrent;
-
-            // Combine the wave amplitude with the maximal wave height we can reach
-            cb._WaveAmplitude = currentWater.amplitude * cb._MaxWaveHeight;
-
-            // Choppiness factor
-            cb._Choppiness = currentWater.choppiness;
 
             // Water smoothness
             cb._WaterSmoothness = currentWater.waterSmoothness;
@@ -451,12 +234,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Manually set wind by the user
             cb._WindSpeed = currentWater.simulation.patchWindSpeed;
+            cb._WindSpeedMultiplier = currentWater.windSpeed / 100.0f;
 
-            // Foam data
+            // Foam Jacobian offset depends on the number of bands
+            if (currentWater.highBandCount)
+                cb._SimulationFoamAmount = 10.0f * Mathf.Pow(0.72f + currentWater.simulationFoamAmount * 0.28f, 0.25f);
+            else
+                cb._SimulationFoamAmount = 8.0f * Mathf.Pow(0.72f + currentWater.simulationFoamAmount * 0.28f, 0.25f);
+
+            // Amount of drag for the foam
+            cb._JacobianDrag = currentWater.simulationFoamDrag == 0.0f ? 0.0f : Mathf.Lerp(0.96f, 0.991f, currentWater.simulationFoamDrag);
+
+            // Smoothness of the foam
             cb._SimulationFoamSmoothness = currentWater.simulationFoamSmoothness;
-            cb._SimulationFoamIntensity = currentWater.simulationFoamIntensity * currentWater.simulationFoamIntensity;
-            cb._SimulationFoamAmount = Mathf.Sqrt(currentWater.simulationFoamAmount);
-            cb._FoamTilling = currentWater.simulationFoamTiling;
+            cb._FoamTilling = 1.0f / (currentWater.waterMaxPatchSize / 25.0f);
             float foamSpeed = currentWater.simulation.simulationTime * Mathf.Sqrt(cb._WindSpeed.x * k_PhillipsGravityConstant) * currentWater.windAffectCurrent;
             cb._FoamOffsets = new Vector2(cb._WindDirection.x * foamSpeed * 0.5f, cb._WindDirection.y * foamSpeed * 0.5f);
             cb._WindFoamAttenuation = Mathf.Clamp(currentWater.windFoamCurve.Evaluate(currentWater.windSpeed / 100.0f), 0.0f, 1.0f);
@@ -466,7 +257,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cb._SSSMaskCoefficient = 1000.0f;
 
-            cb._ScatteringColorTips = new Vector3(currentWater.scatteringColor.r, currentWater.scatteringColor.g, currentWater.scatteringColor.b);
+            Color remappedScattering = RemapScatteringColor(currentWater.scatteringColor);
+            cb._ScatteringColorTips = new Vector4(remappedScattering.r, remappedScattering.g, remappedScattering.b, 0 /*Unsused*/);
             cb._DeltaTime = currentWater.simulation.deltaTime;
 
             cb._MaxRefractionDistance = Mathf.Min(currentWater.maxAbsorptionDistance, currentWater.maxRefractionDistance);
@@ -474,9 +266,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._OutScatteringCoefficient = -Mathf.Log(0.02f) / currentWater.maxAbsorptionDistance;
             cb._TransparencyColor = new Vector3(Mathf.Min(currentWater.refractionColor.r, 0.99f), Mathf.Min(currentWater.refractionColor.g, 0.99f), Mathf.Min(currentWater.refractionColor.b, 0.99f));
 
-            cb._ScatteringIntensity = currentWater.scatteringFactor * 0.5f;
-            cb._HeightBasedScattering = currentWater.heightScattering * 2.0f;
-            cb._DisplacementScattering = currentWater.displacementScattering * 0.5f;
+            cb._HeightBasedScattering = currentWater.heightScattering;
+            cb._DisplacementScattering = currentWater.displacementScattering * 0.25f;
 
             float scatteringLambertLightingNear = 0.6f;
             float scatteringLambertLightingFar = 0.06f;
@@ -491,8 +282,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void UpdateWaterSurface(CommandBuffer cmd, WaterSurface currentWater, int surfaceIndex)
         {
             // If the function returns false, this means the resources were just created and they need to be initialized.
-            bool initialAllocation = false;
-            bool validResources = currentWater.CheckResources(cmd, (int)m_WaterBandResolution, k_WaterHighBandCount, ref initialAllocation);
+            bool validResources = currentWater.CheckResources(cmd, (int)m_WaterBandResolution, k_WaterHighBandCount);
 
             // Update the simulation time
             currentWater.simulation.Update(Time.realtimeSinceStartup, currentWater.timeMultiplier);
@@ -509,12 +299,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Number of tiles we will need to dispatch
             int tileCount = (int)m_WaterBandResolution / 8;
 
+            // Do we need to re-evaluate the Phillips spectrum?
             if (!validResources)
             {
-                // If the texture has just been allocated, we clear the texture to black to avoid using nans.
-                if (initialAllocation)
-                    CoreUtils.SetRenderTarget(cmd, currentWater.simulation.additionalDataBuffer, clearFlag: ClearFlag.Color, Color.black);
-
                 // Convert the noise to the Phillips spectrum
                 cmd.SetComputeTextureParam(m_WaterSimulationCS, m_InitializePhillipsSpectrumKernel, HDShaderIDs._H0BufferRW, currentWater.simulation.phillipsSpectrumBuffer);
                 cmd.DispatchCompute(m_WaterSimulationCS, m_InitializePhillipsSpectrumKernel, tileCount, tileCount, bandCount);
@@ -525,6 +312,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_WaterSimulationCS, m_EvaluateDispersionKernel, HDShaderIDs._HtRealBufferRW, m_HtRs);
             cmd.SetComputeTextureParam(m_WaterSimulationCS, m_EvaluateDispersionKernel, HDShaderIDs._HtImaginaryBufferRW, m_HtIs);
             cmd.DispatchCompute(m_WaterSimulationCS, m_EvaluateDispersionKernel, tileCount, tileCount, bandCount);
+
+            // Make sure to define properly if this is the initial frame
+            m_ShaderVariablesWater._WaterInitialFrame = !validResources ? 1 : 0;
 
             // Bind the constant buffer
             ConstantBuffer.Push(cmd, m_ShaderVariablesWater, m_FourierTransformCS, HDShaderIDs._ShaderVariablesWater);
@@ -542,29 +332,19 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_FourierTransformCS, m_ColPassTi_Kernel, HDShaderIDs._FFTRealBufferRW, currentWater.simulation.displacementBuffer);
             cmd.DispatchCompute(m_FourierTransformCS, m_ColPassTi_Kernel, 1, (int)m_WaterBandResolution, bandCount);
 
-            // Evaluate water surface additional data
+            // Evaluate water surface additional data (combining it with the previous values)
             cmd.SetComputeTextureParam(m_WaterSimulationCS, m_EvaluateNormalsFoamKernel, HDShaderIDs._WaterDisplacementBuffer, currentWater.simulation.displacementBuffer);
-            cmd.SetComputeTextureParam(m_WaterSimulationCS, m_EvaluateNormalsFoamKernel, HDShaderIDs._WaterAdditionalDataBufferRW, currentWater.simulation.additionalDataBuffer);
+            cmd.SetComputeTextureParam(m_WaterSimulationCS, m_EvaluateNormalsFoamKernel, HDShaderIDs._PreviousWaterAdditionalDataBuffer, currentWater.simulation.additionalDataBuffer);
+            cmd.SetComputeTextureParam(m_WaterSimulationCS, m_EvaluateNormalsFoamKernel, HDShaderIDs._WaterAdditionalDataBufferRW, m_AdditionalData);
             cmd.DispatchCompute(m_WaterSimulationCS, m_EvaluateNormalsFoamKernel, tileCount, tileCount, bandCount);
+
+            // Copy the result back into the water surface's texture
+            cmd.SetComputeTextureParam(m_WaterSimulationCS, m_CopyAdditionalDataKernel, HDShaderIDs._WaterAdditionalDataBuffer, m_AdditionalData);
+            cmd.SetComputeTextureParam(m_WaterSimulationCS, m_CopyAdditionalDataKernel, HDShaderIDs._WaterAdditionalDataBufferRW, currentWater.simulation.additionalDataBuffer);
+            cmd.DispatchCompute(m_WaterSimulationCS, m_CopyAdditionalDataKernel, tileCount, tileCount, bandCount);
 
             // Make sure the mip-maps are generated
             currentWater.simulation.additionalDataBuffer.rt.GenerateMips();
-        }
-
-        int EvaluateNormalMipOffset(WaterSimulationResolution resolution)
-        {
-            switch (resolution)
-            {
-                case WaterSimulationResolution.Ultra512:
-                    return 3;
-                case WaterSimulationResolution.High256:
-                    return 2;
-                case WaterSimulationResolution.Medium128:
-                    return 1;
-                case WaterSimulationResolution.Low64:
-                    return 0;
-            }
-            return 0;
         }
 
         void EvaluateWaterCaustics(CommandBuffer cmd, WaterSurface currentWater)
@@ -704,7 +484,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.foamMask = currentWater.foamMask != null ? currentWater.foamMask : Texture2D.whiteTexture;
 
             // Water material
-            parameters.waterMaterial = currentWater.material != null ? currentWater.material : m_InternalWaterMaterial;
+            parameters.waterMaterial = currentWater.customMaterial != null ? currentWater.customMaterial : m_InternalWaterMaterial;
 
             // Property bloc used for binding the textures
             parameters.mbp = m_WaterMaterialPropertyBlock;
@@ -806,42 +586,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle normalBuffer;
         }
 
-        // Compute the resolution of the water patch based on it's distance to the center patch
-        static int GetPatchResolution(int x, int y, int maxResolution)
-        {
-            return Mathf.Max((maxResolution >> (Mathf.Abs(x) + Mathf.Abs(y))), k_WaterMinGridSize);
-        }
-
-        // Evaluate the mask that allows us to adapt the tessellation at patch edges
-        static int EvaluateTesselationMask(int x, int y, int maxResolution)
-        {
-            int center = GetPatchResolution(x, y, maxResolution);
-            int up = GetPatchResolution(x, y + 1, maxResolution);
-            int down = GetPatchResolution(x, y - 1, maxResolution);
-            int right = GetPatchResolution(x - 1, y, maxResolution);
-            int left = GetPatchResolution(x + 1, y, maxResolution);
-            int mask = 0;
-            mask |= (center > right) ? 0x1 : 0;
-            mask |= (center > up) ? 0x2 : 0;
-            mask |= (center > left) ? 0x4 : 0;
-            mask |= (center > down) ? 0x8 : 0;
-            return mask;
-        }
-
-        static void ComputeGridBounds(int x, int y, int numLODS, float centerGridSize, Vector3 centerGridPos, float farPlane, out Vector3 center, out Vector2 size)
-        {
-            int absX = Mathf.Abs(x);
-            int absY = Mathf.Abs(y);
-            float signX = Mathf.Sign(x);
-            float signY = Mathf.Sign(y);
-
-            // Offset position of the patch
-            center = new Vector3(signX * offsets[absX] * centerGridSize, centerGridPos.y, signY * offsets[absY] * centerGridSize);
-
-            // Size of the patch
-            size = new Vector2(centerGridSize * (1 << absX), centerGridSize * (1 << absY));
-        }
-
         unsafe Vector3 EvaluateWaterAmbientProbe(HDCamera hdCamera, float ambientProbeDimmer)
         {
             SphericalHarmonicsL2 probeSH = SphericalHarmonicMath.UndoCosineRescaling(m_SkyManager.GetAmbientProbe(hdCamera));
@@ -938,6 +682,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                     Vector2 size;
                                     ComputeGridBounds(x, y, data.parameters.numLODs, data.parameters.gridSize, data.parameters.center, data.parameters.cameraFarPlane, out center, out size);
 
+                                    // Account for the maximal horizontal displacement
+                                    size.x = size.x + data.parameters.waterCB._MaxWaveDisplacement * 2;
+                                    size.y = size.y + data.parameters.waterCB._MaxWaveDisplacement * 2;
+
                                     // Build the OOBB
                                     var obb = new OrientedBBox(Matrix4x4.TRS(center + new Vector3(data.parameters.cameraPosition.x, 0, data.parameters.cameraPosition.z), Quaternion.identity, new Vector3(size.x, k_WaterAmplitudeNormalization * 2.0f, size.y)));
                                     obb.center -= data.parameters.cameraPosition;
@@ -1023,9 +771,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Request all the gbuffer textures we will need
             TextureHandle WaterGbuffer0 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { colorFormat = GraphicsFormat.R16G16B16A16_UInt, enableRandomWrite = true, name = "Water GBuffer 0" });
+            { colorFormat = GraphicsFormat.R16G16_UInt, enableRandomWrite = true, name = "Water GBuffer 0" });
             TextureHandle WaterGbuffer1 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Water GBuffer 1" });
+            { colorFormat = GraphicsFormat.R16G16B16A16_UInt, enableRandomWrite = true, name = "Water GBuffer 1" });
             TextureHandle WaterGbuffer2 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             { colorFormat = GraphicsFormat.R16G16_UInt, enableRandomWrite = true, name = "Water GBuffer 2" });
 

@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            var name = string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Position));
+            var name = string.Format("IN.{0}", CoordinateSpace.World.ToVariableName(InterpolatorType.Position));
             if (RequiresPositionPredisplacement(ShaderStageCapability.All) != NeededCoordinateSpace.None)
             {
                 name += PositionSource.Predisplacement.ToString();

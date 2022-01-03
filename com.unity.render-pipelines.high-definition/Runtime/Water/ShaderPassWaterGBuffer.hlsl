@@ -94,8 +94,8 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
 }
 
 void Frag(PackedVaryingsToPS packedInput,
-    out uint4 outGBuffer0 : SV_Target0,
-    out float4 outGBuffer1 : SV_Target1,
+    out uint2 outGBuffer0 : SV_Target0,
+    out uint4 outGBuffer1 : SV_Target1,
     out uint2 outGBuffer2 : SV_Target2)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
@@ -123,15 +123,15 @@ void Frag(PackedVaryingsToPS packedInput,
     builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
 
     // We manually set the ambient probe as this is not a mesh renderer
-    builtinData.bakeDiffuseLighting = _WaterAmbientProbe;
+    builtinData.bakeDiffuseLighting = _WaterAmbientProbe.xyz;
 
     // Compute the BSDF Data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
 #ifdef DEBUG_DISPLAY
     // Initialize for the debug
-    outGBuffer0 = uint4(0, 0, 0, 0);
-    outGBuffer1 = float4(0, 0, 0, 0);
-    outGBuffer2 = uint4(0, 0, 0, 0);
+    outGBuffer0 = uint2(0, 0);
+    outGBuffer1 = uint4(0, 0, 0, 0);
+    outGBuffer2 = uint2(0, 0);
 
     // Same code in ShaderPassForwardUnlit.shader
     // Reminder: _DebugViewMaterialArray[i]

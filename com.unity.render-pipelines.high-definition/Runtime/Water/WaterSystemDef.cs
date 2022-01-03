@@ -36,6 +36,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Individual heights of the wave bands.
         public Vector4 _WaveAmplitude;
 
+        // Maximal horizontal displacements due to each wave
+        public Vector4 _WaveDisplacement;
+
         // Individual sizes of the wave bands
         public Vector4 _BandPatchSize;
 
@@ -51,14 +54,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Smoothness of the simulation foam
         public float _SimulationFoamSmoothness;
-        // Intensity of the simulation foam
-        public float _SimulationFoamIntensity;
+        // Controls the amount of drag of the simulation foam
+        public float _JacobianDrag;
         // Amount of surface foam
         public float _SimulationFoamAmount;
         // TODO WRITE
         public float _SSSMaskCoefficient;
 
-        public float _DispersionAmount;
+        // Maximal horizontal displacement
+        public float _MaxWaveDisplacement;
         public float _ScatteringBlur;
         // Maximum refraction distance
         public float _MaxRefractionDistance;
@@ -78,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _ScatteringColorTips;
 
         public float _DisplacementScattering;
-        public float _ScatteringIntensity;
+        public int _WaterInitialFrame;
         public int _SurfaceIndex;
         public float _CausticsRegionSize;
 
@@ -89,7 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _OutScatteringCoefficient;
         public float _FoamSmoothness;
         public float _HeightBasedScattering;
-        public float _PaddingW0;
+        public float _WindSpeedMultiplier;
 
         public Vector4 _FoamJacobianLambda;
     }

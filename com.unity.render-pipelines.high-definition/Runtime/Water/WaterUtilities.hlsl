@@ -2,12 +2,11 @@
 // yield a Phillips spectrum distribution in the [-1, 1] range
 #define EARTH_GRAVITY 9.81
 #define ONE_OVER_SQRT2 0.70710678118
-#define PHILLIPS_PATCH_SCALAR 500.0
 #define PHILLIPS_AMPLITUDE_SCALAR 10.0
 #define WATER_IOR 1.3333
 #define WATER_INV_IOR 1.0 / WATER_IOR
-// Overestimation of the choppiness for the foam simulation
-#define FOAM_CHOPPINESS_MULTIPLIER 7.0
+#define SURFACE_FOAM_BRIGHTNESS 0.28125
+#define SCATTERING_FOAM_BRIGHTNESS 2.0
 
 // Water simulation data
 Texture2DArray<float4> _WaterDisplacementBuffer;
@@ -120,12 +119,12 @@ float4 EvaluateDisplacementNormalization()
 }
 
 void EvaluateDisplacedPoints(float3 displacementC, float3 displacementR, float3 displacementU,
-                                float normalization, float pixelSize, float choppiness,
+                                float normalization, float pixelSize,
                                 out float3 p0, out float3 p1, out float3 p2)
 {
-    p0 = float3(displacementC.x * choppiness, displacementC.y, displacementC.z * choppiness) * normalization;
-    p1 = float3(displacementR.x * choppiness, displacementR.y, displacementR.z * choppiness) * normalization + float3(pixelSize, 0, 0);
-    p2 = float3(displacementU.x * choppiness, displacementU.y, displacementU.z * choppiness) * normalization + float3(0, 0, pixelSize);
+    p0 = float3(displacementC.x, displacementC.y, displacementC.z) * normalization;
+    p1 = float3(displacementR.x, displacementR.y, displacementR.z) * normalization + float3(pixelSize, 0, 0);
+    p2 = float3(displacementU.x, displacementU.y, displacementU.z) * normalization + float3(0, 0, pixelSize);
 }
 
 float2 EvaluateSurfaceGradients(float3 p0, float3 p1, float3 p2)
@@ -136,19 +135,19 @@ float2 EvaluateSurfaceGradients(float3 p0, float3 p1, float3 p2)
     return SurfaceGradientFromPerturbedNormal(float3(0, 1, 0), geometryNormal).xz;
 }
 
-float EvaluateJacobian(float3 p0, float3 p1, float3 p2, float choppiness, float pixelSize)
+float EvaluateJacobian(float3 p0, float3 p1, float3 p2, float pixelSize)
 {
     // Compute the jacobian of this texel
-    float Jxx = 1.f + choppiness * (p1.x - p0.x) / pixelSize;
-    float Jyy = 1.f + choppiness * (p2.z - p0.z) / pixelSize;
-    float Jyx = choppiness * (p1.z - p0.z) / pixelSize;
-    float Jxy = choppiness * (p2.x - p0.x) / pixelSize;
+    float Jxx = 1.f + (p1.x - p0.x) / pixelSize;
+    float Jyy = 1.f + (p2.z - p0.z) / pixelSize;
+    float Jyx = (p1.z - p0.z) / pixelSize;
+    float Jxy = (p2.x - p0.x) / pixelSize;
     return (Jxx * Jyy - Jxy * Jyx);
 }
 
-float EvaluateFoam(float jacobian)
+float EvaluateFoam(float jacobian, float foamAmount)
 {
-    return saturate(-jacobian);
+    return saturate(-jacobian + foamAmount);
 }
 
 #if !defined(WATER_SIMULATION)
@@ -188,66 +187,6 @@ void TriangleGrid(float2 uv, out float w1, out float w2, out float w3, out int2 
         vertex2 = baseId + int2(1, 0);
         vertex3 = baseId + int2(0, 1);
     }
-}
-
-// Sample by-example procedural noise at uv on decorrelated input
-float DecorrelatedStochasticSample_R(float2 uv, Texture2D<float> Tinput)
-{
-    // Get triangle info
-    float w1, w2, w3;
-    int2 vertex1, vertex2, vertex3;
-    TriangleGrid(uv, w1, w2, w3, vertex1, vertex2, vertex3);
-
-    // Assign random offset to each triangle vertex
-    float2 uv1 = uv + SimpleHash2(vertex1);
-    float2 uv2 = uv + SimpleHash2(vertex2);
-    float2 uv3 = uv + SimpleHash2(vertex3);
-
-    // Precompute UV derivatives
-    float2 duvdx = ddx(uv);
-    float2 duvdy = ddy(uv);
-
-    // Fetch Gaussian input
-    float G1 = Tinput.SampleGrad(s_linear_repeat_sampler, uv1, duvdx, duvdy);
-    float G2 = Tinput.SampleGrad(s_linear_repeat_sampler, uv2, duvdx, duvdy);
-    float G3 = Tinput.SampleGrad(s_linear_repeat_sampler, uv3, duvdx, duvdy);
-
-    // Variance-preserving blending
-    float G = w1 * G1 + w2 * G2 + w3 * G3;
-    G = G - 0.5;
-    G = G * rsqrt(w1 * w1 + w2 * w2 + w3 * w3);
-    G = G + 0.5;
-    return G;
-}
-
-// Sample by-example procedural noise at uv on decorrelated input
-float3 DecorrelatedStochasticSample(float2 uv, Texture2D<float4> Tinput)
-{
-    // Get triangle info
-    float w1, w2, w3;
-    int2 vertex1, vertex2, vertex3;
-    TriangleGrid(uv, w1, w2, w3, vertex1, vertex2, vertex3);
-
-    // Assign random offset to each triangle vertex
-    float2 uv1 = uv + SimpleHash2(vertex1);
-    float2 uv2 = uv + SimpleHash2(vertex2);
-    float2 uv3 = uv + SimpleHash2(vertex3);
-
-    // Precompute UV derivatives
-    float2 duvdx = ddx(uv);
-    float2 duvdy = ddy(uv);
-
-    // Fetch Gaussian input
-    float3 G1 = Tinput.SampleGrad(s_linear_repeat_sampler, uv1, duvdx, duvdy).rgb;
-    float3 G2 = Tinput.SampleGrad(s_linear_repeat_sampler, uv2, duvdx, duvdy).rgb;
-    float3 G3 = Tinput.SampleGrad(s_linear_repeat_sampler, uv3, duvdx, duvdy).rgb;
-
-    // Variance-preserving blending
-    float3 G = w1 * G1 + w2 * G2 + w3 * G3;
-    G = G - 0.5;
-    G = G * rsqrt(w1 * w1 + w2 * w2 + w3 * w3);
-    G = G + 0.5;
-    return G;
 }
 
 #if defined(WATER_PROCEDURAL_GEOMETRY)
@@ -356,7 +295,6 @@ float3 GetVertexPositionFromVertexID(uint vertexID, float3 positionOS)
 struct WaterDisplacementData
 {
     float3 displacement;
-    float3 displacementNoChopiness;
     float lowFrequencyHeight;
     float sssMask;
 };
@@ -413,6 +351,9 @@ void EvaluateWaterDisplacement(float3 positionAWS, out WaterDisplacementData dis
     lowFrequencyHeight += rawDisplacement.x;
     normalizedDisplacement = rawDisplacement.x / patchSizes2.y;
 
+    // We only apply the choppiness tot he first two bands, doesn't behave very good past those
+    totalDisplacement.yz *= _Choppiness;
+
 #if defined(HIGH_RESOLUTION_WATER)
     // Third band
     rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand2, 2, 0).xyz * displacementNormalization.z * waterMask.y;
@@ -427,8 +368,7 @@ void EvaluateWaterDisplacement(float3 positionAWS, out WaterDisplacementData dis
 #endif
 
     // The vertical displacement is stored in the X channel and the XZ displacement in the YZ channel
-    displacementData.displacement = float3(-totalDisplacement.y * _Choppiness, totalDisplacement.x, -totalDisplacement.z * _Choppiness);
-    displacementData.displacementNoChopiness = float3(-totalDisplacement.y, totalDisplacement.x - positionAWS.y, -totalDisplacement.z);
+    displacementData.displacement = float3(-totalDisplacement.y, totalDisplacement.x, -totalDisplacement.z);
     displacementData.lowFrequencyHeight = (_MaxWaveHeight + lowFrequencyHeight) / _MaxWaveHeight - 0.5f;
     displacementData.sssMask = EvaluateSSSMask(positionAWS, _WorldSpaceCameraPos);
 }
@@ -441,11 +381,11 @@ struct PackedWaterData
     float4 uv1;
 };
 
-void PackWaterVertexData(float3 positionAWS, float3 displacement, float3 displacementNoChopiness, float lowFrequencyHeight, float sssMask, out PackedWaterData packedWaterData)
+void PackWaterVertexData(float3 positionAWS, float3 displacement, float lowFrequencyHeight, float sssMask, out PackedWaterData packedWaterData)
 {
     packedWaterData.positionOS = positionAWS + displacement;
     packedWaterData.normalOS = float3(0, 1, 0);
-    packedWaterData.uv0 = float4(positionAWS + float3(0, displacementNoChopiness.y, 0), 0.0);
+    packedWaterData.uv0 = float4(positionAWS.x, displacement.y, positionAWS.z, 0.0);
     packedWaterData.uv1 = float4(lowFrequencyHeight, 0.0, sssMask, length(float2(displacement.x, displacement.z)));
 }
 
@@ -453,7 +393,8 @@ struct WaterAdditionalData
 {
     float3 surfaceGradient;
     float3 lowFrequencySurfaceGradient;
-    float simulationFoam;
+    float surfaceFoam;
+    float deepFoam;
 };
 
 void EvaluateWaterAdditionalData(float3 positionAWS, out WaterAdditionalData waterAdditionalData)
@@ -475,25 +416,27 @@ void EvaluateWaterAdditionalData(float3 positionAWS, out WaterAdditionalData wat
     float4 additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand0, 0, texSize) * waterMask.x;
     float3 surfaceGradient = float3(additionalData.x, 0, additionalData.y);
     float3 lowFrequencySurfaceGradient = float3(additionalData.x, 0, additionalData.y);
-    float jacobian = additionalData.z;
+    float jacobianSurface = additionalData.z;
+    float jacobianDeep = additionalData.w;
 
     // Second band
     additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand1, 1, texSize) * waterMask.x;
     surfaceGradient += float3(additionalData.x, 0, additionalData.y);
     lowFrequencySurfaceGradient += float3(additionalData.x, 0, additionalData.y);
-    jacobian += additionalData.z;
+    jacobianSurface += additionalData.z;
+    jacobianDeep += additionalData.w;
 
 #if defined(HIGH_RESOLUTION_WATER)
     // Third band
     additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand2, 2, texSize)* waterMask.y;
     surfaceGradient += float3(additionalData.x, 0, additionalData.y);
     lowFrequencySurfaceGradient += float3(additionalData.x, 0, additionalData.y) * 0.5;
-    jacobian += additionalData.z;
+    jacobianSurface += additionalData.z * 0.5;
+    jacobianDeep += additionalData.w * 0.5;
 
     // Fourth band
     additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand3, 3, texSize) * waterMask.y;
     surfaceGradient += float3(additionalData.x, 0, additionalData.y);
-    // jacobian += additionalData.z;
 #endif
 
     // Output the two surface gradients
@@ -501,7 +444,8 @@ void EvaluateWaterAdditionalData(float3 positionAWS, out WaterAdditionalData wat
     waterAdditionalData.lowFrequencySurfaceGradient = lowFrequencySurfaceGradient;
 
     // Evaluate the foam from the jacobian
-    waterAdditionalData.simulationFoam = EvaluateFoam(jacobian) * _SimulationFoamIntensity;
+    waterAdditionalData.surfaceFoam = EvaluateFoam(jacobianSurface, _SimulationFoamAmount) * SURFACE_FOAM_BRIGHTNESS;
+    waterAdditionalData.deepFoam = EvaluateFoam(jacobianDeep, _SimulationFoamAmount) * SCATTERING_FOAM_BRIGHTNESS;
 }
 
 float3 EvaluateWaterSurfaceGradient_VS(float3 positionAWS, int LOD, int bandIndex)
@@ -555,7 +499,7 @@ struct FoamData
 };
 
 void EvaluateFoamData(float3 surfaceGradient, float3 lowFrequencySurfaceGradient,
-    float simulationFoam, float customFoam, float3 positionAWS, out FoamData foamData)
+    float surfaceFoam, float customFoam, float3 positionAWS, out FoamData foamData)
 {
     // Attenuate using the foam mask
     float2 foamMaskUV = EvaluateFoamMaskUV(positionAWS);
@@ -563,16 +507,20 @@ void EvaluateFoamData(float3 surfaceGradient, float3 lowFrequencySurfaceGradient
 
     // Compute the surface foam
     float2 foamUV = EvaluateFoamUV(positionAWS);
-    float foamTex = _FoamTexture.Sample(s_linear_repeat_sampler,foamUV);
+
+    float foamTex = SAMPLE_TEXTURE2D(_FoamTexture, s_linear_repeat_sampler, foamUV).x;
 
     // Final foam value
-    foamData.foamValue = simulationFoam * foamMask.x * foamTex * _WindFoamAttenuation + customFoam;
+    foamData.foamValue = surfaceFoam * foamMask.x * _WindFoamAttenuation * foamTex;
+
+    // Evaluate the foam mask
+    float foamBlend = saturate(foamData.foamValue * 10.0f);
 
     // Combine it with the regular surface gradient
-    foamData.surfaceGradient = lerp(surfaceGradient, lowFrequencySurfaceGradient, foamData.foamValue);
+    foamData.surfaceGradient = lerp(surfaceGradient, lowFrequencySurfaceGradient, foamBlend);
 
     // Blend the smoothness of the water and the foam
-    foamData.smoothness = lerp(_WaterSmoothness, _SimulationFoamSmoothness, foamData.foamValue);
+    foamData.smoothness = lerp(_WaterSmoothness, _SimulationFoamSmoothness, foamBlend);
 }
 
 #define WATER_BACKGROUND_ABSORPTION_DISTANCE 1000.f
@@ -770,14 +718,14 @@ float3 EvaluateRefractionColor(float3 absorptionTint, float3 caustics)
     return absorptionTint * caustics * absorptionTint;
 }
 
-float3 EvaluateScatteringColor(float sssMask, float lowFrequencyHeight, float horizontalDisplacement, float3 absorptionTint)
+float3 EvaluateScatteringColor(float sssMask, float lowFrequencyHeight, float horizontalDisplacement, float3 absorptionTint, float deepFoam)
 {
     // Evlaute the scattering color (where the refraction doesn't happen)
     float heightBasedScattering = EvaluateHeightBasedScattering(lowFrequencyHeight);
     float displacementScattering = EvaluateDisplacementScattering(horizontalDisplacement);
     float3 scatteringCoefficients = (displacementScattering + heightBasedScattering) * (1.f - _ScatteringColorTips.rgb);
-    float3 scatteringTint = _ScatteringColorTips.xyz * exp(-scatteringCoefficients);
+    float3 scatteringTint = _ScatteringColorTips.xyz * exp(-scatteringCoefficients) ;
     float lambertCompensation = lerp(_ScatteringLambertLighting.z, _ScatteringLambertLighting.w, sssMask);
-    return scatteringTint * (1.f - absorptionTint) * lambertCompensation * _ScatteringIntensity;
+    return scatteringTint * (1.f - absorptionTint) * lambertCompensation * (1.0 + deepFoam);
 }
 #endif
