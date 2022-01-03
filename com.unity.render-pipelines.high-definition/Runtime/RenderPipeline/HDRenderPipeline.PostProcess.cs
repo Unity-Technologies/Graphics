@@ -2174,6 +2174,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.dofCircleOfConfusionCS.EnableKeyword("USE_MIN_DEPTH");
             }
 
+            if (m_DepthOfField.limitManualRangeNearBlur && m_DepthOfField.focusMode == DepthOfFieldMode.Manual && !m_DepthOfField.physicallyBased && m_DepthOfField.IsNearLayerActive())
+            {
+                parameters.dofCoCCS.EnableKeyword("FIX_NEAR_BLEND");
+            }
+
             parameters.useMipSafePath = m_UseSafePath;
 
             return parameters;
@@ -3620,6 +3625,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !hdCamera.resetPostProcessingHistory && m_MotionBlurFS)
             {
+                // If we are in XR we need to check if motion blur is allowed at all.
+                if (hdCamera.xr.enabled)
+                {
+                    if (!m_Asset.currentPlatformRenderPipelineSettings.xrSettings.allowMotionBlur)
+                        return source;
+                }
+
                 using (var builder = renderGraph.AddRenderPass<MotionBlurData>("Motion Blur", out var passData, ProfilingSampler.Get(HDProfileId.MotionBlur)))
                 {
                     PrepareMotionBlurPassData(renderGraph, builder, passData, hdCamera, source, motionVectors, depthTexture);

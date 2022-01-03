@@ -7,9 +7,9 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    public static class ParticleGUI
+    internal static class ParticleGUI
     {
-        public enum ColorMode
+        internal enum ColorMode
         {
             Multiply,
             Additive,
@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             Difference
         }
 
-        public static class Styles
+        internal static class Styles
         {
             public static GUIContent colorMode = EditorGUIUtility.TrTextContent("Color Mode",
                 "Controls how the Particle color and the Material color blend together.");
@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         private static ReorderableList vertexStreamList;
 
-        public struct ParticleProperties
+        internal struct ParticleProperties
         {
             // Surface Option Props
             public MaterialProperty colorMode;
@@ -101,7 +101,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public MaterialProperty distortionBlend;
             public MaterialProperty distortionStrength;
 
-            public ParticleProperties(MaterialProperty[] properties)
+            internal ParticleProperties(MaterialProperty[] properties)
             {
                 // Surface Option Props
                 colorMode = BaseShaderGUI.FindProperty("_ColorMode", properties, false);
@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
         }
 
-        public static void SetupMaterialWithColorMode(Material material)
+        internal static void SetupMaterialWithColorMode(Material material)
         {
             var colorMode = (ColorMode)material.GetFloat("_ColorMode");
 
@@ -161,7 +161,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
         }
 
-        public static void FadingOptions(Material material, MaterialEditor materialEditor, ParticleProperties properties)
+        internal static void FadingOptions(Material material, MaterialEditor materialEditor, ParticleProperties properties)
         {
             // Z write doesn't work with fading
             bool hasZWrite = (material.GetFloat("_ZWrite") > 0.0f);
@@ -225,7 +225,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
         }
 
-        public static void DoVertexStreamsArea(Material material, List<ParticleSystemRenderer> renderers, bool useLighting = false)
+        internal static void DoVertexStreamsArea(Material material, List<ParticleSystemRenderer> renderers, bool useLighting = false)
         {
             EditorGUILayout.Space();
             // Display list of streams required to make this shader work
@@ -342,7 +342,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             return false;
         }
 
-        public static void SetMaterialKeywords(Material material)
+        internal static void SetMaterialKeywords(Material material)
         {
             // Setup particle + material color blending
             SetupMaterialWithColorMode(material);
