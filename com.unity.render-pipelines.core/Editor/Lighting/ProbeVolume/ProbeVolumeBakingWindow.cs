@@ -254,36 +254,28 @@ namespace UnityEngine.Experimental.Rendering
 
         internal void UpdateBakingStatesStatuses(ProbeVolumeBakingState mostRecentState)
         {
-            var scene2Data = new Dictionary<string, ProbeVolumePerSceneData>();
-            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                scene2Data[data.gameObject.scene.path] = data;
-
             for (int i = 0; i < sceneData.bakingStates.Length; i++)
-            {
                 bakingStatesStatuses[i] = BakingStateStatus.Valid;
 
-                foreach (var sceneGUID in GetCurrentBakingSet().sceneGUIDs)
+            foreach (var sceneGUID in GetCurrentBakingSet().sceneGUIDs)
+            {
+                if (!(sceneData.hasProbeVolumes.ContainsKey(sceneGUID) && sceneData.hasProbeVolumes[sceneGUID]))
+                    continue;
+
+                var scenePath = FindSceneData(sceneGUID).path;
+                var sceneName = Path.GetFileNameWithoutExtension(scenePath);
+                var mostRecentAsset = AssetDatabase.LoadAssetAtPath<ProbeVolumeAsset>(ProbeVolumeAsset.GetPath(scenePath, sceneName, mostRecentState, false));
+
+                for (int i = 0; i < sceneData.bakingStates.Length; i++)
                 {
-                    var data = scene2Data.GetValueOrDefault(FindSceneData(sceneGUID).path, null);
-                    if (data == null)
+                    if (bakingStatesStatuses[i] == BakingStateStatus.NotBaked)
                         continue;
 
-                    var asset = data.GetAssetForState((ProbeVolumeBakingState)i);
+                    var asset = AssetDatabase.LoadAssetAtPath<ProbeVolumeAsset>(ProbeVolumeAsset.GetPath(scenePath, sceneName, (ProbeVolumeBakingState)i, false));
                     if (asset == null)
-                    {
                         bakingStatesStatuses[i] = BakingStateStatus.NotBaked;
-                        break;
-                    }
-
-                    if (mostRecentState != (ProbeVolumeBakingState)i)
-                    {
-                        var mostRecentAsset = data.GetAssetForState(mostRecentState);
-                        if (!ProbeVolumeAsset.Compatible(asset, mostRecentAsset))
-                        {
-                            bakingStatesStatuses[i] = BakingStateStatus.OutOfDate;
-                            break;
-                        }
-                    }
+                    else if (bakingStatesStatuses[i] != BakingStateStatus.OutOfDate && !ProbeVolumeAsset.Compatible(asset, mostRecentAsset))
+                        bakingStatesStatuses[i] = BakingStateStatus.OutOfDate;
                 }
             }
         }
@@ -580,28 +572,28 @@ namespace UnityEngine.Experimental.Rendering
                 rowRect.x = rect.x;
                 rowRect.width = rect.width;
 
-                // Renaming
-                string key = k_RenameStateFocusKey + i;
-                if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
-                    m_RenameSelectedBakingState = false;
-                if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
-                    m_RenameSelectedBakingState = false;
-                if (Event.current.type == EventType.MouseDown && rowRect.Contains(Event.current.mousePosition))
+                // Set state
+                if (Event.current.type == EventType.MouseDown && !m_RenameSelectedBakingState && rowRect.Contains(Event.current.mousePosition))
                 {
                     if (Event.current.clickCount == 1)
+                    {
                         ProbeReferenceVolume.instance.bakingState = (ProbeVolumeBakingState)i;
+                        SceneView.RepaintAll();
+                        Repaint();
+                    }
                     else if (Event.current.clickCount == 2)
                         m_RenameSelectedBakingState = true;
                 }
 
                 // Active state
-                if (i == (int)ProbeReferenceVolume.instance.bakingState)
+                bool isActiveState = i == (int)ProbeReferenceVolume.instance.bakingState;
+                if (isActiveState)
                     EditorGUI.DrawRect(rowRect, Styles.activeColor);
 
                 // Name
                 rowRect.x += 2; // small padding
                 rowRect.width = m_BakingStatesHeader.state.columns[0].width;
-                if (m_RenameSelectedBakingState)
+                if (m_RenameSelectedBakingState && isActiveState)
                 {
                     EditorGUI.BeginChangeCheck();
                     sceneData.bakingStates[i] = EditorGUI.DelayedTextField(rowRect, sceneData.bakingStates[i], EditorStyles.boldLabel);
@@ -630,6 +622,13 @@ namespace UnityEngine.Experimental.Rendering
                         EditorGUI.LabelField(rowRect, Styles.invalidLabel, Styles.labelRed);
                 }
                 rowRect.y += rowRect.height;
+
+                // Renaming
+                string key = k_RenameStateFocusKey + i;
+                if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
+                    m_RenameSelectedBakingState = false;
+                if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
+                    m_RenameSelectedBakingState = false;
             }
         }
 
@@ -664,23 +663,17 @@ namespace UnityEngine.Experimental.Rendering
 
         void BakeLightingForSet(ProbeVolumeSceneData.BakingSet set)
         {
-            var scenesToRestore = new List<string>();
-            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
-                scenesToRestore.Add(EditorSceneManager.GetSceneAt(i).path);
-
-            bool sceneSetChanged = scenesToRestore.Count != set.sceneGUIDs.Count;
-            if (!sceneSetChanged)
+            var loadedScenes = new List<string>();
+            for (int i = 0; i < SceneManager.sceneCount; i++)
             {
-                for (int i = 0; i < scenesToRestore.Count; i++)
-                {
-                    if (set.sceneGUIDs.IndexOf(AssetDatabase.AssetPathToGUID(scenesToRestore[i])) == -1)
-                    {
-                        sceneSetChanged = true;
-                        break;
-                    }
-                }
+                var scene = SceneManager.GetSceneAt(i);
+                if (scene.isLoaded)
+                    loadedScenes.Add(scene.path);
             }
 
+            List<int> scenesToUnload = null;
+            List<string> scenesToRestore = null;
+            bool sceneSetChanged = loadedScenes.Count != set.sceneGUIDs.Count || loadedScenes.Any(scene => !set.sceneGUIDs.Contains(AssetDatabase.AssetPathToGUID(scene)));
             if (sceneSetChanged)
             {
                 // Save current scenes:
@@ -690,11 +683,19 @@ namespace UnityEngine.Experimental.Rendering
                     return;
                 }
 
+                scenesToUnload = new List<int>();
+                scenesToRestore = new List<string>();
+                for (int i = 0; i < SceneManager.sceneCount; i++)
+                {
+                    var scene = SceneManager.GetSceneAt(i);
+                    scenesToRestore.Add(scene.path);
+                    if (!scene.isLoaded)
+                        scenesToUnload.Add(i);
+                }
+
                 // Load all the scenes
                 LoadScenesInBakingSet(set);
             }
-            else
-                scenesToRestore.Clear();
 
             // Then we wait 1 frame for HDRP to render and bake
             bool skipFirstFrame = true;
@@ -711,7 +712,7 @@ namespace UnityEngine.Experimental.Rendering
                 UnityEditor.Lightmapping.BakeAsync();
 
                 // Enqueue scene restore operation after bake is finished
-                if (scenesToRestore.Count != 0)
+                if (sceneSetChanged)
                     EditorApplication.update += RestoreScenesAfterBake;
             }
 
@@ -722,8 +723,12 @@ namespace UnityEngine.Experimental.Rendering
 
                 EditorApplication.update -= RestoreScenesAfterBake;
 
-                if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                    LoadScenes(scenesToRestore);
+                if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                    return;
+
+                LoadScenes(scenesToRestore);
+                foreach (var sceneIndex in scenesToUnload)
+                    EditorSceneManager.CloseScene(SceneManager.GetSceneAt(sceneIndex), false);
             }
         }
 

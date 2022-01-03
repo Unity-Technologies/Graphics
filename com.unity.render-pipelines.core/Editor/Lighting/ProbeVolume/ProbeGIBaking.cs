@@ -117,6 +117,8 @@ namespace UnityEngine.Experimental.Rendering
             for (int i=0; i<openedScenesCount; ++i)
             {
                 var scene = SceneManager.GetSceneAt(i);
+                if (!scene.isLoaded)
+                    continue;
                 sceneData.OnSceneSaved(scene); // We need to perform the same actions we do when the scene is saved.
                 if (sceneData.GetBakingSetForScene(scene) != activeSet && sceneData.SceneHasProbeVolumes(scene))
                 {
@@ -663,7 +665,8 @@ namespace UnityEngine.Experimental.Rendering
                 // Dequeue the call if something has failed.
                 UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
-                CleanupOccluders();
+                if (m_BakingSettings.virtualOffsetSettings.useVirtualOffset)
+                    CleanupOccluders();
             }
         }
 

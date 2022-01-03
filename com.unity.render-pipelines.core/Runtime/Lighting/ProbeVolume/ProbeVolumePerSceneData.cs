@@ -108,28 +108,28 @@ namespace UnityEngine.Experimental.Rendering
 
         internal void QueueAssetRemoval()
         {
-            if (assets.ContainsKey(m_CurrentState) && assets[m_CurrentState] != null)
-                ProbeReferenceVolume.instance.AddPendingAssetRemoval(assets[m_CurrentState]);
+            if (assets.TryGetValue(m_CurrentState, out var asset) && asset != null)
+                ProbeReferenceVolume.instance.AddPendingAssetRemoval(asset);
         }
 
         void OnEnable()
         {
             ProbeReferenceVolume.instance.RegisterPerSceneData(this);
-            // Currently the baking state is serialized in the sceneData, so we queue asset loading when it gets loaded
-            // If we could do it from here that would be better though
-            //m_CurrentState = ProbeReferenceVolume.instance.bakingState;
-            //QueueAssetLoading();
+            if (ProbeReferenceVolume.instance.sceneData != null)
+                SetBakingState(ProbeReferenceVolume.instance.bakingState);
+            // otherwise baking state will be initialized in ProbeReferenceVolume.Initialize when sceneData is loaded
         }
 
         void OnDisable()
         {
-            QueueAssetRemoval();
+            OnDestroy();
             ProbeReferenceVolume.instance.UnregisterPerSceneData(this);
         }
 
         void OnDestroy()
         {
             QueueAssetRemoval();
+            m_CurrentState = (ProbeVolumeBakingState)ProbeReferenceVolume.numBakingStates;
         }
 
         public void SetBakingState(ProbeVolumeBakingState state)
@@ -137,9 +137,7 @@ namespace UnityEngine.Experimental.Rendering
             if (state == m_CurrentState)
                 return;
 
-            if (assets.ContainsKey(m_CurrentState) && assets[m_CurrentState] != null)
-                ProbeReferenceVolume.instance.AddPendingAssetRemoval(assets[m_CurrentState]);
-
+            QueueAssetRemoval();
             m_CurrentState = state;
             QueueAssetLoading();
         }
