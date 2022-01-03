@@ -2104,6 +2104,12 @@ namespace UnityEditor.VFX.UI
             (groupNode as VFXGroupNode).GroupNodeTitleChanged(title);
         }
 
+        private void AddRangeToSelection(List<ISelectable> selectables)
+        {
+            selectables.ForEach(base.AddToSelection);
+            UpdateGlobalSelection();
+        }
+
         public override void AddToSelection(ISelectable selectable)
         {
             base.AddToSelection(selectable);
@@ -2435,10 +2441,7 @@ namespace UnityEditor.VFX.UI
             {
                 ClearSelection();
 
-                foreach (var element in graphElements.ToList())
-                {
-                    AddToSelection(element);
-                }
+                AddRangeToSelection(graphElements.Where(x => x is not VFXSystemBorder).OfType<ISelectable>().ToList());
                 e.StopPropagation();
             }
         }
