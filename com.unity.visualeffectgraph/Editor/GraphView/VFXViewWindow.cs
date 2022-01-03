@@ -166,9 +166,7 @@ namespace UnityEditor.VFX.UI
 
             titleContent.text = resource.name;
 
-            var iconFilePath = vfxIconMap[new Tuple<Type, bool>(resource.isSubgraph ? resource.subgraph.GetType() : resource.graph.GetType(), EditorGUIUtility.isProSkin)];
-            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{VisualEffectAssetEditorUtility.editorResourcesPath}/VFX/{iconFilePath}");
-            titleContent.image = icon;
+            UpdateIcon(resource);
         }
 
         VisualEffect GetVisualEffectFromID(int id) => EditorUtility.InstanceIDToObject(id) as VisualEffect;
@@ -218,6 +216,14 @@ namespace UnityEditor.VFX.UI
             graphView.UpdateGlobalSelection();
             graphView.FrameNewController();
             graphView.UpdateIsSubgraph();
+            UpdateIcon(resource);
+        }
+
+        void UpdateIcon(VisualEffectResource resource)
+        {
+            var iconFilePath = vfxIconMap[new Tuple<Type, bool>(resource.isSubgraph ? resource.subgraph.GetType() : resource.graph.GetType(), EditorGUIUtility.isProSkin)];
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{VisualEffectAssetEditorUtility.editorResourcesPath}/VFX/{iconFilePath}");
+            titleContent.image = icon;
         }
 
         public bool CanPopResource()
