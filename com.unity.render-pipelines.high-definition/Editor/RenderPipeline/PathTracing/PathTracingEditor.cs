@@ -34,7 +34,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_MaxIntensity = Unpack(o.Find(x => x.maximumIntensity));
             m_SkyImportanceSampling = Unpack(o.Find(x => x.skyImportanceSampling));
 
-#if ENABLE_UNITY_DENOISER_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN
             m_Denoising = Unpack(o.Find(x => x.denoising));
             m_UseAOV = Unpack(o.Find(x => x.useAOVs));
             m_Temporal = Unpack(o.Find(x => x.temporal));
@@ -66,7 +66,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                         PropertyField(m_MaxDepth);
                         PropertyField(m_MaxIntensity);
                         PropertyField(m_SkyImportanceSampling);
-#if ENABLE_UNITY_DENOISER_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN
                         PropertyField(m_Denoising);
                         var denoiserType = m_Denoising.value.GetEnumValue<DenoiserType>();
                         bool supported = Denoiser.IsDenoiserTypeSupported(denoiserType);

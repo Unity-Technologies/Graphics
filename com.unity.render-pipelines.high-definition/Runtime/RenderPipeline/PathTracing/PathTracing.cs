@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Defines the maximum, post-exposed luminance computed for indirect path segments. Lower values help against noise and fireflies (very bright pixels), but introduce bias by darkening the overall result. Increase this value if your image looks too dark.")]
         public MinFloatParameter maximumIntensity = new MinFloatParameter(10f, 0f);
 
-#if ENABLE_UNITY_DENOISER_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN
         /// <summary>
         /// Enables denoising for the converged path tracer frame
         /// </summary>
@@ -585,13 +585,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
-            bool needsAOVs = false;
             var motionVector = TextureHandle.nullHandle;
             var albedo = TextureHandle.nullHandle;
             var normal = TextureHandle.nullHandle;
 
-#if ENABLE_UNITY_DENOISER_PLUGIN
-            needsAOVs = m_PathTracingSettings.denoising.value != DenoiserType.None && (m_PathTracingSettings.useAOVs.value || m_PathTracingSettings.temporal.value);
+#if ENABLE_UNITY_DENOISING_PLUGIN
+            bool needsAOVs = m_PathTracingSettings.denoising.value != DenoiserType.None && (m_PathTracingSettings.useAOVs.value || m_PathTracingSettings.temporal.value);
 
             if (needsAOVs)
             {
@@ -667,7 +666,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderPathTracingFrame(m_RenderGraph, hdCamera, camData, m_FrameTexture, albedo, normal, motionVector);
 
-#if ENABLE_UNITY_DENOISER_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN
                 bool denoise = m_PathTracingSettings.denoising.value != DenoiserType.None;
                 if (denoise && m_PathTracingSettings.useAOVs.value)
                 {
@@ -690,7 +689,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-#if ENABLE_UNITY_DENOISER_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN
     /// <summary>
     /// A <see cref="VolumeParameter"/> that holds a <see cref="FocusDistanceModeParameter"/> value.
     /// </summary>

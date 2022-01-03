@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             accumulatedWeight = 0.0f;
             currentIteration = 0;
-#if ENABLE_UNITY_DENOISER_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN
             if (denoiser != null)
                 denoiser.Reset();
             else
@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float accumulatedWeight;
         public uint currentIteration;
-#if ENABLE_UNITY_DENOISER_PLUGIN
+#if ENABLE_UNITY_DENOISING_PLUGIN
         public Denoiser denoiser;
 #endif
     }
