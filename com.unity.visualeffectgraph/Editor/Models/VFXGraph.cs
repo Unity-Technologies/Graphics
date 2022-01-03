@@ -19,7 +19,7 @@ namespace UnityEditor.VFX
     {
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            List<string> assetToReimport = new List<string>();
+            List<string> assetToReimport = null;
 
             foreach (var assetPath in importedAssets)
             {
@@ -39,6 +39,7 @@ namespace UnityEditor.VFX
                             graph.SanitizeForImport();
                             if (!wasGraphSanitized && graph.sanitized)
                             {
+                                assetToReimport ??= new List<string>();
                                 assetToReimport.Add(assetPath);
                             }
                         }
@@ -61,15 +62,18 @@ namespace UnityEditor.VFX
             }
 
             //Relaunch previously skipped OnCompileResource
-            foreach (var assetPath in assetToReimport)
+            if (assetToReimport != null)
             {
-                try
+                foreach (var assetPath in assetToReimport)
                 {
-                    AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
-                }
-                catch (Exception exception)
-                {
-                    Debug.LogErrorFormat("Exception during reimport of {0} : {1}", assetPath, exception);
+                    try
+                    {
+                        AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+                    }
+                    catch (Exception exception)
+                    {
+                        Debug.LogErrorFormat("Exception during reimport of {0} : {1}", assetPath, exception);
+                    }
                 }
             }
         }
