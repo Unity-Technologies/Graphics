@@ -200,7 +200,6 @@ bool PointInsideOBB(GPUProbeVolumeOBB obbA, GPUProbeVolumeOBB obbB)
 void VoxelizeProbeVolumeData(uint3 id : SV_DispatchThreadID)
 {
     float2 subdivisionLimits = float2(0, 0);
-    float maxGeometryDistance = -1e20;
     float maxSubdivLevelInsideVolume = 0;
 
     if (any(id >= uint3(_MaxBrickSize.xyz)))
@@ -222,12 +221,11 @@ void VoxelizeProbeVolumeData(uint3 id : SV_DispatchThreadID)
 
             subdivisionLimits.x = max(subdivisionLimits.x, obb.minControllerSubdivLevel);
             subdivisionLimits.y = max(subdivisionLimits.y, obb.maxControllerSubdivLevel);
-            maxGeometryDistance = max(maxGeometryDistance, obb.geometryDistanceOffset);
             maxSubdivLevelInsideVolume = max(maxSubdivLevelInsideVolume, obb.maxSubdivLevelInsideVolume);
         }
     }
 
-    _Output[id] = float4(subdivisionLimits, maxGeometryDistance, maxSubdivLevelInsideVolume);
+    _Output[id] = float4(subdivisionLimits, 0, maxSubdivLevelInsideVolume);
 }
 
 [numthreads(8, 8, 1)]
@@ -248,7 +246,6 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
     if (_SubdivisionLevel < maxControllerSubdivLevel || _SubdivisionLevel > maxSubdivLevelInsideVolume)
         return;
 
-
     uint3 sdfId = floor(position01 * _SDFSize.xyz);
 
     float dist = _Input[sdfId].r;
@@ -258,9 +255,6 @@ void Subdivide(uint3 id : SV_DispatchThreadID)
     voxelDetectionDistance = sqrt(voxelDetectionDistance + voxelDetectionDistance + voxelDetectionDistance) / 2.0;
 
     int minControllerSubdivLevel = _MaxSubdivisionLevel - subdivisionLevelData.x - 1;
-
-    // Add a small offset to control how the subdivision looks from the probe volume
-    voxelDetectionDistance += subdivisionLevelData.z * rcp(_MaxBrickSize.x);
 
     if (dist <= voxelDetectionDistance || _SubdivisionLevel > minControllerSubdivLevel)
     {

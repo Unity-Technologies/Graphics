@@ -4,6 +4,23 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    // This structure holds all the information that can be requested during the deferred water lighting
+    [GenerateHLSL(PackingRules.Exact, false)]
+    struct WaterSurfaceProfile
+    {
+        public Vector3 waterAmbientProbe;
+        public float tipScatteringHeight;
+
+        public float bodyScatteringHeight;
+        public float maxRefractionDistance;
+        public uint lightLayers;
+        public float padding0;
+
+        // Refraction data Data
+        public Vector3 transparencyColor;
+        public float outScatteringCoefficient;
+    }
+
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesWater
     {
@@ -22,59 +39,57 @@ namespace UnityEngine.Rendering.HighDefinition
         // Individual sizes of the wave bands
         public Vector4 _BandPatchSize;
 
-        // Scale of the individual patches
-        public Vector4 _BandPatchUVScale;
-
         // Wind speed per band
         public Vector4 _WindSpeed;
 
         // Horizontal wind direction
         public Vector2 _WindDirection;
-        // Amount of choppiness per band
+        // Amount of choppiness
         public float _Choppiness;
         // Delta-time since the last simulation step
         public float _DeltaTime;
 
-        // Intensity of the surface foam
-        public float _SurfaceFoamIntensity;
+        // Smoothness of the simulation foam
+        public float _SimulationFoamSmoothness;
+        // Intensity of the simulation foam
+        public float _SimulationFoamIntensity;
         // Amount of surface foam
-        public float _SurfaceFoamAmount;
-        // Amount of deep foam
-        public float _DeepFoamAmount;
+        public float _SimulationFoamAmount;
         // TODO WRITE
         public float _SSSMaskCoefficient;
 
-        // TODO write
-        public float _CloudTexturedAmount;
-        // Padding
-        public float _RefractionNormalWeight;
+        public float _DispersionAmount;
+        public float _ScatteringBlur;
+        // Maximum refraction distance
         public float _MaxRefractionDistance;
+        // Smoothness of the water part of the surface (non foam)
         public float _WaterSmoothness;
 
+        // Horizontal offsets of the foam texture
         public Vector2 _FoamOffsets;
+        // Tiling parameter of the foam texture
         public float _FoamTilling;
+        // Attenuation of the foam due to the wind
         public float _WindFoamAttenuation;
 
-        public Vector3 _ScatteringColorTips;
-        public float _FoamSmoothness;
+        // Color applied to the surfaces that are through the refraction
+        public Vector4 _TransparencyColor;
 
-        public float _DispersionAmount;
-        public float _RefractionLow;
-        public float _MaxAbsorptionDistance;
-        public float _ScatteringBlur;
-
-        public Vector3 _TransparencyColor;
-        public float _OutScatteringCoefficient;
+        public Vector4 _ScatteringColorTips;
 
         public float _DisplacementScattering;
         public float _ScatteringIntensity;
-        public float _BodyScatteringWeight;
-        public float _TipScatteringWeight;
+        public int _SurfaceIndex;
+        public float _CausticsRegionSize;
 
         public Vector4 _ScatteringLambertLighting;
 
-        public Vector3 _DeepFoamColor;
+        public Vector4 _DeepFoamColor;
+
+        public float _OutScatteringCoefficient;
+        public float _FoamSmoothness;
         public float _HeightBasedScattering;
+        public float _PaddingW0;
 
         public Vector4 _FoamJacobianLambda;
     }
@@ -88,15 +103,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 _WaterRotation;
 
         // Offset of the current patch w/r to the origin
-        public Vector3 _PatchOffset;
-        // Resolution (in quads) of the current water patch
-        public uint _GridRenderingResolution;
+        public Vector4 _PatchOffset;
 
         // Ambient probe used to render the water
-        public Vector3 _WaterAmbientProbe;
-        // Mask that defines the tessellation pattern
+        public Vector4 _WaterAmbientProbe;
 
+        // Resolution (in quads) of the current water patch
+        public uint _GridRenderingResolution;
+        // Mask that defines the tessellation pattern
         public uint _TesselationMasks;
+        // Earth radius
+        public float _EarthRadius;
+        // Intensity of the water caustics
+        public float _CausticsIntensity;
+
         // Scale of the current water mask
         public Vector2 _WaterMaskScale;
         // Offset of the current water mask
@@ -114,11 +134,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // Vertical shift on when the caustics start
         public float _CausticsPlaneOffset;
 
-        // Padding
-        public Vector2 _PaddingWR0;
-        // Earth radius
-        public float _EarthRadius;
-        // Intensity of the water caustics
-        public float _CausticsIntensity;
+        // Blend distance
+        public float _CausticsPlaneBlendDistance;
+        // Type of caustics that are rendered
+        public int _WaterCausticsType;
+        // Which decal layers should affect this surface
+        public uint _WaterDecalLayer;
+        // Is this surface infinite or finite
+        public int _InfiniteSurface;
+
     }
 }
