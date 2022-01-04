@@ -10,13 +10,6 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    enum ShaderVariantLogLevel
-    {
-        Disabled,
-        OnlyHDRPShaders,
-        AllShaders,
-    }
-
     enum LensAttenuationMode
     {
         ImperfectLens,
@@ -775,10 +768,6 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Misc.
-
-        [SerializeField]
-        internal ShaderVariantLogLevel shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
-
         [SerializeField]
         internal LensAttenuationMode lensAttenuationMode;
 
