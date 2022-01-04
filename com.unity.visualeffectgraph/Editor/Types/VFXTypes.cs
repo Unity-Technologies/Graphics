@@ -96,7 +96,7 @@ namespace UnityEditor.VFX
         public static TSphere defaultValue = new TSphere { transform = Transform.defaultValue, radius = 1.0f };
     }
 
-    [VFXType(VFXTypeAttribute.Usage.Default), Serializable]
+    [VFXType(VFXTypeAttribute.Usage.Default, "Arc Sphere"), Serializable]
     struct TArcSphere
     {
         public TSphere sphere;
