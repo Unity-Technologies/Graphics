@@ -71,13 +71,10 @@ namespace UnityEngine.VFX
                         using var resourceObject = new SerializedObject(m_CurrentVisualEffect.visualEffectAsset);
                         var prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
                         var prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
-                        if (prewarmDeltaTime != null && prewarmStepCount != null)
+                        if (prewarmDeltaTime != null && prewarmStepCount != null && prewarmStepCount.uintValue != 0u)
                         {
-                            if (prewarmStepCount.uintValue != 0u)
-                            {
-                                vfxClip.prewarm.stepCount = prewarmStepCount.uintValue;
-                                vfxClip.prewarm.deltaTime = prewarmDeltaTime.floatValue;
-                            }
+                            vfxClip.prewarm.stepCount = prewarmStepCount.uintValue;
+                            vfxClip.prewarm.deltaTime = prewarmDeltaTime.floatValue;
                         }
                     }
                 }
