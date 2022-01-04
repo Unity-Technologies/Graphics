@@ -139,7 +139,6 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.srpBatcher, Styles.srpBatcher);
             EditorGUILayout.PropertyField(serialized.supportsDynamicBatching, Styles.dynamicBatching);
             EditorGUILayout.PropertyField(serialized.debugLevelProp, Styles.debugLevel);
-            EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.shaderVariantLogLevel);
             EditorGUILayout.PropertyField(serialized.storeActionsOptimizationProperty, Styles.storeActionsOptimizationText);
         }
 
@@ -148,6 +147,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(serialized.hdr, Styles.hdrText);
             EditorGUILayout.PropertyField(serialized.msaa, Styles.msaaText);
             serialized.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
+            EditorGUILayout.PropertyField(serialized.upscalingFilter, Styles.upscalingFilterText);
         }
 
         static void DrawLighting(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)

@@ -206,6 +206,7 @@ namespace UnityEditor.Rendering.Universal
             return !shaderNamesToIgnore.Contains(material.shader.name);
         }
 
+        /// <inheritdoc/>
         public override void OnInitialize(InitializeConverterContext context, Action callback)
         {
             foreach (string path in AssetDatabase.GetAllAssetPaths())
@@ -236,6 +237,7 @@ namespace UnityEditor.Rendering.Universal
             callback.Invoke();
         }
 
+        /// <inheritdoc/>
         public override void OnRun(ref RunItemContext context)
         {
             var mat = AssetDatabase.LoadAssetAtPath<Material>(context.item.descriptor.info);
@@ -248,15 +250,16 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
         public override void OnClicked(int index)
         {
             EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Material>(m_AssetsToConvert[index]));
         }
     }
 
-    public static class SupportedUpgradeParams
+    internal static class SupportedUpgradeParams
     {
-        static public UpgradeParams diffuseOpaque = new UpgradeParams()
+        internal static UpgradeParams diffuseOpaque = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
             blendMode = UpgradeBlendMode.Alpha,
@@ -265,7 +268,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
-        static public UpgradeParams specularOpaque = new UpgradeParams()
+        internal static UpgradeParams specularOpaque = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
             blendMode = UpgradeBlendMode.Alpha,
@@ -274,7 +277,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
-        static public UpgradeParams diffuseAlpha = new UpgradeParams()
+        internal static UpgradeParams diffuseAlpha = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
@@ -283,7 +286,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
-        static public UpgradeParams specularAlpha = new UpgradeParams()
+        internal static UpgradeParams specularAlpha = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
@@ -292,7 +295,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
-        static public UpgradeParams diffuseAlphaCutout = new UpgradeParams()
+        internal static UpgradeParams diffuseAlphaCutout = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
             blendMode = UpgradeBlendMode.Alpha,
@@ -301,7 +304,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
-        static public UpgradeParams specularAlphaCutout = new UpgradeParams()
+        internal static UpgradeParams specularAlphaCutout = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
             blendMode = UpgradeBlendMode.Alpha,
@@ -310,7 +313,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.SpecularAlpha,
         };
 
-        static public UpgradeParams diffuseCubemap = new UpgradeParams()
+        internal static UpgradeParams diffuseCubemap = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
             blendMode = UpgradeBlendMode.Alpha,
@@ -319,7 +322,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
-        static public UpgradeParams specularCubemap = new UpgradeParams()
+        internal static UpgradeParams specularCubemap = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Opaque,
             blendMode = UpgradeBlendMode.Alpha,
@@ -328,7 +331,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
-        static public UpgradeParams diffuseCubemapAlpha = new UpgradeParams()
+        internal static UpgradeParams diffuseCubemapAlpha = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
@@ -337,7 +340,7 @@ namespace UnityEditor.Rendering.Universal
             smoothnessSource = SmoothnessSource.BaseAlpha,
         };
 
-        static public UpgradeParams specularCubemapAlpha = new UpgradeParams()
+        internal static UpgradeParams specularCubemapAlpha = new UpgradeParams()
         {
             surfaceType = UpgradeSurfaceType.Transparent,
             blendMode = UpgradeBlendMode.Alpha,
@@ -357,7 +360,7 @@ namespace UnityEditor.Rendering.Universal
             Transparent // Physically plausible transparency mode, implemented as alpha pre-multiply
         }
 
-        public static void UpdateStandardMaterialKeywords(Material material)
+        internal static void UpdateStandardMaterialKeywords(Material material)
         {
             if (material == null)
                 throw new ArgumentNullException("material");
@@ -380,7 +383,7 @@ namespace UnityEditor.Rendering.Universal
             BaseShaderGUI.SetupMaterialBlendMode(material);
         }
 
-        public static void UpdateStandardSpecularMaterialKeywords(Material material)
+        internal static void UpdateStandardSpecularMaterialKeywords(Material material)
         {
             if (material == null)
                 throw new ArgumentNullException("material");
@@ -437,7 +440,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        public StandardUpgrader(string oldShaderName)
+        internal StandardUpgrader(string oldShaderName)
         {
             if (oldShaderName == null)
                 throw new ArgumentNullException("oldShaderName");
@@ -462,7 +465,7 @@ namespace UnityEditor.Rendering.Universal
 
     internal class StandardSimpleLightingUpgrader : MaterialUpgrader
     {
-        public StandardSimpleLightingUpgrader(string oldShaderName, UpgradeParams upgradeParams)
+        internal StandardSimpleLightingUpgrader(string oldShaderName, UpgradeParams upgradeParams)
         {
             if (oldShaderName == null)
                 throw new ArgumentNullException("oldShaderName");
@@ -487,7 +490,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        public static void UpdateMaterialKeywords(Material material)
+        internal static void UpdateMaterialKeywords(Material material)
         {
             if (material == null)
                 throw new ArgumentNullException("material");
@@ -525,9 +528,9 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    public class TerrainUpgrader : MaterialUpgrader
+    internal class TerrainUpgrader : MaterialUpgrader
     {
-        public TerrainUpgrader(string oldShaderName)
+        internal TerrainUpgrader(string oldShaderName)
         {
             RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.TerrainLit));
         }
@@ -548,9 +551,9 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    public class ParticleUpgrader : MaterialUpgrader
+    internal class ParticleUpgrader : MaterialUpgrader
     {
-        public ParticleUpgrader(string oldShaderName)
+        internal ParticleUpgrader(string oldShaderName)
         {
             if (oldShaderName == null)
                 throw new ArgumentNullException("oldShaderName");
@@ -573,17 +576,17 @@ namespace UnityEditor.Rendering.Universal
             RenameFloat("_FlipbookMode", "_FlipbookBlending");
         }
 
-        public static void UpdateStandardSurface(Material material)
+        internal static void UpdateStandardSurface(Material material)
         {
             UpdateSurfaceBlendModes(material);
         }
 
-        public static void UpdateUnlit(Material material)
+        internal static void UpdateUnlit(Material material)
         {
             UpdateSurfaceBlendModes(material);
         }
 
-        public static void UpdateSurfaceBlendModes(Material material)
+        internal static void UpdateSurfaceBlendModes(Material material)
         {
             switch (material.GetFloat("_Mode"))
             {
@@ -622,13 +625,14 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 
-    public class AutodeskInteractiveUpgrader : MaterialUpgrader
+    internal class AutodeskInteractiveUpgrader : MaterialUpgrader
     {
-        public AutodeskInteractiveUpgrader(string oldShaderName)
+        internal AutodeskInteractiveUpgrader(string oldShaderName)
         {
             RenameShader(oldShaderName, "Universal Render Pipeline/Autodesk Interactive/Autodesk Interactive");
         }
 
+        /// <inheritdoc/>
         public override void Convert(Material srcMaterial, Material dstMaterial)
         {
             base.Convert(srcMaterial, dstMaterial);

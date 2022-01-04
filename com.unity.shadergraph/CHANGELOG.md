@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
  - Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
  - Fixed the behavior of checkerboard node with raytracing
+ - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
 
 ## [13.1.2] - 2021-11-05
 
@@ -26,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
  - Changed the title suffix on old nodes and properties rom "Deprecated" to "Legacy".
  - Updated searcher package dependency version to 4.9.1
+ - Renamed the Shader Graph Texel Size node to Texture Size and added two additional output ports that actually output the texel size in addition to the texture size.
 
 ### Fixed
  - Fixed a usability issue where in some cases searcher would suggest one collapsed category of results that user would have to manually expand anyway
