@@ -3197,7 +3197,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
                     passData.viewport = postProcessViewportSize;
                     passData.hdCamera = hdCamera;
-                    passData.depthBuffer = depthBuffer;
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.occlusion = builder.ReadTexture(occlusionHandle);
 
                     TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Lens Flare Destination");
@@ -3620,6 +3620,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !hdCamera.resetPostProcessingHistory && m_MotionBlurFS)
             {
+                // If we are in XR we need to check if motion blur is allowed at all.
+                if (hdCamera.xr.enabled)
+                {
+                    if (!m_Asset.currentPlatformRenderPipelineSettings.xrSettings.allowMotionBlur)
+                        return source;
+                }
+
                 using (var builder = renderGraph.AddRenderPass<MotionBlurData>("Motion Blur", out var passData, ProfilingSampler.Get(HDProfileId.MotionBlur)))
                 {
                     PrepareMotionBlurPassData(renderGraph, builder, passData, hdCamera, source, motionVectors, depthTexture);

@@ -4,6 +4,31 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.4] - 2021-12-04
+
+### Fixed
+
+- Fixed option to force motion blur off when in XR.
+- Fixed edges and ghosting appearing on shadow matte due to the shadow being black outside the range of the light (case 1371441).
+- Fixed default numbder of physically based sky bounce to be 3
+- Fixed layer lit shader UI.
+- Fixed error thrown when layered lit material has an invalid material type.
+- Fixed a warning because of a null texture in the lens flare pass.
+- Fixed a nullref when enabling raycount without ray tracing.
+- Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
+- Fixed unsupported material properties show when rendering pass is Low Resolution.
+- Fixed FOV change when enabling physical camera.
+- Fixed spot light shadows near plane
+- Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
+- Fixed SpeedTree graph compatibility by removing custom interpolators.
+- Fixed auto-exposure mismatch between sky background and scene objects in path tracing (case 1385131).
+- Fixed build warnings due to the exception in burst code (case 1382827).
+- Fixed write to VT feedback in debug modes (case 1376874)
+- Fixed the ray tracing fallbacks being broken since an Nvidia Driver Update.
+- Render Graph object pools are now cleared with render graph cleanup
+- Fixed a shader warning in UnityInstancing.hlsl
+- Fixed AO dissapearing when DRS would be turned off through a camera, while hardware drs is active in DX12 or Vulkan (case 1383093).
+
 ## [13.1.3] - 2021-11-17
 
 ### Fixed
@@ -46,6 +71,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed for changes of color curves not being applied immediately.
 - Fixed the rendering order of decals that have a similar draw order value.
 - Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
+- Fixed HDRP build issues with DOTS_INSTANCING_ON shader variant.
 
 ## [13.1.2] - 2021-11-05
 
