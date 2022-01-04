@@ -321,7 +321,7 @@ namespace UnityEditor.VFX.Test
             basicSpawner.AddChild(blockCustomSpawner);
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
-            VFXCustomSpawnerRecordSpawnCount.s_ReceivedSpawnCount.Clear();
+            VFXCustomSpawnerRecordSpawnCount.ClearReceivedSpawnCount();
             var attr = vfxComponent.CreateVFXEventAttribute();
             attr.SetFloat("spawnCount", 0);
             vfxComponent.SendEvent(eventName, attr);
@@ -340,13 +340,13 @@ namespace UnityEditor.VFX.Test
             vfxComponent.SendEvent(eventName, attr);
 
             int maxFrame = 64;
-            while (VFXCustomSpawnerRecordSpawnCount.s_ReceivedSpawnCount.Count == 0 && --maxFrame > 0)
+            while (!VFXCustomSpawnerRecordSpawnCount.GetReceivedSpawnCount().Any() && --maxFrame > 0)
             {
                 yield return null;
             }
             Assert.IsTrue(maxFrame > 0);
-            Assert.AreEqual(3, VFXCustomSpawnerRecordSpawnCount.s_ReceivedSpawnCount.Count);
-            Assert.IsFalse(VFXCustomSpawnerRecordSpawnCount.s_ReceivedSpawnCount.Any(o => o < 3));
+            Assert.AreEqual(3, VFXCustomSpawnerRecordSpawnCount.GetReceivedSpawnCount().Count());
+            Assert.IsFalse(VFXCustomSpawnerRecordSpawnCount.GetReceivedSpawnCount().Any(o => o < 3));
 
             yield return new ExitPlayMode();
         }
