@@ -8,7 +8,7 @@ Each System in a visual effect defines its bounds in the [Initialize Context](Co
 
 - **Manual**: You set the bounds directly in the Initialize Context. You can calculate the bounds dynamically using Operators and send the output to the Initialize Context's **Bounds** input ports.
 - **Recorded**: Allows you to record the System from the Target visual effect GameObject panel. For information on how to do this, see [Bounds Recording](#bounds-recording). In this mode, you can also calculate the bounds using Operators and pass them to the Initialize Context, like in **Manual**. This overrides any recorded bounds.
-- **Automatic**: Unity calculates the bounds automatically.
+- **Automatic**: Unity calculates the bounds automatically. Note: This will force the culling flags of the VFX asset to "Always recompute bounds and simulate".
 
 The Initialize Context also contains a **Bounds Padding** input port. This is a Vector3 that enlarges the per-axis bounds of the System. If a System uses **Recorded** or **Automatic** bounds, Unity calculates the bounds of the System during the Update Context. This means that any changes to the size, position, scale, or pivot of particles that occur in the Output Context don't affect the bounds during that frame. Adding padding to the bounds helps to mitigate this effect.
 

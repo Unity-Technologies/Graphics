@@ -269,8 +269,8 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Clear atlas texture.
-        /// <param name="cmd">Target command buffer for graphics commands.</param>
         /// </summary>
+        /// <param name="cmd">Target command buffer for graphics commands.</param>
         public void ClearTarget(CommandBuffer cmd)
         {
             int mipCount = (m_UseMipMaps) ? GetTextureMipmapCount(m_Width, m_Height) : 1;
@@ -565,7 +565,7 @@ namespace UnityEngine.Rendering
         /// Check if the atlas contains the textures.
         /// </summary>
         /// <param name="scaleOffset">Texture scale (.xy) and offset (.zw).</param>
-        /// <param name="textureA">Source texture</param>
+        /// <param name="texture">Source texture</param>
         /// <returns>True if the texture is in the atlas, false otherwise.</returns>
         public bool IsCached(out Vector4 scaleOffset, Texture texture)
             => IsCached(out scaleOffset, GetTextureID(texture));

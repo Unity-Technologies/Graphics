@@ -20,15 +20,15 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
 
     #ifdef _ENABLE_SHADOW_MATTE
 
-        #if SHADERPASS == SHADERPASS_FORWARD_UNLIT
+        #if (SHADERPASS == SHADERPASS_FORWARD_UNLIT) || (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER) || (SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT) || (SHADERPASS == SHADERPASS_RAYTRACING_FORWARD)
 
             HDShadowContext shadowContext = InitShadowContext();
+
+            // Evaluate the shadow, the normal is guaranteed if shadow matte is enabled on this shader.
             float3 shadow3;
-            // We need to recompute some coordinate not computed by default for shadow matte
-            posInput = GetPositionInput(fragInputs.positionSS.xy, _ScreenSize.zw, fragInputs.positionSS.z, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-            float3 upWS = normalize(fragInputs.tangentToWorld[1]);
-            uint renderingLayers = GetMeshRenderingLightLayer();
-            ShadowLoopMin(shadowContext, posInput, upWS, asuint(_ShadowMatteFilter), renderingLayers, shadow3);
+            ShadowLoopMin(shadowContext, posInput, normalize(fragInputs.tangentToWorld[2]), asuint(_ShadowMatteFilter), GetMeshRenderingLightLayer(), shadow3);
+
+            // Compute the average value in the fourth channel
             float4 shadow = float4(shadow3, dot(shadow3, float3(1.0/3.0, 1.0/3.0, 1.0/3.0)));
 
             float4 shadowColor = (1.0 - shadow) * surfaceDescription.ShadowTint.rgba;

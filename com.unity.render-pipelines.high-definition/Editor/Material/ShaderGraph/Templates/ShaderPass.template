@@ -24,12 +24,6 @@ Pass
     $splice(PassKeywords)
     $splice(GraphKeywords)
 
-    // Early Instancing Defines
-    $splice(DotsInstancingOptions)
-
-    // Injected Instanced Properties (must be included before UnityInstancing.hlsl)
-    $splice(HybridV1InjectedBuiltinProperties)
-
     // For custom interpolators to inject a substruct definition before FragInputs definition,
     // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
     $splice(CustomInterpolatorPreInclude)

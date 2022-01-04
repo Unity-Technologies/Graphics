@@ -1,3 +1,8 @@
+// SensorSDK support: in Lidar mode, an alternate computation is used, implemented in a separate file
+#ifdef SENSORSDK_ENABLE_LIDAR
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassSensorLidar.hlsl"
+#else
+
 // Ray tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
@@ -61,6 +66,12 @@ float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
 
 #endif // _ENABLE_SHADOW_MATTE
 
+float3 ClampValue(float3 value)
+{
+    float intensity = Luminance(value) * GetCurrentExposureMultiplier();
+    return intensity > _RaytracingIntensityClamp ? value * _RaytracingIntensityClamp / intensity : value;
+}
+
 // Function responsible for surface scattering
 void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes, float4 inputSample)
 {
@@ -80,7 +91,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     }
 
     // Grab depth information
-    uint currentDepth = _RaytracingMaxRecursion - pathIntersection.remainingDepth;
+    uint currentDepth = GetCurrentDepth(pathIntersection);
 
     // Make sure to add the additional travel distance
     pathIntersection.cone.width += pathIntersection.t * abs(pathIntersection.cone.spreadAngle);
@@ -116,10 +127,10 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     // Check if we want to compute direct and emissive lighting for current depth
     bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
 
+#ifndef SHADER_UNLIT
+
     // Compute the bsdf data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
-
-#ifndef SHADER_UNLIT
 
     // Override the geometric normal (otherwise, it is merely the non-mapped smooth normal)
     // Also make sure that it is in the same hemisphere as the shading normal (which may have been flipped)
@@ -241,17 +252,17 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
 #else // SHADER_UNLIT
 
-    pathIntersection.value = computeDirect ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
+    pathIntersection.value = computeDirect ? surfaceData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
 
-// Apply shadow matte if requested
-#ifdef _ENABLE_SHADOW_MATTE
+    // Apply shadow matte if requested
+    #ifdef _ENABLE_SHADOW_MATTE
     float3 shadowColor = lerp(pathIntersection.value, surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier(), surfaceData.shadowTint.a);
     float visibility = ComputeVisibility(fragInput.positionRWS, surfaceData.normalWS, inputSample.xyz);
     pathIntersection.value = lerp(shadowColor, pathIntersection.value, visibility);
-#endif
+    #endif
 
-// Simulate opacity blending by simply continuing along the current ray
-#ifdef _SURFACE_TYPE_TRANSPARENT
+    // Simulate opacity blending by simply continuing along the current ray
+    #ifdef _SURFACE_TYPE_TRANSPARENT
     if (builtinData.opacity < 1.0)
     {
         RayDesc rayDescriptor;
@@ -264,11 +275,11 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
         PathIntersection nextPathIntersection = pathIntersection;
         nextPathIntersection.remainingDepth--;
 
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, rayDescriptor, nextPathIntersection);
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 3, rayDescriptor, nextPathIntersection);
 
         pathIntersection.value = lerp(nextPathIntersection.value, pathIntersection.value, builtinData.opacity);
     }
-#endif
+    #endif
 
 #endif // SHADER_UNLIT
 }
@@ -290,7 +301,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     }
 
     // Grab depth information
-    int currentDepth = _RaytracingMaxRecursion - pathIntersection.remainingDepth;
+    int currentDepth = GetCurrentDepth(pathIntersection);
     bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
 
     float4 inputSample = 0.0;
@@ -301,6 +312,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     float3 lightPosition;
     bool sampleLocalLights, sampleVolume = false;
 
+    // Skip this code if getting out of a SSS random walk (currentDepth < 0)
     if (currentDepth >= 0)
     {
         // Generate a 4D unit-square sample for this depth, from our QMC sequence
@@ -324,25 +336,25 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
 #endif // HAS_LIGHTLOOP
 
-    // Apply volumetric attenuation
-    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
-
-    // Apply the volume/surface pdf
-    pathIntersection.value /= pdf;
-
-    if (currentDepth)
+    // Skip this code if getting out of a SSS random walk (currentDepth < 0)
+    if (currentDepth >= 0)
     {
-        // Bias the result (making it too dark), but reduces fireflies a lot
-        float intensity = Luminance(pathIntersection.value) * GetCurrentExposureMultiplier();
-        if (intensity > _RaytracingIntensityClamp)
-            pathIntersection.value *= _RaytracingIntensityClamp / intensity;
+        // Apply volumetric attenuation
+        ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
+
+        // Apply the volume/surface pdf
+        pathIntersection.value /= pdf;
+
+        // Apply clamping on indirect values (can darken the result slightly, but significantly reduces fireflies)
+        if (currentDepth)
+            pathIntersection.value = ClampValue(pathIntersection.value);
     }
 }
 
 [shader("anyhit")]
 void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
-    // The first thing that we should do is grab the intersection vertice
+    // The first thing that we should do is grab the intersection vertex
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
 
@@ -384,3 +396,5 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
 #endif
     }
 }
+
+#endif // SENSORSDK_ENABLE_LIDAR

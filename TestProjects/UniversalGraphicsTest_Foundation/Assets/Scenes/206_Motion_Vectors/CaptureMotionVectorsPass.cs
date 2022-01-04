@@ -6,7 +6,6 @@ internal class CaptureMotionVectorsPass : ScriptableRenderPass
 {
     ProfilingSampler m_ProfilingSampler = new ProfilingSampler("MotionVecDebug");
     Material m_Material;
-    RenderTargetIdentifier m_CameraColorTarget;
     float m_intensity;
 
     public CaptureMotionVectorsPass(Material material)
@@ -15,9 +14,8 @@ internal class CaptureMotionVectorsPass : ScriptableRenderPass
         renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
     }
 
-    public void SetTarget(RenderTargetIdentifier colorHandle, float intensity)
+    public void SetIntensity(float intensity)
     {
-        m_CameraColorTarget = colorHandle;
         m_intensity = intensity;
     }
 
@@ -35,7 +33,7 @@ internal class CaptureMotionVectorsPass : ScriptableRenderPass
         using (new ProfilingScope(cmd, m_ProfilingSampler))
         {
             m_Material.SetFloat("_Intensity", m_intensity);
-            cmd.Blit(m_CameraColorTarget, m_CameraColorTarget, m_Material);
+            cmd.Blit(renderingData.cameraData.renderer.cameraColorTarget, renderingData.cameraData.renderer.cameraColorTarget, m_Material);
         }
         context.ExecuteCommandBuffer(cmd);
         cmd.Clear();

@@ -144,7 +144,8 @@ namespace UnityEngine.Rendering
 
             s_GlobalHwUpresActive = HardwareDynamicResIsEnabled();
             s_GlobalHwFraction = m_CurrentFraction;
-            ScalableBufferManager.ResizeBuffers(s_GlobalHwFraction, s_GlobalHwFraction);
+            float currentFraction = s_GlobalHwUpresActive ? s_GlobalHwFraction : 1.0f;
+            ScalableBufferManager.ResizeBuffers(currentFraction, currentFraction);
             return true;
         }
 
@@ -280,6 +281,10 @@ namespace UnityEngine.Rendering
             m_CachedSettings = settings;
         }
 
+        /// <summary>
+        /// Gets the resolved scale
+        /// </summary>
+        /// <returns>The resolved scale in form of <see cref="Vector2"/></returns>
         public Vector2 GetResolvedScale()
         {
             if (!m_Enabled || !m_CurrentCameraRequest)
@@ -304,6 +309,7 @@ namespace UnityEngine.Rendering
         /// <param name="inputResolution">The input width x height resolution in pixels.</param>
         /// <param name="outputResolution">The output width x height resolution in pixels.</param>
         /// <param name="forceApply">False by default. If true, we ignore the useMipBias setting and return a mip bias regardless.</param>
+        /// <returns>The calculated mip bias</returns>
         public float CalculateMipBias(Vector2Int inputResolution, Vector2Int outputResolution, bool forceApply = false)
         {
             if (!m_UseMipBias && !forceApply)
@@ -382,10 +388,9 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Update the state of the dynamic resolution system for a specific camera.
         /// Call this function also to switch context between cameras (will set the current camera as active).
-        //  Passing a null camera has the same effect as calling Update without the camera parameter.
+        /// Passing a null camera has the same effect as calling Update without the camera parameter.
         /// </summary>
-        /// <param name="camera">Camera used to select a specific instance tied to this DynamicResolutionHandler instance.
-        /// </param>
+        /// <param name="camera">Camera used to select a specific instance tied to this DynamicResolutionHandler instance.</param>
         /// <param name="settings">(optional) The settings that are to be used by the dynamic resolution system. passing null for the settings will result in the last update's settings used.</param>
         /// <param name="OnResolutionChange">An action that will be called every time the dynamic resolution system triggers a change in resolution.</param>
         public static void UpdateAndUseCamera(Camera camera, GlobalDynamicResolutionSettings? settings = null, Action OnResolutionChange = null)
@@ -418,6 +423,7 @@ namespace UnityEngine.Rendering
 
             if (!m_Enabled || !s_ActiveInstanceDirty)
             {
+                FlushScalableBufferManagerState();
                 s_ActiveInstanceDirty = false;
                 return;
             }

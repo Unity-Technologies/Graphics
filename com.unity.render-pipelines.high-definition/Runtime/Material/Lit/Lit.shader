@@ -152,6 +152,7 @@ Shader "HDRP/Lit"
         [Enum(Auto, 0, On, 1, Off, 2)] _DoubleSidedGIMode("Double sided GI mode", Float) = 0
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase("UV Set for base", Float) = 0
+        [Enum(WorldSpace, 0, ObjectSpace, 1)] _ObjectSpaceUVMapping("Mapping space", Float) = 0.0
         _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _InvTilingScale("Inverse tiling scale = 2 / (abs(_BaseColorMap_ST.x) + abs(_BaseColorMap_ST.y))", Float) = 1
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
@@ -185,6 +186,7 @@ Shader "HDRP/Lit"
 
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5, Same as Base, 6)] _UVEmissive("UV Set for emissive", Float) = 0
+        [Enum(WorldSpace, 0, ObjectSpace, 1)] _ObjectSpaceUVMappingEmissive("Mapping space", Float) = 0.0
         _TexWorldScaleEmissive("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
 
@@ -751,7 +753,8 @@ Shader "HDRP/Lit"
             Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
             ZWrite [_ZWrite]
             Cull Front
-            ColorMask [_ColorMaskTransparentVel] 1
+            ColorMask [_ColorMaskTransparentVelOne] 1
+            ColorMask [_ColorMaskTransparentVelTwo] 2
             ZTest [_ZTestTransparent]
 
             HLSLPROGRAM
@@ -833,7 +836,10 @@ Shader "HDRP/Lit"
             ZTest [_ZTestDepthEqualForOpaque]
             ZWrite [_ZWrite]
             Cull [_CullModeForward]
-            ColorMask [_ColorMaskTransparentVel] 1
+            // Not possible to control the render target with a variable
+            // Depending on virtual texturing, motion vector buffer can be bound on either SV_Target1 or SV_Target2
+            ColorMask [_ColorMaskTransparentVelOne] 1
+            ColorMask [_ColorMaskTransparentVelTwo] 2
 
             HLSLPROGRAM
 
@@ -1017,7 +1023,13 @@ Shader "HDRP/Lit"
             // multi compile that allows us to strip the recursive code
             #pragma multi_compile _ MULTI_BOUNCE_INDIRECT
 
-            // We use the low shadow maps for raytracing
+            // If you need to change this, be sure to read this comment.
+            // For raytracing we decided to force the shadow quality to low.
+            // - The performance is the first reason, given that it may happen during the ray tracing stage for indirect or in a non-tiled context for deferred
+            // we want to save that cost as it may increase signfiicantly the cost..
+            // - The second reason is that some filtering modes require the screen space position (at the moment you read this comment high and ultra high), which we cannot provide
+            // in a ray tracing context.
+            // In addition to that, we intentionally disabled dithering for the ray tracing case as it requires the screen space position.
             #define SHADOW_LOW
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
@@ -1060,7 +1072,13 @@ Shader "HDRP/Lit"
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
 
-            // We use the low shadow maps for raytracing
+            // If you need to change this, be sure to read this comment.
+            // For raytracing we decided to force the shadow quality to low.
+            // - The performance is the first reason, given that it may happen during the ray tracing stage for indirect or in a non-tiled context for deferred
+            // we want to save that cost as it may increase signfiicantly the cost..
+            // - The second reason is that some filtering modes require the screen space position (at the moment you read this comment high and ultra high), which we cannot provide
+            // in a ray tracing context.
+            // In addition to that, we intentionally disabled dithering for the ray tracing case as it requires the screen space position.
             #define SHADOW_LOW
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
@@ -1197,6 +1215,11 @@ Shader "HDRP/Lit"
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile _ SENSORSDK_OVERRIDE_REFLECTANCE
+
+            #ifdef SENSORSDK_OVERRIDE_REFLECTANCE
+                #define SENSORSDK_ENABLE_LIDAR
+            #endif
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
@@ -1222,6 +1245,9 @@ Shader "HDRP/Lit"
 
             ENDHLSL
         }
+
+        // This ensures that the material finds the "DebugDXR" pass for ray tracing debug view
+        UsePass "HDRP/RayTracingDebug/DebugDXR"
     }
 
     CustomEditor "Rendering.HighDefinition.LitGUI"

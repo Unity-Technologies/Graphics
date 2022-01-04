@@ -86,6 +86,10 @@ namespace UnityEngine.Rendering.HighDefinition
             DoFHighQualityFiltering[(int)ScalableSettingLevelParameter.Level.Medium] = true;
             DoFHighQualityFiltering[(int)ScalableSettingLevelParameter.Level.High] = true;
 
+            LimitManualRangeNearBlur[(int)ScalableSettingLevelParameter.Level.Low] = false;
+            LimitManualRangeNearBlur[(int)ScalableSettingLevelParameter.Level.Medium] = false;
+            LimitManualRangeNearBlur[(int)ScalableSettingLevelParameter.Level.High] = false;
+
             /* Motion Blur */
             MotionBlurSampleCount[(int)ScalableSettingLevelParameter.Level.Low] = 4;
             MotionBlurSampleCount[(int)ScalableSettingLevelParameter.Level.Medium] = 8;
@@ -131,6 +135,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool[] DoFHighQualityFiltering = new bool[s_QualitySettingCount];
         /// <summary>Use physically based Depth of field for each quality level. The array must have one entry per scalable setting level.</summary>
         public bool[] DoFPhysicallyBased = new bool[s_QualitySettingCount];
+        /// <summary>Adjust near blur CoC based on depth distance when manual, non-physical mode is used for each quality level. The array must have one entry per scalable setting level.</summary>
+        public bool[] LimitManualRangeNearBlur = new bool[s_QualitySettingCount];
 
         /* Motion Blur */
         /// <summary>Motion Blur sample count for each quality level. The array must have one entry per scalable setting level, and elements must above 2.</summary>
