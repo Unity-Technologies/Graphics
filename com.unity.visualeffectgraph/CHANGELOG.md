@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - ShaderGraph made with new VFX SG integration where not listed when searching for a shader graph output [Case 1379523](https://issuetracker.unity3d.com/product/unity/issues/guid/1379523/)
 - Enable/disable state of VFX blocks and operators are preserved after copy/paste
 - Blackboard "Add" button for output could be hidden when the panel is too small (https://issuetracker.unity3d.com/product/unity/issues/guid/1389927/)
+- Forbid pasting a subgraph in the same subgraph [Case 1364480](https://issuetracker.unity3d.com/product/unity/issues/guid/1364480/)
 - VFX Subgraph operator and block windows now have dedicated icons
 
 ## [13.1.2] - 2021-11-05
