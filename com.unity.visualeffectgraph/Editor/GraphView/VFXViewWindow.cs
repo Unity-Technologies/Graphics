@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXLibrary.LogUnsupportedSRP();
 
-            GetWindow((VisualEffectAsset)null, true);
+            GetWindow((VisualEffectResource)null, true);
         }
 
         public static VFXViewWindow GetWindow(VisualEffectAsset vfxAsset, bool createIfNeeded = false)
@@ -385,6 +385,10 @@ namespace UnityEditor.VFX.UI
                             graph.SetExpressionGraphDirty(false);
                         }
                     }
+                }
+                else
+                {
+                    m_DisplayedResource = null;
                 }
             }
 
