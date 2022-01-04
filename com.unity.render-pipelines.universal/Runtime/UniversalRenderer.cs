@@ -410,10 +410,16 @@ namespace UnityEngine.Rendering.Universal
             bool renderingLayerProvidesRenderObjectPass = renderPassInputs.requiresRenderingLayer &&
                 !renderPassInputs.requiresNormalsTexture && m_RenderingMode == RenderingMode.Forward;
 
+            bool renderingLayerProvidesGBufferPass = renderPassInputs.requiresRenderingLayer &&
+                !renderPassInputs.requiresNormalsTexture && m_RenderingMode == RenderingMode.Deferred;
+
             // TODO: investigate the order of call, had to change because of requiresRenderingLayer
             if (m_DeferredLights != null)
             {
                 m_DeferredLights.UseDecalLayers = renderPassInputs.requiresRenderingLayer;
+
+                // TODO: This needs to be setup early, otherwise gbuffer attachments will be allocated with wrong size
+                m_DeferredLights.HasNormalPrepass = renderPassInputs.requiresNormalsTexture;
 
                 m_DeferredLights.ResolveMixedLightingMode(ref renderingData);
                 m_DeferredLights.IsOverlay = cameraData.renderType == CameraRenderType.Overlay;
@@ -648,8 +654,7 @@ namespace UnityEngine.Rendering.Universal
                 ref var renderingLayersTexture = ref m_DecalLayersTexture;
                 string renderingLayersTextureName = "_CameraDecalLayersTexture";
 
-
-                if (this.actualRenderingMode == RenderingMode.Deferred)
+                if (this.actualRenderingMode == RenderingMode.Deferred && m_DeferredLights.UseRenderingLayers)
                 {
                     renderingLayersTexture = ref m_DeferredLights.GbufferAttachments[(int)m_DeferredLights.GBufferRenderingLayers];
                     renderingLayersTextureName = renderingLayersTexture.name;
@@ -663,7 +668,7 @@ namespace UnityEngine.Rendering.Universal
                 // Find compatible render-target format for storing normals.
                 // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
                 // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
-                if (this.actualRenderingMode == RenderingMode.Deferred)
+                if (this.actualRenderingMode == RenderingMode.Deferred && m_DeferredLights.UseRenderingLayers)
                     renderingLayersDescriptor.graphicsFormat = m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferRenderingLayers); // the one used by the gbuffer.
                 else
                     renderingLayersDescriptor.graphicsFormat = GraphicsFormat.R16_UNorm;
@@ -721,8 +726,10 @@ namespace UnityEngine.Rendering.Universal
                         // to get them before the SSAO pass.
 
                         int gbufferNormalIndex = m_DeferredLights.GBufferNormalSmoothnessIndex;
-                        if (renderingLayerProvidesByDepthNormalPass)
+                        if (m_DeferredLights.UseRenderingLayers)
                             m_DepthNormalPrepass.Setup(m_ActiveCameraDepthAttachment, m_DeferredLights.GbufferAttachments[gbufferNormalIndex], m_DeferredLights.GbufferAttachments[m_DeferredLights.GBufferRenderingLayers]);
+                        else if (renderingLayerProvidesByDepthNormalPass)
+                            m_DepthNormalPrepass.Setup(m_ActiveCameraDepthAttachment, m_DeferredLights.GbufferAttachments[gbufferNormalIndex], m_DecalLayersTexture);
                         else
                             m_DepthNormalPrepass.Setup(m_ActiveCameraDepthAttachment, m_DeferredLights.GbufferAttachments[gbufferNormalIndex]);
 
