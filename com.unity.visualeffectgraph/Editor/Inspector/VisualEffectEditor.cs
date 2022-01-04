@@ -557,7 +557,7 @@ namespace UnityEditor.VFX
 
         static VisualEffectEditor s_EffectUi;
 
-        [Overlay(typeof(SceneView), k_OverlayId, k_DisplayName)]
+        [Overlay(displayName = k_DisplayName, id = k_OverlayId, editorWindowType = typeof(SceneView), defaultDockZone = DockZone.Floating)]
         class SceneViewVFXSlotContainerOverlay : IMGUIOverlay, ITransientOverlay
         {
             const string k_OverlayId = "Scene View/Visual Effect";
