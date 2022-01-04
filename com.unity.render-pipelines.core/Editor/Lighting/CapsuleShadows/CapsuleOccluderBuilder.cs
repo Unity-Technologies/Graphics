@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering
     public class CapsuleOccluderBuilder : ScriptableWizard
     {
         public SkinnedMeshRenderer skinnedMesh; // TODO: list?
+        public bool keepAxisAligned = false;
         public float minimumLength = 0.15f;
         public float radiusScale = 0.8f;
 
@@ -33,6 +34,43 @@ namespace UnityEngine.Rendering
             public Vector3 cross; // covariance yz, zx, xy
             public Quaternion rotationInverse;
             public Bounds capsuleBounds; // in local space of capsule
+        };
+
+        private struct CapsuleParams
+        {
+            public Vector3 center;
+            public Quaternion rotation;
+            public float height;
+            public float diameter;
+
+            public static CapsuleParams FromOrientedBounds(Quaternion rotation, Bounds bounds)
+            {
+                Vector3 center = rotation * bounds.center;
+                Vector3 size = bounds.size;
+
+                float height = size.z;
+                float diameter = Mathf.Max(size.x, size.y);
+                Quaternion capsuleRotation = rotation;
+                if (size.y > height)
+                {
+                    height = size.y;
+                    diameter = Mathf.Max(size.z, size.x);
+                    capsuleRotation = rotation * Quaternion.FromToRotation(Vector3.up, Vector3.forward);
+                }
+                if (size.x > height)
+                {
+                    height = size.x;
+                    diameter = Mathf.Max(size.y, size.z);
+                    capsuleRotation = rotation * Quaternion.FromToRotation(Vector3.right, Vector3.forward);
+                }
+
+                return new CapsuleParams {
+                    center = center,
+                    rotation = capsuleRotation,
+                    height = height,
+                    diameter = diameter,
+                };
+            }
         };
 
         void OnWizardCreate()
@@ -131,35 +169,19 @@ namespace UnityEngine.Rendering
                 }
 
                 ref readonly BoneData temp = ref boneTemp[boneIndex];
-                Quaternion tempRotation = Quaternion.Inverse(temp.rotationInverse);
-                Vector3 center = tempRotation * temp.capsuleBounds.center;
-                Vector3 size = temp.capsuleBounds.size;
+                CapsuleParams param = keepAxisAligned
+                    ? CapsuleParams.FromOrientedBounds(Quaternion.identity, temp.boneBounds)
+                    : CapsuleParams.FromOrientedBounds(Quaternion.Inverse(temp.rotationInverse), temp.capsuleBounds);
 
-                float height = size.z;
-                float diameter = Mathf.Max(size.x, size.y);
-                Quaternion rotation = tempRotation;
-                if (size.y > height)
-                {
-                    height = size.y;
-                    diameter = Mathf.Max(size.z, size.y);
-                    rotation = tempRotation * Quaternion.FromToRotation(Vector3.up, Vector3.forward);
-                }
-                if (size.x > height)
-                {
-                    height = size.x;
-                    diameter = Mathf.Max(size.y, size.z);
-                    rotation = tempRotation * Quaternion.FromToRotation(Vector3.right, Vector3.forward);
-                }
-
-                diameter *= radiusScale;
-                if (height < minimumLength && diameter < minimumLength)
+                param.diameter *= radiusScale;
+                if (param.height < minimumLength && param.diameter < minimumLength)
                     continue;
 
                 capsule = Undo.AddComponent<CapsuleOccluder>(bones[boneIndex].gameObject);
-                capsule.center = center;
-                capsule.rotation = rotation;
-                capsule.height = height;
-                capsule.radius = 0.5f * diameter;
+                capsule.center = param.center;
+                capsule.rotation = param.rotation;
+                capsule.height = param.height;
+                capsule.radius = 0.5f * param.diameter;
             }
         }
     }
