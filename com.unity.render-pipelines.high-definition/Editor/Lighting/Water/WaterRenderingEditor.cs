@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(WaterRendering))]
+    [CustomEditor(typeof(WaterRendering))]
     class WaterRenderingEditor : VolumeComponentEditor
     {
         // General

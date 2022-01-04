@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.Universal
 {
     partial class UniversalRenderPipelineLightUI
     {
-        static class Styles
+        private static class Styles
         {
             public static readonly GUIContent Type = EditorGUIUtility.TrTextContent("Type", "Specifies the current type of light. Possible types are Directional, Spot, Point, and Area lights.");
 
