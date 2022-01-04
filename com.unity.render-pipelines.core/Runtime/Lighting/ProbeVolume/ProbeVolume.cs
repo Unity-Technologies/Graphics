@@ -26,16 +26,10 @@ namespace UnityEngine.Experimental.Rendering
         public Vector3 size = new Vector3(10, 10, 10);
 
         /// <summary>
-        /// Override the renderer filters.
+        /// Geometry distance offset
         /// </summary>
-        [HideInInspector, Min(0)]
-        public bool overrideRendererFilters = false;
-
-        /// <summary>
-        /// The minimum renderer bounding box volume size. This value is used to discard small renderers when the overrideMinRendererVolumeSize is enabled.
-        /// </summary>
-        [HideInInspector, Min(0)]
-        public float minRendererVolumeSize = 0.1f;
+        [HideInInspector, Range(0f, 2f)]
+        public float geometryDistanceOffset = 0.2f;
 
         /// <summary>
         /// The <see cref="LayerMask"/>
@@ -145,12 +139,8 @@ namespace UnityEngine.Experimental.Rendering
                 hash = hash * 23 + overridesSubdivLevels.GetHashCode();
                 hash = hash * 23 + highestSubdivLevelOverride.GetHashCode();
                 hash = hash * 23 + lowestSubdivLevelOverride.GetHashCode();
-                hash = hash * 23 + overrideRendererFilters.GetHashCode();
-                if (overrideRendererFilters)
-                {
-                    hash = hash * 23 + minRendererVolumeSize.GetHashCode();
-                    hash = hash * 23 + objectLayerMask.GetHashCode();
-                }
+                hash = hash * 23 + geometryDistanceOffset.GetHashCode();
+                hash = hash * 23 + objectLayerMask.GetHashCode();
             }
 
             return hash;
@@ -331,7 +321,10 @@ namespace UnityEngine.Experimental.Rendering
                 }
 
                 Matrix4x4 trs = Matrix4x4.TRS(ProbeReferenceVolume.instance.GetTransform().posWS, ProbeReferenceVolume.instance.GetTransform().rot, Vector3.one);
-                var oldGizmoMatrix = Gizmos.matrix;
+
+                // For realtime subdivision, the matrix from ProbeReferenceVolume.instance can be wrong if the profile changed since the last bake
+                if (debugDisplay.realtimeSubdivision)
+                    trs = Matrix4x4.TRS(transform.position, Quaternion.identity, Vector3.one);
 
                 if (cellGizmo == null)
                     cellGizmo = new MeshGizmo();
@@ -347,7 +340,6 @@ namespace UnityEngine.Experimental.Rendering
                     cellGizmo.AddWireCube(center, Vector3.one * cellSizeInMeters, loaded ? new Color(0, 1, 0.5f, 1) : new Color(1, 0.0f, 0.0f, 1));
                 }
                 cellGizmo.RenderWireframe(Gizmos.matrix, gizmoName: "Brick Gizmo Rendering");
-                Gizmos.matrix = oldGizmoMatrix;
             }
         }
         #endregion
