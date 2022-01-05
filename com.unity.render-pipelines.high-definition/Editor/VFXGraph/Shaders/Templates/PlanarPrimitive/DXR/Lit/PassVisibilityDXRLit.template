@@ -55,10 +55,9 @@
                 AABB particleAABB = FetchPrimitiveAABB(PrimitiveIndex());
                 float3 inputVertexPosition = 0.0;
                 float3 currentOS = (particleAABB.maxPosOS + particleAABB.minPosOS) * 0.5;
-                float3 currentWS = TransformPositionVFXToWorld(currentOS);
-                ${VFXVertexComputeDisplacement}
+                float3 currentWS = TransformObjectToWorld(currentOS);
 
-                // TODO: Previous AABB for motion vector estimation
+                ${VFXVertexComputeDisplacement}
                 rayIntersection.velocity = displacement;
             }
 

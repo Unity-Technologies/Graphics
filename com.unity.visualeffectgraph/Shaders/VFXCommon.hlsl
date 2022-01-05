@@ -94,6 +94,7 @@ float3 TransformPositionVFXToView(float3 pos) { return VFXTransformPositionWorld
 float4 TransformPositionVFXToClip(float3 pos) { return VFXTransformPositionWorldToClip(pos); }
 float4 TransformPositionVFXToPreviousClip(float3 pos) { return VFXTransformPositionWorldToPreviousClip(pos); }
 float4 TransformPositionVFXToNonJitteredClip(float3 pos) { return VFXTransformPositionWorldToNonJitteredClip(pos); }
+float3 TransformPreviousVFXPositionToWorld(float3 pos) { return pos; }
 float3x3 GetVFXToViewRotMatrix() { return VFXGetWorldToViewRotMatrix(); }
 float3 GetViewVFXPosition() { return VFXGetViewWorldPosition(); }
 #else
@@ -104,6 +105,7 @@ float3 TransformPositionVFXToView(float3 pos) { return VFXTransformPositionWorld
 float4 TransformPositionVFXToClip(float3 pos) { return VFXTransformPositionObjectToClip(pos); }
 float4 TransformPositionVFXToPreviousClip(float3 pos) { return VFXTransformPositionObjectToPreviousClip(pos); }
 float4 TransformPositionVFXToNonJitteredClip(float3 pos) { return VFXTransformPositionObjectToNonJitteredClip(pos); }
+float3 TransformPreviousVFXPositionToWorld(float3 pos) { return TransformPreviousObjectToWorld(pos); }
 float3x3 GetVFXToViewRotMatrix() { return mul(VFXGetWorldToViewRotMatrix(), (float3x3)VFXGetObjectToWorldMatrix()); }
 float3 GetViewVFXPosition() { return mul(VFXGetWorldToObjectMatrix(), float4(VFXGetViewWorldPosition(), 1.0f)).xyz; }
 #endif

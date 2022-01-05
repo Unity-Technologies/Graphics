@@ -194,13 +194,8 @@ float displacement = 0.0;
 			uint4 read = elementToVFXBufferPrevious.Load4((elementToVFXBaseIndex + itIndexMatrixRow * 4) << 2);
 			previousElementToVFX[itIndexMatrixRow] = asfloat(read);
 		}
-		#if defined(DO_CHECK_WORLD_SPACE)
-			float3 previousWS = TransformPreviousObjectToWorld(mul(previousElementToVFX, float4(inputVertexPosition, 1.0f)).xyz);
-			displacement = length(currentWS - previousWS);
-		#else
-			float3 previousOS = mul(previousElementToVFX, float4(inputVertexPosition, 1.0f)).xyz;
-			displacement = length(currentOS - previousOS);
-		#endif
+        float3 previousWS = TransformPreviousVFXPositionToWorld(mul(previousElementToVFX, float4(inputVertexPosition, 1.0f)).xyz);
+		displacement = length(currentWS - previousWS);
 	}
 #endif
 ${VFXEnd}
