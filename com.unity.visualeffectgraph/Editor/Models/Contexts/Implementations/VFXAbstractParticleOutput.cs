@@ -676,7 +676,7 @@ namespace UnityEditor.VFX
             {
                 vertsCount /= 2;
             }
-            return vertsCount != 0;
+            return vertsCount != 0 && !IsRaytraced();
         }
 
         protected override void GenerateErrors(VFXInvalidateErrorReporter manager)

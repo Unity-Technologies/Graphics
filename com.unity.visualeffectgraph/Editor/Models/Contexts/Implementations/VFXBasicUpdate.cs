@@ -269,7 +269,7 @@ namespace UnityEditor.VFX
                 mapper.AddExpression(VFXBuiltInExpression.DeltaTime, "deltaTime", -1);
             var dataParticle = GetData() as VFXDataParticle;
 
-            if (target == VFXDeviceTarget.GPU && dataParticle && dataParticle.NeedsComputeBounds() && space == VFXCoordinateSpace.World)
+            if (target == VFXDeviceTarget.GPU && dataParticle && (dataParticle.NeedsComputeBounds() || dataParticle.NeedsSharedAabbBuffer()) && space == VFXCoordinateSpace.World)
             {
                 mapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "worldToLocal", -1);
             }

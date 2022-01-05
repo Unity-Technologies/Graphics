@@ -258,14 +258,9 @@ ${VFXFeedSortingKeys}
 		}
         #if VFX_COMPUTE_AABBS
                 ${VFXLoadSizeRT}
-            #if VFX_WORLD_SPACE
-                ${VFXLoadParameter:{worldToLocal}}
-            #else
-                float4x4 worldToLocal = (float4x4)0;
-            #endif
             #if VFX_COMPUTE_AABBS
                 int rayTracingDecimationFactor = VFX_RT_DECIMATION_FACTOR;
-                FillAabbBuffer(attributes, size3, index, worldToLocal, rayTracingDecimationFactor);
+                FillAabbBuffer(attributes, size3, index, rayTracingDecimationFactor);
             #endif
         #endif
 	}

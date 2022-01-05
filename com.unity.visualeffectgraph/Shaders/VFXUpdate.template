@@ -124,21 +124,22 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #endif
 #endif
 #if VFX_COMPUTE_BOUNDS || VFX_COMPUTE_AABBS
-    ${VFXLoadSize}
-    #if VFX_WORLD_SPACE
-        ${VFXLoadParameter:{worldToLocal}}
-    #else
-        float4x4 worldToLocal = (float4x4)0;
-    #endif
+    ${VFXLoadSizeRT}
     #if VFX_COMPUTE_BOUNDS
+        #if VFX_WORLD_SPACE
+            ${VFXLoadParameter:{worldToLocal}}
+        #else
+            float4x4 worldToLocal = (float4x4)0;
+        #endif
         InitReduction(attributes, size3, tid, worldToLocal);
     #endif
+
     #if VFX_COMPUTE_AABBS
         #ifndef VFX_RT_DECIMATION_FACTOR
         #define VFX_RT_DECIMATION_FACTOR 1
         #endif
         int rayTracingDecimationFactor = VFX_RT_DECIMATION_FACTOR;
-        FillAabbBuffer(attributes, size3, index, worldToLocal, rayTracingDecimationFactor);
+        FillAabbBuffer(attributes, size3, index, rayTracingDecimationFactor);
     #endif
 #endif
 

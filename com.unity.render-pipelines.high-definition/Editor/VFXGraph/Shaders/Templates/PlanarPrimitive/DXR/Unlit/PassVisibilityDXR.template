@@ -48,8 +48,17 @@
                 // Compute the distance of the ray
                 rayIntersection.t = RayTCurrent();
 
-                // TODO: Previous AABB for motion vector estimation
-                rayIntersection.velocity = 0;
+                // Index needs to be available in the context for the attribute load to work
+                uint index = PrimitiveIndex();
+
+                // Grab the current particle's AABB
+                AABB particleAABB = FetchPrimitiveAABB(PrimitiveIndex());
+                float3 inputVertexPosition = 0.0;
+                float3 currentOS = (particleAABB.maxPosOS + particleAABB.minPosOS) * 0.5;
+                float3 currentWS = TransformObjectToWorld(currentOS);
+
+                ${VFXVertexComputeDisplacement}
+                rayIntersection.velocity = displacement;
             }
 
             // Inject the intersection shader

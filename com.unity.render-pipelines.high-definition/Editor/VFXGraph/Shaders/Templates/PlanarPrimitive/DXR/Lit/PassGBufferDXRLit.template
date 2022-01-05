@@ -83,6 +83,7 @@
 
                 // Fill the attributes
                 ${VFXVertexCommonProcess}
+                ${VFXHDRPLitFillVaryings}
 
                 // Object <-> primtive matrices
                 const float4x4 objectToPrimitive = GetVFXToElementMatrix(attributes.axisX, attributes.axisY, attributes.axisZ,
@@ -116,7 +117,7 @@
             #ifdef MINIMAL_GBUFFER
                 // Override all the parameters that we do not require for our minimal lit version
                 standardLitData.specularOcclusion = 1.0;
-                standardLitData.normalWS = fragInput.tangentToWorld[2];
+                standardLitData.normalWS = bsdfData.normalWS;
                 standardLitData.coatMask = 0.0;
                 standardLitData.emissiveAndBaked = builtinData.emissiveColor;
             #endif

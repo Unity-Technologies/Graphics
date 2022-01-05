@@ -4,18 +4,60 @@
 // Object <-> primtive matrices
 float4x4 ObjectToPrimitive(VFXAttributes attributes, float3 size3)
 {
-    return GetVFXToElementMatrix(attributes.axisX, attributes.axisY, attributes.axisZ,
+    float4x4 vfxToElement = GetVFXToElementMatrix(attributes.axisX, attributes.axisY, attributes.axisZ,
         float3(attributes.angleX, attributes.angleY, attributes.angleZ),
         float3(attributes.pivotX, attributes.pivotY, attributes.pivotZ),
         size3, attributes.position);
+    #if VFX_WORLD_SPACE
+        float4x4 objToWorld = float4x4(
+            ObjectToWorld3x4()[0],
+            ObjectToWorld3x4()[1],
+            ObjectToWorld3x4()[2],
+            float4(0,0,0,1));
+        objToWorld._m03_m13_m23 += GetAbsolutePositionWS(float3(0,0,0));
+        return mul(vfxToElement, objToWorld);
+    #else
+        return vfxToElement;
+    #endif
 }
 
-float4x4 PrimtiveToObject(VFXAttributes attributes, float3 size3)
+float4x4 PrimitiveToObject(VFXAttributes attributes, float3 size3)
 {
-    return GetElementToVFXMatrix(attributes.axisX, attributes.axisY, attributes.axisZ,
+    float4x4 elementToVFX = GetElementToVFXMatrix(attributes.axisX, attributes.axisY, attributes.axisZ,
         float3(attributes.angleX,attributes.angleY,attributes.angleZ),
         float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
         size3, attributes.position);
+    #if VFX_WORLD_SPACE
+        float4x4 worldToObj = float4x4(
+            WorldToObject3x4()[0],
+            WorldToObject3x4()[1],
+            WorldToObject3x4()[2],
+            float4(0,0,0,1));
+        worldToObj = RevertCameraTranslationFromInverseMatrix(worldToObj);
+        return mul(worldToObj, elementToVFX);
+    #else
+        return elementToVFX;
+    #endif
+}
+
+//World <-> Primitive matrix
+float4x4 WorldToPrimitive(VFXAttributes attributes, float3 size3)
+{
+    float4x4 vfxToElement = GetVFXToElementMatrix(attributes.axisX, attributes.axisY, attributes.axisZ,
+        float3(attributes.angleX, attributes.angleY, attributes.angleZ),
+        float3(attributes.pivotX, attributes.pivotY, attributes.pivotZ),
+        size3, attributes.position);
+    #if VFX_WORLD_SPACE
+        return vfxToElement;
+    #else
+        float4x4 worldToObj = float4x4(
+            WorldToObject3x4()[0],
+            WorldToObject3x4()[1],
+            WorldToObject3x4()[2],
+            float4(0,0,0,1));
+        worldToObj = RevertCameraTranslationFromInverseMatrix(worldToObj);
+        return mul(vfxToElement, worldToObj);
+    #endif
 }
 
 #if defined(VFX_PRIMITIVE_QUAD)
@@ -35,7 +77,7 @@ float4x4 PrimtiveToObject(VFXAttributes attributes, float3 size3)
     {
         RayTracingProceduralData rtPrData;
         rtPrData.objectToPrimitive = ObjectToPrimitive(attributes, size3);
-        rtPrData.primitiveToObject = PrimtiveToObject(attributes, size3);
+        rtPrData.primitiveToObject = PrimitiveToObject(attributes, size3);
         rtPrData.position =  rtPrData.primitiveToObject._m03_m13_m23;
         rtPrData.normal = -rtPrData.primitiveToObject._m02_m12_m22;
         rtPrData.attributes = attributes;
@@ -65,7 +107,7 @@ float4x4 PrimtiveToObject(VFXAttributes attributes, float3 size3)
     {
         RayTracingProceduralData rtPrData;
         rtPrData.objectToPrimitive = ObjectToPrimitive(attributes, size3);
-        rtPrData.primitiveToObject = PrimtiveToObject(attributes, size3);
+        rtPrData.primitiveToObject = PrimitiveToObject(attributes, size3);
         rtPrData.position =  rtPrData.primitiveToObject._m03_m13_m23;
         rtPrData.normal = -rtPrData.primitiveToObject._m02_m12_m22;
         rtPrData.attributes = attributes;
@@ -105,7 +147,7 @@ float4x4 PrimtiveToObject(VFXAttributes attributes, float3 size3)
     {
         RayTracingProceduralData rtPrData;
         rtPrData.objectToPrimitive = ObjectToPrimitive(attributes, size3);
-        rtPrData.primitiveToObject = PrimtiveToObject(attributes, size3);
+        rtPrData.primitiveToObject = PrimitiveToObject(attributes, size3);
         rtPrData.position =  rtPrData.primitiveToObject._m03_m13_m23;
         rtPrData.normal = -rtPrData.primitiveToObject._m02_m12_m22;
         rtPrData.attributes = attributes;

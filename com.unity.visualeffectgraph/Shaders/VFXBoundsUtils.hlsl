@@ -7,7 +7,19 @@
 #if VFX_USE_BOUNDS_UTILS
 
 
-float4x4 GetElementToVFX(VFXAttributes attributes, float3 size3, float4x4 worldToLocal)
+float4x4 GetElementToVFX(VFXAttributes attributes, float3 size3)
+{
+    return GetElementToVFXMatrix(
+           attributes.axisX,
+           attributes.axisY,
+           attributes.axisZ,
+           float3(attributes.angleX, attributes.angleY, attributes.angleZ),
+           float3(attributes.pivotX, attributes.pivotY, attributes.pivotZ),
+           size3,
+           attributes.position);
+}
+
+float4x4 GetElementToLocal(VFXAttributes attributes, float3 size3, float4x4 worldToLocal)
 {
     float4x4 elementToVFX = GetElementToVFXMatrix(
            attributes.axisX,
@@ -19,41 +31,44 @@ float4x4 GetElementToVFX(VFXAttributes attributes, float3 size3, float4x4 worldT
            attributes.position);
 
     #if VFX_WORLD_SPACE
-    // The bounding box is always calculated in localSpace since the AABB in the graph is in local space.
-    // That avoids unnecessary and overly conservative AABB changes of space.
-    elementToVFX = mul(worldToLocal, elementToVFX);
+        float4x4 elementToLocal = mul(worldToLocal, elementToVFX);
+    #else
+        float4x4 elementToLocal = elementToVFX;
     #endif
 
-    return elementToVFX;
+    return elementToLocal;
 }
 
-float GetBoundingRadius(VFXAttributes attributes, float3 size3, float4x4 worldToLocal, out float3 localPos)
+float ComputeBoundingRadius3DFromMatrix(float4x4 mat, out float3 center)
 {
-    float4x4 elementToVFX = GetElementToVFX(attributes, size3, worldToLocal);
-
-    localPos = elementToVFX._m03_m13_m23;
-
-    //Bounding sphere
-
-    float xAxisSqrLength = dot(elementToVFX._m00_m10_m20, elementToVFX._m00_m10_m20);
-    float yAxisSqrLength = dot(elementToVFX._m01_m11_m21, elementToVFX._m01_m11_m21);
-    float zAxisSqrLength = dot(elementToVFX._m02_m12_m22, elementToVFX._m02_m12_m22);
+    center = mat._m03_m13_m23;
+    float xAxisSqrLength = dot(mat._m00_m10_m20, mat._m00_m10_m20);
+    float yAxisSqrLength = dot(mat._m01_m11_m21, mat._m01_m11_m21);
+    float zAxisSqrLength = dot(mat._m02_m12_m22, mat._m02_m12_m22);
     float radius = 0.5f * sqrt(xAxisSqrLength + yAxisSqrLength + zAxisSqrLength);
     return radius;
 }
 
-
-float GetBoundingRadiusBillboard(VFXAttributes attributes, float3 size3, float4x4 worldToLocal, out float3 localPos)
+//Bounding sphere of a flat element in the plane xy
+float ComputeBoundingRadius2DFromMatrix(float4x4 mat, out float3 center)
 {
-    float4x4 elementToVFX = GetElementToVFX(attributes, size3, worldToLocal);
-
-    localPos = elementToVFX._m03_m13_m23;
-
-    //Bounding sphere of billboard, only takes x and y for the radius
-    float xAxisSqrLength = dot(elementToVFX._m00_m10_m20, elementToVFX._m00_m10_m20);
-    float yAxisSqrLength = dot(elementToVFX._m01_m11_m21, elementToVFX._m01_m11_m21);
+    center = mat._m03_m13_m23;
+    float xAxisSqrLength = dot(mat._m00_m10_m20, mat._m00_m10_m20);
+    float yAxisSqrLength = dot(mat._m01_m11_m21, mat._m01_m11_m21);
     float radius = 0.5f * sqrt(xAxisSqrLength + yAxisSqrLength);
     return radius;
+}
+
+float GetBoundingRadius3D_Local(VFXAttributes attributes, float3 size3, float4x4 worldToLocal, out float3 localPos)
+{
+    float4x4 elementToLocal = GetElementToLocal(attributes, size3, worldToLocal);
+    return ComputeBoundingRadius3DFromMatrix(elementToLocal, localPos);
+}
+
+float GetBoundingRadius2D_VFX(VFXAttributes attributes, float3 size3, out float3 vfxPos)
+{
+    float4x4 elementToVFX = GetElementToVFX(attributes, size3);
+    return ComputeBoundingRadius2DFromMatrix(elementToVFX, vfxPos);
 }
 
 #if VFX_COMPUTE_BOUNDS
@@ -85,7 +100,8 @@ void InitReduction(VFXAttributes attributes, float3 size3, uint tid, float4x4 wo
     if (attributes.alive)
     {
         float3 localPos;
-        float radius = GetBoundingRadius(attributes, size3, worldToLocal, localPos);
+        //Bounds are computed in local space to avoid slow and overly conservative AABB transform later
+        float radius = GetBoundingRadius3D_Local(attributes, size3, worldToLocal, localPos);
         sMinPositionsX[tid] = FloatFlip(asuint(localPos.x - radius));
         sMinPositionsY[tid] = FloatFlip(asuint(localPos.y - radius));
         sMinPositionsZ[tid] = FloatFlip(asuint(localPos.z - radius));
@@ -153,28 +169,30 @@ struct AABB
 
 RWStructuredBuffer<AABB> aabbBuffer;
 
-void FillAabbBuffer(VFXAttributes attributes, float3 size3, uint index, float4x4 worldToLocal, int decimationFactor)
+void FillAabbBuffer(VFXAttributes attributes, float3 size3, uint index, int decimationFactor)
 {
     AABB aabb;
     int aabbIndex = index / decimationFactor;
     int remainder = index % decimationFactor;
 
     if(remainder == 0)
+{
+
+    if (attributes.alive)
     {
-        if (attributes.alive)
-        {
-            float3 localPos;
-            float radius = GetBoundingRadiusBillboard(attributes, size3, worldToLocal, localPos);
-            aabb.boxMin = localPos - float3(radius, radius, radius);
-            aabb.boxMax = localPos + float3(radius, radius, radius);
-            aabbBuffer[aabbIndex] = aabb;
-        }
+        float3 vfxPos;
+        float radius = GetBoundingRadius2D_VFX(attributes, size3, vfxPos);
+        aabb.boxMin = vfxPos - float3(radius, radius, radius);
+        aabb.boxMax = vfxPos + float3(radius, radius, radius);
+        aabbBuffer[index] = aabb;
+    }
         else
         {
             aabb.boxMin = float3(VFX_NAN, VFX_NAN, VFX_NAN);
             aabb.boxMax = float3(VFX_NAN, VFX_NAN, VFX_NAN);
             aabbBuffer[aabbIndex] = aabb;
         }
+
     }
 }
 #endif

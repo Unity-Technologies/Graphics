@@ -28,5 +28,6 @@
 		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/PassVisibilityDXRLit.template")}
 		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/PassIndirectDXRLit.template")}
 		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/PassGBufferDXRLit.template")}
+		${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/PassForwardDXRLit.template")}
 	}
 }

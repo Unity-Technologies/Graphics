@@ -193,6 +193,27 @@ if (asuint(currentFrameIndex) - previousFrameIndex == 1u)    //if (dot(previousE
 #endif
 ${VFXEnd}
 
+${VFXBegin:VFXVertexComputeDisplacement}
+float displacement = 0.0;
+#if VFX_FEATURE_MOTION_VECTORS
+	uint elementToVFXBaseIndex = index * 13;
+	uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
+	if (asuint(currentFrameIndex) - previousFrameIndex == 1u)    //if (dot(previousElementToVFX[0], 1) != 0)
+	{
+		float4x4 previousElementToVFX = (float4x4)0;
+		previousElementToVFX[3] = float4(0,0,0,1);
+		UNITY_UNROLL
+		for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
+		{
+			uint4 read = elementToVFXBufferPrevious.Load4((elementToVFXBaseIndex + itIndexMatrixRow * 4) << 2);
+			previousElementToVFX[itIndexMatrixRow] = asfloat(read);
+		}
+        float3 previousWS = TransformPreviousVFXPositionToWorld(mul(previousElementToVFX, float4(inputVertexPosition, 1.0f)).xyz);
+		displacement = length(currentWS - previousWS);
+	}
+#endif
+${VFXEnd}
+
 ${VFXBegin:VFXComputeOutputMotionVector}
 float2 velocity = (i.VFX_VARYING_VELOCITY_CPOS.xy/i.VFX_VARYING_VELOCITY_CPOS.w) - (i.VFX_VARYING_VELOCITY_CPOS_PREVIOUS.xy/i.VFX_VARYING_VELOCITY_CPOS_PREVIOUS.w);
 #if UNITY_UV_STARTS_AT_TOP
