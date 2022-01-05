@@ -775,7 +775,7 @@ namespace UnityEngine.Rendering.Universal
                 // XRTODO: investigate DX XR clear issues.
                 if (SystemInfo.usesLoadStoreActions)
 #endif
-                    m_RenderOpaqueForwardPass.ConfigureClear((cameraData.renderType == CameraRenderType.Base) ? ClearFlag.Color : ClearFlag.None, Color.black);
+                m_RenderOpaqueForwardPass.ConfigureClear((cameraData.renderType == CameraRenderType.Base) ? ClearFlag.Color : ClearFlag.None, Color.black);
 
                 EnqueuePass(m_RenderOpaqueForwardPass);
             }
