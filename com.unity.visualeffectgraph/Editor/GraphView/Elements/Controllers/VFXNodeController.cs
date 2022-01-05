@@ -280,21 +280,11 @@ namespace UnityEditor.VFX.UI
 
             return new Bounds();
         }
-
-        public virtual bool gizmoNeedsComponent
-        {
-            get
-            {
-                if (m_GizmoedAnchor == null)
-                    return false;
-                return ((VFXDataAnchorController)m_GizmoedAnchor).gizmoNeedsComponent;
-            }
-        }
-
+        
         public virtual GizmoError GetGizmoError(VisualEffect component)
         {
             if (m_GizmoedAnchor == null)
-                return GizmoError.NoGizmo;
+                return GizmoError.NotAvailable;
             return ((VFXDataAnchorController)m_GizmoedAnchor).GetGizmoError(component);
         }
 

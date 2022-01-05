@@ -819,16 +819,6 @@ namespace UnityEditor.VFX.UI
             return GizmoError.None;
         }
 
-        public bool gizmoNeedsComponent
-        {
-            get
-            {
-                if (isOutput)
-                    return false;
-                return VFXGizmoUtility.NeedsComponent(m_Context);
-            }
-        }
-
         IGizmoable[] m_Gizmoables;
 
         public ReadOnlyCollection<IGizmoable> gizmoables

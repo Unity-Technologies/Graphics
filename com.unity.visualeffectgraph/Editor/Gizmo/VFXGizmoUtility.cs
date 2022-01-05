@@ -179,19 +179,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-		//TODOPAUL Remove this
-        static internal bool NeedsComponent(Context context)
-        {
-            GizmoContext gizmo;
-            if (s_DrawFunctions.TryGetValue(context.portType, out gizmo))
-            {
-                gizmo.gizmo.currentSpace = context.space;
-                gizmo.gizmo.spaceLocalByDefault = context.spaceLocalByDefault;
-                return false;
-            }
-            return false;
-        }
-
         static internal GizmoError CollectGizmoError(Context context, VisualEffect component)
         {
             var error = context.GetError();

@@ -483,21 +483,6 @@ namespace UnityEditor.VFX.UI
             return new Bounds();
         }
 
-        //Remove this & merge with GizmoError TODOPAUL
-        public bool gizmoNeedsComponent
-        {
-            get
-            {
-                if (!VFXGizmoUtility.HasGizmo(portType))
-                    return false;
-                if (m_GizmoContext == null)
-                {
-                    m_GizmoContext = new VFXDataAnchorGizmoContext(this);
-                }
-                return VFXGizmoUtility.NeedsComponent(m_GizmoContext);
-            }
-        }
-
         public GizmoError GetGizmoError(VisualEffect component)
         {
             if (!VFXGizmoUtility.HasGizmo(portType))

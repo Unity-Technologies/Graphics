@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.UI
         HasLink = 1 << 2,
         NeedComponent = 1 << 3,
         NeedExplicitSpace = 1 << 4,
-        NoGizmo = 1 << 5
+        NotAvailable = 1 << 5
     }
 
     interface IGizmoable
@@ -27,13 +27,9 @@ namespace UnityEditor.VFX.UI
     {
         void DrawGizmos(VisualEffect component);
         Bounds GetGizmoBounds(VisualEffect component);
-
-        bool gizmoNeedsComponent { get; } //Remove this (TODOPAUL)
-
         GizmoError GetGizmoError(VisualEffect component);
 
         ReadOnlyCollection<IGizmoable> gizmoables { get; }
-
         IGizmoable currentGizmoable { get; set; }
     }
 }

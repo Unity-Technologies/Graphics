@@ -300,14 +300,6 @@ namespace UnityEditor.VFX.UI
             return m_ParentController.GetGizmoBounds(component);
         }
 
-        public override bool gizmoNeedsComponent
-        {
-            get
-            {
-                return m_ParentController.gizmoNeedsComponent;
-            }
-        }
-
         public override int id
         {
             get { return m_Id; }
