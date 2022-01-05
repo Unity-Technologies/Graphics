@@ -359,7 +359,7 @@ namespace UnityEngine.Experimental.Rendering
     /// </summary>
     public partial class ProbeReferenceVolume
     {
-        const int kTemporaryDataLocChunkCount = 8;
+        internal const int kTemporaryDataLocChunkCount = 8;
 
         [System.Serializable]
         internal class Cell
@@ -373,6 +373,9 @@ namespace UnityEngine.Experimental.Rendering
             public int minSubdiv;
             public int indexChunkCount;
             public int shChunkCount;
+
+            // TODO_FCC: This is very very temp, probably we can store validity and this mask in a single value (24bit validity, 8bit mask).
+            public int[] neighbValidityMask;
         }
 
         [DebuggerDisplay("Index = {cell.index} Loaded = {loaded}")]
@@ -1251,7 +1254,7 @@ namespace UnityEngine.Experimental.Rendering
             while (chunkIndex < cellInfo.chunkList.Count)
             {
                 int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.validity, cell.sh, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
+                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.neighbValidityMask, cell.sh, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
 
                 // copy chunks into pool
                 m_TmpSrcChunks.Clear();

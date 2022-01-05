@@ -52,38 +52,6 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        private static bool HasMeshColliderHits(RaycastHit[] outBoundHits, RaycastHit[] inBoundHits, Vector3 outRay, Vector3 inRay, float rayEnd, out float distance)
-        {
-            distance = float.MaxValue;
-            bool hasHit = false;
-
-            foreach (var hit in outBoundHits)
-            {
-                if (hit.collider is MeshCollider && Vector3.Dot(outRay, hit.normal) > 0)
-                {
-                    if (hit.distance < distance)
-                    {
-                        distance = hit.distance;
-                        hasHit = true;
-                    }
-                }
-            }
-
-            foreach (var hit in inBoundHits)
-            {
-                if (hit.collider is MeshCollider && Vector3.Dot(inRay, hit.normal) > 0)
-                {
-                    if ((rayEnd - hit.distance) < distance)
-                    {
-                        distance = hit.distance;
-                        hasHit = true;
-                    }
-                }
-            }
-
-            return hasHit;
-        }
-
         private static Vector3 PushPositionOutOfGeometry(Vector3 worldPosition, float distanceSearch, float biasOutGeo)
         {
             bool queriesHitBackBefore = Physics.queriesHitBackfaces;
@@ -106,7 +74,7 @@ namespace UnityEngine.Experimental.Rendering
                         RaycastHit[] inBoundHits = Physics.RaycastAll(worldPosition + ray, -1.0f * normDir, distanceSearch, collisionLayerMask);
 
                         float distanceForDir = 0;
-                        bool hasMeshColliderHits = HasMeshColliderHits(outBoundHits, inBoundHits, normDir, -normDir, distanceSearch, out distanceForDir);
+                        bool hasMeshColliderHits = HasMeshColliderHits(outBoundHits, inBoundHits, normDir, -normDir, distanceSearch, true, out distanceForDir);
                         if (hasMeshColliderHits)
                         {
                             hitFound = true;
@@ -128,37 +96,6 @@ namespace UnityEngine.Experimental.Rendering
             Physics.queriesHitBackfaces = queriesHitBackBefore;
 
             return worldPosition;
-        }
-
-        public bool HasColliderAround(Vector3 worldPosition, float distanceSearch)
-        {
-            int hitsFound = 0;
-            const int necessaryHits = 2;
-
-            for (int x = -1; x <= 1; ++x)
-            {
-                for (int y = -1; y <= 1; ++y)
-                {
-                    for (int z = -1; z <= 1; ++z)
-                    {
-                        Vector3 searchDir = new Vector3(x, y, z);
-                        Vector3 normDir = searchDir.normalized;
-                        Vector3 ray = normDir * distanceSearch;
-                        var collisionLayerMask = ~0;
-                        RaycastHit[] outBoundHits = Physics.RaycastAll(worldPosition, normDir, distanceSearch, collisionLayerMask);
-                        RaycastHit[] inBoundHits = Physics.RaycastAll(worldPosition + ray, -1.0f * normDir, distanceSearch, collisionLayerMask);
-
-                        float distanceForDir = 0;
-                        if (HasMeshColliderHits(outBoundHits, inBoundHits, normDir, -normDir, distanceSearch, out distanceForDir))
-                        {
-                            hitsFound++;
-                            if (hitsFound > necessaryHits) return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
         }
     }
 }

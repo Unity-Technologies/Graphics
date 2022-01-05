@@ -304,6 +304,16 @@ namespace UnityEngine.Experimental.Rendering
                 //sceneData.QueueAssetLoading();
             }
 
+            // Create the validity masks
+            foreach (var sceneData in perSceneDataList)
+            {
+                var asset = sceneData.GetCurrentStateAsset();
+                foreach (var cell in asset.cells)
+                {
+                    ComputeValidityMask2(cell);
+                }
+            }
+
             var dilationSettings = m_BakingSettings.dilationSettings;
 
             if (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f)
@@ -491,6 +501,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
+                cell.neighbValidityMask = new int[numProbes];
                 cell.minSubdiv = probeRefVolume.GetMaxSubdivision();
 
                 for (int i = 0; i < numProbes; ++i)
@@ -880,6 +891,20 @@ namespace UnityEngine.Experimental.Rendering
             // Move positions before sending them
             var positions = m_BakingBatch.uniquePositions.Keys.ToArray();
             VirtualOffsetSettings voSettings = m_BakingSettings.virtualOffsetSettings;
+
+            ExtraInvalidationSettings invalSettings = m_BakingSettings.invalidationSettings;
+
+            if (invalSettings.enableExtraInvalidation)
+            {
+                for (int i = 0; i < positions.Length; ++i)
+                {
+                    bool hit = HasColliderAround(positions[i], invalSettings.checkRange);
+                    m_BakingBatch.invalidatedPositions[positions[i]] = hit;
+                    if (hit)
+                        Debug.Log(positions[i]);
+                }
+            }
+
             if (voSettings.useVirtualOffset)
             {
                 for (int i = 0; i < positions.Length; ++i)
