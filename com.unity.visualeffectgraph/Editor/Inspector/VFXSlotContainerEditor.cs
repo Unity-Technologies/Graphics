@@ -177,13 +177,20 @@ class VFXSlotContainerEditor : Editor
                         return;
                     }
 
-                    if (selectedController.gizmoIndeterminate)
+                    var component = vfxView.attachedComponent;
+
+                    var gizmoError = selectedController.GetGizmoError(component);
+
+                    if (gizmoError != GizmoError.None)
                     {
-                        GUILayout.Label(Contents.gizmoIndeterminateWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
-                    }
-                    else if (selectedController.gizmoNeedsComponent && vfxView.attachedComponent == null)
-                    {
-                        GUILayout.Label(Contents.gizmoLocalWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
+                        if (gizmoError.HasFlag(GizmoError.NeedComponent))
+                        {
+                            GUILayout.Label(Contents.gizmoLocalWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
+                        }
+                        else
+                        {
+                            GUILayout.Label(Contents.gizmoIndeterminateWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
+                        }
                     }
                     else
                     {

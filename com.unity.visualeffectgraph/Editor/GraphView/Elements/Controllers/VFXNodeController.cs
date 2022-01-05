@@ -291,14 +291,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public virtual bool gizmoIndeterminate
+        public virtual GizmoError GetGizmoError(VisualEffect component)
         {
-            get
-            {
-                if (m_GizmoedAnchor == null)
-                    return true;
-                return ((VFXDataAnchorController)m_GizmoedAnchor).gizmoIndeterminate;
-            }
+            if (m_GizmoedAnchor == null)
+                return GizmoError.NoGizmo;
+            return ((VFXDataAnchorController)m_GizmoedAnchor).GetGizmoError(component);
         }
 
         IGizmoable m_GizmoedAnchor;

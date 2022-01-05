@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -68,7 +69,7 @@ namespace UnityEditor.VFX.UI
                 if (m_Prepared)
                     return false;
                 m_Prepared = true;
-                m_Indeterminate = false;
+                m_Error = GizmoError.None;
                 m_PropertyCache.Clear();
                 InternalPrepare();
                 return true;
@@ -95,11 +96,16 @@ namespace UnityEditor.VFX.UI
 
             public abstract VFXGizmo.IProperty<T> RegisterProperty<T>(string member);
 
-            protected bool m_Indeterminate;
+            protected GizmoError m_Error;
+
+            public GizmoError GetError()
+            {
+                return m_Error;
+            }
 
             public bool IsIndeterminate()
             {
-                return m_Indeterminate;
+                return m_Error != GizmoError.None;
             }
         }
 
@@ -173,6 +179,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+		//TODOPAUL Remove this
         static internal bool NeedsComponent(Context context)
         {
             GizmoContext gizmo;
@@ -180,9 +187,24 @@ namespace UnityEditor.VFX.UI
             {
                 gizmo.gizmo.currentSpace = context.space;
                 gizmo.gizmo.spaceLocalByDefault = context.spaceLocalByDefault;
-                return gizmo.gizmo.needsComponent;
+                return false;
             }
             return false;
+        }
+
+        static internal GizmoError CollectGizmoError(Context context, VisualEffect component)
+        {
+            var error = context.GetError();
+            GizmoContext gizmo;
+            if (s_DrawFunctions.TryGetValue(context.portType, out gizmo))
+            {
+                gizmo.gizmo.currentSpace = context.space;
+                gizmo.gizmo.spaceLocalByDefault = context.spaceLocalByDefault;
+                gizmo.gizmo.component = component;
+                error |= gizmo.gizmo.error;
+                gizmo.gizmo.component = null;
+            }
+            return error;
         }
 
         static internal Bounds GetGizmoBounds(Context context, VisualEffect component)
