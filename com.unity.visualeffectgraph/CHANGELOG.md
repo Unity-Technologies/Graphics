@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Sticky note title keeps the selected font sizewhen being edited
 - Collision with zero scale lead to undefined behavior [Case 1381562](https://issuetracker.unity3d.com/product/unity/issues/guid/1381562/)
 - Fixed GPU event particle init after restarting VisualEffect [Case 1378335](https://issuetracker.unity3d.com/product/unity/issues/guid/1378335/)
+- No more exception raised when selecting all nodes with CTRL+A and then deleting them
 
 ## [13.1.2] - 2021-11-05
 
