@@ -5,11 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
-#if UNITY_2020_2_OR_NEWER
 using UnityEditor.AssetImporters;
-#else
-using UnityEditor.Experimental.AssetImporters;
-#endif
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
@@ -99,15 +95,91 @@ Shader ""Hidden/GraphErrorShader2""
             }
         }
 
+        List<Shader> BuildAllShaders(
+            AssetImportContext importContext,
+            AssetImportErrorLog importErrorLog,
+            AssetCollection allImportAssetDependencies,
+            GraphData graph)
+        {
+            List<Shader> builtShaders = new List<Shader>();
+
+            string path = importContext.assetPath;
+            var primaryShaderName = Path.GetFileNameWithoutExtension(path);
+
+            try
+            {
+                // this will also add Target dependencies into the asset collection
+                Generator generator;
+                generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, primaryShaderName, assetCollection: allImportAssetDependencies);
+
+                bool first = true;
+                foreach (var generatedShader in generator.allGeneratedShaders)
+                {
+                    var shaderString = generatedShader.codeString;
+
+                    // we only care if an error was reported for a node that we actually used
+                    if (graph.messageManager.AnyError((nodeId) => NodeWasUsedByGraph(nodeId, graph)) ||
+                        shaderString == null)
+                    {
+                        shaderString = k_ErrorShader.Replace("Hidden/GraphErrorShader2", generatedShader.shaderName);
+                    }
+
+                    var shader = ShaderUtil.CreateShaderAsset(importContext, generatedShader.codeString, false);
+
+                    ReportErrors(graph, shader, path, importErrorLog);
+
+                    EditorMaterialUtility.SetShaderDefaults(
+                        shader,
+                        generatedShader.assignedTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
+                        generatedShader.assignedTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+
+                    EditorMaterialUtility.SetShaderNonModifiableDefaults(
+                        shader,
+                        generatedShader.assignedTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
+                        generatedShader.assignedTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+
+                    builtShaders.Add(shader);
+
+                    if (first)
+                    {
+                        // first shader is always the main shader
+                        // only the main shader gets a material created
+                        Material material = new Material(shader) { name = primaryShaderName + " Material" };
+                        importContext.AddObjectToAsset("Material", material);
+
+                        first = false;
+                    }
+                    else
+                    {
+                        importContext.AddObjectToAsset($"Shader-{generatedShader.shaderName}", shader);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                // ignored
+            }
+
+            return builtShaders;
+        }
+
         public override void OnImportAsset(AssetImportContext ctx)
         {
-            var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(ctx.assetPath);
-            if (oldShader != null)
-                ShaderUtil.ClearShaderMessages(oldShader);
+            {
+                // Before importing, clear shader messages for any existing old shaders, if any.
+                // This is a terrible way to do it, but currently how the shader message system works at the moment.
+                var oldArtifacts = AssetDatabase.LoadAllAssetsAtPath(ctx.assetPath);
+                foreach (var artifact in oldArtifacts)
+                {
+                    if ((artifact != null) && (artifact is Shader oldShader))
+                    {
+                        ShaderUtil.ClearShaderMessages(oldShader);
+                    }
+                }
+            }
 
             var importLog = new AssetImportErrorLog(ctx);
-
-            List<PropertyCollector.TextureInfo> configuredTextures;
             string path = ctx.assetPath;
 
             AssetCollection assetCollection = new AssetCollection();
@@ -123,53 +195,18 @@ Shader ""Hidden/GraphErrorShader2""
             graph.OnEnable();
             graph.ValidateGraph();
 
-            Shader shader = null;
+            // Shader shader = null;
+            UnityEngine.Object mainObject = null;
 #if VFX_GRAPH_10_0_0_OR_NEWER
             if (!graph.isOnlyVFXTarget)
 #endif
             {
-                // build the shader text
-                // this will also add Target dependencies into the asset collection
-                var text = GetShaderText(path, out configuredTextures, assetCollection, graph);
-
-#if UNITY_2021_1_OR_NEWER
-                // 2021.1 or later is guaranteed to have the new version of this function
-                shader = ShaderUtil.CreateShaderAsset(ctx, text, false);
-#else
-                // earlier builds of Unity may or may not have it
-                // here we try to invoke the new version via reflection
-                var createShaderAssetMethod = typeof(ShaderUtil).GetMethod(
-                    "CreateShaderAsset",
-                    System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.ExactBinding,
-                    null,
-                    new Type[] { typeof(AssetImportContext), typeof(string), typeof(bool) },
-                    null);
-
-                if (createShaderAssetMethod != null)
-                {
-                    shader = createShaderAssetMethod.Invoke(null, new Object[] { ctx, text, false }) as Shader;
-                }
-                else
-                {
-                    // method doesn't exist in this version of Unity, call old version
-                    // this doesn't create dependencies properly, but is the best that we can do
-                    shader = ShaderUtil.CreateShaderAsset(text, false);
-                }
-#endif
-
-                ReportErrors(graph, shader, path, importLog);
-
-                EditorMaterialUtility.SetShaderDefaults(
-                    shader,
-                    configuredTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
-                    configuredTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
-                EditorMaterialUtility.SetShaderNonModifiableDefaults(
-                    shader,
-                    configuredTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
-                    configuredTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+                // build shaders
+                var shaders = BuildAllShaders(ctx, importLog, assetCollection, graph);
+                if (shaders.Any())
+                    mainObject = shaders[0];
             }
 
-            UnityEngine.Object mainObject = shader;
 #if VFX_GRAPH_10_0_0_OR_NEWER
             ShaderGraphVfxAsset vfxAsset = null;
             if (graph.hasVFXTarget)
@@ -187,12 +224,6 @@ Shader ""Hidden/GraphErrorShader2""
                 }
             }
 #endif
-
-            if (shader != null)
-            {
-                Material material = new Material(shader) { name = Path.GetFileNameWithoutExtension(path) + " Material" };
-                ctx.AddObjectToAsset("Material", material);
-            }
 
             Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon");
             ctx.AddObjectToAsset("MainAsset", mainObject, texture);
@@ -408,6 +439,7 @@ Shader ""Hidden/GraphErrorShader2""
             }
         }
 
+        // this old path is still used by the old VFX path, so keeping it around for now
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph, GenerationMode mode = GenerationMode.ForReals, Target[] targets = null)
         {
             string shaderString = null;
@@ -418,10 +450,7 @@ Shader ""Hidden/GraphErrorShader2""
                     shaderName = graph.path + "/" + shaderName;
 
                 Generator generator;
-                if (targets != null)
-                    generator = new Generator(graph, graph.outputNode, mode, shaderName, assetCollection, targets);
-                else
-                    generator = new Generator(graph, graph.outputNode, mode, shaderName, assetCollection);
+                generator = new Generator(graph, graph.outputNode, mode, shaderName, targets, assetCollection);
 
                 shaderString = generator.generatedShader;
                 configuredTextures = generator.configuredTextures;
@@ -436,7 +465,6 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 Debug.LogException(e);
                 configuredTextures = new List<PropertyCollector.TextureInfo>();
-
                 // ignored
             }
 
@@ -448,6 +476,7 @@ Shader ""Hidden/GraphErrorShader2""
             return shaderString;
         }
 
+        /*
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, out GraphData graph)
         {
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
@@ -463,6 +492,7 @@ Shader ""Hidden/GraphErrorShader2""
             return GetShaderText(path, out configuredTextures, assetCollection, graph);
         }
 
+        /*
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
@@ -477,6 +507,7 @@ Shader ""Hidden/GraphErrorShader2""
 
             return GetShaderText(path, out configuredTextures, null, graph);
         }
+        */
 
 #if VFX_GRAPH_10_0_0_OR_NEWER
         // TODO: Fix this - VFX Graph can now use ShaderGraph as a code generation path. However, currently, the new
