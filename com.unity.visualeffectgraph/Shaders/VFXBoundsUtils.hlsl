@@ -176,23 +176,21 @@ void FillAabbBuffer(VFXAttributes attributes, float3 size3, uint index, int deci
     int remainder = index % decimationFactor;
 
     if(remainder == 0)
-{
-
-    if (attributes.alive)
     {
-        float3 vfxPos;
-        float radius = GetBoundingRadius2D_VFX(attributes, size3, vfxPos);
-        aabb.boxMin = vfxPos - float3(radius, radius, radius);
-        aabb.boxMax = vfxPos + float3(radius, radius, radius);
-        aabbBuffer[index] = aabb;
-    }
+        if (attributes.alive)
+        {
+            float3 vfxPos;
+            float radius = GetBoundingRadius2D_VFX(attributes, size3, vfxPos);
+            aabb.boxMin = vfxPos - float3(radius, radius, radius);
+            aabb.boxMax = vfxPos + float3(radius, radius, radius);
+            aabbBuffer[index] = aabb;
+        }
         else
         {
             aabb.boxMin = float3(VFX_NAN, VFX_NAN, VFX_NAN);
             aabb.boxMax = float3(VFX_NAN, VFX_NAN, VFX_NAN);
             aabbBuffer[aabbIndex] = aabb;
         }
-
     }
 }
 #endif
