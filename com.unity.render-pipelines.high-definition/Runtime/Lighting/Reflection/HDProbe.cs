@@ -14,24 +14,22 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>No rendering steps needed.</summary>
         None = 0,
-        /// <summary>Skip rendering this frame, used to delay rendering to the next frame.</summary>
-        SkipFrame = (1 << 0),
         /// <summary>Render reflection probe cube face 0.</summary>
-        CubeFace0 = (1 << 1),
+        CubeFace0 = (1 << 0),
         /// <summary>Render reflection probe cube face 1.</summary>
-        CubeFace1 = (1 << 2),
+        CubeFace1 = (1 << 1),
         /// <summary>Render reflection probe cube face 2.</summary>
-        CubeFace2 = (1 << 3),
+        CubeFace2 = (1 << 2),
         /// <summary>Render reflection probe cube face 3.</summary>
-        CubeFace3 = (1 << 4),
+        CubeFace3 = (1 << 3),
         /// <summary>Render reflection probe cube face 4.</summary>
-        CubeFace4 = (1 << 5),
+        CubeFace4 = (1 << 4),
         /// <summary>Render reflection probe cube face 5.</summary>
-        CubeFace5 = (1 << 6),
+        CubeFace5 = (1 << 5),
         /// <summary>Render planar reflection.</summary>
-        Planar = (1 << 7),
+        Planar = (1 << 6),
         /// <summary>Increment the realtime render count, which also updates the cache for cubemap probes.</summary>
-        IncrementRenderCount = (1 << 8),
+        IncrementRenderCount = (1 << 7),
         /// <summary>All steps required for a reflection probe.</summary>
         ReflectionProbeMask = CubeFace0 | CubeFace1 | CubeFace2 | CubeFace3 | CubeFace4 | CubeFace5 | IncrementRenderCount,
         /// <summary>Render planar reflection probe, always only one step.</summary>
@@ -237,27 +235,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void ForceRealtimeRenderAfterThisFrame()
-        {
-            HandlePendingRenderRequest();
-            m_HasPendingRenderRequest = true;
-        }
-
-        internal void SkipThisFrameAndRestartRealtimeRender()
-        {
-            m_RemainingRenderSteps = ProbeRenderSteps.SkipFrame;
-            m_HasPendingRenderRequest = true;
-        }
-
         internal ProbeRenderSteps NextRenderSteps()
         {
             HandlePendingRenderRequest();
 
-            bool doSkip = m_RemainingRenderSteps.HasFlag(ProbeRenderSteps.SkipFrame);
             bool doTimeSlicing = (type == ProbeSettings.ProbeType.ReflectionProbe) && timeSlicing;
-            ProbeRenderSteps nextSteps =
-                doSkip ? ProbeRenderSteps.SkipFrame :
-                doTimeSlicing ? m_RemainingRenderSteps.LowestSetBit() : m_RemainingRenderSteps;
+            ProbeRenderSteps nextSteps = doTimeSlicing ? m_RemainingRenderSteps.LowestSetBit() : m_RemainingRenderSteps;
 
             m_RemainingRenderSteps &= ~nextSteps;
 
@@ -763,7 +746,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-#if UNITY_EDITOR
+        // Forces the re-rendering for both OnDemand and OnEnable
+        internal void ForceRenderingNextUpdate()
+        {
+            m_WasRenderedSinceLastOnDemandRequest = false;
+            wasRenderedAfterOnEnable = false;
+        }
+
+ #if UNITY_EDITOR
         private Vector3 ComputeCapturePositionWS()
         {
             var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(this, null);
