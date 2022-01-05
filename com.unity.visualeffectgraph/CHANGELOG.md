@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [14.0.0] - 2021-11-17
+### Added
+- Explicit "None" space option for spaceable type: Passtrough of raw values without any space conversion applied
 
 ### Fixed
 - Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
