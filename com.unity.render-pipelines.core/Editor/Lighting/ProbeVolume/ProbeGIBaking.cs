@@ -446,6 +446,7 @@ namespace UnityEngine.Experimental.Rendering
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
             UnityEngine.Profiling.Profiler.BeginSample("OnAdditionalProbesBakeCompleted");
 
+
             var probeRefVolume = ProbeReferenceVolume.instance;
             var bakingCells = m_BakingBatch.cells;
             var numCells = bakingCells.Count;
@@ -501,7 +502,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
-                cell.neighbValidityMask = new int[numProbes];
+                cell.neighbValidityMask = new byte[numProbes];
                 cell.minSubdiv = probeRefVolume.GetMaxSubdivision();
 
                 for (int i = 0; i < numProbes; ++i)
@@ -918,8 +919,6 @@ namespace UnityEngine.Experimental.Rendering
                     positions[i] = PushPositionOutOfGeometry(positions[i], scaleForSearchDist * searchDistance, voSettings.outOfGeoOffset);
                 }
             }
-
-            ExtraInvalidationSettings invalSettings = m_BakingSettings.invalidationSettings;
 
             if (invalSettings.enableExtraInvalidation)
             {

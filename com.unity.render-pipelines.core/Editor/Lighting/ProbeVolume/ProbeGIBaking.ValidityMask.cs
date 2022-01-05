@@ -141,7 +141,7 @@ namespace UnityEngine.Experimental.Rendering
                                     validities[o] = ReadValidity(samplePos.x, samplePos.y, samplePos.z, locSize.x, locSize.y);
                                 }
 
-                                cell.neighbValidityMask[outIdx] = PackValidity(validities);
+                                cell.neighbValidityMask[outIdx] = Convert.ToByte(PackValidity(validities));
                             }
                         }
                     }

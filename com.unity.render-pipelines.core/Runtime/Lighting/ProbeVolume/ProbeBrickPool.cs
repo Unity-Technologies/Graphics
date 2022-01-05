@@ -412,7 +412,7 @@ namespace UnityEngine.Experimental.Rendering
             return new Vector3Int(i & 1, (i >> 1) & 1, (i >> 2) & 1);
         }
 
-        public static void FillDataLocation(ref DataLocation loc, int[] validityAntiLeakMask, SphericalHarmonicsL2[] shl2, int startIndex, int count, ProbeVolumeSHBands bands)
+        public static void FillDataLocation(ref DataLocation loc, byte[] validityAntiLeakMask, SphericalHarmonicsL2[] shl2, int startIndex, int count, ProbeVolumeSHBands bands)
         {
             int shidx = startIndex;
             int bx = 0, by = 0, bz = 0;
@@ -454,7 +454,7 @@ namespace UnityEngine.Experimental.Rendering
                             {
                                 if (validityAntiLeakMask.Length > 0)
                                 {
-                                    SetPixel(s_PackedValidity_locData, ix, iy, iz, loc.width, loc.height, Convert.ToByte(validityAntiLeakMask[shidx]));
+                                    SetPixel(s_PackedValidity_locData, ix, iy, iz, loc.width, loc.height, validityAntiLeakMask[shidx]);
                                 }
 
                                 c.r = shl2[shidx][0, 0]; // L0.r

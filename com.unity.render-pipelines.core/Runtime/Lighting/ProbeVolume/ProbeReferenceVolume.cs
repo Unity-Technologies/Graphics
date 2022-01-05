@@ -375,7 +375,7 @@ namespace UnityEngine.Experimental.Rendering
             public int shChunkCount;
 
             // TODO_FCC: This is very very temp, probably we can store validity and this mask in a single value (24bit validity, 8bit mask).
-            public int[] neighbValidityMask;
+            public byte[] neighbValidityMask;
         }
 
         [DebuggerDisplay("Index = {cell.index} Loaded = {loaded}")]
