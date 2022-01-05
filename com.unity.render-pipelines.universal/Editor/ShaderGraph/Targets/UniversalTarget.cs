@@ -701,7 +701,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         /// <param name="target">The target to query</param>
         internal static void AddAlphaToMaskControlToPass(ref PassDescriptor pass, UniversalTarget target)
         {
-            if (target.alphaClip && (target.surfaceType == SurfaceType.Opaque))
+            if (target.allowMaterialOverride)
+            {
+                // When material overrides are allowed, we have to rely on the _AlphaToMask material property since we can't be
+                // sure of the surface type and alpha clip state based on the target alone.
+                pass.renderStates.Add(RenderState.AlphaToMask("[_AlphaToMask]"));
+            }
+            else if (target.alphaClip && (target.surfaceType == SurfaceType.Opaque))
             {
                 pass.renderStates.Add(RenderState.AlphaToMask("On"));
             }
