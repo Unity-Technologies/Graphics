@@ -87,10 +87,6 @@ namespace UnityEditor.VFX.UI
             {
                 get;
             }
-            public virtual bool spaceLocalByDefault
-            {
-                get { return false; }
-            }
 
             protected Dictionary<string, object> m_PropertyCache = new Dictionary<string, object>();
 
@@ -186,7 +182,6 @@ namespace UnityEditor.VFX.UI
             if (s_DrawFunctions.TryGetValue(context.portType, out gizmo))
             {
                 gizmo.gizmo.currentSpace = context.space;
-                gizmo.gizmo.spaceLocalByDefault = context.spaceLocalByDefault;
                 gizmo.gizmo.component = component;
                 error |= gizmo.gizmo.error;
                 gizmo.gizmo.component = null;
@@ -221,7 +216,6 @@ namespace UnityEditor.VFX.UI
             {
                 gizmo.component = component;
                 gizmo.currentSpace = context.space;
-                gizmo.spaceLocalByDefault = context.spaceLocalByDefault;
                 Bounds bounds = gizmo.CallGetGizmoBounds(context.value);
                 gizmo.component = null;
 
@@ -241,7 +235,6 @@ namespace UnityEditor.VFX.UI
             {
                 gizmo.component = component;
                 gizmo.currentSpace = context.space;
-                gizmo.spaceLocalByDefault = context.spaceLocalByDefault;
 
                 gizmo.CallDrawGizmo(context.value);
                 gizmo.component = null;

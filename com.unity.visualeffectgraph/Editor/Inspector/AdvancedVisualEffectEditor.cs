@@ -369,10 +369,6 @@ namespace UnityEditor.VFX
                     return m_Parameter.outputSlots[0].space;
                 }
             }
-            public override bool spaceLocalByDefault
-            {
-                get { return true; }
-            }
 
             public List<object> m_Stack = new List<object>();
 

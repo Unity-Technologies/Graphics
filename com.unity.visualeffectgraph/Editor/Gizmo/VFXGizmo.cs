@@ -42,7 +42,6 @@ namespace UnityEditor.VFX
         protected const float arcHandleSizeMultiplier = 1.25f;
 
         public VFXCoordinateSpace currentSpace { get; set; }
-        public bool spaceLocalByDefault { get; set; }
         public VisualEffect component { get; set; }
 
         private static readonly int s_HandleColorID = Shader.PropertyToID("_HandleColor");
@@ -427,7 +426,7 @@ namespace UnityEditor.VFX
             get
             {
                 var currentError = base.error;
-                var needsComponent = (currentSpace == VFXCoordinateSpace.Local) != spaceLocalByDefault;
+                var needsComponent = currentSpace == VFXCoordinateSpace.Local;
 
                 if (needsComponent && component == null)
                     currentError |= GizmoError.NeedComponent;
