@@ -483,32 +483,13 @@ namespace UnityEditor.VFX.UI
             return new Bounds();
         }
 
-        public bool gizmoNeedsComponent
+        public GizmoError GetGizmoError(VisualEffect component)
         {
-            get
-            {
-                if (!VFXGizmoUtility.HasGizmo(portType))
-                    return false;
-                if (m_GizmoContext == null)
-                {
-                    m_GizmoContext = new VFXDataAnchorGizmoContext(this);
-                }
-                return VFXGizmoUtility.NeedsComponent(m_GizmoContext);
-            }
-        }
+            if (!VFXGizmoUtility.HasGizmo(portType))
+                    return GizmoError.None;
 
-        public bool gizmoIndeterminate
-        {
-            get
-            {
-                if (!VFXGizmoUtility.HasGizmo(portType))
-                    return false;
-                if (m_GizmoContext == null)
-                {
-                    m_GizmoContext = new VFXDataAnchorGizmoContext(this);
-                }
-                return m_GizmoContext.IsIndeterminate();
-            }
+            m_GizmoContext ??= new VFXDataAnchorGizmoContext(this);
+            return VFXGizmoUtility.CollectGizmoError(m_GizmoContext, component);
         }
 
         VFXDataAnchorGizmoContext m_GizmoContext;
@@ -702,7 +683,7 @@ namespace UnityEditor.VFX.UI
                 {
                     if (VFXTypeUtility.GetComponentCount(m_Controller.model) != 0)
                     {
-                        m_Indeterminate = true;
+                        m_Error |= GizmoError.HasLinkGPU;
                         return;
                     }
                 }
@@ -725,14 +706,15 @@ namespace UnityEditor.VFX.UI
                     }
                     else if (subSlot.HasLink(false) && VFXTypeUtility.GetComponentCount(subSlot) != 0) // replace by is VFXType
                     {
-                        m_Indeterminate = true;
+                        m_Error |= GizmoError.HasLinkGPU;
                         return;
                     }
                     else
                     {
                         m_ValueBuilder.Add(o => o.Add(subSlot.value));
                         BuildValue(subSlot);
-                        if (m_Indeterminate) return;
+                        if (m_Error != GizmoError.None)
+                            return;
                     }
                     m_ValueBuilder.Add(o =>
                     {

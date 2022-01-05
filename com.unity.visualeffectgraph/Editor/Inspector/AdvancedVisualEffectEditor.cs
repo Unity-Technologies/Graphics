@@ -369,10 +369,6 @@ namespace UnityEditor.VFX
                     return m_Parameter.outputSlots[0].space;
                 }
             }
-            public override bool spaceLocalByDefault
-            {
-                get { return true; }
-            }
 
             public List<object> m_Stack = new List<object>();
 
@@ -730,21 +726,33 @@ namespace UnityEditor.VFX
                     Repaint();
                 }
 
-                bool saveEnabled = GUI.enabled;
-                GUI.enabled = saveEnabled && m_GizmoedParameter != null;
-                if (GUILayout.Button(VFXSlotContainerEditor.Contents.gizmoFrame, VFXSlotContainerEditor.Styles.frameButtonStyle, GUILayout.Width(19), GUILayout.Height(18)))
+                if (m_GizmoedParameter != null && m_GizmoDisplayed)
                 {
-                    if (m_GizmoDisplayed && m_GizmoedParameter != null)
+                    var context = GetGizmo();
+                    var gizmoError = VFXGizmoUtility.CollectGizmoError(context.context, (VisualEffect)target);
+                    if (gizmoError != GizmoError.None)
                     {
-                        ContextAndGizmo context = GetGizmo();
-                        Bounds bounds = VFXGizmoUtility.GetGizmoBounds(context.context, (VisualEffect)target, context.gizmo);
+                        var content = VFXSlotContainerEditor.Contents.GetGizmoErrorContent(gizmoError);
+                        GUILayout.Label(content, VFXSlotContainerEditor.Styles.warningStyle, GUILayout.Width(19),
+                            GUILayout.Height(18));
+                    }
+                    else if (GUILayout.Button(VFXSlotContainerEditor.Contents.gizmoFrame, VFXSlotContainerEditor.Styles.frameButtonStyle, GUILayout.Width(19), GUILayout.Height(18)))
+                    {
+                        var bounds = VFXGizmoUtility.GetGizmoBounds(context.context, (VisualEffect)target, context.gizmo);
                         context.context.Unprepare(); //Restore initial state : if gizmo isn't actually rendered, it could be out of sync
                         var sceneView = SceneView.lastActiveSceneView;
                         if (sceneView)
                             sceneView.Frame(bounds, false);
                     }
                 }
-                GUI.enabled = saveEnabled;
+                else
+                {
+                    var saveEnabled = GUI.enabled;
+                    GUI.enabled = false;
+                    GUILayout.Button(VFXSlotContainerEditor.Contents.gizmoFrame, VFXSlotContainerEditor.Styles.frameButtonStyle, GUILayout.Width(19), GUILayout.Height(18));
+                    GUI.enabled = saveEnabled;
+                }
+
                 GUILayout.EndHorizontal();
             }
         }

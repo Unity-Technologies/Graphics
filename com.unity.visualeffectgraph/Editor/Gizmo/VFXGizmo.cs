@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.VFX;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.VFX.UI;
 using Type = System.Type;
 using Delegate = System.Delegate;
 
@@ -41,7 +42,6 @@ namespace UnityEditor.VFX
         protected const float arcHandleSizeMultiplier = 1.25f;
 
         public VFXCoordinateSpace currentSpace { get; set; }
-        public bool spaceLocalByDefault { get; set; }
         public VisualEffect component { get; set; }
 
         private static readonly int s_HandleColorID = Shader.PropertyToID("_HandleColor");
@@ -361,7 +361,7 @@ namespace UnityEditor.VFX
                 Handles.CylinderHandleCap(controlID, Vector3.zero, Quaternion.identity, size, eventType);
         }
 
-        public virtual bool needsComponent { get { return false; } }
+        public virtual GizmoError error => GizmoError.None;
     }
 
     abstract class VFXGizmo<T> : VFXGizmo
@@ -390,11 +390,12 @@ namespace UnityEditor.VFX
     {
         public override void OnDrawGizmo(T value)
         {
-            Matrix4x4 oldMatrix = Handles.matrix;
+            if (error != GizmoError.None)
+                return;
 
+            var oldMatrix = Handles.matrix;
             if (currentSpace == VFXCoordinateSpace.Local)
             {
-                if (component == null) return;
                 Handles.matrix = component.transform.localToWorldMatrix;
             }
             else
@@ -403,7 +404,6 @@ namespace UnityEditor.VFX
             }
 
             OnDrawSpacedGizmo(value);
-
             Handles.matrix = oldMatrix;
         }
 
@@ -421,9 +421,21 @@ namespace UnityEditor.VFX
             return bounds;
         }
 
-        public override bool needsComponent
+        public override GizmoError error
         {
-            get { return (currentSpace == VFXCoordinateSpace.Local) != spaceLocalByDefault; }
+            get
+            {
+                var currentError = base.error;
+                var needsComponent = currentSpace == VFXCoordinateSpace.Local;
+
+                if (needsComponent && component == null)
+                    currentError |= GizmoError.NeedComponent;
+
+                if (currentSpace == VFXCoordinateSpace.None)
+                    currentError |= GizmoError.NeedExplicitSpace;
+
+                return currentError;
+            }
         }
 
         public abstract void OnDrawSpacedGizmo(T value);

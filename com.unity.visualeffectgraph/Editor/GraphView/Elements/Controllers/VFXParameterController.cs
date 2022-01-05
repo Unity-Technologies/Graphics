@@ -814,21 +814,9 @@ namespace UnityEditor.VFX.UI
             return VFXGizmoUtility.GetGizmoBounds(m_Context, component);
         }
 
-        public bool gizmoNeedsComponent
+        public GizmoError GetGizmoError(VisualEffect component)
         {
-            get
-            {
-                if (isOutput)
-                    return false;
-                return VFXGizmoUtility.NeedsComponent(m_Context);
-            }
-        }
-        public bool gizmoIndeterminate
-        {
-            get
-            {
-                return false;
-            }
+            return GizmoError.None;
         }
 
         IGizmoable[] m_Gizmoables;
