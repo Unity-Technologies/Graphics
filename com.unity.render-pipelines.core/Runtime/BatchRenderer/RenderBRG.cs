@@ -1289,11 +1289,11 @@ namespace UnityEngine.Rendering
 
     public class RenderBRG : MonoBehaviour
     {
-        private static Dictionary<Guid, RenderBRGGetMaterialRenderInfoCallback> s_SrpMatInfoCallbacks = new();
+        private static Dictionary<Type, RenderBRGGetMaterialRenderInfoCallback> s_SrpMatInfoCallbacks = new();
 
         public static void RegisterSRPRenderInfoCallback(RenderPipelineAsset pipelineAsset, RenderBRGGetMaterialRenderInfoCallback callbackValue)
         {
-            s_SrpMatInfoCallbacks[pipelineAsset.GetType().GUID] = callbackValue;
+            s_SrpMatInfoCallbacks[pipelineAsset.GetType()] = callbackValue;
         }
 
         internal static RenderBRGGetMaterialRenderInfoCallback GetActiveMaterialRenderInfoCallback(out RenderPipelineAsset activePipeline)
@@ -1302,7 +1302,7 @@ namespace UnityEngine.Rendering
             if (activePipeline == null)
                 return null;
 
-            if (s_SrpMatInfoCallbacks.TryGetValue(activePipeline.GetType().GUID, out var outCallback))
+            if (s_SrpMatInfoCallbacks.TryGetValue(activePipeline.GetType(), out var outCallback))
                 return outCallback;
 
             return null;
