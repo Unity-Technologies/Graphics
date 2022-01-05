@@ -683,7 +683,7 @@ namespace UnityEditor.VFX.UI
                 {
                     if (VFXTypeUtility.GetComponentCount(m_Controller.model) != 0)
                     {
-                        m_Error |= GizmoError.Indeterminate;
+                        m_Error |= GizmoError.HasLinkGPU;
                         return;
                     }
                 }
@@ -706,7 +706,7 @@ namespace UnityEditor.VFX.UI
                     }
                     else if (subSlot.HasLink(false) && VFXTypeUtility.GetComponentCount(subSlot) != 0) // replace by is VFXType
                     {
-                        m_Error |= GizmoError.HasLink;
+                        m_Error |= GizmoError.HasLinkGPU;
                         return;
                     }
                     else

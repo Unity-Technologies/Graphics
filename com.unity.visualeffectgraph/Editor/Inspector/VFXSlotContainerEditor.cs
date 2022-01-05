@@ -178,19 +178,28 @@ class VFXSlotContainerEditor : Editor
                     }
 
                     var component = vfxView.attachedComponent;
-
                     var gizmoError = selectedController.GetGizmoError(component);
-
                     if (gizmoError != GizmoError.None)
                     {
-                        if (gizmoError.HasFlag(GizmoError.NeedComponent))
+                        var content = Contents.gizmoWarningDefault;
+                        if (gizmoError.HasFlag(GizmoError.HasLinkGPU))
                         {
-                            GUILayout.Label(Contents.gizmoLocalWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
+                            content = Contents.gizmoWarningHasLinkGPU;
                         }
-                        else
+                        else if (gizmoError.HasFlag(GizmoError.NeedComponent))
                         {
-                            GUILayout.Label(Contents.gizmoIndeterminateWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
+                            content = Contents.gizmoWarningNeedComponent;
                         }
+                        else if (gizmoError.HasFlag(GizmoError.NeedExplicitSpace))
+                        {
+                            content = Contents.gizmoWarningNeedExplicitSpace;
+                        }
+                        else if (gizmoError.HasFlag(GizmoError.NotAvailable))
+                        {
+                            content = Contents.gizmoWarningNotAvailable;
+                        }
+
+                        GUILayout.Label(content, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
                     }
                     else
                     {
@@ -238,8 +247,13 @@ class VFXSlotContainerEditor : Editor
         public static GUIContent name = EditorGUIUtility.TrTextContent("Name");
         public static GUIContent type = EditorGUIUtility.TrTextContent("Type");
         public static GUIContent mode = EditorGUIUtility.TrTextContent("Mode");
-        public static GUIContent gizmoLocalWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.LoadIcon(EditorResources.iconsPath + "console.warnicon.sml.png"), "Local values require a target GameObject to display");
-        public static GUIContent gizmoIndeterminateWarning = EditorGUIUtility.TrIconContent(EditorGUIUtility.LoadIcon(EditorResources.iconsPath + "console.warnicon.sml.png"), "The gizmo value is indeterminate.");
+
+        private static Texture2D warningIcon = EditorGUIUtility.LoadIcon(EditorResources.iconsPath + "console.warnicon.sml.png");
+        public static GUIContent gizmoWarningDefault = EditorGUIUtility.TrIconContent(warningIcon, "The gizmo value is indeterminate.");
+        public static GUIContent gizmoWarningHasLinkGPU = EditorGUIUtility.TrIconContent(warningIcon, "The gizmo state is indeterminate because the value relies on GPU evaluation.");
+        public static GUIContent gizmoWarningNeedComponent = EditorGUIUtility.TrIconContent(warningIcon, "Local values require a target GameObject to display");
+        public static GUIContent gizmoWarningNeedExplicitSpace = EditorGUIUtility.TrIconContent(warningIcon, "The gizmo value needs an explicit Local or World space.");
+        public static GUIContent gizmoWarningNotAvailable= EditorGUIUtility.TrIconContent(warningIcon, "There isn't any gizmo available.");
         public static GUIContent gizmoFrame = EditorGUIUtility.TrTextContent("", "Frame Gizmo in scene");
     }
 
@@ -258,12 +272,14 @@ class VFXSlotContainerEditor : Editor
             warningStyle.margin.bottom = 1;
             warningStyle.margin.left = 2;
             warningStyle.margin.right = 1;
+            warningStyle.alignment = TextAnchor.MiddleLeft;
 
             frameButtonStyle = new GUIStyle();
             frameButtonStyle.normal.background = EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "ViewToolZoom.png", EditorGUIUtility.skinIndex);
             frameButtonStyle.active.background = EditorGUIUtility.LoadIconForSkin(EditorResources.iconsPath + "ViewToolZoom On.png", EditorGUIUtility.skinIndex);
             frameButtonStyle.normal.background.filterMode = FilterMode.Trilinear;
             frameButtonStyle.active.background.filterMode = FilterMode.Trilinear;
+            frameButtonStyle.alignment = TextAnchor.MiddleLeft;
 
             header = new GUIStyle(EditorStyles.toolbarButton);
             header.fontStyle = FontStyle.Bold;

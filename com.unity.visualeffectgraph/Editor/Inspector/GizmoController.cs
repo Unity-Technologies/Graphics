@@ -11,11 +11,10 @@ namespace UnityEditor.VFX.UI
     public enum GizmoError
     {
         None = 0,
-        Indeterminate = 1 << 0,
-        HasLink = 1 << 2,
-        NeedComponent = 1 << 3,
-        NeedExplicitSpace = 1 << 4,
-        NotAvailable = 1 << 5
+        HasLinkGPU = 1 << 0,
+        NeedComponent = 1 << 1,
+        NeedExplicitSpace = 1 << 2,
+        NotAvailable = 1 << 3
     }
 
     interface IGizmoable

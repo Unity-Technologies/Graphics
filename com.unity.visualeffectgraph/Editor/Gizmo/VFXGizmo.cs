@@ -391,16 +391,12 @@ namespace UnityEditor.VFX
     {
         public override void OnDrawGizmo(T value)
         {
-            var oldMatrix = Handles.matrix;
-
-            if (currentSpace == VFXCoordinateSpace.None)
+            if (error != GizmoError.None)
                 return;
 
+            var oldMatrix = Handles.matrix;
             if (currentSpace == VFXCoordinateSpace.Local)
             {
-                if (component == null)
-                    return;
-
                 Handles.matrix = component.transform.localToWorldMatrix;
             }
             else
@@ -409,7 +405,6 @@ namespace UnityEditor.VFX
             }
 
             OnDrawSpacedGizmo(value);
-
             Handles.matrix = oldMatrix;
         }
 
