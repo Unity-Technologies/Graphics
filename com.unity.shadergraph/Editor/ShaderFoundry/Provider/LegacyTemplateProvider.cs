@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderFoundry
 
         const string precisionQualifier = "float";
 
-        internal LegacyTemplateProvider(Target target, AssetCollection assetCollection)
+        internal LegacyTemplateProvider(Target target, AssetCollection assetCollection = null)
         {
             m_Target = target;
             m_assetCollection = assetCollection;
