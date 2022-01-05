@@ -257,14 +257,9 @@ ${VFXFeedSortingKeys}
             }
 		}
         #if VFX_COMPUTE_AABBS
-                ${VFXLoadSize}
-            #if VFX_WORLD_SPACE
-                ${VFXLoadParameter:{worldToLocal}}
-            #else
-                float4x4 worldToLocal = (float4x4)0;
-            #endif
+            ${VFXLoadSize}
             #if VFX_COMPUTE_AABBS
-                FillAabbBuffer(attributes, size3, index, worldToLocal);
+                FillAabbBuffer(attributes, size3, index);
             #endif
         #endif
 	}
