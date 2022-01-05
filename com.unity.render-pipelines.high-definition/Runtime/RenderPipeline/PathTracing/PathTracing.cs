@@ -272,6 +272,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_RenderSky = true;
                 m_CacheMaxIteration = (uint)m_PathTracingSettings.maximumSamples.value;
                 m_SubFrameManager.SelectiveReset(m_CacheMaxIteration);
+
+#if ENABLE_UNITY_DENOISING_PLUGIN
+                // We have to reset the status of any active denoisers so the denoiser will run again when we have max samples
+                m_SubFrameManager.ResetDenoisingStatus();
+#endif
             }
             else
                 ResetPathTracing();

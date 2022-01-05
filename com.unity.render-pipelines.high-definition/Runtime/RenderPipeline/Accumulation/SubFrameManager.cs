@@ -117,6 +117,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+#if ENABLE_UNITY_DENOISING_PLUGIN
+        internal void ResetDenoisingStatus()
+        {
+            foreach (int camID in m_CameraCache.Keys.ToList())
+            {
+                CameraData camData = GetCameraData(camID);
+                if (camData.denoiser != null)
+                {
+                    camData.denoiser.Reset();
+                    SetCameraData(camID, camData);
+                }
+            }
+        }
+#endif
+
         void Init(int samples, float shutterInterval)
         {
             m_AccumulationSamples = (uint)samples;
