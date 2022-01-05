@@ -181,24 +181,7 @@ class VFXSlotContainerEditor : Editor
                     var gizmoError = selectedController.GetGizmoError(component);
                     if (gizmoError != GizmoError.None)
                     {
-                        var content = Contents.gizmoWarningDefault;
-                        if (gizmoError.HasFlag(GizmoError.HasLinkGPU))
-                        {
-                            content = Contents.gizmoWarningHasLinkGPU;
-                        }
-                        else if (gizmoError.HasFlag(GizmoError.NeedComponent))
-                        {
-                            content = Contents.gizmoWarningNeedComponent;
-                        }
-                        else if (gizmoError.HasFlag(GizmoError.NeedExplicitSpace))
-                        {
-                            content = Contents.gizmoWarningNeedExplicitSpace;
-                        }
-                        else if (gizmoError.HasFlag(GizmoError.NotAvailable))
-                        {
-                            content = Contents.gizmoWarningNotAvailable;
-                        }
-
+                        var content = Contents.GetGizmoErrorContent(gizmoError);
                         GUILayout.Label(content, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
                     }
                     else
@@ -255,6 +238,29 @@ class VFXSlotContainerEditor : Editor
         public static GUIContent gizmoWarningNeedExplicitSpace = EditorGUIUtility.TrIconContent(warningIcon, "The gizmo value needs an explicit Local or World space.");
         public static GUIContent gizmoWarningNotAvailable= EditorGUIUtility.TrIconContent(warningIcon, "There isn't any gizmo available.");
         public static GUIContent gizmoFrame = EditorGUIUtility.TrTextContent("", "Frame Gizmo in scene");
+
+        public static GUIContent GetGizmoErrorContent(GizmoError gizmoError)
+        {
+            var content = Contents.gizmoWarningDefault;
+            if (gizmoError.HasFlag(GizmoError.HasLinkGPU))
+            {
+                content = Contents.gizmoWarningHasLinkGPU;
+            }
+            else if (gizmoError.HasFlag(GizmoError.NeedComponent))
+            {
+                content = Contents.gizmoWarningNeedComponent;
+            }
+            else if (gizmoError.HasFlag(GizmoError.NeedExplicitSpace))
+            {
+                content = Contents.gizmoWarningNeedExplicitSpace;
+            }
+            else if (gizmoError.HasFlag(GizmoError.NotAvailable))
+            {
+                content = Contents.gizmoWarningNotAvailable;
+            }
+
+            return content;
+        }
     }
 
     public class Styles
