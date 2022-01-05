@@ -362,7 +362,7 @@ namespace UnityEditor.VFX
             slot.InitializeSpaceableCachedSlot();
             if (slot.spaceable)
             {
-                //When spaceable, setting Local as default //TODOPAUL: Validate this behavior
+                //When spaceable, initialize newly created slot with Local by default
                 slot.m_MasterData.m_Space = VFXCoordinateSpace.Local;
             }
             return slot;
@@ -756,7 +756,6 @@ namespace UnityEditor.VFX
             {
                 m_Owner = null,
                 m_Value = new VFXSerializableObject(property.type, value),
-                m_Space = VFXCoordinateSpace.None,
             };
 
             PropagateToChildren(s => s.SetMasterSlotAndData(this, null));
