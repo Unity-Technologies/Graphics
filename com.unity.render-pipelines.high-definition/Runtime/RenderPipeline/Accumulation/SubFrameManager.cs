@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 denoiser.Reset();
             else
                 denoiser = new Denoiser();
+            validHistory = false;
 #endif
         }
 
@@ -34,6 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint currentIteration;
 #if ENABLE_UNITY_DENOISING_PLUGIN
         public Denoiser denoiser;
+        public bool validHistory;
 #endif
     }
 
@@ -126,6 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (camData.denoiser != null)
                 {
                     camData.denoiser.Reset();
+                    camData.validHistory = false;
                     SetCameraData(camID, camData);
                 }
             }

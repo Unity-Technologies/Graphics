@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle albedoAOV;
             public TextureHandle motionVectorAOV;
             public TextureHandle outputTexture;
+            public TextureHandle denoiseHistory;
             public SubFrameManager subFrameManager;
 
             public int camID;
@@ -45,11 +46,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.slices = hdCamera.viewCount;
 
                 // Grab the history buffer
-                TextureHandle history = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing));
+                TextureHandle ptAccumulation = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing));
+                TextureHandle denoiseHistory = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DenoiseHistory)
+                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DenoiseHistory, PathTracingHistoryBufferAllocatorFunction, 1));
 
-                passData.color = builder.ReadWriteTexture(history);
-
+                passData.color = builder.ReadWriteTexture(ptAccumulation);
                 passData.outputTexture = builder.WriteTexture(outputTexture);
+                passData.denoiseHistory = builder.ReadTexture(denoiseHistory);
 
                 if (m_PathTracingSettings.useAOVs.value)
                 {
@@ -74,13 +77,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     camData.denoiser.type = m_PathTracingSettings.denoising.value;
 
-                    if (camData.currentIteration == (data.subFrameManager.subFrameCount) && camData.denoiser.type != DenoiserType.None)
+                    if (camData.currentIteration >= (data.subFrameManager.subFrameCount) && camData.denoiser.type != DenoiserType.None)
                     {
-                        if (!camData.denoiser.denoised)
+                        if (!camData.validHistory)
                         {
-                            camData.denoiser.denoised = true;
-                            m_SubFrameManager.SetCameraData(data.camID, camData);
-
                             camData.denoiser.DenoiseRequest(ctx.cmd, "color", data.color);
 
                             if (data.useAOV)
@@ -96,13 +96,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             camData.denoiser.WaitForCompletion(ctx.renderContext, ctx.cmd);
 
-                            camData.denoiser.GetResults(ctx.cmd, data.color);
+                            int ret = camData.denoiser.GetResults(ctx.cmd, data.denoiseHistory);
 
+                            camData.validHistory = (ret == 0);
+                            m_SubFrameManager.SetCameraData(data.camID, camData);
+                        }
+
+                        if (camData.validHistory)
+                        {
                             // Blit the denoised image from the history buffer and apply exposure.
-                            ctx.cmd.SetComputeTextureParam(data.blitAndExposeCS, data.blitAndExposeKernel, HDShaderIDs._InputTexture, data.color);
+                            ctx.cmd.SetComputeTextureParam(data.blitAndExposeCS, data.blitAndExposeKernel, HDShaderIDs._InputTexture, data.denoiseHistory);
                             ctx.cmd.SetComputeTextureParam(data.blitAndExposeCS, data.blitAndExposeKernel, HDShaderIDs._OutputTexture, data.outputTexture);
                             ctx.cmd.DispatchCompute(data.blitAndExposeCS, data.blitAndExposeKernel, (data.width + 7) / 8, (data.height + 7) / 8, data.slices);
-                            
                         }
                     }
                 });

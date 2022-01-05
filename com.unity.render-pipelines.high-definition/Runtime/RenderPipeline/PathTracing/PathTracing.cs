@@ -135,6 +135,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
         uint  m_CacheMaxIteration = 0;
+
+#if ENABLE_UNITY_DENOISING_PLUGIN
+        DenoiserType m_CachedDenoiserType = DenoiserType.None;
+#endif
+
 #endif // UNITY_EDITOR
         uint m_CacheLightCount = 0;
         int m_CameraID = 0;
@@ -278,6 +283,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SubFrameManager.ResetDenoisingStatus();
 #endif
             }
+#if ENABLE_UNITY_DENOISING_PLUGIN
+            // If we just change the denoiser type, we don't necessarily want to reset iteration
+            else if (m_PathTracingSettings && m_CachedDenoiserType != m_PathTracingSettings.denoising.value)
+            {
+                m_CachedDenoiserType = m_PathTracingSettings.denoising.value;
+                m_SubFrameManager.ResetDenoisingStatus();
+            }
+#endif
             else
                 ResetPathTracing();
         }
