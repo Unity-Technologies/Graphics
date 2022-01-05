@@ -54,6 +54,14 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Write something good here
+        /// </summary>
+        public virtual int SupportedCameraRenderTypes()
+        {
+            return 0;
+        }
+
+        /// <summary>
         /// Override to provide a custom profiling name
         /// </summary>
         protected ProfilingSampler profilingExecute { get; set; }

@@ -46,6 +46,19 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler createCameraRenderTarget = new ProfilingSampler($"{k_Name}.{nameof(CreateCameraRenderTarget)}");
         }
 
+        public override int SupportedCameraRenderTypes()
+        {
+            switch (m_RenderingMode)
+            {
+                case RenderingMode.Forward:
+                    return 1 << (int)CameraRenderType.Base | 1 << (int)CameraRenderType.Overlay;
+                case RenderingMode.Deferred:
+                    return 1 << (int)CameraRenderType.Base;
+                default:
+                    return 0;
+            }
+        }
+
         // Rendering mode setup from UI. The final rendering mode used can be different. See renderingModeActual.
         internal RenderingMode renderingModeRequested => m_RenderingMode;
 
