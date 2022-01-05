@@ -753,7 +753,7 @@ namespace UnityEngine.Rendering.HighDefinition
             wasRenderedAfterOnEnable = false;
         }
 
- #if UNITY_EDITOR
+#if UNITY_EDITOR
         private Vector3 ComputeCapturePositionWS()
         {
             var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(this, null);
