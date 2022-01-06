@@ -234,6 +234,9 @@ namespace UnityEngine.Experimental.Rendering
 
         internal void UpdateBakingStatesStatuses()
         {
+            if (GetCurrentBakingSet().sceneGUIDs.Count == 0)
+                return;
+
             var scenePath = FindSceneData(GetCurrentBakingSet().sceneGUIDs[0]).path;
             var sceneName = Path.GetFileNameWithoutExtension(scenePath);
 
@@ -535,19 +538,19 @@ namespace UnityEngine.Experimental.Rendering
 
                 // Clamp to make sure minimum we set for dilation distance is min probe distance
                 set.settings.dilationSettings.dilationDistance = Mathf.Max(set.profile.minDistanceBetweenProbes, set.settings.dilationSettings.dilationDistance);
+
+                EditorGUILayout.Space();
+                EditorGUILayout.Space();
+                titleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
+                EditorGUI.LabelField(titleRect, Styles.bakingStatesTitle, m_SubtitleStyle);
+                EditorGUILayout.Space();
+
+                DrawBakingStates();
             }
             else
             {
                 EditorGUILayout.HelpBox("You need to assign at least one scene with probe volumes to configure the baking settings", MessageType.Error, true);
             }
-
-            EditorGUILayout.Space();
-            EditorGUILayout.Space();
-            titleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
-            EditorGUI.LabelField(titleRect, Styles.bakingStatesTitle, m_SubtitleStyle);
-            EditorGUILayout.Space();
-
-            DrawBakingStates();
 
             EditorGUILayout.EndScrollView();
 
@@ -640,7 +643,7 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUI.BeginDisabledGroup(Lightmapping.isRunning);
             if (GUILayout.Button("Load All Scenes In Set", GUILayout.ExpandWidth(true)))
                 LoadScenesInBakingSet(GetCurrentBakingSet());
-            if (GUILayout.Button("Clear Baked Data"))
+            if (GUILayout.Button("Clear Loaded Scenes Data"))
                 Lightmapping.Clear();
             EditorGUI.EndDisabledGroup();
             if (Lightmapping.isRunning)
