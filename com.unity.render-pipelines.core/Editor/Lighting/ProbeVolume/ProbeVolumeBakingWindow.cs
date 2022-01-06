@@ -1,17 +1,15 @@
-using System.Collections.Generic;
-using Unity.Collections;
 using System;
-using UnityEditor;
-using Brick = UnityEngine.Experimental.Rendering.ProbeBrickIndex.Brick;
-using UnityEngine.SceneManagement;
-using UnityEditor.IMGUI.Controls;
-using System.Reflection;
-using UnityEditorInternal;
-using System.Linq;
-using UnityEditor.SceneManagement;
-using UnityEngine.Rendering;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Collections.Generic;
+using UnityEngine.SceneManagement;
+using UnityEngine.Rendering;
+using UnityEditor;
 using UnityEditor.Rendering;
+using UnityEditor.IMGUI.Controls;
+using UnityEditor.SceneManagement;
+using UnityEditorInternal;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -36,6 +34,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             public static readonly Texture sceneIcon = EditorGUIUtility.IconContent("SceneAsset Icon").image;
             public static readonly Texture probeVolumeIcon = EditorGUIUtility.IconContent("LightProbeGroup Icon").image; // For now it's not the correct icon, we need to request it
+            public static readonly Texture debugIcon = EditorGUIUtility.IconContent("DebuggerEnabled").image;
 
             public static readonly GUIContent sceneLightingSettings = new GUIContent("Light Settings In Use", EditorGUIUtility.IconContent("LightingSettings Icon").image);
             public static readonly GUIContent sceneNotFound = new GUIContent("Scene Not Found!", Styles.sceneIcon);
@@ -43,6 +42,7 @@ namespace UnityEngine.Experimental.Rendering
             public static readonly GUIContent bakingStatesTitle = new GUIContent("Baking States");
             public static readonly GUIContent invalidLabel = new GUIContent("Out of Date");
             public static readonly GUIContent emptyLabel = new GUIContent("Not Baked");
+            public static readonly GUIContent debugButton = new GUIContent(Styles.debugIcon);
 
             public static readonly GUIStyle labelRed = new GUIStyle(EditorStyles.label);
 
@@ -477,7 +477,7 @@ namespace UnityEngine.Experimental.Rendering
         void DrawSeparator()
         {
             EditorGUILayout.BeginVertical(GUILayout.Width(2));
-            m_DrawHorizontalSplitter?.Invoke(null, new object[] { new Rect(k_LeftPanelSize, 20, 2, position.height) });
+            m_DrawHorizontalSplitter?.Invoke(null, new object[] { new Rect(k_LeftPanelSize, 0, 2, position.height) });
             EditorGUILayout.EndVertical();
             EditorGUILayout.Space(1);
         }
@@ -495,8 +495,15 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUILayout.BeginVertical();
             m_RightScrollPosition = EditorGUILayout.BeginScrollView(m_RightScrollPosition, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
 
-            var titleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
-            EditorGUI.LabelField(titleRect, "Probe Volume Settings", m_SubtitleStyle);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                var titleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
+                EditorGUI.LabelField(titleRect, "Probe Volume Settings", m_SubtitleStyle);
+                var debugButtonRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight, GUILayout.Width(k_TitleTextHeight));
+                if (GUI.Button(debugButtonRect, Styles.debugButton))
+                    OpenProbeVolumeDebugPanel();
+            }
+
             EditorGUILayout.Space();
             SanitizeScenes();
             m_ScenesInSet.DoLayoutList();
@@ -526,10 +533,10 @@ namespace UnityEngine.Experimental.Rendering
                 if (m_ProbeVolumeProfileEditor.target != set.profile)
                     Editor.CreateCachedEditor(set.profile, m_ProbeVolumeProfileEditor.GetType(), ref m_ProbeVolumeProfileEditor);
 
-                EditorGUILayout.LabelField("Probe Volume Profile", EditorStyles.largeLabel);
+                EditorGUILayout.LabelField("Probe Volume Profile", EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
                 m_ProbeVolumeProfileEditor.OnInspectorGUI();
-
-                EditorGUILayout.Space();
+                EditorGUI.indentLevel--;
 
                 var serializedSets = m_ProbeSceneData.FindPropertyRelative("serializedBakingSets");
                 var serializedSet = serializedSets.GetArrayElementAtIndex(m_BakingSets.index);
@@ -541,8 +548,8 @@ namespace UnityEngine.Experimental.Rendering
 
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
-                titleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
-                EditorGUI.LabelField(titleRect, Styles.bakingStatesTitle, m_SubtitleStyle);
+                var stateTitleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
+                EditorGUI.LabelField(stateTitleRect, Styles.bakingStatesTitle, m_SubtitleStyle);
                 EditorGUILayout.Space();
 
                 DrawBakingStates();
@@ -558,6 +565,16 @@ namespace UnityEngine.Experimental.Rendering
             DrawBakeButton();
 
             EditorGUILayout.EndVertical();
+        }
+
+        void OpenProbeVolumeDebugPanel()
+        {
+            var debugPanel = GetWindow<DebugWindow>();
+            debugPanel.titleContent = DebugWindow.Styles.windowTitle;
+            debugPanel.Show();
+            var index = DebugManager.instance.FindPanelIndex(ProbeReferenceVolume.k_DebugPanelName);
+            if (index != -1)
+                DebugManager.instance.RequestEditorWindowPanelIndex(index);
         }
 
         void DrawBakingStates()
