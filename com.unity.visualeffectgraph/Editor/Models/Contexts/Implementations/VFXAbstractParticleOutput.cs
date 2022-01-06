@@ -121,10 +121,10 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField, Tooltip("Specifies the layout of the flipbook. It can either use a single texture with multiple frames, or a Texture2DArray with multiple slices.")]
         protected FlipbookLayout flipbookLayout = FlipbookLayout.Texture2D;
 
-        [VFXSetting, SerializeField, Header("Ray Tracing"), Tooltip("When enabled, particles will be participate in the ray traced effects.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Ray Tracing"), Tooltip("When enabled, particles will be participate in the ray traced effects.")]
         protected bool isRaytraced = false;
 
-        [VFXSetting, Delayed, Min(1), SerializeField, Tooltip("Will keep one out of [rayTracingDecimationFactor] particles in the ray traced effects.")]
+        [VFXSetting, Delayed, Range(1, 1000), SerializeField, Tooltip("Will keep one out of [rayTracingDecimationFactor] particles in the ray traced effects.")]
         protected uint decimationFactor = 1;
 
 
@@ -163,11 +163,18 @@ namespace UnityEditor.VFX
 
         public bool NeedsOwnAabbBuffer()
         {
+            return needsOwnAabbBuffer;
+        }
+        public bool ModifiesAabbAttributes()
+        {
             if (!IsRaytraced())
                 return false;
             var writtenAttributes = GetAttributesInfos().Where(o => (VFXAttributeMode.Write & o.mode) != 0).Select(o => o.attrib);
             return writtenAttributes.Intersect(VFXAttribute.AllAttributeAffectingAABB).Any();
         }
+
+        public bool needsOwnAabbBuffer = false;
+
 
 
         public virtual VFXOutputUpdate.Features outputUpdateFeatures

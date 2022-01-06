@@ -519,17 +519,23 @@ namespace UnityEditor.VFX
             m_Contexts = new List<VFXContext>(contexts.Count + 2); // Allocate max number
             int index = 0;
 
-            bool hasMainUpdate = false;
+            int updateIndex = Int32.MaxValue;
             // First add init and updates
             for (index = 0; index < contexts.Count; ++index)
             {
                 if (contexts[index].contextType == VFXContextType.Update)
-                    hasMainUpdate = true;
-                if ((contexts[index].contextType == VFXContextType.Output))
+                {
+                    updateIndex = index;
+                    (contexts[index] as VFXBasicUpdate).rayTracingDecimationFactor =
+                        UInt32.MaxValue; //Is it needed ? Isn't reset to its default when recompiled ?
+                }
+                if (contexts[index].contextType == VFXContextType.Output)
                     break;
                 m_Contexts.Add(contexts[index]);
             }
-            //Reset needsOwnSort flags
+            bool hasMainUpdate = updateIndex != Int32.MaxValue;
+
+            //Reset needsOwnSort and needsOwnAabbBuffer flags
             for (int outputIndex = index; outputIndex < contexts.Count; ++outputIndex)
             {
                 var currentOutputContext = contexts[outputIndex];
@@ -537,8 +543,8 @@ namespace UnityEditor.VFX
                 if (abstractParticleOutput == null)
                     continue;
                 abstractParticleOutput.needsOwnSort = false;
+                abstractParticleOutput.needsOwnAabbBuffer = false;
             }
-
             var implicitContext = new List<VFXContext>();
 
             bool needsGlobalSort = NeedsGlobalSort(out var globalSortCriterion);
@@ -552,6 +558,36 @@ namespace UnityEditor.VFX
                 implicitContext.Add(globalSort);
                 m_Contexts.Add(globalSort);
             }
+
+            //AABB Buffer rules :
+            var rayTracedOutputs = compilableOwners.OfType<VFXAbstractParticleOutput>().Where(o => o.IsRaytraced()).ToArray();
+            var outputsWithoutAabbModifs = new List<VFXAbstractParticleOutput>();
+            if (rayTracedOutputs.Length > 0)
+            {
+                foreach (var output in rayTracedOutputs)
+                {
+                    if (output.ModifiesAabbAttributes())
+                    {
+                        output.needsOwnAabbBuffer = true;
+                    }
+                    else
+                        outputsWithoutAabbModifs.Add(output);
+                }
+            }
+            //Get the first decimation factor
+            if (outputsWithoutAabbModifs.Count > 0 && hasMainUpdate)
+            {
+                uint sharedDecimationFactor = outputsWithoutAabbModifs[0].GetRaytracingDecimationFactor();
+                (contexts[updateIndex] as VFXBasicUpdate).rayTracingDecimationFactor = sharedDecimationFactor;
+                for (int i = 1; i < outputsWithoutAabbModifs.Count; i++)
+                {
+                    if (outputsWithoutAabbModifs[i].GetRaytracingDecimationFactor() != sharedDecimationFactor)
+                    {
+                        outputsWithoutAabbModifs[i].needsOwnAabbBuffer = true;
+                    }
+                }
+            }
+
             //additional update
             for (int outputIndex = index; outputIndex < contexts.Count; ++outputIndex)
             {
@@ -609,9 +645,7 @@ namespace UnityEditor.VFX
             foreach (var output in rayTracedOutputs)
             {
                 if (output.NeedsOwnAabbBuffer())
-                {
                     listOutputsOwningAABB.Add(output);
-                }
                 else
                     outputsSharingAABB.Add(output);
             }
@@ -619,8 +653,10 @@ namespace UnityEditor.VFX
             int sharedAABBCount = outputsSharingAABB.Count;
             if (sharedAABBCount > 0)
             {
+                uint sharedDecimationFactor = outputsSharingAABB[0].GetRaytracingDecimationFactor();
+                uint aabbBufferSize = (capacity + sharedDecimationFactor - 1) / sharedDecimationFactor;
                 sharedAabbBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = capacity, stride = 24 });
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = aabbBufferSize, stride = 24 });
                 systemBufferMappings.Add(new VFXMapping("aabbBuffer", sharedAabbBufferIndex));
             }
 

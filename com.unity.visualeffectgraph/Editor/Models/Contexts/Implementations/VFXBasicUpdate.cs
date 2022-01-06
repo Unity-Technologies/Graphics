@@ -146,6 +146,7 @@ namespace UnityEditor.VFX
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("When enabled, filters out block execution if deltaTime is equal to 0.")]
         private bool skipZeroDeltaUpdate = false;
 
+        public uint rayTracingDecimationFactor = UInt32.MaxValue;
         public VFXBasicUpdate() : base(VFXContextType.Update, VFXDataType.None, VFXDataType.None) { }
         public override string name { get { return "Update " + ObjectNames.NicifyVariableName(ownedType.ToString()); } }
         public override string codeGeneratorTemplate { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/Shaders/VFXUpdate"; } }
@@ -291,7 +292,14 @@ namespace UnityEditor.VFX
                 if ((GetData() as VFXDataParticle).NeedsComputeBounds())
                     yield return "VFX_COMPUTE_BOUNDS";
                 if ((GetData() as VFXDataParticle).NeedsSharedAabbBuffer())
+                {
+                    if (rayTracingDecimationFactor == UInt32.MaxValue)
+                        throw new InvalidOperationException(
+                            "AABB Buffer is generated but Decimation Factor hasn't been set.");
                     yield return "VFX_COMPUTE_AABBS";
+                    yield return "VFX_RT_DECIMATION_FACTOR " + rayTracingDecimationFactor;
+                }
+
             }
         }
     }
