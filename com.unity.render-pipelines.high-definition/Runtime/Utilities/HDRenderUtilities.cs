@@ -248,7 +248,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     for (int i = 0; i < 6; ++i)
                     {
-                        if (!renderSteps.HasCubeFace(i))
+                        CubemapFace face = (CubemapFace)i;
+                        if (!renderSteps.HasCubeFace(face))
                             continue;
                         var cameraPositionCopy = cameraPositionSettings;
                         cameraPositionCopy.rotation = cameraPositionCopy.rotation * Quaternion.Euler(
@@ -256,7 +257,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         );
                         cameras.Add(cameraSettings);
                         cameraPositions.Add(cameraPositionCopy);
-                        cameraCubeFaces.Add((CubemapFace)i);
+                        cameraCubeFaces.Add(face);
                     }
                     break;
                 }

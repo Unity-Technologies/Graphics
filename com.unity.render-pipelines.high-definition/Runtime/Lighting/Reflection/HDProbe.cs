@@ -52,11 +52,45 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Test if the bit for the given cubemap face is set.
         /// </summary>
         /// <param name="steps">The probe rendering steps.</param>
-        /// <param name="face">The cubemap face index.</param>
+        /// <param name="face">The cubemap face.</param>
         /// <returns>True if the cubemap face bit is set, false otherwise.</returns>
-        public static bool HasCubeFace(this ProbeRenderSteps steps, int face)
+        public static bool HasCubeFace(this ProbeRenderSteps steps, CubemapFace face)
         {
-            return steps.HasFlag((ProbeRenderSteps)((int)ProbeRenderSteps.CubeFace0 << face));
+            return steps.HasFlag(ProbeRenderStepsExt.FromCubeFace(face));
+        }
+
+        /// <summary>
+        /// Creates the render step for the given cubemap face.
+        /// </summary>
+        /// <param name="face">The cubemap face.</param>
+        /// <returns>The render step for the cubemap face, or planar if the face is unknown.</returns>
+        public static ProbeRenderSteps FromCubeFace(CubemapFace face)
+        {
+            switch (face)
+            {
+                case CubemapFace.PositiveX: return ProbeRenderSteps.CubeFace0;
+                case CubemapFace.NegativeX: return ProbeRenderSteps.CubeFace1;
+                case CubemapFace.PositiveY: return ProbeRenderSteps.CubeFace2;
+                case CubemapFace.NegativeY: return ProbeRenderSteps.CubeFace3;
+                case CubemapFace.PositiveZ: return ProbeRenderSteps.CubeFace4;
+                case CubemapFace.NegativeZ: return ProbeRenderSteps.CubeFace5;
+                default: return ProbeRenderSteps.Planar;
+            }
+        }
+
+        /// <summary>
+        /// Creates the render steps for the given probe type.
+        /// </summary>
+        /// <param name="probeType">The probe type.</param>
+        /// <returns>The render steps for the given probe type.</returns>
+        public static ProbeRenderSteps FromProbeType(ProbeSettings.ProbeType probeType)
+        {
+            switch (probeType)
+            {
+                case ProbeSettings.ProbeType.ReflectionProbe: return ProbeRenderSteps.ReflectionProbeMask;
+                case ProbeSettings.ProbeType.PlanarProbe: return ProbeRenderSteps.PlanarProbeMask;
+                default: return ProbeRenderSteps.None;
+            }
         }
 
         /// <summary>
@@ -218,36 +252,49 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_ProbeExposureValue;
         }
 
-        private void HandlePendingRenderRequest()
+        private bool HasRemainingRenderSteps()
         {
-            if (m_RemainingRenderSteps.IsNone() && m_HasPendingRenderRequest)
-            {
-                switch (type)
-                {
-                    case ProbeSettings.ProbeType.ReflectionProbe:
-                        m_RemainingRenderSteps = ProbeRenderSteps.ReflectionProbeMask;
-                        break;
-                    case ProbeSettings.ProbeType.PlanarProbe:
-                        m_RemainingRenderSteps = ProbeRenderSteps.PlanarProbeMask;
-                        break;
-                }
-                m_HasPendingRenderRequest = false;
-            }
+            return !m_RemainingRenderSteps.IsNone() || m_HasPendingRenderRequest;
+        }
+
+        private void EnqueueAllRenderSteps()
+        {
+            ProbeRenderSteps allRenderSteps = ProbeRenderStepsExt.FromProbeType(type);
+            if (m_RemainingRenderSteps != allRenderSteps)
+                m_HasPendingRenderRequest = true;
         }
 
         internal ProbeRenderSteps NextRenderSteps()
         {
-            HandlePendingRenderRequest();
+            if (m_RemainingRenderSteps.IsNone() && m_HasPendingRenderRequest)
+            {
+                m_RemainingRenderSteps = ProbeRenderStepsExt.FromProbeType(type);
+                m_HasPendingRenderRequest = false;
+            }
 
-            bool doTimeSlicing = (type == ProbeSettings.ProbeType.ReflectionProbe) && timeSlicing;
-            ProbeRenderSteps nextSteps = doTimeSlicing ? m_RemainingRenderSteps.LowestSetBit() : m_RemainingRenderSteps;
+            if (type == ProbeSettings.ProbeType.ReflectionProbe)
+            {
+                // pick one bit or all remaining bits
+                ProbeRenderSteps nextSteps = timeSlicing ? m_RemainingRenderSteps.LowestSetBit() : m_RemainingRenderSteps;
+                m_RemainingRenderSteps &= ~nextSteps;
+                return nextSteps;
+            }
+            else
+            {
+                // always render the full planar reflection
+                m_RemainingRenderSteps = ProbeRenderSteps.None;
+                return ProbeRenderSteps.PlanarProbeMask;
+            }
+        }
 
-            m_RemainingRenderSteps &= ~nextSteps;
+        internal void IncrementRealtimeRenderCount()
+        {
+            m_RealtimeRenderCount += 1;
+        }
 
-            if (nextSteps.HasFlag(ProbeRenderSteps.IncrementRenderCount))
-                m_RealtimeRenderCount += 1;
-
-            return nextSteps;
+        internal void RepeatRenderSteps(ProbeRenderSteps renderSteps)
+        {
+            m_RemainingRenderSteps |= renderSteps;
         }
 
         internal uint GetTextureHash()
@@ -267,34 +314,17 @@ namespace UnityEngine.Rendering.HighDefinition
             {
 #if UNITY_EDITOR
                 if (m_WasRenderedDuringAsyncCompilation && !ShaderUtil.anythingCompiling)
-                {
-                    m_HasPendingRenderRequest = true;
                     return true;
-                }
 #endif
                 if (mode != ProbeSettings.Mode.Realtime)
                     return false;
                 switch (realtimeMode)
                 {
-                    case ProbeSettings.RealtimeMode.EveryFrame:
-                        m_HasPendingRenderRequest = true;
-                        break;
-                    case ProbeSettings.RealtimeMode.OnEnable:
-                        if (!wasRenderedAfterOnEnable)
-                        {
-                            m_HasPendingRenderRequest = true;
-                            wasRenderedAfterOnEnable = true;
-                        }
-                        break;
-                    case ProbeSettings.RealtimeMode.OnDemand:
-                        if (!m_WasRenderedSinceLastOnDemandRequest)
-                        {
-                            m_HasPendingRenderRequest = true;
-                            m_WasRenderedSinceLastOnDemandRequest = true;
-                        }
-                        break;
+                    case ProbeSettings.RealtimeMode.EveryFrame: return true;
+                    case ProbeSettings.RealtimeMode.OnEnable: return !wasRenderedAfterOnEnable || HasRemainingRenderSteps();
+                    case ProbeSettings.RealtimeMode.OnDemand: return !m_WasRenderedSinceLastOnDemandRequest || HasRemainingRenderSteps();
+                    default: throw new ArgumentOutOfRangeException(nameof(realtimeMode));
                 }
-                return m_HasPendingRenderRequest || !m_RemainingRenderSteps.IsNone();
             }
         }
 
@@ -639,8 +669,30 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void SetIsRendered()
         {
 #if UNITY_EDITOR
+            if (m_WasRenderedDuringAsyncCompilation)
+                EnqueueAllRenderSteps();
             m_WasRenderedDuringAsyncCompilation = ShaderUtil.anythingCompiling;
 #endif
+            switch (realtimeMode)
+            {
+                case ProbeSettings.RealtimeMode.EveryFrame:
+                    EnqueueAllRenderSteps();
+                    break;
+                case ProbeSettings.RealtimeMode.OnEnable:
+                    if (!wasRenderedAfterOnEnable)
+                    {
+                        EnqueueAllRenderSteps();
+                        wasRenderedAfterOnEnable = true;
+                    }
+                    break;
+                case ProbeSettings.RealtimeMode.OnDemand:
+                    if (!m_WasRenderedSinceLastOnDemandRequest)
+                    {
+                        EnqueueAllRenderSteps();
+                        m_WasRenderedSinceLastOnDemandRequest = true;
+                    }
+                    break;
+            }
         }
 
         // API

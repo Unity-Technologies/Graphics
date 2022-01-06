@@ -249,8 +249,8 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_IsDepthBufferCopyValid;
         RenderTexture m_TemporaryTargetForCubemaps;
 
-        private CameraCache<(Transform viewer, HDProbe probe, int face)> m_ProbeCameraCache = new
-            CameraCache<(Transform viewer, HDProbe probe, int face)>();
+        private CameraCache<(Transform viewer, HDProbe probe, CubemapFace face)> m_ProbeCameraCache = new
+            CameraCache<(Transform viewer, HDProbe probe, CubemapFace face)>();
 
         ComputeBuffer m_DepthPyramidMipLevelOffsetsBuffer = null;
 
@@ -1459,19 +1459,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (!probe.requiresRealtimeUpdate)
                             return;
 
-                        float visibility = ComputeVisibility(visibleInIndex, probe);
-
                         // Notify that we render the probe at this frame
-                        // NOTE: If the probe was rendered on the very first frame, we could have some data that was used and it wasn't in a fully initialized state, which is fine on PC, but on console
-                        // might lead to NaNs due to lack of complete initialization. To circumvent this, we force the probe to render again only if it was rendered on the first frame. Note that the problem
-                        // doesn't apply if probe is enable any frame other than the very first. Also note that we are likely to be re-rendering the probe anyway due to the issue on sky ambient probe
-                        // (see m_SkyManager.HasSetValidAmbientProbe in this function).
                         // Also, we need to set the probe as rendered only if we'll actually render it and this won't happen if visibility is not > 0.
+                        float visibility = ComputeVisibility(visibleInIndex, probe);
                         if (visibility > 0.0f)
-                        {
-                            if (m_FrameCount <= 1)
-                                probe.ForceRenderingNextUpdate();
-                        }
+                            probe.SetIsRendered();
 
                         if (!renderRequestIndicesWhereTheProbeIsVisible.TryGetValue(probe, out var visibleInIndices))
                         {
@@ -1627,9 +1619,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             break;
                     }
 
+                    ProbeRenderSteps skippedRenderSteps = ProbeRenderSteps.None;
                     for (int j = 0; j < cameraSettings.Count; ++j)
                     {
-                        var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), Time.frameCount, CameraType.Reflection);
+                        CubemapFace face = cameraCubemapFaces[j];
+                        var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, face), Time.frameCount, CameraType.Reflection);
 
                         var settingsCopy = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
                         settingsCopy.forcedPercentage = 100.0f;
@@ -1678,6 +1672,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             // Skip request and free resources
                             UnsafeGenericPool<HDCullingResults>.Release(_cullingResults);
+                            skippedRenderSteps |= ProbeRenderStepsExt.FromCubeFace(face);
                             continue;
                         }
 
@@ -1772,23 +1767,32 @@ namespace UnityEngine.Rendering.HighDefinition
                             // TODO: store DecalCullResult
                         };
 
-                        CubemapFace face = cameraCubemapFaces[j];
-                        if (face != CubemapFace.Unknown)
+                        // HACK! We render the probe until we know the ambient probe for the associated sky context is ready.
+                        // For one-off rendering the dynamic ambient probe will be set to black until they are not processed, leading to faulty rendering.
+                        // So we enqueue another rendering and then we will not set the probe texture until we have rendered with valid ambient probe.
+                        if (m_SkyManager.HasSetValidAmbientProbe(hdCamera))
                         {
-                            request.target = new RenderRequest.Target
+                            if (face != CubemapFace.Unknown)
                             {
-                                copyToTarget = visibleProbe.realtimeTextureRTH,
-                                face = face
-                            };
+                                request.target = new RenderRequest.Target
+                                {
+                                    copyToTarget = visibleProbe.realtimeTextureRTH,
+                                    face = face
+                                };
+                            }
+                            else
+                            {
+                                request.target = new RenderRequest.Target
+                                {
+                                    id = visibleProbe.realtimeTextureRTH,
+                                    targetDepth = visibleProbe.realtimeDepthTextureRTH,
+                                    face = CubemapFace.Unknown
+                                };
+                            }
                         }
                         else
                         {
-                            request.target = new RenderRequest.Target
-                            {
-                                id = visibleProbe.realtimeTextureRTH,
-                                targetDepth = visibleProbe.realtimeDepthTextureRTH,
-                                face = CubemapFace.Unknown
-                            };
+                            skippedRenderSteps |= ProbeRenderStepsExt.FromCubeFace(face);
                         }
 
                         renderRequests.Add(request);
@@ -1797,6 +1801,26 @@ namespace UnityEngine.Rendering.HighDefinition
                         foreach (var visibility in visibilities)
                             renderRequests[visibility.index].dependsOnRenderRequestIndices.Add(request.index);
                     }
+
+                    // NOTE: If the probe was rendered on the very first frame, we could have some data that was used and it wasn't in a fully initialized state, which is fine on PC, but on console
+                    // might lead to NaNs due to lack of complete initialization. To circumvent this, we force the probe to render again only if it was rendered on the first frame. Note that the problem
+                    // doesn't apply if probe is enable any frame other than the very first. Also note that we are likely to be re-rendering the probe anyway due to the issue on sky ambient probe
+                    // (see m_SkyManager.HasSetValidAmbientProbe in this function).
+                    if (m_FrameCount <= 1)
+                    {
+                        // say we skipped everything, will redo next frame (handled by next block)
+                        skippedRenderSteps = renderSteps;
+                    }
+
+                    // update the render count (to update the cache) only if nothing was skipped, and ensure we repeat any skipped work next time
+                    if (renderSteps.HasFlag(ProbeRenderSteps.IncrementRenderCount))
+                    {
+                        if (skippedRenderSteps.IsNone())
+                            visibleProbe.IncrementRealtimeRenderCount();
+                        else
+                            skippedRenderSteps |= ProbeRenderSteps.IncrementRenderCount;
+                    }
+                    visibleProbe.RepeatRenderSteps(skippedRenderSteps);
                 }
 
                 // TODO: Refactor into a method. If possible remove the intermediate target
