@@ -1,4 +1,5 @@
 using System.Linq;
+using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -186,6 +187,80 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(BlockFields.SurfaceDescription.NormalTS, blocks[1].descriptor);
             Assert.AreEqual(false, blocks[1].isActive);
             s_ForceVFXFakeTargetVisible = false;
+        }
+
+        sealed class MultiShaderTarget : UnityEditor.ShaderGraph.Target
+        {
+            public MultiShaderTarget()
+            {
+                displayName = "MultiShader Test Target";
+                isHidden = false;
+            }
+
+            public override void GetActiveBlocks(ref UnityEditor.ShaderGraph.TargetActiveBlockContext context)
+            {
+                context.AddBlock(ShaderGraph.BlockFields.SurfaceDescription.BaseColor);
+                context.AddBlock(ShaderGraph.BlockFields.SurfaceDescription.Alpha);
+            }
+
+            public override void GetFields(ref TargetFieldContext context)
+            {
+            }
+
+            public static SubShaderDescriptor BuildSubShader(string additionaShaderID)
+            {
+                SubShaderDescriptor result = new SubShaderDescriptor()
+                {
+                    pipelineTag = "TestPipeline",
+                    renderType = "0",   // opaque
+                    renderQueue = "1",  // geometry
+                    generatesPreview = true,
+                    passes = new PassCollection(),
+                    additionalShaderID = additionaShaderID
+                };
+                return result;
+            }
+
+            public override void Setup(ref TargetSetupContext context)
+            {
+                var ss = BuildSubShader(null);      // primary shader
+                var ss2 = BuildSubShader("second");
+                context.AddSubShader(ss);
+                context.AddSubShader(ss2);
+            }
+
+            public override bool IsActive() => true;
+            public override bool WorksWithSRP(UnityEngine.Rendering.RenderPipelineAsset scriptableRenderPipeline)
+            {
+                return true;
+            }
+
+            public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, System.Action onChange, System.Action<System.String> registerUndo)
+            {
+            }
+        }
+
+        [Test]
+        public void CanBuildMultipleShaders()
+        {
+            GraphData graph = new GraphData();
+            graph.AddContexts();
+
+            var multiTarget = new MultiShaderTarget();
+            graph.SetTargetActive(multiTarget);
+            Assert.IsTrue(graph.allPotentialTargets.Contains(multiTarget));
+
+            graph.OnEnable();
+            graph.ValidateGraph();
+
+            var generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, "MyTestShader");
+            var generatedShaders = generator.allGeneratedShaders.ToList();
+
+            Assert.AreEqual(2, generatedShaders.Count);
+            Assert.IsTrue(generatedShaders[0].shaderName == "MyTestShader");
+            Assert.IsTrue(generatedShaders[1].shaderName == "MyTestShader-second");
+            Assert.IsTrue(generatedShaders[0].codeString.Contains("Shader \"MyTestShader\""));
+            Assert.IsTrue(generatedShaders[1].codeString.Contains("Shader \"MyTestShader-second\""));
         }
     }
 }
