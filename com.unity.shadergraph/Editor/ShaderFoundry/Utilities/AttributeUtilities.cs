@@ -13,13 +13,7 @@ namespace UnityEditor.ShaderFoundry
         internal const string PerMaterial = "PerMaterial";
         internal const string Hybrid = "Hybrid";
 
-        internal const string MaterialProperty = "MaterialProperty";
-        internal const string PropertyVariable = "PropertyVariable";
-        internal const string UniformDeclaration = "UniformDeclaration";
-        internal const string PropertyType = "PropertyType";
         internal const string DefaultValue = "DefaultValue";
-        internal const string MaterialPropertyDefault = "MaterialPropertyDefault";
-        internal const string Varying = "Varying";
         internal const string Alias = "Alias";
     }
 
@@ -186,95 +180,108 @@ namespace UnityEditor.ShaderFoundry
             return false;
         }
     }
-    
-    internal class PropertyTypeAttribute
+
+    internal enum UniformMode { DoNotDeclare, Global, UnityPerMaterial, HybridPerInstance, None = -1 }
+
+    internal class PropertyAttribute
     {
-        internal string PropertyType { get; set; }
-        internal static PropertyTypeAttribute Find(IEnumerable<ShaderAttribute> attributes)
-        {
-            var propertyType = attributes.FindFirstAttributeParamValue(CommonShaderAttributes.PropertyType, 0);
-            if (propertyType != null)
-                return new PropertyTypeAttribute { PropertyType = propertyType };
-            return null;
-        }
-    }
+        internal string DefaultValue { get; set; } = null;
+        internal string UniformName { get; set; } = null;
+        internal string DisplayName { get; set; } = null;
+        internal string DisplayType { get; set; } = null;
 
-    internal class PropertyVariableAttribute
-    {
-        internal string FormatString { get; set; }
-        internal static PropertyVariableAttribute Find(IEnumerable<ShaderAttribute> attributes)
+        internal string Tags { get; set; } = null;
+        internal bool Exposed { get; set; } = true;
+        internal UniformMode Mode = UniformMode.None;
+        internal static PropertyAttribute Find(IEnumerable<ShaderAttribute> attributes)
         {
-            var formatString = attributes.FindFirstAttributeParamValue(CommonShaderAttributes.PropertyVariable, 0);
-            if (formatString != null)
-                return new PropertyVariableAttribute { FormatString = formatString };
-            return null;
-        }
-
-        internal string BuildVariableNameString(string referenceName)
-        {
-            return FormatString.Replace("#", referenceName);
-        }
-
-        internal string BuildDeclarationString(ShaderType type, string referenceName)
-        {
-            return $"{type.Name} {BuildVariableNameString(referenceName)}";
-        }
-    }
-
-    internal class UniformDeclarationAttribute
-    {
-        internal string Name { get; set; }
-        internal string Declaration { get; set; }
-        internal static UniformDeclarationAttribute Find(IEnumerable<ShaderAttribute> attributes)
-        {
-            var attribute = attributes.FindFirst(CommonShaderAttributes.UniformDeclaration);
+            var attribute = attributes.FindFirst(CommonShaderAttributes.Property);
+            if (attribute.IsValid == false)
+                return null;
             return Build(attribute);
         }
 
-        internal static UniformDeclarationAttribute Build(ShaderAttribute attribute)
+        internal static PropertyAttribute Build(ShaderAttribute attribute)
         {
-            if (!attribute.IsValid || attribute.Name != CommonShaderAttributes.UniformDeclaration)
+            if (!attribute.IsValid || attribute.Name != CommonShaderAttributes.Property)
                 return null;
 
-            var nameParam = attribute.Parameters.FindAttributeParam("name");
-            if (!nameParam.IsValid)
-                return null;
-
-            var declarationParam = attribute.Parameters.FindAttributeParam("declaration");
-            string declaration =  declarationParam.IsValid ? declarationParam.Value : null;
-            return new UniformDeclarationAttribute { Name = nameParam.Value, Declaration = declaration };
+            var result = new PropertyAttribute();
+            foreach (var param in attribute.Parameters)
+            {
+                if (param.Name == "displayType")
+                    result.DisplayType = param.Value;
+                else if (param.Name == "uniformName")
+                    result.UniformName = param.Value;
+                else if (param.Name == "displayName")
+                    result.DisplayName = param.Value;
+                else if (param.Name == "mode")
+                    result.Mode = ParseMode(param.Value);
+                else if (param.Name == "tags")
+                    result.Tags = param.Value;
+                else if (param.Name == "defaultValue")
+                    result.DefaultValue = param.Value;
+                else if (param.Name == "exposed")
+                {
+                    if(bool.TryParse(param.Value, out var exposed))
+                        result.Exposed = exposed;
+                }
+                else if(param.Value == "HDR")
+                {
+                    result.Tags = $"{result.Tags}[HDR]";
+                }
+            }
+            return result;
         }
 
-        internal string BuildVariableNameString(string referenceName)
+        static UniformMode ParseMode(string mode)
         {
-            return Name.Replace("#", referenceName);
-        }
-
-        internal string BuildDeclarationString(ShaderType type, string referenceName)
-        {
-            // If there was no declaration string specified then just do Type Name.
-            if(Declaration == null)
-                return $"{type.Name} {BuildVariableNameString(referenceName)}";
-            // Otherwise just use the declaration string. The type is unimportant (e.g. TEXTURE2D(myTex) doesn't use the type name).
-            else
-                return Declaration.Replace("#", referenceName);
+            if (mode == "PerMaterial")
+                return UniformMode.UnityPerMaterial;
+            if (mode == "Hybrid")
+                return UniformMode.HybridPerInstance;
+            if (mode == "Global")
+                return UniformMode.Global;
+            if (mode == "DoNotDeclare")
+                return UniformMode.DoNotDeclare;
+            return UniformMode.None;
         }
     }
 
-    internal class MaterialPropertyAttribute
+    internal class VirtualTextureLayers
     {
-        internal string FormatString { get; set; }
-        internal static MaterialPropertyAttribute Find(IEnumerable<ShaderAttribute> attributes)
+        const string AttributeName = "VTexLayers";
+        internal int LayerCount = 1;
+        internal string[] LayerTypes = {"Default", "Default", "Default", "Default" };
+
+        internal static VirtualTextureLayers Build(IEnumerable<ShaderAttribute> attributes)
         {
-            var formatString = attributes.FindFirstAttributeParamValue(CommonShaderAttributes.MaterialProperty, 0);
-            if (formatString != null)
-                return new MaterialPropertyAttribute { FormatString = formatString };
+            foreach (var attribute in attributes)
+            {
+                var result = Build(attribute);
+                if (result != null)
+                    return result;
+            }
             return null;
         }
 
-        internal string BuildDeclarationString(string referenceName, string displayName)
+        internal static VirtualTextureLayers Build(ShaderAttribute attribute)
         {
-            return FormatString.Replace("#", referenceName);
+            if (attribute.Name != AttributeName)
+                return null;
+
+            var result = new VirtualTextureLayers();
+            var index = 0;
+            foreach (var param in attribute.Parameters)
+            {
+                if (index == 0)
+                    int.TryParse(param.Value, out result.LayerCount);
+                else if (index < 5)
+                    result.LayerTypes[index - 1] = param.Value;
+                ++index;
+            }
+
+            return result;
         }
     }
 
@@ -297,30 +304,6 @@ namespace UnityEditor.ShaderFoundry
                 var param = attribute.Parameters.GetAttributeParam(0);
                 if (param.IsValid)
                     return new DefaultValueAttribute { DefaultValue = param.Value };
-            }
-            return null;
-        }
-    }
-
-    internal class MaterialPropertyDefaultAttribute
-    {
-        internal string PropertyDefaultExpression { get; set; }
-        internal static MaterialPropertyDefaultAttribute Find(IEnumerable<ShaderAttribute> attributes)
-        {
-            var defaultExpression = attributes.FindFirstAttributeParamValue(CommonShaderAttributes.MaterialPropertyDefault, 0);
-            if (defaultExpression != null)
-                return new MaterialPropertyDefaultAttribute { PropertyDefaultExpression = defaultExpression };
-            return null;
-        }
-
-        internal static MaterialPropertyDefaultAttribute Find(IEnumerable<ShaderAttribute> attributes, string variableName)
-        {
-            var attribute = attributes.FindFirst(CommonShaderAttributes.MaterialPropertyDefault, variableName);
-            if (attribute.IsValid)
-            {
-                var param = attribute.Parameters.GetAttributeParam(0);
-                if (param.IsValid)
-                    return new MaterialPropertyDefaultAttribute { PropertyDefaultExpression = param.Value };
             }
             return null;
         }
