@@ -40,7 +40,7 @@ Material:
     - _Depth_Test_Ghost_Effect: 0
     - _Depth_Test_Outline: 1
     - _Depth_Test_Stripes_Effect: 1
-    - _Float: 0.16
+    - _Float: 0
     - _Invert: 0
     - _Opacity: 1
     - _OutlineSize: 1
@@ -50,11 +50,11 @@ Material:
     - _Pulse_Power: 0.25
     - _Stripes_Frequency: 50
     - _Stripes_Size: 75
-    - _Stripes_use_Ghost_Effect: 0.5
+    - _Stripes_use_Ghost_Effect: 0.95
     m_Colors:
-    - _Ghost_Color: {r: 1, g: 0.13491617, b: 0, a: 0}
-    - _Outline_Color: {r: 0, g: 0.63298154, b: 1, a: 0}
-    - _Stripes_Color_1: {r: 0, g: 0.32289028, b: 1, a: 1}
+    - _Ghost_Color: {r: 0.6981132, g: 0.2147117, b: 0.12908511, a: 0}
+    - _Outline_Color: {r: 1, g: 0.68730915, b: 0, a: 0}
+    - _Stripes_Color_1: {r: 0.16532578, g: 0.60612243, b: 0.8113208, a: 1}
     - _Stripes_Color_2: {r: 0, g: 0, b: 0, a: 0}
     - _Stripes_Direction: {r: 1.29, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
