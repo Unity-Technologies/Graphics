@@ -2,45 +2,40 @@
 #define UNIVERSAL_PIPELINE_LODCROSSFADE_INCLUDED
 
 static const int k_LODCrossFadeTypeBayerMatrixDither = 0;
-static const int k_LODCrossFadeTypeWhiteNoiseDither = 1;
-static const int k_LODCrossFadeTypeBlueNoiseDither = 2;
+static const int k_LODCrossFadeTypeBlueNoiseDither = 1;
+static const int k_LODCrossFadeTypeHashDither = 2;
 
 int _LODCrossFadeType;
 
-TEXTURE2D(_BlueNoiseDitheringTexture);
-SAMPLER(sampler_BlueNoiseDitheringTexture);
+TEXTURE2D(_DitheringTexture);
+SAMPLER(sampler_DitheringTexture);
 
 half CopySign(half x, half s)
 {
     return (s >= 0) ? abs(x) : -abs(x);
 }
 
-half GetBlueNoiseDithering(uint2 seed)
+half GetBayerMatrixDithering(float2 seed)
+{
+    const half k_BayerMatrixTexSize = 4.0; 
+
+    half2 uv = seed / k_BayerMatrixTexSize;
+
+    return SAMPLE_TEXTURE2D(_DitheringTexture, sampler_DitheringTexture, uv).a;
+}
+
+half GetBlueNoiseDithering(float2 seed)
 {
     const half k_BlueNoiseTexSize = 64.0;
 
     half2 uv = seed / k_BlueNoiseTexSize;
 
-    return SAMPLE_TEXTURE2D(_BlueNoiseDitheringTexture, sampler_BlueNoiseDitheringTexture, uv).a;
+    return SAMPLE_TEXTURE2D(_DitheringTexture, sampler_DitheringTexture, uv).a;
 }
 
-//@ We can make white noise camera rotation independent. See ComputeFadeMaskSeed. But that would require world space view vector for all passes.
-half GetWhiteNoiseDithering(uint2 seed)
+half GetHashDithering(uint2 seed)
 {
     return GenerateHashedRandomFloat(seed);
-}
-
-half GetBayerMatrixDithering(uint2 seed)
-{
-    const half4x4 k_BayerMatrix = 
-    {
-        1.0 / 17.0, 9.0 / 17.0, 3.0 / 17.0, 11.0 / 17.0,
-        13.0 / 17.0, 5.0 / 17.0, 15.0 / 17.0, 7.0 / 17.0,
-        4.0 / 17.0, 12.0 / 17.0, 2.0 / 17.0, 10.0 / 17.0,
-        16.0 / 17.0, 8.0 / 17.0, 14.0 / 17.0, 6.0 / 17.0
-    };
-
-    return k_BayerMatrix[seed.x % 4][seed.y % 4];
 }
 
 half GetLODDithering(float2 crossFadeSeed, half crossFadeFactor)
@@ -49,8 +44,8 @@ half GetLODDithering(float2 crossFadeSeed, half crossFadeFactor)
 
     switch (_LODCrossFadeType)
     {
-    case k_LODCrossFadeTypeWhiteNoiseDither:
-        d = GetWhiteNoiseDithering(crossFadeSeed);
+    case k_LODCrossFadeTypeHashDither:
+        d = GetHashDithering(crossFadeSeed);
         break;
     case k_LODCrossFadeTypeBlueNoiseDither:
         d = GetBlueNoiseDithering(crossFadeSeed);

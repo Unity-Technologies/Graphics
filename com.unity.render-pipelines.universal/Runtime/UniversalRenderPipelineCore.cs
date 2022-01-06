@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
 
         public static readonly int lodCrossFadeType = Shader.PropertyToID("_LODCrossFadeType");
-        public static readonly int blueNoiseDitheringTexture = Shader.PropertyToID("_BlueNoiseDitheringTexture");
+        public static readonly int ditheringTexture = Shader.PropertyToID("_DitheringTexture");
     }
 
     public struct PostProcessingData

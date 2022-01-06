@@ -84,7 +84,10 @@ namespace UnityEngine.Rendering.Universal
             public Texture2D[] blueNoise16LTex;
 
             [Reload("Textures/BlueNoise64/L/LDR_LLL1_0.png")]
-            public Texture2D blueNoise64LTex; 
+            public Texture2D blueNoise64LTex;
+
+            [Reload("Textures/BayerMatrix.png")]
+            public Texture2D bayerMatrixTex;
 
             // Post-processing
             [Reload(new[]

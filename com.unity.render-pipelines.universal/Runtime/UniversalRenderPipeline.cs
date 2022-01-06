@@ -1235,11 +1235,11 @@ namespace UnityEngine.Rendering.Universal
 
             Shader.SetGlobalInt(ShaderPropertyId.lodCrossFadeType, (int)asset.lodCrossFadeType);
 
-            if (asset.lodCrossFadeType == LODCrossFadeType.BlueNoiseDither)
-            { 
-                UniversalRendererData renderData = asset.scriptableRendererData as UniversalRendererData;
-                Shader.SetGlobalTexture(ShaderPropertyId.blueNoiseDitheringTexture, renderData?.postProcessData?.textures.blueNoise64LTex);
-            }
+            UniversalRendererData renderData = asset.scriptableRendererData as UniversalRendererData;
+            if (asset.lodCrossFadeType == LODCrossFadeType.BayerMatrixDither)
+                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, renderData?.postProcessData?.textures.bayerMatrixTex);
+            else if (asset.lodCrossFadeType == LODCrossFadeType.BlueNoiseDither)
+                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, renderData?.postProcessData?.textures.blueNoise64LTex);
 
             LODGroup.crossFadeAnimationDuration = 2.0f;
         }

@@ -142,9 +142,9 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public enum LODCrossFadeType
     {
-        BayerMatrixDither, 
-        WhiteNoiseDither,
-        BlueNoiseDither
+        BayerMatrixDither,
+        BlueNoiseDither,
+        HashDither
     }
 
     [ExcludeFromPreset]
