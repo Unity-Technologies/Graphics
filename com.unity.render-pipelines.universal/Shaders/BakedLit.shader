@@ -243,6 +243,7 @@ Shader "Universal Render Pipeline/Baked Lit"
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11
+            #pragma editor_sync_compilation
             #pragma target 2.0
 
 

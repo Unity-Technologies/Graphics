@@ -12,6 +12,7 @@ Shader "Hidden/kMotion/ObjectMotionVectors"
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
             #pragma target 3.0
+            #pragma editor_sync_compilation
 
             //--------------------------------------
             // GPU Instancing

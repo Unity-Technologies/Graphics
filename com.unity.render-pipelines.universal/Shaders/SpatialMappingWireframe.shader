@@ -26,6 +26,7 @@ Shader "Universal Render Pipeline/VR/SpatialMapping/Wireframe"
             // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_instancing
+            #pragma editor_sync_compilation
 
             #include "UnlitInput.hlsl"
 
