@@ -527,6 +527,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
                 RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null && !cameraData.xr.enabled) ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetID;
 
+                // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
                 if (m_UseSwapBuffer)
                 {
                     cameraTarget = (m_ResolveToScreen) ? cameraTarget : targetDestination;
@@ -536,9 +537,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cameraTarget = (m_Destination.nameID == BuiltinRenderTextureType.CameraTarget) ? cameraTarget : m_Destination.nameID;
                     m_ResolveToScreen = cameraData.resolveFinalTarget || (m_Destination.nameID == cameraTargetID || m_HasFinalPass == true);
                 }
-
-                // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
-                bool finishPostProcessOnScreen = m_ResolveToScreen;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
@@ -561,7 +559,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // For now, when render post - processing in the middle of the camera stack(not resolving to screen)
                     // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
                     // in the pipeline to avoid this extra blit.
-                    if (!finishPostProcessOnScreen && !m_UseSwapBuffer)
+                    if (!m_ResolveToScreen && !m_UseSwapBuffer)
                     {
                         cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, cameraTarget);
                         cmd.SetRenderTarget(new RenderTargetIdentifier(m_Source, 0, CubemapFace.Unknown, -1),
@@ -590,7 +588,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
                     // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
                     // in the pipeline to avoid this extra blit.
-                    if (!finishPostProcessOnScreen && !m_UseSwapBuffer)
+                    if (!m_ResolveToScreen && !m_UseSwapBuffer)
                     {
                         cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, cameraTarget);
                         cmd.SetRenderTarget(m_Source, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
