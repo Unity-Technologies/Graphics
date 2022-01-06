@@ -41,7 +41,7 @@
             ${VFXGeneratedBlockFunction}
 
             [shader("closesthit")]
-            void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+            void ClosestHit(inout RayIntersectionVisibility rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
             {
                 UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
                 
