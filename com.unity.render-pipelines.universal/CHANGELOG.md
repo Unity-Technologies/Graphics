@@ -6,8 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.1.4] - 2021-12-07
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+- Added Adaptive Performance Decals scaler access.
+
+### Fixed
+- Fixed incorrect light indexing on Windows Editor with Android target. [case 1378103](https://issuetracker.unity3d.com/product/unity/issues/guid/1378103/)
+- Fixed a performance regression in the 2D renderer regarding the PostProcessPass [case 1347893]
+- Fixed a regression where filtering the scene view yielded incorrect visual results [case 1360233] (https://issuetracker.unity3d.com/product/unity/issues/guid/1360233)
 
 ## [12.1.3] - 2021-11-17
 
@@ -15,10 +20,8 @@ Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ## Fixed
-- Fixed a performance regression in the 2D renderer regarding the PostProcessPass [case 1347893]
-- Fixed a regression where filtering the scene view yielded incorrect visual results [case 1360233] (https://issuetracker.unity3d.com/product/unity/issues/guid/1360233)
 - Fixed broken soft shadow filtering. [case 1374960](https://issuetracker.unity3d.com/product/unity/issues/guid/1374960/)
-- Fixed incorrect light indexing on Windows Editor with Android target. [case 1378103](https://issuetracker.unity3d.com/product/unity/issues/guid/1378103/)
+
 
 ## [12.1.2] - 2021-10-22
 
@@ -32,9 +35,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue with MSAA falling back to the incorrect value when sample count 2 is not supported on some Android GPUs.
 
 ## [12.1.1] - 2021-10-04
-
-### Added
-- Added Adaptive Performance Decals scaler access.
 
 ### Fixed
 - Fixed a regression bug where XR camera postion can not be modified in beginCameraRendering [case 1365000]

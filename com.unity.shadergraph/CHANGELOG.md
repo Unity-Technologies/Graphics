@@ -6,22 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.1.4] - 2021-12-07
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+  - Fixed the behavior of checkerboard node with raytracing
+  - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
+  - Fixed a validation error in ShaderGraph when using the SimpleNoise node both inside and outside a subgraph [1383046] (https://issuetracker.unity3d.com/issues/validation-error-is-usually-thrown-when-simple-noise-node-is-both-in-a-shadergraph-and-in-a-sub-graph)
 
 ## [12.1.3] - 2021-11-17
 
-### Fixed
-
- - Fixed the behavior of checkerboard node with raytracing
-
-### Fixed
-  - Fixed a validation error in ShaderGraph when using the SimpleNoise node both inside and outside a subgraph [1383046] (https://issuetracker.unity3d.com/issues/validation-error-is-usually-thrown-when-simple-noise-node-is-both-in-a-shadergraph-and-in-a-sub-graph)
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
 
 ## [12.1.2] - 2021-10-22
 
-### Fixed
- - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
 
 ## [12.1.1] - 2021-10-04
 

@@ -6,14 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.1.4] - 2021-12-07
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
-## [12.1.3] - 2021-11-17
-
 ### Fixed
-- Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
-- Fixed Xbox Series X compilation issue with DoF shader
 - Fixed references to reflection probes that wouldn't be cleared when unloading a scene. (case 1357459)
 - Fixed broken debug views when dynamic resolution was enabled (case 1365368).
 - Fixed issue with Stacklit raytrace reflection
@@ -67,6 +60,13 @@ The version number for this package has increased due to a version update of a r
 - Fixed write to VT feedback in debug modes (case 1376874)
 - Fixed a shader warning in UnityInstancing.hlsl
 - Fixed misc shader warnings.
+
+## [12.1.3] - 2021-11-17
+
+### Fixed
+- Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
+- Fixed Xbox Series X compilation issue with DoF shader
+- Fixed an issue causing Render Graph execution errors after a random amount of time (case 1379350)
 
 ## [12.1.2] - 2021-10-22
 
