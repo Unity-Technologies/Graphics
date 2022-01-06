@@ -280,7 +280,7 @@ namespace UnityEditor.VFX.UI
 
             return new Bounds();
         }
-        
+
         public virtual GizmoError GetGizmoError(VisualEffect component)
         {
             if (m_GizmoedAnchor == null)

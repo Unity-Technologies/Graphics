@@ -486,7 +486,7 @@ namespace UnityEditor.VFX.UI
         public GizmoError GetGizmoError(VisualEffect component)
         {
             if (!VFXGizmoUtility.HasGizmo(portType))
-                    return GizmoError.None;
+                return GizmoError.None;
 
             m_GizmoContext ??= new VFXDataAnchorGizmoContext(this);
             return VFXGizmoUtility.CollectGizmoError(m_GizmoContext, component);

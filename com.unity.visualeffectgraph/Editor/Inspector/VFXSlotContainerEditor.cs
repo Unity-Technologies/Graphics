@@ -236,7 +236,7 @@ class VFXSlotContainerEditor : Editor
         public static GUIContent gizmoWarningHasLinkGPU = EditorGUIUtility.TrIconContent(warningIcon, "The gizmo state is indeterminate because the value relies on GPU evaluation.");
         public static GUIContent gizmoWarningNeedComponent = EditorGUIUtility.TrIconContent(warningIcon, "Local values require a target GameObject to display");
         public static GUIContent gizmoWarningNeedExplicitSpace = EditorGUIUtility.TrIconContent(warningIcon, "The gizmo value needs an explicit Local or World space.");
-        public static GUIContent gizmoWarningNotAvailable= EditorGUIUtility.TrIconContent(warningIcon, "There isn't any gizmo available.");
+        public static GUIContent gizmoWarningNotAvailable = EditorGUIUtility.TrIconContent(warningIcon, "There isn't any gizmo available.");
         public static GUIContent gizmoFrame = EditorGUIUtility.TrTextContent("", "Frame Gizmo in scene");
 
         public static GUIContent GetGizmoErrorContent(GizmoError gizmoError)
