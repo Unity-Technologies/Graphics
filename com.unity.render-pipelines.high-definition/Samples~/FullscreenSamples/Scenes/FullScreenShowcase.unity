@@ -725,7 +725,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2811133439787552189, guid: 0aaeef8faf8171e49a92907fc1caa30c, type: 3}
       propertyPath: m_text
-      value: 'Sobel
+      value: 'Highlight Effect using Custom Color and Custom Depth Buffers
 
 '
       objectReference: {fileID: 0}
@@ -1074,9 +1074,9 @@ PrefabInstance:
         tied to a script \"Colorblindness.cs\" that creates a new custom post process,
         as a new possible override to Volume Profile components. \r\n\r\nFor HDRP
         to be aware of this new filter, add \"Colorblindness\" to the Custom Post
-        Process Orders list (Project Settings > Graphics > HDRP Settings). Then you
-        will be able to add a new override to a Volume Profile Component under Post
-        Processing > Custom."
+        Process Orders list (Project Settings > Graphics > HDRP Settings). It is
+        in \"After Post Process\". Then you will be able to add a new override to
+        a Volume Profile Component under Post Processing > Custom. "
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_AddedGameObjects: []
@@ -1273,7 +1273,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1839036566}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.26000023, y: 0.4777633, z: -0.8572898}
+  m_LocalPosition: {x: -0.42, y: 0.96, z: -0.8572898}
   m_LocalScale: {x: 1, y: 1, z: 1.0117}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1339,7 +1339,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1866870116}
   - component: {fileID: 1866870118}
-  - component: {fileID: 1866870120}
   - component: {fileID: 1866870119}
   m_Layer: 0
   m_Name: HighlightCustomPass
@@ -1388,13 +1387,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26d6499a6bd256e47b859377446493a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_IsGlobal: 1
+  m_IsGlobal: 0
   fadeRadius: 0
   priority: 0
   customPasses:
   - rid: 4632682823319027737
   - rid: 4632682823319027738
-  injectionPoint: 1
+  injectionPoint: 3
   m_TargetCamera: {fileID: 0}
   useTargetCamera: 0
   references:
@@ -1417,7 +1416,7 @@ MonoBehaviour:
           serializedVersion: 2
           m_Bits: 32
         sortingCriteria: 59
-        overrideMaterial: {fileID: -876546973899608171, guid: fe7384ce22302bf4ba48569d0bd8cf99, type: 3}
+        overrideMaterial: {fileID: -876546973899608171, guid: 045586f93b4b6ea4f8142f7b28114b72, type: 3}
         overrideMaterialPassIndex: 0
         overrideMaterialPassName: ForwardOnly
         overrideDepthState: 1
@@ -1442,28 +1441,10 @@ MonoBehaviour:
         clearFlags: 0
         passFoldout: 0
         m_Version: 0
-        fullscreenPassMaterial: {fileID: -876546973899608171, guid: 907f50367775a354d82759910f0328ac, type: 3}
+        fullscreenPassMaterial: {fileID: 2100000, guid: aa2adf276b87c4746b0024ee68010d24, type: 2}
         materialPassIndex: 0
         materialPassName: Custom Pass 0
         fetchColorBuffer: 0
---- !u!114 &1866870120
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1866870115}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a4cb91e0016e5ef418aaa47d64997f7d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  simpleHighlight:
-  - {fileID: 204984442}
-  ghostHighlight:
-  - {fileID: 1839036566}
-  blinkingHighlight:
-  - {fileID: 1883028156}
 --- !u!1 &1883028156
 GameObject:
   m_ObjectHideFlags: 0
