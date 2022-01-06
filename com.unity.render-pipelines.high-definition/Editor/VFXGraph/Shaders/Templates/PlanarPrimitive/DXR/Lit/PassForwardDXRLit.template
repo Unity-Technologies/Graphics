@@ -65,7 +65,7 @@
                 float3 positionRWS = WorldRayOrigin() + rayIntersection.t * WorldRayDirection();
 
                 // Index needs to be available in the context for the attribute load to work
-                uint index = PrimitiveIndex();
+                ${VFXGetIndexFromRTPrimitiveIndex}
 
                 // Attributes of the paticle
                 VFXAttributes attributes;

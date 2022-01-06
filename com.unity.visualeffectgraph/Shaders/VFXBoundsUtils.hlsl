@@ -183,7 +183,7 @@ void FillAabbBuffer(VFXAttributes attributes, float3 size3, uint index, int deci
             float radius = GetBoundingRadius2D_VFX(attributes, size3, vfxPos);
             aabb.boxMin = vfxPos - float3(radius, radius, radius);
             aabb.boxMax = vfxPos + float3(radius, radius, radius);
-            aabbBuffer[index] = aabb;
+            aabbBuffer[aabbIndex] = aabb;
         }
         else
         {
