@@ -39,8 +39,8 @@ namespace UnityEditor.ShaderGraph
                 if ((subShader.shaderCustomEditors == null) && (customEditorForRenderPipelines != null))
                     subShader.shaderCustomEditors = new List<ShaderCustomEditor>(customEditorForRenderPipelines);
 
-                if (subShader.defaultShaderGUI == null)
-                    subShader.defaultShaderGUI = defaultShaderGUI;
+                if (subShader.shaderCustomEditor == null)
+                    subShader.shaderCustomEditor = defaultShaderGUI;
 
                 subShaders[i] = subShader; // yay C# structs
             }

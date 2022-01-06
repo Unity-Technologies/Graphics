@@ -167,7 +167,7 @@ namespace UnityEditor.ShaderGraph
             string shaderName =
                 isPrimaryShader ?
                     m_PrimaryShaderName :
-                    (m_PrimaryShaderName + "-" + additionalShaderID);
+                    additionalShaderID.Replace("{Name}", m_PrimaryShaderName, StringComparison.Ordinal);
 
             // initialize builder
             m_Builder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
@@ -260,6 +260,7 @@ namespace UnityEditor.ShaderGraph
                 var shaderDependencies = new List<ShaderDependency>();
                 var shaderCustomEditors = new List<ShaderCustomEditor>();
                 string shaderCustomEditor = typeof(GenericShaderGraphMaterialGUI).FullName;
+                string shaderFallback = "Hidden/Shader Graph/FallbackError";
 
                 GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode, graphInputOrderData);
                 for (int i = 0; i < m_Targets.Count; i++)
@@ -279,17 +280,21 @@ namespace UnityEditor.ShaderGraph
                             if (subShader.shaderDependencies != null)
                                 shaderDependencies.AddRange(subShader.shaderDependencies);
 
-                            if (subShader.defaultShaderGUI != null)
-                                shaderCustomEditor = subShader.defaultShaderGUI;
+                            if (subShader.shaderCustomEditor != null)
+                                shaderCustomEditor = subShader.shaderCustomEditor;
 
                             if (subShader.shaderCustomEditors != null)
                                 shaderCustomEditors.AddRange(subShader.shaderCustomEditors);
+
+                            if (subShader.shaderFallback != null)
+                                shaderFallback = subShader.shaderFallback;
                         }
                     }
                 }
 
                 // build shader level data
-                m_Builder.AppendLine($"CustomEditor \"{shaderCustomEditor}\"");
+                if (!string.IsNullOrEmpty(shaderCustomEditor))
+                    m_Builder.AppendLine($"CustomEditor \"{shaderCustomEditor}\"");
 
                 // output custom editors in deterministic order, and only use the first entry for each pipeline asset type
                 shaderCustomEditors.Sort();
@@ -311,8 +316,10 @@ namespace UnityEditor.ShaderGraph
                     lastDependencyName = shaderDependency.dependencyName;
                 }
 
-                // at some point we might want to make this something that can be customized by targets...
-                m_Builder.AppendLine("FallBack \"Hidden/Shader Graph/FallbackError\"");
+                if (string.IsNullOrEmpty(shaderFallback))
+                    m_Builder.AppendLine("FallBack off");
+                else
+                    m_Builder.AppendLine($"FallBack \"{shaderFallback}\"");
             }
 
             var generatedShader = new GeneratedShader()

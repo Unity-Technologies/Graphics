@@ -223,8 +223,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             public override void Setup(ref TargetSetupContext context)
             {
-                var ss = BuildSubShader(null);      // primary shader
-                var ss2 = BuildSubShader("second");
+                var ss = BuildSubShader(null);              // primary shader
+                var ss2 = BuildSubShader("{Name}-second");
                 context.AddSubShader(ss);
                 context.AddSubShader(ss2);
             }

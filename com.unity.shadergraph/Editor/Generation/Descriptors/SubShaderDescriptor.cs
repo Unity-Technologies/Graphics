@@ -42,8 +42,9 @@ namespace UnityEditor.ShaderGraph
         public PassCollection passes;
         public List<string> usePassList;
 
-        // if set, this subshader is intended to be placed not in the main shader result, but in an additional shader
-        // the string is used as a postfix on the shader name (i.e. "shaderName-additionalShaderID")
+        // if set, this subshader is intended to be placed not in the primary shader result, but in an additional shader.
+        // the name of the additional shader is specified by this string,
+        // with "{Name}" replaced by the name of the primary shader
         public string additionalShaderID;
 
         // these are per-shader settings, that get passed up to the shader level
@@ -53,10 +54,11 @@ namespace UnityEditor.ShaderGraph
         // if null, it will use the global custom editors provided via TargetSetupContext.AddCustomEditorForRenderPipeline
         public List<ShaderCustomEditor> shaderCustomEditors;
 
-        // old CustomEditor controll... TODO: anyone use it???  Built-in is the only one who uses it..
-        // the rest of the pipelines all use the customEditorForRenderPipeline path.
-
         // if null, it will use the global defaultShaderGUI provided via TargetSetupContext.SetDefaultShaderGUI
-        public string defaultShaderGUI;
+        // NOTE: only Builtin Target currently uses this value
+        public string shaderCustomEditor;
+
+        // if null, the default shadergraph fallback shader is used
+        public string shaderFallback;
     }
 }
