@@ -1,111 +1,18 @@
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph.Internal;
+using System.Text;
 using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
 
 namespace UnityEditor.ShaderFoundry
 {
-    internal class MaterialPropertyInfo
-    {
-        internal string DefaultExpression;
-        internal string declaration;
-
-        internal void Declare(ShaderBuilder builder, string propertyName)
-        {
-            builder.Indentation();
-            builder.Add($"{declaration} = {DefaultExpression}");
-            builder.AddLine("");
-        }
-
-        internal static List<MaterialPropertyInfo> Extract(BlockProperty property)
-        {
-            var results = new List<MaterialPropertyInfo>();
-
-            var propType = property.Type;
-            // If this is a struct, walk all fields and see if any are material properties
-            if (propType.IsStruct)
-            {
-                foreach (var field in propType.StructFields)
-                    ExtractProperty(field.Attributes, property, field, results);
-            }
-            // Otherwise try and extract material properties from the property itself
-            else
-                ExtractProperty(property.Attributes, property, StructField.Invalid, results);
-       
-            return results;
-        }
-
-        static bool ExtractProperty(IEnumerable<ShaderAttribute> attributes, BlockVariable property, StructField subField, List<MaterialPropertyInfo> results)
-        {
-            // The [MaterialProperty] attribute has highest precedence, then fallback to [PropertyType]
-            if (ExtractMaterialPropertyAttribute(attributes, property, subField, results))
-                return true;
-            if (ExtractPropertyTypeAttribute(attributes, property, subField, results))
-                return true;
-            return false;
-        }
-
-        static bool ExtractMaterialPropertyAttribute(IEnumerable<ShaderAttribute> attributes, BlockVariable property, StructField subField, List<MaterialPropertyInfo> results)
-        {
-            var matPropertyAtt = MaterialPropertyAttribute.Find(attributes);
-            if (matPropertyAtt == null)
-                return false;
-
-            var propInfo = new MaterialPropertyInfo();
-            propInfo.DefaultExpression = GetDefaultExpression(property, property.Attributes, subField);
-            propInfo.declaration = matPropertyAtt.BuildDeclarationString(property.Name, GetDisplayName(property));
-            results.Add(propInfo);
-            return true;
-        }
-
-        static bool ExtractPropertyTypeAttribute(IEnumerable<ShaderAttribute> attributes, BlockVariable property, StructField subField, List<MaterialPropertyInfo> results)
-        {
-            var propertyTypeAtt = PropertyTypeAttribute.Find(attributes);
-            if (propertyTypeAtt == null)
-                return false;
-
-            var propInfo = new MaterialPropertyInfo();
-            propInfo.DefaultExpression = GetDefaultExpression(property, property.Attributes, subField);
-            propInfo.declaration = $"{property.Name}(\"{GetDisplayName(property)}\", {propertyTypeAtt.PropertyType})";
-            results.Add(propInfo);
-            return true;
-        }
-
-        // Currently there is no stored display name. Add this as a placeholder for later.
-        static string GetDisplayName(BlockVariable property)
-        {
-            return property.Name;
-        }
-
-        static string GetDefaultExpression(BlockVariable property, IEnumerable<ShaderAttribute> instanceAttributes, StructField subField)
-        {
-            string defaultExpression = property.Attributes.FindFirstAttributeParamValue(CommonShaderAttributes.DefaultValue, 0);
-            
-            MaterialPropertyDefaultAttribute attribute;
-            if(subField.IsValid)
-            {
-                attribute = MaterialPropertyDefaultAttribute.Find(instanceAttributes, subField.Name);
-                // If we didn't find a default on the instance, check the field definition
-                if (attribute == null)
-                    attribute = MaterialPropertyDefaultAttribute.Find(subField.Attributes);
-            }
-            else
-                attribute = MaterialPropertyDefaultAttribute.Find(instanceAttributes);
-
-            if (attribute != null)
-                return attribute.PropertyDefaultExpression;
-            return defaultExpression;
-        }
-    }
-
     internal static class MaterialPropertyDeclaration
     {
         internal static void Declare(ShaderBuilder builder, BlockProperty variable)
         {
-            // Each variable can result in multiple properties due to structs
-            var props = MaterialPropertyInfo.Extract(variable);
-            foreach (var matProp in props)
+            var propInfo = PropertyInfo.Extract(variable.Type, variable.Name, variable.Attributes);
+            if(propInfo != null && propInfo.MaterialPropertyDeclarations != null)
             {
-                matProp.Declare(builder, variable.Name);
+                foreach (var matPropInfo in propInfo.MaterialPropertyDeclarations)
+                    matPropInfo.Declare(builder);
             }
         }
     }
