@@ -124,11 +124,8 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Ray Tracing"), Tooltip("When enabled, particles will be participate in the ray traced effects.")]
         protected bool isRaytraced = false;
 
-        [VFXSetting, Delayed, Range(1, 1000), SerializeField, Tooltip("Will keep one out of [rayTracingDecimationFactor] particles in the ray traced effects.")]
+        [VFXSetting, Delayed, Min(1), SerializeField, Tooltip("Will keep one out of [rayTracingDecimationFactor] particles in the ray traced effects.")]
         protected uint decimationFactor = 1;
-
-
-
 
         protected virtual bool bypassExposure { get { return true; } } // In case exposure weight is not used, tell whether pre exposure should be applied or not
 
