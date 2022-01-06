@@ -79,6 +79,7 @@ namespace UnityEditor.ShaderGraph
             {
                 targetContexts[i] = new TargetSetupContext(m_AssetCollection);
                 m_Targets[i].Setup(ref targetContexts[i]);
+                targetContexts[i].SetupFinalize();
             }
             m_TargetContexts = Array.AsReadOnly(targetContexts);
 
@@ -256,34 +257,62 @@ namespace UnityEditor.ShaderGraph
             m_Builder.AppendLine(@"Shader ""{0}""", shaderName);
             using (m_Builder.BlockScope())
             {
+                var shaderDependencies = new List<ShaderDependency>();
+                var shaderCustomEditors = new List<ShaderCustomEditor>();
+                string shaderCustomEditor = typeof(GenericShaderGraphMaterialGUI).FullName;
+
                 GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode, graphInputOrderData);
                 for (int i = 0; i < m_Targets.Count; i++)
                 {
                     var context = m_TargetContexts[i];
 
+                    // process the subshaders
                     var subShaderProperties = GetSubShaderPropertiesForTarget(m_Targets[i], m_GraphData, m_Mode, m_OutputNode, isPrimaryShader ? m_PrimaryShaderTemporaryBlocks : null);
-                    foreach (var subShader in context.subShaders)
+                    foreach (SubShaderDescriptor subShader in context.subShaders)
                     {
                         // only generate subshaders that belong to the current shader we are building
                         if (subShader.additionalShaderID == additionalShaderID)
+                        {
                             GenerateSubShader(i, subShader, subShaderProperties);
-                    }
 
-                    var customEditor = context.defaultShaderGUI;
-                    if (customEditor != null && m_Targets[i].WorksWithSRP(GraphicsSettings.currentRenderPipeline))
-                    {
-                        m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
-                    }
+                            // pull out shader data from the subshader
+                            if (subShader.shaderDependencies != null)
+                                shaderDependencies.AddRange(subShader.shaderDependencies);
 
-                    foreach (var rpCustomEditor in context.customEditorForRenderPipelines)
-                    {
-                        m_Builder.AppendLine($"CustomEditorForRenderPipeline \"{rpCustomEditor.shaderGUI}\" \"{rpCustomEditor.renderPipelineAssetType}\"");
-                    }
+                            if (subShader.defaultShaderGUI != null)
+                                shaderCustomEditor = subShader.defaultShaderGUI;
 
-                    m_Builder.AppendLine("CustomEditor \"" + typeof(GenericShaderGraphMaterialGUI).FullName + "\"");
+                            if (subShader.shaderCustomEditors != null)
+                                shaderCustomEditors.AddRange(subShader.shaderCustomEditors);
+                        }
+                    }
                 }
 
-                m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");
+                // build shader level data
+                m_Builder.AppendLine($"CustomEditor \"{shaderCustomEditor}\"");
+
+                // output custom editors in deterministic order, and only use the first entry for each pipeline asset type
+                shaderCustomEditors.Sort();
+                string lastRenderPipelineAssetType = null;
+                foreach (var customEditor in shaderCustomEditors)
+                {
+                    if (customEditor.renderPipelineAssetType != lastRenderPipelineAssetType)
+                        m_Builder.AppendLine($"CustomEditorForRenderPipeline \"{customEditor.shaderGUI}\" \"{customEditor.renderPipelineAssetType}\"");
+                    lastRenderPipelineAssetType = customEditor.renderPipelineAssetType;
+                }
+
+                // output shader dependencies in deterministic order, and only use the first entry for each dependency name
+                shaderDependencies.Sort();
+                string lastDependencyName = null;
+                foreach (var shaderDependency in shaderDependencies)
+                {
+                    if (shaderDependency.dependencyName != lastDependencyName)
+                        m_Builder.AppendLine($"Dependency \"{shaderDependency.dependencyName}\" = \"{shaderDependency.shaderName}\"");
+                    lastDependencyName = shaderDependency.dependencyName;
+                }
+
+                // at some point we might want to make this something that can be customized by targets...
+                m_Builder.AppendLine("FallBack \"Hidden/Shader Graph/FallbackError\"");
             }
 
             var generatedShader = new GeneratedShader()

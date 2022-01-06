@@ -15,7 +15,7 @@ using Object = System.Object;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(126, Extension, -902)]
+    [ScriptedImporter(128, Extension, -902)]
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
@@ -95,13 +95,13 @@ Shader ""Hidden/GraphErrorShader2""
             }
         }
 
-        List<Shader> BuildAllShaders(
+        Shader BuildAllShaders(
             AssetImportContext importContext,
             AssetImportErrorLog importErrorLog,
             AssetCollection allImportAssetDependencies,
             GraphData graph)
         {
-            List<Shader> builtShaders = new List<Shader>();
+            Shader primaryShader = null;
 
             string path = importContext.assetPath;
             var primaryShaderName = Path.GetFileNameWithoutExtension(path);
@@ -138,11 +138,11 @@ Shader ""Hidden/GraphErrorShader2""
                         generatedShader.assignedTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
                         generatedShader.assignedTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
 
-                    builtShaders.Add(shader);
-
                     if (first)
                     {
-                        // first shader is always the main shader
+                        // first shader is always the primary shader
+                        primaryShader = shader;
+
                         // only the main shader gets a material created
                         Material material = new Material(shader) { name = primaryShaderName + " Material" };
                         importContext.AddObjectToAsset("Material", material);
@@ -161,7 +161,7 @@ Shader ""Hidden/GraphErrorShader2""
                 // ignored
             }
 
-            return builtShaders;
+            return primaryShader;
         }
 
         public override void OnImportAsset(AssetImportContext ctx)
@@ -202,9 +202,7 @@ Shader ""Hidden/GraphErrorShader2""
 #endif
             {
                 // build shaders
-                var shaders = BuildAllShaders(ctx, importLog, assetCollection, graph);
-                if (shaders.Any())
-                    mainObject = shaders[0];
+                mainObject = BuildAllShaders(ctx, importLog, assetCollection, graph);
             }
 
 #if VFX_GRAPH_10_0_0_OR_NEWER
