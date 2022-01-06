@@ -770,6 +770,11 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
                 m_RenderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+                // workaround for DX11 and DX12 XR test failures.
+                // XRTODO: investigate DX XR clear issues.
+                if (SystemInfo.usesLoadStoreActions)
+#endif
                 m_RenderOpaqueForwardPass.ConfigureClear((cameraData.renderType == CameraRenderType.Base) ? ClearFlag.Color : ClearFlag.None, Color.black);
 
                 EnqueuePass(m_RenderOpaqueForwardPass);
