@@ -743,9 +743,10 @@ namespace UnityEditor.VFX
                 attributeSourceBufferIndex = dependentBuffers.attributeBuffers[m_DependenciesIn.FirstOrDefault()];
                 eventGPUFrom = dependentBuffers.eventBuffers[this];
             }
-
+            var systemFlag = VFXSystemFlag.SystemDefault;
             if (attributeBufferIndex != -1)
             {
+                systemFlag |= VFXSystemFlag.SystemHasAttributeBuffer;
                 systemBufferMappings.Add(new VFXMapping("attributeBuffer", attributeBufferIndex));
             }
 
@@ -765,7 +766,6 @@ namespace UnityEditor.VFX
                 systemBufferMappings.Add(new VFXMapping("sourceAttributeBuffer", attributeSourceBufferIndex));
             }
 
-            var systemFlag = VFXSystemFlag.SystemDefault;
             if (eventGPUFrom != -1)
             {
                 systemFlag |= VFXSystemFlag.SystemReceivedEventGPU;

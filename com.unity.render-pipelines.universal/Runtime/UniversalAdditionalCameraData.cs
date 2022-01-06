@@ -391,6 +391,35 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        void OnEnable()
+        {
+            RegisterDebug();
+        }
+
+        void OnDisable()
+        {
+            UnRegisterDebug();
+        }
+
+        bool m_IsDebugRegistered = false;
+        void RegisterDebug()
+        {
+            if (!m_IsDebugRegistered)
+            {
+                UniversalRenderPipelineVolumeDebugSettings.RegisterCamera(this);
+                m_IsDebugRegistered = true;
+            }
+        }
+
+        void UnRegisterDebug()
+        {
+            if (m_IsDebugRegistered)
+            {
+                UniversalRenderPipelineVolumeDebugSettings.UnRegisterCamera(this);
+                m_IsDebugRegistered = false;
+            }
+        }
+
         /// <summary>
         /// If true, this camera will clear depth value before rendering. Only valid for Overlay cameras.
         /// </summary>
@@ -578,10 +607,12 @@ namespace UnityEngine.Rendering.Universal
             set => m_AllowXRRendering = value;
         }
 
+        /// <inheritdoc/>
         public void OnBeforeSerialize()
         {
         }
 
+        /// <inheritdoc/>
         public void OnAfterDeserialize()
         {
             if (version <= 1)
@@ -591,6 +622,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
         public void OnDrawGizmos()
         {
             string gizmoName = "";

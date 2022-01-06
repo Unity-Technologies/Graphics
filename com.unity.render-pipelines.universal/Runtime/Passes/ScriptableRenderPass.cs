@@ -15,10 +15,29 @@ namespace UnityEngine.Rendering.Universal
     [Flags]
     public enum ScriptableRenderPassInput
     {
+        /// <summary>
+        /// Used when a <c>ScriptableRenderPass</c> does not require any texture.
+        /// </summary>
         None = 0,
+
+        /// <summary>
+        /// Used when a <c>ScriptableRenderPass</c> requires a depth texture.
+        /// </summary>
         Depth = 1 << 0,
+
+        /// <summary>
+        /// Used when a <c>ScriptableRenderPass</c> requires a normal texture.
+        /// </summary>
         Normal = 1 << 1,
+
+        /// <summary>
+        /// Used when a <c>ScriptableRenderPass</c> requires a color texture.
+        /// </summary>
         Color = 1 << 2,
+
+        /// <summary>
+        /// Used when a <c>ScriptableRenderPass</c> requires a motion vectors texture.
+        /// </summary>
         Motion = 1 << 3
     }
 
@@ -583,7 +602,12 @@ namespace UnityEngine.Rendering.Universal
             depthOnly = depth;
             renderTargetFormat[0] = format;
         }
+        internal void ConfigureTarget(RTHandle colorAttachment, RTHandle depthAttachment, GraphicsFormat format, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
+        {
+            ConfigureTarget(colorAttachment, format, width, height, sampleCount, depth);
+            m_DepthAttachment = depthAttachment;
 
+        }
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.

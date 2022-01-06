@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial struct LocalVolumetricFogArtistParameters
     {
         /// <summary>Single scattering albedo: [0, 1]. Alpha is ignored.</summary>
+        [ColorUsage(false)]
         public Color albedo;
         /// <summary>Mean free path, in meters: [1, inf].</summary>
         public float meanFreePath; // Should be chromatic - this is an optimization!
