@@ -460,6 +460,7 @@ namespace UnityEngine.Experimental.Rendering
             // Make sure all pending operations are done (needs to be after the Clear to unload all previous scenes)
             probeRefVolume.PerformPendingOperations();
 
+            // Use the globalBounds we just computed, as the one in probeRefVolume doesn't include scenes that have never been baked
             probeRefVolume.globalBounds = globalBounds;
 
             onAdditionalProbesBakeCompletedCalled = true;
