@@ -8,7 +8,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX.UI
 {
     [Flags]
-    public enum GizmoError
+    enum GizmoError
     {
         None = 0,
         HasLinkGPU = 1 << 0,
