@@ -733,7 +733,11 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         void LoadScenesInBakingSet(ProbeVolumeSceneData.BakingSet set)
-            => LoadScenes(GetCurrentBakingSet().sceneGUIDs.Select(sceneGUID => m_ScenesInProject.FirstOrDefault(s => s.guid == sceneGUID).path));
+        {
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                return;
+            LoadScenes(GetCurrentBakingSet().sceneGUIDs.Select(sceneGUID => m_ScenesInProject.FirstOrDefault(s => s.guid == sceneGUID).path));
+        }
 
         void LoadScenes(IEnumerable<string> scenePathes)
         {
