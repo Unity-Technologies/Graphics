@@ -669,9 +669,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void SetIsRendered()
         {
 #if UNITY_EDITOR
-            if (m_WasRenderedDuringAsyncCompilation)
+            bool isCompiling = ShaderUtil.anythingCompiling;
+            if (m_WasRenderedDuringAsyncCompilation && !isCompiling)
                 EnqueueAllRenderSteps();
-            m_WasRenderedDuringAsyncCompilation = ShaderUtil.anythingCompiling;
+            m_WasRenderedDuringAsyncCompilation = isCompiling;
 #endif
             switch (realtimeMode)
             {
