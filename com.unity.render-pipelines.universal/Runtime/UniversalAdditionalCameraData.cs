@@ -621,7 +621,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Screen size used when Screen Coords Override is active.
+        /// Screen size used when Screen Coordinates Override is active.
         /// </summary>
         public Vector4 screenSizeOverride
         {
@@ -630,7 +630,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Transform used when Screen Coords Override is active.
+        /// Transform used when Screen Coordinates Override is active.
         /// </summary>
         public Vector4 screenCoordScaleBias
         {
