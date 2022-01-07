@@ -515,6 +515,11 @@ namespace UnityEngine.Experimental.Rendering
                     int brickIdx = i / 64;
                     cell.minSubdiv = Mathf.Min(cell.minSubdiv, cell.bricks[brickIdx].subdivisionLevel);
 
+                    if (Vector3.Distance(cell.probePositions[i], new Vector3(-74.0f, 4.0f, -60.0f)) < 0.1f)
+                    {
+                        Debug.Log("Testing");
+                    }
+
                     // TODO_FCC: This is roughtly testing, slow.
                     bool invalidatedProbe = false;
                     foreach (var touchupBound in touchupVolumesBounds)
@@ -535,10 +540,11 @@ namespace UnityEngine.Experimental.Rendering
                         }
                     }
 
-                    if (!s_ForceInvalidatedProbesAndTouchupVols.ContainsKey(cell.probePositions[i]) &&
-                        m_BakingBatch.invalidatedPositions[cell.probePositions[i]])
+                    if (validity[j] < 0.05f && m_BakingBatch.invalidatedPositions.ContainsKey(cell.probePositions[i]) && m_BakingBatch.invalidatedPositions[cell.probePositions[i]])
                     {
-                        s_ForceInvalidatedProbesAndTouchupVols.Add(cell.probePositions[i], new Bounds());
+                        if (!s_ForceInvalidatedProbesAndTouchupVols.ContainsKey(cell.probePositions[i]))
+                            s_ForceInvalidatedProbesAndTouchupVols.Add(cell.probePositions[i], new Bounds());
+
                         invalidatedProbe = true;
                     }
 
@@ -594,6 +600,11 @@ namespace UnityEngine.Experimental.Rendering
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 6, new Vector3(shv[0, 6], shv[1, 6], shv[2, 6]));
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 7, new Vector3(shv[0, 7], shv[1, 7], shv[2, 7]));
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(shv[0, 8], shv[1, 8], shv[2, 8]));
+
+                    if (Vector3.Distance(cell.probePositions[i], new Vector3(-74.0f, 4.0f, -60.0f)) < 0.1f)
+                    {
+                        Debug.Log("Testing");
+                    }
 
                     cell.validity[i] = invalidatedProbe ? 1.0f : validity[j];
                 }
@@ -917,10 +928,6 @@ namespace UnityEngine.Experimental.Rendering
             {
                 for (int i = 0; i < positions.Length; ++i)
                 {
-                    if (Vector3.Distance(positions[i], new Vector3(-74.0f, 4.0f, -60.0f)) < 0.1f)
-                    {
-                        Debug.Log("Testing");
-                    }
                     bool hit = HasColliderAround(positions[i], invalSettings.checkRange);
                     m_BakingBatch.invalidatedPositions[positions[i]] = hit;
                 }

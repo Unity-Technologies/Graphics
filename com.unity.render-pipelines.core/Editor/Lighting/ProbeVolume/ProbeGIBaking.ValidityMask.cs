@@ -59,7 +59,6 @@ namespace UnityEngine.Experimental.Rendering
 
         static bool NeighbourhoodIsEmptySpace(Vector3 pos, float distanceSearch, Bounds boundsToCheckAgainst)
         {
-
             // This *needs* to be optimized.
             // We need to look in positive directions only {1/0,1/0,1/0} - {0,0,0}
 
