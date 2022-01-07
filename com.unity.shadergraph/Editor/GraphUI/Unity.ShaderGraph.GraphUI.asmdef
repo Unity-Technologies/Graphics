@@ -1,0 +1,31 @@
+{
+    "name": "Unity.ShaderGraph.GraphUI",
+    "rootNamespace": "",
+    "references": [
+        "Unity.ShaderGraph.Registry",
+        "Unity.ShaderGraph.GraphDelta",
+        "Unity.Properties",
+        "Unity.Properties.UI",
+        "Unity.Properties.UI.Editor",
+        "Unity.GraphTools.Foundation.Overdrive",
+        "Unity.GraphTools.Foundation.Overdrive.Editor",
+        "Unity.GraphTools.Foundation.Overdrive.Model",
+        "Unity.GraphTools.Foundation.Overdrive.CommandStateObserver",
+        "Unity.GraphToolsFoundation.Searcher.Editor",
+        "Unity.GraphTools.Foundation.Searcher",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.ShaderGraph.GraphDeltaRegistry",
+        "Unity.ShaderGraph.Generation"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

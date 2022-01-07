@@ -1,0 +1,28 @@
+#root
+{
+    width: 260px;
+    height: 250px;
+}
+
+#content > .inspector {
+    width: 260px;
+    height: 200px;
+    flex: 0 0 auto;
+    border-left-color: #1a1a1a;
+    border-left-width: 2px;
+}
+
+#content > .inspector__title {
+    padding: 5px;
+    -unity-font-style: bold;
+    border-bottom-color: #1a1a1a;
+    border-bottom-width: 1px;
+}
+
+#content > .inspector__container {
+    margin: 5px;
+}
+
+#content > .inspector__container .unity-inspector-element {
+    padding: 0;
+}
