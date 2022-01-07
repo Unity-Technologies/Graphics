@@ -164,7 +164,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (BloomEnabled)
     {
         #if 0 // Bilinear
-        float3 bloom = SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(CLUSTER_TO_DEVICE_FULLSCREEN_UV(uvDistorted)), 0.0).xyz;
+        float3 bloom = SAMPLE_TEXTURE2D_X_LOD(_BloomTexture, sampler_LinearClamp, ClampAndScaleUVForBilinear(SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted)), 0.0).xyz;
         #else
         float3 bloom = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_BloomTexture, sampler_LinearClamp), SCREEN_COORD_REMOVE_SCALEBIAS(uvDistorted) * _RTHandlePostProcessScale.xy, _BloomBicubicParams, _RTHandlePostProcessScale.xy, unity_StereoEyeIndex).xyz;
         #endif
@@ -195,7 +195,12 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (VignetteMode == 0u) // Procedural
     {
         float2 d = abs(uvDistorted - VignetteCenter) * VignetteIntensity;
+        // SCREEN_SIZE_OVERRIDE defaults to _ScreenSize when SCREEN_COORD_OVERRIDE is not defined.
+#ifdef SCREEN_COORD_OVERRIDE
         d.x *= lerp(1.0, SCREEN_SIZE_OVERRIDE.x / SCREEN_SIZE_OVERRIDE.y, VignetteRounded);
+#else
+        d.x *= lerp(1.0, _PostProcessScreenSize.x / _PostProcessScreenSize.y, VignetteRounded);
+#endif
         d = pow(saturate(d), VignetteRoundness);
         float vfactor = pow(saturate(1.0 - dot(d, d)), VignetteSmoothness);
         color.xyz *= lerp(VignetteColor, (1.0).xxx, vfactor);

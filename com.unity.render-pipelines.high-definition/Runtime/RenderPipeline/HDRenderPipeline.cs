@@ -2242,7 +2242,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Sanity check.
             if (xrPass.enabled && currentFrameSettings.IsEnabled(FrameSettingsField.AsymmetricProjection))
             {
-                Debug.Log("XR and explicit AsymmetricProjection (Frame Settings) are not expected to be enabled simultaneously.");
+                Debug.LogError("XR and explicit Asymmetric Projection (Frame Settings) are not expected to be enabled simultaneously.");
             }
 
             // With the Frame Settings now properly set up, we can resolve the sample budget.

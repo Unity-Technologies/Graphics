@@ -630,7 +630,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Transform used when Screen Coordinates Override is active.
+        /// Transform applied to screen coordinates when Screen Coordinates Override is active.
         /// </summary>
         public Vector4 screenCoordScaleBias
         {

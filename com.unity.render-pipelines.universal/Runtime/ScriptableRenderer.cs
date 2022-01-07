@@ -653,7 +653,6 @@ namespace UnityEngine.Rendering.Universal
             m_CameraColorTarget = new RTHandleRenderTargetIdentifierCompat { fallback = colorTarget };
         }
 
-        // TODO Suspect (should be removed)
         // This should be removed when early camera color target assignment is removed.
         internal void ConfigureCameraColorTarget(RTHandle colorTarget)
         {
