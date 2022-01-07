@@ -45,6 +45,7 @@ struct APVResources
     Texture3D L2_3;
 
     Texture3D Validity;
+    Texture3D Pos;
 };
 
 struct APVSample
@@ -100,6 +101,8 @@ TEXTURE3D(_APVResL2_1);
 TEXTURE3D(_APVResL2_2);
 TEXTURE3D(_APVResL2_3);
 TEXTURE3D(_APVResValidity);
+
+TEXTURE3D(_APVResPos);
 
 // -------------------------------------------------------------
 // Various weighting functions for occlusion or helper functions.
@@ -227,6 +230,7 @@ APVResources FillAPVResources()
     apvRes.index = _APVResIndex;
 
     apvRes.L0_L1Rx = _APVResL0_L1Rx;
+    apvRes.Pos = _APVResPos;
 
     apvRes.L1G_L1Ry = _APVResL1G_L1Ry;
     apvRes.L1B_L1Rz = _APVResL1B_L1Rz;
@@ -302,7 +306,9 @@ APVSample SampleAPV(APVResources apvRes, float3 uvw)
     float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(apvRes.L1G_L1Ry, s_linear_clamp_sampler, uvw, 0).rgba;
     float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(apvRes.L1B_L1Rz, s_linear_clamp_sampler, uvw, 0).rgba;
 
-    apvSample.L0 = L0_L1Rx.xyz;
+    float4 Pos = SAMPLE_TEXTURE3D_LOD(apvRes.Pos, s_linear_clamp_sampler, uvw, 0).rgba;
+
+    apvSample.L0 = L0_L1Rx.xyz + Pos.xyz*0.0000001f;
     apvSample.L1_R = float3(L0_L1Rx.w, L1G_L1Ry.w, L1B_L1Rz.w);
     apvSample.L1_G = L1G_L1Ry.xyz;
     apvSample.L1_B = L1B_L1Rz.xyz;

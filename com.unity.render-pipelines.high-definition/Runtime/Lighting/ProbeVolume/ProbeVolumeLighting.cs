@@ -51,6 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1G_L1Ry, rr.L1_G_ry);
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1B_L1Rz, rr.L1_B_rz);
                     cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResValidity, rr.Validity);
+                    cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResPos, rr.TestPos);
 
                     if (refVolume.shBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {

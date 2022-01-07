@@ -446,6 +446,8 @@ namespace UnityEngine.Experimental.Rendering
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
             UnityEngine.Profiling.Profiler.BeginSample("OnAdditionalProbesBakeCompleted");
 
+            s_PositionOfForceInvalidatedProbes.Clear();
+            s_ForceInvalidatedProbesAndTouchupVols.Clear();
 
             var probeRefVolume = ProbeReferenceVolume.instance;
             var bakingCells = m_BakingBatch.cells;
@@ -520,8 +522,24 @@ namespace UnityEngine.Experimental.Rendering
                         if (touchupBound.Contains(cell.probePositions[i]))
                         {
                             invalidatedProbe = true;
+                            if (Vector3.Distance(cell.probePositions[i], new Vector3(-63.0f, 4.0f, -69.0f)) < 0.1f)
+                            {
+                                Debug.Log("Adding tester... ");
+                            }
+                            if (validity[j] < 0.05f) // We need to check if was already invalid.
+                            {
+                                s_PositionOfForceInvalidatedProbes.Add(cell.probePositions[i]);
+                                s_ForceInvalidatedProbesAndTouchupVols[cell.probePositions[i]] = touchupBound;
+                            }
                             break;
                         }
+                    }
+
+                    if (!s_ForceInvalidatedProbesAndTouchupVols.ContainsKey(cell.probePositions[i]) &&
+                        m_BakingBatch.invalidatedPositions[cell.probePositions[i]])
+                    {
+                        s_ForceInvalidatedProbesAndTouchupVols.Add(cell.probePositions[i], new Bounds());
+                        invalidatedProbe = true;
                     }
 
 
@@ -535,7 +553,7 @@ namespace UnityEngine.Experimental.Rendering
                         if (l0 == 0.0f)
                             continue;
 
-                        if (invalidatedProbe || (dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && validity[j] > dilationSettings.dilationValidityThreshold))
+                        if ((dilationSettings.enableDilation && dilationSettings.dilationDistance > 0.0f && validity[j] > dilationSettings.dilationValidityThreshold))
                         {
                             for (int k = 0; k < 9; ++k)
                             {
@@ -899,10 +917,12 @@ namespace UnityEngine.Experimental.Rendering
             {
                 for (int i = 0; i < positions.Length; ++i)
                 {
+                    if (Vector3.Distance(positions[i], new Vector3(-74.0f, 4.0f, -60.0f)) < 0.1f)
+                    {
+                        Debug.Log("Testing");
+                    }
                     bool hit = HasColliderAround(positions[i], invalSettings.checkRange);
                     m_BakingBatch.invalidatedPositions[positions[i]] = hit;
-                    if (hit)
-                        Debug.Log(positions[i]);
                 }
             }
 

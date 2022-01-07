@@ -1038,6 +1038,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _APVResL2_2 = Shader.PropertyToID("_APVResL2_2");
         public static readonly int _APVResL2_3 = Shader.PropertyToID("_APVResL2_3");
         public static readonly int _APVResValidity = Shader.PropertyToID("_APVResValidity");
+        public static readonly int _APVResPos = Shader.PropertyToID("_APVResPos");
 
         // Custom Pass Utils API
         public static readonly int _SourceScaleBias = Shader.PropertyToID("_SourceScaleBias");

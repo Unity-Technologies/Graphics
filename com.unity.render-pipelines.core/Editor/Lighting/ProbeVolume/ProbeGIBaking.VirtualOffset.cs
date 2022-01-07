@@ -45,11 +45,11 @@ namespace UnityEngine.Experimental.Rendering
 
         private static void CleanupOccluders()
         {
-            foreach (MeshRenderer meshRenderer in addedOccluders)
-            {
-                MeshCollider collider = meshRenderer.gameObject.GetComponent<MeshCollider>();
-                UnityEngine.Object.DestroyImmediate(collider);
-            }
+            //foreach (MeshRenderer meshRenderer in addedOccluders)
+            //{
+            //    MeshCollider collider = meshRenderer.gameObject.GetComponent<MeshCollider>();
+            //    UnityEngine.Object.DestroyImmediate(collider);
+            //}
         }
 
         private static Vector3 PushPositionOutOfGeometry(Vector3 worldPosition, float distanceSearch, float biasOutGeo)
@@ -74,7 +74,7 @@ namespace UnityEngine.Experimental.Rendering
                         RaycastHit[] inBoundHits = Physics.RaycastAll(worldPosition + ray, -1.0f * normDir, distanceSearch, collisionLayerMask);
 
                         float distanceForDir = 0;
-                        bool hasMeshColliderHits = HasMeshColliderHits(outBoundHits, inBoundHits, normDir, -normDir, distanceSearch, true, out distanceForDir);
+                        bool hasMeshColliderHits = HasMeshColliderHits(outBoundHits, inBoundHits, normDir, -normDir, distanceSearch, true, new Bounds(), out distanceForDir);
                         if (hasMeshColliderHits)
                         {
                             hitFound = true;
