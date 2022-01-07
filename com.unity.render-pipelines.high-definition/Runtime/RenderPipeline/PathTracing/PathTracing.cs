@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Improves the detail retention after denoising by using albedo and normal AOVs.
         /// </summary>
-        [Tooltip("Enables denoising with albedo and normal AOVs")]
+        [Tooltip("Improves detail of the denoised image by using albedo and normal AOVs")]
         [InspectorName("Use AOVs")]
         public BoolParameter useAOVs = new BoolParameter(true);
 
@@ -106,6 +106,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Enables temporally stable denoising")]
         public BoolParameter temporal = new BoolParameter(false);
+
+        /// <summary>
+        /// Controls whether denoising will be asynchronus (non-blocking) for the scene view camera.
+        /// </summary>
+        public BoolParameter asyncDenoising = new BoolParameter(true);
 #endif
 
         /// <summary>

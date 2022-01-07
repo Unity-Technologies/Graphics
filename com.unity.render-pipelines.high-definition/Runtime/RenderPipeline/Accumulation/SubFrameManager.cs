@@ -17,11 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
             accumulatedWeight = 0.0f;
             currentIteration = 0;
 #if ENABLE_UNITY_DENOISING_PLUGIN
-            if (denoiser != null)
-                denoiser.Reset();
-            else
-                denoiser = new Denoiser();
-            validHistory = false;
+            validDenoiseHistory = false;
+            discardDenoiseRequest = true;
 #endif
         }
 
@@ -35,7 +32,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint currentIteration;
 #if ENABLE_UNITY_DENOISING_PLUGIN
         public Denoiser denoiser;
-        public bool validHistory;
+        public bool validDenoiseHistory;
+        public bool activeDenoiseRequest;
+        public bool discardDenoiseRequest;
 #endif
     }
 
@@ -62,6 +61,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_CameraCache.TryGetValue(camID, out camData))
             {
                 camData.ResetIteration();
+#if ENABLE_UNITY_DENOISING_PLUGIN
+                camData.denoiser = new Denoiser();
+                camData.activeDenoiseRequest = false;
+                camData.discardDenoiseRequest = false;
+#endif
                 m_CameraCache.Add(camID, camData);
             }
             return camData;
@@ -127,8 +131,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 CameraData camData = GetCameraData(camID);
                 if (camData.denoiser != null)
                 {
-                    camData.denoiser.Reset();
-                    camData.validHistory = false;
+                    camData.validDenoiseHistory = false;
+                    camData.discardDenoiseRequest = true;
                     SetCameraData(camID, camData);
                 }
             }

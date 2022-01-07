@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int camID;
             public bool useAOV;
             public bool temporal;
+            public bool async;
 
             public int width;
             public int height;
@@ -38,6 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.subFrameManager = m_SubFrameManager;
                 passData.useAOV = m_PathTracingSettings.useAOVs.value;
                 passData.temporal = m_PathTracingSettings.temporal.value && hdCamera.camera.cameraType == CameraType.Game;
+                passData.async = m_PathTracingSettings.asyncDenoising.value && hdCamera.camera.cameraType == CameraType.SceneView;
 
                 // copy camera params
                 passData.camID = hdCamera.camera.GetInstanceID();
@@ -79,30 +81,48 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (camData.currentIteration >= (data.subFrameManager.subFrameCount) && camData.denoiser.type != DenoiserType.None)
                     {
-                        if (!camData.validHistory)
+                        if (!camData.validDenoiseHistory)
                         {
-                            camData.denoiser.DenoiseRequest(ctx.cmd, "color", data.color);
-
-                            if (data.useAOV)
+                            if (!camData.activeDenoiseRequest)
                             {
-                                camData.denoiser.DenoiseRequest(ctx.cmd, "albedo", data.albedoAOV);
-                                camData.denoiser.DenoiseRequest(ctx.cmd, "normal", data.normalAOV);
+                                camData.denoiser.DenoiseRequest(ctx.cmd, "color", data.color);
+
+                                if (data.useAOV)
+                                {
+                                    camData.denoiser.DenoiseRequest(ctx.cmd, "albedo", data.albedoAOV);
+                                    camData.denoiser.DenoiseRequest(ctx.cmd, "normal", data.normalAOV);
+                                }
+
+                                if (data.temporal)
+                                {
+                                    camData.denoiser.DenoiseRequest(ctx.cmd, "flow", data.motionVectorAOV);
+                                }
+                                camData.activeDenoiseRequest = true;
+                                camData.discardDenoiseRequest = false;
                             }
 
-                            if (data.temporal)
+                            if (!data.async)
                             {
-                                camData.denoiser.DenoiseRequest(ctx.cmd, "flow", data.motionVectorAOV);
+                                camData.denoiser.WaitForCompletion(ctx.renderContext, ctx.cmd);
+
+                                int ret = camData.denoiser.GetResults(ctx.cmd, data.denoiseHistory);
+                                camData.validDenoiseHistory = (ret == 0);
+                                camData.activeDenoiseRequest = false;
+                            }
+                            else
+                            {
+                                if (camData.activeDenoiseRequest && camData.denoiser.QueryCompletion() != Denoiser.State.Executing)
+                                {
+                                    int ret = camData.denoiser.GetResults(ctx.cmd, data.denoiseHistory);
+                                    camData.validDenoiseHistory = (ret == 0) && (camData.discardDenoiseRequest == false);
+                                    camData.activeDenoiseRequest = false;
+                                }
                             }
 
-                            camData.denoiser.WaitForCompletion(ctx.renderContext, ctx.cmd);
-
-                            int ret = camData.denoiser.GetResults(ctx.cmd, data.denoiseHistory);
-
-                            camData.validHistory = (ret == 0);
                             m_SubFrameManager.SetCameraData(data.camID, camData);
                         }
 
-                        if (camData.validHistory)
+                        if (camData.validDenoiseHistory)
                         {
                             // Blit the denoised image from the history buffer and apply exposure.
                             ctx.cmd.SetComputeTextureParam(data.blitAndExposeCS, data.blitAndExposeKernel, HDShaderIDs._InputTexture, data.denoiseHistory);

@@ -78,7 +78,10 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                                 if (supported)
                                 {
                                     PropertyField(m_UseAOV);
-                                    PropertyField(m_Temporal);
+                                    if (m_Denoising.value.intValue == (int)DenoiserType.Optix)
+                                    {
+                                        PropertyField(m_Temporal);
+                                    }
                                 }
                                 else
                                 {
