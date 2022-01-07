@@ -27,13 +27,10 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kDisplacementOutputSlotId = 1;
         const string kDisplacementOutputSlotName = "Displacement";
 
-        const int kDisplacementNoChoppinessOutputSlotId = 2;
-        const string kDisplacementNoChoppinessOutputSlotName = "DisplacementNoChoppiness";
-
-        const int kLowFrequencyHeightOutputSlotId = 3;
+        const int kLowFrequencyHeightOutputSlotId = 2;
         const string kLowFrequencyHeightOutputSlotName = "LowFrequencyHeight";
 
-        const int kSSSMaskOutputSlotId = 4;
+        const int kSSSMaskOutputSlotId = 3;
         const string kSSSMaskOutputSlotName = "SSSMask";
 
         public override bool hasPreview { get { return false; } }
@@ -45,7 +42,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Outputs
             AddSlot(new Vector3MaterialSlot(kDisplacementOutputSlotId, kDisplacementOutputSlotName, kDisplacementOutputSlotName, SlotType.Output, Vector3.zero));
-            AddSlot(new Vector3MaterialSlot(kDisplacementNoChoppinessOutputSlotId, kDisplacementNoChoppinessOutputSlotName, kDisplacementNoChoppinessOutputSlotName, SlotType.Output, Vector3.zero));
             AddSlot(new Vector1MaterialSlot(kLowFrequencyHeightOutputSlotId, kLowFrequencyHeightOutputSlotName, kLowFrequencyHeightOutputSlotName, SlotType.Output, 0));
             AddSlot(new Vector1MaterialSlot(kSSSMaskOutputSlotId, kSSSMaskOutputSlotName, kSSSMaskOutputSlotName, SlotType.Output, 0));
 
@@ -53,7 +49,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 kPositionWSInputSlotId,
                 kDisplacementOutputSlotId,
-                kDisplacementNoChoppinessOutputSlotId,
                 kLowFrequencyHeightOutputSlotId,
                 kSSSMaskOutputSlotId,
             });
@@ -75,10 +70,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     GetVariableNameForSlot(kDisplacementOutputSlotId)
                 );
 
-                sb.AppendLine("$precision3 {0} = displacementData.displacementNoChopiness;",
-                    GetVariableNameForSlot(kDisplacementNoChoppinessOutputSlotId)
-                );
-
                 sb.AppendLine("$precision {0} = displacementData.lowFrequencyHeight;",
                     GetVariableNameForSlot(kLowFrequencyHeightOutputSlotId)
                 );
@@ -91,10 +82,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 sb.AppendLine("$precision3 {0} = 0.0;",
                     GetVariableNameForSlot(kDisplacementOutputSlotId)
-                );
-
-                sb.AppendLine("$precision3 {0} = 0.0;",
-                    GetVariableNameForSlot(kDisplacementNoChoppinessOutputSlotId)
                 );
 
                 sb.AppendLine("$precision {0} = 0.0;",
