@@ -380,7 +380,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class VBufferLightingPassData
+        class VBufferLightingPassData : ForwardOpaquePassData
         {
             public int width;
             public int height;
@@ -388,15 +388,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public VBufferInformation vBufferInfo;
             public TextureHandle materialDepthBuffer;
             public TextureHandle cameraDepthTexture;
-            public ComputeBufferHandle lightListBuffer;
 
             //TODO: render lists get deallocated when calling DrawOpaqueRendererList immediately.
             //Workaround is to declare 3 renderer lists for each draw renderes call, which sounds really freaking wasteful.
             //We should instead build the renderer list once, and be able to draw many times. Check with seb.
-            public RendererListHandle rendererList0;
+            //public RendererListHandle rendererList0;
             public RendererListHandle rendererList1;
             public RendererListHandle rendererList2;
-            public FrameSettings frameSettings;
         }
 
         TextureHandle RenderVBufferLighting(
@@ -404,8 +402,10 @@ namespace UnityEngine.Rendering.HighDefinition
             CullingResults cull,
             HDCamera hdCamera,
             VBufferInformation vBufferInfo,
+            ShadowResult shadowResult,
             TextureHandle colorBuffer,
             TextureHandle depthBuffer,
+            in LightingBuffers lightingBuffers,
             in BuildGPULightListOutput lightLists)
         {
             if (!vBufferInfo.valid)
@@ -413,6 +413,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<VBufferLightingPassData>("VBuffer Lighting", out var passData, ProfilingSampler.Get(HDProfileId.VBufferLighting)))
             {
+                var renderListDesc = CreateOpaqueRendererListDesc(
+                                    cull,
+                                    hdCamera.camera,
+                                    HDShaderPassNames.s_VBufferLightingName, m_CurrentRendererConfigurationBakedLighting);
+                //TODO: hide this from the UI!!
+                renderListDesc.renderingLayerMask = DeferredMaterialBRG.RenderLayerMask;
+
+                PrepareCommonForwardPassData(renderGraph, builder, passData, true, hdCamera.frameSettings, renderListDesc, lightLists, shadowResult);
+                passData.rendererList1 = builder.UseRendererList(renderGraph.CreateRendererList(renderListDesc));
+                passData.rendererList2 = builder.UseRendererList(renderGraph.CreateRendererList(renderListDesc));
+
                 builder.AllowRendererListCulling(false);
 
                 passData.width = hdCamera.actualWidth;
@@ -421,30 +432,29 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.vBufferInfo = vBufferInfo.Read(builder);
                 passData.materialDepthBuffer = builder.UseDepthBuffer(passData.vBufferInfo.vBufferResources.vbufferMaterialDepth, DepthAccess.ReadWrite);
                 passData.cameraDepthTexture = builder.ReadTexture(depthBuffer);
-                passData.lightListBuffer = builder.ReadComputeBuffer(lightLists.lightList);
-                passData.frameSettings = hdCamera.frameSettings;
 
-                var renderListDesc = CreateOpaqueRendererListDesc(
-                                    cull,
-                                    hdCamera.camera,
-                                    HDShaderPassNames.s_VBufferLightingName, m_CurrentRendererConfigurationBakedLighting);
-
-                //TODO: hide this from the UI!!
-                renderListDesc.renderingLayerMask = DeferredMaterialBRG.RenderLayerMask;
-                passData.rendererList0 = builder.UseRendererList(renderGraph.CreateRendererList(renderListDesc));
-                passData.rendererList1 = builder.UseRendererList(renderGraph.CreateRendererList(renderListDesc));
-                passData.rendererList2 = builder.UseRendererList(renderGraph.CreateRendererList(renderListDesc));
+                passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
+                passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, builder);
 
                 builder.SetRenderFunc(
                     (VBufferLightingPassData data, RenderGraphContext context) =>
                     {
+                        BindGlobalLightListBuffers(data, context);
+                        BindDBufferGlobalData(data.dbuffer, context);
+                        BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
+
                         context.cmd.SetGlobalTexture(HDShaderIDs._VisBufferDepthTexture, data.cameraDepthTexture);
-                        context.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, data.lightListBuffer);
                         BindVBufferResourcesGlobal(context.cmd, passData.vBufferInfo);
 
                         int quadTileSize = DeferredMaterialBRG.MaterialTileSize;
                         int numTileX = HDUtils.DivRoundUp(data.width, quadTileSize);
                         int numTileY = HDUtils.DivRoundUp(data.height, quadTileSize);
+
+                        // Note: SHADOWS_SHADOWMASK keyword is enabled in HDRenderPipeline.cs ConfigureForShadowMask
+                        bool useFptl = data.frameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque);
+                        // say that we want to use tile/cluster light loop
+                        CoreUtils.SetKeyword(context.cmd, "USE_FPTL_LIGHTLIST", useFptl);
+                        CoreUtils.SetKeyword(context.cmd, "USE_CLUSTERED_LIGHTLIST", !useFptl);
 
                         context.cmd.SetGlobalVector(HDShaderIDs._VisBufferTileData, new Vector4((float)numTileX, (float)numTileY, (float)quadTileSize, (float)(numTileX * numTileY)));
 
@@ -453,7 +463,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         CoreUtils.SetKeyword(context.cmd, "VARIANT_DIR_ENV", false);
                         CoreUtils.SetKeyword(context.cmd, "VARIANT_DIR_PUNCTUAL_ENV", false);
                         CoreUtils.SetKeyword(context.cmd, "VARIANT_DIR_PUNCTUAL_AREA_ENV", true);
-                        DrawOpaqueRendererList(context, data.frameSettings, data.rendererList0);
+                        DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
 
                         CoreUtils.SetKeyword(context.cmd, "VARIANT_DIR_ENV", true);
                         CoreUtils.SetKeyword(context.cmd, "VARIANT_DIR_PUNCTUAL_ENV", false);

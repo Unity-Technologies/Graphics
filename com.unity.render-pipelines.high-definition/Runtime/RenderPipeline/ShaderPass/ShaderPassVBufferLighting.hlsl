@@ -45,6 +45,32 @@ uint GetCurrentBatchID()
     return GetCurrentMaterialBatchGPUKey() & 0xFF;
 }
 
+uint GetShaderTileCategory()
+{
+    uint shaderTileCategory = 0;
+    #if defined(VARIANT_DIR_ENV)
+    shaderTileCategory = LIGHTVBUFFERTILECATEGORY_ENV;
+    #elif defined(VARIANT_DIR_PUNCTUAL_ENV)
+    shaderTileCategory = LIGHTVBUFFERTILECATEGORY_ENV_PUNCTUAL;
+    #elif defined(VARIANT_DIR_PUNCTUAL_AREA_ENV)
+    shaderTileCategory = LIGHTVBUFFERTILECATEGORY_EVERYTHING;
+    #endif
+    return shaderTileCategory;
+}
+
+uint GetShaderFeatureMask()
+{
+    uint featureMasks = 0;
+    #if defined(VARIANT_DIR_ENV)
+    featureMasks = VBUFFER_LIGHTING_FEATURES_ENV;
+    #elif defined(VARIANT_DIR_PUNCTUAL_ENV)
+    featureMasks = VBUFFER_LIGHTING_FEATURES_ENV_PUNCTUAL;
+    #elif defined(VARIANT_DIR_PUNCTUAL_AREA_ENV)
+    featureMasks = VBUFFER_LIGHTING_FEATURES_EVERYTHING;
+    #endif
+    return featureMasks;
+}
+
 Varyings Vert(Attributes inputMesh)
 {
     Varyings output;
@@ -76,14 +102,7 @@ Varyings Vert(Attributes inputMesh)
     output.lightAndMaterialFeatures = Visibility::LoadFeatureTile(tileCoords);
     uint currentTileCategory = Visibility::GetLightTileCategory(output.lightAndMaterialFeatures);
 
-    uint shaderTileCategory = 0;
-    #if defined(VARIANT_DIR_ENV)
-    shaderTileCategory = LIGHTVBUFFERTILECATEGORY_ENV;
-    #elif defined(VARIANT_DIR_PUNCTUAL_ENV)
-    shaderTileCategory = LIGHTVBUFFERTILECATEGORY_ENV_PUNCTUAL;
-    #elif defined(VARIANT_DIR_PUNCTUAL_AREA_ENV)
-    shaderTileCategory = LIGHTVBUFFERTILECATEGORY_EVERYTHING;
-    #endif
+    uint shaderTileCategory = GetShaderTileCategory();
 
     if (((getCurrentMaterialGPUKey() & bucketIDMask) != 0) && (getCurrentMaterialGPUKey() >= matMinMax.x && getCurrentMaterialGPUKey() <= matMinMax.y) && shaderTileCategory == currentTileCategory)
     {
@@ -236,7 +255,7 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     }
 
     float2 pixelCoord = packedInput.positionCS.xy;
-    float depthValue = LOAD_TEXTURE2D_X(_VisBufferDepthTexture, pixelCoord);
+    float depthValue = LOAD_TEXTURE2D_X(_VisBufferDepthTexture, pixelCoord).x;
     float2 ndc = pixelCoord * _ScreenSize.zw;
     float3 posWS = ComputeWorldSpacePosition(ndc, depthValue, UNITY_MATRIX_I_VP);
     ndc = (ndc * 2.0 - 1.0) * float2(1.0, -1.0);
