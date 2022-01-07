@@ -90,12 +90,13 @@ namespace UnityEngine.Rendering.Tests
                 m_cmdBuffer = new CommandBuffer();
                 m_geometryPool = geometryPool;
 
-                var indexData = new NativeArray<int>(geometryPool.indicesCount, Allocator.Persistent);
-                m_cmdBuffer.RequestAsyncReadback(geometryPool.globalIndexBuffer, (AsyncGPUReadbackRequest req) =>
-                {
-                    if (req.done)
-                        indexData.CopyFrom(req.GetData<int>());
-                });
+                //TODO fix tests now that we dont have indexed data in the geopool
+                //var indexData = new NativeArray<int>(geometryPool.indicesCount, Allocator.Persistent);
+                //m_cmdBuffer.RequestAsyncReadback(geometryPool.globalIndexBuffer, (AsyncGPUReadbackRequest req) =>
+                //{
+                //    if (req.done)
+                //        indexData.CopyFrom(req.GetData<int>());
+                //});
 
                 var vertData = new NativeArray<float>(geometryPool.verticesCount * (GeometryPool.GetVertexByteSize() / 4), Allocator.Persistent);
                 m_cmdBuffer.RequestAsyncReadback(geometryPool.globalVertexBuffer, (AsyncGPUReadbackRequest req) =>
@@ -143,7 +144,7 @@ namespace UnityEngine.Rendering.Tests
                 m_cmdBuffer.WaitAllAsyncReadbackRequests();
 
                 Graphics.ExecuteCommandBuffer(m_cmdBuffer);
-                gpuIndexData = indexData;
+                //gpuIndexData = indexData;
                 gpuVertexData = vertData;
                 gpuSubMeshLookupData = subMeshLookupData;
                 gpuSubMeshEntryData = subMeshEntryData;
@@ -404,7 +405,7 @@ namespace UnityEngine.Rendering.Tests
                 capsuleIndices += (int)sCapsule.GetIndexCount(i);
 
             var gpdesc = GeometryPoolDesc.NewDefault();
-            gpdesc.indexPoolByteSize = (cubeIndices + capsuleIndices) * GeometryPool.GetIndexByteSize();
+            //gpdesc.indexPoolByteSize = (cubeIndices + capsuleIndices) * GeometryPool.GetIndexByteSize();
 
             var geometryPool = new GeometryPool(gpdesc);
 

@@ -16,17 +16,20 @@
 struct PackedVaryingsPassToPS
 {
     uint batchID : ATTRIBUTE6;
+    uint primitiveID : ATTRIBUTE7;
 };
 
 struct VaryingsPassToPS
 {
     uint batchID;
+    uint primitiveID;
 };
 
 PackedVaryingsPassToPS PackVaryingsPassToPS(VaryingsPassToPS vpass)
 {
     PackedVaryingsPassToPS packedToPS;
     packedToPS.batchID = vpass.batchID;
+    packedToPS.primitiveID = vpass.primitiveID;
     return packedToPS;
 }
 

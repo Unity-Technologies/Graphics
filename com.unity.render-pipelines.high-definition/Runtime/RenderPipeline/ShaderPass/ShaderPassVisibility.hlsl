@@ -25,7 +25,8 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 #endif
     {
         varyingsType.vmesh = VertMesh(inputMesh);
-        varyingsType.vpass.batchID = (int)_DeferredMaterialInstanceData.y;
+        varyingsType.vpass.batchID = (uint)_DeferredMaterialInstanceData.y;
+        varyingsType.vpass.primitiveID = (uint)(inputMesh.vertexIndex / 3);
     }
 
     return PackVaryingsType(varyingsType);
@@ -42,7 +43,7 @@ void Frag(
         Visibility::VisibilityData visData;
         visData.valid = true;
         visData.DOTSInstanceIndex = GetDOTSInstanceIndex();
-        visData.primitiveID = input.primitiveID;
+        visData.primitiveID = packedInput.vpass.primitiveID;
         visData.batchID = packedInput.vpass.batchID;
         Visibility::PackVisibilityData(visData, outVisibility0, outVisibility1);
     #else

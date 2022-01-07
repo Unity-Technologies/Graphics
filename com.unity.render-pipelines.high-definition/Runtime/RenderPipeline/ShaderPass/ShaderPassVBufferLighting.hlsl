@@ -165,9 +165,9 @@ FragInputs EvaluateFragInput(
     in Visibility::VisibilityData visData,
     float3 posWS, float3 V, out float3 debugValue)
 {
-    uint i0 = _GeoPoolGlobalIndexBuffer.Load((geoMetadata.indexOffset + 3 * visData.primitiveID + 0) << 2);
-    uint i1 = _GeoPoolGlobalIndexBuffer.Load((geoMetadata.indexOffset + 3 * visData.primitiveID + 1) << 2);
-    uint i2 = _GeoPoolGlobalIndexBuffer.Load((geoMetadata.indexOffset + 3 * visData.primitiveID + 2) << 2);
+    uint i0 = 3*visData.primitiveID + 0;
+    uint i1 = i0 + 1;
+    uint i2 = i1 + 1;
 
     GeoPoolVertex v0 = GeometryPool::LoadVertex(i0, geoMetadata);
     GeoPoolVertex v1 = GeometryPool::LoadVertex(i1, geoMetadata);

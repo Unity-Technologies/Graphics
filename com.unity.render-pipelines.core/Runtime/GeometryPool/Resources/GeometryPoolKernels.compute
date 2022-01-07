@@ -1,6 +1,8 @@
 #pragma kernel MainUpdateIndexBuffer16
 #pragma kernel MainUpdateIndexBuffer32
 #pragma kernel MainUpdateVertexBuffer
+#pragma kernel MainUpdateVertexBufferIndexed16Bits
+#pragma kernel MainUpdateVertexBufferIndexed32Bits
 #pragma kernel MainUpdateSubMeshData
 #pragma kernel MainUpdateMeshMetadata
 #pragma kernel MainClearBuffer
@@ -101,13 +103,8 @@ ByteAddressBuffer _TangentBuffer;
 
 RWByteAddressBuffer _OutputVB;
 
-[numthreads(GROUP_SIZE_X, 1, 1)]
-void MainUpdateVertexBuffer(uint3 dispatchThreadID : SV_DispatchThreadID)
+GeoPoolVertex ConstructVertexData(int vertexOffset)
 {
-    int vertexOffset = (int)dispatchThreadID.x;
-    if (vertexOffset >= _InputVBCount)
-        return;
-
     GeoPoolVertex vtx;
     vtx.pos = asfloat(_PosBuffer.Load3(_InputPosBufferOffset + (vertexOffset * _InputPosBufferStride)));
     vtx.uv  = asfloat(_Uv0Buffer.Load2(_InputUv0BufferOffset + (vertexOffset * _InputUv0BufferStride)));
@@ -124,7 +121,51 @@ void MainUpdateVertexBuffer(uint3 dispatchThreadID : SV_DispatchThreadID)
     else
         vtx.T = float3(0, 0, 0);
 
+    return vtx;
+}
+
+[numthreads(GROUP_SIZE_X, 1, 1)]
+void MainUpdateVertexBuffer(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    int vertexOffset = (int)dispatchThreadID.x;
+    if (vertexOffset >= _InputVBCount)
+        return;
+
+    GeoPoolVertex vtx = ConstructVertexData(vertexOffset);
     GeometryPool::StoreVertex(_OutputVBOffset + vertexOffset, vtx, _InputFlags, _OutputVBSize, _OutputVB);
+}
+
+[numthreads(GROUP_SIZE_X, 1, 1)]
+void MainUpdateVertexBufferIndexed16Bits(uint3 dispatchThreadID : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex, uint3 groupID : SV_GroupID)
+{
+    //only load half the data.
+    if (groupIndex < GROUP_SIZE_X_HALF)
+        _ldsIndexCache[groupIndex] = _InputIndexBuffer.Load((GROUP_SIZE_X_HALF * groupID.x + groupIndex) << 2u);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    uint bufferOffset = dispatchThreadID.x;
+    if (bufferOffset >= (uint)_InputVBCount)
+        return;
+
+    uint pair = _ldsIndexCache[groupIndex >> 1u];
+    uint vertexOffset = (groupIndex.x & 0x1) ? (pair >> 16) : (pair & 0xffff);
+
+    GeoPoolVertex vtx = ConstructVertexData(vertexOffset);
+    GeometryPool::StoreVertex(_OutputVBOffset + bufferOffset, vtx, _InputFlags, _OutputVBSize, _OutputVB);
+}
+
+[numthreads(GROUP_SIZE_X, 1, 1)]
+void MainUpdateVertexBufferIndexed32Bits(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    uint bufferOffset = dispatchThreadID.x;
+    if (bufferOffset >= (uint)_InputVBCount)
+        return;
+
+    uint vertexOffset = _InputIndexBuffer.Load((_InputIBOffset + bufferOffset) << 2u);
+
+    GeoPoolVertex vtx = ConstructVertexData(vertexOffset);
+    GeometryPool::StoreVertex(_OutputVBOffset + bufferOffset, vtx, _InputFlags, _OutputVBSize, _OutputVB);
 }
 
 RWStructuredBuffer<GeoPoolSubMeshEntry> _OutputSubMeshEntryBuffer;

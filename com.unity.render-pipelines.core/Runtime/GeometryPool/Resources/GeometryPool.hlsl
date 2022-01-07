@@ -4,7 +4,6 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/GeometryPool/Resources/GeometryPoolDefs.cs.hlsl"
 
 ByteAddressBuffer _GeoPoolGlobalVertexBuffer;
-ByteAddressBuffer _GeoPoolGlobalIndexBuffer;
 ByteAddressBuffer _GeoPoolGlobalSubMeshLookupBuffer;
 StructuredBuffer<GeoPoolSubMeshEntry> _GeoPoolGlobalSubMeshEntryBuffer;
 StructuredBuffer<GeoPoolMetadataEntry> _GeoPoolGlobalMetadataBuffer;
