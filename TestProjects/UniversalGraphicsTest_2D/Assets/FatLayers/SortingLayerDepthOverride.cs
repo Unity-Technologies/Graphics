@@ -32,7 +32,7 @@ public class SortingLayerDepthOverride : MonoBehaviour
         {
             var child = tr.GetChild(i);
             newPos = child.position;
-            newPos.z += counterMove;
+            newPos.z -= counterMove;
             child.position = newPos;
         }
     }
