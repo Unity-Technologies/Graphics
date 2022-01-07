@@ -56,7 +56,6 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma editor_sync_compilation
 
             #pragma vertex UnlitPassVertex
             #pragma fragment UnlitPassFragment

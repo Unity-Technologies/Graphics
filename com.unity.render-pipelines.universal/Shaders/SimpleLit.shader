@@ -66,7 +66,6 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
-            #pragma editor_sync_compilation
             #pragma target 4.5
 
             // -------------------------------------
@@ -129,7 +128,6 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
-            #pragma editor_sync_compilation
             #pragma target 4.5
 
             // -------------------------------------
@@ -167,7 +165,6 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
-            #pragma editor_sync_compilation
             #pragma target 4.5
 
             // -------------------------------------
@@ -225,7 +222,6 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
-            #pragma editor_sync_compilation
             #pragma target 4.5
 
             #pragma vertex DepthOnlyVertex
@@ -257,7 +253,6 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
-            #pragma editor_sync_compilation
             #pragma target 4.5
 
             #pragma vertex DepthNormalsVertex
@@ -289,7 +284,6 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
-            #pragma editor_sync_compilation
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta
@@ -313,7 +307,6 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
-            #pragma editor_sync_compilation
             #pragma target 4.5
 
             #pragma vertex vert
@@ -344,7 +337,6 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11
-            #pragma editor_sync_compilation
             #pragma target 2.0
 
             // -------------------------------------
@@ -401,7 +393,6 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11
-            #pragma editor_sync_compilation
             #pragma target 2.0
 
             // -------------------------------------
@@ -434,7 +425,6 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11
-            #pragma editor_sync_compilation
             #pragma target 2.0
 
             #pragma vertex DepthOnlyVertex
@@ -460,7 +450,6 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11
-            #pragma editor_sync_compilation
             #pragma target 2.0
 
             #pragma vertex DepthNormalsVertex
@@ -491,7 +480,6 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11
-            #pragma editor_sync_compilation
             #pragma target 2.0
 
             #pragma vertex UniversalVertexMeta
@@ -515,7 +503,6 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11
-            #pragma editor_sync_compilation
             #pragma target 2.0
 
             #pragma vertex vert
