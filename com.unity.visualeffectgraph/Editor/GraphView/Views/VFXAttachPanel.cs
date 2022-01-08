@@ -84,7 +84,7 @@ namespace UnityEditor.VFX.UI
                 {
                     m_VFXIcon.style.display = DisplayStyle.Flex;
                     m_pickedObjectLabel[0].style.paddingLeft = 18;
-                    m_VFXIcon.style.backgroundImage = VFXView.LoadImage(EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark" : "vfx_graph_icon_gray_light");
+                    m_VFXIcon.style.backgroundImage = VFXView.LoadWindowIcon();
                 }
                 else
                 {

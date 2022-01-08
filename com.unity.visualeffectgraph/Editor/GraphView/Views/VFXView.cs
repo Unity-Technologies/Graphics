@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
 using UnityEditor.Experimental;
 
 using UnityEditor.Experimental.GraphView;
@@ -17,7 +16,7 @@ using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEngine.Profiling;
-
+using Object = UnityEngine.Object;
 using PositionType = UnityEngine.UIElements.Position;
 using Task = UnityEditor.VersionControl.Task;
 
@@ -271,6 +270,8 @@ namespace UnityEditor.VFX.UI
             SceneView.duringSceneGui -= OnSceneGUI;
         }
 
+        const string kSelectionKey = "Unity.VisualEffectGraphHistory";
+
         void ConnectController()
         {
             schedule.Execute(() =>
@@ -310,7 +311,26 @@ namespace UnityEditor.VFX.UI
             }
 
             SceneView.duringSceneGui += OnSceneGUI;
+            Selection.RegisterCustomHandler(kSelectionKey, CustomSelectionHandler, LoadWindowIcon());
         }
+
+        static void CustomSelectionHandler(string data, Object active, Object[] selected)
+        {
+            var info = GraphSelection.FromJson(data);
+            if (info == null)
+                return;
+
+            var window = EditorWindow.focusedWindow as VFXViewWindow;
+            var gv = window?.graphView;
+            if (gv?.controller == null)
+                return;
+
+            // apply selection
+            info.ApplyToGraphView(gv, gv.blackboard);
+            Selection.activeObject = active;
+            Selection.objects = selected;
+        }
+
 
         IEnumerable<Type> GetAcceptedTypeNodes()
         {
@@ -489,8 +509,13 @@ namespace UnityEditor.VFX.UI
 
         public static Texture2D LoadImage(string text)
         {
-            string path = string.Format("{0}/VFX/{1}.png", VisualEffectAssetEditorUtility.editorResourcesPath, text);
+            string path = $"{VisualEffectAssetEditorUtility.editorResourcesPath}/VFX/{text}.png";
             return EditorGUIUtility.LoadIcon(path);
+        }
+
+        internal static Texture2D LoadWindowIcon()
+        {
+            return LoadImage(EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark" : "vfx_graph_icon_gray_light");
         }
 
         SelectionDragger m_SelectionDragger;
@@ -1986,22 +2011,39 @@ namespace UnityEditor.VFX.UI
         {
             if (controller == null) return;
 
-            var objectSelected = selection.OfType<VFXNodeUI>().Select(t => t.controller.model).Concat(selection.OfType<VFXContextUI>().Select(t => t.controller.model).Cast<VFXModel>()).Where(t => t != null).ToArray();
-
-            if (objectSelected.Length > 0)
+            var toSelect = new List<Object>();
+            var sel = new GraphSelection();
+            var selNames = new List<string>();
+            foreach (var s in selection)
             {
-                Selection.objects = objectSelected;
-                Selection.objects = objectSelected;
-                return;
+                if (s is VFXNodeUI node)
+                {
+                    var obj = node.controller.model;
+                    if (obj != null)
+                    {
+                        toSelect.Add(obj);
+                        sel.elements.Add(node.viewDataKey);
+                        selNames.Add(!string.IsNullOrEmpty(obj.name) ? obj.name : obj.GetType().Name);
+                    }
+                }
+                else if (s is BlackboardField field)
+                {
+                    var obj = field.GetFirstAncestorOfType<VFXBlackboardRow>().controller.model;
+                    if (obj != null)
+                    {
+                        toSelect.Add(obj);
+                        sel.elements.Add(field.viewDataKey);
+                        selNames.Add(obj.exposedName);
+                    }
+                }
             }
 
-            var blackBoardSelected = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>().controller.model).ToArray();
-
-            if (blackBoardSelected.Length > 0)
-            {
-                Selection.objects = blackBoardSelected;
+            if (sel.empty)
                 return;
-            }
+
+            if (selNames.Count > 3) selNames = selNames.Take(3).Append("...").ToList();
+            var label = string.Join(", ", selNames);
+            Selection.SetCustomSelection(kSelectionKey, label, EditorJsonUtility.ToJson(sel), null, toSelect.ToArray());
         }
 
         internal void SelectAsset()
