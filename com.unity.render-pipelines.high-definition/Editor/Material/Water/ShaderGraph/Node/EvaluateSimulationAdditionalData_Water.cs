@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Output
             AddSlot(new Vector3MaterialSlot(kSurfaceGradientOutputSlotId, kSurfaceGradientOutputSlotName, kSurfaceGradientOutputSlotName, SlotType.Output, Vector3.zero));
             AddSlot(new Vector3MaterialSlot(kLowFrequencySurfaceGradientOutputSlotId, kLowFrequencySurfaceGradientOutputSlotName, kLowFrequencySurfaceGradientOutputSlotName, SlotType.Output, Vector3.zero));
-            AddSlot(new Vector2MaterialSlot(kSimulationFoamOutputSlotId, kSimulationFoamOutputSlotName, kSimulationFoamOutputSlotName, SlotType.Output, Vector2.zero));
+            AddSlot(new Vector1MaterialSlot(kSimulationFoamOutputSlotId, kSimulationFoamOutputSlotName, kSimulationFoamOutputSlotName, SlotType.Output, 0.0f));
 
             RemoveSlotsNameNotMatching(new[]
             {
@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     GetVariableNameForSlot(kSurfaceGradientOutputSlotId));
                 sb.AppendLine("$precision3 {0} = waterAdditionalData.lowFrequencySurfaceGradient;",
                     GetVariableNameForSlot(kLowFrequencySurfaceGradientOutputSlotId));
-                sb.AppendLine("$precision2 {0} = waterAdditionalData.simulationFoam;",
+                sb.AppendLine("$precision {0} = waterAdditionalData.simulationFoam;",
                     GetVariableNameForSlot(kSimulationFoamOutputSlotId));
             }
             else
@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     GetVariableNameForSlot(kSurfaceGradientOutputSlotId));
                 sb.AppendLine("$precision3 {0} = 0.0",
                     GetVariableNameForSlot(kLowFrequencySurfaceGradientOutputSlotId));
-                sb.AppendLine("$precision3 {0} = 0.0",
+                sb.AppendLine("$precision {0} = 0.0",
                     GetVariableNameForSlot(kSimulationFoamOutputSlotId));
             }
         }
