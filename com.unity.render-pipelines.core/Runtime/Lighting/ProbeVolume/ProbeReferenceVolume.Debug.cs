@@ -201,10 +201,12 @@ namespace UnityEngine.Experimental.Rendering
                 probeContainer.children.Add(probeContainerChildren);
             }
 
-            probeContainer.children.Add(new DebugUI.BoolField {
+            probeContainer.children.Add(new DebugUI.BoolField
+            {
                 displayName = "Virtual Offset",
                 getter = () => debugDisplay.drawVirtualOffsetPush,
-                setter = value => {
+                setter = value =>
+                {
                     debugDisplay.drawVirtualOffsetPush = value;
 
                     if (debugDisplay.drawVirtualOffsetPush && debugDisplay.drawProbes)
@@ -262,7 +264,7 @@ namespace UnityEngine.Experimental.Rendering
 
         void DrawProbeDebug(Camera camera)
         {
-		    if (!enabledBySRP || !isInitialized)
+            if (!enabledBySRP || !isInitialized)
                 return;
 
             if (!debugDisplay.drawProbes && !debugDisplay.drawVirtualOffsetPush)
