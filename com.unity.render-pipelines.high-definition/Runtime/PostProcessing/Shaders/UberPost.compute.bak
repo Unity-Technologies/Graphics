@@ -393,7 +393,6 @@ float vignetteSquaredness = 2.0f; 	//1.0 means star, 2.0 circle, above more squa
 	// Mask don't really coincide with what I want
 	// Make a function to call multiple time with multiple scales
 	// Create a polar mask to avoid seam around the polar
-	// To avoid seam, we can do that twice with a gradient to blend it perfectly
 	// UVScale should scale more and more as we go in outercoordinate
 	// Make everything parametrable
 	// Make Other effect work again
