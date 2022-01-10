@@ -55,10 +55,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.graphicsFormat = isDepth ? GraphicsFormat.D32_SFloat_S8_UInt : GraphicsFormat.R32_SFloat;
             descriptor.msaaSamples = 1;
 #if UNITY_EDITOR
-            ConfigureTarget(destination, destination, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples);
-#else
-            ConfigureTarget(destination, descriptor.graphicsFormat, descriptor.width, descriptor.height, descriptor.msaaSamples, isDepth);
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11)
+                ConfigureTarget(destination, destination, GraphicsFormat.R32_SFloat, descriptor.width, descriptor.height, descriptor.msaaSamples);
+            else
 #endif
+            ConfigureTarget(destination, descriptor.graphicsFormat, descriptor.width, descriptor.height, descriptor.msaaSamples, isDepth);
             if (m_ShouldClear)
                 ConfigureClear(ClearFlag.All, Color.black);
         }
