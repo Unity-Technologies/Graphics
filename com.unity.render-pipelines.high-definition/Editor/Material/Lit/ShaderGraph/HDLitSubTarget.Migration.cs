@@ -131,6 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             builtinData.transparentWritesMotionVec = hdLitMasterNode.m_TransparentWritesMotionVec;
             builtinData.addPrecomputedVelocity = hdLitMasterNode.m_AddPrecomputedVelocity;
             builtinData.depthOffset = hdLitMasterNode.m_depthOffset;
+            builtinData.alphaToMask = hdLitMasterNode.m_AlphaToMask;
 
             builtinData.alphaTestShadow = hdLitMasterNode.m_AlphaTestShadow;
             builtinData.backThenFrontRendering = hdLitMasterNode.m_BackThenFrontRendering;
