@@ -1704,14 +1704,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             continue;
                         }
 
-                        // HACK! We render the probe until we know the ambient probe for the associated sky context is ready.
-                        // For one-off rendering the dynamic ambient probe will be set to black until they are not processed, leading to faulty rendering.
-                        // So we enqueue another rendering and then we will not set the probe texture until we have rendered with valid ambient probe.
-                        if (!m_SkyManager.HasSetValidAmbientProbe(hdCamera))
-                        {
-                            visibleProbe.ForceRenderingNextUpdate();
-                        }
-
                         bool useFetchedGpuExposure = false;
                         float fetchedGpuExposure = 1.0f;
 

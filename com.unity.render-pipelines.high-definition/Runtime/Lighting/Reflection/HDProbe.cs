@@ -219,9 +219,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_RealtimeTexture;
         RTHandle m_RealtimeDepthBuffer;
         RenderData m_RealtimeRenderData;
-        bool m_HasPendingRenderRequest = false;
         bool m_WasRenderedSinceLastOnDemandRequest = true;
         ProbeRenderSteps m_RemainingRenderSteps = ProbeRenderSteps.None;
+        bool m_HasPendingRenderRequest = false;
         uint m_RealtimeRenderCount = 0;
 #if UNITY_EDITOR
         bool m_WasRenderedDuringAsyncCompilation = false;
@@ -798,13 +798,6 @@ namespace UnityEngine.Rendering.HighDefinition
             outL2_2 = ColorUtils.Luminance(new Color(L2_4.x, L2_4.y, L2_4.z));
 
             return true;
-        }
-
-        // Forces the re-rendering for both OnDemand and OnEnable
-        internal void ForceRenderingNextUpdate()
-        {
-            m_WasRenderedSinceLastOnDemandRequest = false;
-            wasRenderedAfterOnEnable = false;
         }
 
 #if UNITY_EDITOR
