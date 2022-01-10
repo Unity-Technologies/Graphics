@@ -220,7 +220,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (m_TitleField != null)
             {
                 m_TitleField.style.display = DisplayStyle.None;
-                m_TitleField.Q("unity-text-input").RegisterCallback<BlurEvent>(OnTitleBlur);
+                m_TitleField.Q("unity-text-input").RegisterCallback<BlurEvent>(OnTitleBlur, TrickleDown.TrickleDown);
                 m_TitleField.RegisterCallback<ChangeEvent<string>>(OnTitleChange);
             }
 
@@ -232,7 +232,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     m_ContentsField.style.display = DisplayStyle.None;
                     m_ContentsField.multiline = true;
-                    m_ContentsField.Q("unity-text-input").RegisterCallback<BlurEvent>(OnContentsBlur);
+                    m_ContentsField.Q("unity-text-input").RegisterCallback<BlurEvent>(OnContentsBlur, TrickleDown.TrickleDown);
                 }
                 m_Contents.RegisterCallback<MouseDownEvent>(OnContentsMouseDown);
             }

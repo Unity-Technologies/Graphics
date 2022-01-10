@@ -6,7 +6,7 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     // TODO: handle retina / EditorGUIUtility.pixelsPerPoint
-    [VolumeComponentEditor(typeof(ShadowsMidtonesHighlights))]
+    [CustomEditor(typeof(ShadowsMidtonesHighlights))]
     sealed class ShadowsMidtonesHighlightsEditor : VolumeComponentEditor
     {
         static class Styles

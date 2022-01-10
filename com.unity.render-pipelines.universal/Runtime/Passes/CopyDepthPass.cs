@@ -23,14 +23,16 @@ namespace UnityEngine.Rendering.Universal.Internal
         Material m_CopyDepthMaterial;
 
         internal bool m_CopyResolvedDepth;
+        internal bool m_ShouldClear;
 
-        public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
+        public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial, bool shouldClear = false)
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
             CopyToDepth = false;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
             m_CopyResolvedDepth = false;
+            m_ShouldClear = shouldClear;
         }
 
         /// <summary>
@@ -45,6 +47,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.MssaSamples = -1;
         }
 
+        /// <inheritdoc />
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var descriptor = renderingData.cameraData.cameraTargetDescriptor;
@@ -56,7 +59,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 #else
             ConfigureTarget(destination, descriptor.graphicsFormat, descriptor.width, descriptor.height, descriptor.msaaSamples, isDepth);
 #endif
-            ConfigureClear(ClearFlag.None, Color.black);
+            if (m_ShouldClear)
+                ConfigureClear(ClearFlag.All, Color.black);
         }
 
         /// <inheritdoc/>
@@ -79,8 +83,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
                     cameraSamples = MssaSamples;
 
-                // When auto resolve is supported or multisampled texture is not supported, set camera samples to 1
-                if (SystemInfo.supportsMultisampleAutoResolve || SystemInfo.supportsMultisampledTextures == 0 || m_CopyResolvedDepth)
+                // When depth resolve is supported or multisampled texture is not supported, set camera samples to 1
+                if (SystemInfo.supportsMultisampledTextures == 0 || m_CopyResolvedDepth)
                     cameraSamples = 1;
 
                 CameraData cameraData = renderingData.cameraData;

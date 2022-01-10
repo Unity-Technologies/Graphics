@@ -8,13 +8,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added FSR sharpness override to camera and pipeline asset.
- - Adding Refract Node, Fresnel Equation Node and Scene-Difference-Node (https://jira.unity3d.com/browse/HDRP-1599)
-
-### Changed
-- Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
-- Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
-- Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
-- The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
+- Added an option on the lit shader to perform Planar and Triplanar mapping in Object Space.
+- Added a button in the Probe Volume Baking window to open the Probe Volume debug panel.
+- Added importance sampling of the sky in path tracing (aka environment sampling).
+- Added the overlay render queue to custom passes.
+- Added a callback to override the View matrix of Spot Lights.
+- Added Expose SSR parameters to control speed rejection from Motion Vector including computing Motion Vector in World Space.
+- Added a Layer Mask in the Probe Volume Settings window to filter which renderers to consider when placing the probes.
+- Adding Refract Node, Fresnel Equation Node and Scene-Difference-Node (https://jira.unity3d.com/browse/HDRP-1599)
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
@@ -68,13 +69,41 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
 - Fixed FOV change when enabling physical camera.
 - Fixed spot light shadows near plane
+- Fixed unsupported material properties show when rendering pass is Low Resolution.
+- Fixed auto-exposure mismatch between sky background and scene objects in path tracing (case 1385131).
+- Fixed option to force motion blur off when in XR.
+- Fixed write to VT feedback in debug modes (case 1376874)
+- Fixed the water system not working on metal.
+- Fixed the missing debug menus to visualize the ray tracing acceleration structure (case 1371410).
+- Fixed compilation issue related to shader stripping in ray tracing.
+- Fixed flipped UV for directional light cookie on PBR Sky (case 1382656).
+- Fixing missing doc API for RTAS Debug display.
+- Fixed AO dissapearing when DRS would be turned off through a camera, while hardware drs is active in DX12 or Vulkan (case 1383093).
+- Fixed misc shader warnings.
+- Fixed a shader warning in UnityInstancing.hlsl
+- Fixed for APV debug mode breaking rendering when switching to an asset with APV disabled.
+- Fixed potential asymmetrical resource release in the volumetric clouds (case 1388218).
+- Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
+- Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
+- Fixed the intensity of the sky being reduced signficantly even if there is no clouds (case 1388279).
+- Fixed a crash with render graph viewer when render graph is not provided with an execution name.
+- Fixed rendering in the editor when an incompatible API is added (case 1384634).
+- Fixed issue with typed loads on RGBA16F in Volumetric Lighting Filtering.
+- Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
+- Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
 - Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
 - Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
 - The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
-- The Sky System now uses Render Graph for improved memory usage.
+- Render Graph object pools are now cleared with render graph cleanup
+- Updated Physically Based Sky documentation with more warnings about warmup cost.
+- Improved the probe placement of APV when dealing with scenes that contains objects smaller than a brick.
+- Replaced the geometry distance offset in the Probe Volume component by a minimum renderer volume threshold to ignore small objects when placing probes.
+- Small improvement changes in the UX for the Unlit Distortion field.
+- Improvements done to the water system (Deferred, Decals, SSR, Foam, Caustics, etc.).
+- Changed the behavior the max ray length for recursive rendering to match RTR and rasterization.
 
 ## [13.1.2] - 2021-11-05
 
@@ -93,6 +122,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
 - Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
 - Fixed Lens Flare visible when being behind a camera with Panini Projection on (case 1370214);
+- Fixed Correlated Color Temperature not being applied in Player builds for Enlighten realtime GI lights (case 1370438);
 
 ### Changed
 - Optimizations for the physically based depth of field.
@@ -160,6 +190,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimized FSR by merging the RCAS logic into the FinalPass shader.
 - Integrate a help box to inform users of the potential dependency to directional lights when baking.
 - Changed default numbder of physically based sky bounce from 8 to 3
+- Shader Variant Log Level moved from Miscellaneous section to Shader Stripping section on the HDRP Global Settings.
 
 ## [13.1.0] - 2021-09-24
 

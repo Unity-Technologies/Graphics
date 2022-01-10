@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 using static UnityEditor.Rendering.HighDefinition.HDFields;
 using UnityEngine;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -20,6 +21,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Water/ShaderGraph/"
         };
+        public static readonly string k_StencilWaterWriteMaskGBuffer = "_StencilWaterWriteMaskGBuffer";
+        public static readonly string k_StencilWaterRefGBuffer = "_StencilWaterRefGBuffer";
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
@@ -53,36 +56,27 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public class WaterIncludes
         {
-            public const string kPassWaterForward = "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/ShaderPassWaterForward.hlsl";
+            public const string kPassWaterGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/ShaderPassWaterGBuffer.hlsl";
         }
-
-        public static FieldDescriptor Water = new FieldDescriptor(kMaterial, "Water", "_MATERIAL_FEATURE_WATER 1");
-        public static FieldDescriptor WaterCinematic = new FieldDescriptor(kMaterial, "WaterCinematic", "_MATERIAL_FEATURE_WATER_CINEMATIC 1");
 
         [GenerateBlocks]
         public struct WaterBlocks
         {
             // Water specific block descriptors
             public static BlockFieldDescriptor LowFrequencyNormalWS = new BlockFieldDescriptor(kMaterial, "LowFrequencyNormalWS", "Low Frequency Normal (World Space)", "SURFACEDESCRIPTION_LOWFREQUENCYNORMALWS", new Vector3Control(Vector3.zero), ShaderStage.Fragment);
-            public static BlockFieldDescriptor FoamColor = new BlockFieldDescriptor(kMaterial, "FoamColor", "Foam Color", "SURFACEDESCRIPTION_FOAMCOLOR", new ColorControl(new Color(0.8f, 0.8f, 0.8f), false), ShaderStage.Fragment);
-            public static BlockFieldDescriptor SpecularSelfOcclusion = new BlockFieldDescriptor(kMaterial, "SpecularSelfOcclusion", "Self Specular Occlusion", "SURFACEDESCRIPTION_SPECULARSELFOCCLUSION", new FloatControl(1.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor Foam = new BlockFieldDescriptor(kMaterial, "Foam", "Foam", "SURFACEDESCRIPTION_FOAM", new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor TipThickness = new BlockFieldDescriptor(kMaterial, "TipThickness", "Tip Thickness", "SURFACEDESCRIPTIONTIP_THICKNESS", new FloatControl(0.0f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor RefractionColor = new BlockFieldDescriptor(kMaterial, "RefractionColor", "Refraction Color", "SURFACEDESCRIPTION_REFRACTIONCOLOR", new ColorControl(new Color(0.0f, 0.0f, 0.0f), false), ShaderStage.Fragment);
+            public static BlockFieldDescriptor Caustics = new BlockFieldDescriptor(kMaterial, "Caustics", "Caustics", "SURFACEDESCRIPTION_CAUSTICS", new FloatControl(0.0f), ShaderStage.Fragment);
         }
 
-        public static RenderStateCollection WaterForward = new RenderStateCollection
+        #region Keywords
+        public static KeywordDescriptor WaterSurfaceGBuffer = new KeywordDescriptor()
         {
-            { RenderState.Cull(Cull.Back) },
-            { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.ZTest(ZTest.LEqual) },
-            { RenderState.ColorMask("ColorMask 0 1") },
-            { RenderState.Stencil(new StencilDescriptor()
-            {
-                WriteMask = CoreRenderStates.Uniforms.stencilWriteMask,
-                Ref = CoreRenderStates.Uniforms.stencilRef,
-                Comp = "Always",
-                Pass = "Replace",
-            }) },
+            displayName = "WaterSurfaceGBuffer",
+            referenceName = "WATER_SURFACE_GBUFFER",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Global,
         };
 
         public static KeywordDescriptor HighResolutionWater = new KeywordDescriptor()
@@ -113,40 +107,71 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static DefineCollection WaterForwardDefinesProcedural = new DefineCollection
+        public static KeywordDescriptor ClusteredLightList = new KeywordDescriptor()
+        {
+            displayName = "ClusteredLightList",
+            referenceName = "USE_CLUSTERED_LIGHTLIST",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Global,
+        };
+        #endregion
+
+        #region Defines
+        public static DefineCollection WaterGBufferDefinesProcedural = new DefineCollection
         {
             { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
             { CoreKeywordDescriptors.HasLightloop, 1 },
             { WaterProceduralGeometry, 1 },
             { HasRefraction, 1 },
+            { WaterSurfaceGBuffer, 1 },
+            { ClusteredLightList, 1 },
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
-        public static DefineCollection WaterForwardDefinesMesh = new DefineCollection
+        public static DefineCollection WaterGBufferDefinesMesh = new DefineCollection
         {
             { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
             { CoreKeywordDescriptors.HasLightloop, 1 },
             { HasRefraction, 1 },
+            { WaterSurfaceGBuffer, 1 },
+            { ClusteredLightList, 1 },
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
+        #endregion
 
-        public static PassDescriptor GenerateWaterForwardPassProcedural()
+        #region GBufferWater
+        public static RenderStateCollection WaterGBuffer = new RenderStateCollection
+        {
+            { RenderState.Cull(Cull.Back) },
+            { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.ZTest(ZTest.LEqual) },
+            { RenderState.Stencil(new StencilDescriptor()
+            {
+                WriteMask = $"[{k_StencilWaterWriteMaskGBuffer}]",
+                Ref = $"[{k_StencilWaterRefGBuffer}]",
+                Comp = "Always",
+                Pass = "Replace",
+            }) },
+        };
+
+        public static PassDescriptor GenerateWaterGBufferPassProcedural()
         {
             return new PassDescriptor
             {
                 // Definition
-                displayName = "ForwardOnlyProcedural",
-                referenceName = "SHADERPASS_FORWARD",
-                lightMode = "ForwardOnlyProcedural",
+                displayName = "GBufferProcedural",
+                referenceName = "SHADERPASS_GBUFFER",
+                lightMode = "GBufferProcedural",
                 useInPreview = true,
 
                 // Collections
                 structs = CoreStructCollections.BasicProcedural,
-                // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
+                // We need motion vector version as GBuffer pass support transparent motion vector and we can't use ifdef for it
                 requiredFields = CoreRequiredFields.BasicLighting,
-                renderStates = WaterForward,
+                renderStates = WaterGBuffer,
                 pragmas = HDShaderPasses.GeneratePragmas(CorePragmas.DotsInstanced, false, false),
-                defines = HDShaderPasses.GenerateDefines(WaterForwardDefinesProcedural, false, false),
+                defines = HDShaderPasses.GenerateDefines(WaterGBufferDefinesProcedural, false, false),
                 includes = GenerateIncludes(),
 
                 virtualTextureFeedback = false,
@@ -161,35 +186,35 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kLightLoop, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
-                includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(WaterIncludes.kPassWaterForward, IncludeLocation.Postgraph);
+                includes.Add(WaterIncludes.kPassWaterGBuffer, IncludeLocation.Postgraph);
 
                 return includes;
             }
         }
 
-        public static PassDescriptor GenerateWaterForwardPassMesh()
+        public static PassDescriptor GenerateWaterGBufferPassMesh()
         {
             return new PassDescriptor
             {
                 // Definition
-                displayName = "ForwardOnlyMesh",
-                referenceName = "SHADERPASS_FORWARD",
-                lightMode = "ForwardOnlyMesh",
+                displayName = "GBufferMesh",
+                referenceName = "SHADERPASS_GBUFFER",
+                lightMode = "GBufferMesh",
                 useInPreview = true,
 
                 // Collections
                 structs = CoreStructCollections.Basic,
-                // We need motion vector version as Forward pass support transparent motion vector and we can't use ifdef for it
+                // We need motion vector version as GBuffer pass support transparent motion vector and we can't use ifdef for it
                 requiredFields = CoreRequiredFields.BasicLighting,
-                renderStates = WaterForward,
+                renderStates = WaterGBuffer,
                 pragmas = HDShaderPasses.GeneratePragmas(CorePragmas.DotsInstanced, false, false),
-                defines = HDShaderPasses.GenerateDefines(WaterForwardDefinesMesh, false, false),
+                defines = HDShaderPasses.GenerateDefines(WaterGBufferDefinesMesh, false, false),
                 includes = GenerateIncludes(),
 
                 virtualTextureFeedback = false,
@@ -204,17 +229,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kLightLoop, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
-                includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(WaterIncludes.kPassWaterForward, IncludeLocation.Postgraph);
+                includes.Add(WaterIncludes.kPassWaterGBuffer, IncludeLocation.Postgraph);
 
                 return includes;
             }
         }
+        #endregion
 
         protected override SubShaderDescriptor GetSubShaderDescriptor()
         {
@@ -228,9 +254,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var passes = new PassCollection
                 {
-                    // Generate the water forward pass
-                    GenerateWaterForwardPassProcedural(),
-                    GenerateWaterForwardPassMesh(),
+                    // Generate the water GBuffer pass
+                    GenerateWaterGBufferPassProcedural(),
+                    GenerateWaterGBufferPassMesh(),
                 };
                 return passes;
             }
@@ -243,8 +269,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Water specific properties
             context.AddField(StructFields.VertexDescriptionInputs.uv0);
             context.AddField(StructFields.VertexDescriptionInputs.uv1);
-            context.AddField(Water, waterData.materialType == WaterData.MaterialType.Water);
-            context.AddField(WaterCinematic, waterData.materialType == WaterData.MaterialType.WaterCinematic);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -260,10 +284,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.NormalWS);
             context.AddBlock(WaterBlocks.LowFrequencyNormalWS);
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
-            context.AddBlock(WaterBlocks.FoamColor);
-            context.AddBlock(WaterBlocks.SpecularSelfOcclusion);
+            context.AddBlock(WaterBlocks.Foam);
             context.AddBlock(WaterBlocks.TipThickness);
-            context.AddBlock(WaterBlocks.RefractionColor);
+            context.AddBlock(WaterBlocks.Caustics);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
         }
 
@@ -271,13 +294,40 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.CollectPassKeywords(ref pass);
             pass.keywords.Add(HighResolutionWater);
+            pass.keywords.Add(CoreKeywordDescriptors.Decals);
             pass.keywords.Add(CoreKeywordDescriptors.Shadow);
+            pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
             blockList.AddPropertyBlock(new WaterSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit, waterData));
             blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
+        }
+
+        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+            Vector1ShaderProperty stencilRefWaterVar = new Vector1ShaderProperty();
+            stencilRefWaterVar.overrideReferenceName = k_StencilWaterRefGBuffer;
+            stencilRefWaterVar.displayName = "Stencil Water Ref GBuffer";
+            stencilRefWaterVar.hidden = true;
+            stencilRefWaterVar.floatType = FloatType.Default;
+            stencilRefWaterVar.value = (int)StencilUsage.WaterSurface;
+            stencilRefWaterVar.overrideHLSLDeclaration = true;
+            stencilRefWaterVar.hlslDeclarationOverride = HLSLDeclaration.Global;
+            stencilRefWaterVar.generatePropertyBlock = false;
+            collector.AddShaderProperty(stencilRefWaterVar);
+
+            Vector1ShaderProperty stencilWriteMaskWaterVar = new Vector1ShaderProperty();
+            stencilWriteMaskWaterVar.overrideReferenceName = k_StencilWaterWriteMaskGBuffer;
+            stencilWriteMaskWaterVar.displayName = "Stencil Water Write Mask GBuffer";
+            stencilWriteMaskWaterVar.hidden = true;
+            stencilWriteMaskWaterVar.floatType = FloatType.Default;
+            stencilWriteMaskWaterVar.value = (int)StencilUsage.WaterSurface;
+            stencilWriteMaskWaterVar.overrideHLSLDeclaration = true;
+            stencilWriteMaskWaterVar.hlslDeclarationOverride = HLSLDeclaration.Global;
+            stencilWriteMaskWaterVar.generatePropertyBlock = false;
+            collector.AddShaderProperty(stencilWriteMaskWaterVar);
         }
     }
 }
