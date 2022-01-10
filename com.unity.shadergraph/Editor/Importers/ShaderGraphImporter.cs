@@ -431,9 +431,6 @@ Shader ""Hidden/GraphErrorShader2""
             var shaderName = Path.GetFileNameWithoutExtension(path);
             try
             {
-                if (!string.IsNullOrEmpty(graph.path))
-                    shaderName = graph.path + "/" + shaderName;
-
                 Generator generator;
                 generator = new Generator(graph, graph.outputNode, mode, shaderName, targets, assetCollection);
 

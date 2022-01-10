@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
         readonly GraphData m_GraphData;
         readonly AbstractMaterialNode m_OutputNode;
         readonly GenerationMode m_Mode;
-        readonly string m_PrimaryShaderName;
+        readonly string m_PrimaryShaderFullName;
         readonly AssetCollection m_AssetCollection;
         readonly bool m_HumanReadable;
         readonly ReadOnlyCollection<BlockNode> m_ActiveBlocks;
@@ -64,7 +64,10 @@ namespace UnityEditor.ShaderGraph
             m_GraphData = graphData;
             m_OutputNode = outputNode;
             m_Mode = mode;
-            m_PrimaryShaderName = primaryShaderName;
+            if (!string.IsNullOrEmpty(graphData.path))
+                m_PrimaryShaderFullName = graphData.path + "/" + primaryShaderName;
+            else
+                m_PrimaryShaderFullName = primaryShaderName;
             m_AssetCollection = assetCollection;
             m_HumanReadable = humanReadable;
             m_ActiveBlocks = m_GraphData.GetNodes<BlockNode>().ToList().AsReadOnly();
@@ -166,8 +169,8 @@ namespace UnityEditor.ShaderGraph
             bool isPrimaryShader = string.IsNullOrEmpty(additionalShaderID);
             string shaderName =
                 isPrimaryShader ?
-                    m_PrimaryShaderName :
-                    additionalShaderID.Replace("{Name}", m_PrimaryShaderName, StringComparison.Ordinal);
+                    m_PrimaryShaderFullName :
+                    additionalShaderID.Replace("{Name}", m_PrimaryShaderFullName, StringComparison.Ordinal);
 
             // initialize builder
             m_Builder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
