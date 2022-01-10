@@ -164,7 +164,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void CollectExposedDesc(List<VFXMapping> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
+        private static void CollectExposedDesc(List<(VFXMapping, VFXCoordinateSpace, SpaceableType)> outExposedParameters, string name, VFXSlot slot, VFXExpressionGraph graph)
         {
             var expression = slot.valueType != VFXValueType.None ? slot.GetInExpression() : null;
             if (expression != null)
@@ -173,11 +173,24 @@ namespace UnityEditor.VFX
                 if (exprIndex == -1)
                     throw new InvalidOperationException("Unable to retrieve value from exposed for " + name);
 
-                outExposedParameters.Add(new VFXMapping()
+                var space = slot.space;
+                var spacealeType = SpaceableType.None;
+                if (space != (VFXCoordinateSpace)Int32.MaxValue)
                 {
-                    name = name,
-                    index = exprIndex
-                });
+                    //TODOPAUL Reconsider this: https://github.cds.internal.unity3d.com/unity/vfx-graphics/pull/262
+                    //No SpaceableType for Angle & Scale (yet ?)
+                    spacealeType = slot.GetSpaceTransformationType();
+                }
+
+                outExposedParameters.Add((
+                        new VFXMapping()
+                        {
+                            name = name,
+                            index = exprIndex
+                        },
+                        space,
+                        spacealeType
+                    ));
             }
             else
             {
@@ -188,7 +201,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void FillExposedDescs(List<VFXMapping> outExposedParameters, VFXExpressionGraph graph, IEnumerable<VFXParameter> parameters)
+        private static void FillExposedDescs(List<(VFXMapping, VFXCoordinateSpace, SpaceableType)> outExposedParameters, VFXExpressionGraph graph, IEnumerable<VFXParameter> parameters)
         {
             foreach (var parameter in parameters)
             {
@@ -1077,7 +1090,7 @@ namespace UnityEditor.VFX
                     contextToCompiledData[context] = contextData;
                 }
 
-                var exposedParameterDescs = new List<VFXMapping>();
+                var exposedParameterDescs = new List<(VFXMapping mapping, VFXCoordinateSpace space, SpaceableType spaceType)>();
                 FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, m_Graph.children.OfType<VFXParameter>());
                 SubgraphInfos subgraphInfos;
                 subgraphInfos.subgraphParents = new Dictionary<VFXSubgraphContext, VFXSubgraphContext>();
@@ -1180,7 +1193,10 @@ namespace UnityEditor.VFX
                 expressionSheet.expressions = expressionDescs.ToArray();
                 expressionSheet.expressionsPerSpawnEventAttribute = expressionPerSpawnEventAttributesDescs.ToArray();
                 expressionSheet.values = valueDescs.OrderBy(o => o.expressionIndex).ToArray();
-                expressionSheet.exposed = exposedParameterDescs.OrderBy(o => o.name).ToArray();
+
+                var sortedExposedProperties = exposedParameterDescs.OrderBy(o => o.mapping.name);
+                expressionSheet.exposed = sortedExposedProperties.Select(o => o.mapping).ToArray();
+                expressionSheet.exposedSpace = sortedExposedProperties.Select(o => (VFXSpace)o.space).ToArray(); //TODOPAUL: Should we only list spaceable on actual spaceable ?
 
                 var vfxEventDesc = eventDescs.Select(e =>
                 {
