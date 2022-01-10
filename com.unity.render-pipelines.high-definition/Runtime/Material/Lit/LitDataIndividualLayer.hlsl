@@ -5,7 +5,7 @@ void ADD_IDX(ComputeLayerTexCoord)( // Uv related parameters
                                     // parameter for planar/triplanar
                                     float3 positionRWS, float worldScale,
                                     // mapping type and output
-                                    int mappingType, inout LayerTexCoord layerTexCoord)
+                                    int mappingType, bool objectSpaceMapping, inout LayerTexCoord layerTexCoord)
 {
     // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
     float2 uvBase = uvMappingMask.x * texCoord0 +
@@ -30,15 +30,17 @@ void ADD_IDX(ComputeLayerTexCoord)( // Uv related parameters
     // Copy data for the uvmapping
     ADD_IDX(layerTexCoord.details).triplanarWeights = ADD_IDX(layerTexCoord.base).triplanarWeights = layerTexCoord.triplanarWeights;
 
-    // TODO: Currently we only handle world planar/triplanar but we may want local planar/triplanar.
-    // In this case both position and normal need to be convert to object space.
-
     // planar/triplanar
     float2 uvXZ;
     float2 uvXY;
     float2 uvZY;
 
-    GetTriplanarCoordinate(GetAbsolutePositionWS(positionRWS) * worldScale, uvXZ, uvXY, uvZY);
+    float3 posForTriplanar = GetAbsolutePositionWS(positionRWS) * worldScale;
+    if (objectSpaceMapping)
+    {
+        posForTriplanar = TransformWorldToObject(positionRWS);
+    }
+    GetTriplanarCoordinate(posForTriplanar, uvXZ, uvXY, uvZY);
 
     // Planar is just XZ of triplanar
     if (mappingType == UV_MAPPING_PLANAR)

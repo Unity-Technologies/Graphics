@@ -25,6 +25,7 @@ float _DistortionVectorBias;
 float _DistortionBlurScale;
 float _DistortionBlurRemapMin;
 float _DistortionBlurRemapMax;
+float4 _DistortionVectorMap_ST;
 float _AlphaRemapMin;
 float _AlphaRemapMax;
 float _BlendMode;

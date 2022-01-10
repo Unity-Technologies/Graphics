@@ -4,8 +4,11 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
+    /// <summary>
+    /// Editor script for a <c>PostProcessData</c> class.
+    /// </summary>
     [CustomEditor(typeof(PostProcessData), true)]
-    public class PostProcessDataEditor : Editor
+    internal class PostProcessDataEditor : Editor
     {
         SerializedProperty m_Shaders;
         SerializedProperty m_Textures;
@@ -16,6 +19,7 @@ namespace UnityEditor.Rendering.Universal
             m_Textures = serializedObject.FindProperty("textures");
         }
 
+        /// <inheritdoc/>
         public override void OnInspectorGUI()
         {
             serializedObject.Update();

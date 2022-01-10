@@ -131,6 +131,7 @@ float3 _EmissionColor;
 float4 _EmissiveColorMap_ST;
 float _TexWorldScaleEmissive;
 float4 _UVMappingMaskEmissive;
+float _ObjectSpaceUVMappingEmissive;
 
 float4 _InvPrimScale; // Only XY are used
 
@@ -195,6 +196,7 @@ float _InvTilingScale;
 float4 _UVMappingMask;
 float4 _UVDetailsMappingMask;
 float _LinkDetailsWithBase;
+float _ObjectSpaceUVMapping;
 
 #else // LAYERED_LIT_SHADER
 

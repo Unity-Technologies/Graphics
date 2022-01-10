@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Editing the values in the graph did not impact the system in real-time after saving [Case 1371089](https://issuetracker.unity3d.com/product/unity/issues/guid/1371089/)
 - Fixed null reference exception when opening another VFX and a debug mode is enabled [Case 1347420](https://issuetracker.unity3d.com/product/unity/issues/guid/1347420/)
 - Creating a new VFX of the same name as an already opened VFX will reuse the existing window [Case 1382841](https://issuetracker.unity3d.com/product/unity/issues/guid/1382841/)
+- Incorrect behavior of Tangent Space in ShaderGraph [Case 1363279](https://issuetracker.unity3d.com/product/unity/issues/guid/1363279/)
+- ShaderGraph made with new VFX SG integration where not listed when searching for a shader graph output [Case 1379523](https://issuetracker.unity3d.com/product/unity/issues/guid/1379523/)
+- Enable/disable state of VFX blocks and operators are preserved after copy/paste
+- Blackboard "Add" button for output could be hidden when the panel is too small (https://issuetracker.unity3d.com/product/unity/issues/guid/1389927/)
+- Forbid pasting a subgraph in the same subgraph [Case 1364480](https://issuetracker.unity3d.com/product/unity/issues/guid/1364480/)
+- VFX Subgraph operator and block windows now have dedicated icons
 
 ## [13.1.2] - 2021-11-05
 
