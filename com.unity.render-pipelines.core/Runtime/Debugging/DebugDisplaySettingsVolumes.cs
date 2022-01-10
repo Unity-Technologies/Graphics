@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering
                 var componentNames = new List<GUIContent>() { Styles.none };
                 var componentValues = new List<int>() { componentIndex++ };
 
-                foreach (var type in data.volumeDebugSettings.componentTypes)
+                foreach (var type in data.volumeDebugSettings.volumeComponentsPathAndType)
                 {
                     componentNames.Add(new GUIContent() { text = type.Item1 });
                     componentValues.Add(componentIndex++);

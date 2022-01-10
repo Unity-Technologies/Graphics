@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering
         Type selectedComponentType { get; set; }
 
         /// <summary>List of Volume component types and their path</summary>
-        List<(string, Type)> componentTypes { get; }
+        List<(string, Type)> volumeComponentsPathAndType { get; }
 
         /// <summary>
         /// Obtains the Volumes
