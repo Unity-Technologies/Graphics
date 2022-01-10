@@ -486,6 +486,41 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void SpaceConversion_With_SwitchOperator()
+        {
+            var switchOp = ScriptableObject.CreateInstance<Switch>();
+            switchOp.SetSettingValue("m_Type", (SerializableType)typeof(Vector));
+            Assert.AreEqual(4, switchOp.inputSlots.Count);
+
+            float trackValue = 1.234f;
+
+            switchOp.inputSlots[1].space = VFXCoordinateSpace.Local;
+            switchOp.inputSlots[1].value = new Vector() {vector = new Vector3(trackValue, trackValue, trackValue) };
+            switchOp.inputSlots[2].space = VFXCoordinateSpace.World;
+            switchOp.inputSlots[2].value = new Vector() {vector = new Vector3(2.456f, 2.456f, 2.456f)};
+            switchOp.inputSlots[3].space = VFXCoordinateSpace.None;
+            switchOp.inputSlots[3].value = new Vector() {vector = new Vector3(3.789f, 3.789f, 3.789f)};
+
+            Assert.AreEqual(VFXCoordinateSpace.World, switchOp.outputSlots[0].space);
+
+            var expressions = CollectParentExpression(switchOp.outputSlots[0].GetExpression()).ToArray();
+            Assert.AreEqual(1, expressions.Count(o => o.operation == VFXExpressionOperation.LocalToWorld));
+            Assert.AreEqual(0, expressions.Count(o => o.operation == VFXExpressionOperation.WorldToLocal));
+
+            var conversion = expressions.First(o => o.parents.Any(p => p.operation == VFXExpressionOperation.LocalToWorld));
+            Assert.AreEqual(VFXExpressionOperation.TransformVec, conversion.operation);
+
+            var parentFromFloat3 = conversion.parents[1];
+            var expressionFromFloat3 = CollectParentExpression(parentFromFloat3).ToArray();
+
+            var float3Component = expressionFromFloat3.OfType<VFXValue<float>>().ToArray();
+            Assert.AreEqual(3, float3Component.Length);
+            Assert.AreEqual(trackValue, float3Component[0].Get<float>());
+            Assert.AreEqual(trackValue, float3Component[1].Get<float>());
+            Assert.AreEqual(trackValue, float3Component[2].Get<float>());
+        }
+
+        [Test]
         public void Space_MainCamera_To_Block_ProjectOnDepth()
         {
             var mainCamera = ScriptableObject.CreateInstance<MainCamera>();
