@@ -9,9 +9,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the effectiveness of The Director
         /// </summary>
         [Tooltip("Intensity")]
-        public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
+        public ClampedFloatParameter intensity = new ClampedFloatParameter(1f, 0f, 1f);
 		[Tooltip("Scale")]
-        public ClampedFloatParameter scale = new ClampedFloatParameter(0f, 0f, 10f);
+        public ClampedFloatParameter blurSize = new ClampedFloatParameter(1f, 0f, 16f);
+        public ClampedIntParameter blurSampleCount = new ClampedIntParameter(8, 2, 64);
+        public ClampedFloatParameter thingy = new ClampedFloatParameter(1, 0, 1);
 
         /// <summary>
         /// Mandatory function, cannot have an Override without it

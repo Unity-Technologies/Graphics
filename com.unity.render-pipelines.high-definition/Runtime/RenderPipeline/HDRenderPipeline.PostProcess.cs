@@ -4477,7 +4477,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // float lthresh = Mathf.GammaToLinearSpace(m_AutoLensFlare.threshold.value);
             // float knee = lthresh * k_Softness + 1e-5f;
             // return new Vector4(lthresh, lthresh - knee, knee * 2f, 0.25f / knee);
-			data.autoLensFlareParameters = new Vector4(m_AutoLensFlare.intensity.value, m_AutoLensFlare.scale.value, 0,0);
+			data.autoLensFlareParameters = new Vector4(m_AutoLensFlare.intensity.value, m_AutoLensFlare.blurSize.value, m_AutoLensFlare.blurSampleCount.value,m_AutoLensFlare.thingy.value);
 		}
 
         void PrepareChromaticAberrationParameters(UberPostPassData data, UberPostFeatureFlags flags)
