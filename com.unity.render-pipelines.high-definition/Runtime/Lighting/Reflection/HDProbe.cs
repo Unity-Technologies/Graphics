@@ -36,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
         PlanarProbeMask = Planar | IncrementRenderCount,
     }
 
+    /// <summary>Extension methods for ProbeRenderSteps.</summary>
     public static class ProbeRenderStepsExt
     {
         /// <summary>
