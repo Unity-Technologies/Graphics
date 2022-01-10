@@ -82,7 +82,6 @@ MonoBehaviour:
   decalLayerName5: Decal Layer 5
   decalLayerName6: Decal Layer 6
   decalLayerName7: Decal Layer 7
-  shaderVariantLogLevel: 0
   lensAttenuationMode: 0
   colorGradingSpace: 0
   diffusionProfileSettingsList:
@@ -200,3 +199,5 @@ MonoBehaviour:
           searchMultiplier: 0.2
       profile: {fileID: 11400000, guid: 9dfb95da0c0ec314ab9c1b4009099983, type: 2}
   m_Version: 3
+  m_ShaderVariantLogLevel: 0
+  m_ExportShaderVariants: 1

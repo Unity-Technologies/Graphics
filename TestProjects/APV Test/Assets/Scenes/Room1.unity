@@ -1362,35 +1362,37 @@ MonoBehaviour:
     m_CaptureRotation: {x: 0, y: 0, z: 0, w: 0}
     m_FieldOfView: 0
     m_Aspect: 0
+  m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    sh[ 0]: 0
-    sh[ 1]: 0
-    sh[ 2]: 0
-    sh[ 3]: 0
-    sh[ 4]: 0
-    sh[ 5]: 0
-    sh[ 6]: 0
-    sh[ 7]: 0
-    sh[ 8]: 0
-    sh[ 9]: 0
-    sh[10]: 0
-    sh[11]: 0
-    sh[12]: 0
-    sh[13]: 0
-    sh[14]: 0
-    sh[15]: 0
-    sh[16]: 0
-    sh[17]: 0
-    sh[18]: 0
-    sh[19]: 0
-    sh[20]: 0
-    sh[21]: 0
-    sh[22]: 0
-    sh[23]: 0
-    sh[24]: 0
-    sh[25]: 0
-    sh[26]: 0
-  m_HasValidSHForNormalization: 0
+    sh[ 0]: 60.568447
+    sh[ 1]: 29.493004
+    sh[ 2]: 0.74670786
+    sh[ 3]: -10.56295
+    sh[ 4]: -9.791839
+    sh[ 5]: -0.471993
+    sh[ 6]: -2.4916096
+    sh[ 7]: 0.089728735
+    sh[ 8]: 2.0787656
+    sh[ 9]: 76.98852
+    sh[10]: 48.357807
+    sh[11]: -0.35303313
+    sh[12]: -29.577164
+    sh[13]: -14.995677
+    sh[14]: -0.6899148
+    sh[15]: -3.084574
+    sh[16]: 0.07217889
+    sh[17]: 0.6730729
+    sh[18]: 122.543526
+    sh[19]: 88.765816
+    sh[20]: -1.9750485
+    sh[21]: -62.915787
+    sh[22]: -26.736137
+    sh[23]: -1.1996891
+    sh[24]: -4.839224
+    sh[25]: 0.2188239
+    sh[26]: -1.1445345
+  m_SHValidForCapturePosition: {x: 13.337921, y: 3.3920114, z: 0.061256886}
+  m_SHValidForSourcePosition: {x: 13.51, y: 3, z: 0}
   m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
@@ -3213,35 +3215,37 @@ MonoBehaviour:
     m_CaptureRotation: {x: 0, y: 0, z: 0, w: 0}
     m_FieldOfView: 0
     m_Aspect: 0
+  m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    sh[ 0]: 0
-    sh[ 1]: 0
-    sh[ 2]: 0
-    sh[ 3]: 0
-    sh[ 4]: 0
-    sh[ 5]: 0
-    sh[ 6]: 0
-    sh[ 7]: 0
-    sh[ 8]: 0
-    sh[ 9]: 0
-    sh[10]: 0
-    sh[11]: 0
-    sh[12]: 0
-    sh[13]: 0
-    sh[14]: 0
-    sh[15]: 0
-    sh[16]: 0
-    sh[17]: 0
-    sh[18]: 0
-    sh[19]: 0
-    sh[20]: 0
-    sh[21]: 0
-    sh[22]: 0
-    sh[23]: 0
-    sh[24]: 0
-    sh[25]: 0
-    sh[26]: 0
-  m_HasValidSHForNormalization: 0
+    sh[ 0]: 120.76732
+    sh[ 1]: 35.340794
+    sh[ 2]: -103.803955
+    sh[ 3]: 3.9179122
+    sh[ 4]: 0.6239185
+    sh[ 5]: -10.012546
+    sh[ 6]: 5.066953
+    sh[ 7]: -1.3249608
+    sh[ 8]: -2.1796298
+    sh[ 9]: 145.78651
+    sh[10]: 64.32622
+    sh[11]: -119.20331
+    sh[12]: 4.577431
+    sh[13]: 1.0133011
+    sh[14]: -19.868607
+    sh[15]: 4.904552
+    sh[16]: -1.5396603
+    sh[17]: -4.7323685
+    sh[18]: 214.4641
+    sh[19]: 124.53326
+    sh[20]: -166.61354
+    sh[21]: 6.4842443
+    sh[22]: 1.811537
+    sh[23]: -39.799133
+    sh[24]: 5.4908204
+    sh[25]: -2.1594925
+    sh[26]: -9.8861
+  m_SHValidForCapturePosition: {x: -0.48997402, y: 3.9496117, z: 14.368998}
+  m_SHValidForSourcePosition: {x: 1.554327, y: 4, z: 14.478}
   m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
@@ -3694,35 +3698,37 @@ MonoBehaviour:
     m_CaptureRotation: {x: 0, y: 0, z: 0, w: 0}
     m_FieldOfView: 0
     m_Aspect: 0
+  m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    sh[ 0]: 0
-    sh[ 1]: 0
-    sh[ 2]: 0
-    sh[ 3]: 0
-    sh[ 4]: 0
-    sh[ 5]: 0
-    sh[ 6]: 0
-    sh[ 7]: 0
-    sh[ 8]: 0
-    sh[ 9]: 0
-    sh[10]: 0
-    sh[11]: 0
-    sh[12]: 0
-    sh[13]: 0
-    sh[14]: 0
-    sh[15]: 0
-    sh[16]: 0
-    sh[17]: 0
-    sh[18]: 0
-    sh[19]: 0
-    sh[20]: 0
-    sh[21]: 0
-    sh[22]: 0
-    sh[23]: 0
-    sh[24]: 0
-    sh[25]: 0
-    sh[26]: 0
-  m_HasValidSHForNormalization: 0
+    sh[ 0]: 92.72366
+    sh[ 1]: 29.6634
+    sh[ 2]: -4.408921
+    sh[ 3]: 79.727066
+    sh[ 4]: 8.22219
+    sh[ 5]: -1.4976033
+    sh[ 6]: -2.9689553
+    sh[ 7]: -1.3955165
+    sh[ 8]: 4.9609294
+    sh[ 9]: 113.07437
+    sh[10]: 52.88652
+    sh[11]: -6.8208313
+    sh[12]: 91.58516
+    sh[13]: 15.860639
+    sh[14]: -2.4290984
+    sh[15]: -3.8601015
+    sh[16]: -2.1440725
+    sh[17]: 3.5702682
+    sh[18]: 168.29623
+    sh[19]: 101.72222
+    sh[20]: -12.039448
+    sh[21]: 128.39
+    sh[22]: 31.530756
+    sh[23]: -4.4332204
+    sh[24]: -6.076614
+    sh[25]: -3.754683
+    sh[26]: 1.8546014
+  m_SHValidForCapturePosition: {x: -14.795252, y: 3.9198482, z: 0.56717205}
+  m_SHValidForSourcePosition: {x: -13.5056715, y: 4, z: 0.34537315}
   m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
@@ -5131,7 +5137,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   globalVolume: 0
   size: {x: 39.472775, y: 19.222874, z: 36.989437}
-  geometryDistanceOffset: 0.2
+  overrideRendererFilters: 0
+  minRendererVolumeSize: 0.1
   objectLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -5156,7 +5163,7 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  cachedHashCode: 263148044
+  cachedHashCode: 1660744630
 --- !u!1 &1634791761
 GameObject:
   m_ObjectHideFlags: 0
@@ -5457,35 +5464,37 @@ MonoBehaviour:
     m_CaptureRotation: {x: 0, y: 0, z: 0, w: 0}
     m_FieldOfView: 0
     m_Aspect: 0
+  m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    sh[ 0]: 0
-    sh[ 1]: 0
-    sh[ 2]: 0
-    sh[ 3]: 0
-    sh[ 4]: 0
-    sh[ 5]: 0
-    sh[ 6]: 0
-    sh[ 7]: 0
-    sh[ 8]: 0
-    sh[ 9]: 0
-    sh[10]: 0
-    sh[11]: 0
-    sh[12]: 0
-    sh[13]: 0
-    sh[14]: 0
-    sh[15]: 0
-    sh[16]: 0
-    sh[17]: 0
-    sh[18]: 0
-    sh[19]: 0
-    sh[20]: 0
-    sh[21]: 0
-    sh[22]: 0
-    sh[23]: 0
-    sh[24]: 0
-    sh[25]: 0
-    sh[26]: 0
-  m_HasValidSHForNormalization: 0
+    sh[ 0]: 50.137344
+    sh[ 1]: 28.368166
+    sh[ 2]: 40.144966
+    sh[ 3]: 1.897208
+    sh[ 4]: 0.85910094
+    sh[ 5]: 8.939622
+    sh[ 6]: 1.5910522
+    sh[ 7]: 0.45634633
+    sh[ 8]: -2.2267387
+    sh[ 9]: 70.231804
+    sh[10]: 46.063328
+    sh[11]: 53.526253
+    sh[12]: 3.323089
+    sh[13]: 1.3540441
+    sh[14]: 14.6607685
+    sh[15]: 1.6769414
+    sh[16]: 0.8582512
+    sh[17]: -3.732211
+    sh[18]: 116.89526
+    sh[19]: 84.30133
+    sh[20]: 85.668594
+    sh[21]: 6.2966447
+    sh[22]: 2.429564
+    sh[23]: 26.883234
+    sh[24]: 2.1029727
+    sh[25]: 1.6744114
+    sh[26]: -6.9750237
+  m_SHValidForCapturePosition: {x: -1.8986883, y: 3.9233816, z: -14.111639}
+  m_SHValidForSourcePosition: {x: -1.2856727, y: 4, z: -13.694628}
   m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
@@ -6643,9 +6652,17 @@ PrefabInstance:
       propertyPath: m_ReceiveGI
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 3282851315240839396, guid: 7e9b6f9789d8de649bcf0487d29fd33f, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5540328433800853362, guid: 7e9b6f9789d8de649bcf0487d29fd33f, type: 3}
       propertyPath: m_Name
       value: FR_SectionA_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 5798728178899784469, guid: 7e9b6f9789d8de649bcf0487d29fd33f, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8842934981969102177, guid: 7e9b6f9789d8de649bcf0487d29fd33f, type: 3}
       propertyPath: m_RootOrder
@@ -8012,35 +8029,37 @@ MonoBehaviour:
     m_CaptureRotation: {x: 0, y: 0, z: 0, w: 0}
     m_FieldOfView: 0
     m_Aspect: 0
+  m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    sh[ 0]: 0
-    sh[ 1]: 0
-    sh[ 2]: 0
-    sh[ 3]: 0
-    sh[ 4]: 0
-    sh[ 5]: 0
-    sh[ 6]: 0
-    sh[ 7]: 0
-    sh[ 8]: 0
-    sh[ 9]: 0
-    sh[10]: 0
-    sh[11]: 0
-    sh[12]: 0
-    sh[13]: 0
-    sh[14]: 0
-    sh[15]: 0
-    sh[16]: 0
-    sh[17]: 0
-    sh[18]: 0
-    sh[19]: 0
-    sh[20]: 0
-    sh[21]: 0
-    sh[22]: 0
-    sh[23]: 0
-    sh[24]: 0
-    sh[25]: 0
-    sh[26]: 0
-  m_HasValidSHForNormalization: 0
+    sh[ 0]: 761.01855
+    sh[ 1]: -492.61154
+    sh[ 2]: 16.782585
+    sh[ 3]: -10.85979
+    sh[ 4]: 1.7081348
+    sh[ 5]: -10.63034
+    sh[ 6]: -17.099619
+    sh[ 7]: 3.5677085
+    sh[ 8]: -45.68012
+    sh[ 9]: 709.153
+    sh[10]: -336.80353
+    sh[11]: 7.522007
+    sh[12]: -9.631746
+    sh[13]: 2.3657966
+    sh[14]: -14.086725
+    sh[15]: -18.521723
+    sh[16]: 2.5378888
+    sh[17]: -51.879845
+    sh[18]: 767.6496
+    sh[19]: -144.63222
+    sh[20]: -6.309074
+    sh[21]: -7.9359007
+    sh[22]: 3.7610145
+    sh[23]: -22.696058
+    sh[24]: -24.80581
+    sh[25]: 1.349194
+    sh[26]: -72.655174
+  m_SHValidForCapturePosition: {x: 0, y: 5.26732, z: 0}
+  m_SHValidForSourcePosition: {x: 0, y: 5.5, z: 0}
   m_HDProbeVersion: 3
   m_ObsoleteInfiniteProjection: 1
   m_ObsoleteInfluenceVolume:
