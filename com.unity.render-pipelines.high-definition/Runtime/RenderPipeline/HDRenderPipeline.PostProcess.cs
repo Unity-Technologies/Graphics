@@ -1551,10 +1551,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // The anti flicker becomes much more aggressive on higher values
             float temporalContrastForMaxAntiFlicker = 0.7f - Mathf.Lerp(0.0f, 0.3f, Mathf.SmoothStep(0.5f, 1.0f, camera.taaAntiFlicker));
 
-            bool TAAU = camera.IsTAAUEnabled();
+            bool upscalingEnabled = camera.UpsampleHappensBeforePost();
 
             float antiFlickerLerpFactor = camera.taaAntiFlicker;
-            float historySharpening = TAAU && postDoF ? 0.25f : camera.taaHistorySharpening;
+            float historySharpening = upscalingEnabled && postDoF ? 0.25f : camera.taaHistorySharpening;
 
             if (camera.camera.cameraType == CameraType.SceneView)
             {
@@ -1618,8 +1618,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.temporalAAMaterial.EnableKeyword("ENABLE_MV_REJECTION");
             }
 
-            passData.runsTAAU = TAAU;
-            if (TAAU && !postDoF)
+            passData.runsTAAU = upscalingEnabled;
+            if (upscalingEnabled && !postDoF)
             {
                 passData.temporalAAMaterial.EnableKeyword("TAA_UPSCALE");
             }
@@ -1646,7 +1646,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            if (TAAU)
+            if (upscalingEnabled)
             {
                 passData.temporalAAMaterial.EnableKeyword("DIRECT_STENCIL_SAMPLE");
             }
@@ -1654,7 +1654,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle prevHistory, nextHistory;
             Vector2 historyScale = Vector2.one;
 
-            if (TAAU)
+            if (upscalingEnabled)
             {
                 historyScale = new Vector2((float)camera.finalViewport.width / camera.actualWidth, (float)camera.finalViewport.height / camera.actualHeight);
             }
@@ -1664,7 +1664,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector2Int prevViewPort = camera.historyRTHandleProperties.previousViewportSize;
             passData.previousScreenSize = new Vector4(prevViewPort.x, prevViewPort.y, 1.0f / prevViewPort.x, 1.0f / prevViewPort.y);
-            if (TAAU)
+            if (upscalingEnabled)
                 passData.previousScreenSize = new Vector4(camera.finalViewport.width, camera.finalViewport.height, 1.0f / camera.finalViewport.width, 1.0f / camera.finalViewport.height);
 
             passData.source = builder.ReadTexture(sourceTexture);
@@ -1686,7 +1686,7 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.nextMVLen = (!postDoF) ? builder.WriteTexture(renderGraph.ImportTexture(nextMVLen)) : TextureHandle.nullHandle;
 
             TextureHandle dest;
-            if (TAAU && DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+            if (upscalingEnabled && DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
             {
                 dest = GetPostprocessUpsampledOutputHandle(renderGraph, outputName);
             }
@@ -1696,13 +1696,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             passData.destination = builder.WriteTexture(dest);
 
-            bool needToUseCurrFrameSizeForHistory = camera.resetPostProcessingHistory || TAAU != camera.previousFrameWasTAAUpsampled;
+            bool needToUseCurrFrameSizeForHistory = camera.resetPostProcessingHistory || upscalingEnabled != camera.previousFrameWasTAAUpsampled;
             bool runsAfterUpscale = (resGroup == ResolutionGroup.AfterDynamicResUpscale);
 
             passData.prevFinalViewport = (camera.prevFinalViewport.width < 0 || needToUseCurrFrameSizeForHistory) ? camera.finalViewport : camera.prevFinalViewport;
             var mainRTScales = RTHandles.CalculateRatioAgainstMaxSize(camera.actualWidth, camera.actualHeight);
 
-            var historyRenderingViewport = (TAAU || runsAfterUpscale) ? new Vector2(passData.prevFinalViewport.width, passData.prevFinalViewport.height) :
+            var historyRenderingViewport = (upscalingEnabled || runsAfterUpscale) ? new Vector2(passData.prevFinalViewport.width, passData.prevFinalViewport.height) :
                 (needToUseCurrFrameSizeForHistory ? RTHandles.rtHandleProperties.currentViewportSize : camera.historyRTHandleProperties.previousViewportSize);
 
             if (runsAfterUpscale)
@@ -1713,7 +1713,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector4 scales = new Vector4(historyRenderingViewport.x / prevHistory.rt.width, historyRenderingViewport.y / prevHistory.rt.height, mainRTScales.x, mainRTScales.y);
             passData.taaScales = scales;
 
-            passData.finalViewport = (TAAU || runsAfterUpscale) ? camera.finalViewport : new Rect(0, 0, RTHandles.rtHandleProperties.currentViewportSize.x, RTHandles.rtHandleProperties.currentViewportSize.y);
+            passData.finalViewport = (upscalingEnabled || runsAfterUpscale) ? camera.finalViewport : new Rect(0, 0, RTHandles.rtHandleProperties.currentViewportSize.x, RTHandles.rtHandleProperties.currentViewportSize.y);
             var resScale = DynamicResolutionHandler.instance.GetCurrentScale();
             float stdDev = 0.4f;
             passData.taauParams = new Vector4(1.0f / (stdDev * stdDev), 1.0f / resScale, 0.5f / resScale, resScale);
