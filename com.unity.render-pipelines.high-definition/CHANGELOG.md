@@ -90,6 +90,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with typed loads on RGBA16F in Volumetric Lighting Filtering.
 - Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
 - Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
+- Fixed APV loading data outside of the relevant area containing probes.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
