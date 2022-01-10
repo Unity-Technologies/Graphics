@@ -358,12 +358,19 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal void CreateGbufferAttachments()
         {
+
+            // if (this.GbufferAttachments == null || this.GbufferFormats == null ||  this.GbufferFormats.Length != this.GBufferSliceCount)
+            //     this.GbufferFormats = new GraphicsFormat[this.GBufferSliceCount];
             int gbufferSliceCount = this.GBufferSliceCount;
             if (this.GbufferAttachments == null || this.GbufferAttachments.Length != gbufferSliceCount)
             {
                 this.GbufferAttachments = new RTHandle[gbufferSliceCount];
+                this.GbufferFormats = new GraphicsFormat[gbufferSliceCount];
                 for (int i = 0; i < gbufferSliceCount; ++i)
+                {
                     this.GbufferAttachments[i] = RTHandles.Alloc(k_GBufferNames[i], name: k_GBufferNames[i]);
+                    this.GbufferFormats[i] = this.GetGBufferFormat(i);
+                }
             }
         }
 
@@ -399,13 +406,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.GbufferAttachments[this.GBufferLightingIndex] = colorAttachment;
             this.DepthAttachment = depthAttachment;
 
-            if (this.GbufferAttachments == null || this.GbufferFormats == null)
-                this.GbufferFormats = new GraphicsFormat[this.GbufferAttachments.Length];
+            // if (this.GbufferAttachments == null || this.GbufferFormats == null ||  this.GbufferFormats.Length != this.GBufferSliceCount)
+            //     this.GbufferFormats = new GraphicsFormat[this.GBufferSliceCount];
 
-            for (int i = 0; i < this.GbufferAttachments.Length; ++i)
-            {
-                this.GbufferFormats[i] = this.GetGBufferFormat(i);
-            }
+            // for (int i = 0; i < this.GbufferAttachments.Length; ++i)
+            // {
+            //     this.GbufferFormats[i] = this.GetGBufferFormat(i);
+            // }
             if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 3)
             {
                 this.DeferredInputAttachments = new RTHandle[4]
