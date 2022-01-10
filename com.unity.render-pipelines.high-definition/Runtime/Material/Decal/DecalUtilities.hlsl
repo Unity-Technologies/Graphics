@@ -185,7 +185,7 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
     }
 }
 
-#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP) // forward transparent using clustered decals
+#if (defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP)) || defined(WATER_SURFACE_GBUFFER) // forward transparent using clustered decals
 DecalData FetchDecal(uint start, uint i)
 {
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
@@ -202,9 +202,9 @@ DecalData FetchDecal(uint index)
 }
 #endif
 
-DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, inout float alpha)
+DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, uint meshRenderingDecalLayer, inout float alpha)
 {
-#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP)  // forward transparent using clustered decals
+#if (defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP)) || defined(WATER_SURFACE_GBUFFER)  // forward transparent and deferred water use clustered decals
     uint decalCount, decalStart;
     DBufferType0 DBuffer0 = float4(0.0, 0.0, 0.0, 1.0);
     DBufferType1 DBuffer1 = float4(0.5, 0.5, 0.5, 1.0);
@@ -233,8 +233,6 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
     float3 positionRWSDdx = ddx(positionRWS);
     float3 positionRWSDdy = ddy(positionRWS);
 
-    uint decalLayerMask = GetMeshRenderingDecalLayer();
-
     // Scalarized loop. All decals that are in a tile/cluster touched by any pixel in the wave are loaded (scalar load), only the ones relevant to current thread/pixel are processed.
     // For clarity, the following code will follow the convention: variables starting with s_ are wave uniform (meant for scalar register),
     // v_ are variables that might have different value for each thread in the wave (meant for vector registers).
@@ -255,7 +253,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
             break;
 
         DecalData s_decalData = FetchDecal(s_decalIdx);
-        bool isRejected = (s_decalData.decalLayerMask & decalLayerMask) == 0;
+        bool isRejected = (s_decalData.decalLayerMask & meshRenderingDecalLayer) == 0;
 
         // If current scalar and vector decal index match, we process the decal. The v_decalListOffset for current thread is increased.
         // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
@@ -286,10 +284,10 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
     return decalSurfaceData;
 }
 
-DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, inout float alpha)
+DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, uint decalLayer, inout float alpha)
 {
     float3 vtxNormal = input.tangentToWorld[2];
-    DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, vtxNormal, alpha);
+    DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, vtxNormal, decalLayer, alpha);
 
 #if (!defined(DECAL_SURFACE_GRADIENT) || !defined(SURFACE_GRADIENT)) && defined(_DOUBLESIDED_ON)
     // 'doubleSidedConstants' is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode.
@@ -299,4 +297,9 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, 
 #endif
 
     return decalSurfaceData;
+}
+
+DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, inout float alpha)
+{
+    return GetDecalSurfaceData(posInput, input, GetMeshRenderingDecalLayer(), alpha);
 }
