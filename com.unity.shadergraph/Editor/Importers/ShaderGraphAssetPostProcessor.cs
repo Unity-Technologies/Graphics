@@ -63,12 +63,18 @@ namespace UnityEditor.ShaderGraph
             {
                 // Before importing, clear shader messages for any existing old shaders, if any.
                 // This is a terrible way to do it, but currently how the shader message system works at the moment.
-                var oldArtifacts = AssetDatabase.LoadAllAssetsAtPath(assetPath);
-                foreach (var artifact in oldArtifacts)
+
+                // to workaround a bug with LoadAllAssetsAtPath(), which crashes if the asset has not yet been imported
+                // we first call LoadAssetAtPath<>, which handles assets not yet imported by returning null
+                if (AssetDatabase.LoadAssetAtPath<Shader>(assetPath) != null)
                 {
-                    if ((artifact != null) && (artifact is Shader oldShader))
+                    var oldArtifacts = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+                    foreach (var artifact in oldArtifacts)
                     {
-                        ShaderUtil.ClearShaderMessages(oldShader);
+                        if ((artifact != null) && (artifact is Shader oldShader))
+                        {
+                            ShaderUtil.ClearShaderMessages(oldShader);
+                        }
                     }
                 }
             }
