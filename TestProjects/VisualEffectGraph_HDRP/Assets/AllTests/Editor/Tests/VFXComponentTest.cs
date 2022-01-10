@@ -220,6 +220,56 @@ namespace UnityEditor.VFX.Test
 
         }
 
+        [UnityTest]
+        public IEnumerator CreateComponent_With_Spaceable_Properties()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+
+            var coneParameter = VFXLibrary.GetParameters().Where(o => o.name.ToLowerInvariant() == "cone").FirstOrDefault();
+            Assert.IsNotNull(coneParameter);
+
+            //Basic spaceable parameter
+            var baseName = "my_exposed_cone_";
+            var availableSpace = Enum.GetValues(typeof(VFXCoordinateSpace)).Cast<VFXCoordinateSpace>();
+            foreach (var space in availableSpace)
+            {
+                var parameter = coneParameter.CreateInstance();
+                parameter.SetSettingValue("m_ExposedName", baseName + space.ToString().ToLowerInvariant());
+                parameter.SetSettingValue("m_Exposed", true);
+                parameter.outputSlots[0].space = space;
+                graph.AddChild(parameter);
+            }
+
+            //Other parameter (not spaceable)
+            var intDesc = VFXLibrary.GetParameters().Where(o => o.name.ToLowerInvariant().Contains("int")).FirstOrDefault();
+            Assert.IsNotNull(intDesc);
+            var parameterInteger = intDesc.CreateInstance();
+            parameterInteger.SetSettingValue("m_ExposedName", "my_exposed_integer");
+            parameterInteger.SetSettingValue("m_Exposed", true);
+            graph.AddChild(parameterInteger);
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var visualEffectAsset = graph.visualEffectResource.asset;
+
+            var exposedProperties = new List<VFXExposedProperty>();
+            visualEffectAsset.GetExposedProperties(exposedProperties);
+            Assert.AreEqual(6 * 2 + 1, exposedProperties.Count);
+
+            foreach (var exposedProperty in exposedProperties)
+            {
+                var readSpace = visualEffectAsset.GetExposedSpace(exposedProperty.name);
+                var expectedSpace = VFXSpace.None;
+                foreach (var expectedInName in availableSpace.Where(o =>
+                             exposedProperty.name.Contains(o.ToString().ToLowerInvariant())))
+                {
+                    expectedSpace = (VFXSpace)(int)expectedInName;
+                }
+                Assert.AreEqual(readSpace, expectedSpace);
+            }
+            yield return null;
+        }
+
         public enum GraphicsBufferResetCase
         {
             Reinit,
