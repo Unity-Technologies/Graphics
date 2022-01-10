@@ -4,6 +4,20 @@
 
 #ifndef WATERSYSTEMDEF_CS_HLSL
 #define WATERSYSTEMDEF_CS_HLSL
+// Generated from UnityEngine.Rendering.HighDefinition.WaterSurfaceProfile
+// PackingRules = Exact
+struct WaterSurfaceProfile
+{
+    float3 waterAmbientProbe;
+    float tipScatteringHeight;
+    float bodyScatteringHeight;
+    float maxRefractionDistance;
+    uint lightLayers;
+    float padding0;
+    float3 transparencyColor;
+    float outScatteringCoefficient;
+};
+
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWater
 // PackingRules = Exact
 CBUFFER_START(ShaderVariablesWater)
@@ -13,37 +27,33 @@ CBUFFER_START(ShaderVariablesWater)
     float _DirectionDampener;
     float4 _WaveAmplitude;
     float4 _BandPatchSize;
-    float4 _BandPatchUVScale;
     float4 _WindSpeed;
     float2 _WindDirection;
     float _Choppiness;
     float _DeltaTime;
-    float _SurfaceFoamIntensity;
-    float _SurfaceFoamAmount;
-    float _DeepFoamAmount;
+    float _SimulationFoamSmoothness;
+    float _SimulationFoamIntensity;
+    float _SimulationFoamAmount;
     float _SSSMaskCoefficient;
-    float _CloudTexturedAmount;
-    float _RefractionNormalWeight;
+    float _DispersionAmount;
+    float _ScatteringBlur;
     float _MaxRefractionDistance;
     float _WaterSmoothness;
     float2 _FoamOffsets;
     float _FoamTilling;
     float _WindFoamAttenuation;
-    float3 _ScatteringColorTips;
-    float _FoamSmoothness;
-    float _DispersionAmount;
-    float _RefractionLow;
-    float _MaxAbsorptionDistance;
-    float _ScatteringBlur;
-    float3 _TransparencyColor;
-    float _OutScatteringCoefficient;
+    float4 _TransparencyColor;
+    float4 _ScatteringColorTips;
     float _DisplacementScattering;
     float _ScatteringIntensity;
-    float _BodyScatteringWeight;
-    float _TipScatteringWeight;
+    int _SurfaceIndex;
+    float _CausticsRegionSize;
     float4 _ScatteringLambertLighting;
-    float3 _DeepFoamColor;
+    float4 _DeepFoamColor;
+    float _OutScatteringCoefficient;
+    float _FoamSmoothness;
     float _HeightBasedScattering;
+    float _PaddingW0;
     float4 _FoamJacobianLambda;
 CBUFFER_END
 
@@ -52,10 +62,12 @@ CBUFFER_END
 CBUFFER_START(ShaderVariablesWaterRendering)
     float2 _GridSize;
     float2 _WaterRotation;
-    float3 _PatchOffset;
+    float4 _PatchOffset;
+    float4 _WaterAmbientProbe;
     uint _GridRenderingResolution;
-    float3 _WaterAmbientProbe;
     uint _TesselationMasks;
+    float _EarthRadius;
+    float _CausticsIntensity;
     float2 _WaterMaskScale;
     float2 _WaterMaskOffset;
     float2 _FoamMaskScale;
@@ -63,9 +75,10 @@ CBUFFER_START(ShaderVariablesWaterRendering)
     float2 _CausticsOffset;
     float _CausticsTiling;
     float _CausticsPlaneOffset;
-    float2 _PaddingWR0;
-    float _EarthRadius;
-    float _CausticsIntensity;
+    float _CausticsPlaneBlendDistance;
+    int _WaterCausticsType;
+    uint _WaterDecalLayer;
+    int _InfiniteSurface;
 CBUFFER_END
 
 
