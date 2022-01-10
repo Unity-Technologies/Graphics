@@ -278,8 +278,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cell.probeExtraDataBuffers = new ProbeExtraDataBuffers(cell, s_AxisCount);
 
-                PopulateExtraDataBuffer(cell);
-                cell.extraDataBufferInit = true;
+                if (cell.extraData != null) // This is TMP, the ccheck will need to go.
+                {
+                    PopulateExtraDataBuffer(cell);
+                    cell.extraDataBufferInit = true;
+                }
+
             }
         }
 

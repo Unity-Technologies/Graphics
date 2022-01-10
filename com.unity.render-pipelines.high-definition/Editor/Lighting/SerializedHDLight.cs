@@ -74,6 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty evsmLightLeakBias;
         public SerializedProperty evsmVarianceBias;
         public SerializedProperty evsmBlurPasses;
+        public SerializedProperty affectsDynamicGI;
 
         // Improved moment shadows data
         public SerializedProperty lightAngle;
@@ -349,6 +350,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 iesPoint = o.Find("m_IESPoint");
                 iesSpot = o.Find("m_IESSpot");
                 includeForRayTracing = o.Find("m_IncludeForRayTracing");
+                affectsDynamicGI = o.Find("m_AffectDynamicGI");
                 areaLightShadowCone = o.Find("m_AreaLightShadowCone");
                 useCustomSpotLightShadowCone = o.Find("m_UseCustomSpotLightShadowCone");
                 customSpotLightShadowCone = o.Find("m_CustomSpotLightShadowCone");

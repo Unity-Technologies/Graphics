@@ -981,6 +981,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             EditorGUILayout.PropertyField(serialized.includeForRayTracing, s_Styles.includeLightForRayTracing);
+            EditorGUILayout.PropertyField(serialized.affectsDynamicGI, s_Styles.affectsDynamicGI);
 
             if (EditorGUI.EndChangeCheck())
             {

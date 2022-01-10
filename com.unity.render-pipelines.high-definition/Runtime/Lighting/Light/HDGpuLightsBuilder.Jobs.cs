@@ -692,6 +692,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.flareTint = (Vector3)(Vector4)lightRenderData.flareTint;
                 lightData.surfaceTint = (Vector3)(Vector4)lightRenderData.surfaceTint;
 
+                lightData.affectsDynamicGI = lightRenderData.affectsDynamicGI ? 1 : 0;
+
                 if (useCameraRelativePosition)
                     lightData.positionRWS -= cameraPos;
 

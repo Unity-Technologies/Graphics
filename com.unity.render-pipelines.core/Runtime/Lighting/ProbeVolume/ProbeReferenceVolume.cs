@@ -374,7 +374,7 @@ namespace UnityEngine.Experimental.Rendering
 
             public void Dispose()
             {
-                if (instance.SupportsDynamicPropagation())
+                if (instance.SupportsDynamicPropagation() && probeExtraDataBuffers != null)
                 {
                     probeExtraDataBuffers.Dispose();
                 }

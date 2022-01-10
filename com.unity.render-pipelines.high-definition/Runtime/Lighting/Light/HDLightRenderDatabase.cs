@@ -47,6 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float barnDoorAngle;
         public float flareSize;
         public float flareFalloff;
+        public bool affectsDynamicGI;
         public bool affectVolumetric;
         public bool affectDiffuse;
         public bool affectSpecular;

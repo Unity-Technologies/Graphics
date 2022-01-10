@@ -614,13 +614,6 @@ namespace UnityEngine.Experimental.Rendering
                 probeVolume.OnBakeCompleted();
             }
 
-            if (supportsDynamicPropagation)
-            {
-                // TODO_FCC : THIS SHOULD ONLY BE IN THE COMBINED VOLUME OF ALL VOLUMES, NOT REF VOLUME. we have the info
-                ProbeReferenceVolume.instance.generateExtraDataAction?.Invoke(Vector3.zero,
-                                                                              Vector3.one * 1024.0f);
-            }
-
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
             probeRefVolume.clearAssetsOnVolumeClear = false;
@@ -632,6 +625,17 @@ namespace UnityEngine.Experimental.Rendering
 
             // ---- Perform dilation ---
             PerformDilation();
+
+
+            // TODO_FCC: This ofc shouldnt be just true
+            if (true || supportsDynamicPropagation)
+            {
+                probeRefVolume.PerformPendingOperations();
+
+                // TODO_FCC : THIS SHOULD ONLY BE IN THE COMBINED VOLUME OF ALL VOLUMES, NOT REF VOLUME. we have the info
+                ProbeReferenceVolume.instance.generateExtraDataAction?.Invoke(Vector3.zero,
+                                                                              Vector3.one * 1024.0f);
+            }
         }
 
         static void OnLightingDataCleared()

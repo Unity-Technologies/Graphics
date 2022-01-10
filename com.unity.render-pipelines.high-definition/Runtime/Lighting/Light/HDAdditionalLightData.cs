@@ -1184,7 +1184,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool affectDynamicGI
         {
             get => m_AffectDynamicGI;
-            set => m_AffectDynamicGI = value;
+            set
+            {
+                m_AffectDynamicGI = value;
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).affectsDynamicGI = m_AffectDynamicGI;
+
+            }
         }
 
         /// <summary>
@@ -3656,6 +3662,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.surfaceTint = m_SurfaceTint;
             lightRenderData.shadowTint = m_ShadowTint;
             lightRenderData.flareTint = m_FlareTint;
+            lightRenderData.affectsDynamicGI = m_AffectDynamicGI;
         }
 
         internal void CreateHDLightRenderEntity(bool autoDestroy = false)

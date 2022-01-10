@@ -17,7 +17,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 
-//#pragma enable_d3d11_debug_symbols
+#pragma enable_d3d11_debug_symbols
 
 #define GROUP_SIZE 64
 
@@ -90,7 +90,7 @@ HitData UnpackInfoAlongAxis(uint2 extraData, float3 probePosition, float3 axisDi
     position += hit.normal * _RayBias;
     hit.position = position;
 
-    hit.albedo = albedoAndDist.rgb;
+    hit.albedo = float3(1, 1, 1);// albedoAndDist.rgb;
 
     return hit;
 }
