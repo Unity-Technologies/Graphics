@@ -29,7 +29,7 @@ Shader "Universal Render Pipeline/ShaderNotSupported"
 
     HLSLINCLUDE
 
-    #define TRIGGER_SHADER_UNSUPPORTED 1
+    #define TRIGGER_SHADER_UNSUPPORTED 0
 
     #if TRIGGER_SHADER_UNSUPPORTED
     #pragma only_renderers ps3 // Attempt to make sure the shader always ends up unsupported

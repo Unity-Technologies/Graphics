@@ -99,7 +99,7 @@ Shader "HDRP/HLSLError"
 
     HLSLINCLUDE
 
-    #define TRIGGER_HLSL_ERRORS 1
+    #define TRIGGER_HLSL_ERRORS 0
 
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch

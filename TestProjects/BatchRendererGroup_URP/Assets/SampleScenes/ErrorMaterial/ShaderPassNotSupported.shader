@@ -29,7 +29,7 @@ Shader "Universal Render Pipeline/ShaderPassNotSupported"
 
     HLSLINCLUDE
 
-    #define TRIGGER_SHADER_UNSUPPORTED 1
+    #define TRIGGER_SHADER_UNSUPPORTED 0
 
     ENDHLSL
 

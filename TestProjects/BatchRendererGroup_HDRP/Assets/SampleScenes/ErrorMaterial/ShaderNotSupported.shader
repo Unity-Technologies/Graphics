@@ -99,7 +99,7 @@ Shader "HDRP/ShaderNotSupported"
 
     HLSLINCLUDE
 
-    #define TRIGGER_SHADER_UNSUPPORTED 1
+    #define TRIGGER_SHADER_UNSUPPORTED 0
 
     #pragma target 4.5
 

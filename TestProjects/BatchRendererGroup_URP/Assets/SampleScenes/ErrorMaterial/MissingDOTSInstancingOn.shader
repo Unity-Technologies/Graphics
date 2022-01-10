@@ -27,6 +27,10 @@ Shader "Universal Render Pipeline/MissingDOTSInstancingOn"
         [HideInInspector] _SampleGI("SampleGI", float) = 0.0 // needed from bakedlit
     }
 
+    HLSLINCLUDE
+    #pragma multi_compile _ DOTS_INSTANCING_ON
+    ENDHLSL
+
     SubShader
     {
         Tags {"RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="4.5"}
@@ -52,7 +56,6 @@ Shader "Universal Render Pipeline/MissingDOTSInstancingOn"
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
-            //#pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile _ DEBUG_DISPLAY
@@ -87,7 +90,6 @@ Shader "Universal Render Pipeline/MissingDOTSInstancingOn"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
@@ -119,7 +121,6 @@ Shader "Universal Render Pipeline/MissingDOTSInstancingOn"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitDepthNormalsPass.hlsl"

@@ -99,6 +99,8 @@ Shader "HDRP/MissingDOTSInstancingOn"
 
     HLSLINCLUDE
 
+    #pragma multi_compile _ DOTS_INSTANCING_ON
+
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
@@ -160,7 +162,6 @@ Shader "HDRP/MissingDOTSInstancingOn"
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             // Note: Require _ObjectId and _PassValue variables
 
@@ -203,7 +204,6 @@ Shader "HDRP/MissingDOTSInstancingOn"
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             // Note: Only shader graph support Shadow Matte, so we do'nt need normal buffer here
             #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
@@ -248,7 +248,6 @@ Shader "HDRP/MissingDOTSInstancingOn"
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             // Note: Only shader graph support Shadow Matte, so we do'nt need normal buffer here
             #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
@@ -295,7 +294,6 @@ Shader "HDRP/MissingDOTSInstancingOn"
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
-            //#pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma multi_compile _ DEBUG_DISPLAY
 
@@ -330,7 +328,6 @@ Shader "HDRP/MissingDOTSInstancingOn"
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
@@ -368,7 +365,6 @@ Shader "HDRP/MissingDOTSInstancingOn"
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -406,7 +402,6 @@ Shader "HDRP/MissingDOTSInstancingOn"
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #define SHADERPASS SHADERPASS_DISTORTION
 
