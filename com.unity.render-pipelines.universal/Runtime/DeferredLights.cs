@@ -358,9 +358,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal void CreateGbufferAttachments()
         {
-
-            // if (this.GbufferAttachments == null || this.GbufferFormats == null ||  this.GbufferFormats.Length != this.GBufferSliceCount)
-            //     this.GbufferFormats = new GraphicsFormat[this.GBufferSliceCount];
             int gbufferSliceCount = this.GBufferSliceCount;
             if (this.GbufferAttachments == null || this.GbufferAttachments.Length != gbufferSliceCount)
             {
@@ -406,13 +403,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.GbufferAttachments[this.GBufferLightingIndex] = colorAttachment;
             this.DepthAttachment = depthAttachment;
 
-            // if (this.GbufferAttachments == null || this.GbufferFormats == null ||  this.GbufferFormats.Length != this.GBufferSliceCount)
-            //     this.GbufferFormats = new GraphicsFormat[this.GBufferSliceCount];
-
-            // for (int i = 0; i < this.GbufferAttachments.Length; ++i)
-            // {
-            //     this.GbufferFormats[i] = this.GetGBufferFormat(i);
-            // }
             if (this.DeferredInputAttachments == null && this.UseRenderPass && this.GbufferAttachments.Length >= 3)
             {
                 this.DeferredInputAttachments = new RTHandle[4]
