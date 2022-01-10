@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a callback to override the View matrix of Spot Lights.
 - Added Expose SSR parameters to control speed rejection from Motion Vector including computing Motion Vector in World Space.
 - Added a Layer Mask in the Probe Volume Settings window to filter which renderers to consider when placing the probes.
+- Added default DOTS compatible loading shader (MaterialLoading.shader)
+- Add #pragma editor_sync_compilation directive to MaterialError.shader
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
