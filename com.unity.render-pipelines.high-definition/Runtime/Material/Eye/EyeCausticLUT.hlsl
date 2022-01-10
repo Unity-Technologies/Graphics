@@ -51,5 +51,5 @@ float ComputeCausticFromLUT(float2 irisPlanePosition, float irisHeight, float3 l
 
 float3 ApplyCausticToDiffuse(float3 diffuse, float causticIntensity, float corneaMask, float blend)
 {
-    return (1.f - blend) * corneaMask + diffuse * causticIntensity;
+    return lerp(corneaMask, causticIntensity, blend) * diffuse;
 }
