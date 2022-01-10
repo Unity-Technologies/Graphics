@@ -168,6 +168,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             var impactedNodes = new List<string>();
             foreach (var downStreamNode in m_GraphHandle.GetDownstreamNodes(globalPropertyNode))
             {
+                var downStreamNodeName = downStreamNode.GetName();
+                var nodePreviewData = m_CachedPreviewData[downStreamNodeName];
+                nodePreviewData.isShaderOutOfDate = true;
+
                 impactedNodes.Add(downStreamNode.GetName());
             }
 
@@ -181,19 +185,33 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// <remarks> Dirties the preview render state of all nodes downstream of any references to the changed property </remarks>
         public List<string> SetLocalProperty(string nodeName, string propertyName, object newPropertyValue)
         {
-            var portReader = Mock_GetPortReaderForProperty(nodeName, propertyName);
-            var hlslName = Mock_GetHLSLNameForLocalProperty(nodeName, propertyName);
-
-            SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock, hlslName, newPropertyValue, portReader);
-
-            var sourceNode = m_GraphHandle.GetNodeReader(nodeName);
-            var impactedNodes = new List<string>();
-            foreach (var downStreamNode in m_GraphHandle.GetDownstreamNodes(sourceNode))
+            if (m_CachedPreviewData.ContainsKey(nodeName))
             {
-                impactedNodes.Add(downStreamNode.GetName());
+                var nodePreviewData = m_CachedPreviewData[nodeName];
+                nodePreviewData.isShaderOutOfDate = true;
+
+                var portReader = Mock_GetPortReaderForProperty(nodeName, propertyName);
+                var hlslName = Mock_GetHLSLNameForLocalProperty(nodeName, propertyName);
+
+                SetValueOnMaterialPropertyBlock(m_PreviewMaterialPropertyBlock, hlslName, newPropertyValue, portReader);
+
+                var sourceNode = m_GraphHandle.GetNodeReader(nodeName);
+                var impactedNodes = new List<string>();
+                foreach (var downStreamNode in m_GraphHandle.GetDownstreamNodes(sourceNode))
+                {
+                    var downStreamNodeName = downStreamNode.GetName();
+                    impactedNodes.Add(downStreamNodeName);
+
+                    m_CachedPreviewData[downStreamNodeName].isShaderOutOfDate = true;
+                }
+
+                return impactedNodes;
             }
 
-            return impactedNodes;
+            // Currently any change to any node needs to also dirty the master node as we don't actually have ability to traverse to master node, though in future it will and this can be removed
+            m_MasterPreviewData.isShaderOutOfDate = true;
+
+            return new List<string>();
         }
 
         /// <summary>
@@ -242,6 +260,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// <returns> Enum value that defines whether the node's render output is ready, currently being updated, or if a shader error was encountered </returns>
         public PreviewOutputState RequestNodePreviewImage(string nodeName, out Texture nodeRenderOutput, out ShaderMessage[] errorMessages, PreviewRenderMode newPreviewMode = PreviewRenderMode.Preview2D)
         {
+            errorMessages = null;
+
             if (m_CachedPreviewData.ContainsKey(nodeName))
             {
                 var previewData = m_CachedPreviewData[nodeName];
@@ -250,11 +270,11 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 // Still compiling the preview shader
                 if (previewData.isShaderOutOfDate)
                 {
+                    UpdateShaderData(previewData);
+                    UpdateRenderData(previewData);
                     nodeRenderOutput = m_CompilingTexture;
-                    errorMessages = null;
                     return PreviewOutputState.Updating;
                 }
-
                 // Ran into error compiling the preview shader
                 else if (previewData.hasShaderError)
                 {
@@ -262,12 +282,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     errorMessages = m_ShaderMessagesMap[previewData.nodeName];
                     return PreviewOutputState.ShaderError;
                 }
-
                 // Otherwise, the preview output has been rendered, assign it and return
                 else
                 {
                     nodeRenderOutput = previewData.texture;
-                    errorMessages = null;
                     return PreviewOutputState.Complete;
                 }
             }
@@ -275,9 +293,10 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             {
                 var previewData = AddNodePreviewData(nodeName);
                 previewData.currentRenderMode = newPreviewMode;
-                nodeRenderOutput = Texture2D.blackTexture;
-                errorMessages = null;
-                return PreviewOutputState.Updating;
+                UpdateShaderData(previewData);
+                UpdateRenderData(previewData);
+                nodeRenderOutput = previewData.texture;
+                return PreviewOutputState.Complete;
             }
         }
 
@@ -296,11 +315,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 {
                     UpdateShaderData(previewData);
 
-                    string shader = previewData.shaderString;
-
                     // Ran into error compiling the preview shader
                     return previewData.hasShaderError ? null : previewData.material;
                 }
+            }
+            else
+            {
+                var previewData = AddNodePreviewData(nodeName);
+                UpdateShaderData(previewData);
+                return previewData.material;
             }
 
             return null;
@@ -310,8 +333,9 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// Used to get preview shader code associated with a node.
         /// </summary>
         /// <returns> Current preview shader generated by a node </returns>
-        public string RequestNodePreviewShaderCode(string nodeName)
+        public string RequestNodePreviewShaderCode(string nodeName, out ShaderMessage[] shaderMessages)
         {
+            shaderMessages = new ShaderMessage [] {};
             if (m_CachedPreviewData.ContainsKey(nodeName))
             {
                 var previewData = m_CachedPreviewData[nodeName];
@@ -319,23 +343,22 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 // Still compiling the preview shader
                 if (previewData.isShaderOutOfDate)
                 {
-                    return null;
+                    UpdateShaderData(previewData);
+                    previewData.isShaderOutOfDate = false;
+                    if (previewData.hasShaderError)
+                    {
+                        shaderMessages = m_ShaderMessagesMap[nodeName];
+                    }
                 }
-
-                // Ran into error compiling the preview shader
-                else if (previewData.hasShaderError)
-                {
-                    return null;
-                }
-
-                // Otherwise, the preview output has been rendered, return material wrapper around it
-                else
-                {
-                    return previewData.shaderString;
-                }
+                return previewData.shaderString;
             }
-
-            return null;
+            else
+            {
+                var previewData = AddNodePreviewData(nodeName);
+                UpdateShaderData(previewData);
+                UpdateRenderData(previewData);
+                return previewData.shaderString;
+            }
         }
 
         /// <summary>
@@ -348,6 +371,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 var previewData = m_CachedPreviewData[nodeName];
                 previewData.isPreviewEnabled = shouldPreviewUpdate;
             }
+
+            Debug.Log("Node not recognized!");
         }
 
         /// <summary>
@@ -388,18 +413,21 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         /// <summary>
         /// Used to get preview shader code associated with the final output of the active graph.
         /// </summary>
-        /// <returns> Enum value that defines whether the graphs shader code output is ready, currently being compiled, or if a shader error was encountered </returns>
-        public PreviewOutputState RequestMasterPreviewShaderCode(out string masterPreviewShaderCode)
+        /// <returns> Enum value that defines whether the node's render output is ready, currently being updated, or if a shader error was encountered </returns>
+        public PreviewOutputState RequestMasterPreviewShaderCode(out string masterPreviewShaderCode, out ShaderMessage[] errorMessages)
         {
+            errorMessages = new ShaderMessage[] {};
+
             if (m_MasterPreviewData.isShaderOutOfDate)
             {
-                masterPreviewShaderCode = "";
-                return PreviewOutputState.Updating;
-            }
-            else if (m_MasterPreviewData.hasShaderError)
-            {
-                masterPreviewShaderCode = "";
-                return PreviewOutputState.ShaderError;
+                RequestMasterPreviewMaterial(m_MasterPreviewWidth, m_MasterPreviewHeight, out var masterPreviewMaterial, out var shaderMessages);
+                masterPreviewShaderCode = m_MasterPreviewData.shaderString;
+                if (m_MasterPreviewData.hasShaderError)
+                {
+                    errorMessages = m_ShaderMessagesMap[k_MasterPreviewName];
+                    return PreviewOutputState.ShaderError;
+                }
+                return PreviewOutputState.Complete;
             }
             else
             {
@@ -433,6 +461,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
         Shader GetNodeShaderObject(INodeReader nodeReader)
         {
             string shaderOutput = Interpreter.GetShaderForNode(nodeReader, m_GraphHandle, m_RegistryInstance);
+            m_CachedPreviewData[nodeReader.GetName()].shaderString = shaderOutput;
             return MakeShader(shaderOutput);
         }
 
@@ -441,6 +470,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
             // TODO: Need a way to query the main context node without having a hard name dependence, from GraphDelta
             var contextNodeReader = m_GraphHandle.GetNodeReader(k_MasterPreviewName);
             string shaderOutput = Interpreter.GetShaderForNode(contextNodeReader, m_GraphHandle, m_RegistryInstance);
+            m_MasterPreviewData.shaderString = shaderOutput;
             return MakeShader(shaderOutput);
         }
 
@@ -498,25 +528,15 @@ namespace UnityEditor.ShaderGraph.GraphDelta
 
         void UpdateRenderData(PreviewData previewToUpdate)
         {
-            int drawPreviewCount = 0;
-
             Assert.IsNotNull(previewToUpdate);
-            if (previewToUpdate.isRenderOutOfDate)
-            {
-                if (!previewToUpdate.isPreviewEnabled)
-                    return;
-
-                // Skip rendering while a preview shader is being compiled (only really a problem when we're doing async)
-                if (previewToUpdate.isShaderOutOfDate)
-                    return;
-
-                drawPreviewCount++;
-            }
 
             // TODO: Revisit this when we have global properties, this should be set from the GTF Preview Wrapper
             var time = Time.realtimeSinceStartup;
             var timeParameters = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
             m_PreviewMaterialPropertyBlock.SetVector("_TimeParameters", timeParameters);
+
+            // TODO: Revisit this when GetTargetSettings() is implemented
+            //var targetSettings = m_GraphHandle.GetTargetSettings();
 
             EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
 
@@ -572,11 +592,6 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 else
                     RenderPreview(previewToUpdate, m_SceneResources.sphere, Matrix4x4.identity);
             }
-
-            // TODO: Revisit this when GetTargetSettings() is implemented
-            //var targetSettings = m_GraphHandle.GetTargetSettings();
-
-
         }
 
         private static readonly ProfilerMarker RenderPreviewMarker = new ProfilerMarker("RenderPreview");
