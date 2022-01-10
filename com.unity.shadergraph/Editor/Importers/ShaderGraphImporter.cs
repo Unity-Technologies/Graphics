@@ -166,19 +166,6 @@ Shader ""Hidden/GraphErrorShader2""
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
-            {
-                // Before importing, clear shader messages for any existing old shaders, if any.
-                // This is a terrible way to do it, but currently how the shader message system works at the moment.
-                var oldArtifacts = AssetDatabase.LoadAllAssetsAtPath(ctx.assetPath);
-                foreach (var artifact in oldArtifacts)
-                {
-                    if ((artifact != null) && (artifact is Shader oldShader))
-                    {
-                        ShaderUtil.ClearShaderMessages(oldShader);
-                    }
-                }
-            }
-
             var importLog = new AssetImportErrorLog(ctx);
             string path = ctx.assetPath;
 

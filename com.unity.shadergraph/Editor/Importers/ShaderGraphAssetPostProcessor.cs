@@ -56,6 +56,24 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        void OnPreprocessAsset()
+        {
+            ShaderGraphImporter sgImporter = assetImporter as ShaderGraphImporter;
+            if (sgImporter != null)
+            {
+                // Before importing, clear shader messages for any existing old shaders, if any.
+                // This is a terrible way to do it, but currently how the shader message system works at the moment.
+                var oldArtifacts = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+                foreach (var artifact in oldArtifacts)
+                {
+                    if ((artifact != null) && (artifact is Shader oldShader))
+                    {
+                        ShaderUtil.ClearShaderMessages(oldShader);
+                    }
+                }
+            }
+        }
+
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             RegisterShaders(importedAssets);
