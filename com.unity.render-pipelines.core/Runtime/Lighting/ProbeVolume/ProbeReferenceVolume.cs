@@ -280,12 +280,21 @@ namespace UnityEngine.Experimental.Rendering
         /// The shader used to visualize the probes in the debug view.
         /// </summary>
         public Shader probeDebugShader;
+        /// <summary>
+        /// The <see cref="ProbeVolumeSceneData"/>
+        /// </summary>
         public ProbeVolumeSceneData sceneData;
+        /// <summary>
+        /// The <see cref="ProbeVolumeSHBands"/>
+        /// </summary>
         public ProbeVolumeSHBands shBands;
         /// <summary>True if APV should support streaming of cell data.</summary>
         public bool supportStreaming;
     }
 
+    /// <summary>
+    /// Struct holiding the <see cref="ProbeVolume"/> shading parameters
+    /// </summary>
     public struct ProbeVolumeShadingParameters
     {
         /// <summary>
@@ -304,6 +313,10 @@ namespace UnityEngine.Experimental.Rendering
         /// Noise to be applied to the sampling position. It can hide seams issues between subdivision levels, but introduces noise.
         /// </summary>
         public float samplingNoise;
+        /// <summary>
+        /// Global probe volumes weight. Allows for fading out probe volumes influence falling back to ambient probe.
+        /// </summary>
+        public float weight;
     }
 
     /// <summary>
@@ -606,7 +619,11 @@ namespace UnityEngine.Experimental.Rendering
 
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
         ProbeVolumeSHBands m_SHBands;
+        float m_ProbeVolumesWeight;
 
+        /// <summary>
+        /// The <see cref="ProbeVolumeSHBands"/>
+        /// </summary>
         public ProbeVolumeSHBands shBands { get { return m_SHBands; } }
 
         internal bool clearAssetsOnVolumeClear = false;
@@ -615,6 +632,11 @@ namespace UnityEngine.Experimental.Rendering
         /// Get the memory budget for the Probe Volume system.
         /// </summary>
         public ProbeVolumeTextureMemoryBudget memoryBudget => m_MemoryBudget;
+
+        /// <summary>
+        /// Global probe volumes weight. Allows for fading out probe volumes influence falling back to ambient probe.
+        /// </summary>
+        public float probeVolumesWeight { get => m_ProbeVolumesWeight; set => m_ProbeVolumesWeight = Mathf.Clamp01(value); }
 
         static ProbeReferenceVolume _instance = new ProbeReferenceVolume();
 
@@ -643,6 +665,7 @@ namespace UnityEngine.Experimental.Rendering
 
             m_MemoryBudget = parameters.memoryBudget;
             m_SHBands = parameters.shBands;
+            m_ProbeVolumesWeight = 1f;
             InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
             InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
             m_IsInitialized = true;
@@ -665,6 +688,7 @@ namespace UnityEngine.Experimental.Rendering
         /// It is important to keep in mind that this is not used by the system for anything else but book-keeping,
         /// the SRP is still responsible to disable anything Probe volume related on SRP side.
         /// </summary>
+        /// <param name="srpEnablesPV">The value of the new enabled</param>
         public void SetEnableStateFromSRP(bool srpEnablesPV)
         {
             m_EnabledBySRP = srpEnablesPV;
@@ -705,7 +729,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Get approximate video memory impact, in bytes, of the system.
         /// </summary>
-        /// <returns>An approximation of the video memory impact, in bytes, of the system<returns>
+        /// <returns>An approximation of the video memory impact, in bytes, of the system</returns>
         public int GetVideoMemoryCost()
         {
             if (!m_ProbeReferenceVolumeInit)
@@ -1302,17 +1326,16 @@ namespace UnityEngine.Experimental.Rendering
                 viewBias *= MinDistanceBetweenProbes();
             }
 
+            var minCellPos = m_CellIndices.GetCellMinPosition();
+            var indexDim = m_CellIndices.GetCellIndexDimension();
+            var poolDim = m_Pool.GetPoolDimensions();
+
             ShaderVariablesProbeVolumes shaderVars;
-            shaderVars._NormalBias = normalBias;
-            shaderVars._PoolDim = m_Pool.GetPoolDimensions();
-            shaderVars._ViewBias = viewBias;
-            shaderVars._PVSamplingNoise = parameters.samplingNoise;
-            shaderVars._CellInMinBricks = (int)Mathf.Pow(3, m_MaxSubdivision - 1);
-            shaderVars._CellIndicesDim = m_CellIndices.GetCellIndexDimension();
-            shaderVars._MinCellPosition = m_CellIndices.GetCellMinPosition();
-            shaderVars._MinBrickSize = MinBrickSize();
-            shaderVars._IndexChunkSize = ProbeBrickIndex.kIndexChunkSize;
-            shaderVars._CellInMeters = MaxBrickSize();
+            shaderVars._Biases_CellInMinBrick_MinBrickSize = new Vector4(normalBias, viewBias, (int)Mathf.Pow(3, m_MaxSubdivision - 1), MinBrickSize());
+            shaderVars._IndicesDim_IndexChunkSize = new Vector4(indexDim.x, indexDim.y, indexDim.z, ProbeBrickIndex.kIndexChunkSize);
+            shaderVars._MinCellPos_Noise = new Vector4(minCellPos.x, minCellPos.y, minCellPos.z, parameters.samplingNoise);
+            shaderVars._PoolDim_CellInMeters = new Vector4(poolDim.x, poolDim.y, poolDim.z, MaxBrickSize());
+            shaderVars._Weight_Padding = new Vector4(parameters.weight, 0.0f, 0.0f, 0.0f);
 
             ConstantBuffer.PushGlobal(cmd, shaderVars, m_CBShaderID);
         }

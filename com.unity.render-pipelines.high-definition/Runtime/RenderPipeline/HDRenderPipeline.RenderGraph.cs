@@ -40,6 +40,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool msaa = hdCamera.msaaEnabled;
                 var target = renderRequest.target;
 
+                // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
+                // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
+                if (!m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
+                    m_SkyManager.UpdateEnvironment(m_RenderGraph, hdCamera, GetMainLight());
+
                 // We need to initialize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
                 // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.
                 hdCamera.depthBufferMipChainInfo.ComputePackedMipChainInfo(RTHandles.rtHandleProperties.currentRenderTargetSize);
@@ -75,9 +80,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle rayCountTexture = RayCountManager.CreateRayCountTexture(m_RenderGraph);
 #if ENABLE_VIRTUALTEXTURES
                 TextureHandle vtFeedbackBuffer = VTBufferManager.CreateVTFeedbackBuffer(m_RenderGraph, hdCamera.msaaSamples);
+                bool resolveVirtualTextureFeedback = true;
 #else
                 TextureHandle vtFeedbackBuffer = TextureHandle.nullHandle;
 #endif
+
+                // Evaluate the ray tracing acceleration structure debug views
+                EvaluateRTASDebugView(m_RenderGraph, hdCamera);
 
                 LightingBuffers lightingBuffers = new LightingBuffers();
                 lightingBuffers.diffuseLightingBuffer = CreateDiffuseLightingBuffer(m_RenderGraph, hdCamera.msaaSamples);
@@ -98,6 +107,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     StartXRSinglePass(m_RenderGraph, hdCamera);
 
                     RenderFullScreenDebug(m_RenderGraph, colorBuffer, prepassOutput.depthBuffer, cullingResults, hdCamera);
+
+#if ENABLE_VIRTUALTEXTURES
+                    resolveVirtualTextureFeedback = false; // Could be handled but not needed for fullscreen debug pass currently
+#endif
                 }
                 else if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
                 {
@@ -112,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Stop Single Pass is after post process.
                     StartXRSinglePass(m_RenderGraph, hdCamera);
 
-                    colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer, prepassOutput.depthBuffer);
+                    colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer, prepassOutput.depthBuffer, vtFeedbackBuffer);
                     colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
                 }
                 else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && hdCamera.volumeStack.GetComponent<PathTracing>().enable.value && hdCamera.camera.cameraType != CameraType.Preview && GetRayTracingState() && GetRayTracingClusterState())
@@ -132,6 +145,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Debug.LogWarning("Path Tracing is not supported with XR single-pass rendering.");
                     }
+
+#if ENABLE_VIRTUALTEXTURES
+                    resolveVirtualTextureFeedback = false;
+#endif
                 }
                 else
                 {
@@ -248,14 +265,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Render gizmos that should be affected by post processes
                     RenderGizmos(m_RenderGraph, hdCamera, GizmoSubset.PreImageEffects);
+                }
 
 #if ENABLE_VIRTUALTEXTURES
-                    // Note: This pass rely on availability of vtFeedbackBuffer buffer (i.e it need to be write before we read it here)
-                    // We don't write it when doing debug mode, FullScreenDebug mode or path tracer. Thus why this pass is call here.
+                // Note: This pass rely on availability of vtFeedbackBuffer buffer (i.e it need to be write before we read it here)
+                // We don't write it when FullScreenDebug mode or path tracer.
+                if (resolveVirtualTextureFeedback)
+                {
                     hdCamera.ResolveVirtualTextureFeedback(m_RenderGraph, vtFeedbackBuffer);
                     PushFullScreenVTFeedbackDebugTexture(m_RenderGraph, vtFeedbackBuffer, msaa);
-#endif
                 }
+#endif
 
                 // At this point, the color buffer has been filled by either debug views are regular rendering so we can push it here.
                 var colorPickerTexture = PushColorPickerDebugTexture(m_RenderGraph, colorBuffer);
@@ -1294,6 +1314,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderTransparentDepthPrepass(renderGraph, hdCamera, prepassOutput, cullingResults);
 
+            // Render the water gbuffer (and prepare for the transparent SSR pass)
+            var waterGBuffer = RenderWaterGBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, currentColorPyramid);
+
+            // Render the transparent SSR lighting
             var ssrLightingBuffer = RenderSSR(renderGraph, hdCamera, ref prepassOutput, renderGraph.defaultResources.blackTextureXR, rayCountTexture, skyTexture, transparent: true);
 
             colorBuffer = RaytracingRecursiveRender(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, flagMaskBuffer, rayCountTexture);
@@ -1317,8 +1341,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 GenerateColorPyramid(renderGraph, hdCamera, resolvedColorBuffer, currentColorPyramid, FullScreenDebugMode.FinalColorPyramid);
             }
 
-            // For now, the water surface rendering happens all here.
-            RenderWaterSurfaces(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, currentColorPyramid);
+            // Render the deferred water lighting
+            RenderWaterLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, currentColorPyramid, waterGBuffer);
 
             // We don't have access to the color pyramid with transparent if rough refraction is disabled
             RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.BeforeTransparent, aovRequest, aovCustomPassBuffers);

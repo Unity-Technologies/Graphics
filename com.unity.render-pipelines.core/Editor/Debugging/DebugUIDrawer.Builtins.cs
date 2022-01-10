@@ -316,20 +316,20 @@ namespace UnityEditor.Rendering
             int index = -1;
             int value = w.GetValue();
 
-            rect = EditorGUI.PrefixLabel(rect, EditorGUIUtility.TrTextContent(widget.displayName, w.tooltip));
+            var label = EditorGUIUtility.TrTextContent(widget.displayName, w.tooltip);
 
             if (w.enumNames == null || w.enumValues == null)
             {
-                EditorGUI.LabelField(rect, "Can't draw an empty enumeration.");
+                EditorGUI.LabelField(rect, label, "Can't draw an empty enumeration.");
             }
             else if (w.enumNames.Length != w.enumValues.Length)
             {
-                EditorGUI.LabelField(rect, "Invalid data");
+                EditorGUI.LabelField(rect, label, "Invalid data");
             }
             else
             {
                 index = w.currentIndex;
-                index = EditorGUI.IntPopup(rect, Mathf.Clamp(index, 0, w.enumNames.Length - 1), w.enumNames, w.indexes);
+                index = EditorGUI.IntPopup(rect, label, Mathf.Clamp(index, 0, w.enumNames.Length - 1), w.enumNames, w.indexes);
                 value = w.enumValues[Mathf.Clamp(index, 0, w.enumValues.Length - 1)];
             }
 
@@ -468,16 +468,15 @@ namespace UnityEditor.Rendering
             var w = Cast<DebugUI.Foldout>(widget);
             var s = Cast<DebugStateBool>(state);
 
-            EditorGUI.BeginChangeCheck();
             GUIStyle style = w.isHeader ? DebugWindow.Styles.foldoutHeaderStyle : EditorStyles.foldout;
             Rect rect = PrepareControlRect(w.isHeader ? style.fixedHeight : -1, w.isHeader);
 
             if (w.isHeader)
                 GUILayout.Space(k_HeaderVerticalMargin);
 
-            bool value = EditorGUI.Foldout(rect, w.GetValue(), EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), false, style);
+            bool value = EditorGUI.Foldout(rect, (bool)s.GetValue(), EditorGUIUtility.TrTextContent(w.displayName, w.tooltip), false, style);
 
-            if (EditorGUI.EndChangeCheck())
+            if (w.GetValue() != value)
                 Apply(w, s, value);
 
             if (w.contextMenuItems != null)
@@ -657,7 +656,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
-    /// Builtin Drawer for <see cref="DebugUI.ObjectField"> Items.
+    /// Builtin Drawer for <see cref="DebugUI.ObjectField"/> items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.ObjectField))]
     public sealed class DebugUIDrawerObjectField : DebugUIDrawer
@@ -665,7 +664,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// OnGUI implementation for Object DebugUIDrawer.
         /// </summary>
-        /// <param name="widget">DebugUI <see cref="DebugUI.Widget">.</param>
+        /// <param name="widget">DebugUI <see cref="DebugUI.Widget"/>.</param>
         /// <param name="state">Debug State associated with the Debug Item.</param>
         /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
@@ -685,7 +684,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
-    /// Builtin Drawer for <see cref="DebugUI.ObjectListField"> Items.
+    /// Builtin Drawer for <see cref="DebugUI.ObjectListField"/> Items.
     /// </summary>
     [DebugUIDrawer(typeof(DebugUI.ObjectListField))]
     public sealed class DebugUIDrawerObjectListField : DebugUIDrawer
@@ -693,7 +692,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// OnGUI implementation for ObjectList DebugUIDrawer.
         /// </summary>
-        /// <param name="widget">DebugUI <see cref="DebugUI.Widget">.</param>
+        /// <param name="widget">DebugUI <see cref="DebugUI.Widget"/>.</param>
         /// <param name="state">Debug State associated with the Debug Item.</param>
         /// <returns>The state of the widget.</returns>
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
