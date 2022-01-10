@@ -69,6 +69,7 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
 #if defined(SHADER_STAGE_FRAGMENT) || defined(SHADER_STAGE_RAY_TRACING)
 
     #ifdef LIGHTMAP_ON
+    {
     #ifdef DIRLIGHTMAP_COMBINED
         SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
             TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),
@@ -78,9 +79,11 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
         bakeDiffuseLighting += illuminance;
         backBakeDiffuseLighting += illuminance;
     #endif
+    }
     #endif
 
     #ifdef DYNAMICLIGHTMAP_ON
+    {
     #ifdef DIRLIGHTMAP_COMBINED
         SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
             TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
@@ -90,7 +93,9 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
         bakeDiffuseLighting += illuminance;
         backBakeDiffuseLighting += illuminance;
     #endif
-#endif
+    }
+    #endif
+
 #endif
 }
 
