@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.UI
 
                 bool active = IsActive(table, i, child);
                 if (child != null)
-                child.SetActive(active);
+                    child.SetActive(active);
                 if (active && refreshRow)
                 {
                     if (child.TryGetComponent<DebugUIHandlerColor>(out var color))
