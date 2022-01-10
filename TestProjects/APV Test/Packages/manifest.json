@@ -13,7 +13,6 @@
     "com.unity.render-pipelines.high-definition-config": "file:../../../com.unity.render-pipelines.high-definition-config",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
     "com.unity.test-framework": "1.1.30",
-    "com.unity.testing.hdrp": "file:../../../com.unity.testing.hdrp",
     "com.unity.testing.xr": "file:../../../com.unity.testing.xr",
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.timeline": "1.7.0-pre.1",
