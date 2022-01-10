@@ -3,6 +3,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ContextLayeredDataStorage;
+using UnityEditor.ShaderGraph.Generation;
 using UnityEditor.ShaderGraph.Registry;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.Registry.Defs;
@@ -71,7 +72,7 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             // And/or having a separate test fixture for the contiguous/standalone tests
         }
 
-        private static Texture2D DrawToTex(Shader shader)
+        static Texture2D DrawShaderToTexture(Shader shader)
         {
             var rt = RenderTexture.GetTemporary(4,4,0,RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
             var prevActive = RenderTexture.active;
@@ -83,12 +84,26 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             rt.Release();
             return output;
         }
-        bool DoesMaterialMatchColor(Material testMaterial, Color expectedColor)
+
+        static Texture2D DrawRTToTexture(RenderTexture renderTexture)
         {
-            var renderTarget = DrawToTex(testMaterial.shader);
+            var prevActive = RenderTexture.active;
+            RenderTexture.active = renderTexture;
+            Texture2D output = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
+            Rect readPixels = new Rect(0, 0, output.width, output.height);
+            output.ReadPixels(readPixels, 0, 0);
+            output.Apply();
+            RenderTexture.active = prevActive;
+            renderTexture.Release();
+            return output;
+        }
+
+        static bool DoesMaterialMatchColor(Material testMaterial, Color expectedColor)
+        {
+            var outputTexture = DrawShaderToTexture(testMaterial.shader);
             try
             {
-                var outputColor = renderTarget.GetPixel(0, 0);
+                var outputColor = outputTexture.GetPixel(0, 0);
                 return outputColor == expectedColor;
             }
             catch (Exception e)
@@ -99,15 +114,14 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
 
         }
 
-        bool DoesMaterialMatchImage(Material testMaterial, Texture expectedImage)
+        static bool DoesImageMatchColor(Texture expectedImage, Color expectedColor)
         {
-            var renderTarget = DrawToTex(testMaterial.shader);
             try
             {
-                var outputColor = renderTarget.GetPixel(0, 0);
-                var texture = expectedImage as Texture2D;
-                var expectedColor = texture.GetPixel(0, 0);
-                return outputColor == expectedColor;
+                var renderTexture = expectedImage as RenderTexture;
+                var outputTexture = DrawRTToTexture(renderTexture);
+                var outputColor = outputTexture.GetPixel(0, 0);
+                return expectedColor == outputColor;
             }
             catch (Exception e)
             {
@@ -129,22 +143,21 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
-            // By default every Add node has vector4 inputs
-
             // Set the X component of the A input to 1, which makes the value Red
             nodeWriter.SetPortField("In1", "c0", 1f);
+            m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
 
             // Seems weird we need to cast down for this...
             var graphDelta = graphHandler as GraphDelta.GraphDelta;
-            // Throws an exception right now
             graphDelta.SetupContextNodes(new List<IContextDescriptor>() { new TestDescriptor() }, m_RegistryInstance);
 
             // Verify context node is not null
             var contextNode = graphHandler.GetNodeReader("TestContextDescriptor");
             Assert.IsNotNull(contextNode);
 
-            // Connect output of the Add node to the context node - throws exception
+            // Connect output of the Add node to the context node
             graphDelta.TryConnect("Add1", "Out", "TestContextDescriptor", "BaseColor", m_RegistryInstance);
+            m_PreviewManager.NotifyNodeFlowChanged("TestContextDescriptor");
 
             // Request master preview material once the graph has been setup correctly
             m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var shaderMessages);
@@ -166,7 +179,279 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
             var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
-            // By default every Add node has vector4 inputs
+            // Set the X component of the A input to 1, which makes the value Red
+            nodeWriter.SetPortField("In1", "c0", 1f);
+            m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
+
+            // Set the Y component of the B input to 1, which makes the value Green
+            nodeWriter.SetPortField("In2", "c1", 1f);
+            m_PreviewManager.SetLocalProperty("Add1", "In2", 1);
+
+            // Seems weird we need to cast down for this...
+            var graphDelta = graphHandler as GraphDelta.GraphDelta;
+            graphDelta.SetupContextNodes(new List<Registry.Defs.IContextDescriptor>() { new TestDescriptor() }, m_RegistryInstance);
+
+            // Verify context node is not null
+            var contextNode = graphHandler.GetNodeReader("TestContextDescriptor");
+            Assert.IsNotNull(contextNode);
+
+            // Connect output of the Add node to the context node
+            graphDelta.TryConnect("Add1", "Out", "TestContextDescriptor", "BaseColor", m_RegistryInstance);
+            m_PreviewManager.NotifyNodeFlowChanged("TestContextDescriptor");
+
+            // Request master preview material once the graph has been setup correctly
+            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var shaderMessages);
+            Assert.IsTrue(DoesMaterialMatchColor(masterPreviewMaterial, new Color(1, 1, 0, 1)));
+        }
+
+        [Test]
+        public void MasterPreview_SubtractTwoColors()
+        {
+            // Instantiate a graph
+            var graphHandler = GraphUtil.CreateGraph();
+
+            m_PreviewManager.SetActiveGraph(graphHandler);
+            m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
+
+            // Create an add node on the graph
+            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            var nodeWriter = graphHandler.GetNodeWriter("Add1");
+
+            // Set the X component of the A input to 1
+            nodeWriter.SetPortField("In1", "c0", 1f);
+            m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
+
+            // Set the X component of the B input to -1
+            nodeWriter.SetPortField("In2", "c0", -1f);
+            m_PreviewManager.SetLocalProperty("Add1", "In2", -1);
+
+            // Seems weird we need to cast down for this...
+            var graphDelta = graphHandler as GraphDelta.GraphDelta;
+            graphDelta.SetupContextNodes(new List<Registry.Defs.IContextDescriptor>() { new TestDescriptor() }, m_RegistryInstance);
+
+            // Verify context node is not null
+            var contextNode = graphHandler.GetNodeReader("TestContextDescriptor");
+            Assert.IsNotNull(contextNode);
+
+            // Connect output of the Add node to the context node
+            graphDelta.TryConnect("Add1", "Out", "TestContextDescriptor", "BaseColor", m_RegistryInstance);
+            m_PreviewManager.NotifyNodeFlowChanged("TestContextDescriptor");
+
+            // Request master preview material once the graph has been setup correctly
+            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var shaderMessages);
+            Assert.IsTrue(DoesMaterialMatchColor(masterPreviewMaterial, Color.black));
+        }
+
+        [Test]
+        public void NodePreview_SingleColorMaterial()
+        {
+            // Instantiate a graph
+            var graphHandler = GraphUtil.CreateGraph();
+
+            m_PreviewManager.SetActiveGraph(graphHandler);
+            m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
+
+            // Create an add node on the graph
+            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            var nodeWriter = graphHandler.GetNodeWriter("Add1");
+
+            // Set the X component of the A input to 1, which makes the value Red
+            nodeWriter.SetPortField("In1", "c0", 1f);
+            m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
+
+            // Request node preview material once the graph has been setup correctly
+            var nodePreviewMaterial = m_PreviewManager.RequestNodePreviewMaterial("Add1");
+            Assert.IsNotNull(nodePreviewMaterial);
+            Assert.IsTrue(DoesMaterialMatchColor(nodePreviewMaterial, Color.red));
+        }
+
+        [Test]
+        public void NodePreview_SingleColorImage()
+        {
+            // Instantiate a graph
+            var graphHandler = GraphUtil.CreateGraph();
+
+            m_PreviewManager.SetActiveGraph(graphHandler);
+            m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
+
+            // Create an add node on the graph
+            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            var nodeWriter = graphHandler.GetNodeWriter("Add1");
+
+            // Set the X component of the A input to 1, which makes the value Red
+            nodeWriter.SetPortField("In1", "c0", 1f);
+            m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
+
+            // Request node preview image once the graph has been setup correctly
+            m_PreviewManager.RequestNodePreviewImage("Add1", out var nodeRenderOutput, out var shaderMessages);
+            Assert.IsNotNull(nodeRenderOutput);
+            Assert.IsTrue(DoesImageMatchColor(nodeRenderOutput, Color.red));
+        }
+
+        [Test]
+        public void NodePreview_AddTwoColors()
+        {
+            // Instantiate a graph
+            var graphHandler = GraphUtil.CreateGraph();
+
+            m_PreviewManager.SetActiveGraph(graphHandler);
+            m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
+
+            // Create an add node on the graph
+            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            var nodeWriter = graphHandler.GetNodeWriter("Add1");
+
+            // Set the X component of the A input to 1, which makes the value Red
+            nodeWriter.SetPortField("In1", "c0", 1f);
+            m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
+
+            // Set the Y component of the B input to 1, which makes the value Green
+            nodeWriter.SetPortField("In2", "c1", 1f);
+            m_PreviewManager.SetLocalProperty("Add1", "In2", 1);
+
+            // Request node preview material once the graph has been setup correctly
+            var nodePreviewMaterial = m_PreviewManager.RequestNodePreviewMaterial("Add1");
+            Assert.IsNotNull(nodePreviewMaterial);
+            Assert.IsTrue(DoesMaterialMatchColor(nodePreviewMaterial, new Color(1, 1, 0, 1)));
+        }
+
+        [Test]
+        public void NodePreview_SubtractTwoColors()
+        {
+            // Instantiate a graph
+            var graphHandler = GraphUtil.CreateGraph();
+
+            m_PreviewManager.SetActiveGraph(graphHandler);
+            m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
+
+            // Create an add node on the graph
+            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            var nodeWriter = graphHandler.GetNodeWriter("Add1");
+
+            // Set the X component of the A input to 1
+            nodeWriter.SetPortField("In1", "c0", 1f);
+            m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
+
+            // Set the Y component of the B input to -1
+            nodeWriter.SetPortField("In2", "c0", -1f);
+            m_PreviewManager.SetLocalProperty("Add1", "I2", -1);
+
+            // Request node preview material once the graph has been setup correctly
+            var nodePreviewMaterial = m_PreviewManager.RequestNodePreviewMaterial("Add1");
+            Assert.IsNotNull(nodePreviewMaterial);
+            Assert.IsTrue(DoesMaterialMatchColor(nodePreviewMaterial, Color.black));
+        }
+
+        // TODO: Same tests as above but testing the output texture/image instead of the material
+        [Test]
+        public void NodePreview_ValidShaderCode()
+        {
+            // Instantiate a graph
+            var graphHandler = GraphUtil.CreateGraph();
+
+            m_PreviewManager.SetActiveGraph(graphHandler);
+            m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
+
+            // Create an add node on the graph
+            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            var nodeWriter = graphHandler.GetNodeWriter("Add1");
+
+            // Set the X component of the A input to 1
+            nodeWriter.SetPortField("In1", "c0", 1f);
+
+            // Set the Y component of the B input to -1
+            nodeWriter.SetPortField("In2", "c0", -1f);
+
+            // Request node preview material once the graph has been setup correctly
+            var nodePreviewShaderCode = m_PreviewManager.RequestNodePreviewShaderCode("Add1", out var shaderMessages);
+            Shader testShaderOutput = ShaderUtil.CreateShaderAsset(nodePreviewShaderCode, true);
+
+            Assert.IsFalse(ShaderUtil.ShaderHasError(testShaderOutput), shaderMessages.ToString());
+        }
+
+        [Test]
+        public void NodePreview_CodeChange()
+        {
+            // Instantiate a graph
+            var graphHandler = GraphUtil.CreateGraph();
+
+            m_PreviewManager.SetActiveGraph(graphHandler);
+            m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
+
+            // Create an add node on the graph
+            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            var nodeWriter = graphHandler.GetNodeWriter("Add1");
+
+            // Get code for node, first version
+            var nodeCodev1 = m_PreviewManager.RequestNodePreviewShaderCode("Add1", out var shaderMessages1);
+            Assert.IsTrue(nodeCodev1 != String.Empty);
+
+            // Make some change
+            nodeWriter.SetPortField("In1", "c0", 1f);
+            m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
+
+            // Get code for node, second version
+            var nodeCodev2 = m_PreviewManager.RequestNodePreviewShaderCode("Add1", out var shaderMessages2);
+            Assert.IsTrue(nodeCodev2 != String.Empty);
+
+            // Code generated should be different after a change was made
+            Assert.IsTrue(nodeCodev1 != nodeCodev2);
+        }
+
+        [Test]
+        public void MasterPreview_CodeChange()
+        {
+            // Instantiate a graph
+            var graphHandler = GraphUtil.CreateGraph();
+
+            m_PreviewManager.SetActiveGraph(graphHandler);
+            m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
+
+            // Create an add node on the graph
+            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            var nodeWriter = graphHandler.GetNodeWriter("Add1");
+
+            // Seems weird we need to cast down for this...
+            var graphDelta = graphHandler as GraphDelta.GraphDelta;
+            // Throws an exception right now
+            graphDelta.SetupContextNodes(new List<Registry.Defs.IContextDescriptor>() { new TestDescriptor() }, m_RegistryInstance);
+
+            // Verify context node is not null
+            var contextNode = graphHandler.GetNodeReader("TestContextDescriptor");
+            Assert.IsNotNull(contextNode);
+
+            // Connect output of the Add node to the context node - throws exception
+            graphDelta.TryConnect("Add1", "Out", "TestContextDescriptor", "BaseColor", m_RegistryInstance);
+
+            // Request master preview material once the graph has been setup correctly
+            m_PreviewManager.RequestMasterPreviewShaderCode(out var shaderCodev1, out var shaderMessages1);
+            Assert.IsTrue(shaderCodev1 != String.Empty);
+
+            // Make some change
+            nodeWriter.SetPortField("In1", "c0", 1f);
+            m_PreviewManager.SetLocalProperty("Add1", "In1", 1);
+
+            // Request master preview material once the graph has been setup correctly
+            m_PreviewManager.RequestMasterPreviewShaderCode(out var shaderCodev2, out var shaderMessages2);
+            Assert.IsTrue(shaderCodev2 != String.Empty);
+
+            // Code generated should be different after a change was made
+            Assert.IsTrue(shaderCodev1 != shaderCodev2);
+        }
+
+
+        [Test]
+        public void MasterPreview_ValidShaderCode()
+        {
+            // Instantiate a graph
+            var graphHandler = GraphUtil.CreateGraph();
+
+            m_PreviewManager.SetActiveGraph(graphHandler);
+            m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
+
+            // Create an add node on the graph
+            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
+            var nodeWriter = graphHandler.GetNodeWriter("Add1");
 
             // Set the X component of the A input to 1, which makes the value Red
             nodeWriter.SetPortField("In1", "c0", 1f);
@@ -187,64 +472,13 @@ namespace UnityEditor.ShaderGraph.HeadlessPreview.UnitTests
             graphDelta.TryConnect("Add1", "Out", "TestContextDescriptor", "BaseColor", m_RegistryInstance);
 
             // Request master preview material once the graph has been setup correctly
-            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var shaderMessages);
-            Assert.IsTrue(DoesMaterialMatchColor(masterPreviewMaterial, new Color(1, 1, 0, 1)));
-        }
+            m_PreviewManager.RequestMasterPreviewShaderCode(out var shaderCode, out var shaderMessages);
+            Shader testShaderOutput = ShaderUtil.CreateShaderAsset(shaderCode, true);
 
-        [Test]
-        public void MasterPreview_SubtractTwoColors()
-        {
-            // Instantiate a graph
-            var graphHandler = GraphUtil.CreateGraph();
-
-            m_PreviewManager.SetActiveGraph(graphHandler);
-            m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
-
-            // Create an add node on the graph
-            graphHandler.AddNode<Types.AddNode>("Add1", m_RegistryInstance);
-            var nodeWriter = graphHandler.GetNodeWriter("Add1");
-
-            // By default every Add node has vector4 inputs
-
-            // Set the X component of the A input to 1
-            nodeWriter.SetPortField("In1", "c0", 1f);
-
-            // Set the X component of the B input to -1
-            nodeWriter.SetPortField("In2", "c0", -1f);
-
-            // Seems weird we need to cast down for this...
-            var graphDelta = graphHandler as GraphDelta.GraphDelta;
-            // Throws an exception right now
-            graphDelta.SetupContextNodes(new List<Registry.Defs.IContextDescriptor>() { new TestDescriptor() }, m_RegistryInstance);
-
-            // Verify context node is not null
-            var contextNode = graphHandler.GetNodeReader("TestContextDescriptor");
-            Assert.IsNotNull(contextNode);
-
-            // Connect output of the Add node to the context node - throws exception
-            graphDelta.TryConnect("Add1", "Out", "TestContextDescriptor", "BaseColor", m_RegistryInstance);
-
-            // Request master preview material once the graph has been setup correctly
-            m_PreviewManager.RequestMasterPreviewMaterial(400, 400, out var masterPreviewMaterial, out var shaderMessages);
-            Assert.IsTrue(DoesMaterialMatchColor(masterPreviewMaterial, Color.black));
-        }
-
-        // TODO: Same test as above but testing the output texture/image instead of the material
-
-        public void MasterPreview_MasterPreviewShaderTest()
-        {
-            // Graph with node network setup as expected
-            var assetPath = "Assets/CommonAssets/Graphs/Preview/MasterPreviewCode";
-            var graphHandler = GraphUtil.OpenGraph(assetPath) as IGraphHandler;
-            m_PreviewManager.SetActiveGraph(graphHandler);
-            m_PreviewManager.SetActiveRegistry(m_RegistryInstance);
+            Assert.IsFalse(ShaderUtil.ShaderHasError(testShaderOutput), shaderMessages.ToString());
 
             //var previewShader = m_PreviewManager.RequestMasterPreviewShaderCode();
             // Q) Possible test ideas:
-            //      1) Check if the shader code provided by the preview manager matches up to the shader code provided by Interpreter directly?
-            //      2) Testing the caching behavior, i.e. if changes are made or not made, the shader code object returned should match expected state
-            //      3) Testing if the shader code output is valid
-            //      4) Testing if shader code output compiles
             //      5) Testing if the material being generated and its shader code matches the cached shader code
             //      6) Testing if the material render output (graph & node) matches the desired state after making some property changes
             //      7) Testing if a given property exists in the material property block?
