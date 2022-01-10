@@ -20,6 +20,8 @@ namespace UnityEngine.Rendering
         public Vector4 _MinCellPos_Noise;
         public Vector4 _IndicesDim_IndexChunkSize;
         public Vector4 _Biases_CellInMinBrick_MinBrickSize;
-        public Vector4 _Weight_Padding;
+        public Vector4 _Weight_MinLoadedCell;
+        public Vector4 _MaxLoadedCell_Padding;
+
     }
 }
