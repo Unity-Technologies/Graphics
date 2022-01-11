@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // TODO_FCC: MOVE.
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.DynamicProbeVolumeGI))
                     {
-                        //  ProbeReferenceVolume.instance.generateExtraDataAction?.Invoke(Vector3.zero, Vector3.one * 10000.0f);
+                        ProbeReferenceVolume.instance.generateExtraDataAction?.Invoke(Vector3.zero, Vector3.one * 10000.0f);
 
 
                         m_DynamicGI.LightPropagation(m_RenderGraph, hdCamera, ProbeReferenceVolume.instance.AnAssetHasBeenUnloadedThisFrame());

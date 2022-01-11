@@ -90,7 +90,8 @@ HitData UnpackInfoAlongAxis(uint2 extraData, float3 probePosition, float3 axisDi
     position += hit.normal * _RayBias;
     hit.position = position;
 
-    hit.albedo = float3(1, 1, 1);// albedoAndDist.rgb;
+    hit.albedo = albedoAndDist.rgb;
+    //hit.albedo = float3(1, 1, 1);// albedoAndDist.rgb;
 
     return hit;
 }
