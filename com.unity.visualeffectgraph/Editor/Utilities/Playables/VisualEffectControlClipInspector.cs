@@ -488,7 +488,6 @@ namespace UnityEditor.VFX
 #if FIX_DUPLICATE
                 //See case 1381005
                 //Special detection of duplicated referenced element due to manual duplicate in reordable list
-                //TODOPAUL, it doesn't work because we are missing this modification: https://unity.slack.com/archives/C06TQ9LFP/p1636737000313000
                 var playable = serializedObject.targetObject as VisualEffectControlClip;
                 var enterEvents = playable.clipEvents.Where(o => o.enter.eventAttributes.content != null).SelectMany(o => o.enter.eventAttributes.content);
                 var exitEvents = playable.clipEvents.Where(o => o.exit.eventAttributes.content != null).SelectMany(o => o.exit.eventAttributes.content);
