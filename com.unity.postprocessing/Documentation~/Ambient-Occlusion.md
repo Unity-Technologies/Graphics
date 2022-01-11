@@ -62,5 +62,6 @@ This mode is optimized for consoles and desktop platforms. It has better graphic
 | :------------------ | :------------------------------------------------------------ |
 | Intensity          | Adjust the degree of darkness **Ambient Occlusion** produces.                  |
 | Thickness Modifier | Modify the thickness of occluders. This increases dark areas but can introduce dark halos around objects. |
+| High Depth Precision| Enable this checkbox to use 32bit floating point buffers (instead of 16bit floating point) for temporary tiled depth values, this will fix some artifacts at the cost of higher GPU memory usage. |
 | Color              | Set the tint color of the ambient occlusion.                                 |
 | Ambient Only       | Enable this checkbox to make the **Ambient Occlusion** effect only affect ambient lighting. This option is only available with the Deferred rendering path and HDR rendering. |

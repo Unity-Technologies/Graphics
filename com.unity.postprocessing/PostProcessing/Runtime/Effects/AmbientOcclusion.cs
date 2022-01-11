@@ -127,6 +127,13 @@ namespace UnityEngine.Rendering.PostProcessing
         [Range(1f, 10f), Tooltip("This modifies the thickness of occluders. It increases the size of dark areas and also introduces a dark halo around objects.")]
         public FloatParameter thicknessModifier = new FloatParameter { value = 1f };
 
+        /// <summary>
+        /// Use high depth precision temporary tile depth storage, this will increase quality, but will also use more
+        /// GPU memory and reduce GPU performance
+        /// </summary>
+        [Tooltip("Check this box to reduce banding effect (lines/stripes) that can be seen in some cases. This will use higher precision render targets for the temporary tiled depth storage, this will increase quality at the cost of GPU memory and bandwidth")]
+        public BoolParameter highDepthPrecision = new BoolParameter { value = false };
+
         // HDRP-only parameters
 
         /// <summary>
