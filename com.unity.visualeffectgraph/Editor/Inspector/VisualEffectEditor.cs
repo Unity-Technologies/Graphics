@@ -124,8 +124,6 @@ namespace UnityEditor.VFX
             s_AllEditors.Remove(this);
         }
 
-        protected const float overrideWidth = 16;
-
         private static bool GenerateMultipleField(ref VFXParameterInfo parameter, SerializedProperty property)
         {
             if (property.propertyType == SerializedPropertyType.Vector4 && parameter.realType != typeof(Color).Name)
@@ -172,7 +170,7 @@ namespace UnityEditor.VFX
             {
                 overridenProperty.boolValue = newOverriden;
             }
-            rect.xMin += overrideWidth + EditorGUI.indentLevel * 16;
+            rect.xMin += Styles.overrideWidth + EditorGUI.indentLevel * 16;
 
             int saveIndent = EditorGUI.indentLevel; // since we already applied the indentLevel to the rect reset it to zero.
             EditorGUI.indentLevel = 0;
@@ -609,10 +607,23 @@ namespace UnityEditor.VFX
             return result;
         }
 
-        protected virtual void EmptyLineControl(string name, string tooltip, int depth, VisualEffectResource resource)
+        protected void LeftSpaceTabulation(VFXCoordinateSpace? space)
+        {
+            if (space != null)
+            {
+                var spaceContent = Content.GetSpaceIcon((VFXCoordinateSpace)space);
+                GUILayout.Label(spaceContent, Styles.spaceIconStyle);
+            }
+            else
+            {
+                GUILayout.Space(Styles.overrideWidth);
+            }
+        }
+
+        protected virtual void EmptyLineControl(string name, string tooltip, VFXCoordinateSpace? space, int depth, VisualEffectResource resource)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Space(overrideWidth); // the 4 is so that Labels are aligned with elements having an override toggle.
+            LeftSpaceTabulation(space);
             EditorGUILayout.LabelField(GetGUIContent(name, tooltip));
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
@@ -689,7 +700,7 @@ namespace UnityEditor.VFX
                 var rect = EditorGUILayout.GetControlRect(false, GUI.skin.textField.CalcHeight(exampleGUIContent, 10000));
                 var toggleRect = rect;
                 toggleRect.yMin += 2.0f;
-                toggleRect.width = overrideWidth;
+                toggleRect.width = Styles.overrideWidth;
 
                 s_FakeObjectSerializedCache.Update();
                 var fakeInitialEventNameField = s_FakeObjectSerializedCache.FindProperty("m_InitialEventName");
@@ -705,7 +716,7 @@ namespace UnityEditor.VFX
                     changed = true;
                 }
 
-                rect.xMin += overrideWidth;
+                rect.xMin += Styles.overrideWidth;
                 var save = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = 0;
                 EditorGUI.BeginChangeCheck();
@@ -915,7 +926,9 @@ namespace UnityEditor.VFX
                                             ignoreUntilNextCat = true;
                                     }
                                     else if (!ignoreUntilNextCat)
-                                        EmptyLineControl(parameter.name, parameter.tooltip, stack.Count, resource);
+                                    {
+                                        EmptyLineControl(parameter.name, parameter.tooltip, parameter.spaceable ? parameter.space : (VFXCoordinateSpace?)null, stack.Count, resource);
+                                    }
                                 }
                             }
                             else if (!ignoreUntilNextCat)
@@ -1467,8 +1480,36 @@ namespace UnityEditor.VFX
             return EditorGUIUtility.isProSkin ? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Scene) : EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector);
         }
 
+        protected static class Content
+        {
+            private static readonly GUIContent spaceLocalIcon;
+            private static readonly GUIContent spaceWorldIcon;
+
+            static Content()
+            {
+                var spaceLocal = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spacelocal.png");
+                var spaceWorld = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spaceworld.png");
+                spaceLocalIcon = new GUIContent(spaceLocal, "The exposed space is expecting value in object space.");
+                spaceWorldIcon = new GUIContent(spaceWorld, "The exposed space is expecting value in global space.");
+            }
+
+            public static GUIContent GetSpaceIcon(VFXCoordinateSpace space)
+            {
+                switch (space)
+                {
+                    case VFXCoordinateSpace.Local:
+                        return spaceLocalIcon;
+                    case VFXCoordinateSpace.World:
+                        return spaceWorldIcon;
+                }
+                return null;
+            }
+        }
+
         protected static class Styles
         {
+            public static readonly GUIStyle spaceIconStyle;
+
             public static readonly GUIStyle foldoutStyle;
             public static readonly GUIStyle toggleStyle;
             public static readonly GUIStyle toggleMixedStyle;
@@ -1477,6 +1518,7 @@ namespace UnityEditor.VFX
 
             public static readonly GUILayoutOption MiniButtonWidth = GUILayout.Width(56);
             public static readonly GUILayoutOption PlayControlsHeight = GUILayout.Height(24);
+            public const float overrideWidth = 16;
 
             static Styles()
             {
@@ -1496,6 +1538,12 @@ namespace UnityEditor.VFX
 
                 //TODO change to editor resources calls
                 categoryHeader.normal.background = (Texture2D)AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + (EditorGUIUtility.isProSkin ? "/VFX/cat-background-dark.png" : "/VFX/cat-background-light.png"));
+
+                spaceIconStyle = new GUIStyle();
+                spaceIconStyle.fixedWidth = overrideWidth;
+                spaceIconStyle.fixedHeight = overrideWidth;
+                spaceIconStyle.alignment = TextAnchor.MiddleCenter;
+                spaceIconStyle.margin.top = 4;
             }
         }
     }

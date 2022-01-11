@@ -27,11 +27,15 @@ namespace UnityEditor.VFX
             descendantCount = 0;
             sheetType = null;
             enumValues = null;
+            space = (VFXCoordinateSpace)int.MaxValue;
+            spaceable = false;
         }
 
         public string name;
         public string path;
         public string tooltip;
+        public VFXCoordinateSpace space;
+        public bool spaceable;
 
         public string sheetType;
 
@@ -84,6 +88,8 @@ namespace UnityEditor.VFX
 
                 VFXParameterInfo paramInfo = new VFXParameterInfo(parameter.exposedName, parameter.type.Name);
                 paramInfo.tooltip = parameter.tooltip;
+                paramInfo.space = parameter.outputSlots[0].space;
+                paramInfo.spaceable = parameter.outputSlots[0].spaceable;
                 if (rootFieldName != null)
                 {
                     paramInfo.sheetType = rootFieldName;
