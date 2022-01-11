@@ -30,14 +30,14 @@ PackedVaryings vert(Attributes input)
     return packedOutput;
 }
 
-half3 DoMyLerpThankYou(half3 a, half3 b, half v)
+half3 DoMyLerpThankYou(half a, half3 b, half v)
 {
-    return lerp(a, b, v);
+    return lerp(half3(a, a, a), b, v);
 }
 
-float3 DoMyLerpThankYou(float3 a, float3 b, half v)
+float3 DoMyLerpThankYou(float a, float3 b, half v)
 {
-    return lerp(a, b, v);
+    return lerp(float3(a, a, a), b, v);
 }
 
 half4 frag(PackedVaryings packedInput) : SV_TARGET
@@ -57,8 +57,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #endif
 
 #if defined(_ALPHAMODULATE_ON)
-    //surfaceDescription.BaseColor = lerp(half3(1.0, 1.0, 1.0), surfaceDescription.BaseColor, alpha);
-    surfaceDescription.BaseColor = DoMyLerpThankYou(half3(1.0, 1.0, 1.0), surfaceDescription.BaseColor, alpha);
+    surfaceDescription.BaseColor = DoMyLerpThankYou(1.0, surfaceDescription.BaseColor, alpha);
 #endif
 
 #if defined(_DBUFFER)
