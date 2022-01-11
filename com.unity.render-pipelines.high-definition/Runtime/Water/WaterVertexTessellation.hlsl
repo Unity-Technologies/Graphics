@@ -1,4 +1,4 @@
-// Setup function used by 
+// Setup function used by no one
 void SetupInstanceID() {}
 
 /// VERTEX STAGE START
@@ -222,5 +222,4 @@ PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<Pac
 
     return VertTesselation(varying);
 }
-
 // TESSELATION STAGE END

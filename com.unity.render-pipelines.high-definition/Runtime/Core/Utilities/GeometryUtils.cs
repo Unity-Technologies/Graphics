@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 corner6;
         public Vector4 corner7;
     }
-    
+
     [GenerateHLSL]
     struct OrientedBBox
     {

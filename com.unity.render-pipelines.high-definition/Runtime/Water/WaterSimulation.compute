@@ -180,7 +180,7 @@ static const float offsets[5] = { 0.0f, 1.5f, 4.5f, 10.5f, 22.5f };
 // Function that evaluates the bounds of a given grid based on it's coordinates
 void ComputeGridBounds(int x, int y, float centerGridSize,
                         float2 centerGridPos, float farPlane, 
-                        inout float2 center, 
+                        inout float2 center,
                         inout float2 size)
 {
     int absX = abs(x);
@@ -216,7 +216,7 @@ void EvaluateInstanceData(uint3 currentThread : SV_DispatchThreadID)
     int x = currentPatch % gridResolution;
     int y = currentPatch / gridResolution;
 
-    // Compute the grid center and size 
+    // Compute the grid center and size
     float2 center;
     float2 size;
     ComputeGridBounds(x - radius, y - radius, _GridSize.x, _PatchOffset.xz, _ProjectionParams.z, center, size);
@@ -230,7 +230,7 @@ void EvaluateInstanceData(uint3 currentThread : SV_DispatchThreadID)
     obb.extentZ = size.y * 0.5;
     obb.center = float3(_PatchOffset.x + center.x, _PatchOffset.y, _PatchOffset.z + center.y);
 
-    // Need to make sure that 
+    // Need to make sure that
     obb.center = GetCameraRelativePositionWS(obb.center);
 
     // Only include the instance if it is valid and potientially visible

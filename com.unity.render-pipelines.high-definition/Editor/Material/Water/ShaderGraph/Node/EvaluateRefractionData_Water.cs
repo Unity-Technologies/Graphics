@@ -108,7 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             return true;
         }
-        
+
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
         {
             return NeededCoordinateSpace.World;

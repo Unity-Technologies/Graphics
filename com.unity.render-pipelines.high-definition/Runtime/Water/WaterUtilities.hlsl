@@ -538,7 +538,7 @@ float EvaluateSimulationCaustics(float3 refractedWaterPosRWS, float2 distortedWa
         // Evaluate the sharpness of the caustics based on the depth
         float sharpness = (1.0 - causticWeight) * 2;
 
-        // sample the caystuc textyre
+        // sample the caustics texture
         causticsValues.x = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv0, sharpness).x;
         causticsValues.y = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv1, sharpness).x;
         causticsValues.z = SAMPLE_TEXTURE2D_LOD(_WaterCausticsDataBuffer, s_linear_repeat_sampler, uv2, sharpness).x;

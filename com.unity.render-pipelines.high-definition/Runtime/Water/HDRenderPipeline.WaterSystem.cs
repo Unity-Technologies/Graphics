@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CopyAdditionalDataKernel = m_WaterSimulationCS.FindKernel("CopyAdditionalData");
             m_PrepareCausticsGeometryKernel = m_WaterSimulationCS.FindKernel("PrepareCausticsGeometry");
             m_EvaluateInstanceDataKernel = m_WaterSimulationCS.FindKernel("EvaluateInstanceData");
-            
+
             // Water rendering
             m_WaterLightingCS = m_Asset.renderPipelineResources.shaders.waterLightingCS;
             m_WaterPrepareSSRKernel = m_WaterLightingCS.FindKernel("WaterPrepareSSR");
@@ -706,7 +706,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.parameters.waterRenderingCB._WaterRotation.Set(1.0f, 0.0f);
 
                             // Offset position of the patch
-                            data.parameters.waterRenderingCB._PatchOffset = new Vector3(data.parameters.cameraPosition.x, 0, data.parameters.cameraPosition.z);
+                            data.parameters.waterRenderingCB._PatchOffset = new Vector3(data.parameters.cameraPosition.x, data.parameters.center.y, data.parameters.cameraPosition.z);
 
                             // Size of the patch
                             data.parameters.waterRenderingCB._GridSize = new Vector2(data.parameters.gridSize, data.parameters.gridSize);

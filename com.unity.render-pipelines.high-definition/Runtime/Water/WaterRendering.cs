@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Sets the maximum tessellation factor for the water surface.")]
         [AdditionalProperty]
-        public ClampedFloatParameter maxTessellationFactor = new ClampedFloatParameter(10.0f, 0.0f, 16.0f);
+        public ClampedFloatParameter maxTessellationFactor = new ClampedFloatParameter(10.0f, 0.0f, 15.0f);
 
         /// <summary>
         /// Sets the distance at which the tessellation factor start to lower.

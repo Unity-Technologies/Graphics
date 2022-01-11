@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_MaxTessellationFactor);
             PropertyField(m_TessellationFactorFadeStart);
             PropertyField(m_TessellationFactorFadeRange);
-  
+
             EditorGUILayout.LabelField("Lighting", EditorStyles.miniLabel);
             PropertyField(m_AmbientProbeDimmer);
         }

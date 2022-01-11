@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _WaterLODCount;
         // Number of water patches that need to be rendered
         public uint _NumWaterPatches;
-        // Earth radius  
+        // Earth radius
         public float _EarthRadius;
         // Intensity of the water caustics
         public float _CausticsIntensity;

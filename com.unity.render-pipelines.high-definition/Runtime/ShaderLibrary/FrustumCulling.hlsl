@@ -8,15 +8,15 @@ float3 GetForward(OrientedBBox value)
 
 struct FrustumPlane
 {
-	float3 normal;
-	float dist;
+    float3 normal;
+    float dist;
 };
 
 struct Frustum
 {
-	FrustumPlane planes[6];
+    FrustumPlane planes[6];
     // Needs to be aligned on a float4, a bit of waste here
-	float4 corners[8];
+    float4 corners[8];
 };
 
 bool CheckOverlap(OrientedBBox obb, float3 planeNormal, float planeDistance)
@@ -68,7 +68,7 @@ int FrustumOBBIntersection(OrientedBBox obb, FrustumGPU frustum)
         float proj = 0.0;
 
         // Merge 2 loops. Continue as long as all points are outside either plane.
-        // Corner 0 
+        // Corner 0
         proj = dot(planes[i].normal, frustum.corner0.xyz - obb.center);
         outsidePos = outsidePos && (proj > planes[i].dist);
         outsideNeg = outsideNeg && (-proj > planes[i].dist);
