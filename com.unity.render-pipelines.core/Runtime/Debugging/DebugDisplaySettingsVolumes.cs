@@ -12,13 +12,13 @@ namespace UnityEngine.Rendering
     public class DebugDisplaySettingsVolume : IDebugDisplaySettingsData
     {
         /// <summary>Current volume debug settings.</summary>
-        public IVolumeDebugSettings volumeDebugSettings { get; }
+        public IVolumeDebugSettings2 volumeDebugSettings { get; }
 
         /// <summary>
         /// Constructor with the settings
         /// </summary>
         /// <param name="volumeDebugSettings"></param>
-        public DebugDisplaySettingsVolume(IVolumeDebugSettings volumeDebugSettings)
+        public DebugDisplaySettingsVolume(IVolumeDebugSettings2 volumeDebugSettings)
         {
             this.volumeDebugSettings = volumeDebugSettings;
         }

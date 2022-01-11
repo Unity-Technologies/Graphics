@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering
     /// The volume settings
     /// </summary>
     /// <typeparam name="T">A <see cref="MonoBehaviour"/> with <see cref="IAdditionalData"/></typeparam>
-    public abstract partial class VolumeDebugSettings<T> : IVolumeDebugSettings
+    public abstract partial class VolumeDebugSettings<T> : IVolumeDebugSettings2
         where T : MonoBehaviour, IAdditionalData
     {
         /// <summary>Current volume component to debug.</summary>
