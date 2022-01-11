@@ -273,10 +273,10 @@ namespace UnityEditor.VFX
             }
 
             GUILayout.BeginHorizontal();
-            LeftSpaceTabulation(space);
+            LeftAlignTabulation(space);
             // Make the label half the width to make the tooltip
             EditorGUILayout.LabelField(GetGUIContent(name, tooltip), EditorStyles.boldLabel, GUILayout.Width(EditorGUIUtility.labelWidth));
-
+            RightAlignTabulation(space);
             GUILayout.FlexibleSpace();
 
             // Toggle Button

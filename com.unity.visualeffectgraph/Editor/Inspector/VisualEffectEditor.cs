@@ -607,12 +607,12 @@ namespace UnityEditor.VFX
             return result;
         }
 
-        protected void LeftSpaceTabulation(VFXCoordinateSpace? space)
+        protected void LeftAlignTabulation(VFXCoordinateSpace? space)
         {
-            if (space != null)
+            if (space != null && !Styles.spaceOnRight)
             {
                 var spaceContent = Content.GetSpaceIcon((VFXCoordinateSpace)space);
-                GUILayout.Label(spaceContent, Styles.spaceIconStyle);
+                GUILayout.Label(spaceContent, Styles.leftSpaceIconStyle);
             }
             else
             {
@@ -620,11 +620,30 @@ namespace UnityEditor.VFX
             }
         }
 
+        protected void RightAlignTabulation(VFXCoordinateSpace? space)
+        {
+            if (space != null && Styles.spaceOnRight)
+            {
+                var spaceContent = Content.GetSpaceIcon((VFXCoordinateSpace)space);
+                GUILayout.Label(spaceContent, Styles.rightSpaceIconStyle);
+            }
+        }
+
         protected virtual void EmptyLineControl(string name, string tooltip, VFXCoordinateSpace? space, int depth, VisualEffectResource resource)
         {
             GUILayout.BeginHorizontal();
-            LeftSpaceTabulation(space);
-            EditorGUILayout.LabelField(GetGUIContent(name, tooltip));
+            LeftAlignTabulation(space);
+            var guiContent = GetGUIContent(name, tooltip);
+            EditorStyles.label.CalcMinMaxWidth(guiContent, out var minWidth, out var maxWidth);
+
+            GUILayoutOption width;
+            if (space != null && Styles.spaceOnRight)
+                width = GUILayout.Width(maxWidth);
+            else
+                width = GUILayout.Width(EditorGUIUtility.labelWidth);
+
+            EditorGUILayout.LabelField(guiContent, EditorStyles.label, width);
+            RightAlignTabulation(space);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
@@ -1508,7 +1527,10 @@ namespace UnityEditor.VFX
 
         protected static class Styles
         {
-            public static readonly GUIStyle spaceIconStyle;
+            //TODOPAUL : Choose and clean
+            public static readonly bool spaceOnRight = false;
+            public static readonly GUIStyle leftSpaceIconStyle;
+            public static readonly GUIStyle rightSpaceIconStyle;
 
             public static readonly GUIStyle foldoutStyle;
             public static readonly GUIStyle toggleStyle;
@@ -1539,11 +1561,17 @@ namespace UnityEditor.VFX
                 //TODO change to editor resources calls
                 categoryHeader.normal.background = (Texture2D)AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + (EditorGUIUtility.isProSkin ? "/VFX/cat-background-dark.png" : "/VFX/cat-background-light.png"));
 
-                spaceIconStyle = new GUIStyle();
-                spaceIconStyle.fixedWidth = overrideWidth;
-                spaceIconStyle.fixedHeight = overrideWidth;
-                spaceIconStyle.alignment = TextAnchor.MiddleCenter;
-                spaceIconStyle.margin.top = 4;
+                leftSpaceIconStyle = new GUIStyle();
+                leftSpaceIconStyle.fixedWidth = overrideWidth;
+                leftSpaceIconStyle.fixedHeight = overrideWidth;
+                leftSpaceIconStyle.alignment = TextAnchor.MiddleCenter;
+                leftSpaceIconStyle.margin.top = 4;
+
+                rightSpaceIconStyle = new GUIStyle();
+                rightSpaceIconStyle.fixedWidth = overrideWidth;
+                rightSpaceIconStyle.fixedHeight = overrideWidth;
+                rightSpaceIconStyle.alignment = TextAnchor.MiddleLeft;
+                rightSpaceIconStyle.margin.top = 4;
             }
         }
     }
