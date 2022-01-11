@@ -208,6 +208,7 @@ namespace UnityEngine.Rendering.Universal
         protected internal ProfilingSampler profilingSampler { get; set; }
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
+        internal bool resultOnScreen { get; set; }
 
         internal bool useNativeRenderPass { get; set; }
 
@@ -504,12 +505,22 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="data">RenderingData to access the active renderer.</param>
         /// <param name="material">Material to use.</param>
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>
-        public void Blit(CommandBuffer cmd, ref RenderingData data, Material material, int passIndex = 0)
+        public void Blit(CommandBuffer cmd, ref RenderingData data, Material material, int passIndex = 0, bool isLastPass = false)
         {
             var renderer = data.cameraData.renderer;
 
-            Blit(cmd, renderer.cameraColorTarget, renderer.GetCameraColorFrontBuffer(cmd), material, passIndex);
-            renderer.SwapColorBuffer(cmd);
+            if(isLastPass)
+            {
+                renderer.LastBlit();
+                Blit(cmd, renderer.cameraColorTarget, BuiltinRenderTextureType.CameraTarget, material, passIndex);
+            }
+            else
+            {
+                Blit(cmd, renderer.cameraColorTarget, renderer.GetCameraColorFrontBuffer(cmd), material, passIndex);
+                renderer.SwapColorBuffer(cmd);
+            }
+
+
         }
 
         /// <summary>

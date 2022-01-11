@@ -1154,6 +1154,11 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalTexture("_AfterPostProcessTexture", m_ActiveCameraColorAttachment.id);
         }
 
+        internal override void LastBlit()
+        {
+            m_FinalBlitPass.NotifyLastBlit();
+        }
+
         internal override RenderTargetIdentifier GetCameraColorFrontBuffer(CommandBuffer cmd)
         {
             return m_ColorBufferSystem.GetFrontBuffer(cmd).id;

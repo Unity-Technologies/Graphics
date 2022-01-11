@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         RenderTargetIdentifier m_Source;
         Material m_BlitMaterial;
+        bool m_LastBlitHappened;
 
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
@@ -29,11 +30,19 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorHandle)
         {
             m_Source = colorHandle.id;
+			m_LastBlitHappened = false;
+        }
+
+        internal void NotifyLastBlit()
+        {
+            m_LastBlitHappened = true;
         }
 
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            if (m_LastBlitHappened) return;
+
             if (m_BlitMaterial == null)
             {
                 Debug.LogErrorFormat("Missing {0}. {1} render pass will not execute. Check for missing reference in the renderer resources.", m_BlitMaterial, GetType().Name);

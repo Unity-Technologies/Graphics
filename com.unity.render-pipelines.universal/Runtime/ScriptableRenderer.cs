@@ -1325,6 +1325,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal virtual void SwapColorBuffer(CommandBuffer cmd) { }
         internal virtual void EnableSwapBufferMSAA(bool enable) { }
+        internal virtual void LastBlit() { }
 
         [Conditional("UNITY_EDITOR")]
         void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)
