@@ -4,7 +4,11 @@
         "Unity.VisualEffectGraph.Runtime",
         "Unity.Timeline",
         "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.ShaderGraph.Editor"
+        "Unity.ShaderGraph.Editor",
+        "Unity.GraphTools.Foundation.Overdrive",
+        "Unity.GraphTools.Foundation.Overdrive.Editor",
+        "Unity.GraphTools.Foundation.Overdrive.Model",
+        "Unity.GraphTools.Foundation.Overdrive.CommandStateObserver"
     ],
     "includePlatforms": [
         "Editor"
