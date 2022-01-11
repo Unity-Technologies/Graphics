@@ -1,5 +1,7 @@
 using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("Unity.VisualEffectGraph.EditorTests")]
+[assembly: InternalsVisibleTo("Unity.VisualEffectGraph.EditorTests-testable")]
 [assembly: InternalsVisibleTo("Unity.VisualEffectGraph.Editor")]
 [assembly: InternalsVisibleTo("Unity.VisualEffectGraph.Editor-testable")]
 [assembly: InternalsVisibleTo("Unity.Testing.VisualEffectGraph.Tests")]
