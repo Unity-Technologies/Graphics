@@ -4,6 +4,71 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.1.4] - 2021-12-07
+
+### Fixed
+- Fixed references to reflection probes that wouldn't be cleared when unloading a scene. (case 1357459)
+- Fixed broken debug views when dynamic resolution was enabled (case 1365368).
+- Fixed issue with Stacklit raytrace reflection
+- Fixed various issues with using SSR lighting with IBL fallback for Lit shader with clear coat(case 1380351)
+- Fixed stackLit coat screen space reflection and raytrace reflection light hierarchy and IBL fallback
+- Fixed custom pass utils Blur and Copy functions in XR.
+- Fixed SpeedTree graph compatibility by removing custom interpolators.
+- Fixed edges and ghosting appearing on shadow matte due to the shadow being black outside the range of the light (case 1371441).
+- Fixed interpolation issue with wind orientation (case 1379841).
+- Fixed range fields for depth of field (case 1376609).
+- Fixed exception on DLSS when motion vectors are disabled (case # 1377986).
+- Fixed Lens Flare visible when being behind a camera with Panini Projection on (case 1370214)
+- Fixed alpha channel display in color picker in Local Volumetric Fog component (the alpha is not used for the fog) (case 1381267).
+- Fixed default numbder of physically based sky bounce from 8 to 3
+- Fixed decal performances when they use different material and the same draw order.
+- Fixed Nans happening due to volumetric clouds when the pixel color is perfectly black (case 1379185).
+- Fixed missing information in the tooltip of affects smooth surfaces of the ray traced reflections denoiser (case 1376918).
+- Fixed objects belonging to preview scenes being marked as dirty during migration (case 1367204).
+- Fixed compilation errors from Path Tracing on the PS5 build.
+- Fixed option to force motion blur off when in XR.
+- Fixed taa jitter for after post process materials (case 1380967).
+- Fixed dirtiness handling in path tracing, when using multiple cameras at once (case 1376940).
+- Fixed flickering / edge aliasing issue when DoF and TAAU or DLSS are enabled (case 1381858).
+- Fixed rasterized accumulation motion blur when DoF is enabled (case 1378497).
+- Fixed light mode not available after switching a light to area "Disc" or "Tube" (case 1372588).
+- Fixed CoC size computation when dynamic resolution is enabled
+- Fixed shadow cascade transition not working properly with bias.
+- Fixed broken rendering when duplicating a camera while the Rendering Debugger is opened.
+- Fixed screen space shadow debug view not showing when no shadows is available.
+- Fixed nullref from debug menu in release build (case 1381556).
+- Fixed debug window reset.
+- Fixed camera bridge action in release build (case 1367866).
+- Fixed contact shadow disappearing when shadowmask is used and no non-static object is available.
+- Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
+- Fixed shader graph errors when disabling the bias on texture samplers.
+- Fixed a shader warning in the volumetric clouds combine file.
+- Fixed layer lit shader UI.
+- Fixed error thrown when layered lit material has an invalid material type.
+- Fixed a warning because of a null texture in the lens flare pass.
+- Fixed a nullref when enabling raycount without ray tracing.
+- Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
+- Fixed FOV change when enabling physical camera.
+- Fixed spot light shadows near plane
+- Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
+- Fixed build warnings due to the exception in burst code (case 1382827).
+- Fixed unsupported material properties show when rendering pass is Low Resolution.
+- Fixed auto-exposure mismatch between sky background and scene objects in path tracing (case 1385131).
+- Fixed the ray tracing fallbacks being broken since an Nvidia Driver Update.
+- Render Graph object pools are now cleared with render graph cleanup
+- Fixed AO dissapearing when DRS would be turned off through a camera, while hardware drs is active in DX12 or Vulkan (case 1383093).
+- Fixed write to VT feedback in debug modes (case 1376874)
+- Fixed a shader warning in UnityInstancing.hlsl
+- Fixed misc shader warnings.
+- Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
+
+## [12.1.3] - 2021-11-17
+
+### Fixed
+- Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
+- Fixed Xbox Series X compilation issue with DoF shader
+- Fixed an issue causing Render Graph execution errors after a random amount of time (case 1379350)
+
 ## [12.1.2] - 2021-10-22
 
 ### Fixed

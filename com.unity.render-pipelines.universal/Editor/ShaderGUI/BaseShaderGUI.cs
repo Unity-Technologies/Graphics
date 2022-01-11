@@ -334,6 +334,9 @@ namespace UnityEditor
                 materialEditor.IntSliderShaderProperty(queueOffsetProp, -queueOffsetRange, queueOffsetRange, Styles.queueSlider);
         }
 
+        [Obsolete("DrawAdditionalFoldouts has been deprecated. Use FillAdditionalFoldouts instead, and materialScopesList.RegisterHeaderScope", false)]
+        public virtual void DrawAdditionalFoldouts(Material material) { }
+
         public virtual void FillAdditionalFoldouts(MaterialHeaderScopeList materialScopesList) { }
 
         public virtual void DrawBaseProperties(Material material)

@@ -538,9 +538,11 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.renderType == CameraRenderType.Base)
             {
                 RenderTargetHandle cameraTargetHandle = RenderTargetHandle.GetCameraTarget(cameraData.xr);
+                bool sceneViewFilterEnabled = camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered;
 
-                m_ActiveCameraColorAttachment = (createColorTexture) ? m_ColorBufferSystem.GetBackBuffer() : cameraTargetHandle;
-                m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : cameraTargetHandle;
+                //Scene filtering redraws the objects on top of the resulting frame. It has to draw directly to the sceneview buffer.
+                m_ActiveCameraColorAttachment = (createColorTexture && !sceneViewFilterEnabled) ? m_ColorBufferSystem.GetBackBuffer() : cameraTargetHandle;
+                m_ActiveCameraDepthAttachment = (createDepthTexture && !sceneViewFilterEnabled) ? m_CameraDepthAttachment : cameraTargetHandle;
 
                 bool intermediateRenderTexture = createColorTexture || createDepthTexture;
 
@@ -1132,7 +1134,7 @@ namespace UnityEngine.Rendering.Universal
 
             // copying depth on GLES3 is giving invalid results. Needs investigation (Fogbugz issue 1339401)
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
-                msaaDepthResolve = false;
+                return false;
 
             return supportsDepthCopy || msaaDepthResolve;
         }

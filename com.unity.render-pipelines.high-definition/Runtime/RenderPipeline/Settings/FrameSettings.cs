@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, displayedName: "Post-process", customOrderInGroup: 18, tooltip: "When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.")]
         Postprocess = 15,
-        /// <summary>When enabled, HDRP render user written post processes.</summary>
+        /// <summary>When enabled, HDRP renders user written post processes.</summary>
         [FrameSettingsField(0, displayedName: "Custom Post-process", positiveDependencies: new[] { Postprocess }, customOrderInGroup: 19, tooltip: "When enabled on a Camera, HDRP render user written post processes.")]
         CustomPostProcess = 39,
         /// <summary>When enabled, HDRP replace NaN values with black pixels for Cameras using these Frame Settings.</summary>

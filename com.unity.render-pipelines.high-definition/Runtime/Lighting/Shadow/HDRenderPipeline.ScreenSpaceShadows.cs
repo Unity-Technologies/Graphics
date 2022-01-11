@@ -479,8 +479,13 @@ namespace UnityEngine.Rendering.HighDefinition
             PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidityBuffer, TextureHandle rayCountTexture)
         {
             // If screen space shadows are not supported for this camera, we are done
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows) || !RequestedScreenSpaceShadows())
+            bool validConditions = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows) && RequestedScreenSpaceShadows();
+            if (!validConditions)
+            {
+                // We push the debug texture anyway if we are not evaluating any screen space shadows.
+                PushFullScreenDebugTexture(m_RenderGraph, m_RenderGraph.defaultResources.whiteTextureXR, FullScreenDebugMode.ScreenSpaceShadows);
                 return m_RenderGraph.defaultResources.blackTextureArrayXR;
+            }
 
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.ScreenSpaceShadows)))
             {

@@ -28,7 +28,7 @@ ShaderGraph_BuiltIn_Foundation_OSX_OpenGLCore_playmode_mono_Linear_2021.2:
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/BuiltInGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/BuiltInGraphicsTest_Foundation --zero-tests-are-ok=1
+      -  command: ./utr --artifacts_path=TestProjects/BuiltInGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/BuiltInGraphicsTest_Foundation --zero-tests-are-ok=1
          retries: 2
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
@@ -62,7 +62,7 @@ ShaderGraph_BuiltIn_Foundation_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISI
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: ./utr $CACHE_ARGS --artifacts_path=TestProjects/BuiltInGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/BuiltInGraphicsTest_Foundation --zero-tests-are-ok=1
+      -  command: ./utr --artifacts_path=TestProjects/BuiltInGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/BuiltInGraphicsTest_Foundation --zero-tests-are-ok=1
          retries: 2
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0

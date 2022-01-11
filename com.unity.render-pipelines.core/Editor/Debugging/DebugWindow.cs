@@ -378,6 +378,8 @@ namespace UnityEditor.Rendering
             if (GUILayout.Button(Styles.resetButtonContent, EditorStyles.toolbarButton))
             {
                 DebugManager.instance.Reset();
+                DestroyWidgetStates();
+                UpdateWidgetStates();
                 InternalEditorUtility.RepaintAllViews();
             }
 
