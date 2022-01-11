@@ -1,7 +1,9 @@
 #if VFX_HAS_TIMELINE
 using System;
 using System.Linq;
-using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
 #if UNITY_EDITOR
@@ -33,6 +35,8 @@ namespace UnityEngine.VFX
         public ReinitMode reinit = ReinitMode.OnBindingEnableOrDisable;
 
 #if UNITY_EDITOR
+        private VisualEffect m_CurrentVisualEffect;
+        
         private void OnValidate()
         {
             if (m_VFXVersion != kCurrentVersion)
@@ -57,6 +61,42 @@ namespace UnityEngine.VFX
             if (GetClips().All(x => x.asset is VisualEffectControlClip))
             {
                 m_VFXVersion = kCurrentVersion;
+            }
+        }
+#endif
+
+#if UNITY_EDITOR
+        protected override void OnCreateClip(TimelineClip clip)
+        {
+            base.OnCreateClip(clip);
+            if (clip.asset is VisualEffectControlClip vfxClip)
+            {
+                vfxClip.clipStart = clip.start;
+                vfxClip.clipEnd = clip.end;
+
+                if (m_CurrentVisualEffect != null)
+                {
+                    //Copy Seed settings
+                    vfxClip.startSeed = m_CurrentVisualEffect.startSeed;
+
+                    //Copy Prewarm settings
+                    vfxClip.prewarm.eventName = m_CurrentVisualEffect.initialEventName;
+                    if (m_CurrentVisualEffect.visualEffectAsset != null)
+                    {
+                        using var resourceObject = new SerializedObject(m_CurrentVisualEffect.visualEffectAsset);
+                        var prewarmDeltaTime = resourceObject.FindProperty("m_Infos.m_PreWarmDeltaTime");
+                        var prewarmStepCount = resourceObject.FindProperty("m_Infos.m_PreWarmStepCount");
+                        if (prewarmDeltaTime != null && prewarmStepCount != null && prewarmStepCount.uintValue != 0u)
+                        {
+                            vfxClip.prewarm.stepCount = prewarmStepCount.uintValue;
+                            vfxClip.prewarm.deltaTime = prewarmDeltaTime.floatValue;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Unexpected clip added : " + clip.asset);
             }
         }
 #endif
@@ -88,8 +128,15 @@ namespace UnityEngine.VFX
 
         public override void GatherProperties(PlayableDirector director, IPropertyCollector driver)
         {
-            if (director.GetGenericBinding(this) is VisualEffect)
+#if UNITY_EDITOR
+            m_CurrentVisualEffect = null;
+#endif
+
+            if (director.GetGenericBinding(this) is VisualEffect vfx)
             {
+#if UNITY_EDITOR
+                m_CurrentVisualEffect = vfx;
+#endif
                 base.GatherProperties(director, driver);
             }
         }

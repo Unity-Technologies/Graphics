@@ -426,7 +426,7 @@ class VisualEffectAssetEditor : Editor
         if (!prewarmDeltaTime.hasMultipleDifferentValues && !prewarmStepCount.hasMultipleDifferentValues)
         {
             var currentDeltaTime = prewarmDeltaTime.floatValue;
-            var currentStepCount = prewarmStepCount.intValue;
+            var currentStepCount = prewarmStepCount.uintValue;
             var currentTotalTime = currentDeltaTime * currentStepCount;
             EditorGUI.BeginChangeCheck();
             currentTotalTime = EditorGUILayout.FloatField(EditorGUIUtility.TrTextContent("PreWarm Total Time", "Sets the time in seconds to advance the current effect to when it is initially played. "), currentTotalTime);
@@ -434,7 +434,7 @@ class VisualEffectAssetEditor : Editor
             {
                 if (currentStepCount <= 0)
                 {
-                    prewarmStepCount.intValue = currentStepCount = 1;
+                    prewarmStepCount.uintValue = currentStepCount = 1u;
                 }
 
                 currentDeltaTime = currentTotalTime / currentStepCount;
@@ -443,17 +443,17 @@ class VisualEffectAssetEditor : Editor
             }
 
             EditorGUI.BeginChangeCheck();
-            currentStepCount = EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to. "), currentStepCount);
+            currentStepCount = (uint)EditorGUILayout.IntField(EditorGUIUtility.TrTextContent("PreWarm Step Count", "Sets the number of simulation steps the prewarm should be broken down to. "), (int)currentStepCount);
             if (EditorGUI.EndChangeCheck())
             {
                 if (currentStepCount <= 0 && currentTotalTime != 0.0f)
                 {
-                    prewarmStepCount.intValue = currentStepCount = 1;
+                    prewarmStepCount.uintValue = currentStepCount = 1;
                 }
 
                 currentDeltaTime = currentTotalTime == 0.0f ? 0.0f : currentTotalTime / currentStepCount;
                 prewarmDeltaTime.floatValue = currentDeltaTime;
-                prewarmStepCount.intValue = currentStepCount;
+                prewarmStepCount.uintValue = currentStepCount;
                 resourceObject.ApplyModifiedProperties();
             }
 
@@ -473,8 +473,8 @@ class VisualEffectAssetEditor : Editor
 
                 if (currentTotalTime != 0.0f)
                 {
-                    var candidateStepCount_A = Mathf.FloorToInt(currentTotalTime / currentDeltaTime);
-                    var candidateStepCount_B = Mathf.RoundToInt(currentTotalTime / currentDeltaTime);
+                    var candidateStepCount_A = (uint)Mathf.FloorToInt(currentTotalTime / currentDeltaTime);
+                    var candidateStepCount_B = (uint)Mathf.RoundToInt(currentTotalTime / currentDeltaTime);
 
                     var totalTime_A = currentDeltaTime * candidateStepCount_A;
                     var totalTime_B = currentDeltaTime * candidateStepCount_B;
@@ -488,7 +488,7 @@ class VisualEffectAssetEditor : Editor
                         currentStepCount = candidateStepCount_B;
                     }
 
-                    prewarmStepCount.intValue = currentStepCount;
+                    prewarmStepCount.uintValue = currentStepCount;
                 }
                 prewarmDeltaTime.floatValue = currentDeltaTime;
                 resourceObject.ApplyModifiedProperties();
