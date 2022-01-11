@@ -89,6 +89,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed rendering in the editor when an incompatible API is added (case 1384634).
 - Fixed issue with typed loads on RGBA16F in Volumetric Lighting Filtering.
 - Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
+- Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
@@ -101,6 +102,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replaced the geometry distance offset in the Probe Volume component by a minimum renderer volume threshold to ignore small objects when placing probes.
 - Small improvement changes in the UX for the Unlit Distortion field.
 - Improvements done to the water system (Deferred, Decals, SSR, Foam, Caustics, etc.).
+- Changed the behavior the max ray length for recursive rendering to match RTR and rasterization.
+- Moved more internals of the sky manager to proper Render Graph passes.
 
 ## [13.1.2] - 2021-11-05
 
