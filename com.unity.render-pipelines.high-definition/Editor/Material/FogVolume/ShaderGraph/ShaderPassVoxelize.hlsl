@@ -33,6 +33,19 @@ uint DepthToSlice(float depth)
     return uint(slice);
 }
 
+[maxvertexcount(50)]
+void Geom(triangle PackedVaryingsType packedInputs[3], inout TriangleStream<PackedVaryingsToPS> triStream)
+{
+    FragInputs input0 = UnpackVaryingsToFragInputs(packedInputs[0]);
+    FragInputs input1 = UnpackVaryingsToFragInputs(packedInputs[1]);
+    FragInputs input2 = UnpackVaryingsToFragInputs(packedInputs[2]);
+
+    triStream.Append(packedInputs[0]);
+    triStream.Append(packedInputs[1]);
+    triStream.Append(packedInputs[2]);
+    return ;
+}
+
 void Frag(PackedVaryingsToPS packedInput, out float4 outColor : SV_Target0)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);

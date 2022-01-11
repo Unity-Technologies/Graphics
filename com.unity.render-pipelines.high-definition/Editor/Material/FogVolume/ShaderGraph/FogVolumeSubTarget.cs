@@ -16,7 +16,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         static readonly GUID kSubTargetSourceCodeGuid = new GUID("0e63daeaa7722194d90b56081aa39ae6");  // FogVolumeSubTarget.cs
 
-        protected override string[] templateMaterialDirectories => new string[]{};
+        protected override string[] templateMaterialDirectories => new string[]
+        {
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/FogVolume/ShaderGraph/"
+        };
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override string customInspector => "Rendering.HighDefinition.FogVolumeShaderGUI";
         internal override MaterialResetter setupMaterialKeywordsAndPassFunc => ShaderGraphAPI.ValidateFogVolumeMaterial;
@@ -24,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override ShaderID shaderID => ShaderID.SG_FogVolume;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Fog Volume Subshader", "");
         protected override string subShaderInclude => null;
-        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/FogVolume/ShaderGraph/FogVolume.template";
+        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/FogVolume/ShaderGraph/Templates/FogVolume.template";
         protected override bool supportRaytracing => false;
         protected override bool supportPathtracing => false;
 
@@ -85,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Port mask
                 validPixelBlocks = FogVolumeBlocks.FragmentDefault,
-                requiredFields = new FieldCollection{ StructFields.SurfaceDescriptionInputs.FaceSign },
+                requiredFields = new FieldCollection { StructFields.SurfaceDescriptionInputs.FaceSign },
 
                 // structs = HDShaderPasses.GenerateStructs(new StructCollection
                 // {
@@ -115,7 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 validPixelBlocks = FogVolumeBlocks.FragmentDefault,
 
                 structs = HDShaderPasses.GenerateStructs(null, TargetsVFX(), false),
-                pragmas = HDShaderPasses.GeneratePragmas(null, TargetsVFX(), false),
+                pragmas = HDShaderPasses.GeneratePragmas(new PragmaCollection { Pragma.Geometry("Geom") }, TargetsVFX(), false),
                 defines = HDShaderPasses.GenerateDefines(null, TargetsVFX(), false),
                 renderStates = FogVolumeRenderStates.Voxelize,
                 includes = FogVolumeIncludes.Voxelize,
