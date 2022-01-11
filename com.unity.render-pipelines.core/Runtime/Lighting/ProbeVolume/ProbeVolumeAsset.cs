@@ -55,10 +55,15 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
-        public static string GetPath(Scene scene, ProbeVolumeBakingState state, bool createFolder)
+        public void OnEnable()
+        {
+            m_AssetFullPath = UnityEditor.AssetDatabase.GetAssetPath(this);
+        }
+
+        public static string GetPath(Scene scene, string state, bool createFolder)
             => GetPath(scene.path, scene.name, state, createFolder);
 
-        public static string GetPath(string scenePath, string sceneName, ProbeVolumeBakingState state, bool createFolder)
+        public static string GetPath(string scenePath, string sceneName, string state, bool createFolder)
         {
             const string assetName = "ProbeVolumeData";
 
@@ -67,17 +72,22 @@ namespace UnityEngine.Experimental.Rendering
             if (createFolder && !UnityEditor.AssetDatabase.IsValidFolder(assetPath))
                 UnityEditor.AssetDatabase.CreateFolder(sceneDir, sceneName);
 
-            var fileName = state == 0 ? assetName : assetName + "-" + (int)state;
-            return Path.Combine(assetPath, fileName + ".asset");
+            return Path.Combine(assetPath, assetName + "-" + state + ".asset");
         }
 
-        public static ProbeVolumeAsset CreateAsset(Scene scene, ProbeVolumeBakingState state)
+        public static ProbeVolumeAsset CreateAsset(Scene scene, string state)
         {
             ProbeVolumeAsset asset = CreateInstance<ProbeVolumeAsset>();
             asset.m_AssetFullPath = GetPath(scene, state, true);
 
             UnityEditor.AssetDatabase.CreateAsset(asset, asset.m_AssetFullPath);
             return asset;
+        }
+
+        public void Rename(Scene scene, string name)
+        {
+            var newPath = GetPath(scene, name, true);
+            UnityEditor.AssetDatabase.MoveAsset(m_AssetFullPath, newPath);
         }
 
         internal void StoreProfileData(ProbeReferenceVolumeProfile profile)

@@ -10,15 +10,15 @@ namespace UnityEngine.Experimental.Rendering
         [System.Serializable]
         struct SerializableAssetItem
         {
-            [SerializeField] public ProbeVolumeBakingState state;
+            [SerializeField] public string state;
             [SerializeField] public ProbeVolumeAsset asset;
         }
 
-        internal Dictionary<ProbeVolumeBakingState, ProbeVolumeAsset> assets = new Dictionary<ProbeVolumeBakingState, ProbeVolumeAsset>();
+        internal Dictionary<string, ProbeVolumeAsset> assets = new();
 
         [SerializeField] List<SerializableAssetItem> serializedAssets;
 
-        ProbeVolumeBakingState m_CurrentState = (ProbeVolumeBakingState)ProbeReferenceVolume.numBakingStates;
+        string m_CurrentState = ProbeReferenceVolume.defaultBakingState;
 
         /// <summary>
         /// OnAfterDeserialize implementation.
@@ -27,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (serializedAssets == null) return;
 
-            assets = new Dictionary<ProbeVolumeBakingState, ProbeVolumeAsset>();
+            assets = new Dictionary<string, ProbeVolumeAsset>();
             foreach (var assetItem in serializedAssets)
                 assets.Add(assetItem.state, assetItem.asset);
         }
@@ -49,29 +49,44 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        internal void StoreAssetForState(ProbeVolumeBakingState state, ProbeVolumeAsset asset)
+        internal void StoreAssetForState(string state, ProbeVolumeAsset asset)
         {
             assets[state] = asset;
         }
 
-        internal ProbeVolumeAsset GetAssetForState(ProbeVolumeBakingState state) => assets.GetValueOrDefault(state, null);
+        internal ProbeVolumeAsset GetAssetForState(string state) => assets.GetValueOrDefault(state, null);
 
         internal void Clear()
         {
             InvalidateAllAssets();
 
 #if UNITY_EDITOR
-            AssetDatabase.StartAssetEditing();
-            foreach (var asset in assets)
+            try
             {
-                if (asset.Value != null)
-                    AssetDatabase.DeleteAsset(ProbeVolumeAsset.GetPath(gameObject.scene, asset.Key, false));
+                AssetDatabase.StartAssetEditing();
+                foreach (var asset in assets.Values)
+                {
+                    if (asset != null)
+                        AssetDatabase.DeleteAsset(asset.GetSerializedFullPath());
+                }
             }
-            AssetDatabase.StopAssetEditing();
-            AssetDatabase.Refresh();
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+                AssetDatabase.Refresh();
+            }
 #endif
 
             assets.Clear();
+        }
+
+        internal void RenameBakingState(string state, string newName)
+        {
+            if (!assets.TryGetValue(state, out var asset))
+                return;
+            assets.Remove(state);
+            assets.Add(newName, asset);
+            asset.Rename(gameObject.scene, newName);
         }
 
         internal void InvalidateAllAssets()
@@ -114,18 +129,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             ProbeReferenceVolume.instance.RegisterPerSceneData(this);
 
-            // If a user doesn't save the scene after baking, we still have to look for file assets on disk to avoid lost baked data
-            var scene = gameObject.scene;
-            for (int i = 0; i < ProbeReferenceVolume.numBakingStates; i++)
-            {
-                var state = (ProbeVolumeBakingState)i;
-                if (assets.ContainsKey(state))
-                    continue;
-                var asset = AssetDatabase.LoadAssetAtPath<ProbeVolumeAsset>(ProbeVolumeAsset.GetPath(scene, state, false));
-                if (asset != null)
-                    assets.Add(state, asset);
-            }
-
             if (ProbeReferenceVolume.instance.sceneData != null)
                 SetBakingState(ProbeReferenceVolume.instance.bakingState);
             // otherwise baking state will be initialized in ProbeReferenceVolume.Initialize when sceneData is loaded
@@ -140,10 +143,10 @@ namespace UnityEngine.Experimental.Rendering
         void OnDestroy()
         {
             QueueAssetRemoval();
-            m_CurrentState = (ProbeVolumeBakingState)ProbeReferenceVolume.numBakingStates;
+            m_CurrentState = ProbeReferenceVolume.defaultBakingState;
         }
 
-        public void SetBakingState(ProbeVolumeBakingState state)
+        public void SetBakingState(string state)
         {
             if (state == m_CurrentState)
                 return;

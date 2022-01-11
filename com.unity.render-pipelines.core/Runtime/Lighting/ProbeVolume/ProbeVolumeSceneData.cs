@@ -44,8 +44,8 @@ namespace UnityEngine.Experimental.Rendering
         [System.Serializable]
         struct SerializablePVBakeSettings
         {
-            [SerializeField] public string sceneGUID;
-            [SerializeField] public ProbeVolumeBakingProcessSettings settings;
+            public string sceneGUID;
+            public ProbeVolumeBakingProcessSettings settings;
         }
 
         [System.Serializable]
@@ -55,6 +55,27 @@ namespace UnityEngine.Experimental.Rendering
             public List<string> sceneGUIDs = new List<string>();
             public ProbeVolumeBakingProcessSettings settings;
             public ProbeReferenceVolumeProfile profile;
+
+            public List<string> bakingStates = new List<string>();
+
+            internal void CreateBakingState(string name)
+            {
+                if (bakingStates.Contains(name))
+                {
+                    string renamed;
+                    int index = 1;
+                    do
+                        renamed = $"{name} ({index++})";
+                    while (bakingStates.Contains(renamed));
+                    name = renamed;
+                }
+                bakingStates.Add(name);
+            }
+
+            internal bool RemoveBakingState(string name)
+            {
+                return bakingStates.Remove(name);
+            }
         }
 
         [SerializeField] List<SerializableBoundItem> serializedBounds;
@@ -73,10 +94,8 @@ namespace UnityEngine.Experimental.Rendering
         internal Dictionary<string, ProbeVolumeBakingProcessSettings> sceneBakingSettings;
         internal List<BakingSet> bakingSets;
 
-        [SerializeField] internal string[] bakingStates;
-        [SerializeField] private ProbeVolumeBakingState m_BakingState;
-
-        internal ProbeVolumeBakingState bakingState
+        [SerializeField] string m_BakingState = ProbeReferenceVolume.defaultBakingState;
+        internal string bakingState
         {
             get => m_BakingState;
             set
@@ -111,7 +130,6 @@ namespace UnityEngine.Experimental.Rendering
             serializedBakeSettings = new List<SerializablePVBakeSettings>();
 
             UpdateBakingSets();
-            InitBakingStates();
         }
 
         /// <summary>Set a reference to the object holding this ProbeVolumeSceneData.</summary>
@@ -162,9 +180,6 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var set in serializedBakingSets)
                 bakingSets.Add(set);
-
-            if (bakingStates == null || bakingStates.Length == 0)
-                InitBakingStates();
         }
 
         // This function must not be called during the serialization (because of asset creation)
@@ -175,6 +190,8 @@ namespace UnityEngine.Experimental.Rendering
                 // Small migration code to ensure that old sets have correct settings
                 if (set.profile == null)
                     InitializeBakingSet(set, set.name);
+                if (set.bakingStates.Count == 0)
+                    InitializeBakingStates(set);
             }
 
             // Initialize baking set in case it's empty:
@@ -185,14 +202,6 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             SyncBakingSetSettings();
-        }
-
-        void InitBakingStates()
-        {
-            bakingState = ProbeVolumeBakingState.BakingState0;
-            bakingStates = new string[ProbeReferenceVolume.numBakingStates];
-            for (int i = 0; i < bakingStates.Length; i++)
-                bakingStates[i] = "Baking State " + i;
         }
 
         /// <summary>
@@ -284,6 +293,13 @@ namespace UnityEngine.Experimental.Rendering
                     searchMultiplier = 0.2f,
                 }
             };
+
+            InitializeBakingStates(set);
+        }
+
+        void InitializeBakingStates(BakingSet set)
+        {
+            set.bakingStates = new List<string>() { ProbeReferenceVolume.defaultBakingState };
         }
 
         internal void SyncBakingSetSettings()

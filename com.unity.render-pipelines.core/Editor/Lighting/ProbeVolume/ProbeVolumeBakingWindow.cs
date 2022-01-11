@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
@@ -15,13 +14,12 @@ namespace UnityEngine.Experimental.Rendering
 {
     class ProbeVolumeBakingWindow : EditorWindow
     {
-        const int k_LeftPanelSize = 300; // TODO: resizable panel
+        const int k_LeftPanelSize = 250; // TODO: resizable panel
         const int k_RightPanelLabelWidth = 200;
         const int k_ProbeVolumeIconSize = 30;
         const int k_TitleTextHeight = 30;
         const string k_SelectedBakingSetKey = "Selected Baking Set";
         const string k_RenameFocusKey = "Baking Set Rename Field";
-        const string k_RenameStateFocusKey = "Baking State Rename Field";
 
         struct SceneData
         {
@@ -40,13 +38,14 @@ namespace UnityEngine.Experimental.Rendering
             public static readonly GUIContent sceneNotFound = new GUIContent("Scene Not Found!", Styles.sceneIcon);
             public static readonly GUIContent bakingSetsTitle = new GUIContent("Baking Sets");
             public static readonly GUIContent bakingStatesTitle = new GUIContent("Baking States");
-            public static readonly GUIContent invalidLabel = new GUIContent("Out of Date");
-            public static readonly GUIContent emptyLabel = new GUIContent("Not Baked");
             public static readonly GUIContent debugButton = new GUIContent(Styles.debugIcon);
 
-            public static readonly GUIStyle labelRed = new GUIStyle(EditorStyles.label);
+            public static readonly GUIContent invalidLabel = new GUIContent("Out of Date");
+            public static readonly GUIContent emptyLabel = new GUIContent("Not Baked");
+            public static readonly GUIContent notLoadedLabel = new GUIContent("Set is not Loaded");
+            public static readonly GUIContent[] bakingStateStatusLabel = new GUIContent[] { GUIContent.none, notLoadedLabel, invalidLabel, emptyLabel };
 
-            public static readonly Color activeColor = new Color32(0x2C, 0x5D, 0x87, 0xFF);
+            public static readonly GUIStyle labelRed = new GUIStyle(EditorStyles.label);
 
             static Styles()
             {
@@ -57,6 +56,7 @@ namespace UnityEngine.Experimental.Rendering
         enum BakingStateStatus
         {
             Valid,
+            NotLoaded,
             OutOfDate,
             NotBaked
         }
@@ -65,8 +65,8 @@ namespace UnityEngine.Experimental.Rendering
         string m_SearchString = "";
         MethodInfo m_DrawHorizontalSplitter;
         [NonSerialized] ReorderableList m_BakingSets = null;
-        MultiColumnHeader m_BakingStatesHeader = null;
-        BakingStateStatus[] bakingStatesStatuses = new BakingStateStatus[ProbeReferenceVolume.numBakingStates];
+        [NonSerialized] ReorderableList m_BakingStates = null;
+        BakingStateStatus[] bakingStatesStatuses = null;
         Vector2 m_LeftScrollPosition;
         Vector2 m_RightScrollPosition;
         ReorderableList m_ScenesInSet;
@@ -110,6 +110,7 @@ namespace UnityEngine.Experimental.Rendering
                 Object.DestroyImmediate(m_ProbeVolumeProfileEditor);
 
             Lightmapping.lightingDataCleared -= UpdateBakingStatesStatuses;
+            EditorSceneManager.sceneOpened -= UpdateBakingStatesStatuses;
         }
 
         void Initialize()
@@ -128,6 +129,7 @@ namespace UnityEngine.Experimental.Rendering
             UpdateBakingStatesStatuses();
 
             Lightmapping.lightingDataCleared += UpdateBakingStatesStatuses;
+            EditorSceneManager.sceneOpened += UpdateBakingStatesStatuses;
 
             m_Initialized = true;
         }
@@ -204,80 +206,162 @@ namespace UnityEngine.Experimental.Rendering
 
         void InitializeBakingStatesList()
         {
-            MultiColumnHeaderState.Column CreateColumn(string name)
+            m_BakingStates = new ReorderableList(GetCurrentBakingSet().bakingStates, typeof(string), true, false, true, true);
+            m_BakingStates.multiSelect = false;
+            m_BakingStates.drawElementCallback = (rect, index, active, focused) =>
             {
-                var col = new MultiColumnHeaderState.Column()
+                var bakingSet = GetCurrentBakingSet();
+
+                // Status
+                var status = bakingStatesStatuses[index];
+                if (status != BakingStateStatus.Valid)
                 {
-                    canSort = false,
-                    headerTextAlignment = TextAlignment.Center,
-                    headerContent = new GUIContent(name),
-                    allowToggleVisibility = false,
-                };
+                    var label = Styles.bakingStateStatusLabel[(int)status];
+                    var style = status == BakingStateStatus.OutOfDate ? Styles.labelRed : EditorStyles.label;
+                    Rect invalidRect = new Rect(rect) { xMin = rect.xMax - style.CalcSize(label).x - 3 };
+                    rect.xMax = invalidRect.xMin;
 
-                GUIStyle style = MultiColumnHeader.DefaultStyles.columnHeaderCenterAligned;
-                style.CalcMinMaxWidth(col.headerContent, out col.width, out float _);
-                col.width = Mathf.Min(col.width, 50f);
-                return col;
-            }
+                    using (new EditorGUI.DisabledScope(status != BakingStateStatus.OutOfDate))
+                        EditorGUI.LabelField(invalidRect, label, style);
+                }
 
-            var columns = new MultiColumnHeaderState.Column[]
+                // Event
+                string key = k_RenameFocusKey + index;
+                if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
+                    m_RenameSelectedBakingState = false;
+                if (Event.current.type == EventType.MouseDown && Event.current.clickCount == 2)
+                {
+                    if (rect.Contains(Event.current.mousePosition))
+                        m_RenameSelectedBakingState = true;
+                }
+                if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
+                    m_RenameSelectedBakingState = false;
+
+                // Name
+                var stateName = bakingSet.bakingStates[index];
+                if (!m_RenameSelectedBakingState || !active)
+                    EditorGUI.LabelField(rect, stateName);
+                else
+                {
+                    // Renaming
+                    EditorGUI.BeginChangeCheck();
+                    GUI.SetNextControlName(key);
+                    var name = EditorGUI.DelayedTextField(rect, stateName, EditorStyles.boldLabel);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        m_RenameSelectedBakingState = false;
+                        if (AllSetScenesAreLoaded() || EditorUtility.DisplayDialog("Rename Baking State", "Some scenes in the baking set contain probe volumes but are not loaded.\nRenaming the baking state may require you to rebake the scene.", "Rename", "Cancel"))
+                        {
+                            try
+                            {
+                                AssetDatabase.StartAssetEditing();
+
+                                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                                {
+                                    if (GetCurrentBakingSet().sceneGUIDs.Contains(AssetDatabase.GUIDFromAssetPath(data.gameObject.scene.path).ToString()))
+                                        data.RenameBakingState(stateName, name);
+                                }
+                                bakingSet.bakingStates[index] = name;
+                            }
+                            finally
+                            {
+                                AssetDatabase.StopAssetEditing();
+                            }
+                        }
+                    }
+                }
+            };
+            m_BakingStates.elementHeightCallback = _ => EditorGUIUtility.singleLineHeight;
+            m_BakingStates.onSelectCallback = (ReorderableList list) => ProbeReferenceVolume.instance.bakingState = GetCurrentBakingSet().bakingStates[list.index];
+
+            m_BakingStates.onAddCallback = (list) =>
             {
-                CreateColumn("Baking State"),
-                CreateColumn("Index"),
-                CreateColumn("Status"),
+                Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Added new baking state");
+                GetCurrentBakingSet().CreateBakingState("New Baking State");
+                m_SerializedObject.Update();
+                m_BakingStates.index = GetCurrentBakingSet().bakingStates.IndexOf(ProbeReferenceVolume.instance.bakingState);
+                UpdateBakingStatesStatuses();
             };
 
-            var state = new MultiColumnHeaderState(columns);
-            m_BakingStatesHeader = new MultiColumnHeader(state) { height = 23 };
-            m_BakingStatesHeader.ResizeToFit();
+            m_BakingStates.onRemoveCallback = (list) =>
+            {
+                if (m_BakingStates.count == 1)
+                {
+                    EditorUtility.DisplayDialog("Can't delete baking state", "You can't delete the last Baking state. You need to have at least one.", "Ok");
+                    return;
+                }
+                if (!EditorUtility.DisplayDialog("Delete the selected baking state?", $"Deleting the baking state will also delete corresponding baked data on disk.\nDo you really want to delete the baking state '{GetCurrentBakingSet().bakingStates[list.index]}'?\n\nYou cannot undo the delete assets action.", "Yes", "Cancel"))
+                    return;
+                if (!GetCurrentBakingSet().RemoveBakingState(GetCurrentBakingSet().bakingStates[list.index]))
+                    return;
+                UpdateBakingStatesStatuses();
+            };
+
+            m_BakingStates.index = GetCurrentBakingSet().bakingStates.IndexOf(ProbeReferenceVolume.instance.bakingState);
+            UpdateBakingStatesStatuses();
+        }
+
+        internal void UpdateBakingStatesStatuses(Scene s, OpenSceneMode m)
+        {
+            UpdateBakingStatesStatuses();
         }
 
         internal void UpdateBakingStatesStatuses()
         {
-            if (GetCurrentBakingSet().sceneGUIDs.Count == 0)
+            var bakingSet = GetCurrentBakingSet();
+            if (bakingSet.sceneGUIDs.Count == 0)
                 return;
 
-            var scenePath = FindSceneData(GetCurrentBakingSet().sceneGUIDs[0]).path;
-            var sceneName = Path.GetFileNameWithoutExtension(scenePath);
-
-            ProbeVolumeBakingState mostRecentState = ProbeVolumeBakingState.BakingState0;
-            var refTime = File.GetLastWriteTime(ProbeVolumeAsset.GetPath(scenePath, sceneName, 0, false));
-            for (int state = 1; state < sceneData.bakingStates.Length; state++)
+            DateTime? refTime = null;
+            string mostRecentState = null;
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
             {
-                var time = File.GetLastWriteTime(ProbeVolumeAsset.GetPath(scenePath, sceneName, (ProbeVolumeBakingState)state, false));
-                if (time > refTime)
+                if (!bakingSet.sceneGUIDs.Contains(AssetDatabase.GUIDFromAssetPath(data.gameObject.scene.path).ToString()))
+                    continue;
+
+                foreach (var state in bakingSet.bakingStates)
                 {
-                    refTime = time;
-                    mostRecentState = (ProbeVolumeBakingState)state;
+                    var asset = data.GetAssetForState(state);
+                    if (asset != null)
+                    {
+                        var time = System.IO.File.GetLastWriteTime(asset.GetSerializedFullPath());
+                        if (refTime == null || time > refTime)
+                        {
+                            refTime = time;
+                            mostRecentState = state;
+                        }
+                    }
                 }
             }
 
             UpdateBakingStatesStatuses(mostRecentState);
         }
 
-        internal void UpdateBakingStatesStatuses(ProbeVolumeBakingState mostRecentState)
+        internal void UpdateBakingStatesStatuses(string mostRecentState)
         {
-            for (int i = 0; i < sceneData.bakingStates.Length; i++)
-                bakingStatesStatuses[i] = BakingStateStatus.Valid;
+            var initialStatus = AllSetScenesAreLoaded() ? BakingStateStatus.Valid : BakingStateStatus.NotLoaded;
 
-            foreach (var sceneGUID in GetCurrentBakingSet().sceneGUIDs)
+            var bakingSet = GetCurrentBakingSet();
+            bakingStatesStatuses = new BakingStateStatus[bakingSet.bakingStates.Count];
+
+            for (int i = 0; i < bakingStatesStatuses.Length; i++)
             {
-                if (!(sceneData.hasProbeVolumes.ContainsKey(sceneGUID) && sceneData.hasProbeVolumes[sceneGUID]))
+                bakingStatesStatuses[i] = initialStatus;
+                if (initialStatus == BakingStateStatus.NotLoaded)
                     continue;
 
-                var scenePath = FindSceneData(sceneGUID).path;
-                var sceneName = Path.GetFileNameWithoutExtension(scenePath);
-                var mostRecentAsset = AssetDatabase.LoadAssetAtPath<ProbeVolumeAsset>(ProbeVolumeAsset.GetPath(scenePath, sceneName, mostRecentState, false));
-
-                for (int i = 0; i < sceneData.bakingStates.Length; i++)
+                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 {
-                    if (bakingStatesStatuses[i] == BakingStateStatus.NotBaked)
+                    if (!bakingSet.sceneGUIDs.Contains(AssetDatabase.GUIDFromAssetPath(data.gameObject.scene.path).ToString()))
                         continue;
 
-                    var asset = AssetDatabase.LoadAssetAtPath<ProbeVolumeAsset>(ProbeVolumeAsset.GetPath(scenePath, sceneName, (ProbeVolumeBakingState)i, false));
+                    var asset = data.GetAssetForState(bakingSet.bakingStates[i]);
                     if (asset == null)
+                    {
                         bakingStatesStatuses[i] = BakingStateStatus.NotBaked;
-                    else if (bakingStatesStatuses[i] != BakingStateStatus.OutOfDate && !ProbeVolumeAsset.Compatible(asset, mostRecentAsset))
+                        break;
+                    }
+                    else if (bakingStatesStatuses[i] != BakingStateStatus.OutOfDate && !ProbeVolumeAsset.Compatible(asset, data.GetAssetForState(mostRecentState)))
                         bakingStatesStatuses[i] = BakingStateStatus.OutOfDate;
                 }
             }
@@ -341,14 +425,17 @@ namespace UnityEngine.Experimental.Rendering
             m_ScenesInSet.multiSelect = true;
             m_ScenesInSet.drawElementCallback = (rect, index, active, focused) =>
             {
+                float CalcLabelWidth(GUIContent c, GUIStyle s) => c.image ? s.CalcSize(c).x - c.image.width + rect.height : s.CalcSize(c).x;
+
                 var guid = set.sceneGUIDs[index];
                 // Find scene name from GUID:
                 var scene = FindSceneData(guid);
 
-                if (scene.asset != null)
-                    EditorGUI.LabelField(rect, new GUIContent(scene.asset.name, Styles.sceneIcon), EditorStyles.boldLabel);
-                else
-                    EditorGUI.LabelField(rect, Styles.sceneNotFound, EditorStyles.boldLabel);
+                var sceneLabel = (scene.asset != null) ? new GUIContent(scene.asset.name, Styles.sceneIcon) : Styles.sceneNotFound;
+                Rect sceneLabelRect = new Rect(rect) { width = CalcLabelWidth(sceneLabel, EditorStyles.boldLabel) };
+                EditorGUI.LabelField(sceneLabelRect, sceneLabel, EditorStyles.boldLabel);
+                if (Event.current.type == EventType.MouseDown && sceneLabelRect.Contains(Event.current.mousePosition))
+                    EditorGUIUtility.PingObject(scene.asset);
 
                 // display the probe volume icon in the scene if it have one
                 Rect probeVolumeIconRect = rect;
@@ -359,10 +446,9 @@ namespace UnityEngine.Experimental.Rendering
                 // Display the lighting settings of the first scene (it will be used for baking)
                 if (index == 0)
                 {
-                    Rect lightingSettingsRect = rect;
                     var lightingLabel = Styles.sceneLightingSettings;
-                    var size = EditorStyles.label.CalcSize(lightingLabel);
-                    lightingSettingsRect.xMin = rect.xMax - size.x - probeVolumeIconRect.width;
+                    float middle = (sceneLabelRect.xMax + probeVolumeIconRect.xMin) * 0.5f;
+                    Rect lightingSettingsRect = new Rect(rect) { xMin = middle - CalcLabelWidth(lightingLabel, EditorStyles.label) * 0.5f };
                     EditorGUI.LabelField(lightingSettingsRect, lightingLabel);
                 }
             };
@@ -414,13 +500,32 @@ namespace UnityEngine.Experimental.Rendering
                 m_SerializedObject.Update();
             }
 
-            UpdateBakingStatesStatuses();
+            InitializeBakingStatesList();
         }
 
         ProbeVolumeSceneData.BakingSet GetCurrentBakingSet()
         {
             int index = Mathf.Clamp(m_BakingSets.index, 0, sceneData.bakingSets.Count - 1);
             return sceneData.bakingSets[index];
+        }
+
+        bool AllSetScenesAreLoaded()
+        {
+            var set = GetCurrentBakingSet();
+            var dataList = ProbeReferenceVolume.instance.perSceneDataList;
+            if (dataList.Count < set.sceneGUIDs.Count)
+                return false;
+
+            foreach (var guid in set.sceneGUIDs)
+            {
+                if (!sceneData.hasProbeVolumes.ContainsKey(guid) || !sceneData.hasProbeVolumes[guid])
+                    continue;
+                var scenePath = AssetDatabase.GUIDToAssetPath(guid);
+                if (dataList.All(data => data.gameObject.scene.path != scenePath))
+                    return false;
+            }
+
+            return true;
         }
 
         void OnGUI()
@@ -551,8 +656,7 @@ namespace UnityEngine.Experimental.Rendering
                 var stateTitleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
                 EditorGUI.LabelField(stateTitleRect, Styles.bakingStatesTitle, m_SubtitleStyle);
                 EditorGUILayout.Space();
-
-                DrawBakingStates();
+                m_BakingStates.DoLayoutList();
             }
             else
             {
@@ -575,81 +679,6 @@ namespace UnityEngine.Experimental.Rendering
             var index = DebugManager.instance.FindPanelIndex(ProbeReferenceVolume.k_DebugPanelName);
             if (index != -1)
                 DebugManager.instance.RequestEditorWindowPanelIndex(index);
-        }
-
-        void DrawBakingStates()
-        {
-            float height = m_BakingStatesHeader.height + ProbeReferenceVolume.numBakingStates * DebugWindow.Styles.singleRowHeight;
-            var rect = GUILayoutUtility.GetRect(1f, height); rect.width = 450f;
-            rect = EditorGUI.IndentedRect(rect);
-            rect = DebugUIDrawerTable.DrawOutline(rect);
-            var headerRect = new Rect(rect.x, rect.y, rect.width, m_BakingStatesHeader.height);
-            var rowRect = new Rect(rect.x, headerRect.yMax, rect.width, DebugWindow.Styles.singleRowHeight);
-
-            m_BakingStatesHeader.OnGUI(headerRect, 0);
-            for (int i = 0; i < ProbeReferenceVolume.numBakingStates; i++)
-            {
-                rowRect.x = rect.x;
-                rowRect.width = rect.width;
-
-                // Set state
-                if (Event.current.type == EventType.MouseDown && !m_RenameSelectedBakingState && rowRect.Contains(Event.current.mousePosition))
-                {
-                    if (Event.current.clickCount == 1)
-                    {
-                        ProbeReferenceVolume.instance.bakingState = (ProbeVolumeBakingState)i;
-                        SceneView.RepaintAll();
-                        Repaint();
-                    }
-                    else if (Event.current.clickCount == 2)
-                        m_RenameSelectedBakingState = true;
-                }
-
-                // Active state
-                bool isActiveState = i == (int)ProbeReferenceVolume.instance.bakingState;
-                if (isActiveState)
-                    EditorGUI.DrawRect(rowRect, Styles.activeColor);
-
-                // Name
-                rowRect.x += 2; // small padding
-                rowRect.width = m_BakingStatesHeader.state.columns[0].width;
-                if (m_RenameSelectedBakingState && isActiveState)
-                {
-                    EditorGUI.BeginChangeCheck();
-                    sceneData.bakingStates[i] = EditorGUI.DelayedTextField(rowRect, sceneData.bakingStates[i], EditorStyles.boldLabel);
-                    if (EditorGUI.EndChangeCheck())
-                        m_RenameSelectedBakingState = false;
-                }
-                else
-                    EditorGUI.LabelField(rowRect, GUIContent.none, EditorGUIUtility.TrTextContent(sceneData.bakingStates[i]));
-
-                // Index
-                rowRect.x += rowRect.width;
-                rowRect.width = m_BakingStatesHeader.state.columns[1].width;
-                EditorGUI.LabelField(rowRect, GUIContent.none, EditorGUIUtility.TrTextContent("State " + i));
-
-                // Status
-                if (bakingStatesStatuses[i] != BakingStateStatus.Valid)
-                {
-                    rowRect.x += rowRect.width;
-                    rowRect.width = m_BakingStatesHeader.state.columns[2].width;
-                    if (bakingStatesStatuses[i] == BakingStateStatus.NotBaked)
-                    {
-                        using (new EditorGUI.DisabledScope(true))
-                            EditorGUI.LabelField(rowRect, Styles.emptyLabel);
-                    }
-                    else
-                        EditorGUI.LabelField(rowRect, Styles.invalidLabel, Styles.labelRed);
-                }
-                rowRect.y += rowRect.height;
-
-                // Renaming
-                string key = k_RenameStateFocusKey + i;
-                if (Event.current.type == EventType.MouseDown && GUI.GetNameOfFocusedControl() != key)
-                    m_RenameSelectedBakingState = false;
-                if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape)
-                    m_RenameSelectedBakingState = false;
-            }
         }
 
         void DrawBakeButton()
