@@ -1528,7 +1528,7 @@ namespace UnityEditor.VFX
         protected static class Styles
         {
             //TODOPAUL : Choose and clean
-            public static readonly bool spaceOnRight = false;
+            public static readonly bool spaceOnRight = true;
             public static readonly GUIStyle leftSpaceIconStyle;
             public static readonly GUIStyle rightSpaceIconStyle;
 
