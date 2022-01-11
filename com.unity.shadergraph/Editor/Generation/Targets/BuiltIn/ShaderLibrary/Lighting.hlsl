@@ -362,7 +362,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 #ifdef _SPECULAR_SETUP
     half reflectivity = ReflectivitySpecular(specular);
     half oneMinusReflectivity = 1.0 - reflectivity;
-    half3 brdfDiffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
+    half3 brdfDiffuse = albedo * oneMinusReflectivity;
     half3 brdfSpecular = specular;
 #else
     half oneMinusReflectivity = OneMinusReflectivityMetallic(metallic);
