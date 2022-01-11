@@ -3,6 +3,45 @@
             {
                 float4 pos;
                 ${VFXHDRPLitDeclareVaryings}
+		        #if USE_FLIPBOOK_INTERPOLATION
+		        float4 uv : TEXCOORD1;
+		        #else
+		        #if USE_FLIPBOOK_ARRAY_LAYOUT
+		        float3 uv : TEXCOORD1;
+		        #else
+		        float2 uv : TEXCOORD1;
+		        #endif
+		        #endif
+		        #if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION
+		        // x: inverse soft particles fade distance
+		        // y: alpha threshold
+		        // z: frame blending factor
+		        VFX_OPTIONAL_INTERPOLATION float3 builtInInterpolants : TEXCOORD2;
+		        #endif
+		        #if USE_FLIPBOOK_MOTIONVECTORS
+		        // x: motion vector scale u
+		        // y: motion vector scale v
+		        VFX_OPTIONAL_INTERPOLATION float2 builtInInterpolants2 : TEXCOORD3;
+		        #endif
+		        VFX_OPTIONAL_INTERPOLATION float3 normal : TEXCOORD4;
+		        #if USE_NORMAL_MAP || USE_NORMAL_BENDING || SHADERGRAPH_NEEDS_TANGENT_GBUFFER
+		        VFX_OPTIONAL_INTERPOLATION float3 tangent : TEXCOORD5;
+		        #endif
+		        #if USE_NORMAL_BENDING
+		        float2 bentFactors : TEXCOORD6;
+		        #endif
+
             };
             #define VFX_VARYING_PS_INPUTS rt_input
             #define VFX_VARYING_POSCS pos
+            #define VFX_VARYING_UV uv
+            #define VFX_VARYING_NORMAL normal
+
+            #if USE_NORMAL_MAP || SHADERGRAPH_NEEDS_TANGENT_GBUFFER
+            #define VFX_VARYING_TANGENT tangent
+            #endif
+
+
+            #if USE_NORMAL_BENDING
+            #define VFX_VARYING_BENTFACTORS bentFactors
+            #endif

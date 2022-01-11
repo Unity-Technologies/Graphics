@@ -84,20 +84,22 @@
                 ${VFXVertexCommonProcess}
                 ${VFXHDRPLitFillVaryings}
 
-                // Object <-> primtive matrices
-                const float4x4 objectToPrimitive = GetVFXToElementMatrix(attributes.axisX, attributes.axisY, attributes.axisZ,
-                    float3(attributes.angleX, attributes.angleY, attributes.angleZ),
-                    float3(attributes.pivotX, attributes.pivotY, attributes.pivotZ),
-                    size3, attributes.position);
+                o.VFX_VARYING_UV.xy = attributeData.barycentrics;
+                #ifdef VFX_VARYING_BENTFACTORS
+	                ${VFXLoadParameter:{normalBendingFactor}}
+	                #define BENT_FACTOR_MULTIPLIER 1.41421353816986083984375f
+	                o.VFX_VARYING_BENTFACTORS = (o.VFX_VARYING_UV.xy - 0.5f) * normalBendingFactor * BENT_FACTOR_MULTIPLIER;
+	            #endif
+                ${VFXVertexSetFlipbooksInterpolants}
 
-                // TODO have the real normal here
-                float3 normalOS = normalize(-objectToPrimitive[2].xyz);
+                rt_input i = o;
+                i.VFX_VARYING_NORMAL = normalize(-WorldToPrimitive(attributes, size3)[2].xyz);
+#ifdef VFX_VARYING_TANGENT
+                i.VFX_VARYING_TANGENT = normalize(-WorldToPrimitive(attributes, size3)[0].xyz);
+#endif
 
-                // Build the uv data
-                VFXUVData uvData;
-                uvData.uvs = float4(attributeData.barycentrics, 0, 0);
-                uvData.blend = 0;
-                uvData.mvs = 0;
+                bool frontFace = dot(WorldRayDirection(), i.VFX_VARYING_NORMAL) < 0;
+                ${VFXComputeNormalWS}
 
                 // Output structures
                 SurfaceData surfaceData = (SurfaceData)0;
@@ -106,7 +108,7 @@
                 PreLightData preLightData = (PreLightData)0;
 
                 // Evaluate the input data
-                VFXGetHDRPLitData(surfaceData, builtinData, bsdfData, preLightData, o, normalOS, uvData, 0);
+                VFXGetHDRPLitData(surfaceData, builtinData, bsdfData, preLightData, i, normalWS, uvData, 0);
 
                 // Evaluate the position input
                 PositionInputs posInput = GetPositionInput(rayIntersection.pixelCoord, _ScreenSize.zw, positionRWS);
