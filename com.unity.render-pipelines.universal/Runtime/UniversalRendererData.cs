@@ -221,6 +221,16 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// Controls when URP renders via an intermediate texture.
+        /// </summary>
+        [Obsolete]
+        public IntermediateTextureMode intermediateTextureMode
+        {
+            get => throw new NotSupportedException("UniversalRendererData.intermediateTextureMode is deprecated.");
+            set => throw new NotSupportedException("UniversalRendererData.intermediateTextureMode is deprecated.");
+        }
+
         protected override void OnValidate()
         {
             base.OnValidate();
