@@ -286,6 +286,8 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var sceneData in perSceneDataList)
             {
                 var asset = sceneData.GetCurrentStateAsset();
+                if (asset == null) continue; // No asset here.
+
                 string assetPath = asset.GetSerializedFullPath();
                 foreach (var cell in asset.cells)
                 {
@@ -563,7 +565,8 @@ namespace UnityEngine.Experimental.Rendering
             var data2Asset = new Dictionary<ProbeVolumePerSceneData, ProbeVolumeAsset>();
             foreach (var data in scene2Data.Values)
             {
-                data2Asset[data] = ProbeVolumeAsset.CreateAsset(data.gameObject.scene);
+                bool hasHasset = ProbeReferenceVolume.instance.sceneData.SceneHasProbeVolumes(data.gameObject.scene);
+                data2Asset[data] = hasHasset ? ProbeVolumeAsset.CreateAsset(data.gameObject.scene) : null;
             }
 
             // Put cells into the respective assets
@@ -573,7 +576,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     // This scene has a reference volume authoring component in it?
                     ProbeVolumePerSceneData data = null;
-                    if (scene2Data.TryGetValue(scene, out data))
+                    if (scene2Data.TryGetValue(scene, out data) && data2Asset[data] != null)
                     {
                         var asset = data2Asset[data];
                         asset.cells.Add(cell);
@@ -591,6 +594,8 @@ namespace UnityEngine.Experimental.Rendering
             {
                 var data = pair.Key;
                 var asset = pair.Value;
+
+                if (asset == null) continue;
 
                 // TODO: This will need to use the proper state, not default, when we have them.
                 data.StoreAssetForState(ProbeVolumeState.Default, asset);

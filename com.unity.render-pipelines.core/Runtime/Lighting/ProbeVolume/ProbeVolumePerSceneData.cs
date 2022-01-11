@@ -77,7 +77,16 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var asset in assets.Values)
             {
                 if (asset != null)
+                {
                     ProbeReferenceVolume.instance.AddPendingAssetRemoval(asset);
+#if UNITY_EDITOR
+                    if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out string guid, out long file))
+                    {
+                        var path = AssetDatabase.GUIDToAssetPath(guid);
+                        AssetDatabase.DeleteAsset(path);
+                    }
+#endif
+                }
             }
 
             assets.Clear();
