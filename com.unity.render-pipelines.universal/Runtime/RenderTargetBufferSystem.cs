@@ -108,6 +108,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             ReAllocate(cmd);
         }
 
+        public RTHandle GetBufferA()
+        {
+            return (m_AllowMSAA && m_A.msaa > 1) ? m_A.rtMSAA : m_A.rtResolve;
+        }
+
         public void EnableMSAA(bool enable)
         {
             m_AllowMSAA = enable;
