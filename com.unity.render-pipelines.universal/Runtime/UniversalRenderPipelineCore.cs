@@ -793,9 +793,13 @@ namespace UnityEngine.Rendering.Universal
                 float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
                 float oneOverLightRangeSqr = 1.0f / Mathf.Max(0.0001f, lightRange * lightRange);
 
-                // On untethered devices: Use the faster linear smoothing factor (SHADER_HINT_NICE_QUALITY).
+                // On untethered devices and Editor if mobile target (as SHADER_API_MOBILE now affects Editor as well): Use the faster linear smoothing factor (SHADER_HINT_NICE_QUALITY).
                 // On other devices: Use the smoothing factor that matches the GI.
-                lightAttenuation.x = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch ? oneOverFadeRangeSqr : oneOverLightRangeSqr;
+                bool isMobileBuildTarget = false;
+                #if UNITY_EDITOR && (UNITY_IOS || UNITY_ANDROID)
+                    isMobileBuildTarget = true;
+                #endif
+                lightAttenuation.x = Application.isMobilePlatform || isMobileBuildTarget || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch ? oneOverFadeRangeSqr : oneOverLightRangeSqr;
                 lightAttenuation.y = lightRangeSqrOverFadeRangeSqr;
             }
 

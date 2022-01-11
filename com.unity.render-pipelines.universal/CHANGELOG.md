@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing depth for Depth of Field in an overlay camera. [case 1365623](https://issuetracker.unity3d.com/product/unity/issues/guid/1365623/)
 - Fixed FXAA quality issues when render scale is not 1.0.
 - Fixed an issue where specular color was not matching behaviour in Legacy and HDRP. [case 1326941](https://issuetracker.unity3d.com/issues/urp-specular-color-behavior-does-not-match-legacy-or-hdrp)
+- Fixed incorrect light attenuation on Editor when mobile build target is active. [case 1387142](https://issuetracker.unity3d.com/issues/directional-light-light-is-bigger-in-the-editor-when-the-build-target-is-ios-or-android)
 
 ## [13.1.2] - 2021-11-05
 
