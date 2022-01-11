@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Modify influence of the blue channel in the overall mix.")]
         public ClampedFloatParameter blueOutBlueIn = new ClampedFloatParameter(100f, -200f, 200f);
 
+        /// <inheritdoc/>
         public bool IsActive()
         {
             return redOutRedIn.value != 100f
@@ -45,6 +46,7 @@ namespace UnityEngine.Rendering.Universal
                 || blueOutBlueIn.value != 100f;
         }
 
+        /// <inheritdoc/>
         public bool IsTileCompatible() => true;
     }
 }

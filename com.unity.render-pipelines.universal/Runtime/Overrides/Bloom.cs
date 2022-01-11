@@ -43,8 +43,10 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Amount of dirtiness.")]
         public MinFloatParameter dirtIntensity = new MinFloatParameter(0f, 0f);
 
+        /// <inheritdoc/>
         public bool IsActive() => intensity.value > 0f;
 
+        /// <inheritdoc/>
         public bool IsTileCompatible() => false;
     }
 

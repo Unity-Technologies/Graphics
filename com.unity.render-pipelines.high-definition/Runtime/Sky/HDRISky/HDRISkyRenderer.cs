@@ -83,10 +83,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector4(Mathf.Cos(localPhi), Mathf.Sin(localPhi), hdriSky.plateTexOffset.value.x, hdriSky.plateTexOffset.value.y);
         }
 
-        public override bool RequiresPreRenderSky(BuiltinSkyParameters builtinParams)
+        public override bool RequiresPreRender(SkySettings skySettings)
         {
-            var hdriSky = builtinParams.skySettings as HDRISky;
-            return hdriSky.enableBackplate.value;
+            var hdriSky = skySettings as HDRISky;
+            return hdriSky != null ? hdriSky.enableBackplate.value : false;
         }
 
         public override void PreRenderSky(BuiltinSkyParameters builtinParams)

@@ -127,7 +127,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // When a display name is changed through the BlackboardPill, bind this callback to handle it with appropriate change action
             var textInputElement = m_TextField.Q(TextField.textInputUssName);
-            textInputElement.RegisterCallback<FocusOutEvent>(e => { OnEditTextFinished(); });
+            textInputElement.RegisterCallback<FocusOutEvent>(e => { OnEditTextFinished(); }, TrickleDown.TrickleDown);
 
             ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTypeText;
 
