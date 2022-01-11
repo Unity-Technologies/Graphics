@@ -20,8 +20,10 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Should the vignette be perfectly round or be dependent on the current aspect ratio?")]
         public BoolParameter rounded = new BoolParameter(false);
 
+        /// <inheritdoc/>
         public bool IsActive() => intensity.value > 0f;
 
+        /// <inheritdoc/>
         public bool IsTileCompatible() => true;
     }
 }

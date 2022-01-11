@@ -623,7 +623,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         vector1ShaderProperty.value = Mathf.Max(Mathf.Min(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.y), vector1ShaderProperty.rangeValues.x);
                         defaultField.value = vector1ShaderProperty.value;
                         _postChangeValueCallback();
-                    });
+                    }, TrickleDown.TrickleDown);
 
                     maxField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
                     {
@@ -631,7 +631,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         vector1ShaderProperty.value = Mathf.Max(Mathf.Min(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.y), vector1ShaderProperty.rangeValues.x);
                         defaultField.value = vector1ShaderProperty.value;
                         _postChangeValueCallback();
-                    });
+                    }, TrickleDown.TrickleDown);
                     break;
 
                 case FloatType.Integer:

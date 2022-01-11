@@ -3,10 +3,10 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [VolumeComponentEditor(typeof(LiftGammaGain))]
+    [CustomEditor(typeof(LiftGammaGain))]
     sealed class LiftGammaGainEditor : VolumeComponentEditor
     {
-        static class Styles
+        private static class Styles
         {
             public static readonly GUIContent liftLabel = EditorGUIUtility.TrTextContent("Lift", "Use this control to apply a hue to the dark tones (shadows) and adjust their level.");
             public static readonly GUIContent gammaLabel = EditorGUIUtility.TrTextContent("Gamma", "Use this control to apply a hue to the mid-range tones and adjust their level.");
