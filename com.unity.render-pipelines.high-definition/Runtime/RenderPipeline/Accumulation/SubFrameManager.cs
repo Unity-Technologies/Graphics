@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 #if UNITY_EDITOR
@@ -31,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float accumulatedWeight;
         public uint currentIteration;
 #if ENABLE_UNITY_DENOISING_PLUGIN
-        public Denoiser denoiser;
+        public CommandBufferDenoiser denoiser;
         public bool validDenoiseHistory;
         public bool activeDenoiseRequest;
         public bool discardDenoiseRequest;
@@ -62,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 camData.ResetIteration();
 #if ENABLE_UNITY_DENOISING_PLUGIN
-                camData.denoiser = new Denoiser();
+                camData.denoiser = new CommandBufferDenoiser();
                 camData.activeDenoiseRequest = false;
                 camData.discardDenoiseRequest = false;
 #endif
