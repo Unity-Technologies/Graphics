@@ -48,7 +48,7 @@
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Forward/EvaluateRayTracingForward.hlsl"
 
             // Defines for the attributes
-            ${VFXIncludeRP("VFXLitVaryings.template")}      
+            ${VFXIncludeRP("VFXLitVaryings.template")}
 
             // Graph functions
             ${VFXGeneratedBlockFunction}
@@ -95,7 +95,7 @@
                 rt_input i = o;
                 i.VFX_VARYING_NORMAL = normalize(-WorldToPrimitive(attributes, size3)[2].xyz);
 #ifdef VFX_VARYING_TANGENT
-                i.VFX_VARYING_TANGENT = normalize(-WorldToPrimitive(attributes, size3)[0].xyz);
+                i.VFX_VARYING_TANGENT = normalize(WorldToPrimitive(attributes, size3)[0].xyz);
 #endif
 
                 bool frontFace = dot(WorldRayDirection(), i.VFX_VARYING_NORMAL) < 0;
@@ -107,11 +107,12 @@
                 BSDFData bsdfData = (BSDFData)0;
                 PreLightData preLightData = (PreLightData)0;
 
-                // Evaluate the input data
-                VFXGetHDRPLitData(surfaceData, builtinData, bsdfData, preLightData, i, normalWS, uvData, 0);
 
                 // Evaluate the position input
                 PositionInputs posInput = GetPositionInput(rayIntersection.pixelCoord, _ScreenSize.zw, positionRWS);
+
+                // Evaluate the input data
+                VFXGetHDRPLitData(surfaceData, builtinData, bsdfData, preLightData, i, normalWS, posInput, uvData, 0);
 
                 // Evaluate the view direction
                 float3 viewWS = -WorldRayDirection();

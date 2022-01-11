@@ -99,7 +99,7 @@
                 rt_input i = o;
                 i.VFX_VARYING_NORMAL = normalize(-WorldToPrimitive(attributes, size3)[2].xyz);
 #ifdef VFX_VARYING_TANGENT
-                i.VFX_VARYING_TANGENT = normalize(-WorldToPrimitive(attributes, size3)[0].xyz);
+                i.VFX_VARYING_TANGENT = normalize(WorldToPrimitive(attributes, size3)[0].xyz);
 #endif
                 bool frontFace = dot(WorldRayDirection(), i.VFX_VARYING_NORMAL) < 0;
                 ${VFXComputeNormalWS}
@@ -114,7 +114,7 @@
                 PositionInputs posInput = GetPositionInput(rayIntersection.pixelCoord, _ScreenSize.zw, positionRWS);
 
                 // Evaluate the input data
-                VFXGetHDRPLitData(surfaceData, builtinData, bsdfData, preLightData, i, normalWS, uvData, 0);
+                VFXGetHDRPLitData(surfaceData, builtinData, bsdfData, preLightData, i, normalWS, posInput, uvData, 0);
 
                 // Evaluate the lighting
                 EvaluateIndirectRayTracingLighting(preLightData, posInput, bsdfData, builtinData, viewWS, positionRWS, rayIntersection);
