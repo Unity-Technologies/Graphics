@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Forbid pasting a subgraph in the same subgraph [Case 1364480](https://issuetracker.unity3d.com/product/unity/issues/guid/1364480/)
 - Particle Strip without lifetime do not die when Alive is set to false. [Case 1376278](https://issuetracker.unity3d.com/product/unity/issues/guid/1376278/)
 - VFX Subgraph operator and block windows now have dedicated icons
+- Some operators were missing in node search window (gradient for instance)
 
 ## [13.1.4] - 2021-12-04
 
