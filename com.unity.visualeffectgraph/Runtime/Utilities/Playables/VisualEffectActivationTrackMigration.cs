@@ -109,6 +109,12 @@ namespace UnityEditor.VFX.Migration
                 newAsset.reinit = VisualEffectControlClip.ReinitMode.None;
                 newAsset.scrubbing = false;
 
+                if (oldAsset == null)
+                    throw new NullReferenceException("Unable to read VisualEffectActivationClip");
+
+                if (oldAsset.activationBehavior == null)
+                    throw new NullReferenceException("Unable to read VisualEffectActivationBehaviour");
+
                 newAsset.clipEvents = new List<VisualEffectControlClip.ClipEvent>()
                 {
                     new VisualEffectControlClip.ClipEvent()
