@@ -15,8 +15,10 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Select a tonemapping algorithm to use for the color grading process.")]
         public TonemappingModeParameter mode = new TonemappingModeParameter(TonemappingMode.None);
 
+        /// <inheritdoc/>
         public bool IsActive() => mode.value != TonemappingMode.None;
 
+        /// <inheritdoc/>
         public bool IsTileCompatible() => true;
     }
 

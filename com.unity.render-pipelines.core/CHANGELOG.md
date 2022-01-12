@@ -9,10 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Context menu on Volume Parameters to restore them to their default values.
 - Linear version of function that sets FSR RCAS shader constants
+- Add probe volume influence weight parameter
 
 ### Fixed
 - Fixed XR support in CoreUtils.DrawFullscreen function.
 - Fixed issue in DynamicResolutionHandler when camera request was turned off at runtime, the ScalableBufferManager would leak state and not unset DRS state (case 1383093).
+- Fixed `DebugUI.Enum` fields collapsing their parent `DebugUI.Foldout`
+- Fixed IES profile importer handling of overflow (outside 0-1 range) of attenutation splines values.
+- Fixed issue with Probe Volume Baking window incorrectly displaying the icon for probe volumes in scenes that don't contain probe volumes.
 - Fixed unnecessary memory allocation inside FSR's RCAS shader constants helper function.
 
 ### Changed
@@ -23,11 +27,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added function to allocate RTHandles using `RenderTextureDescriptor`.
 - Added `vrUsage` support for RTHandles allocation.
+- Hidding Volume Components not available for the current pipeline on the Volume Profile Inspector.
 
 ### Fixed
 - Fixed issue when changing volume profiles at runtime with a script (case 1364256).
 - Fixed XR support in CoreUtils.DrawFullscreen function.
 - Fixed an issue causing Render Graph execution errors after a random amount of time.
+
+### Changed
+- Volume Component editor are now specified by `CustomEditorAttribute` instead of `VolumeComponentEditorAttribute`.
 
 ## [13.1.1] - 2021-10-04
 
