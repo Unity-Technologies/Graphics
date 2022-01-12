@@ -1122,7 +1122,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int i = 0; i < requests.Count; ++i)
                     visitStatus.Add(0);
 
-                // iterate roots (in reverse order to match previous code)
+                // iterate in request order (recursively visits dependencies first)
                 for (int i = 0; i < requests.Count; ++i)
                     VisitRenderRequestRecursive(requests, visitStatus, i, renderIndices);
             }
