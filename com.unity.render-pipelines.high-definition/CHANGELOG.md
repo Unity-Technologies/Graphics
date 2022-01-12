@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
 - Fixed the behavior the max ray length for recursive rendering to match RTR and rasterization.
 - Fixed issue with automatic RendererList culling option getting ignored (case 1388854).
+- Fixed NeedMotionVectorForTransparent checking the wrong flag.
 
 ## [13.1.4] - 2021-12-04
 
