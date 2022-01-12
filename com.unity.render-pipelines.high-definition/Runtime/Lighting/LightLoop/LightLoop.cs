@@ -86,6 +86,23 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL]
+    internal enum LightVBufferTileCategory
+    {
+        Env,
+        EnvPunctual,
+        Everything,
+        Unknown
+    }
+
+    [GenerateHLSL]
+    class LightVBufferTileCategoryFeatures
+    {
+        public static uint s_VBufferLightingFeaturesEnv = (uint)LightFeatureFlags.Directional | (uint)LightFeatureFlags.Sky | (uint)LightFeatureFlags.Env | LightDefinitions.s_MaterialFeatureMaskFlags;
+        public static uint s_VBufferLightingFeaturesEnvPunctual = (uint)LightFeatureFlags.Directional | (uint)LightFeatureFlags.Sky | (uint)LightFeatureFlags.Env | (uint)LightFeatureFlags.Punctual | LightDefinitions.s_MaterialFeatureMaskFlags;
+        public static uint s_VBufferLightingFeaturesEverything = (uint)LightFeatureFlags.Directional | (uint)LightFeatureFlags.Sky | (uint)LightFeatureFlags.Env | (uint)LightFeatureFlags.Punctual | (uint)LightFeatureFlags.Area | LightDefinitions.s_MaterialFeatureMaskFlags;
+    }
+
+    [GenerateHLSL]
     class LightDefinitions
     {
         public static int s_MaxNrBigTileLightsPlusOne = 512;      // may be overkill but the footprint is 2 bits per pixel using uint16.

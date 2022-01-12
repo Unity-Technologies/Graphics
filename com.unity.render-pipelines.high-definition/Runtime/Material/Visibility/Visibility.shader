@@ -12,7 +12,7 @@ Shader "HDRP/Visibility"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma enable_d3d11_debug_symbols
+    //#pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -32,8 +32,7 @@ Shader "HDRP/Visibility"
     // variable declaration
     //-------------------------------------------------------------------------------------
 
-    // #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.cs.hlsl"
-    //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitProperties.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityProperties.hlsl"
 
     ENDHLSL
 
@@ -59,7 +58,41 @@ Shader "HDRP/Visibility"
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
+            #define SHADERPASS SHADERPASS_VISIBILITY
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityPass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassVisibility.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags{ "LightMode" = "ShadowCaster" }
+
+            Cull Back
+            ZWrite On
+            ZTest LEqual
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
+            #define SHADERPASS SHADERPASS_SHADOWS
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityDepthPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
             #pragma vertex Vert
             #pragma fragment Frag

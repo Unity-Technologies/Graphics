@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, decalBuffer, result);
                 }
 
-                RenderVBuffer(renderGraph, hdCamera, cullingResults, ref result);
+                RenderVBuffer(renderGraph, colorBuffer, hdCamera, cullingResults, ref result);
 
                 // If we have MSAA, we need to complete the motion vector buffer before buffer resolves, hence we need to run camera mv first.
                 // This is always fine since shouldRenderMotionVectorAfterGBuffer is always false for forward.

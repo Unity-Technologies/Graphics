@@ -12,6 +12,8 @@
 #define GEO_POOL_UV1BYTE_SIZE (8)
 #define GEO_POOL_NORMAL_BYTE_SIZE (12)
 #define GEO_POOL_TANGENT_BYTE_SIZE (12)
+#define GEO_POOL_BATCH_INSTANCE_DATA_BYTE_SIZE (2)
+#define GEO_POOL_BATCH_INSTANCES_PER_DWORD (2)
 #define GEO_POOL_POS_BYTE_OFFSET (0)
 #define GEO_POOL_UV0BYTE_OFFSET (12)
 #define GEO_POOL_UV1BYTE_OFFSET (20)
@@ -45,6 +47,7 @@ struct GeoPoolSubMeshEntry
     int baseVertex;
     int indexStart;
     int indexCount;
+    uint materialKey;
 };
 
 // Generated from UnityEngine.Rendering.GeoPoolMetadataEntry
@@ -54,7 +57,15 @@ struct GeoPoolMetadataEntry
     int vertexOffset;
     int indexOffset;
     int subMeshLookupOffset;
-    int subMeshEntryOffset;
+    int subMeshEntryOffset_VertexFlags;
+};
+
+// Generated from UnityEngine.Rendering.GeoPoolBatchTableEntry
+// PackingRules = Exact
+struct GeoPoolBatchTableEntry
+{
+    int offset;
+    int count;
 };
 
 //
@@ -72,6 +83,10 @@ int GetIndexCount(GeoPoolSubMeshEntry value)
 {
     return value.indexCount;
 }
+uint GetMaterialKey(GeoPoolSubMeshEntry value)
+{
+    return value.materialKey;
+}
 //
 // Accessors for UnityEngine.Rendering.GeoPoolMetadataEntry
 //
@@ -87,9 +102,20 @@ int GetSubMeshLookupOffset(GeoPoolMetadataEntry value)
 {
     return value.subMeshLookupOffset;
 }
-int GetSubMeshEntryOffset(GeoPoolMetadataEntry value)
+int GetSubMeshEntryOffset_VertexFlags(GeoPoolMetadataEntry value)
 {
-    return value.subMeshEntryOffset;
+    return value.subMeshEntryOffset_VertexFlags;
+}
+//
+// Accessors for UnityEngine.Rendering.GeoPoolBatchTableEntry
+//
+int GetOffset(GeoPoolBatchTableEntry value)
+{
+    return value.offset;
+}
+int GetCount(GeoPoolBatchTableEntry value)
+{
+    return value.count;
 }
 
 #endif
