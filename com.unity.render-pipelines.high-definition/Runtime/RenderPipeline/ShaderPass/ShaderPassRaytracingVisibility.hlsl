@@ -3,7 +3,7 @@
 
 // Generic function that handles the reflection code
 [shader("closesthit")]
-void ClosestHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+void ClosestHitVisibility(inout RayIntersectionVisibility rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
 
@@ -26,7 +26,7 @@ void ClosestHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload,
 
 // Generic function that handles the reflection code
 [shader("anyhit")]
-void AnyHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+void AnyHitVisibility(inout RayIntersectionVisibility rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
 
@@ -60,6 +60,7 @@ void AnyHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload, Att
         IgnoreHit();
         return;
     }
+
 #if defined(TRANSPARENT_COLOR_SHADOW) && defined(_SURFACE_TYPE_TRANSPARENT)
     // Compute the velocity of the itnersection
     float3 positionOS = ObjectRayOrigin() + ObjectRayDirection() * rayIntersection.t;

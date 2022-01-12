@@ -149,6 +149,7 @@ namespace UnityEngine.Rendering.Universal
 
     [DisallowMultipleRendererFeature("Decal")]
     [Tooltip("With this Renderer Feature, Unity can project specific Materials (decals) onto other objects in the Scene.")]
+    [URPHelpURL("renderer-feature-decal")]
     internal class DecalRendererFeature : ScriptableRendererFeature
     {
         private static SharedDecalEntityManager sharedDecalEntityManager { get; } = new SharedDecalEntityManager();
@@ -261,7 +262,7 @@ namespace UnityEngine.Rendering.Universal
                 return DecalTechnique.Invalid;
             }
 
-            bool isDeferred = universalRenderer.renderingMode == RenderingMode.Deferred;
+            bool isDeferred = universalRenderer.renderingModeActual == RenderingMode.Deferred;
             return GetTechnique(isDeferred);
         }
 
@@ -390,7 +391,7 @@ namespace UnityEngine.Rendering.Universal
                     m_DecalDrawForwardEmissiveSystem = new DecalDrawFowardEmissiveSystem(m_DecalEntityManager);
                     m_ForwardEmissivePass = new DecalForwardEmissivePass(m_DecalDrawForwardEmissiveSystem);
 
-                    if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
+                    if (universalRenderer.renderingModeActual == RenderingMode.Deferred)
                     {
                         m_DBufferRenderPass.deferredLights = universalRenderer.deferredLights;
                         m_DBufferRenderPass.deferredLights.DisableFramebufferFetchInput();
@@ -481,8 +482,10 @@ namespace UnityEngine.Rendering.Universal
         {
             if (m_Technique == DecalTechnique.DBuffer)
             {
+                m_DBufferRenderPass.Setup(renderingData.cameraData);
+
                 var universalRenderer = renderer as UniversalRenderer;
-                if (universalRenderer.actualRenderingMode == RenderingMode.Deferred)
+                if (universalRenderer.renderingModeActual == RenderingMode.Deferred)
                     m_CopyDepthPass.Setup(
                         renderer.cameraDepthTargetHandle,
                         universalRenderer.m_DepthTexture
@@ -506,6 +509,7 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Dispose(bool disposing)
         {
+            m_DBufferRenderPass?.Dispose();
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_DBufferClearMaterial);
 

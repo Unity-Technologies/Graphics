@@ -10,6 +10,7 @@ using UnityEditorInternal;
 using System.Linq;
 using UnityEditor.SceneManagement;
 using UnityEngine.Rendering;
+using UnityEditor.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -25,18 +26,24 @@ namespace UnityEngine.Experimental.Rendering
         struct SceneData
         {
             public SceneAsset asset;
-            public string path;
             public string guid;
+
+            public string GetPath()
+            {
+                return AssetDatabase.GUIDToAssetPath(guid);
+            }
         }
 
         static class Styles
         {
             public static readonly Texture sceneIcon = EditorGUIUtility.IconContent("SceneAsset Icon").image;
             public static readonly Texture probeVolumeIcon = EditorGUIUtility.IconContent("LightProbeGroup Icon").image; // For now it's not the correct icon, we need to request it
+            public static readonly Texture debugIcon = EditorGUIUtility.IconContent("DebuggerEnabled").image;
 
             public static readonly GUIContent sceneLightingSettings = new GUIContent("Light Settings In Use", EditorGUIUtility.IconContent("LightingSettings Icon").image);
             public static readonly GUIContent sceneNotFound = new GUIContent("Scene Not Found!", Styles.sceneIcon);
             public static readonly GUIContent bakingSetsTitle = new GUIContent("Baking Sets", Styles.sceneIcon);
+            public static readonly GUIContent debugButton = new GUIContent(Styles.debugIcon);
         }
 
         SearchField m_SearchField;
@@ -197,7 +204,6 @@ namespace UnityEngine.Experimental.Rendering
                 return new SceneData
                 {
                     asset = asset,
-                    path = path,
                     guid = s
                 };
             }).ToList();
@@ -239,7 +245,7 @@ namespace UnityEngine.Experimental.Rendering
                 // display the probe volume icon in the scene if it have one
                 Rect probeVolumeIconRect = rect;
                 probeVolumeIconRect.xMin = rect.xMax - k_ProbeVolumeIconSize;
-                if (sceneData.hasProbeVolumes.ContainsKey(scene.guid))
+                if (sceneData.hasProbeVolumes.ContainsKey(scene.guid) && sceneData.hasProbeVolumes[scene.guid])
                     EditorGUI.LabelField(probeVolumeIconRect, new GUIContent(Styles.probeVolumeIcon));
 
                 // Display the lighting settings of the first scene (it will be used for baking)
@@ -361,7 +367,7 @@ namespace UnityEngine.Experimental.Rendering
         void DrawSeparator()
         {
             EditorGUILayout.BeginVertical(GUILayout.Width(2));
-            m_DrawHorizontalSplitter?.Invoke(null, new object[] { new Rect(k_LeftPanelSize, 20, 2, position.height) });
+            m_DrawHorizontalSplitter?.Invoke(null, new object[] { new Rect(k_LeftPanelSize, 0, 2, position.height) });
             EditorGUILayout.EndVertical();
         }
 
@@ -378,8 +384,15 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUILayout.BeginVertical();
             m_RightScrollPosition = EditorGUILayout.BeginScrollView(m_RightScrollPosition, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
 
-            var titleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
-            EditorGUI.LabelField(titleRect, "Probe Volume Settings", m_SubtitleStyle);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                var titleRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight);
+                EditorGUI.LabelField(titleRect, "Probe Volume Settings", m_SubtitleStyle);
+                var debugButtonRect = EditorGUILayout.GetControlRect(true, k_TitleTextHeight, GUILayout.Width(k_TitleTextHeight));
+                if (GUI.Button(debugButtonRect, Styles.debugButton))
+                    OpenProbeVolumeDebugPanel();
+            }
+
             EditorGUILayout.Space();
             SanitizeScenes();
             m_ScenesInSet.DoLayoutList();
@@ -409,10 +422,10 @@ namespace UnityEngine.Experimental.Rendering
                 if (m_ProbeVolumeProfileEditor.target != set.profile)
                     Editor.CreateCachedEditor(set.profile, m_ProbeVolumeProfileEditor.GetType(), ref m_ProbeVolumeProfileEditor);
 
-                EditorGUILayout.LabelField("Probe Volume Profile", EditorStyles.largeLabel);
+                EditorGUILayout.LabelField("Probe Volume Profile", EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
                 m_ProbeVolumeProfileEditor.OnInspectorGUI();
-
-                EditorGUILayout.Space();
+                EditorGUI.indentLevel--;
 
                 var serializedSets = m_ProbeSceneData.FindPropertyRelative("serializedBakingSets");
                 var serializedSet = serializedSets.GetArrayElementAtIndex(m_BakingSets.index);
@@ -431,6 +444,16 @@ namespace UnityEngine.Experimental.Rendering
 
             EditorGUILayout.EndScrollView();
             EditorGUILayout.EndVertical();
+        }
+
+        void OpenProbeVolumeDebugPanel()
+        {
+            var debugPanel = GetWindow<DebugWindow>();
+            debugPanel.titleContent = DebugWindow.Styles.windowTitle;
+            debugPanel.Show();
+            var index = DebugManager.instance.FindPanelIndex(ProbeReferenceVolume.k_DebugPanelName);
+            if (index != -1)
+                DebugManager.instance.RequestEditorWindowPanelIndex(index);
         }
 
         void DrawBakeButton()
@@ -509,7 +532,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         void LoadScenesInBakingSet(ProbeVolumeSceneData.BakingSet set)
-            => LoadScenes(GetCurrentBakingSet().sceneGUIDs.Select(sceneGUID => m_ScenesInProject.FirstOrDefault(s => s.guid == sceneGUID).path));
+            => LoadScenes(GetCurrentBakingSet().sceneGUIDs.Select(sceneGUID => m_ScenesInProject.FirstOrDefault(s => s.guid == sceneGUID).GetPath()));
 
         void LoadScenes(IEnumerable<string> scenePathes)
         {
