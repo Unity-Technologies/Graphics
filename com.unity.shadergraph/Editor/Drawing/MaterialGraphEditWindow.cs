@@ -487,18 +487,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                     title = title + " (deleted)";
             }
 
-            // get window icon
             bool isSubGraph = graphObject?.graph?.isSubGraph ?? false;
-            Texture2D icon;
-            {
-                string theme = EditorGUIUtility.isProSkin ? "_dark" : "_light";
-                if (isSubGraph)
-                    icon = Resources.Load<Texture2D>("Icons/sg_subgraph_icon_gray" + theme);
-                else
-                    icon = Resources.Load<Texture2D>("Icons/sg_graph_icon_gray" + theme);
-            }
-
+            Texture2D icon = LoadWindowIcon(isSubGraph);
             titleContent = new GUIContent(title, icon);
+        }
+
+        internal static Texture2D LoadWindowIcon(bool isSubGraph)
+        {
+            var theme = EditorGUIUtility.isProSkin ? "dark" : "light";
+            var kind = isSubGraph ? "subgraph" : "graph";
+            var path = $"Icons/sg_{kind}_icon_gray_{theme}";
+            return Resources.Load<Texture2D>(path);
         }
 
         void OnDestroy()

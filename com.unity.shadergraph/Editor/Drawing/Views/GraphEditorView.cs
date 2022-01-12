@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -415,6 +414,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
         }
 
+        const string kSelectionKey = "Unity.ShaderGraphHistory";
+
         void CreateInspector()
         {
             var inspectorViewModel = new InspectorViewModel() { parentView = this.graphView };
@@ -422,6 +423,66 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphView.OnSelectionChange += m_InspectorView.TriggerInspectorUpdate;
             // Undo/redo actions that only affect selection don't trigger the above callback for some reason, so we also have to do this
             Undo.undoRedoPerformed += (() => { m_InspectorView?.TriggerInspectorUpdate(graphView?.selection); });
+
+            graphView.OnSelectionChange += RecordSelectionHistory;
+            Selection.RegisterCustomHandler(kSelectionKey, CustomSelectionHandler, MaterialGraphEditWindow.LoadWindowIcon(false));
+        }
+
+        static bool s_ApplyingSelection;
+        static void CustomSelectionHandler(string data, Object active, Object[] selected)
+        {
+            var info = GraphSelection.FromJson(data);
+            if (info == null)
+                return;
+
+            var window = EditorWindow.focusedWindow as MaterialGraphEditWindow;
+            var gv = window?.graphEditorView?.m_GraphView;
+            if (gv == null)
+                return;
+
+            // apply selection to that graph view
+            s_ApplyingSelection = true;
+            info.ApplyToGraphView(gv, null);
+            window.graphEditorView.m_InspectorView.TriggerInspectorUpdate(gv.selection);
+            s_ApplyingSelection = false;
+        }
+
+        void RecordSelectionHistory(IEnumerable<ISelectable> selectionList)
+        {
+            if (s_ApplyingSelection || m_GraphView == null || m_GraphView.graph == null)
+                return;
+            var info = new GraphSelection();
+            var selNames = new List<string>();
+            var numEdges = 0;
+            foreach (var sel in selectionList)
+            {
+                if (sel is not GraphElement e)
+                    continue;
+                // In some cases (e.g. window is being hidden), elements are removed from selection,
+                // but selection changed callback is invoked with the old selection set. The elements
+                // themselves are un-selected already though. Skip over those.
+                if (!e.selected)
+                    continue;
+                info.elements.Add(e.viewDataKey);
+                // Figure out a suitable string name to show in history UI
+                if (e is Node node)
+                    selNames.Add(node is IShaderNodeView nv ? nv.node.name : node.GetType().Name);
+                else if (e is SGBlackboardField field)
+                    selNames.Add(field.text);
+                else if (e is StickyNote sn)
+                    selNames.Add(sn.title);
+                else if (e is Edge)
+                    ++numEdges;
+            }
+            if (info.empty)
+                return;
+
+            if (selNames.Count > 3) selNames = selNames.Take(3).Append("...").ToList();
+            if (numEdges > 0)
+                selNames.Add($"{numEdges} edges");
+
+            var label = string.Join(", ", selNames);
+            Selection.SetCustomSelection(kSelectionKey, label, EditorJsonUtility.ToJson(info));
         }
 
         void OnKeyDown(KeyDownEvent evt)
