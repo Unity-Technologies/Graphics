@@ -104,6 +104,8 @@ struct SHProperties
 
 public unsafe class RenderBRG : MonoBehaviour
 {
+    public bool EnableErrorLoadingMaterial = true;
+
     private BatchRendererGroup m_BatchRendererGroup;
     private GraphicsBuffer m_GPUPersistentInstanceData;
 
@@ -419,11 +421,14 @@ public unsafe class RenderBRG : MonoBehaviour
         m_PickingMaterial = LoadMaterialWithHideAndDontSave("Hidden/Universal Render Pipeline/BRGPicking");
         m_BatchRendererGroup.SetPickingMaterial(m_PickingMaterial);
 
-        m_ErrorMaterial = LoadMaterialWithHideAndDontSave("Hidden/Universal Render Pipeline/FallbackError");
-        m_BatchRendererGroup.SetErrorMaterial(m_ErrorMaterial);
+        if (EnableErrorLoadingMaterial)
+        {
+            m_ErrorMaterial = LoadMaterialWithHideAndDontSave("Hidden/Universal Render Pipeline/FallbackError");
+            m_BatchRendererGroup.SetErrorMaterial(m_ErrorMaterial);
 
-        m_LoadingMaterial = LoadMaterialWithHideAndDontSave("Hidden/Universal Render Pipeline/FallbackLoading");
-        m_BatchRendererGroup.SetLoadingMaterial(m_LoadingMaterial);
+            m_LoadingMaterial = LoadMaterialWithHideAndDontSave("Hidden/Universal Render Pipeline/FallbackLoading");
+            m_BatchRendererGroup.SetLoadingMaterial(m_LoadingMaterial);
+        }
 #endif
 
         // Create a batch...
@@ -696,8 +701,11 @@ public unsafe class RenderBRG : MonoBehaviour
 
 #if UNITY_EDITOR
             DestroyImmediate(m_PickingMaterial);
-            DestroyImmediate(m_ErrorMaterial);
-            DestroyImmediate(m_LoadingMaterial);
+            if (EnableErrorLoadingMaterial)
+            {
+                DestroyImmediate(m_ErrorMaterial);
+                DestroyImmediate(m_LoadingMaterial);
+            }
 #endif
         }
     }
