@@ -93,6 +93,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
 - Fixed NeedMotionVectorForTransparent checking the wrong flag.
 - Fixed debug probe visualization affecting screen space effects.
+- Fixed issue of index for APV running out space way before it should.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
