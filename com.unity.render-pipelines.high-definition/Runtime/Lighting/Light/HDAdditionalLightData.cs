@@ -2693,6 +2693,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnDidApplyAnimationProperties()
         {
             UpdateAllLightValues(fromTimeLine: true);
+            UpdateRenderEntity();
         }
 
         /// <summary>
@@ -2806,6 +2807,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             data.UpdateAllLightValues();
+            data.UpdateRenderEntity();
         }
 
         // As we have our own default value, we need to initialize the light intensity correctly
