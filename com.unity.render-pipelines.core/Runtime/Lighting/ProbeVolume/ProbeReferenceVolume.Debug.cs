@@ -56,6 +56,7 @@ namespace UnityEngine.Experimental.Rendering
 
         const int kProbesPerBatch = 1023;
 
+        /// <summary>Name of debug panel for Probe Volume</summary>
         public static readonly string k_DebugPanelName = "Probe Volume";
 
         internal ProbeVolumeDebug debugDisplay { get; } = new ProbeVolumeDebug();
