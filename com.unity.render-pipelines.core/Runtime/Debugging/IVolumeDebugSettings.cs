@@ -76,7 +76,7 @@ namespace UnityEngine.Rendering
         /// Specifies the render pipelie
         /// </summary>
         Type targetRenderPipeline { get; }
-        
+
         /// <summary>List of Volume component types and their path</summary>
         List<(string, Type)> volumeComponentsPathAndType { get; }
     }
