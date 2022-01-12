@@ -17,7 +17,7 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-    
+
     class VFXShaderGraphParticleOutput : VFXAbstractParticleOutput
     {
         //"protected" is only to be listed by VFXModel.GetSettings, we should always use GetOrRefreshShaderGraphObject
@@ -28,11 +28,11 @@ namespace UnityEditor.VFX
         {
             base.OnEnable();
         }
-        
+
         protected override void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
-            if (model == this && 
-                cause == InvalidationCause.kExpressionGraphChanged || 
+            if (model == this &&
+                cause == InvalidationCause.kExpressionGraphChanged ||
                 cause == InvalidationCause.kSettingChanged)
             {
                 if (shaderGraph != null)
@@ -45,7 +45,6 @@ namespace UnityEditor.VFX
                             {
                                 exposedKeywords.Add(new VFXUserKeyword(keyword));
                             }
-                   
                         }
                     }
                     else
@@ -117,7 +116,7 @@ namespace UnityEditor.VFX
                     ReSyncKeywords();
                 }
             }
-            
+
             return shaderGraph;
         }
 
@@ -239,7 +238,7 @@ namespace UnityEditor.VFX
                 return noShaderGraphAlphaThreshold || ShaderGraphAlphaThreshold;
             }
         }
-        
+
         public override void CheckGraphBeforeImport()
         {
             base.CheckGraphBeforeImport();
@@ -371,9 +370,9 @@ namespace UnityEditor.VFX
                             {
                                 if (shaderGraph.Keywords[i].displayName == exposedKeywords[ii].KeywordLabel)
                                 {
-                                    
-                                    shaderGraph.Keywords[i].value = Convert.ToInt32(exposedKeywords[ii].SelectedIndex); 
-                                   
+
+                                    shaderGraph.Keywords[i].value = Convert.ToInt32(exposedKeywords[ii].SelectedIndex);
+
                                     switch (shaderGraph.Keywords[i].keywordType)
                                     {
                                         case KeywordType.Boolean:
@@ -517,7 +516,7 @@ namespace UnityEditor.VFX
             var shaderGraph = GetOrRefreshShaderGraphObject();
             if (shaderGraph != null)
             {
-           
+
                 if (!isLitShader && shaderGraph.lit)
                 {
                     Debug.LogError("You must use an unlit vfx master node with an unlit output");

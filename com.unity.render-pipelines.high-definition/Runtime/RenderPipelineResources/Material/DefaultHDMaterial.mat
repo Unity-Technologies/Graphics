@@ -179,7 +179,6 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    m_Ints: []
     m_Floats:
     - _AORemapMax: 1
     - _AORemapMin: 0
@@ -215,6 +214,7 @@ Material:
     - _DisplacementLockObjectScale: 1
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
+    - _DissolveOnOcclusionOpacity: 1
     - _DistortionBlendMode: 0
     - _DistortionBlurBlendMode: 0
     - _DistortionBlurDstBlend: 1
@@ -241,6 +241,7 @@ Material:
     - _EmissiveIntensityUnit: 0
     - _EnableBlendModeAccurateLighting: 1
     - _EnableBlendModePreserveSpecularLighting: 1
+    - _EnableDissolveOnOcclusion: 0
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
     - _EnableMotionVectorForVertexAnimation: 0

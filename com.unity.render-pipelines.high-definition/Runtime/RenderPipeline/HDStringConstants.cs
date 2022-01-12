@@ -52,6 +52,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_DecalMeshForwardEmissiveStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive];
         /// <summary>Probe Dynamic GI data generation pass name.</summary>
         public static readonly string s_DynamicGIDataSampleStr = "DynamicGIDataSample";
+        /// <summary>DBuffer VFX Decal pass name</summary>
+        public static readonly string s_DBufferVFXDecalStr = "DBufferVFX";
 
         // ShaderPass name
         /// <summary>Empty shader tag id.</summary>
@@ -91,6 +93,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_DBufferMeshName = new ShaderTagId(s_DBufferMeshStr);
         /// <summary>Decal Mesh Forward Emissive shader tag id.</summary>
         public static readonly ShaderTagId s_DecalMeshForwardEmissiveName = new ShaderTagId(s_DecalMeshForwardEmissiveStr);
+        /// <summary>DBuffer VFX Decal shader tag id.</summary>
+        public static readonly ShaderTagId s_DBufferVFXDecalName = new ShaderTagId(s_DBufferVFXDecalStr);
 
         // Legacy name
         internal static readonly ShaderTagId s_AlwaysName = new ShaderTagId("Always");
@@ -399,7 +403,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ColorPyramidTexture = Shader.PropertyToID("_ColorPyramidTexture");
         public static readonly int _ColorPyramidUvScaleAndLimitPrevFrame = Shader.PropertyToID("_ColorPyramidUvScaleAndLimitPrevFrame");
         public static readonly int _RoughDistortion = Shader.PropertyToID("_RoughDistortion");
-        
+
         public static readonly int _DebugColorPickerTexture = Shader.PropertyToID("_DebugColorPickerTexture");
         public static readonly int _ColorPickerMode = Shader.PropertyToID("_ColorPickerMode");
         public static readonly int _ApplyLinearToSRGB = Shader.PropertyToID("_ApplyLinearToSRGB");
@@ -593,7 +597,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DistanceTexture                 = Shader.PropertyToID("_DistanceTexture");
         public static readonly int _JitterFramePeriod               = Shader.PropertyToID("_JitterFramePeriod");
         public static readonly int _SingleReflectionBounce          = Shader.PropertyToID("_SingleReflectionBounce");
-        
+
         // Reflections
         public static readonly int _ReflectionHistorybufferRW       = Shader.PropertyToID("_ReflectionHistorybufferRW");
         public static readonly int _CurrentFrameTexture             = Shader.PropertyToID("_CurrentFrameTexture");
@@ -973,7 +977,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _BlueNoiseRGBTexture = Shader.PropertyToID("_BlueNoiseRGBTexture");
         public static readonly int _BlueNoiseRGBTextureResolutionMinusOne = Shader.PropertyToID("_BlueNoiseRGBTextureResolutionMinusOne");
         public static readonly int _EnableDynamicBranchLighting = Shader.PropertyToID("_EnableDynamicBranchLighting");
-        
+
         // Dissolve Occluders:
         public static readonly int _DissolveOccludersCylinders = Shader.PropertyToID("_DissolveOccludersCylinders");
         public static readonly int _DissolveOccludersCylindersCount = Shader.PropertyToID("_DissolveOccludersCylindersCount");

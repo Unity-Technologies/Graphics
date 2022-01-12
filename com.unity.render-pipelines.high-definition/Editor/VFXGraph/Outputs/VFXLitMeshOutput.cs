@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     [VFXInfo]
     class VFXLitMeshOutput : VFXAbstractParticleHDRPLitOutput, IVFXMultiMeshOutput

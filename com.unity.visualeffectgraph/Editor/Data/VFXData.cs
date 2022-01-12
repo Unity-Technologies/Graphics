@@ -84,6 +84,7 @@ namespace UnityEditor.VFX
                 m_Owners = new List<VFXContext>();
             else
             {
+                var m_ChildrenBackup = m_Owners;
                 // Remove bad references if any
                 // The code below was replaced because it caused some strange crashes for unknown reasons
                 //int nbRemoved = m_Owners.RemoveAll(o => o == null);

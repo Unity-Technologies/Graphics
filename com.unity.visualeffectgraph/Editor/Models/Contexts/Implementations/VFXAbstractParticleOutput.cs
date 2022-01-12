@@ -65,6 +65,12 @@ namespace UnityEditor.VFX
             Custom,
         }
 
+        protected enum FlipbookLayout
+        {
+            Texture2D,
+            Texture2DArray
+        }
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies how the particle geometry is culled. This can be used to hide the front or back facing sides or make the mesh double-sided.")]
         protected CullMode cullMode = CullMode.Default;
 
@@ -103,6 +109,10 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, an exposure weight slider appears in the current output. The slider can be used to control how much influence exposure control will have on the particles.")]
         protected bool useExposureWeight = false;
+
+
+        [VFXSetting, SerializeField, Tooltip("Specifies the layout of the flipbook. It can either use a single texture with multiple frames, or a Texture2DArray with multiple slices.")]
+        protected FlipbookLayout flipbookLayout = FlipbookLayout.Texture2D;
 
         protected virtual bool bypassExposure { get { return true; } } // In case exposure weight is not used, tell whether pre exposure should be applied or not
 
@@ -170,6 +180,30 @@ namespace UnityEditor.VFX
 
         protected bool usesFlipbook { get { return supportsUV && (uvMode == UVMode.Flipbook || uvMode == UVMode.FlipbookBlend || uvMode == UVMode.FlipbookMotionBlend); } }
 
+        //In Newer VFXGRAPH version
+        public Type GetFlipbookType()
+        {
+            switch (flipbookLayout)
+            {
+                case FlipbookLayout.Texture2D:
+                    return typeof(Texture2D);
+                case FlipbookLayout.Texture2DArray:
+                    return typeof(Texture2DArray);
+                default:
+                    throw new NotImplementedException("Unimplemented Flipbook Layout: " + flipbookLayout);
+            }
+        }
+        public Type GetTextureType()
+        {
+            if (usesFlipbook)
+            {
+                return GetFlipbookType();
+            }
+            else
+            {
+                return typeof(Texture2D);
+            }
+        }
         public virtual bool exposeAlphaThreshold
         {
             get
@@ -208,9 +242,25 @@ namespace UnityEditor.VFX
                     case UVMode.Flipbook:
                     case UVMode.FlipbookBlend:
                     case UVMode.FlipbookMotionBlend:
-                        flipBookSizeExp = slotExpressions.First(o => o.name == "flipBookSize");
-                        yield return flipBookSizeExp;
-                        yield return new VFXNamedExpression(VFXValue.Constant(Vector2.one) / flipBookSizeExp.exp, "invFlipBookSize");
+                        if (flipbookLayout == FlipbookLayout.Texture2D)
+                        {
+                            flipBookSizeExp = slotExpressions.First(o => o.name == "flipBookSize");
+                            yield return flipBookSizeExp;
+                            yield return new VFXNamedExpression(VFXValue.Constant(Vector2.one) / flipBookSizeExp.exp, "invFlipBookSize");
+                        }
+                        else if (flipbookLayout == FlipbookLayout.Texture2DArray)
+                        {
+                            VFXNamedExpression mainTextureExp;
+                            try
+                            {
+                                mainTextureExp = slotExpressions.First(o => (o.name == "mainTexture") | (o.name == "baseColorMap") | (o.name == "distortionBlurMap") |  (o.name == "normalMap"));
+                            }
+                            catch (InvalidOperationException)
+                            {
+                                throw  new NotImplementedException("Trying to fetch an inexistent slot Main Texture or Base Color Map or Distortion Blur Map or Normal Map. ");
+                            }
+                            yield return new VFXNamedExpression(new VFXExpressionCastUintToFloat(new VFXExpressionTextureDepth(mainTextureExp.exp)), "flipBookSize");
+                        }
                         if (uvMode == UVMode.FlipbookMotionBlend)
                         {
                             yield return slotExpressions.First(o => o.name == "motionVectorMap");

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine.VFX;
 using static UnityEditor.VFX.VFXAbstractRenderedOutput;
 using static UnityEngine.Rendering.HighDefinition.HDRenderQueue;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     class VFXHDRPSubOutput : VFXSRPSubOutput
     {
@@ -14,10 +15,10 @@ namespace UnityEditor.VFX
         public OpaqueRenderQueue opaqueRenderQueue = OpaqueRenderQueue.Default;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Header("HDRP"), Tooltip("Specifies when in the render queue particles are drawn. This is useful for drawing particles behind refractive surfaces like frosted glass, for performance gains by rendering them in low resolution, or to draw particles after post processing so they are not affected by effects such as Depth of Field.")]
-        public TransparentRenderQueue transparentRenderQueue = TransparentRenderQueue.Default;       
+        public TransparentRenderQueue transparentRenderQueue = TransparentRenderQueue.Default;
 
         // Caps
-        public override bool supportsExposure { get { return true; } } 
+        public override bool supportsExposure { get { return true; } }
         public override bool supportsMotionVector
         {
             get
@@ -30,6 +31,23 @@ namespace UnityEditor.VFX
             }
         }
         public override bool supportsExcludeFromTAA { get { return !owner.isBlendModeOpaque; } }
+
+        bool GeneratesWithShaderGraph()
+        {
+            return owner is VFXShaderGraphParticleOutput shaderGraphOutput &&
+                   shaderGraphOutput.GetOrRefreshShaderGraphObject() != null;
+            // && shaderGraphOutput.GetOrRefreshShaderGraphObject().generatesWithShaderGraph;
+        }
+
+        public override bool supportsMaterialOffset
+        {
+            get
+            {
+                if (owner.isBlendModeOpaque && !(owner is VFXDecalHDRPOutput))
+                    return false;
+                return true;
+            }
+        }
 
         protected override IEnumerable<string> filteredOutSettings
         {
@@ -52,7 +70,7 @@ namespace UnityEditor.VFX
             base.OnSettingModified(setting);
             // Reset to default if render queue is invalid
             if (setting.name == "transparentRenderQueue")
-            {               
+            {
                 if (!supportsQueueSelection || (isLit && transparentRenderQueue == TransparentRenderQueue.AfterPostProcessing))
                     transparentRenderQueue = TransparentRenderQueue.Default;
             }
@@ -64,7 +82,8 @@ namespace UnityEditor.VFX
         }
 
         protected bool isLit => owner is VFXAbstractParticleHDRPLitOutput;
-        protected bool supportsQueueSelection => !(owner is VFXAbstractDistortionOutput); // TODO Should be made in a more abstract way
+        protected bool supportsQueueSelection => !((owner is VFXAbstractDistortionOutput) || (owner is VFXDecalHDRPOutput)); // TODO Should be made in a more abstract way
+
 
         public override IEnumerable<int> GetFilteredOutEnumerators(string name)
         {
@@ -81,7 +100,7 @@ namespace UnityEditor.VFX
                 }
             }
         }
-        
+
         public override string GetBlendModeStr()
         {
             bool isOffscreen = transparentRenderQueue == TransparentRenderQueue.LowResolution || transparentRenderQueue == TransparentRenderQueue.AfterPostProcessing;
@@ -100,8 +119,19 @@ namespace UnityEditor.VFX
             }
         }
 
+        private RenderQueueType GetRenderQueueType()
+        {
+            RenderQueueType renderQueueType;
+            if (owner.isBlendModeOpaque)
+                renderQueueType = HDRenderQueue.ConvertFromOpaqueRenderQueue(opaqueRenderQueue);
+            else
+                renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(transparentRenderQueue);
+            return renderQueueType;
+        }
+
         public override string GetRenderQueueStr()
         {
+            //changed during VFX HDRP Decal PR Merge
             RenderQueueType renderQueueType;
             string prefix = string.Empty;
             if (owner.isBlendModeOpaque)
@@ -116,7 +146,37 @@ namespace UnityEditor.VFX
             }
 
             int renderQueue = HDRenderQueue.ChangeType(renderQueueType, 0, owner.hasAlphaClipping) - (int)(owner.isBlendModeOpaque ? Priority.Opaque : Priority.Transparent);
+            // string prefix = string.Empty;
+            // if (owner.isBlendModeOpaque)
+            // {
+            //     prefix = "Geometry";
+            // }
+            // else
+            // {
+            //     prefix = "Transparent";
+            // }
+            //
+            // int renderQueue = GetRenderQueueOffset() - (int)(owner.isBlendModeOpaque ? Priority.Opaque : Priority.Transparent);
             return prefix + renderQueue.ToString("+#;-#;+0");
+        }
+
+        private int GetRenderQueueOffset()
+        {
+            var renderQueueType = GetRenderQueueType();
+            var materialOffset = GetMaterialOffset();
+            return owner is VFXDecalHDRPOutput ?
+                HDRenderQueue.Clamps(k_RenderQueue_AllOpaque, ChangeType(renderQueueType, 0, owner.hasAlphaClipping) + materialOffset) :
+                ChangeType(renderQueueType, materialOffset, owner.hasAlphaClipping);
+        }
+
+        private int GetMaterialOffset()
+        {
+            if (supportsMaterialOffset)
+            {
+                int rawMaterialOffset = owner.GetMaterialOffset();
+                return ClampsTransparentRangePriority(rawMaterialOffset);
+            }
+            return 0;
         }
 
         private void GetStencilStateCommon(out int stencilWriteMask, out int stencilRef)

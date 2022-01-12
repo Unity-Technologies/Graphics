@@ -840,6 +840,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle[]          mrt = new TextureHandle[Decal.GetMaterialDBufferCount()];
             public int                      dBufferCount;
             public RendererListHandle       meshDecalsRendererList;
+            public RendererListHandle       vfxDecalsRendererList;
             public TextureHandle            depthStencilBuffer;
             public TextureHandle            depthTexture;
             public TextureHandle            decalBuffer;
@@ -933,6 +934,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.parameters = PrepareRenderDBufferParameters(hdCamera);
                 passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareMeshDecalsRendererList(cullingResults, hdCamera, use4RTs)));
+
+                passData.vfxDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareVfxDecalsRendererList(cullingResults, hdCamera, use4RTs)));
+
                 SetupDBufferTargets(renderGraph, passData, use4RTs, ref output, builder);
                 passData.decalBuffer = builder.ReadTexture(decalBuffer);
                 passData.depthTexture = canReadBoundDepthBuffer ? builder.ReadTexture(output.resolvedDepthBuffer) : builder.ReadTexture(output.depthPyramidTexture);
@@ -952,14 +956,45 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     RenderDBuffer(  data.parameters,
-                                    rti,
-                                    rt,
-                                    data.depthStencilBuffer,
-                                    data.depthTexture,
-                                    data.meshDecalsRendererList,
-                                    data.decalBuffer,
-                                    context.renderContext,
-                                    context.cmd);
+                        rti,
+                        rt,
+                        data.depthStencilBuffer,
+                        data.depthTexture,
+                        data.meshDecalsRendererList,
+                        data.decalBuffer,
+                        context.renderContext,
+                        context.cmd);
+
+                    context.cmd.SetGlobalTexture(HDShaderIDs._DecalPrepassTexture, data.decalBuffer);
+                    context.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthTexture);
+
+                    CoreUtils.DrawRendererList(context.renderContext, context.cmd, data.meshDecalsRendererList);
+                    CoreUtils.DrawRendererList(context.renderContext, context.cmd, data.vfxDecalsRendererList);
+                    DecalSystem.instance.RenderIntoDBuffer(context.cmd);
+
+                    context.cmd.ClearRandomWriteTargets();
+
+                //
+                //     RenderTargetIdentifier[] rti = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(data.dBufferCount);
+                //     RTHandle[] rt = context.renderGraphPool.GetTempArray<RTHandle>(data.dBufferCount);
+                //
+                //     // TODO : Remove once we remove old renderer
+                //     // This way we can directly use the UseColorBuffer API and set clear color directly at resource creation and not in the RenderDBuffer shared function.
+                //     for (int i = 0; i < data.dBufferCount; ++i)
+                //     {
+                //         rt[i] = data.mrt[i];
+                //         rti[i] = rt[i];
+                //     }
+                //
+                //     RenderDBuffer(  data.parameters,
+                //                     rti,
+                //                     rt,
+                //                     data.depthStencilBuffer,
+                //                     data.depthTexture,
+                //                     data.meshDecalsRendererList,
+                //                     data.decalBuffer,
+                //                     context.renderContext,
+                //                     context.cmd);
                 });
             }
         }
