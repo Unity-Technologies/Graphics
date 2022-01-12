@@ -150,11 +150,19 @@ static const uint kDOTSInstancingFlagCameraMotion     = (1 << 2); // Object uses
 static const uint kDOTSInstancingFlagHasPrevPosition  = (1 << 3); // Object has a separate previous frame position vertex streams (e.g. for deformed objects)
 static const uint kDOTSInstancingFlagMainLightEnabled = (1 << 4); // Object should receive direct lighting from the main light (e.g. light not baked into lightmap)
 
+// Instance frequency vertex buffer provides the instance data for DOTS_INSTANCING_ON variant
+#undef UNITY_VERTEX_INPUT_INSTANCE_ID
+#define UNITY_VERTEX_INPUT_INSTANCE_ID uint instanceID : INSTANCEDATA;
+
+// ShaderGraph uses different macro for the instance id semantic. Override that too.
+#undef INSTANCEID_SEMANTIC
+#define INSTANCEID_SEMANTIC INSTANCEDATA
+
 static DOTSVisibleData unity_SampledDOTSVisibleData;
 
 void SetupDOTSVisibleInstancingData()
 {
-    unity_SampledDOTSVisibleData = unity_DOTSVisibleInstances[unity_InstanceID];
+    unity_SampledDOTSVisibleData.VisibleData = uint4(unity_InstanceID & 0x00ffffff, uint(int(unity_InstanceID) >> 24 /* sign extend */), unity_DOTSVisibleInstances[0].VisibleData.zw);
 }
 
 uint GetDOTSInstanceIndex()
@@ -164,7 +172,7 @@ uint GetDOTSInstanceIndex()
 
 int GetDOTSInstanceCrossfadeSnorm8()
 {
-    return unity_SampledDOTSVisibleData.VisibleData.y;
+    return int(unity_SampledDOTSVisibleData.VisibleData.y);
 }
 
 bool IsDOTSInstancedProperty(uint metadata)

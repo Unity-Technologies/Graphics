@@ -177,6 +177,9 @@ namespace UnityEngine.Rendering
 
         private List<MeshRenderer> m_AddedRenderers;
 
+        UploadBufferPool m_visibleInstancesBufferPool;
+        int m_frame;
+
         public static T* Malloc<T>(int count) where T : unmanaged
         {
             return (T*)UnsafeUtility.Malloc(
@@ -256,6 +259,9 @@ namespace UnityEngine.Rendering
             [ReadOnly] public NativeList<DrawRange> drawRanges;
             [ReadOnly] public NativeArray<int> drawIndices;
 
+            [ReadOnly] public GraphicsBufferHandle visibleInstancesBufferHandle;
+            [WriteOnly] public NativeArray<UInt32> visibleInstancesGPU;
+
             public NativeArray<BatchCullingOutputDrawCommands> drawCommands;
 
 #if DEBUG
@@ -303,7 +309,8 @@ namespace UnityEngine.Rendering
                                 if (outIndex >= maxVisibleInstances)
                                     throw new Exception("Exceeding visible instance count");
 #endif
-                                draws.visibleInstances[outIndex] = rendererIndex;
+                                //draws.visibleInstances[outIndex] = rendererIndex;
+                                visibleInstancesGPU[outIndex] = (UInt32)rendererIndex;
                                 outIndex++;
                             }
                         }
@@ -319,15 +326,18 @@ namespace UnityEngine.Rendering
 
                             draws.drawCommands[outBatch] = new BatchDrawCommand
                             {
+                                flags = drawBatches[remappedDrawIndex].key.flags,
                                 visibleOffset = (uint)batchStartIndex,
                                 visibleCount = (uint)visibleCount,
                                 batchID = batchID,
                                 materialID = drawBatches[remappedDrawIndex].key.material,
-                                meshID = drawBatches[remappedDrawIndex].key.meshID,
-                                submeshIndex = (ushort)drawBatches[remappedDrawIndex].key.submeshIndex,
                                 splitVisibilityMask = 0x1,
-                                flags = drawBatches[remappedDrawIndex].key.flags,
-                                sortingPosition = 0
+                                sortingPosition = 0,
+                                regular = new BatchDrawCommandRegular
+                                {
+                                    meshID = drawBatches[remappedDrawIndex].key.meshID,
+                                    submeshIndex = (ushort)drawBatches[remappedDrawIndex].key.submeshIndex,
+                                },
                             };
                             outBatch++;
                         }
@@ -344,6 +354,7 @@ namespace UnityEngine.Rendering
                         {
                             drawCommandsBegin = (uint)rangeStartIndex,
                             drawCommandsCount = (uint)visibleDrawCount,
+                            visibleInstancesBufferHandle = visibleInstancesBufferHandle,
                             filterSettings = new BatchFilterSettings
                             {
                                 renderingLayerMask = rangeKey.renderingLayerMask,
@@ -395,6 +406,9 @@ namespace UnityEngine.Rendering
             [ReadOnly] public NativeList<DrawBatch> drawBatches;
             [ReadOnly] public NativeList<DrawRange> drawRanges;
             [ReadOnly] public NativeArray<int> drawIndices;
+
+            [ReadOnly] public GraphicsBufferHandle visibleInstancesBufferHandle;
+            [WriteOnly] public NativeArray<UInt32> visibleInstancesGPU;
 
             public NativeArray<BatchCullingOutputDrawCommands> drawCommands;
 
@@ -476,8 +490,8 @@ namespace UnityEngine.Rendering
                                 if ((outIndex + offset) >= maxVisibleInstances)
                                     throw new Exception("Exceeding visible instance count");
 #endif
-
-                                draws.visibleInstances[outIndex + offset] = rendererIndex;
+                                //draws.visibleInstances[outIndex + offset] = rendererIndex;
+                                visibleInstancesGPU[outIndex + (int)offset] = (UInt32)rendererIndex;
                             }
                         }
 
@@ -501,15 +515,18 @@ namespace UnityEngine.Rendering
 #endif
                                 draws.drawCommands[outBatch] = new BatchDrawCommand
                                 {
+                                    flags = drawBatches[remappedDrawIndex].key.flags,
                                     visibleOffset = (uint)outIndex + previousOffset,
                                     visibleCount = (uint)visibleCount,
                                     batchID = batchID,
                                     materialID = drawBatches[remappedDrawIndex].key.material,
-                                    meshID = drawBatches[remappedDrawIndex].key.meshID,
-                                    submeshIndex = (ushort)drawBatches[remappedDrawIndex].key.submeshIndex,
                                     splitVisibilityMask = (ushort)bitIndex,
-                                    flags = drawBatches[remappedDrawIndex].key.flags,
-                                    sortingPosition = 0
+                                    sortingPosition = 0,
+                                    regular = new BatchDrawCommandRegular
+                                    {
+                                        meshID = drawBatches[remappedDrawIndex].key.meshID,
+                                        submeshIndex = (ushort)drawBatches[remappedDrawIndex].key.submeshIndex,
+                                    },
                                 };
                                 outBatch++;
                             }
@@ -529,6 +546,7 @@ namespace UnityEngine.Rendering
                         {
                             drawCommandsBegin = (uint)rangeStartIndex,
                             drawCommandsCount = (uint)visibleDrawCount,
+                            visibleInstancesBufferHandle = visibleInstancesBufferHandle,
                             filterSettings = new BatchFilterSettings
                             {
                                 renderingLayerMask = rangeKey.renderingLayerMask,
@@ -683,9 +701,11 @@ namespace UnityEngine.Rendering
             BatchCullingOutputDrawCommands drawCommands = new BatchCullingOutputDrawCommands();
             drawCommands.drawRanges = Malloc<BatchDrawRange>(m_drawRanges.Length);
             int maxDrawCounts = m_drawBatches.Length * 10 * splitCounts.Length;
-            drawCommands.drawCommands = Malloc<BatchDrawCommand>(m_drawBatches.Length * 10 * // TODO: FIXME! (add sort)
-                splitCounts.Length); // TODO: Multiplying the DrawCommand count by splitCount is NOT an conservative upper bound. But in practice is enough...
-            drawCommands.visibleInstances = Malloc<int>(m_instanceIndices.Length);
+            // TODO: Assuming each object straddles the boundary of two splits. Not 100% conservative. Should not overflow in real apps, but we clamp anyways.
+            drawCommands.drawCommands = Malloc<BatchDrawCommand>(m_drawBatches.Length * 2 * splitCounts.Length);
+
+            drawCommands.visibleInstances = null;//Malloc<int>(m_instanceIndices.Length);
+            var visibleInstancesUploadBuffer = m_visibleInstancesBufferPool.StartBufferWrite();
 
             // Zero init: Culling job sets the values!
             drawCommands.drawRangeCount = 0;
@@ -728,7 +748,9 @@ namespace UnityEngine.Rendering
                     drawBatches = m_drawBatches,
                     drawRanges = m_drawRanges,
                     drawIndices = m_drawIndices,
-                    drawCommands = cullingOutput.drawCommands
+                    drawCommands = cullingOutput.drawCommands,
+                    visibleInstancesBufferHandle = visibleInstancesUploadBuffer.bufferHandle,
+                    visibleInstancesGPU = visibleInstancesUploadBuffer.gpuData,
                 };
                 jobHandleOutput = drawOutputJob.Schedule(jobHandleCulling);
             }
@@ -746,10 +768,18 @@ namespace UnityEngine.Rendering
                     drawBatches = m_drawBatches,
                     drawRanges = m_drawRanges,
                     drawIndices = m_drawIndices,
-                    drawCommands = cullingOutput.drawCommands
+                    drawCommands = cullingOutput.drawCommands,
+                    visibleInstancesBufferHandle = visibleInstancesUploadBuffer.bufferHandle,
+                    visibleInstancesGPU = visibleInstancesUploadBuffer.gpuData,
                 };
                 jobHandleOutput = drawOutputJob.Schedule(jobHandleCulling);
             }
+
+            // TODO: THIS IS NOT SAFE!! NEED THE MULTITHREADED FENCE VERSION!
+            jobHandleOutput.Complete();
+            m_visibleInstancesBufferPool.EndBufferWrite(visibleInstancesUploadBuffer);
+            //m_visibleInstancesBufferPool.EndBufferWriteAfterJob(visibleInstancesUploadBuffer, jobHandleOutput); 
+
 
             return jobHandleOutput;
         }
@@ -864,6 +894,9 @@ namespace UnityEngine.Rendering
         {
             m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
             m_BRGTransformUpdater.Initialize();
+
+            m_visibleInstancesBufferPool = new UploadBufferPool(100 * 3, 4096 * 256);   // HACKS: Max 10 callbacks/frame, 3 frame hard coded reuse. 4MB maximum buffer size (1 million visible indices).
+            m_frame = 0;
 
             // Create a batch...
 #if DEBUG_LOG_SCENE
@@ -1211,6 +1244,13 @@ namespace UnityEngine.Rendering
             m_initialized = true;
         }
 
+        public void Update()
+        {
+            m_visibleInstancesBufferPool.SetFrame(m_frame);
+            m_visibleInstancesBufferPool.SetReuseFrame(m_frame - 3);    // Reuse 3 frames old buffers. TODO: Use the proper API  to know when GPU has stopped using the data!
+            m_frame++;
+        }
+
         public void StartTransformsUpdate()
         {
             m_BRGTransformUpdater.StartUpdateJobs();
@@ -1232,6 +1272,8 @@ namespace UnityEngine.Rendering
                 m_BatchRendererGroup.Dispose();
                 m_GPUPersistentInstanceData.Dispose();
                 m_BRGTransformUpdater.Dispose();
+
+                m_visibleInstancesBufferPool.Dispose();
 
                 m_renderers.Dispose();
                 m_batchHash.Dispose();
@@ -1420,6 +1462,14 @@ namespace UnityEngine.Rendering
 
         private void Update()
         {
+            foreach (var sceneBrg in m_Scenes)
+            {
+                if (sceneBrg.Value == null)
+                    continue;
+
+                sceneBrg.Value.Update();
+            }
+
             if (EnableTransformUpdate)
             {
                 m_gpuCmdBuffer.Clear();
