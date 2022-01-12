@@ -288,6 +288,8 @@ namespace UnityEngine.Experimental.Rendering
         /// The <see cref="ProbeVolumeSHBands"/>
         /// </summary>
         public ProbeVolumeSHBands shBands;
+        /// <summary>True if APV is able to show runtime debug information.</summary>
+        public bool supportsRuntimeDebug;
         /// <summary>True if APV should support streaming of cell data.</summary>
         public bool supportStreaming;
     }
@@ -352,19 +354,26 @@ namespace UnityEngine.Experimental.Rendering
     {
         const int kTemporaryDataLocChunkCount = 8;
 
-        [System.Serializable]
+        [Serializable]
         internal class Cell
         {
-            public int index;
             public Vector3Int position;
-            public List<Brick> bricks;
-            public Vector3[] probePositions;
-            public SphericalHarmonicsL2[] sh;
-            public float[] validity;
+            public int index;
             public int minSubdiv;
             public int indexChunkCount;
             public int shChunkCount;
 
+            public ProbeVolumeSHBands shBands;
+
+            public NativeArray<Brick> bricks { get; internal set; }
+
+            public NativeArray<float> shL0L1Data { get; internal set; } // pre-swizzled for runtime upload (12 coeffs)
+            public NativeArray<float> shL2Data { get; internal set; } // pre-swizzled for runtime upload (15 coeffs)
+
+            public NativeArray<Vector3> probePositions { get; internal set; }
+            public NativeArray<float> validity { get; internal set; }
+            public NativeArray<Vector3> offsetVectors { get; internal set; }
+            
             internal int ComputeBakingHash()
             {
                 int hash = position.GetHashCode();
@@ -641,7 +650,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// The <see cref="ProbeVolumeSHBands"/>
         /// </summary>
-        public ProbeVolumeSHBands shBands { get { return m_SHBands; } }
+        public ProbeVolumeSHBands shBands => m_SHBands;
 
         internal bool clearAssetsOnVolumeClear = false;
 
@@ -716,7 +725,7 @@ namespace UnityEngine.Experimental.Rendering
             m_MemoryBudget = parameters.memoryBudget;
             m_SHBands = parameters.shBands;
             m_ProbeVolumesWeight = 1f;
-            InitializeDebug(parameters.probeDebugMesh, parameters.probeDebugShader);
+            InitializeDebug(parameters);
             InitProbeReferenceVolume(m_MemoryBudget, m_SHBands);
             m_IsInitialized = true;
             m_NeedsIndexRebuild = true;
@@ -1064,7 +1073,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // Add all the cells to the system.
             // They'll be streamed in later on.
-            for (int i = 0; i < asset.cells.Count; ++i)
+            for (int i = 0; i < asset.cells.Length; ++i)
             {
                 AddCell(asset.cells[i], asset.GetInstanceID());
             }
@@ -1117,12 +1126,12 @@ namespace UnityEngine.Experimental.Rendering
             m_PendingAssetsToBeUnloaded.Clear();
         }
 
-        internal int GetNumberOfBricksAtSubdiv(Cell cell, out Vector3Int minValidLocalIdxAtMaxRes, out Vector3Int sizeOfValidIndicesAtMaxRes)
+        internal int GetNumberOfBricksAtSubdiv(Vector3Int position, int minSubdiv, out Vector3Int minValidLocalIdxAtMaxRes, out Vector3Int sizeOfValidIndicesAtMaxRes)
         {
             minValidLocalIdxAtMaxRes = Vector3Int.zero;
             sizeOfValidIndicesAtMaxRes = Vector3Int.one;
 
-            var posWS = new Vector3(cell.position.x * MaxBrickSize(), cell.position.y * MaxBrickSize(), cell.position.z * MaxBrickSize());
+            var posWS = new Vector3(position.x * MaxBrickSize(), position.y * MaxBrickSize(), position.z * MaxBrickSize());
             Bounds cellBounds = new Bounds();
             cellBounds.min = posWS;
             cellBounds.max = posWS + (Vector3.one * MaxBrickSize());
@@ -1142,7 +1151,7 @@ namespace UnityEngine.Experimental.Rendering
             sizeOfValidIndicesAtMaxRes.z = Mathf.CeilToInt((toEnd.z) / MinBrickSize()) - minValidLocalIdxAtMaxRes.z + 1;
 
             Vector3Int bricksForCell = new Vector3Int();
-            bricksForCell = sizeOfValidIndicesAtMaxRes / CellSize(cell.minSubdiv);
+            bricksForCell = sizeOfValidIndicesAtMaxRes / CellSize(minSubdiv);
 
             return bricksForCell.x * bricksForCell.y * bricksForCell.z;
         }
@@ -1151,7 +1160,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             cellUpdateInfo = new ProbeBrickIndex.CellIndexUpdateInfo();
 
-            int brickCountsAtResolution = GetNumberOfBricksAtSubdiv(cell, out var minValidLocalIdx, out var sizeOfValidIndices);
+            int brickCountsAtResolution = GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out var minValidLocalIdx, out var sizeOfValidIndices);
             cellUpdateInfo.cellPositionInBricksAtMaxRes = cell.position * CellSize(m_MaxSubdivision - 1);
             cellUpdateInfo.minSubdivInCell = cell.minSubdiv;
             cellUpdateInfo.minValidBrickIndexForCellAtMaxRes = minValidLocalIdx;
@@ -1280,7 +1289,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // calculate the number of chunks necessary
             int chunkSize = ProbeBrickPool.GetChunkSize();
-            int brickChunksCount = (bricks.Count + chunkSize - 1) / chunkSize;
+            int brickChunksCount = (bricks.Length + chunkSize - 1) / chunkSize;
             cellInfo.chunkList.Clear();
 
             // Try to allocate texture space
@@ -1292,7 +1301,7 @@ namespace UnityEngine.Experimental.Rendering
             while (chunkIndex < cellInfo.chunkList.Count)
             {
                 int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.sh, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
+                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands, cell.shL0L1Data, cell.shL2Data, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
 
                 // copy chunks into pool
                 m_TmpSrcChunks.Clear();
