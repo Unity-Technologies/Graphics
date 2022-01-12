@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added common support code for FSR
 
+### Fixed
+- Fixed unnecessary memory allocation inside FSR's RCAS shader constants helper function.
+
+### Changed
+- Removed FSR_ENABLE_16BIT option from FSRCommon.hlsl. The 16-bit FSR implementation is now automatically enabled when supported by the target platform.
+
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
