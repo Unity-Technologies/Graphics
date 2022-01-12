@@ -162,20 +162,6 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
 
         Pass
         {
-            Name "DepthForwardOnly"
-            Tags{ "LightMode" = "DepthForwardOnly" }
-
-            ZWrite On
-
-            HLSLPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma multi_compile_instancing
-            ENDHLSL
-        }
-
-        Pass
-        {
             Name "ForwardOnly"
             Tags { "LightMode" = "ForwardOnly" }
 
