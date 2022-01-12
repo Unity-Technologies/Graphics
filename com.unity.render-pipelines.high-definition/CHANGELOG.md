@@ -92,6 +92,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
 - Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
 - Fixed NeedMotionVectorForTransparent checking the wrong flag.
+- Fixed debug probe visualization affecting screen space effects.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
