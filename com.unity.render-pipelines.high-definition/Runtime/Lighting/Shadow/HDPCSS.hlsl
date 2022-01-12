@@ -129,7 +129,7 @@ void FilterScaleOffset(real3 coord, real maxSampleZDistance, real shadowmapSampl
     filterOffset = (target - coord.xy) * d;
 }
 
-bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real maxSampleZDistance, real2 posTCAtlas, real3 posTCShadowmap, real2 sampleJitter, Texture2D shadowMap, SamplerState pointSampler, int sampleCount, real shadowmapSamplingScale)
+bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real maxSampleZDistance, real2 shadowmapInAtlasScale, real2 posTCAtlas, real3 posTCShadowmap, real2 sampleJitter, Texture2D shadowMap, SamplerState pointSampler, int sampleCount)
 {
     real blockerSum = 0.0;
     real sampleCountInverse = rcp((real)sampleCount);
@@ -140,7 +140,7 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
 
     real2 filterScalePos, filterScaleNeg;
     real2 filterOffset;
-    FilterScaleOffset(posTCShadowmap, maxSampleZDistance, shadowmapSamplingScale, filterScalePos, filterScaleNeg, filterOffset);
+    FilterScaleOffset(posTCShadowmap, maxSampleZDistance, shadowmapInAtlasScale.x, filterScalePos, filterScaleNeg, filterOffset);
 
     for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
     {
@@ -166,7 +166,7 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
     return numBlockers >= 1;
 }
 
-real PCSS(real2 posTCAtlas, real3 posTCShadowmap, real maxSampleZDistance, real2 shadowmapInAtlasScale, real2 shadowmapInAtlasOffset, real2 sampleJitter, Texture2D shadowMap, SamplerComparisonState compSampler, int sampleCount, real shadowmapSamplingScale)
+real PCSS(real2 posTCAtlas, real3 posTCShadowmap, real maxSampleZDistance, real2 shadowmapInAtlasScale, real2 shadowmapInAtlasOffset, real2 sampleJitter, Texture2D shadowMap, SamplerComparisonState compSampler, int sampleCount)
 {
     real UMin = shadowmapInAtlasOffset.x;
     real UMax = shadowmapInAtlasOffset.x + shadowmapInAtlasScale.x;
@@ -181,7 +181,7 @@ real PCSS(real2 posTCAtlas, real3 posTCShadowmap, real maxSampleZDistance, real2
 
     real2 filterScalePos, filterScaleNeg;
     real2 filterOffset;
-    FilterScaleOffset(posTCShadowmap, maxSampleZDistance, shadowmapSamplingScale, filterScalePos, filterScaleNeg, filterOffset);
+    FilterScaleOffset(posTCShadowmap, maxSampleZDistance, shadowmapInAtlasScale.x, filterScalePos, filterScaleNeg, filterOffset);
 
     for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
     {
