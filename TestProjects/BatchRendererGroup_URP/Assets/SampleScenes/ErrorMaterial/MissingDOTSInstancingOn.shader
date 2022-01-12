@@ -29,7 +29,7 @@ Shader "Universal Render Pipeline/MissingDOTSInstancingOn"
 
     HLSLINCLUDE
     // Comment this line out to cause missing DOTS_INSTANCING_ON errors
-    #pragma multi_compile _ DOTS_INSTANCING_ON
+    //#pragma multi_compile _ DOTS_INSTANCING_ON
     ENDHLSL
 
     SubShader
