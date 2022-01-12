@@ -13,7 +13,12 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData,
 	    float alpha;
 	    surfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfileHash,alpha);
 	    bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS.xy, surfaceData);
-	    preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posInput.positionWS),posInput,bsdfData);
+#if defined(SHADER_STAGE_RAY_TRACING)
+        preLightData = GetPreLightData(-WorldRayDirection(),posInput,bsdfData);
+#else
+        preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posInput.positionWS),posInput,bsdfData);
+#endif
+
 	    preLightData.diffuseFGD = 1.0f;
         //TODO: investigate why this is needed
         preLightData.coatPartLambdaV = 0;
