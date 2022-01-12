@@ -1,10 +1,7 @@
 using System;
 using System.IO;
 using UnityEngine.SceneManagement;
-using System.Collections.Generic;
-using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -41,13 +38,8 @@ namespace UnityEngine.Experimental.Rendering
 
         // Profile info
         [SerializeField] internal int cellSizeInBricks;
-        [SerializeField] internal float minDistanceBetweenProbes;
         [SerializeField] internal int simplificationLevels;
-
-        // Binary data (stored in ProbeVolumeSceneData, injected on load)
-        internal TextAsset cellDataAsset;
-        internal TextAsset cellOptionalDataAsset;
-        internal TextAsset cellSupportDataAsset;
+        [SerializeField] internal float minDistanceBetweenProbes;
 
         [Serializable]
         internal struct CellCounts
@@ -66,10 +58,6 @@ namespace UnityEngine.Experimental.Rendering
 
         internal const int kL0L1ScalarCoefficientsCount = 12;
         internal const int kL2ScalarCoefficientsCount = 15;
-        
-#if UNITY_EDITOR
-        [SerializeField] private int bakingHash;
-#endif
 
         internal int maxSubdivision => simplificationLevels + 1; // we add one for the top subdiv level which is the same size as a cell
         internal float minBrickSize => Mathf.Max(0.01f, minDistanceBetweenProbes * 3.0f);
@@ -78,14 +66,15 @@ namespace UnityEngine.Experimental.Rendering
         {
             return (maxSubdivision == otherAsset.maxSubdivision) && (minBrickSize == otherAsset.minBrickSize) && (cellSizeInBricks == otherAsset.cellSizeInBricks);
         }
+
         public string GetSerializedFullPath()
         {
             return m_AssetFullPath;
         }
 
-        internal bool ResolveCells()
+        internal bool ResolveCells(TextAsset cellDataAsset, TextAsset cellOptionalDataAsset, TextAsset cellSharedDataAsset, TextAsset cellSupportDataAsset)
         {
-            if (cellDataAsset == null)
+            if (cellDataAsset == null || cellSharedDataAsset == null)
                 return false;
 
             // The unpacking here is the "inverse" of ProbeBakingGI.WriteBakingCells flattening
@@ -98,16 +87,23 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             var cellData = cellDataAsset.GetData<byte>();
-            var bricksByteCount = totalCellCounts.bricksCount * UnsafeUtility.SizeOf<ProbeBrickIndex.Brick>();
-            var shL0L1DataByteStart = AlignUp16(bricksByteCount);
             var shL0L1DataByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL0L1ScalarCoefficientsCount;
-            var bricksData = cellData.GetSubArray(0, bricksByteCount).Reinterpret<ProbeBrickIndex.Brick>(1);
-            var shL0L1Data = cellData.GetSubArray(shL0L1DataByteStart, shL0L1DataByteCount).Reinterpret<float>(1);
+            if (shL0L1DataByteCount != cellData.Length)
+                return false;
+            var shL0L1Data = cellData.GetSubArray(0, shL0L1DataByteCount).Reinterpret<float>(1);
 
             var cellOptionalData = cellOptionalDataAsset ? cellOptionalDataAsset.GetData<byte>() : default;
             var hasOptionalData = cellOptionalData.IsCreated;
             var shL2DataByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL2ScalarCoefficientsCount;
+            if (hasOptionalData && (shL2DataByteCount + 3 * UnsafeUtility.SizeOf<float>()) != cellOptionalData.Length)
+                return false;
             var shL2Data = hasOptionalData ? cellOptionalData.GetSubArray(0, shL2DataByteCount).Reinterpret<float>(1) : default;
+
+            var cellSharedData = cellSharedDataAsset.GetData<byte>();
+            var bricksByteCount = totalCellCounts.bricksCount * UnsafeUtility.SizeOf<ProbeBrickIndex.Brick>();
+            if (bricksByteCount != cellSharedData.Length)
+                return false;
+            var bricksData = cellSharedData.GetSubArray(0, bricksByteCount).Reinterpret<ProbeBrickIndex.Brick>(1);
 
             var cellSupportData = cellSupportDataAsset ? cellSupportDataAsset.GetData<byte>() : default;
             var hasSupportData = cellSupportData.IsCreated;
@@ -116,6 +112,8 @@ namespace UnityEngine.Experimental.Rendering
             var validityByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();
             var offsetByteStart = AlignUp16(positionsByteCount) + AlignUp16(validityByteCount);
             var offsetByteCount = totalCellCounts.offsetsCount * UnsafeUtility.SizeOf<Vector3>();
+            if (hasSupportData && offsetByteStart + offsetByteCount != cellSupportData.Length)
+                return false;
             var positionsData = hasSupportData ? cellSupportData.GetSubArray(0, positionsByteCount).Reinterpret<Vector3>(1) : default;
             var validityData = hasSupportData ? cellSupportData.GetSubArray(validityByteStart, validityByteCount).Reinterpret<float>(1) : default;
             var offsetsData = hasSupportData ? cellSupportData.GetSubArray(offsetByteStart, offsetByteCount).Reinterpret<Vector3>(1) : default;
@@ -153,34 +151,29 @@ namespace UnityEngine.Experimental.Rendering
             m_AssetFullPath = UnityEditor.AssetDatabase.GetAssetPath(this);
         }
 
-        public static string GetPath(Scene scene, string state, bool createFolder)
-            => GetPath(scene.path, scene.name, state, createFolder);
+        internal const string assetName = "ProbeVolumeData";
 
-        public static string GetPath(string scenePath, string sceneName, string state, bool createFolder)
+        public static string GetPath(Scene scene)
+            => Path.Combine(GetDirectory(scene.path, scene.name), assetName + ".asset");
+
+        public static string GetDirectory(string scenePath, string sceneName)
         {
-            const string assetName = "ProbeVolumeData";
-
             string sceneDir = Path.GetDirectoryName(scenePath);
             string assetPath = Path.Combine(sceneDir, sceneName);
-            if (createFolder && !UnityEditor.AssetDatabase.IsValidFolder(assetPath))
+            if (!UnityEditor.AssetDatabase.IsValidFolder(assetPath))
                 UnityEditor.AssetDatabase.CreateFolder(sceneDir, sceneName);
 
-            return Path.Combine(assetPath, assetName + "-" + state + ".asset");
+            return assetPath;
         }
 
-        public static ProbeVolumeAsset CreateAsset(Scene scene, string state)
+        public static ProbeVolumeAsset CreateAsset(ProbeVolumePerSceneData data)
         {
             ProbeVolumeAsset asset = CreateInstance<ProbeVolumeAsset>();
-            asset.m_AssetFullPath = GetPath(scene, state, true);
+            if (data.asset != null) asset.m_AssetFullPath = UnityEditor.AssetDatabase.GetAssetPath(data.asset);
+            if (string.IsNullOrEmpty(asset.m_AssetFullPath)) asset.m_AssetFullPath = GetPath(data.gameObject.scene);
 
             UnityEditor.AssetDatabase.CreateAsset(asset, asset.m_AssetFullPath);
             return asset;
-        }
-
-        public void Rename(Scene scene, string name)
-        {
-            var newPath = GetPath(scene, name, true);
-            UnityEditor.AssetDatabase.MoveAsset(m_AssetFullPath, newPath);
         }
 
         internal void StoreProfileData(ProbeReferenceVolumeProfile profile)
@@ -190,28 +183,17 @@ namespace UnityEngine.Experimental.Rendering
             minDistanceBetweenProbes = profile.minDistanceBetweenProbes;
         }
 
-        internal void ComputeBakingHash()
+        internal int GetBakingHashCode()
         {
             int hash = maxCellPosition.GetHashCode();
             hash = hash * 23 + minCellPosition.GetHashCode();
             hash = hash * 23 + globalBounds.GetHashCode();
             hash = hash * 23 + bands.GetHashCode();
             hash = hash * 23 + cellSizeInBricks.GetHashCode();
-            hash = hash * 23 + minDistanceBetweenProbes.GetHashCode();
             hash = hash * 23 + simplificationLevels.GetHashCode();
-            foreach (var cell in cells)
-                hash += cell.ComputeBakingHash();
+            hash = hash * 23 + minDistanceBetweenProbes.GetHashCode();
 
-            bakingHash = hash;
-        }
-
-        internal static bool Compatible(ProbeVolumeAsset a, ProbeVolumeAsset b)
-        {
-            if (a == null || b == null)
-                return false;
-
-            // Not completely accurate but good enough
-            return a.bakingHash == b.bakingHash;
+            return hash;
         }
 #endif
     }

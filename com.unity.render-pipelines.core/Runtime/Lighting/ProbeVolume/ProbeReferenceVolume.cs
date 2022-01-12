@@ -373,21 +373,6 @@ namespace UnityEngine.Experimental.Rendering
             public NativeArray<Vector3> probePositions { get; internal set; }
             public NativeArray<float> validity { get; internal set; }
             public NativeArray<Vector3> offsetVectors { get; internal set; }
-            
-            internal int ComputeBakingHash()
-            {
-                int hash = position.GetHashCode();
-                hash = hash * 23 + minSubdiv.GetHashCode();
-                hash = hash * 23 + indexChunkCount.GetHashCode();
-                hash = hash * 23 + shChunkCount.GetHashCode();
-
-                foreach (var brick in bricks)
-                {
-                    hash = hash * 23 + brick.position.GetHashCode();
-                    hash = hash * 23 + brick.subdivisionLevel.GetHashCode();
-                }
-                return hash;
-            }
         }
 
         [DebuggerDisplay("Index = {cell.index} Loaded = {loaded}")]

@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering
     public class ProbeVolumeSceneData : ISerializationCallbackReceiver
     {
         static PropertyInfo s_SceneGUID = typeof(Scene).GetProperty("guid", System.Reflection.BindingFlags.NonPublic | BindingFlags.Instance);
-        string GetSceneGUID(Scene scene)
+        internal string GetSceneGUID(Scene scene)
         {
             Debug.Assert(s_SceneGUID != null, "Reflection for scene GUID failed");
             return (string)s_SceneGUID.GetValue(scene);

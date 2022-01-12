@@ -254,7 +254,7 @@ namespace UnityEngine.Experimental.Rendering
 
                                 foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                                 {
-                                    if (bakingSet.sceneGUIDs.Contains(AssetDatabase.GUIDFromAssetPath(data.gameObject.scene.path).ToString()))
+                                    if (bakingSet.sceneGUIDs.Contains(sceneData.GetSceneGUID(data.gameObject.scene)))
                                         data.RenameBakingState(stateName, name);
                                 }
                                 bakingSet.bakingStates[index] = name;
@@ -275,6 +275,8 @@ namespace UnityEngine.Experimental.Rendering
                 SceneView.RepaintAll();
                 Repaint();
             };
+
+            m_BakingStates.onReorderCallback = (ReorderableList list) => UpdateBakingStatesStatuses();
 
             m_BakingStates.onAddCallback = (list) =>
             {
@@ -303,7 +305,7 @@ namespace UnityEngine.Experimental.Rendering
                     AssetDatabase.StartAssetEditing();
                     foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                     {
-                        if (set.sceneGUIDs.Contains(AssetDatabase.GUIDFromAssetPath(data.gameObject.scene.path).ToString()))
+                        if (set.sceneGUIDs.Contains(sceneData.GetSceneGUID(data.gameObject.scene)))
                             data.RemoveBakingState(state);
                     }
                 }
@@ -319,13 +321,13 @@ namespace UnityEngine.Experimental.Rendering
             UpdateBakingStatesStatuses();
         }
 
-        internal void OnSceneOpened(Scene s, OpenSceneMode m)
+        internal void OnSceneOpened(Scene scene, OpenSceneMode mode)
         {
-            if (s == SceneManager.GetActiveScene())
+            if (scene == SceneManager.GetActiveScene())
             {
                 // Find the set in which the new active scene belongs
                 // If the active baking state does not exist for this set, load the default state of the set
-               string sceneGUID = AssetDatabase.GUIDFromAssetPath(s.path).ToString();
+               string sceneGUID = sceneData.GetSceneGUID(scene);
                 var set = sceneData.bakingSets.FirstOrDefault(s => s.sceneGUIDs.Contains(sceneGUID));
                 if (set != null && !set.bakingStates.Contains(ProbeReferenceVolume.instance.bakingState))
                     ProbeReferenceVolume.instance.bakingState = set.bakingStates[0];
@@ -343,15 +345,15 @@ namespace UnityEngine.Experimental.Rendering
             string mostRecentState = null;
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
             {
-                if (!bakingSet.sceneGUIDs.Contains(AssetDatabase.GUIDFromAssetPath(data.gameObject.scene.path).ToString()))
+                if (!bakingSet.sceneGUIDs.Contains(sceneData.GetSceneGUID(data.gameObject.scene)))
                     continue;
 
                 foreach (var state in bakingSet.bakingStates)
                 {
-                    var asset = data.GetAssetForState(state);
-                    if (asset != null)
+                    if (data.states.TryGetValue(state, out var stateData) && stateData.cellDataAsset != null)
                     {
-                        var time = System.IO.File.GetLastWriteTime(asset.GetSerializedFullPath());
+                        var dataPath = AssetDatabase.GetAssetPath(stateData.cellDataAsset);
+                        var time = System.IO.File.GetLastWriteTime(dataPath);
                         if (refTime == null || time > refTime)
                         {
                             refTime = time;
@@ -379,17 +381,19 @@ namespace UnityEngine.Experimental.Rendering
 
                 foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 {
-                    if (!bakingSet.sceneGUIDs.Contains(AssetDatabase.GUIDFromAssetPath(data.gameObject.scene.path).ToString()))
+                    if (!bakingSet.sceneGUIDs.Contains(sceneData.GetSceneGUID(data.gameObject.scene)))
                         continue;
 
-                    var asset = data.GetAssetForState(bakingSet.bakingStates[i]);
-                    if (asset == null)
+                    if (!data.states.TryGetValue(bakingSet.bakingStates[i], out var stateData) || stateData.cellDataAsset == null)
                     {
                         bakingStatesStatuses[i] = BakingStateStatus.NotBaked;
                         break;
                     }
-                    else if (bakingStatesStatuses[i] != BakingStateStatus.OutOfDate && !ProbeVolumeAsset.Compatible(asset, data.GetAssetForState(mostRecentState)))
+                    else if (bakingStatesStatuses[i] != BakingStateStatus.OutOfDate && data.states.TryGetValue(mostRecentState, out var mostRecentData) &&
+                        mostRecentData.cellDataAsset != null && stateData.sceneHash != mostRecentData.sceneHash)
+                    {
                         bakingStatesStatuses[i] = BakingStateStatus.OutOfDate;
+                    }
                 }
             }
         }
