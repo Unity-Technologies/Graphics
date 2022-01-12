@@ -101,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
                     if (refVol.sceneData != null)
                     {
-                        refVol.dilationValidtyThreshold = refVol.sceneData.GetBakeSettingsForScene(gameObject.scene).dilationSettings.dilationValidityThreshold;
+                    	refVol.bakingProcessSettings = refVol.sceneData.GetBakeSettingsForScene(gameObject.scene);
                     }
 #endif
 

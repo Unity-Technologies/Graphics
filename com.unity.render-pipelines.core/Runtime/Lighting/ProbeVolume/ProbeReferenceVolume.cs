@@ -281,6 +281,14 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public Shader probeDebugShader;
         /// <summary>
+        /// The debug mesh used to visualize probes virtual offset in the debug view.
+        /// </summary>
+        public Mesh offsetDebugMesh;
+        /// <summary>
+        /// The shader used to visualize probes virtual offset in the debug view.
+        /// </summary>
+        public Shader offsetDebugShader;
+        /// <summary>
         /// The <see cref="ProbeVolumeSceneData"/>
         /// </summary>
         public ProbeVolumeSceneData sceneData;
@@ -359,6 +367,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             public Vector3Int position;
             public int index;
+            public SphericalHarmonicsL2[] sh;
             public int minSubdiv;
             public int indexChunkCount;
             public int shChunkCount;
