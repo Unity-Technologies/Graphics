@@ -27,6 +27,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     }
 
     HLSLINCLUDE
+    #pragma editor_sync_compilation
+
 
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"

@@ -16,6 +16,7 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
             HLSLPROGRAM
             #pragma vertex FullscreenVert
             #pragma fragment FragBoxDownsample
+            #pragma editor_sync_compilation
 
             #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
