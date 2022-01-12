@@ -242,7 +242,7 @@ namespace UnityEngine.Experimental.Rendering
                 // display the probe volume icon in the scene if it have one
                 Rect probeVolumeIconRect = rect;
                 probeVolumeIconRect.xMin = rect.xMax - k_ProbeVolumeIconSize;
-                if (sceneData.hasProbeVolumes.ContainsKey(scene.guid))
+                if (sceneData.hasProbeVolumes.ContainsKey(scene.guid) && sceneData.hasProbeVolumes[scene.guid])
                     EditorGUI.LabelField(probeVolumeIconRect, new GUIContent(Styles.probeVolumeIcon));
 
                 // Display the lighting settings of the first scene (it will be used for baking)
