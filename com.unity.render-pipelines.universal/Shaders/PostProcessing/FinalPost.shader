@@ -53,6 +53,11 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_PointClamp, uv).xyz;
             #elif _RCAS && SHADER_TARGET >= 45
             half3 color = ApplyRCAS(positionSS);
+            // When Unity is configured to use gamma color encoding, we must convert back from linear after RCAS is performed.
+            // (The input color data for this shader variant is always linearly encoded because RCAS requires it)
+            #if UNITY_COLORSPACE_GAMMA
+            color = GetLinearToSRGB(color);
+            #endif
             #else
             half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv).xyz;
             #endif

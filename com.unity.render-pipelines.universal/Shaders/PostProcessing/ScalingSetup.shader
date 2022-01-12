@@ -27,9 +27,9 @@ Shader "Hidden/Universal Render Pipeline/Scaling Setup"
             color = ApplyFXAA(color, positionNDC, positionSS, _SourceSize, _SourceTex);
 #endif
 
-#if _GAMMA_20
-            // EASU expects the input image to be in gamma 2.0 color space so perform color space conversion
-            // while we store the pixel data from the setup pass.
+#if _GAMMA_20 && !UNITY_COLORSPACE_GAMMA
+            // EASU expects perceptually encoded color data so either encode to gamma 2.0 here if the input
+            // data is linear, or let it pass through unchanged if it's already gamma encoded.
             color = LinearToGamma20(color);
 #endif
 

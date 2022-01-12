@@ -25,8 +25,12 @@ Shader "Hidden/Universal Render Pipeline/Edge Adaptive Spatial Upsampling"
 
             half3 color = ApplyEASU(integerUv);
 
-            // Convert back to linear color space before this data is sent into RCAS
+            // Convert to linearly encoded color before we pass our output over to RCAS
+#if UNITY_COLORSPACE_GAMMA
+            color = GetSRGBToLinear(color);
+#else
             color = Gamma20ToLinear(color);
+#endif
 
             return half4(color, 1.0);
         }
