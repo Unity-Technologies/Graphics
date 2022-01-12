@@ -99,27 +99,30 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        void InitializeDebug(Mesh debugProbeMesh, Shader debugProbeShader, Mesh debugOffsetMesh, Shader debugOffsetShader)
+        void InitializeDebug(in ProbeVolumeSystemParameters parameters)
         {
-            m_DebugMesh = debugProbeMesh;
-            m_DebugMaterial = CoreUtils.CreateEngineMaterial(debugProbeShader);
-            m_DebugMaterial.enableInstancing = true;
+            if (parameters.supportsRuntimeDebug)
+            {
+                m_DebugMesh = parameters.probeDebugMesh;
+                m_DebugMaterial = CoreUtils.CreateEngineMaterial(parameters.probeDebugShader);
+                m_DebugMaterial.enableInstancing = true;
 
-            m_DebugOffsetMesh = debugOffsetMesh;
-            m_DebugOffsetMaterial = CoreUtils.CreateEngineMaterial(debugOffsetShader);
-            m_DebugOffsetMaterial.enableInstancing = true;
+                m_DebugOffsetMesh = parameters.offsetDebugMesh;
+                m_DebugOffsetMaterial = CoreUtils.CreateEngineMaterial(parameters.offsetDebugShader);
+                m_DebugOffsetMaterial.enableInstancing = true;
 
-            // Hard-coded colors for now.
-            Debug.Assert(ProbeBrickIndex.kMaxSubdivisionLevels == 7); // Update list if this changes.
-            subdivisionDebugColors[0] = new Color(1.0f, 0.0f, 0.0f);
-            subdivisionDebugColors[1] = new Color(0.0f, 1.0f, 0.0f);
-            subdivisionDebugColors[2] = new Color(0.0f, 0.0f, 1.0f);
-            subdivisionDebugColors[3] = new Color(1.0f, 1.0f, 0.0f);
-            subdivisionDebugColors[4] = new Color(1.0f, 0.0f, 1.0f);
-            subdivisionDebugColors[5] = new Color(0.0f, 1.0f, 1.0f);
-            subdivisionDebugColors[6] = new Color(0.5f, 0.5f, 0.5f);
+                // Hard-coded colors for now.
+                Debug.Assert(ProbeBrickIndex.kMaxSubdivisionLevels == 7); // Update list if this changes.
+                subdivisionDebugColors[0] = new Color(1.0f, 0.0f, 0.0f);
+                subdivisionDebugColors[1] = new Color(0.0f, 1.0f, 0.0f);
+                subdivisionDebugColors[2] = new Color(0.0f, 0.0f, 1.0f);
+                subdivisionDebugColors[3] = new Color(1.0f, 1.0f, 0.0f);
+                subdivisionDebugColors[4] = new Color(1.0f, 0.0f, 1.0f);
+                subdivisionDebugColors[5] = new Color(0.0f, 1.0f, 1.0f);
+                subdivisionDebugColors[6] = new Color(0.5f, 0.5f, 0.5f);
+			}
 
-            RegisterDebug();
+            RegisterDebug(parameters);
 
 #if UNITY_EDITOR
             UnityEditor.Lightmapping.lightingDataCleared += OnClearLightingdata;
@@ -137,19 +140,19 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         }
 
-        void RefreshDebug<T>(DebugUI.Field<T> field, T value)
-        {
-            UnregisterDebug(false);
-            RegisterDebug();
-        }
-
         void DebugCellIndexChanged<T>(DebugUI.Field<T> field, T value)
         {
             ClearDebugData();
         }
 
-        void RegisterDebug()
+        void RegisterDebug(ProbeVolumeSystemParameters parameters)
         {
+            void RefreshDebug<T>(DebugUI.Field<T> field, T value)
+            {
+                UnregisterDebug(false);
+                RegisterDebug(parameters);
+            }
+
             const float kProbeSizeMin = 0.05f, kProbeSizeMax = 10.0f;
             const float kOffsetSizeMin = 0.001f, kOffsetSizeMax = 0.1f;
 
@@ -229,13 +232,26 @@ namespace UnityEngine.Experimental.Rendering
             var streamingContainer = new DebugUI.Container() { displayName = "Streaming" };
             streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", getter = () => debugDisplay.freezeStreaming, setter = value => debugDisplay.freezeStreaming = value });
 
-            widgetList.Add(subdivContainer);
-            widgetList.Add(probeContainer);
-            widgetList.Add(streamingContainer);
+            if (parameters.supportsRuntimeDebug)
+            {
+                // Cells / Bricks visualization is not implemented in a runtime compatible way atm.
+                if (Application.isEditor)
+                    widgetList.Add(subdivContainer);
 
-            m_DebugItems = widgetList.ToArray();
-            var panel = DebugManager.instance.GetPanel(k_DebugPanelName, true);
-            panel.children.Add(m_DebugItems);
+                widgetList.Add(probeContainer);
+            }
+
+            if (parameters.supportStreaming)
+            {
+                widgetList.Add(streamingContainer);
+            }
+
+            if (widgetList.Count > 0)
+            {
+                m_DebugItems = widgetList.ToArray();
+                var panel = DebugManager.instance.GetPanel(k_DebugPanelName, true);
+                panel.children.Add(m_DebugItems);
+            }
         }
 
         void UnregisterDebug(bool destroyPanel)
@@ -326,10 +342,9 @@ namespace UnityEngine.Experimental.Rendering
             {
                 var cell = cellInfo.cell;
 
-                if (cell.sh == null || cell.sh.Length == 0 || !cellInfo.loaded)
+                if (!cell.shL0L1Data.IsCreated || cell.shL0L1Data.Length == 0 || !cellInfo.loaded)
                     continue;
 
-                float largestBrickSize = cell.bricks.Count == 0 ? 0 : cell.bricks[0].subdivisionLevel;
                 List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
                 List<Matrix4x4[]> offsetBuffers = new List<Matrix4x4[]>();
                 List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
@@ -338,7 +353,7 @@ namespace UnityEngine.Experimental.Rendering
                 Vector4[] texels = new Vector4[kProbesPerBatch];
                 float[] validity = new float[kProbesPerBatch];
                 float[] relativeSize = new float[kProbesPerBatch];
-                Vector4[] offsets = cell.offsetVectors?.Length > 0 ? new Vector4[kProbesPerBatch] : null;
+                Vector4[] offsets = cell.offsetVectors.Length > 0 ? new Vector4[kProbesPerBatch] : null;
 
                 List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
                 List<Matrix4x4> offsetBuffer = new List<Matrix4x4>();
