@@ -30,6 +30,33 @@ namespace UnityEngine.Rendering.HighDefinition
         Off
     }
 
+#if ENABLE_UNITY_DENOISING_PLUGIN
+    // For the HDRP path tracer we only enable a subset of the denoisers that are available in the denoising plugin
+
+    /// <summary>
+    /// Available denoiser types for the HDRP path tracer.
+    /// </summary>
+    public enum HDDenoiserType
+    {
+        /// <summary>
+        /// Do not perform any denoising.
+        /// </summary>
+        None = DenoiserType.None,
+
+        /// <summary>
+        /// Use the NVIDIA Optix Denoiser back-end.
+        /// </summary>
+        [InspectorName("Intel Open Image Denoise")]
+        OpenImageDenoise = DenoiserType.OpenImageDenoise,
+
+        /// <summary>
+        /// Use the Radeon Image Filter back-end.
+        /// </summary>
+        [InspectorName("NVIDIA Optix Denoiser")]
+        Optix = DenoiserType.Optix
+    }
+#endif
+
     /// <summary>
     /// A <see cref="VolumeParameter"/> that holds a <see cref="SkyImportanceSamplingMode"/> value.
     /// </summary>
@@ -88,11 +115,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter maximumIntensity = new MinFloatParameter(10f, 0f);
 
 #if ENABLE_UNITY_DENOISING_PLUGIN
+
         /// <summary>
         /// Enables denoising for the converged path tracer frame
         /// </summary>
         [Tooltip("Enables denoising for the converged path tracer frame")]
-        public DenoiserParameter denoising = new DenoiserParameter(DenoiserType.None);
+        public DenoiserParameter denoising = new DenoiserParameter(HDDenoiserType.None);
 
         /// <summary>
         /// Improves the detail retention after denoising by using albedo and normal AOVs.
@@ -142,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
         uint  m_CacheMaxIteration = 0;
 
 #if ENABLE_UNITY_DENOISING_PLUGIN
-        DenoiserType m_CachedDenoiserType = DenoiserType.None;
+        HDDenoiserType m_CachedDenoiserType = HDDenoiserType.None;
 #endif
 
 #endif // UNITY_EDITOR
@@ -613,7 +641,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var normal = TextureHandle.nullHandle;
 
 #if ENABLE_UNITY_DENOISING_PLUGIN
-            bool needsAOVs = m_PathTracingSettings.denoising.value != DenoiserType.None && (m_PathTracingSettings.useAOVs.value || m_PathTracingSettings.temporal.value);
+            bool needsAOVs = m_PathTracingSettings.denoising.value != HDDenoiserType.None && (m_PathTracingSettings.useAOVs.value || m_PathTracingSettings.temporal.value);
 
             if (needsAOVs)
             {
@@ -690,7 +718,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderPathTracingFrame(m_RenderGraph, hdCamera, camData, m_FrameTexture, albedo, normal, motionVector);
 
 #if ENABLE_UNITY_DENOISING_PLUGIN
-                bool denoise = m_PathTracingSettings.denoising.value != DenoiserType.None;
+                bool denoise = m_PathTracingSettings.denoising.value != HDDenoiserType.None;
                 if (denoise && m_PathTracingSettings.useAOVs.value)
                 {
                     pathTracedAOVs.Add(new Tuple<TextureHandle, HDCameraFrameHistoryType>(albedo, HDCameraFrameHistoryType.AlbedoAOV));
@@ -714,17 +742,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_UNITY_DENOISING_PLUGIN
     /// <summary>
-    /// A <see cref="VolumeParameter"/> that holds a <see cref="FocusDistanceModeParameter"/> value.
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="DenoiserParameter"/> value.
     /// </summary>
     [Serializable]
-    public sealed class DenoiserParameter : VolumeParameter<DenoiserType>
+    public sealed class DenoiserParameter : VolumeParameter<HDDenoiserType>
     {
         /// <summary>
-        /// Creates a new <see cref="FocusDistanceModeParameter"/> instance.
+        /// Creates a new <see cref="DenoiserParameter"/> instance.
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public DenoiserParameter(DenoiserType value, bool overrideState = false) : base(value, overrideState) { }
+        public DenoiserParameter(HDDenoiserType value, bool overrideState = false) : base(value, overrideState) { }
     }
 #endif
 }

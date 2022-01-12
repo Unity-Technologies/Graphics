@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     CameraData camData = data.subFrameManager.GetCameraData(data.camID);
 
-                    camData.denoiser.type = m_PathTracingSettings.denoising.value;
+                    camData.denoiser.type = (DenoiserType) m_PathTracingSettings.denoising.value;
 
                     if (camData.currentIteration >= (data.subFrameManager.subFrameCount) && camData.denoiser.type != DenoiserType.None)
                     {
@@ -106,16 +106,16 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 camData.denoiser.WaitForCompletion(ctx.renderContext, ctx.cmd);
 
-                                int ret = camData.denoiser.GetResults(ctx.cmd, data.denoiseHistory);
-                                camData.validDenoiseHistory = (ret == 0);
+                                Denoiser.State ret = camData.denoiser.GetResults(ctx.cmd, data.denoiseHistory);
+                                camData.validDenoiseHistory = (ret == Denoiser.State.Success);
                                 camData.activeDenoiseRequest = false;
                             }
                             else
                             {
                                 if (camData.activeDenoiseRequest && camData.denoiser.QueryCompletion() != Denoiser.State.Executing)
                                 {
-                                    int ret = camData.denoiser.GetResults(ctx.cmd, data.denoiseHistory);
-                                    camData.validDenoiseHistory = (ret == 0) && (camData.discardDenoiseRequest == false);
+                                    Denoiser.State ret = camData.denoiser.GetResults(ctx.cmd, data.denoiseHistory);
+                                    camData.validDenoiseHistory = (ret == Denoiser.State.Success) && (camData.discardDenoiseRequest == false);
                                     camData.activeDenoiseRequest = false;
                                 }
                             }
