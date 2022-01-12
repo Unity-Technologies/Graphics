@@ -143,10 +143,13 @@ namespace UnityEngine.Rendering.Universal
 
 
             // Render the shadows for this light
-            if (RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].nameID, colorChannel))
-                m_LightInputTextures[textureIndex] = m_RenderTargets[textureIndex].nameID;
-            else
-                m_LightInputTextures[textureIndex] = Texture2D.blackTexture;
+            //if (RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].nameID, colorChannel))
+            //    m_LightInputTextures[textureIndex] = m_RenderTargets[textureIndex].nameID;
+            //else
+            //    m_LightInputTextures[textureIndex] = Texture2D.blackTexture;
+
+            RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].nameID, colorChannel);
+            m_LightInputTextures[textureIndex] = m_RenderTargets[textureIndex].nameID;
         }
 
         public static void SetGlobalShadowTexture(CommandBuffer cmdBuffer, Light2D light, int shadowIndex)
