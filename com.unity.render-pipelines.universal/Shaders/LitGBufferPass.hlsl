@@ -181,8 +181,6 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    ApplyLODCrossFade(input.positionCS);
-
 #if defined(_PARALLAXMAP)
 #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     half3 viewDirTS = input.viewDirTS;
@@ -194,6 +192,8 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
 
     SurfaceData surfaceData;
     InitializeStandardLitSurfaceData(input.uv, surfaceData);
+
+    ApplyLODCrossFade(input.positionCS);
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);

@@ -82,9 +82,9 @@ half4 DepthNormalsFragment(Varyings input) : SV_TARGET
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    ApplyLODCrossFade(input.positionCS);
-
     Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
+
+    ApplyLODCrossFade(input.positionCS);
 
     #if defined(_GBUFFER_NORMALS_OCT)
         float3 normalWS = normalize(input.normalWS);

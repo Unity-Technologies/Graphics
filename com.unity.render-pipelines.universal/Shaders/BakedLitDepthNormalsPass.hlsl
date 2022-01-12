@@ -54,11 +54,11 @@ float4 DepthNormalsFragment(Varyings input) : SV_TARGET
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    ApplyLODCrossFade(input.positionCS);
-
     half4 texColor = (half4) SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
     half alpha = texColor.a * _BaseColor.a;
     AlphaDiscard(alpha, _Cutoff);
+
+    ApplyLODCrossFade(input.positionCS);
 
     #if defined(_GBUFFER_NORMALS_OCT)
         float3 normalWS = normalize(input.normalWS);

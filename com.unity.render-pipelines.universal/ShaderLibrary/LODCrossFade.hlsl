@@ -15,6 +15,11 @@ half CopySign(half x, half s)
     return (s >= 0) ? abs(x) : -abs(x);
 }
 
+half DitheringToAlpha(half d)
+{
+    return d * 8.0 + 1.0;
+}
+
 half GetBayerMatrixDithering(float2 seed)
 {
     const half k_BayerMatrixTexSize = 4.0; 
@@ -33,11 +38,6 @@ half GetBlueNoiseDithering(float2 seed)
     return SAMPLE_TEXTURE2D(_DitheringTexture, sampler_DitheringTexture, uv).a;
 }
 
-half GetHashDithering(uint2 seed)
-{
-    return GenerateHashedRandomFloat(seed);
-}
-
 half GetLODDithering(float2 crossFadeSeed, half crossFadeFactor)
 {
     half d;
@@ -45,7 +45,7 @@ half GetLODDithering(float2 crossFadeSeed, half crossFadeFactor)
     switch (_LODCrossFadeType)
     {
     case k_LODCrossFadeTypeHashDither:
-        d = GetHashDithering(crossFadeSeed);
+        d = GenerateHashedRandomFloat(crossFadeSeed);
         break;
     case k_LODCrossFadeTypeBlueNoiseDither:
         d = GetBlueNoiseDithering(crossFadeSeed);
@@ -85,9 +85,9 @@ void ApplyLODCrossFade(float4 positionCS, inout half4 color)
         {
             half d = GetLODDithering(positionCS.xy, unity_LODFade.x);
 
-            color.a = d * 5.0 + 1.0;
+            color.a = DitheringToAlpha(d);
 
-            clip(color.a - 0.0001);
+            clip(color.a);
         }
 #endif
 }

@@ -161,10 +161,10 @@ FragmentOutput LitPassFragmentSimple(Varyings input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    ApplyLODCrossFade(input.positionCS);
-
     SurfaceData surfaceData;
     InitializeSimpleLitSurfaceData(input.uv, surfaceData);
+
+    ApplyLODCrossFade(input.positionCS);
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
