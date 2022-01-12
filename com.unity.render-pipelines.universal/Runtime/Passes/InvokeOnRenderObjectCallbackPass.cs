@@ -10,6 +10,9 @@ namespace UnityEngine.Rendering.Universal
         {
             base.profilingSampler = new ProfilingSampler(nameof(InvokeOnRenderObjectCallbackPass));
             renderPassEvent = evt;
+            //TODO: should we fix and re-enable native render pass for this pass?
+            // Currently disabled because when the callback is empty it causes an empty Begin/End RenderPass block, which causes artifacts on Vulkan
+            useNativeRenderPass = false;
         }
 
         /// <inheritdoc/>

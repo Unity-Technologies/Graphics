@@ -3,6 +3,18 @@
 
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ShaderVariablesProbeVolumes.cs.hlsl"
 
+// Unpack variables
+#define _PoolDim _PoolDim_CellInMeters.xyz
+#define _CellInMeters _PoolDim_CellInMeters.w
+#define _MinCellPosition _MinCellPos_Noise.xyz
+#define _PVSamplingNoise _MinCellPos_Noise.w
+#define _CellIndicesDim _IndicesDim_IndexChunkSize.xyz
+#define _IndexChunkSize _IndicesDim_IndexChunkSize.w
+#define _NormalBias _Biases_CellInMinBrick_MinBrickSize.x
+#define _ViewBias _Biases_CellInMinBrick_MinBrickSize.y
+#define _MinBrickSize _Biases_CellInMinBrick_MinBrickSize.w
+#define _Weight _Weight_Padding.x
+
 #ifndef DECODE_SH
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
 #endif
@@ -318,6 +330,12 @@ void EvaluateAdaptiveProbeVolume(APVSample apvSample, float3 normalWS, float3 ba
 
         bakeDiffuseLighting += apvSample.L0;
         backBakeDiffuseLighting += apvSample.L0;
+
+        if (_Weight < 1.f)
+        {
+            bakeDiffuseLighting = lerp(EvaluateAmbientProbe(normalWS), bakeDiffuseLighting, _Weight);
+            backBakeDiffuseLighting = lerp(EvaluateAmbientProbe(backNormalWS), backBakeDiffuseLighting, _Weight);
+        }
     }
     else
     {
@@ -357,6 +375,12 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         bakeDiffuseLighting += apvSample.L0;
         backBakeDiffuseLighting += apvSample.L0;
         lightingInReflDir += apvSample.L0;
+
+        if (_Weight < 1.f)
+        {
+            bakeDiffuseLighting = lerp(EvaluateAmbientProbe(normalWS), bakeDiffuseLighting, _Weight);
+            backBakeDiffuseLighting = lerp(EvaluateAmbientProbe(backNormalWS), backBakeDiffuseLighting, _Weight);
+        }
     }
     else
     {
@@ -436,8 +460,7 @@ float GetReflectionProbeNormalizationFactor(float3 lightingInReflDir, float3 sam
 {
     float refProbeNormalization = EvaluateReflectionProbeSH(sampleDir, reflProbeSHL0L1, reflProbeSHL2_1, reflProbeSHL2_2);
     float localNormalization = Luminance(lightingInReflDir);
-
-    return SafeDiv(localNormalization, refProbeNormalization);
+    return lerp(1.f, SafeDiv(localNormalization, refProbeNormalization), _Weight);
 }
 
 #endif // __PROBEVOLUME_HLSL__
