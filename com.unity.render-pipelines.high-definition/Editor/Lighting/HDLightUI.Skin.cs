@@ -109,8 +109,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent useCustomSpotLightShadowCone = EditorGUIUtility.TrTextContent("Custom Spot Angle", "When enabled, this Spot Light uses the custom angle for shadow map rendering.");
             public readonly GUIContent customSpotLightShadowCone = EditorGUIUtility.TrTextContent("Shadow Angle", "Controls the custom angle this Spot Light uses for shadow map rendering.");
             public readonly GUIContent enableCapsuleShadows = EditorGUIUtility.TrTextContent("Enable", "Enable support for Capsule Shadows on this Light.");
-            public readonly GUIContent capsuleShadowMinimumAngle = EditorGUIUtility.TrTextContent("Capsule Shadow Minimum Angle", "Sets the minimum angular diameter for capsule shadows from this light source.");
-            public readonly GUIContent capsuleShadowRange = EditorGUIUtility.TrTextContent("Capsule Shadow Range", "Sets the distance from the occluder at which capsule shadows will fade out.");
+            public readonly GUIContent capsuleShadowMinimumAngle = EditorGUIUtility.TrTextContent("Minimum Angle", "Sets the minimum angular diameter for capsule shadows from this light source.");
+            public readonly GUIContent capsuleShadowRange = EditorGUIUtility.TrTextContent("Range", "Sets the distance from the occluder at which capsule shadows will fade out.");
 
             // Bias control
             public readonly GUIContent slopeBias = EditorGUIUtility.TrTextContent("Slope-Scale Depth Bias", "Controls the bias that HDRP adds to the rendered shadow map, it is proportional to the slope of the polygons relative to the light.");
