@@ -5,6 +5,7 @@ Shader "Hidden/Universal Render Pipeline/XR/XROcclusionMesh"
 
         #pragma exclude_renderers d3d11_9x gles
         #pragma multi_compile _ XR_OCCLUSION_MESH_COMBINED
+        #pragma editor_sync_compilation
 
         // Not all platforms properly support SV_RenderTargetArrayIndex
         #if defined(SHADER_API_D3D11) || defined(SHADER_API_VULKAN) || defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_PSSL)

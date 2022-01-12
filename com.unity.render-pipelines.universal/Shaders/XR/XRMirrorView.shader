@@ -6,6 +6,7 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMirrorView"
 
         HLSLINCLUDE
             #pragma exclude_renderers gles
+            #pragma editor_sync_compilation
         ENDHLSL
 
         // 0: TEXTURE2D
