@@ -33,7 +33,7 @@ To create Local Volumetric Fog, right click in the Hierarchy and select __Volume
 
 ## Related Settings in the HDRP Asset
 
-The [HDRP Asset](HDRP-Asset.md) contains the following settings that relate to Local Volumetric Fog: 
+The [HDRP Asset](HDRP-Asset.md) contains the following settings that relate to Local Volumetric Fog:
 
 | Property   | Description  |
 |---|---|

@@ -6,9 +6,9 @@ A Volume Profile organizes its properties into structures which control differen
 
 ## Creating and customizing a Volume Profile
 
-There are multiple ways to create a Volume Profile. 
+There are multiple ways to create a Volume Profile.
 
-Create a Scene Settings GameObject from the **GameObject**  >  **Volume** menu. You can select one of the following: 
+Create a Scene Settings GameObject from the **GameObject**  >  **Volume** menu. You can select one of the following:
 
 &#8226; [**Global Volume**](Volumes.md)
 
