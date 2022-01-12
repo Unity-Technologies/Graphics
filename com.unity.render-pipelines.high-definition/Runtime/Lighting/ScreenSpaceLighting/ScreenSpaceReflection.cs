@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Ray Marching
         /// <summary>
-        /// When enabled, SSR handles sky reflection.
+        /// When enabled, SSR handles sky reflection (only affects opaque objects).
         /// </summary>
         public BoolParameter reflectSky = new BoolParameter(true);
 
