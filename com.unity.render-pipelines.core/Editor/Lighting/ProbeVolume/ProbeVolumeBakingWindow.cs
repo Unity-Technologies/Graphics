@@ -45,12 +45,7 @@ namespace UnityEngine.Experimental.Rendering
             public static readonly GUIContent notLoadedLabel = new GUIContent("Set is not Loaded");
             public static readonly GUIContent[] bakingStateStatusLabel = new GUIContent[] { GUIContent.none, notLoadedLabel, invalidLabel, emptyLabel };
 
-            public static readonly GUIStyle labelRed = new GUIStyle(EditorStyles.label);
-
-            static Styles()
-            {
-                labelRed.normal.textColor = new Color(0.8f, 0.2f, 0.0f);
-            }
+            public static readonly GUIStyle labelRed = "CN StatusError";
         }
 
         enum BakingStateStatus
@@ -110,7 +105,7 @@ namespace UnityEngine.Experimental.Rendering
                 Object.DestroyImmediate(m_ProbeVolumeProfileEditor);
 
             Lightmapping.lightingDataCleared -= UpdateBakingStatesStatuses;
-            EditorSceneManager.sceneOpened -= UpdateBakingStatesStatuses;
+            EditorSceneManager.sceneOpened -= OnSceneOpened;
         }
 
         void Initialize()
@@ -129,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering
             UpdateBakingStatesStatuses();
 
             Lightmapping.lightingDataCleared += UpdateBakingStatesStatuses;
-            EditorSceneManager.sceneOpened += UpdateBakingStatesStatuses;
+            EditorSceneManager.sceneOpened += OnSceneOpened;
 
             m_Initialized = true;
         }
@@ -208,6 +203,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             m_BakingStates = new ReorderableList(GetCurrentBakingSet().bakingStates, typeof(string), true, false, true, true);
             m_BakingStates.multiSelect = false;
+            m_BakingStates.elementHeightCallback = _ => EditorGUIUtility.singleLineHeight;
             m_BakingStates.drawElementCallback = (rect, index, active, focused) =>
             {
                 var bakingSet = GetCurrentBakingSet();
@@ -258,10 +254,11 @@ namespace UnityEngine.Experimental.Rendering
 
                                 foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                                 {
-                                    if (GetCurrentBakingSet().sceneGUIDs.Contains(AssetDatabase.GUIDFromAssetPath(data.gameObject.scene.path).ToString()))
+                                    if (bakingSet.sceneGUIDs.Contains(AssetDatabase.GUIDFromAssetPath(data.gameObject.scene.path).ToString()))
                                         data.RenameBakingState(stateName, name);
                                 }
                                 bakingSet.bakingStates[index] = name;
+                                ProbeReferenceVolume.instance.bakingState = name;
                             }
                             finally
                             {
@@ -271,15 +268,20 @@ namespace UnityEngine.Experimental.Rendering
                     }
                 }
             };
-            m_BakingStates.elementHeightCallback = _ => EditorGUIUtility.singleLineHeight;
-            m_BakingStates.onSelectCallback = (ReorderableList list) => ProbeReferenceVolume.instance.bakingState = GetCurrentBakingSet().bakingStates[list.index];
+
+            m_BakingStates.onSelectCallback = (ReorderableList list) =>
+            {
+                ProbeReferenceVolume.instance.bakingState = GetCurrentBakingSet().bakingStates[list.index];
+                SceneView.RepaintAll();
+                Repaint();
+            };
 
             m_BakingStates.onAddCallback = (list) =>
             {
                 Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Added new baking state");
-                GetCurrentBakingSet().CreateBakingState("New Baking State");
-                m_SerializedObject.Update();
-                m_BakingStates.index = GetCurrentBakingSet().bakingStates.IndexOf(ProbeReferenceVolume.instance.bakingState);
+                var state = GetCurrentBakingSet().CreateBakingState("New Baking State");
+                m_BakingStates.index = GetCurrentBakingSet().bakingStates.IndexOf(state);
+                m_BakingStates.onSelectCallback(m_BakingStates);
                 UpdateBakingStatesStatuses();
             };
 
@@ -292,17 +294,42 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 if (!EditorUtility.DisplayDialog("Delete the selected baking state?", $"Deleting the baking state will also delete corresponding baked data on disk.\nDo you really want to delete the baking state '{GetCurrentBakingSet().bakingStates[list.index]}'?\n\nYou cannot undo the delete assets action.", "Yes", "Cancel"))
                     return;
-                if (!GetCurrentBakingSet().RemoveBakingState(GetCurrentBakingSet().bakingStates[list.index]))
+                var set = GetCurrentBakingSet();
+                var state = set.bakingStates[list.index];
+                if (!set.RemoveBakingState(state))
                     return;
-                UpdateBakingStatesStatuses();
+                try
+                {
+                    AssetDatabase.StartAssetEditing();
+                    foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                    {
+                        if (set.sceneGUIDs.Contains(AssetDatabase.GUIDFromAssetPath(data.gameObject.scene.path).ToString()))
+                            data.RemoveBakingState(state);
+                    }
+                }
+                finally
+                {
+                    AssetDatabase.StopAssetEditing();
+                    ProbeReferenceVolume.instance.bakingState = set.bakingStates[0];
+                    UpdateBakingStatesStatuses();
+                }
             };
 
             m_BakingStates.index = GetCurrentBakingSet().bakingStates.IndexOf(ProbeReferenceVolume.instance.bakingState);
             UpdateBakingStatesStatuses();
         }
 
-        internal void UpdateBakingStatesStatuses(Scene s, OpenSceneMode m)
+        internal void OnSceneOpened(Scene s, OpenSceneMode m)
         {
+            if (s == SceneManager.GetActiveScene())
+            {
+                // Find the set in which the new active scene belongs
+                // If the active baking state does not exist for this set, load the default state of the set
+               string sceneGUID = AssetDatabase.GUIDFromAssetPath(s.path).ToString();
+                var set = sceneData.bakingSets.FirstOrDefault(s => s.sceneGUIDs.Contains(sceneGUID));
+                if (set != null && !set.bakingStates.Contains(ProbeReferenceVolume.instance.bakingState))
+                    ProbeReferenceVolume.instance.bakingState = set.bakingStates[0];
+            }
             UpdateBakingStatesStatuses();
         }
 
@@ -440,7 +467,7 @@ namespace UnityEngine.Experimental.Rendering
                 // display the probe volume icon in the scene if it have one
                 Rect probeVolumeIconRect = rect;
                 probeVolumeIconRect.xMin = rect.xMax - k_ProbeVolumeIconSize;
-                if (sceneData.hasProbeVolumes.ContainsKey(scene.guid))
+                if (sceneData.hasProbeVolumes.TryGetValue(scene.guid, out bool hasProbeVolumes) && hasProbeVolumes)
                     EditorGUI.LabelField(probeVolumeIconRect, new GUIContent(Styles.probeVolumeIcon));
 
                 // Display the lighting settings of the first scene (it will be used for baking)
@@ -478,6 +505,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Deleted scene in baking set");
                 ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                UpdateBakingStatesStatuses();
             };
 
             void TryAddScene(SceneData scene)
@@ -498,6 +526,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 sceneData.SyncBakingSetSettings();
                 m_SerializedObject.Update();
+                UpdateBakingStatesStatuses();
             }
 
             InitializeBakingStatesList();
@@ -513,12 +542,10 @@ namespace UnityEngine.Experimental.Rendering
         {
             var set = GetCurrentBakingSet();
             var dataList = ProbeReferenceVolume.instance.perSceneDataList;
-            if (dataList.Count < set.sceneGUIDs.Count)
-                return false;
 
             foreach (var guid in set.sceneGUIDs)
             {
-                if (!sceneData.hasProbeVolumes.ContainsKey(guid) || !sceneData.hasProbeVolumes[guid])
+                if (!sceneData.hasProbeVolumes.TryGetValue(guid, out bool hasProbeVolumes) || !hasProbeVolumes)
                     continue;
                 var scenePath = AssetDatabase.GUIDToAssetPath(guid);
                 if (dataList.All(data => data.gameObject.scene.path != scenePath))

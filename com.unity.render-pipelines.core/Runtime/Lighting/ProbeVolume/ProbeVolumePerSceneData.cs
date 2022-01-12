@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -74,10 +77,23 @@ namespace UnityEngine.Experimental.Rendering
             {
                 AssetDatabase.StopAssetEditing();
                 AssetDatabase.Refresh();
+                EditorUtility.SetDirty(this);
             }
 #endif
 
             assets.Clear();
+        }
+
+        internal void RemoveBakingState(string state)
+        {
+#if UNITY_EDITOR
+            if (assets.TryGetValue(state, out var asset))
+            {
+                AssetDatabase.DeleteAsset(asset.GetSerializedFullPath());
+                EditorUtility.SetDirty(this);
+            }
+#endif
+            assets.Remove(state);
         }
 
         internal void RenameBakingState(string state, string newName)
@@ -86,7 +102,11 @@ namespace UnityEngine.Experimental.Rendering
                 return;
             assets.Remove(state);
             assets.Add(newName, asset);
+
+#if UNITY_EDITOR
             asset.Rename(gameObject.scene, newName);
+            EditorUtility.SetDirty(this);
+#endif
         }
 
         internal void InvalidateAllAssets()

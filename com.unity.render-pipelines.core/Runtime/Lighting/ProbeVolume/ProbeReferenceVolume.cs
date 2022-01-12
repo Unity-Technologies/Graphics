@@ -655,7 +655,12 @@ namespace UnityEngine.Experimental.Rendering
         public string bakingState
         {
             get => sceneData.bakingState;
-            set => sceneData.bakingState = value;
+            set {
+                sceneData.bakingState = value;
+#if UNITY_EDITOR
+                EditorUtility.SetDirty(sceneData.parentAsset);
+#endif
+            }
         }
 
         internal static string defaultBakingState = "Default";

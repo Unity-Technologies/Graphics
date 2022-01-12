@@ -463,6 +463,9 @@ namespace UnityEngine.Experimental.Rendering
             // Use the globalBounds we just computed, as the one in probeRefVolume doesn't include scenes that have never been baked
             probeRefVolume.globalBounds = globalBounds;
 
+            // Use the globalBounds we just computed, as the one in probeRefVolume doesn't include scenes that have never been baked
+            probeRefVolume.globalBounds = globalBounds;
+
             onAdditionalProbesBakeCompletedCalled = true;
 
             var dilationSettings = m_BakingSettings.dilationSettings;

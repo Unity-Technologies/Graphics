@@ -58,7 +58,7 @@ namespace UnityEngine.Experimental.Rendering
 
             public List<string> bakingStates = new List<string>();
 
-            internal void CreateBakingState(string name)
+            internal string CreateBakingState(string name)
             {
                 if (bakingStates.Contains(name))
                 {
@@ -70,6 +70,7 @@ namespace UnityEngine.Experimental.Rendering
                     name = renamed;
                 }
                 bakingStates.Add(name);
+                return name;
             }
 
             internal bool RemoveBakingState(string name)
