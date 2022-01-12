@@ -93,7 +93,6 @@ real2 ComputeFibonacciSpiralDiskSampleUniform(const in int sampleIndex, const in
     
     // sqrt results in uniform distribution
     sampleDistNorm = sqrt(sampleDistNorm);
-    // sampleDistNorm = sqrt(sampleDistNorm);
     
     return fibonacciSpiralDirection[sampleIndex] * sampleDistNorm;
 }
@@ -149,13 +148,13 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
 
         offset = offset * (offset > 0 ? filterScalePos : filterScaleNeg) + filterOffset * sampleDistNorm;
 
-        real shadowMapDepth = SAMPLE_TEXTURE2D_LOD(shadowMap, pointSampler, posTCAtlas + offset, 0.0).x;
+        real blocker = SAMPLE_TEXTURE2D_LOD(shadowMap, pointSampler, posTCAtlas + offset, 0.0).x;
 
         real zoffset = maxSampleZDistance * sampleDistNorm;
 
-        if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, posTCShadowmap.z + zoffset))
+        if (COMPARE_DEVICE_DEPTH_CLOSER(blocker, posTCShadowmap.z + zoffset))
         {
-            blockerSum  += shadowMapDepth;
+            blockerSum  += blocker;
             numBlockers += 1.0;
         }
     }
