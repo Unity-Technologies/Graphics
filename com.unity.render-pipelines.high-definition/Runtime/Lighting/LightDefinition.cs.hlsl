@@ -82,7 +82,10 @@ struct DirectionalLightData
     float flareFalloff;
     float flareCosInner;
     float flareCosOuter;
+    float __unused__;
     float capsuleShadowRange;
+    float capsuleShadowMaxCosTheta;
+    float2 capsulePadding;
     float3 flareTint;
     float flareSize;
     float3 surfaceTint;
@@ -123,7 +126,10 @@ struct LightData
     int contactShadowMask;
     float diffuseDimmer;
     float specularDimmer;
+    float __unused;
     float capsuleShadowRange;
+    float capsuleShadowMaxCosTheta;
+    float2 capsulePadding;
     float2 padding;
     float isRayTracedContactShadow;
     float boxLightSafeExtent;

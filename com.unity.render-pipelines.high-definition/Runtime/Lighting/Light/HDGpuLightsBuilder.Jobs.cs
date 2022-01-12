@@ -340,6 +340,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 lightData.capsuleShadowRange = lightRenderData.capsuleShadowRange;
+                lightData.capsuleShadowMaxCosTheta = Mathf.Cos(Mathf.Deg2Rad * lightRenderData.capsuleShadowMinimumAngle * 0.5f);
             }
 
 #if DEBUG
@@ -695,6 +696,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.surfaceTint = (Vector3)(Vector4)lightRenderData.surfaceTint;
 
                 lightData.capsuleShadowRange = lightRenderData.capsuleShadowRange;
+                lightData.capsuleShadowMaxCosTheta = Mathf.Cos(Mathf.Deg2Rad * Mathf.Max(lightRenderData.angularDiameter, lightRenderData.capsuleShadowMinimumAngle) * 0.5f);
 
                 if (useCameraRelativePosition)
                     lightData.positionRWS -= cameraPos;

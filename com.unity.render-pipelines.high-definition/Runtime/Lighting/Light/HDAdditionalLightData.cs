@@ -1545,10 +1545,30 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [Range(0.1f, 90.0f)]
+        [SerializeField]
+        float m_CapsuleShadowMinimumAngle = 0.1f;
+        /// <summary>
+        /// Controls the minimum angular diameter for capsule shadows from this light source.
+        /// </summary>
+        public float capsuleShadowMinimumAngle
+        {
+            get => m_CapsuleShadowMinimumAngle;
+            set
+            {
+                if (m_CapsuleShadowMinimumAngle == value)
+                    return;
+
+                m_CapsuleShadowMinimumAngle = value;
+                if (lightEntity.valid)
+                    HDLightRenderDatabase.instance.EditLightDataAsRef(lightEntity).capsuleShadowMinimumAngle = m_CapsuleShadowMinimumAngle;
+            }
+        }
+
         [SerializeField]
         float m_CapsuleShadowRange = 5.0f;
         /// <summary>
-        /// Controls if we want to cast capsule shadows.
+        /// Controls the maximum range to cast capsule shadows from this light source.
         /// </summary>
         public float capsuleShadowRange
         {
@@ -3685,6 +3705,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightRenderData.shadowTint = m_ShadowTint;
             lightRenderData.flareTint = m_FlareTint;
             lightRenderData.capsuleShadowRange = m_EnableCapsuleShadows ? m_CapsuleShadowRange : 0.0f;
+            lightRenderData.capsuleShadowMinimumAngle = m_CapsuleShadowMinimumAngle;
         }
 
         internal void CreateHDLightRenderEntity(bool autoDestroy = false)

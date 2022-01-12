@@ -102,6 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty shadowUpdateUponTransformChange;
         public SerializedScalableSettingValue shadowResolution;
         public SerializedProperty enableCapsuleShadows;
+        public SerializedProperty capsuleShadowMinimumAngle;
         public SerializedProperty capsuleShadowRange;
 
         // Bias control
@@ -405,6 +406,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 shadowUpdateUponTransformChange = o.Find("m_UpdateShadowOnLightMovement");
                 shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution));
                 enableCapsuleShadows = o.Find("m_EnableCapsuleShadows");
+                capsuleShadowMinimumAngle = o.Find("m_CapsuleShadowMinimumAngle");
                 capsuleShadowRange = o.Find("m_CapsuleShadowRange");
 
                 slopeBias = o.Find("m_SlopeBias");

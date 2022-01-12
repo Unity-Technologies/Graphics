@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // optimise for this light, continue checking through the visible list
                         optimiseBoundsForLight = true;
                         lightDirection = visibleLight.GetForward().normalized;
-                        lightHalfAngle = lightData.angularDiameter * Mathf.Deg2Rad * 0.5f;
+                        lightHalfAngle = Mathf.Max(lightData.angularDiameter, lightData.capsuleShadowMinimumAngle) * Mathf.Deg2Rad * 0.5f;
                     }
                     else
                     {
