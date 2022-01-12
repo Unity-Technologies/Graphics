@@ -24,12 +24,6 @@ Pass
     $splice(PassKeywords)
     $splice(GraphKeywords)
 
-    // Early Instancing Defines
-    $splice(DotsInstancingOptions)
-
-    // Injected Instanced Properties (must be included before UnityInstancing.hlsl)
-    $splice(HybridV1InjectedBuiltinProperties)
-
     // For custom interpolators to inject a substruct definition before FragInputs definition,
     // allowing for FragInputs to capture CI's intended for ShaderGraph's SDI.
     $splice(CustomInterpolatorPreInclude)
@@ -200,10 +194,15 @@ Pass
 
     // --------------------------------------------------
     // Build Graph Inputs
-
-	$features.graphVFX:     $include("VFX/Config.template.hlsl")
+    #ifdef HAVE_VFX_MODIFICATION
+    #define VFX_SRP_ATTRIBUTES AttributesMesh
+    #define VaryingsMeshType VaryingsMeshToPS
+    #define VFX_SRP_VARYINGS VaryingsMeshType
+    #define VFX_SRP_SURFACE_INPUTS FragInputs
+    #endif
+    $features.graphVFX:     $include("VFXConfig.template.hlsl")
     $features.graphVertex:  $include("Vertex.template.hlsl")
-	$features.graphTessellation:  $include("Tessellation.template.hlsl")
+    $features.graphTessellation:  $include("Tessellation.template.hlsl")
     $features.graphPixel:   $include("Pixel.template.hlsl")
 
     // --------------------------------------------------
@@ -302,10 +301,7 @@ Pass
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
 
-		// If we want to force forward emissive and we have GBuffer pass, don't do anything
-		#if !(SHADERPASS == SHADERPASS_GBUFFER && defined(_FORCE_FORWARD_EMISSIVE))
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
-		#endif
 
         // Note this will not fully work on transparent surfaces (can check with _SURFACE_TYPE_TRANSPARENT define)
         // We will always overwrite vt feeback with the nearest. So behind transparent surfaces vt will not be resolved

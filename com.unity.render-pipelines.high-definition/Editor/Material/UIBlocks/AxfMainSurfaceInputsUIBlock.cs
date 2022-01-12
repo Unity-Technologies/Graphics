@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.PopupShaderProperty(m_MappingMode, Styles.mappingModeText, MappingModeNames);
 
             AxFMappingMode mappingMode = (AxFMappingMode)m_MappingMode.floatValue;
-            m_MappingMask.vectorValue = AxFGUI.AxFMappingModeToMask(mappingMode);
+            m_MappingMask.vectorValue = AxFAPI.AxFMappingModeToMask(mappingMode);
 
             if (mappingMode >= AxFMappingMode.PlanarXY)
             {

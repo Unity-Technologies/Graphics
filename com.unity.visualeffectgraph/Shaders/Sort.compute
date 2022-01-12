@@ -5,6 +5,8 @@
 #pragma kernel MergePass MERGE_PASS=MergePass FINAL_PASS=0
 #pragma kernel MergeFinalPass MERGE_PASS=MergeFinalPass FINAL_PASS=1
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
+
 #pragma multi_compile __ VFX_SORT_USE_ELEMENT_COUNT_BUFFER
 
 #include "HLSLSupport.cginc"
@@ -87,14 +89,21 @@ uint GetElementCount()
 #endif
 }
 
-bool CompareKeys(float key0, float key1)
+#pragma warning(push)
+#pragma warning(disable : 4000)
+bool CompareKVP(KVP kvp0, KVP kvp1)
 {
-#if DECREASING_ORDER
-    return key0 > key1;
-#else
-    return key0 < key1;
-#endif
+    #if DECREASING_ORDER
+    if (kvp0.key == kvp1.key)
+        return kvp0.value < kvp1.value; // value always in ascending order
+    return kvp0.key > kvp1.key;
+    #else
+    if (kvp0.key == kvp1.key)
+        return kvp0.value < kvp1.value;
+    return kvp0.key < kvp1.key;
+    #endif
 }
+#pragma warning(pop)
 
 uint GetLDSIndex(uint index)
 {
@@ -103,7 +112,7 @@ uint GetLDSIndex(uint index)
 
 void LoadFromMemory(uint ldsIndex,uint memIndex)
 {
-    KVP kvp = { REJECTED_VALUE, 0 };
+    KVP kvp = { REJECTED_VALUE, 0xFFFFFFFF };
     if (memIndex < GetElementCount())
         kvp = inputSequence[memIndex];
 
@@ -165,20 +174,26 @@ void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
                 float key0 = scratch[index0];
                 float key1 = scratch[index1];
 
+                float value0 = scratch[index0 + LDS_VALUES_OFFSET];
+                float value1 = scratch[index1 + LDS_VALUES_OFFSET];
+
+
+                KVP kvp0 = { key0, asuint(value0) };
+                KVP kvp1 = { key1, asuint(value1) };
+
 #if USE_ALTERNATE_BITONIC_NETWORK
                 bool reverse = false;
 #else
                 bool reverse = index & step;
 #endif
-                if (CompareKeys(key1,key0) != reverse)
+                if (CompareKVP(kvp1, kvp0) != reverse)
                 {
                     // swap keys
                     scratch[index0] = key1;
                     scratch[index1] = key0;
 
                     // swap values
-                    float value0 = scratch[index0 + LDS_VALUES_OFFSET];
-                    scratch[index0 + LDS_VALUES_OFFSET] = scratch[index1 + LDS_VALUES_OFFSET];
+                    scratch[index0 + LDS_VALUES_OFFSET] = value1;
                     scratch[index1 + LDS_VALUES_OFFSET] = value0;
                 }
             }
@@ -207,6 +222,16 @@ float GetKeyWithCheck(uint index)
 
     if (index >= GetElementCount()) // TODO Handle elementCount more efficiently
         result = REJECTED_VALUE;
+
+    return result;
+}
+
+KVP GetKVPWithCheck(uint index)
+{
+    KVP result = inputSequence[index];
+
+    if (index >= GetElementCount()) // TODO Handle elementCount more efficiently
+        result.key = REJECTED_VALUE;
 
     return result;
 }
@@ -243,7 +268,7 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
     int2 window = uint2(max(0, arrayIndex - (int)subArraySize), min(arrayIndex, lastIndex));
 
     int index0, index1;
-    float key0, key1;
+    KVP kvp0, kvp1;
 
     bool reverse = false;
     bool done = false;
@@ -261,14 +286,14 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
         index0 = i0 + arrayStart;
         index1 = i1 + arrayStart + subArraySize;
 
-        key0 = inputSequence[index0].key;
-        key1 = GetKeyWithCheck(index1);
+        kvp0 = inputSequence[index0];
+        kvp1 = GetKVPWithCheck(index1);
 
         if (i0 + i1 == arrayIndex)
         {
-            if (i0 > 0 && CompareKeys(key1, inputSequence[max(0, index0 - 1)].key))
+            if (i0 > 0 && CompareKVP(kvp1, inputSequence[max(0, index0 - 1)]))
                 window.y = windowIndex - 1; // move window left
-            else if (i1 > 0 && CompareKeys(key0, GetKeyWithCheck(max(0, index1 - 1))))
+            else if (i1 > 0 && CompareKVP(kvp0, GetKVPWithCheck(max(0, index1 - 1))))
                 window.x = windowIndex + (windowIndex == lastIndex ? 2 : 1); // move window right (Special handling at the right bound so that i1 can go down to 0)
             else
                 done = true;
@@ -290,15 +315,14 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
     } while (!done);
 
     // Select left or right: Must handle special case for equality
-    bool select0 = (key0 == key1 && (id & 1)) || (CompareKeys(key0,key1) != reverse);
-    uint value = inputSequence[(select0 ? index0 : index1)].value;
+    bool select0 = CompareKVP(kvp0, kvp1) != reverse;
 
 #if FINAL_PASS
-    sortedSequence[id] = value;
+    sortedSequence[id] = select0 ? kvp0.value : kvp1.value;
 #else
-    float key = select0 ? key0 : key1;
-    KVP kvp = { key, value };
-    sortedSequence[id] = kvp;
+    if (select0)
+        kvp1 = kvp0;
+    sortedSequence[id] = kvp1;
 #endif
 
 }

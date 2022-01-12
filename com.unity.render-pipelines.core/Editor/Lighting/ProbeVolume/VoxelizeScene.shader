@@ -5,6 +5,10 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
         Tags { "RenderType"="Opaque" }
         LOD 100
 
+        HLSLINCLUDE
+        #define EPSILON (1e-10)
+        ENDHLSL
+
         Pass
         {
             Name "Voxelize Mesh"
@@ -13,9 +17,11 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
             ColorMask 0
             ZWrite Off
             ZClip Off
+            Conservative True
 
             HLSLPROGRAM
             #pragma vertex vert
+            #pragma geometry geom
             #pragma fragment frag
             #pragma target 4.5
             // #pragma enable_d3d11_debug_symbols
@@ -29,15 +35,24 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
             float3              _VolumeSize;
             uint                _AxisSwizzle;
 
-            struct VertexToFragment
+            struct VertexToGeometry
             {
                 float4 vertex : SV_POSITION;
                 float3 cellPos01 : TEXCOORD0;
             };
 
-            VertexToFragment vert(float4 vertex : POSITION)
+            struct GeometryToFragment
             {
-                VertexToFragment o;
+                float4 vertex : SV_POSITION;
+                float3 cellPos01 : TEXCOORD0;
+                nointerpolation float2 minMaxX : TEXCOORD1;
+                nointerpolation float2 minMaxY : TEXCOORD2;
+                nointerpolation float2 minMaxZ : TEXCOORD3;
+            };
+
+            VertexToGeometry vert(float4 vertex : POSITION)
+            {
+                VertexToGeometry o;
 
                 float3 cellPos = mul(unity_ObjectToWorld, vertex).xyz;
                 cellPos -= _VolumeWorldOffset;
@@ -66,12 +81,37 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
                 return o;
             }
 
-            float4 frag(VertexToFragment i) : COLOR
+            [maxvertexcount(3)]
+            void geom(triangle VertexToGeometry inputVertex[3], inout TriangleStream<GeometryToFragment> triangleStream)
             {
-                if (any(i.cellPos01 < 0) || any(i.cellPos01 >= 1))
+                float3 minPos = min(min(inputVertex[0].cellPos01, inputVertex[1].cellPos01), inputVertex[2].cellPos01) - rcp(_OutputSize.x);
+                float3 maxPos = max(max(inputVertex[0].cellPos01, inputVertex[1].cellPos01), inputVertex[2].cellPos01) + rcp(_OutputSize.x);
+
+                for (int i = 0; i < 3; i++)
+                {
+                    GeometryToFragment o;
+                    o.vertex = inputVertex[i].vertex;
+                    o.cellPos01 = inputVertex[i].cellPos01;
+                    o.minMaxX = float2(minPos.x, maxPos.x);
+                    o.minMaxY = float2(minPos.y, maxPos.y);
+                    o.minMaxZ = float2(minPos.z, maxPos.z);
+                    triangleStream.Append(o);
+                }
+            }
+
+            float4 frag(GeometryToFragment i) : COLOR
+            {
+                if (i.cellPos01.x < i.minMaxX.x || i.cellPos01.x > i.minMaxX.y)
+                    return 0;
+                if (i.cellPos01.y < i.minMaxY.x || i.cellPos01.y > i.minMaxY.y)
+                    return 0;
+                if (i.cellPos01.z < i.minMaxZ.x || i.cellPos01.z > i.minMaxZ.y)
                     return 0;
 
-                uint3 pos = uint3(i.cellPos01 * _OutputSize);
+                if (any(i.cellPos01 < -EPSILON) || any(i.cellPos01 >= 1 + EPSILON))
+                    return 0;
+
+                uint3 pos = min(uint3(i.cellPos01 * _OutputSize), _OutputSize);
 
                 _Output[pos] = 1;
 
@@ -93,7 +133,7 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 4.5
-            #pragma enable_d3d11_debug_symbols
+            // #pragma enable_d3d11_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -167,14 +207,14 @@ Shader "Hidden/ProbeVolume/VoxelizeScene"
 
             float4 frag(VertexToFragment i) : COLOR
             {
-                if (any(i.cellPos01 < 0) || any(i.cellPos01 >= 1))
+                if (any(i.cellPos01 < -EPSILON) || any(i.cellPos01 >= 1 + EPSILON))
                     return 0;
 
                 // Offset the cellposition with the heightmap
                 float hole = _TerrainHolesTexture.Sample(s_point_clamp_sampler, float3(i.uv, 0));
                 clip(hole == 0.0f ? -1 : 1);
 
-                uint3 pos = uint3(i.cellPos01 * _OutputSize);
+                uint3 pos = min(uint3(i.cellPos01 * _OutputSize), _OutputSize);
                 _Output[pos] = 1;
 
                 return float4(i.cellPos01.xyz, 1);

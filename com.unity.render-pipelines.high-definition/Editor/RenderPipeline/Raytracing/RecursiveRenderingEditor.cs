@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Experimental.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(RecursiveRendering))]
+    [CustomEditor(typeof(RecursiveRendering))]
     class RecursiveRenderingEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Enable;
@@ -43,7 +43,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             }
 
             // If ray tracing is supported display the content of the volume component
-            if (HDRenderPipeline.buildPipelineSupportsRayTracing)
+            if (HDRenderPipeline.assetSupportsRayTracing)
             {
                 PropertyField(m_Enable);
 

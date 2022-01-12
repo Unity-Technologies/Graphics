@@ -145,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering
                 if (!pv.isActiveAndEnabled)
                     continue;
 
-                ProbeReferenceVolume.Volume volume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.maxSubdivisionMultiplier, pv.minSubdivisionMultiplier);
+                ProbeReferenceVolume.Volume volume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.GetMaxSubdivMultiplier(), pv.GetMinSubdivMultiplier());
                 probeVolumes.Add((pv, volume));
             }
 
@@ -159,7 +159,8 @@ namespace UnityEngine.Experimental.Rendering
                 if ((flags & StaticEditorFlags.ContributeGI) == 0)
                     continue;
 
-                var volume = ProbePlacement.ToVolume(r.bounds);
+                // Inflate a bit the volume in case it's too small (plane case)
+                var volume = ProbePlacement.ToVolume(new Bounds(r.bounds.center, r.bounds.size + Vector3.one * 0.01f));
 
                 renderers.Add((r, volume));
             }

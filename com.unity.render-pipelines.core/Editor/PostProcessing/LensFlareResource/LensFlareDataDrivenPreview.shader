@@ -20,9 +20,10 @@ Shader "Hidden/Core/LensFlareDataDrivenPreview"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 3.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma exclude_renderers gles
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -44,9 +45,10 @@ Shader "Hidden/Core/LensFlareDataDrivenPreview"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 3.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma exclude_renderers gles
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -69,9 +71,10 @@ Shader "Hidden/Core/LensFlareDataDrivenPreview"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 3.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma exclude_renderers gles
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -94,9 +97,10 @@ Shader "Hidden/Core/LensFlareDataDrivenPreview"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 3.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma exclude_renderers gles
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
@@ -120,9 +124,10 @@ Shader "Hidden/Core/LensFlareDataDrivenPreview"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 3.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma exclude_renderers gles
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 

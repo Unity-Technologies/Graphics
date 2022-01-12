@@ -5,6 +5,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using UnityEngine.Rendering.ShaderGraph;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -14,6 +15,8 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireBitangent
         , IMayRequireMeshUV
         , IMayRequireScreenPosition
+        , IMayRequireNDCPosition
+        , IMayRequirePixelPosition
         , IMayRequireViewDirection
         , IMayRequirePosition
         , IMayRequirePositionPredisplacement
@@ -30,6 +33,8 @@ namespace UnityEditor.ShaderGraph
 
         public override bool canCutNode => false;
         public override bool canCopyNode => false;
+
+        public override string documentationURL => Documentation.GetPageLink("Block-Node");
 
         // Because the GraphData is deserialized after its child elements
         // the descriptor list is not built (and owner is not set)
@@ -239,6 +244,30 @@ namespace UnityEditor.ShaderGraph
 
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresScreenPosition;
+        }
+
+        public bool RequiresNDCPosition(ShaderStageCapability stageCapability)
+        {
+            if (stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+                return false;
+
+            if (m_Descriptor.control == null)
+                return false;
+
+            var requirements = m_Descriptor.control.GetRequirements();
+            return requirements.requiresNDCPosition;
+        }
+
+        public bool RequiresPixelPosition(ShaderStageCapability stageCapability)
+        {
+            if (stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+                return false;
+
+            if (m_Descriptor.control == null)
+                return false;
+
+            var requirements = m_Descriptor.control.GetRequirements();
+            return requirements.requiresPixelPosition;
         }
 
         public bool RequiresVertexColor(ShaderStageCapability stageCapability)

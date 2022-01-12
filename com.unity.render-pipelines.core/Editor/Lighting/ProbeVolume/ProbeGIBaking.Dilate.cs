@@ -125,7 +125,8 @@ namespace UnityEngine.Experimental.Rendering
             cmd.SetComputeBufferParam(dilationShader, dilationKernel, _OutputProbes, data.outputProbes);
 
             int probeCount = cell.probePositions.Length;
-            cmd.SetComputeVectorParam(dilationShader, _DilationParameters, new Vector4(probeCount, settings.dilationValidityThreshold, settings.dilationDistance, settings.brickSize));
+
+            cmd.SetComputeVectorParam(dilationShader, _DilationParameters, new Vector4(probeCount, settings.dilationValidityThreshold, settings.dilationDistance, ProbeReferenceVolume.instance.MinBrickSize()));
             cmd.SetComputeVectorParam(dilationShader, _DilationParameters2, new Vector4(settings.squaredDistWeighting ? 1 : 0, 0, 0, 0));
 
             var refVolume = ProbeReferenceVolume.instance;
@@ -153,6 +154,7 @@ namespace UnityEngine.Experimental.Rendering
             parameters.viewBias = 0;
             parameters.scaleBiasByMinDistanceBetweenProbes = false;
             parameters.samplingNoise = 0;
+            parameters.weight = 1f;
             ProbeReferenceVolume.instance.UpdateConstantBuffer(cmd, parameters);
 
 

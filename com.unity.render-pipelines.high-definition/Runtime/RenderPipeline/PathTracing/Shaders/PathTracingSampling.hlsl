@@ -44,4 +44,15 @@ bool RussianRouletteTest(float threshold, float value, float rand, out float fac
     return true;
 }
 
+float RescaleSampleUnder(float inputSample, float threshold)
+{
+    return inputSample / threshold;
+}
+
+float RescaleSampleOver(float inputSample, float threshold)
+{
+    // Make sure we never reach 1.0 due to numerical imprecision
+    return min((inputSample - threshold) / (1.0 - threshold), 0.99999);
+}
+
 #endif // UNITY_PATH_TRACING_SAMPLING_INCLUDED

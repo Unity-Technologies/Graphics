@@ -1324,7 +1324,7 @@ bool HasFlag(uint bitfield, uint flag)
 // Normalize that account for vectors with zero length
 real3 SafeNormalize(float3 inVec)
 {
-    real dp3 = max(REAL_MIN, dot(inVec, inVec));
+    float dp3 = max(FLT_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
 }
 
@@ -1340,6 +1340,12 @@ bool IsNormalized(float3 inVec)
 real SafeDiv(real numer, real denom)
 {
     return (numer != denom) ? numer / denom : 1;
+}
+
+// Perform a square root safe of imaginary number.
+real SafeSqrt(real x)
+{
+    return sqrt(max(0, x));
 }
 
 // Assumes that (0 <= x <= Pi).

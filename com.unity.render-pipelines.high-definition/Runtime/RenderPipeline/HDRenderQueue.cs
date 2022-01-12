@@ -101,14 +101,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly RenderQueueRange k_RenderQueue_AfterPostProcessTransparent = new RenderQueueRange { lowerBound = (int)Priority.AfterPostprocessTransparentFirst, upperBound = (int)Priority.AfterPostprocessTransparentLast };
 
+        public static readonly RenderQueueRange k_RenderQueue_Overlay = new RenderQueueRange { lowerBound = (int)Priority.Overlay, upperBound = 5000 };
+
         public static readonly RenderQueueRange k_RenderQueue_All = new RenderQueueRange { lowerBound = 0, upperBound = 5000 };
 
         public static bool Contains(this RenderQueueRange range, int value) => range.lowerBound <= value && value <= range.upperBound;
 
         public static int Clamps(this RenderQueueRange range, int value) => Math.Max(range.lowerBound, Math.Min(value, range.upperBound));
 
-        public const int sortingPriortyRange = 50;
-        public static int ClampsTransparentRangePriority(int value) => Math.Max(-sortingPriortyRange, Math.Min(value, sortingPriortyRange));
+        public const int sortingPriorityRange = 50;
+        public static int ClampsTransparentRangePriority(int value) => Math.Max(-sortingPriorityRange, Math.Min(value, sortingPriorityRange));
+
+        public const int meshDecalPriorityRange = 50; // This range is arbitrary and match sorting priority
 
         public static RenderQueueType GetTypeByRenderQueueValue(int renderQueue)
         {

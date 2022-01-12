@@ -7,13 +7,13 @@ namespace UnityEngine.Rendering.Universal
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
         {
-            [Reload("Shaders/Autodesk Interactive/Autodesk Interactive.shadergraph")]
+            [Reload("Shaders/AutodeskInteractive/AutodeskInteractive.shadergraph")]
             public Shader autodeskInteractivePS;
 
-            [Reload("Shaders/Autodesk Interactive/Autodesk Interactive Transparent.shadergraph")]
+            [Reload("Shaders/AutodeskInteractive/AutodeskInteractiveTransparent.shadergraph")]
             public Shader autodeskInteractiveTransparentPS;
 
-            [Reload("Shaders/Autodesk Interactive/Autodesk Interactive Masked.shadergraph")]
+            [Reload("Shaders/AutodeskInteractive/AutodeskInteractiveMasked.shadergraph")]
             public Shader autodeskInteractiveMaskedPS;
 
             [Reload("Shaders/Terrain/TerrainDetailLit.shader")]
@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Nature/SpeedTree7.shader")]
             public Shader defaultSpeedTree7PS;
 
-            [Reload("Shaders/Nature/SpeedTree8.shader")]
+            [Reload("Shaders/Nature/SpeedTree8_PBRLit.shadergraph")]
             public Shader defaultSpeedTree8PS;
         }
 
@@ -38,7 +38,10 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Runtime/Materials/Lit.mat")]
             public Material lit;
 
-            [Reload("Runtime/Materials/ParticlesLit.mat")]
+            // particleLit is the URP default material for new particle systems.
+            // ParticlesUnlit.mat is closest match to the built-in shader.
+            // This is correct (current 22.2) despite the Lit/Unlit naming conflict.
+            [Reload("Runtime/Materials/ParticlesUnlit.mat")]
             public Material particleLit;
 
             [Reload("Runtime/Materials/TerrainLit.mat")]

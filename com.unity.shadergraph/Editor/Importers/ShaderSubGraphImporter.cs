@@ -19,7 +19,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(28, Extension, -905)]
+    [ScriptedImporter(30, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -197,6 +197,11 @@ namespace UnityEditor.ShaderGraph
             foreach (var node in nodes)
                 node.SetUsedByGenerator();
 
+            // Start with a clean slate for the input/output capabilities and dependencies
+            asset.inputCapabilities.Clear();
+            asset.outputCapabilities.Clear();
+            asset.slotDependencies.Clear();
+
             ShaderStageCapability effectiveShaderStage = ShaderStageCapability.All;
             foreach (var slot in outputSlots)
             {
@@ -281,6 +286,27 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            // Need to order the properties so that they are in the same order on a subgraph node in a shadergraph
+            // as they are in the blackboard for the subgraph itself.  The (blackboard) categories keep that ordering,
+            // so traverse those and add those items to the ordered properties list.  Needs to be used to set up the
+            // function _and_ to write out the final asset data so that the function call parameter order matches as well.
+            var orderedProperties = new List<AbstractShaderProperty>();
+            var propertiesList = graph.properties.ToList();
+            foreach (var category in graph.categories)
+            {
+                foreach (var child in category.Children)
+                {
+                    var prop = propertiesList.Find(p => p.guid == child.guid);
+                    // Not all properties in the category are actually on the graph.
+                    // In particular, it seems as if keywords are not properties on sub-graphs.
+                    if (prop != null)
+                        orderedProperties.Add(prop);
+                }
+            }
+
+            // If we are importing an older file that has not had categories generated for it yet, include those now.
+            orderedProperties.AddRange(graph.properties.Except(orderedProperties));
+
             // provide top level subgraph function
             // NOTE: actual concrete precision here shouldn't matter, it's irrelevant when building the subgraph asset
             registry.ProvideFunction(asset.functionName, asset.subGraphGraphPrecision, ConcretePrecision.Single, sb =>
@@ -290,7 +316,7 @@ namespace UnityEditor.ShaderGraph
 
                 // Generate the arguments... first INPUTS
                 var arguments = new List<string>();
-                foreach (var prop in graph.properties)
+                foreach (var prop in orderedProperties)
                 {
                     // apply fallback to the graph default precision (but don't convert to concrete)
                     // this means "graph switchable" properties will use the precision token
@@ -388,7 +414,8 @@ namespace UnityEditor.ShaderGraph
                     prop.OverrideGuid(namespaceId, nameId + "_Guid_" + i);
                 }
             }
-            asset.WriteData(graph.properties, graph.keywords, graph.dropdowns, collector.properties, outputSlots, graph.unsupportedTargets);
+
+            asset.WriteData(orderedProperties, graph.keywords, graph.dropdowns, collector.properties, outputSlots, graph.unsupportedTargets);
             outputSlots.Dispose();
         }
 

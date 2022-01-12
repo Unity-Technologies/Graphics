@@ -359,6 +359,25 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Action<GraphData> modifyGraphDataAction => CopyCategory;
     }
 
+    class ShaderVariantLimitAction : IGraphDataAction
+    {
+        public int currentVariantCount { get; set; } = 0;
+        public int maxVariantCount { get; set; } = 0;
+
+        public ShaderVariantLimitAction(int currentVariantCount, int maxVariantCount)
+        {
+            this.maxVariantCount = maxVariantCount;
+            this.currentVariantCount = currentVariantCount;
+        }
+
+        // There's no action actually performed on the graph, but we need to implement this as a valid function
+        public Action<GraphData> modifyGraphDataAction => Empty;
+
+        void Empty(GraphData graphData)
+        {
+        }
+    }
+
     class BlackboardController : SGViewController<GraphData, BlackboardViewModel>
     {
         // Type changes (adds/removes of Types) only happen after a full assembly reload so its safe to make this static
@@ -438,7 +457,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     propertyTypesOrder.isKeyword = false;
                     propertyTypesOrder.deprecatedPropertyName = name;
                     propertyTypesOrder.version = ColorShaderProperty.deprecatedVersion;
-                    ViewModel.propertyNameToAddActionMap.Add("Color (Deprecated)", AddShaderInputAction.AddDeprecatedPropertyAction(propertyTypesOrder));
+                    ViewModel.propertyNameToAddActionMap.Add($"Color (Legacy v0)", AddShaderInputAction.AddDeprecatedPropertyAction(propertyTypesOrder));
                     ViewModel.propertyNameToAddActionMap.Add(name, AddShaderInputAction.AddPropertyAction(shaderInputType));
                 }
                 else
@@ -664,6 +683,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var blackboardCategory = AddBlackboardCategory(graphData.owner.graphDataStore, copyCategoryAction.newCategoryDataReference);
                     if (blackboardCategory != null)
                         graphView?.AddToSelectionNoUndoRecord(blackboardCategory.blackboardCategoryView);
+                    break;
+                case ShaderVariantLimitAction shaderVariantLimitAction:
+                    blackboard.SetCurrentVariantUsage(shaderVariantLimitAction.currentVariantCount, shaderVariantLimitAction.maxVariantCount);
                     break;
             }
 

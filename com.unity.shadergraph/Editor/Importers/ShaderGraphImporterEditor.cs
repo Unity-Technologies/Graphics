@@ -18,6 +18,7 @@ namespace UnityEditor.ShaderGraph
     class ShaderGraphImporterEditor : ScriptedImporterEditor
     {
         protected override bool needsApplyRevert => false;
+        MaterialEditor materialEditor = null;
 
         public override void OnInspectorGUI()
         {
@@ -115,6 +116,30 @@ namespace UnityEditor.ShaderGraph
             }
 
             ApplyRevertGUI();
+
+            if (materialEditor)
+            {
+                EditorGUILayout.Space();
+                materialEditor.DrawHeader();
+                using (new EditorGUI.DisabledGroupScope(true))
+                    materialEditor.OnInspectorGUI();
+            }
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            AssetImporter importer = target as AssetImporter;
+            var material = AssetDatabase.LoadAssetAtPath<Material>(importer.assetPath);
+            if (material)
+                materialEditor = (MaterialEditor)CreateEditor(material);
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+            if (materialEditor != null)
+                DestroyImmediate(materialEditor);
         }
 
         internal static bool ShowGraphEditWindow(string path)

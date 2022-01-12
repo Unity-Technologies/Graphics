@@ -433,6 +433,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         int numTilesX = (data.texWidth + (tfTileSize - 1)) / tfTileSize;
                         int numTilesY = (data.texHeight + (tfTileSize - 1)) / tfTileSize;
 
+                        // This variant of the function only supports full resolution
+                        CoreUtils.SetKeyword(ctx.cmd, "FULL_RESOLUTION_FILTER", true);
+
                         // Now that we have validated our history, let's accumulate
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._DenoiseInputTexture, data.noisyBuffer);
                         ctx.cmd.SetComputeTextureParam(data.temporalFilterCS, data.temporalAccKernel, HDShaderIDs._HistoryBuffer, data.historyBuffer);

@@ -229,6 +229,12 @@ namespace UnityEditor.VFX
             return true;
         }
 
+        public static bool IsTexture(Type type)
+        {
+            var valueType = GetVFXValueTypeFromType(type);
+            return IsTexture(valueType);
+        }
+
         public static bool IsTexture(VFXValueType type)
         {
             switch (type)
@@ -576,6 +582,16 @@ namespace UnityEditor.VFX
                 else
                     m_Flags &= ~Flags.Foldable;
             }
+        }
+
+        internal static void CollectParentExpressionRecursively(VFXExpression entry, HashSet<VFXExpression> processed)
+        {
+            if (processed.Contains(entry))
+                return;
+
+            foreach (var parent in entry.parents) CollectParentExpressionRecursively(parent, processed);
+
+            processed.Add(entry);
         }
 
         public static VFXExpression operator *(VFXExpression a, VFXExpression b) { return new VFXExpressionMul(a, b); }

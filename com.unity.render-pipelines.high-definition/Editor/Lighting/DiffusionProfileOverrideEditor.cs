@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [VolumeComponentEditor(typeof(DiffusionProfileOverride))]
+    [CustomEditor(typeof(DiffusionProfileOverride))]
     sealed class DiffusionProfileOverrideEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_DiffusionProfiles;
@@ -45,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawDiffusionProfileElement(SerializedProperty element, Rect rect, int index)
         {
+            rect.y += 2;
             EditorGUI.BeginDisabledGroup(!m_DiffusionProfiles.overrideState.boolValue);
             EditorGUI.ObjectField(rect, element, new GUIContent("Profile " + index));
             EditorGUI.EndDisabledGroup();

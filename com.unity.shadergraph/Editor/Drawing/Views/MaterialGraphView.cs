@@ -111,10 +111,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             graph.UpdateActiveBlocks(activeBlocks);
             this.m_PreviewManagerUpdateDelegate();
-            //Quick bugfix for 1327208. Can be fixed properly with GTF
-            Inspector.InspectorView.forceNodeView = false;
             this.m_InspectorUpdateDelegate();
-            Inspector.InspectorView.forceNodeView = true;
         }
 
         void ChangePrecision(GraphPrecision newGraphDefaultPrecision)
@@ -143,6 +140,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Action onConvertToSubgraphClick { get; set; }
         public Vector2 cachedMousePosition { get; private set; }
+
+        public bool wasUndoRedoPerformed { get; set; }
 
         // GraphView has UQueryState<Node> nodes built in to query for Nodes
         // We need this for Contexts but we might as well cast it to a list once
@@ -1079,6 +1078,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         // Updates selected graph elements after undo/redo
         internal void RestorePersistentSelectionAfterUndoRedo()
         {
+            wasUndoRedoPerformed = true;
             m_UndoRedoPerformedMethodInfo?.Invoke(this, new object[] { });
         }
 

@@ -31,6 +31,8 @@ namespace UnityEngine.Rendering.Universal
 
         private enum LightCookieShaderFormat
         {
+            None = -1,
+
             RGB = 0,
             Alpha = 1,
             Red = 2
@@ -579,6 +581,13 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalTexture(ShaderProperty.mainLightTexture, cookieTexture);
                 cmd.SetGlobalMatrix(ShaderProperty.mainLightWorldToLight, cookieMatrix);
                 cmd.SetGlobalFloat(ShaderProperty.mainLightCookieTextureFormat, cookieFormat);
+            }
+            else
+            {
+                // Make sure we erase stale data in case the main light is disabled but cookie system is enabled (for additional lights).
+                cmd.SetGlobalTexture(ShaderProperty.mainLightTexture, Texture2D.whiteTexture);
+                cmd.SetGlobalMatrix(ShaderProperty.mainLightWorldToLight, Matrix4x4.identity);
+                cmd.SetGlobalFloat(ShaderProperty.mainLightCookieTextureFormat, (float)LightCookieShaderFormat.None);
             }
 
             return isMainLightCookieEnabled;

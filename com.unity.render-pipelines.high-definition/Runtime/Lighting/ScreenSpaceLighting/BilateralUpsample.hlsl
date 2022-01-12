@@ -170,6 +170,35 @@ float4 BilUpColor3x3(float highDepth, in NeighborhoodUpsampleData3x3 data)
                         + data.lowValue6 * combinedWeightsB.z
                         + data.lowValue7 * combinedWeightsB.w
                         + data.lowValue8 * combinedWeightsC
+                        + float4(_NoiseFilterStrength, _NoiseFilterStrength, _NoiseFilterStrength, 0.0);
+    return WeightedSum / TotalWeight;
+}
+
+// Due to compiler issues, it is not possible to use arrays to store the neighborhood values, we then store them in this structure
+struct NeighborhoodUpsampleData2x2_RGB
+{
+    // Low resolution depths
+    float4 lowDepth;
+
+    // The low resolution values
+    float3 lowValue0;
+    float3 lowValue1;
+    float3 lowValue2;
+    float3 lowValue3;
+
+    // Weights used to combine the neighborhood
+    float4 lowWeight;
+};
+
+// The bilateral upscale function (3x3 neighborhood)
+float3 BilUpColor2x2_RGB(float highDepth, in NeighborhoodUpsampleData2x2_RGB data)
+{
+    float4 combinedWeights = data.lowWeight / (abs(highDepth - data.lowDepth) + _UpsampleTolerance);
+    float TotalWeight = combinedWeights.x + combinedWeights.y + combinedWeights.z + combinedWeights.w + _NoiseFilterStrength;
+    float3 WeightedSum = data.lowValue0.xyz * combinedWeights.x
+                        + data.lowValue1.xyz * combinedWeights.y
+                        + data.lowValue2.xyz * combinedWeights.z
+                        + data.lowValue3.xyz * combinedWeights.w
                         + _NoiseFilterStrength;
     return WeightedSum / TotalWeight;
 }

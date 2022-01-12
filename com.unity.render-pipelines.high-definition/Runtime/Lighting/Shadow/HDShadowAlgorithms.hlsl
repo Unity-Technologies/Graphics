@@ -155,7 +155,7 @@ float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparison
     /* sample the texture */
     // We need to do the check on min/max coordinates because if the shadow spot angle is smaller than the actual cone, then we could have artifacts due to the clamp sampler.
     float2 maxCoord = (sd.shadowMapSize.xy - 0.5f) * texelSize + sd.atlasOffset;
-    float2 minCoord = sd.atlasOffset;
+    float2 minCoord = sd.atlasOffset + 0.5f * texelSize;
     return any(posTC.xy > maxCoord || posTC.xy < minCoord) ? 1.0f : PUNCTUAL_FILTER_ALGORITHM(sd, positionSS, posTC, tex, samp, FIXED_UNIFORM_BIAS);
 }
 
@@ -265,6 +265,7 @@ float EvalShadow_CascadedDepth_Blend_SplitIndex(HDShadowContext shadowContext, T
         positionWS = basePositionWS + sd.cacheTranslationDelta.xyz;
 
         /* normal based bias */
+        float worldTexelSize = sd.worldTexelSize;
         float3 orig_pos = positionWS;
         float3 normalBias = EvalShadow_NormalBias(sd.worldTexelSize, sd.normalBias, normalWS);
         positionWS += normalBias;
@@ -283,6 +284,11 @@ float EvalShadow_CascadedDepth_Blend_SplitIndex(HDShadowContext shadowContext, T
             if (alpha > 0.0)
             {
                 LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
+
+                // We need to modify the bias as the world texel size changes between splits and an update is needed.
+                float biasModifier = (sd.worldTexelSize / worldTexelSize);
+                normalBias *= biasModifier;
+
                 float3 evaluationPosWS = basePositionWS + sd.cacheTranslationDelta.xyz + normalBias;
                 float3 posNDC;
                 posTC = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, evaluationPosWS, posNDC, false);
@@ -310,6 +316,12 @@ float EvalShadow_CascadedDepth_Dither_SplitIndex(HDShadowContext shadowContext, 
     int     cascadeCount;
     float   shadow = 1.0;
     shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, alpha, cascadeCount);
+
+    // Forcing the alpha to zero allows us to avoid the dithering as it requires the screen space position and an additional
+    // shadow read wich can be avoided in this case.
+#if defined(SHADER_STAGE_RAY_TRACING)
+    alpha = 0.0;
+#endif
 
     float3 basePositionWS = positionWS;
 

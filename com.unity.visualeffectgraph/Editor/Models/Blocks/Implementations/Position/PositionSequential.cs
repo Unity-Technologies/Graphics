@@ -8,22 +8,19 @@ namespace UnityEditor.VFX.Block
 {
     class PositionSequentialVariantProvider : VariantProvider
     {
-        public override IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
+        public override IEnumerable<Variant> ComputeVariants()
         {
-            var shapes = new[] { PositionSequential.SequentialShape.Circle, PositionSequential.SequentialShape.Line, PositionSequential.SequentialShape.ThreeDimensional };
-
-            foreach (var shape in shapes)
-            {
-                yield return new[]
-                {
-                    new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite),
-                    new KeyValuePair<string, object>("shape", shape)
-                };
-            }
+            return new[] { PositionSequential.SequentialShape.Circle, PositionSequential.SequentialShape.Line, PositionSequential.SequentialShape.ThreeDimensional }
+                .Select(x => new Variant(
+                    new[]
+                    {
+                        new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite),
+                        new KeyValuePair<string, object>("shape", x)
+                    }, new[] { "position", VFXBlockUtility.GetNameString(AttributeCompositionMode.Overwrite) }));
         }
     }
 
-    [VFXInfo(category = "Position", variantProvider = typeof(PositionSequentialVariantProvider))]
+    [VFXInfo(category = "Attribute/{0}/Composition/{1}", variantProvider = typeof(PositionSequentialVariantProvider))]
     class PositionSequential : VFXBlock
     {
         public enum SequentialShape

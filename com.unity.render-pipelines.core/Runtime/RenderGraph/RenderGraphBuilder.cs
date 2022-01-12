@@ -55,19 +55,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             if (!m_Resources.IsRenderGraphResourceImported(input.handle) && m_Resources.TextureNeedsFallback(input))
             {
-                var texDimension = m_Resources.GetTextureResourceDesc(input.handle).dimension;
-                if (texDimension == TextureXR.dimension)
+                // If texture is read from but never written to, return a fallback black texture to have valid reads
+                // Return one from the preallocated default textures if possible
+                var desc = m_Resources.GetTextureResourceDesc(input.handle);
+                if (!desc.bindTextureMS)
                 {
-                    return m_RenderGraph.defaultResources.blackTextureXR;
+                    if (desc.dimension == TextureXR.dimension)
+                        return m_RenderGraph.defaultResources.blackTextureXR;
+                    else if (desc.dimension == TextureDimension.Tex3D)
+                        return m_RenderGraph.defaultResources.blackTexture3DXR;
+                    else
+                        return m_RenderGraph.defaultResources.blackTexture;
                 }
-                else if (texDimension == TextureDimension.Tex3D)
-                {
-                    return m_RenderGraph.defaultResources.blackTexture3DXR;
-                }
-                else
-                {
-                    return m_RenderGraph.defaultResources.blackTexture;
-                }
+                // If not, force a write to the texture so that it gets allocated, and ensure it gets initialized with a clear color
+                if (!desc.clearBuffer)
+                    m_Resources.ForceTextureClear(input.handle, Color.black);
+                WriteTexture(input);
             }
 
             m_RenderPass.AddResourceRead(input.handle);
@@ -247,6 +250,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Used to indicate that a pass depends on an external renderer list (that is not directly used in this pass).
         /// </summary>
         /// <param name="input">The renderer list handle this pass depends on.</param>
+        /// <returns>A <see cref="RendererListHandle"/></returns>
         public RendererListHandle DependsOn(in RendererListHandle input)
         {
             m_RenderPass.UseRendererList(input);

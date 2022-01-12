@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position")]
+    [VFXInfo(category = "Attribute/position/Composition/Set")]
     class PositionSDF : PositionBase
     {
         public override string name { get { return "Position (Signed Distance Field)"; } }

@@ -10,6 +10,8 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using BlendMode = UnityEditor.Rendering.HighDefinition.BlendMode;
 
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
+
 namespace UnityEditor.VFX.HDRP
 {
     class VFXHDRPBinder : VFXSRPBinder
@@ -44,7 +46,18 @@ namespace UnityEditor.VFX.HDRP
             { }
         }
 
-        public override VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(VFXMaterialSerializedSettings materialSettings)
+        public override bool TryGetQueueOffset(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings, out int queueOffset)
+        {
+            queueOffset = 0;
+            if (materialSettings.HasProperty(HDMaterialProperties.kTransparentSortPriority))
+            {
+                queueOffset = (int)materialSettings.GetFloat(HDMaterialProperties.kTransparentSortPriority);
+                return true;
+            }
+            return false;
+        }
+
+        public override VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(ShaderGraphVfxAsset shader, VFXMaterialSerializedSettings materialSettings)
         {
             var blendMode = VFXAbstractRenderedOutput.BlendMode.Opaque;
 
@@ -93,45 +106,129 @@ namespace UnityEditor.VFX.HDRP
         public override string GetShaderName(ShaderGraphVfxAsset shaderGraph)
         {
             // Recover the HDRP Shader ids from the VFX Shader Graph.
-            (HDShaderUtils.ShaderID shaderID, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromHDMetadata(shaderGraph);
+            (ShaderID shaderID, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromHDMetadata(shaderGraph);
             return HDShaderUtils.GetMaterialSubTargetDisplayName(subTargetGUID);
         }
 
-        // List of shader properties that currently are not supported for exposure in VFX shaders.
-        private static readonly Dictionary<Type, string> s_UnsupportedShaderPropertyTypes = new Dictionary<Type, string>()
+        // List of shader properties that currently are not supported for exposure in VFX shaders (for HDRP).
+        private static readonly Dictionary<Type, string> s_UnsupportedHDRPShaderPropertyTypes = new Dictionary<Type, string>()
         {
             { typeof(DiffusionProfileShaderProperty), "Diffusion Profile" },
-            { typeof(VirtualTextureShaderProperty),   "Virtual Texture"   },
-            { typeof(GradientShaderProperty),         "Gradient"          }
         };
 
-        public override bool IsGraphDataValid(GraphData graph)
+        public override IEnumerable<KeyValuePair<Type, string>> GetUnsupportedShaderPropertyType()
         {
-            var valid = true;
+            return base.GetUnsupportedShaderPropertyType().Concat(s_UnsupportedHDRPShaderPropertyTypes);
+        }
 
-            var warnings = new List<string>();
-
-            // Filter property list for any unsupported shader properties.
-            foreach (var property in graph.properties)
+        static readonly StructDescriptor AttributesMeshVFX = new StructDescriptor()
+        {
+            name = "AttributesMesh",
+            packFields = false,
+            fields = new FieldDescriptor[]
             {
-                if (s_UnsupportedShaderPropertyTypes.ContainsKey(property.GetType()))
+                HDStructFields.AttributesMesh.positionOS,
+                HDStructFields.AttributesMesh.normalOS,
+                HDStructFields.AttributesMesh.tangentOS,
+                HDStructFields.AttributesMesh.uv0,
+                HDStructFields.AttributesMesh.uv1,
+                HDStructFields.AttributesMesh.uv2,
+                HDStructFields.AttributesMesh.uv3,
+                HDStructFields.AttributesMesh.color,
+
+                // InstanceID without the Preprocessor.
+                new FieldDescriptor(HDStructFields.AttributesMesh.name, "instanceID", "", ShaderValueType.Uint, "INSTANCEID_SEMANTIC"),
+
+                HDStructFields.AttributesMesh.weights,
+                HDStructFields.AttributesMesh.indices,
+
+                // VertexID without the Preprocessor.
+                new FieldDescriptor(HDStructFields.AttributesMesh.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint, "VERTEXID_SEMANTIC")
+            }
+        };
+
+        // A key difference between Material Shader and VFX Shader generation is how surface properties are provided. Material Shaders
+        // simply provide properties via UnityPerMaterial cbuffer. VFX expects these same properties to be computed in the vertex
+        // stage (because we must evaluate them with the VFX blocks), and packed with the interpolators for the fragment stage.
+        static StructDescriptor AppendVFXInterpolator(StructDescriptor interpolator, VFXContext context, VFXContextCompiledData contextData)
+        {
+            var fields = interpolator.fields.ToList();
+
+            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+
+            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+
+            // Warning/TODO: FragmentParameters are created from the ShaderGraphVfxAsset.
+            // We may ultimately need to move this handling of VFX Interpolators + SurfaceDescriptionFunction function signature directly into the SG Generator (since it knows about the exposed properties).
+            foreach (string fragmentParameter in context.fragmentParameters)
+            {
+                var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name &&
+                    !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name)); // if parameter already in the global scope, there's nothing to do
+
+                if (filteredNamedExpression.exp != null)
                 {
-                    warnings.Add(s_UnsupportedShaderPropertyTypes[property.GetType()]);
-                    valid = false;
+                    var type = VFXExpression.TypeToType(filteredNamedExpression.exp.valueType);
+
+                    if (!VFXSubTarget.kVFXShaderValueTypeMap.TryGetValue(type, out var shaderValueType))
+                        continue;
+
+                    // TODO: NoInterpolation only for non-strips.
+                    fields.Add(new FieldDescriptor(HDStructFields.VaryingsMeshToPS.name, filteredNamedExpression.name, "", shaderValueType, subscriptOptions: StructFieldOptions.Static, interpolation: "nointerpolation"));
                 }
             }
 
-            // VFX currently does not support the concept of per-particle keywords.
-            if (graph.keywords.Any())
+            // VFX Object Space Interpolators
+            fields.Add(HDStructFields.VaryingsMeshToPS.worldToElement0);
+            fields.Add(HDStructFields.VaryingsMeshToPS.worldToElement1);
+            fields.Add(HDStructFields.VaryingsMeshToPS.worldToElement2);
+
+            fields.Add(HDStructFields.VaryingsMeshToPS.elementToWorld0);
+            fields.Add(HDStructFields.VaryingsMeshToPS.elementToWorld1);
+            fields.Add(HDStructFields.VaryingsMeshToPS.elementToWorld2);
+
+            interpolator.fields = fields.ToArray();
+            return interpolator;
+        }
+
+        static readonly DependencyCollection ElementSpaceDependencies = new DependencyCollection
+        {
+            // Interpolator dependency.
+            new FieldDependency(HDStructFields.FragInputs.worldToElement, HDStructFields.VaryingsMeshToPS.worldToElement0),
+            new FieldDependency(HDStructFields.FragInputs.worldToElement, HDStructFields.VaryingsMeshToPS.worldToElement1),
+            new FieldDependency(HDStructFields.FragInputs.worldToElement, HDStructFields.VaryingsMeshToPS.worldToElement2),
+
+            new FieldDependency(HDStructFields.FragInputs.elementToWorld, HDStructFields.VaryingsMeshToPS.elementToWorld0),
+            new FieldDependency(HDStructFields.FragInputs.elementToWorld, HDStructFields.VaryingsMeshToPS.elementToWorld1),
+            new FieldDependency(HDStructFields.FragInputs.elementToWorld, HDStructFields.VaryingsMeshToPS.elementToWorld2),
+
+            // Note: Normal is dependent on elementToWorld for inverse transpose multiplication.
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,             HDStructFields.FragInputs.elementToWorld),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceTangent,            HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceBiTangent,          HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpacePosition,           HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,      HDStructFields.FragInputs.worldToElement),
+
+            new FieldDependency(Fields.WorldToObject, HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(Fields.ObjectToWorld, HDStructFields.FragInputs.elementToWorld)
+        };
+
+
+        public override ShaderGraphBinder GetShaderGraphDescriptor(VFXContext context, VFXContextCompiledData data)
+        {
+            return new ShaderGraphBinder
             {
-                warnings.Add("Keyword");
-                valid = false;
-            }
+                structs = new StructCollection
+                {
+                    AttributesMeshVFX, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
+                    Structs.VertexDescriptionInputs,
+                    Structs.SurfaceDescriptionInputs,
+                    AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, data),
+                },
 
-            if (!valid)
-                Debug.LogWarning($"({String.Join(", ", warnings)}) blackboard properties in Shader Graph are currently not supported in Visual Effect shaders. Falling back to default generation path.");
-
-            return valid;
+                fieldDependencies = ElementSpaceDependencies,
+                useFragInputs = true
+            };
         }
     }
 }

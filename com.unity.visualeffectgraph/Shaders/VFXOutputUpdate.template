@@ -1,4 +1,5 @@
 #pragma kernel CSMain
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 
@@ -75,8 +76,8 @@ void CSMain(uint3 groupId		: SV_GroupID,
 	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
 	if (id < nbMax)
 	{
-		Attributes attributes = (Attributes)0;
-		SourceAttributes sourceAttributes = (SourceAttributes)0;
+		VFXAttributes attributes = (VFXAttributes)0;
+		VFXSourceAttributes sourceAttributes = (VFXSourceAttributes)0;
 
         uint index = id;
 
@@ -113,12 +114,12 @@ void CSMain(uint3 groupId		: SV_GroupID,
 	            float4x4 elementToWorld = elementToVFX;
                 elementToWorld._m03_m13_m23 = GetCameraRelativePositionWS(elementToWorld._m03_m13_m23);
 #else
-                float4x4 elementToWorld = mul(GetObjectToWorldMatrix(),elementToVFX);          
+                float4x4 elementToWorld = mul(GetObjectToWorldMatrix(),elementToVFX);
 #endif
 
 	            float xAxisSqrLength = dot(elementToWorld._m00_m10_m20, elementToWorld._m00_m10_m20);
 	            float yAxisSqrLength = dot(elementToWorld._m01_m11_m21, elementToWorld._m01_m11_m21);
-	            float zAxisSqrLength = dot(elementToWorld._m02_m12_m22, elementToWorld._m02_m12_m22);             
+	            float zAxisSqrLength = dot(elementToWorld._m02_m12_m22, elementToWorld._m02_m12_m22);
                 float radius = 0.5f * sqrt(xAxisSqrLength + yAxisSqrLength + zAxisSqrLength);
 
                 ${VFXLoadParameter:{radiusScale}}
@@ -128,7 +129,7 @@ void CSMain(uint3 groupId		: SV_GroupID,
                 if (IsSphereOutsideFrustum(elementToWorld._m03_m13_m23, radius, _FrustumPlanes))
                     return;
 #endif
-#endif          
+#endif
 
 #if INDIRECT_BUFFER_COUNT > 0
 #if VFX_FEATURE_LOD
@@ -146,7 +147,7 @@ void CSMain(uint3 groupId		: SV_GroupID,
                     float lodValue = max(abs(clip.x),abs(clip.y)) * rcp(max(VFX_EPSILON, clip.w));
 
                     ${VFXLoadParameter:{lodValues}}
-                
+
                     for (uint i = 0; i < INDIRECT_BUFFER_COUNT; ++i)
                         if (lodValue > lodValues[i])
                         {
@@ -164,16 +165,7 @@ void CSMain(uint3 groupId		: SV_GroupID,
 
 
 #if VFX_FEATURE_SORT
-#if VFX_LOCAL_SPACE
-                float3 posRWS = TransformObjectToWorld(attributes.position);
-#else
-                float3 posRWS = GetCameraRelativePositionWS(attributes.position);
-#endif
-                float3 camToPos = posRWS - GetCurrentViewPosition();
-		
-                Kvp output;
-                output.sortKey = dot(camToPos,camToPos); // sqr distance to the camera
-                output.index = index;
+${VFXFeedSortingKeys}
 #else
                 uint output = index;
 #endif
@@ -263,6 +255,6 @@ void CSMain(uint3 groupId		: SV_GroupID,
 #endif
 #endif
             }
-		}		
+		}
 	}
 }

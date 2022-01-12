@@ -2,10 +2,11 @@ using System;
 using System.Linq;
 using UnityEditor.ShaderGraph;
 
+using Unity.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    sealed class UniversalSpriteCustomLitSubTarget : SubTarget<UniversalTarget>
+    sealed class UniversalSpriteCustomLitSubTarget : UniversalSubTarget
     {
         static readonly GUID kSourceCodeGuid = new GUID("69e608b3e7e0405bbc2f259ad9cfa196"); // UniversalUnlitSubTarget.cs
 
@@ -14,10 +15,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             displayName = "Sprite Custom Lit";
         }
 
+        protected override ShaderUtils.ShaderID shaderID => ShaderUtils.ShaderID.SG_SpriteCustomLit;
+
         public override bool IsActive() => true;
 
         public override void Setup(ref TargetSetupContext context)
         {
+            base.Setup(ref context);
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddSubShader(SubShaders.SpriteLit(target));
         }
@@ -91,10 +95,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     {
                         { SpriteLitPasses.Lit },
                         { SpriteLitPasses.Normal },
+                        // Currently neither of these passes (selection/picking) can be last for the game view for
+                        // UI shaders to render correctly. Verify [1352225] before changing this order.
                         { CorePasses._2DSceneSelection(target) },
                         { CorePasses._2DScenePicking(target) },
-                        // Currently this pass must be last for the game view for UI shaders to render
-                        // correctly. Verify [1352225] before changing this order.
                         { SpriteLitPasses.Forward },
                     },
                 };
@@ -115,8 +119,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = true,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -143,8 +147,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = true,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -170,8 +174,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = true,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,

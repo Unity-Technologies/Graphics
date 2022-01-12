@@ -26,7 +26,7 @@ class VFXContextEditor : VFXSlotContainerEditor
 
     float m_Width;
 
-    protected new void OnEnable()
+    protected void OnEnable()
     {
         UnityEngine.Object[] allData = targets.Cast<VFXContext>().Select(t => t.GetData()).Distinct().Where(t => t != null).Cast<UnityEngine.Object>().ToArray();
         if (allData.Length > 0)
@@ -41,8 +41,6 @@ class VFXContextEditor : VFXSlotContainerEditor
         }
 
         subOutputObjectInitialized = false;
-
-        base.OnEnable();
     }
 
     protected override SerializedProperty FindProperty(VFXSetting setting)
@@ -256,6 +254,10 @@ class VFXContextEditor : VFXSlotContainerEditor
         }
     }
 
+    public virtual void DisplayWarnings()
+    {
+    }
+
     public override void OnInspectorGUI()
     {
         if (dataObject != null)
@@ -277,7 +279,7 @@ class VFXContextEditor : VFXSlotContainerEditor
                 ctx.GetData().Invalidate(VFXModel.InvalidationCause.kSettingChanged); // This will also invalidate contexts
             }
         }
-
+        DisplayWarnings();
         DisplaySummary();
     }
 }

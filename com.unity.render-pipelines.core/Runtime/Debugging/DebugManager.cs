@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering.UI;
 using UnityEngine.UI;
@@ -140,6 +141,7 @@ namespace UnityEngine.Rendering
                 }
 
                 onDisplayRuntimeUIChanged(value);
+                DebugUpdater.HandleInternalEventSystemComponents(value);
             }
         }
 
@@ -164,13 +166,28 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Is any debug window or UI currently active.
+        /// </summary>
+        public bool isAnyDebugUIActive
+        {
+            get
+            {
+                return
+                    displayRuntimeUI || displayPersistentRuntimeUI
+#if UNITY_EDITOR
+                    || displayEditorUI
+#endif
+                    ;
+            }
+        }
+
         DebugManager()
         {
-            if (!Debug.isDebugBuild)
-                return;
-
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             RegisterInputs();
             RegisterActions();
+#endif
         }
 
         /// <summary>
@@ -264,20 +281,34 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void TogglePersistent(DebugUI.Widget widget)
+        internal void TogglePersistent(DebugUI.Widget widget, int? forceTupleIndex = null)
         {
             if (widget == null)
                 return;
 
-            var valueWidget = widget as DebugUI.Value;
-            if (valueWidget == null)
-            {
-                Debug.Log("Only DebugUI.Value items can be made persistent.");
-                return;
-            }
-
             EnsurePersistentCanvas();
-            m_RootUIPersistentCanvas.Toggle(valueWidget);
+
+            switch (widget)
+            {
+                case DebugUI.Value value:
+                    m_RootUIPersistentCanvas.Toggle(value);
+                    break;
+                case DebugUI.ValueTuple valueTuple:
+                    m_RootUIPersistentCanvas.Toggle(valueTuple, forceTupleIndex);
+                    break;
+                case DebugUI.Container container:
+                    // When container is toggled, we make sure that if there are ValueTuples, they all get the same element index.
+                    int pinnedIndex = container.children.Max(w => (w as DebugUI.ValueTuple)?.pinnedElementIndex ?? -1);
+                    foreach (var child in container.children)
+                    {
+                        if (child is DebugUI.Value || child is DebugUI.ValueTuple)
+                            TogglePersistent(child, pinnedIndex);
+                    }
+                    break;
+                default:
+                    Debug.Log("Only readonly items can be made persistent.");
+                    break;
+            }
         }
 
         void OnPanelDirty(DebugUI.Panel panel)
@@ -348,6 +379,14 @@ namespace UnityEngine.Rendering
 
             return p;
         }
+
+        /// <summary>
+        /// Find the index of the panel from it's display name.
+        /// </summary>
+        /// <param name="displayName">The display name of the panel to find.</param>
+        /// <returns>The index of the panel in the list. -1 if not found.</returns>
+        public int FindPanelIndex(string displayName)
+            => m_Panels.FindIndex(p => p.displayName == displayName);
 
         // TODO: Use a query path here as well instead of a display name
         /// <summary>

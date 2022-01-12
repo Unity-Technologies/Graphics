@@ -130,9 +130,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // The size of the shadow region (meters)
         public Vector2 _ShadowRegionSize;
+        public Vector2 _PaddingVC0;
 
-        // World Camera Position used as the constant buffer has not been injected yet when this data is required
-        public Vector2 _WorldSpaceShadowCenter;
+        // World Camera Position used as the constant buffer has not been injected yet when this data is required, last channel is unused.
+        public Vector4 _WorldSpaceShadowCenter;
 
         // View projection matrix (non oblique) for the planar reflection matrices
         public Matrix4x4 _CameraViewProjection_NO;
@@ -148,6 +149,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _EnableFastToneMapping;
         // Flag that defines if the current camera is a planar reflection
         public int _IsPlanarReflection;
+
+        // Flag that allows us to know if the maxZMask texture is valid
+        public int _ValidMaxZMask;
+        // Flag that allows to know if we should be using the improved transmittance blending
+        public int _ImprovedTransmittanceBlend;
+        // Flag that defines if the transmittance should follow a cubic profile (For MSAA)
+        public int _CubicTransmittance;
+        public int _Padding1;
 
         [HLSLArray(3 * 4, typeof(Vector4))]
         public fixed float _DistanceBasedWeights[12 * 4];

@@ -195,8 +195,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
+    /// <summary>
+    /// Class for Diffusion Profile settings
+    /// </summary>
     [HDRPHelpURLAttribute("Diffusion-Profile")]
-    internal partial class DiffusionProfileSettings : ScriptableObject
+    public partial class DiffusionProfileSettings : ScriptableObject
     {
         [SerializeField]
         internal DiffusionProfile profile;
@@ -206,6 +209,47 @@ namespace UnityEngine.Rendering.HighDefinition
         [NonSerialized] internal Vector4 transmissionTintAndFresnel0;                // RGB = color, A = fresnel0
         [NonSerialized] internal Vector4 disabledTransmissionTintAndFresnel0;        // RGB = black, A = fresnel0 - For debug to remove the transmission
         [NonSerialized] internal int updateCount;
+
+        /// <summary>
+        /// Scattering distance. Determines the shape of the profile, and the blur radius of the filter per color channel. Alpha is ignored.
+        /// </summary>
+        public Color scatteringDistance
+        {
+            get => profile.scatteringDistance;
+            set { profile.scatteringDistance = value; profile.Validate(); UpdateCache(); }
+        }
+
+        /// <summary>
+        /// Effective radius of the filter (in millimeters).
+        /// </summary>
+        public float maximumRadius { get => profile.filterRadius; }
+
+        /// <summary>
+        /// Index of refraction. For reference, skin is 1.4 and most materials are between 1.3 and 1.5.
+        /// </summary>
+        public float indexOfRefraction
+        {
+            get => profile.ior;
+            set { profile.ior = value; profile.Validate(); UpdateCache(); }
+        }
+
+        /// <summary>
+        /// Size of the world unit in meters.
+        /// </summary>
+        public float worldScale
+        {
+            get => profile.worldScale;
+            set { profile.worldScale = value; profile.Validate(); UpdateCache(); }
+        }
+
+        /// <summary>
+        /// Color which tints transmitted light. Alpha is ignored.
+        /// </summary>
+        public Color transmissionTint
+        {
+            get => profile.transmissionTint;
+            set { profile.transmissionTint = value; profile.Validate(); UpdateCache(); }
+        }
 
         void OnEnable()
         {
@@ -265,7 +309,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Initialize the settings for the default diffusion profile.
         /// </summary>
-        public void SetDefaultParams()
+        internal void SetDefaultParams()
         {
             worldScaleAndFilterRadiusAndThicknessRemap = new Vector4(1, 0, 0, 1);
             shapeParamAndMaxScatterDist = new Vector4(16777216, 16777216, 16777216, 0);

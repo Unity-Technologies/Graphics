@@ -19,16 +19,7 @@ using Object = System.Object;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-#if ENABLE_HYBRID_RENDERER_V2
-    // Bump the version number when Hybrid Renderer V2 is enabled, to make
-    // sure that all shader graphs get re-imported. Re-importing is required,
-    // because the shader graph codegen is different for V2.
-    // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(124, Extension, -902)]
-#else
-    [ScriptedImporter(53, Extension, -902)]
-#endif
-
+    [ScriptedImporter(126, Extension, -902)]
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
@@ -196,6 +187,12 @@ Shader ""Hidden/GraphErrorShader2""
                 }
             }
 #endif
+
+            if (shader != null)
+            {
+                Material material = new Material(shader) { name = Path.GetFileNameWithoutExtension(path) + " Material" };
+                ctx.AddObjectToAsset("Material", material);
+            }
 
             Texture2D texture = Resources.Load<Texture2D>("Icons/sg_graph_icon");
             ctx.AddObjectToAsset("MainAsset", mainObject, texture);
@@ -772,6 +769,8 @@ Shader ""Hidden/GraphErrorShader2""
 
             AddRequirementsSnippet(r => r.requiresVertexColor, $"float4 {ShaderGeneratorNames.VertexColor}");
             AddRequirementsSnippet(r => r.requiresScreenPosition, $"float4 {ShaderGeneratorNames.ScreenPosition}");
+            AddRequirementsSnippet(r => r.requiresNDCPosition, $"float2 {ShaderGeneratorNames.NDCPosition}");
+            AddRequirementsSnippet(r => r.requiresPixelPosition, $"float2 {ShaderGeneratorNames.PixelPosition}");
             AddRequirementsSnippet(r => r.requiresFaceSign, $"float4 {ShaderGeneratorNames.FaceSign}");
 
             foreach (var uvChannel in EnumInfo<UVChannel>.values)

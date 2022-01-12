@@ -37,6 +37,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_ScrollBoundaryBottom;
         VisualElement m_BottomResizer;
         TextField m_PathLabelTextField;
+        public VisualElement m_VariantExceededHelpBox;
 
         // --- Begin ISGControlledElement implementation
         public void OnControllerChanged(ref SGControllerChangedEvent e)
@@ -45,6 +46,21 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void OnControllerEvent(SGControllerEvent e)
         {
+        }
+
+        public void SetCurrentVariantUsage(int currentVariantCount, int maxVariantCount)
+        {
+            if (currentVariantCount < maxVariantCount && m_VariantExceededHelpBox != null)
+            {
+                RemoveAt(0);
+                m_VariantExceededHelpBox = null;
+            }
+            else if (maxVariantCount <= currentVariantCount && m_VariantExceededHelpBox == null)
+            {
+                var helpBox = HelpBoxRow.CreateVariantLimitHelpBox(currentVariantCount, maxVariantCount);
+                m_VariantExceededHelpBox = helpBox;
+                Insert(0, helpBox);
+            }
         }
 
         public BlackboardController controller
@@ -136,8 +152,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PathLabelTextField = this.Q<TextField>("subTitleTextField");
             m_PathLabelTextField.value = ViewModel.subtitle;
             m_PathLabelTextField.visible = false;
-            m_PathLabelTextField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); });
-            m_PathLabelTextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
+            m_PathLabelTextField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); }, TrickleDown.TrickleDown);
+            m_PathLabelTextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed, TrickleDown.TrickleDown);
 
             // These callbacks make sure the scroll boundary regions and drag indicator don't show up user is not dragging/dropping properties/categories
             RegisterCallback<MouseUpEvent>(OnMouseUpEvent);

@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.Universal
     {
         Off,
         On,
+        [InspectorName("Use settings from Render Pipeline Asset")]
         UsePipelineSettings,
     }
 
@@ -111,11 +112,14 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
+            bool requiredUpdatePreviously = cameraData.requiresVolumeFrameworkUpdate;
             cameraData.volumeFrameworkUpdateMode = mode;
 
             // We only update the local volume stacks for cameras set to ViaScripting.
             // Otherwise it will be updated in every frame.
-            if (!cameraData.requiresVolumeFrameworkUpdate)
+            // We also check the previous value to make sure we're not updating when
+            // switching between Camera ViaScripting and the URP Asset set to ViaScripting
+            if (requiredUpdatePreviously && !cameraData.requiresVolumeFrameworkUpdate)
             {
                 camera.UpdateVolumeStack(cameraData);
             }
@@ -159,6 +163,27 @@ namespace UnityEngine.Rendering.Universal
 
             camera.GetVolumeLayerMaskAndTrigger(cameraData, out LayerMask layerMask, out Transform trigger);
             VolumeManager.instance.Update(cameraData.volumeStack, trigger, layerMask);
+        }
+
+        /// <summary>
+        /// Destroys the volume stack for this camera.
+        /// </summary>
+        /// <param name="camera"></param>
+        public static void DestroyVolumeStack(this Camera camera)
+        {
+            UniversalAdditionalCameraData cameraData = camera.GetUniversalAdditionalCameraData();
+            camera.DestroyVolumeStack(cameraData);
+        }
+
+        /// <summary>
+        /// Destroys the volume stack for this camera.
+        /// </summary>
+        /// <param name="camera"></param>
+        /// <param name="cameraData"></param>
+        public static void DestroyVolumeStack(this Camera camera, UniversalAdditionalCameraData cameraData)
+        {
+            cameraData.volumeStack.Dispose();
+            cameraData.volumeStack = null;
         }
 
         /// <summary>
@@ -366,6 +391,35 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        void OnEnable()
+        {
+            RegisterDebug();
+        }
+
+        void OnDisable()
+        {
+            UnRegisterDebug();
+        }
+
+        bool m_IsDebugRegistered = false;
+        void RegisterDebug()
+        {
+            if (!m_IsDebugRegistered)
+            {
+                UniversalRenderPipelineVolumeDebugSettings.RegisterCamera(this);
+                m_IsDebugRegistered = true;
+            }
+        }
+
+        void UnRegisterDebug()
+        {
+            if (m_IsDebugRegistered)
+            {
+                UniversalRenderPipelineVolumeDebugSettings.UnRegisterCamera(this);
+                m_IsDebugRegistered = false;
+            }
+        }
+
         /// <summary>
         /// If true, this camera will clear depth value before rendering. Only valid for Overlay cameras.
         /// </summary>
@@ -553,10 +607,12 @@ namespace UnityEngine.Rendering.Universal
             set => m_AllowXRRendering = value;
         }
 
+        /// <inheritdoc/>
         public void OnBeforeSerialize()
         {
         }
 
+        /// <inheritdoc/>
         public void OnAfterDeserialize()
         {
             if (version <= 1)
@@ -566,6 +622,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
         public void OnDrawGizmos()
         {
             string gizmoName = "";

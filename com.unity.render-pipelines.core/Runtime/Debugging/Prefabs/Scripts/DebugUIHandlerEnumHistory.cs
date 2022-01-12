@@ -9,17 +9,18 @@ namespace UnityEngine.Rendering.UI
     public class DebugUIHandlerEnumHistory : DebugUIHandlerEnumField
     {
         Text[] historyValues;
-        const float xDecal = 60f;
+        const float k_XOffset = 230f;
 
         internal override void SetWidget(DebugUI.Widget widget)
         {
             int historyDepth = (widget as DebugUI.HistoryEnumField)?.historyDepth ?? 0;
             historyValues = new Text[historyDepth];
+            float columnOffset = historyDepth > 0 ? k_XOffset / (float)historyDepth : 0f;
             for (int index = 0; index < historyDepth; ++index)
             {
                 var historyValue = Instantiate(valueLabel, transform);
                 Vector3 pos = historyValue.transform.position;
-                pos.x += (index + 1) * xDecal;
+                pos.x += (index + 1) * columnOffset;
                 historyValue.transform.position = pos;
                 var text = historyValue.GetComponent<Text>();
                 text.color = new Color32(110, 110, 110, 255);

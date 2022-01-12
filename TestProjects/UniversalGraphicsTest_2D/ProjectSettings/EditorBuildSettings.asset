@@ -45,6 +45,18 @@ EditorBuildSettings:
     path: Assets/Scenes/003_PixelPerfect_Cinemachine.unity
     guid: 548efbe8196c7bb41a94d25d70cf82e6
   - enabled: 1
+    path: Assets/Scenes/003_PixelPerfect_StretchFill_RetroAA.unity
+    guid: 7dae1015b491af64bb5866e0b3c43aa2
+  - enabled: 1
+    path: Assets/Scenes/003_PixelPerfect_StretchFill_Point.unity
+    guid: 6d772a427194d2b4e96a0fc7ecf8b608
+  - enabled: 1
+    path: Assets/Scenes/003_PixelPerfect_StretchFill_UpscaleRT_RetroAA.unity
+    guid: ec03f185c783b444899615c87fd771b2
+  - enabled: 1
+    path: Assets/Scenes/003_PixelPerfect_StretchFill_UpscaleRT_Point.unity
+    guid: dc2319f8cc6ad4e458a9554e4647c0dd
+  - enabled: 1
     path: Assets/Scenes/004_Shadows_Caster_Ortho_000.unity
     guid: 304cf4847cf9c824a914e06835197176
   - enabled: 1
@@ -179,6 +191,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/013_Shadergraph_AlphaBlend.unity
     guid: a845098be7b438b40a7f4dee1b6aa5aa
+  - enabled: 1
+    path: Assets/Scenes/014_Layer_Batching_GlobalLightWithShadows.unity
+    guid: 428ccbee9b0fb7c4ca5f4dd5579b62d3
   - enabled: 1
     path: Assets/Scenes/072_Shadow_Prerendering.unity
     guid: 5c51bb3f8f127fd4cbfa0fbdb9221b0e

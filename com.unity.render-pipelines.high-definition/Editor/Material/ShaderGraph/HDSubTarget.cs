@@ -4,13 +4,9 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Legacy;
-using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
 using UnityEditor.VFX;
-using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
-using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
+
+using static UnityEngine.Rendering.HighDefinition.HDMaterial;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -63,6 +59,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected virtual string pathtracingInclude => null;
         protected virtual bool supportPathtracing => false;
         protected virtual bool supportRaytracing => false;
+        protected virtual string[] sharedTemplatePath => new string[]{
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/",
+            $"{HDUtils.GetVFXPath()}/Editor/ShaderGraph/Templates"
+        };
 
         public virtual string identifier => GetType().Name;
 
@@ -116,7 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.materialNeedsUpdateHash = ComputeMaterialNeedsUpdateHash();
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
-            var inspector = TargetsVFX() ? VFXHDRPSubTarget.Inspector : customInspector;
+            var inspector = TargetsVFX() ? typeof(VFXShaderGraphGUI).FullName : customInspector;
             if (!context.HasCustomEditorForRenderPipeline(typeof(HDRenderPipelineAsset)))
                 context.AddCustomEditorForRenderPipeline(inspector, typeof(HDRenderPipelineAsset));
 
@@ -129,6 +129,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 context.AddSubShader(patchedSubShader);
             }
         }
+
+
 
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
@@ -144,7 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var passDescriptor = passes[i].descriptor;
                 passDescriptor.passTemplatePath = templatePath;
-                passDescriptor.sharedTemplateDirectories = templateMaterialDirectories;
+                passDescriptor.sharedTemplateDirectories = sharedTemplatePath.Concat(templateMaterialDirectories).ToArray();
 
                 // Add the subShader to enable fields that depends on it
                 var originalRequireFields = passDescriptor.requiredFields;
