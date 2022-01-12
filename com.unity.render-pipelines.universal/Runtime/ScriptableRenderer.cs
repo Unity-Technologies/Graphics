@@ -54,11 +54,20 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Write something good here
+        /// Returns the bitmask of the supported camera render types in the renderer's current state.
         /// </summary>
         public virtual int SupportedCameraRenderTypes()
         {
             return 0;
+        }
+
+        /// <summary>
+        /// Returns true if the given camera render type is supported in the renderer's current state.
+        /// </summary>
+        /// <param name="cameraRenderType">The camera render type that is checked if supported.</param>
+        public bool SupportsCameraRenderType(CameraRenderType cameraRenderType)
+        {
+            return (SupportedCameraRenderTypes() & 1 << (int)cameraRenderType) != 0;
         }
 
         /// <summary>

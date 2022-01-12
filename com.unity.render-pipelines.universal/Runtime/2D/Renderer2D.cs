@@ -37,6 +37,12 @@ namespace UnityEngine.Rendering.Universal
         internal RTHandle afterPostProcessColorHandle { get => m_PostProcessPasses.afterPostProcessColor; }
         internal RTHandle colorGradingLutHandle { get => m_PostProcessPasses.colorGradingLut; }
 
+        /// <inheritdoc/>
+        public override int SupportedCameraRenderTypes()
+        {
+            return 1 << (int)CameraRenderType.Base | 1 << (int)CameraRenderType.Overlay;
+        }
+
         public Renderer2D(Renderer2DData data) : base(data)
         {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);

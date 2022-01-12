@@ -259,7 +259,7 @@ namespace UnityEditor.Rendering.Universal
 
         void AddCameraToCameraList(Rect rect, ReorderableList list)
         {
-            // Need to do clear the list here otherwise the meu just fills up with more and more entries
+            // Need to do clear the list here otherwise the menu just fills up with more and more entries
             validCameras.Clear();
             var allCameras = FindCamerasToReference(camera.gameObject);
             foreach (var camera in allCameras)
@@ -507,7 +507,7 @@ namespace UnityEditor.Rendering.Universal
 
             bool cameraStackingAvailable = m_SerializedCamera
                 .camerasAdditionalData
-                .All(c => c.scriptableRenderer?.supportedRenderingFeatures?.cameraStacking ?? false);
+                .All(c => c.scriptableRenderer?.SupportsCameraRenderType(CameraRenderType.Base) ?? false);
 
             if (!cameraStackingAvailable)
             {

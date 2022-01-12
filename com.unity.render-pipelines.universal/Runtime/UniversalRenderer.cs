@@ -46,6 +46,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler createCameraRenderTarget = new ProfilingSampler($"{k_Name}.{nameof(CreateCameraRenderTarget)}");
         }
 
+        /// <inheritdoc/>
         public override int SupportedCameraRenderTypes()
         {
             switch (m_RenderingMode)

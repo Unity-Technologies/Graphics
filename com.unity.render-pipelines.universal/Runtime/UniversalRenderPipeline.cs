@@ -455,8 +455,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        // Renders a camera stack. This method calls RenderSingleCamera for each valid camera in the stack.
-        // The last camera resolves the final target to screen.
+        /// Renders a camera stack. This method calls RenderSingleCamera for each valid camera in the stack.
+        /// The last camera resolves the final target to screen.
         /// </summary>
         /// <param name="context">Render context used to record commands during execution.</param>
         /// <param name="camera">Camera to render.</param>
@@ -470,9 +470,10 @@ namespace UnityEngine.Rendering.Universal
             if (baseCameraAdditionalData != null && baseCameraAdditionalData.renderType == CameraRenderType.Overlay)
                 return;
 
-            // renderer contains a stack if it has additional data and the renderer supports stacking
+            // Renderer contains a stack if it has additional data and the renderer supports stacking
+            // The renderer is checked if it supports Base camera. Since Base is the only relevant type at this moment.
             var renderer = baseCameraAdditionalData?.scriptableRenderer;
-            bool supportsCameraStacking = renderer != null && renderer.supportedRenderingFeatures.cameraStacking;
+            bool supportsCameraStacking = renderer != null && renderer.SupportsCameraRenderType(CameraRenderType.Base);
             List<Camera> cameraStack = (supportsCameraStacking) ? baseCameraAdditionalData?.cameraStack : null;
 
             bool anyPostProcessingEnabled = baseCameraAdditionalData != null && baseCameraAdditionalData.renderPostProcessing;
