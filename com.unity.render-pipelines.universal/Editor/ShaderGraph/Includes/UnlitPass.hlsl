@@ -43,11 +43,11 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #elif _SURFACE_TYPE_TRANSPARENT
         half alpha = surfaceDescription.Alpha;
     #else
-        half alpha = 1;
+        half alpha = half(1.0);
     #endif
 
 #if defined(_ALPHAMODULATE_ON)
-    surfaceDescription.BaseColor = lerp(1, surfaceDescription.BaseColor, alpha);
+    surfaceDescription.BaseColor = AlphaModulate(surfaceDescription.BaseColor, alpha);
 #endif
 
 #if defined(_DBUFFER)
