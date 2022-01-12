@@ -21,22 +21,28 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override string documentationURL => Documentation.GetPageLink("EvaluateSimulationAdditionalData_Water");
 
-        const int kSurfaceGradientOutputSlotId = 0;
+        const int kBandsMultiplierInputSlotId = 0;
+        const string kBandsMultiplierOutputSlotName = "BandsMutliplier";
+
+        const int kSurfaceGradientOutputSlotId = 1;
         const string kSurfaceGradientOutputSlotName = "SurfaceGradient";
 
-        const int kLowFrequencySurfaceGradientOutputSlotId = 1;
+        const int kLowFrequencySurfaceGradientOutputSlotId = 2;
         const string kLowFrequencySurfaceGradientOutputSlotName = "LowFrequencySurfaceGradient";
 
-        const int kSurfaceFoamOutputSlotId = 2;
+        const int kSurfaceFoamOutputSlotId = 3;
         const string kSurfaceFoamOutputSlotName = "SurfaceFoam";
 
-        const int kDeepFoamOutputSlotId = 3;
+        const int kDeepFoamOutputSlotId = 4;
         const string kDeepFoamOutputSlotName = "DeepFoam";
 
         public override bool hasPreview { get { return false; } }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
+            // Input
+            AddSlot(new Vector4MaterialSlot(kBandsMultiplierInputSlotId, kBandsMultiplierOutputSlotName, kBandsMultiplierOutputSlotName, SlotType.Input, Vector4.one, ShaderStageCapability.Fragment));
+
             // Output
             AddSlot(new Vector3MaterialSlot(kSurfaceGradientOutputSlotId, kSurfaceGradientOutputSlotName, kSurfaceGradientOutputSlotName, SlotType.Output, Vector3.zero));
             AddSlot(new Vector3MaterialSlot(kLowFrequencySurfaceGradientOutputSlotId, kLowFrequencySurfaceGradientOutputSlotName, kLowFrequencySurfaceGradientOutputSlotName, SlotType.Output, Vector3.zero));
@@ -45,6 +51,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             RemoveSlotsNameNotMatching(new[]
             {
+                // Input
+                kBandsMultiplierInputSlotId,
                 // Output
                 kSurfaceGradientOutputSlotId,
                 kLowFrequencySurfaceGradientOutputSlotId,
@@ -62,8 +70,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine("ZERO_INITIALIZE(WaterAdditionalData, waterAdditionalData);");
 
                 // Evaluate the data
-                sb.AppendLine("EvaluateWaterAdditionalData(IN.{0}.xyz, waterAdditionalData);",
-                    ShaderGeneratorNames.GetUVName(UVChannel.UV0));
+                string bandsMutliplier = GetSlotValue(kBandsMultiplierInputSlotId, generationMode);
+                sb.AppendLine("EvaluateWaterAdditionalData(IN.{0}.xyz, {1}, waterAdditionalData);",
+                    ShaderGeneratorNames.GetUVName(UVChannel.UV0),
+                    bandsMutliplier);
 
                 // Output the data
                 sb.AppendLine("$precision3 {0} = waterAdditionalData.surfaceGradient;",

@@ -24,13 +24,16 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kPositionWSInputSlotId = 0;
         const string kPositionWSInputSlotName = "PositionWS";
 
-        const int kDisplacementOutputSlotId = 1;
+        const int kBandsMultiplierInputSlotId = 1;
+        const string kBandsMultiplierInputSlotName = "BandsMultiplier";
+
+        const int kDisplacementOutputSlotId = 2;
         const string kDisplacementOutputSlotName = "Displacement";
 
-        const int kLowFrequencyHeightOutputSlotId = 2;
+        const int kLowFrequencyHeightOutputSlotId = 3;
         const string kLowFrequencyHeightOutputSlotName = "LowFrequencyHeight";
 
-        const int kSSSMaskOutputSlotId = 3;
+        const int kSSSMaskOutputSlotId = 4;
         const string kSSSMaskOutputSlotName = "SSSMask";
 
         public override bool hasPreview { get { return false; } }
@@ -39,6 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Inputs
             AddSlot(new Vector3MaterialSlot(kPositionWSInputSlotId, kPositionWSInputSlotName, kPositionWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Vertex));
+            AddSlot(new Vector4MaterialSlot(kBandsMultiplierInputSlotId, kBandsMultiplierInputSlotName, kBandsMultiplierInputSlotName, SlotType.Input, Vector4.one, ShaderStageCapability.Vertex));
 
             // Outputs
             AddSlot(new Vector3MaterialSlot(kDisplacementOutputSlotId, kDisplacementOutputSlotName, kDisplacementOutputSlotName, SlotType.Output, Vector3.zero));
@@ -47,7 +51,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             RemoveSlotsNameNotMatching(new[]
             {
+                // Inputs
                 kPositionWSInputSlotId,
+                kBandsMultiplierInputSlotId,
+                // Outputs
                 kDisplacementOutputSlotId,
                 kLowFrequencyHeightOutputSlotId,
                 kSSSMaskOutputSlotId,
@@ -62,8 +69,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 sb.AppendLine("ZERO_INITIALIZE(WaterDisplacementData, displacementData);");
 
                 string positionWS = GetSlotValue(kPositionWSInputSlotId, generationMode);
-                sb.AppendLine("EvaluateWaterDisplacement({0}, displacementData);",
-                    positionWS
+                string bandsMutliplier = GetSlotValue(kBandsMultiplierInputSlotId, generationMode);
+                sb.AppendLine("EvaluateWaterDisplacement({0}, {1}, displacementData);",
+                    positionWS,
+                    bandsMutliplier
                 );
 
                 sb.AppendLine("$precision3 {0} = displacementData.displacement;",

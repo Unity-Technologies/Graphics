@@ -61,7 +61,8 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_GridSize);
             PropertyField(m_NumLevelOfDetails);
 
-            EditorGUILayout.LabelField("Tessellation", EditorStyles.miniLabel);
+            if (showAdditionalProperties)
+                EditorGUILayout.LabelField("Tessellation", EditorStyles.miniLabel);
             PropertyField(m_MaxTessellationFactor);
             PropertyField(m_TessellationFactorFadeStart);
             PropertyField(m_TessellationFactorFadeRange);

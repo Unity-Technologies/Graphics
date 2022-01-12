@@ -297,9 +297,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public float simulationFoamAmount = 0.5f;
 
         /// <summary>
-        /// Controls the simulation foam drag.
+        /// Controls the life span of the surface foam. A higher value will cause the foam to persist longer and leave a trail.
         /// </summary>
-        [Tooltip("Controls the simulation foam drag.")]
+        [Tooltip("Controls the life span of the surface foam. A higher value will cause the foam to persist longer and leave a trail.")]
         public float simulationFoamDrag = 0.5f;
 
         /// <summary>

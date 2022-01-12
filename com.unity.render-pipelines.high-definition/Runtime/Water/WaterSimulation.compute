@@ -179,7 +179,7 @@ static const float offsets[5] = { 0.0f, 1.5f, 4.5f, 10.5f, 22.5f };
 
 // Function that evaluates the bounds of a given grid based on it's coordinates
 void ComputeGridBounds(int x, int y, float centerGridSize,
-                        float2 centerGridPos, float farPlane, 
+                        float2 centerGridPos, float farPlane,
                         inout float2 center,
                         inout float2 size)
 {

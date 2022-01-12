@@ -7,8 +7,8 @@
 #define PHILLIPS_AMPLITUDE_SCALAR 10.0
 #define WATER_IOR 1.3333
 #define WATER_INV_IOR 1.0 / WATER_IOR
-#define SURFACE_FOAM_BRIGHTNESS 0.28125
-#define SCATTERING_FOAM_BRIGHTNESS 2.0
+#define SURFACE_FOAM_BRIGHTNESS 0.7
+#define SCATTERING_FOAM_BRIGHTNESS 1.5
 
 // Water simulation data
 Texture2DArray<float4> _WaterDisplacementBuffer;
@@ -231,7 +231,7 @@ float2 EvaluateWaterMaskUV(float3 positionAWS)
     return float2(uv.x - _WaterMaskOffset.x, uv.y - _WaterMaskOffset.y) * _WaterMaskScale + 0.5f;
 }
 
-void EvaluateWaterDisplacement(float3 positionAWS, out WaterDisplacementData displacementData)
+void EvaluateWaterDisplacement(float3 positionAWS, float4 bandsMultiplier, out WaterDisplacementData displacementData)
 {
     // Compute the simulation coordinates
     WaterSimulationCoordinates waterCoord;
@@ -252,13 +252,13 @@ void EvaluateWaterDisplacement(float3 positionAWS, out WaterDisplacementData dis
     float2 waterMask = SAMPLE_TEXTURE2D_LOD(_WaterMask, s_linear_clamp_sampler, maskUV, 0);
 
     // First band
-    float3 rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand0, 0, 0).xyz * displacementNormalization.x * waterMask.x;
+    float3 rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand0, 0, 0).xyz * displacementNormalization.x * waterMask.x * bandsMultiplier.x;
     totalDisplacement += rawDisplacement;
     lowFrequencyHeight += rawDisplacement.x;
     normalizedDisplacement = rawDisplacement.x / patchSizes2.x;
 
     // Second band
-    rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand1, 1, 0).xyz * displacementNormalization.y * waterMask.x;
+    rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand1, 1, 0).xyz * displacementNormalization.y * waterMask.x * bandsMultiplier.y;
     totalDisplacement += rawDisplacement;
     lowFrequencyHeight += rawDisplacement.x;
     normalizedDisplacement = rawDisplacement.x / patchSizes2.y;
@@ -268,13 +268,13 @@ void EvaluateWaterDisplacement(float3 positionAWS, out WaterDisplacementData dis
 
 #if defined(HIGH_RESOLUTION_WATER)
     // Third band
-    rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand2, 2, 0).xyz * displacementNormalization.z * waterMask.y;
+    rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand2, 2, 0).xyz * displacementNormalization.z * waterMask.y * bandsMultiplier.z;
     totalDisplacement += rawDisplacement;
     lowFrequencyHeight += rawDisplacement.x * 0.5;
     normalizedDisplacement = rawDisplacement.x / patchSizes2.z;
 
     // Fourth band
-    rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand3, 3, 0).xyz * displacementNormalization.w * waterMask.y;
+    rawDisplacement = SAMPLE_TEXTURE2D_ARRAY_LOD(_WaterDisplacementBuffer, s_linear_repeat_sampler, waterCoord.uvBand3, 3, 0).xyz * displacementNormalization.w * waterMask.y * bandsMultiplier.w;
     totalDisplacement += rawDisplacement;
     normalizedDisplacement = rawDisplacement.x / patchSizes2.w;
 #endif
@@ -309,7 +309,7 @@ struct WaterAdditionalData
     float deepFoam;
 };
 
-void EvaluateWaterAdditionalData(float3 positionAWS, out WaterAdditionalData waterAdditionalData)
+void EvaluateWaterAdditionalData(float3 positionAWS, float4 bandsMultiplier, out WaterAdditionalData waterAdditionalData)
 {
     // Compute the simulation coordinates
     WaterSimulationCoordinates waterCoord;
@@ -325,30 +325,31 @@ void EvaluateWaterAdditionalData(float3 positionAWS, out WaterAdditionalData wat
     float2 waterMask = SAMPLE_TEXTURE2D_LOD(_WaterMask, s_linear_clamp_sampler, maskUV, 0);
 
     // First band
-    float4 additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand0, 0, texSize) * waterMask.x;
-    float3 surfaceGradient = float3(additionalData.x, 0, additionalData.y);
-    float3 lowFrequencySurfaceGradient = float3(additionalData.x, 0, additionalData.y);
+    float4 additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand0, 0, texSize);
+    float3 surfaceGradient = float3(additionalData.x, 0, additionalData.y) * waterMask.x * bandsMultiplier.x;
     float jacobianSurface = additionalData.z;
     float jacobianDeep = additionalData.w;
 
     // Second band
-    additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand1, 1, texSize) * waterMask.x;
-    surfaceGradient += float3(additionalData.x, 0, additionalData.y);
-    lowFrequencySurfaceGradient += float3(additionalData.x, 0, additionalData.y);
+    additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand1, 1, texSize);
+    surfaceGradient += float3(additionalData.x, 0, additionalData.y) * waterMask.x * bandsMultiplier.y;
     jacobianSurface += additionalData.z;
     jacobianDeep += additionalData.w;
 
+    // Up the second band, the low frequency and complete normals are the same
+    float3 lowFrequencySurfaceGradient = surfaceGradient;
+
 #if defined(HIGH_RESOLUTION_WATER)
     // Third band
-    additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand2, 2, texSize)* waterMask.y;
-    surfaceGradient += float3(additionalData.x, 0, additionalData.y);
-    lowFrequencySurfaceGradient += float3(additionalData.x, 0, additionalData.y) * 0.5;
+    additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand2, 2, texSize);
+    surfaceGradient += float3(additionalData.x, 0, additionalData.y) * waterMask.y * bandsMultiplier.z;
+    lowFrequencySurfaceGradient += float3(additionalData.x, 0, additionalData.y) * 0.5 * waterMask.y * bandsMultiplier.z;
     jacobianSurface += additionalData.z * 0.5;
     jacobianDeep += additionalData.w * 0.5;
 
     // Fourth band
-    additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand3, 3, texSize) * waterMask.y;
-    surfaceGradient += float3(additionalData.x, 0, additionalData.y);
+    additionalData = SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_ARGS(_WaterAdditionalDataBuffer, s_linear_repeat_sampler), waterCoord.uvBand3, 3, texSize);
+    surfaceGradient += float3(additionalData.x, 0, additionalData.y) * waterMask.y * bandsMultiplier.w;
 #endif
 
     // Output the two surface gradients

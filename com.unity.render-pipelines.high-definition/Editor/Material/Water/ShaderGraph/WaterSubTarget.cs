@@ -245,7 +245,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(HighResolutionWater);
             pass.keywords.Add(CoreKeywordDescriptors.Decals);
             pass.keywords.Add(CoreKeywordDescriptors.Shadow);
-            pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay); 
+            pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
             pass.keywords.Add(CoreKeywordDescriptors.ProceduralInstancing);
         }
 
