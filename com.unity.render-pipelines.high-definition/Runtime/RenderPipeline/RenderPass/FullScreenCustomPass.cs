@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using System;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -26,15 +25,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public bool fetchColorBuffer;
 
-        int fadeValueId;
+        static int fadeValueId;
 
         /// <summary>
         /// Called before the first execution of the pass occurs.
         /// Allow you to allocate custom buffers.
         /// </summary>
-        /// <param name="renderContext">The render context</param>
-        /// <param name="cmd">Current command buffer of the frame</param>
-        protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
+        /// <param name="renderGraph">Current render graph.</param>
+        protected override void Setup(RenderGraph renderGraph)
         {
             fadeValueId = Shader.PropertyToID("_FadeValue");
 
@@ -62,6 +60,41 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.DrawFullScreen(ctx.cmd, fullscreenPassMaterial, shaderPassId: fullscreenPassMaterial.FindPass(materialPassName));
             }
         }
+
+        class PassData
+        {
+            public Material fullscreenPassMaterial;
+            public float fadeValue;
+            public string materialPassName;
+        }
+
+        protected override void Execute(RenderGraph renderGraph, CustomPassContext ctx)
+        {
+            if (fullscreenPassMaterial != null)
+            {
+                if (fetchColorBuffer)
+                {
+                    ctx.cameraColorBufferHandle = ResolveMSAAColorBuffer(ctx.cmd, ctx.hdCamera);
+                    // reset the render target to the UI
+                    SetRenderTargetAuto(ctx.cmd);
+                }
+
+                using (var builder = renderGraph.AddRenderPass<PassData>("FullScreenCustomPass", out PassData passData))
+                {
+                    passData.fullscreenPassMaterial = fullscreenPassMaterial;
+                    passData.fadeValue = fadeValue;
+                    passData.materialPassName = materialPassName;
+
+                    builder.SetRenderFunc(
+                        (PassData data, RenderGraphContext context) =>
+                        {
+                            data.fullscreenPassMaterial.SetFloat(fadeValueId, data.fadeValue);
+                            CoreUtils.DrawFullScreen(context.cmd, data.fullscreenPassMaterial, shaderPassId: data.fullscreenPassMaterial.FindPass(data.materialPassName));
+                        });
+                }
+            }
+        }
+
 
         /// <summary>
         /// List all the materials that need to be displayed at the bottom of the component.
