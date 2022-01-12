@@ -176,11 +176,7 @@ namespace UnityEditor.VFX
                 var space = slot.space;
                 var spacealeType = SpaceableType.None;
                 if (space != (VFXCoordinateSpace)Int32.MaxValue)
-                {
-                    //TODOPAUL Reconsider this: https://github.cds.internal.unity3d.com/unity/vfx-graphics/pull/262
-                    //No SpaceableType for Angle & Scale (yet ?)
                     spacealeType = slot.GetSpaceTransformationType();
-                }
 
                 outExposedParameters.Add((
                         new VFXMapping()
@@ -1196,7 +1192,7 @@ namespace UnityEditor.VFX
 
                 var sortedExposedProperties = exposedParameterDescs.OrderBy(o => o.mapping.name);
                 expressionSheet.exposed = sortedExposedProperties.Select(o => o.mapping).ToArray();
-                expressionSheet.exposedSpace = sortedExposedProperties.Select(o => (VFXSpace)o.space).ToArray(); //TODOPAUL: Should we only list spaceable on actual spaceable ?
+                expressionSheet.exposedSpace = sortedExposedProperties.Select(o => (VFXSpace)o.space).ToArray();
 
                 var vfxEventDesc = eventDescs.Select(e =>
                 {
