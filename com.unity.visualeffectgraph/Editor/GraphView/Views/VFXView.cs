@@ -94,7 +94,7 @@ namespace UnityEditor.VFX.UI
                             error = "Link impossible for an unknown reason";
                     }
 
-                    
+
                 }
             }
             if (error == null)
@@ -421,7 +421,7 @@ namespace UnityEditor.VFX.UI
 
             styleSheets.Add(LoadStyleSheet("VFXView"));
             if( ! EditorGUIUtility.isProSkin)
-            { 
+            {
                 styleSheets.Add(LoadStyleSheet("VFXView-light"));
             }
             else
@@ -1680,7 +1680,7 @@ namespace UnityEditor.VFX.UI
             else if (change.elementsToRemove != null)
             {
                 controller.Remove(change.elementsToRemove.OfType<IControlledElement>().Where(t => t.controller != null).Select(t => t.controller));
-                
+
                 foreach( var dataEdge in change.elementsToRemove.OfType<VFXDataEdge>())
                 {
                     RemoveElement(dataEdge);

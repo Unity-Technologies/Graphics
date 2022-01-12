@@ -50,7 +50,7 @@ namespace UnityEditor.VFX
             kExpressionInvalidated, // No direct change to the model but a change in connection was propagated from the parents
             kExpressionGraphChanged,// Expression graph must be recomputed
             kUIChanged,             // UI stuff has changed
-            kUIChangedTransient,    // UI stuff has been changed be does not require serialization 
+            kUIChangedTransient,    // UI stuff has been changed be does not require serialization
             kEnableChanged,         // Node has been enabled/disabled
         }
 
@@ -94,8 +94,9 @@ namespace UnityEditor.VFX
 
         public virtual void GetImportDependentAssets(HashSet<int> dependencies)
         {
-            //var monoScript = MonoScript.FromScriptableObject(this);
-            //dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(monoScript)));
+            // var monoScript = MonoScript.FromScriptableObject(this);
+            // // dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(monoScript)));
+            // dependencies.Add(int.Parse(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(monoScript))));
 
             foreach (var child in children)
                 child.GetImportDependentAssets(dependencies);
