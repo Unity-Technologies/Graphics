@@ -253,6 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderTagId[] m_DecalsEmissivePassNames = { HDShaderPassNames.s_DecalMeshForwardEmissiveName };
         ShaderTagId[] m_SinglePassName = new ShaderTagId[1];
         ShaderTagId[] m_MeshDecalsPassNames = { HDShaderPassNames.s_DBufferMeshName };
+        ShaderTagId[] m_VfxDecalsPassNames = { HDShaderPassNames.s_DBufferVFXDecalName };
 
         RenderStateBlock m_DepthStateOpaque;
         RenderStateBlock m_DepthStateNoWrite;
@@ -993,7 +994,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDUtils.DisplayMessageNotification("Unable to compile Default Material based on Lit.shader. Either there is a compile error in Lit.shader or the current platform / API isn't compatible.");
                 return false;
-            }            
+            }
 
 #if UNITY_EDITOR
             UnityEditor.BuildTarget activeBuildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
@@ -1393,7 +1394,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = 0;
                 m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = 1.0f;
             }
-            
+
             m_ShaderVariablesGlobalCB._HybridDeformedVertexStreamIndex = UnityEngine.Time.frameCount & 1;
 
             // custom-begin:
@@ -1449,7 +1450,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #else
             cb._EnableDynamicBranchLighting = 1u;
         #endif
-             
+
         }
         // custom-end
 
@@ -1652,7 +1653,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         // Only for internal use, outside of SRP people can call Camera.Render()
-#if UNITY_2021_1_OR_NEWER   
+#if UNITY_2021_1_OR_NEWER
         internal void InternalRender(ScriptableRenderContext renderContext, List<Camera> cameras)
 #else
         internal void InternalRender(ScriptableRenderContext renderContext, Camera[] cameras)
@@ -4207,6 +4208,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return desc;
         }
+
+        RendererListDesc PrepareVfxDecalsRendererList(CullingResults cullingResults, HDCamera hdCamera, bool use4RTs)
+        {
+            var desc = new RendererListDesc(m_VfxDecalsPassNames, cullingResults, hdCamera.camera)
+            {
+                sortingCriteria = SortingCriteria.CommonOpaque & ~SortingCriteria.OptimizeStateChanges,
+                rendererConfiguration = PerObjectData.None,
+                renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque,
+            };
+
+            return desc;
+        }
+
 
         void UpdateShaderVariablesGlobalDecal(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {

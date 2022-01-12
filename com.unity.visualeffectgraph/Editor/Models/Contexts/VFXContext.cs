@@ -39,7 +39,7 @@ namespace UnityEditor.VFX
         OutputEvent =   1 << 1,
         Particle =      1 << 2,
         Mesh =          1 << 3,
-        ParticleStrip = 1 << 4 | Particle, // strips 
+        ParticleStrip = 1 << 4 | Particle, // strips
     };
 
     [Serializable]
@@ -609,6 +609,25 @@ namespace UnityEditor.VFX
 
             foreach (var block in children)
                 block.CheckGraphBeforeImport();
+        }
+
+        protected virtual IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                return Enumerable.Empty<string>();
+            }
+        }
+
+        //TODO: Register all the contexts that have issues when transfering settings (in ConvertContext() )
+        public bool CanTransferSetting(string settingName)
+        {
+            return !untransferableSettings.Contains(settingName);
+        }
+
+        public bool CanTransferSetting(VFXSetting setting)
+        {
+            return CanTransferSetting(setting.field.Name);
         }
     }
 }

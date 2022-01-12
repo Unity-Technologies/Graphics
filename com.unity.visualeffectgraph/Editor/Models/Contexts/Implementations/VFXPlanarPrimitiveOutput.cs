@@ -80,6 +80,15 @@ namespace UnityEditor.VFX
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
         }
 
+        // //New Version From HDRP Decal PR merge, older is above
+        // protected IEnumerable<VFXPropertyWithValue> optionalInputProperties
+        // {
+        //     get
+        //     {
+        //         yield return new VFXPropertyWithValue(new VFXProperty(GetFlipbookType(), "mainTexture", new TooltipAttribute("Specifies the base color (RGB) and opacity (A) of the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.particleTexture));
+        //     }
+        // }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
@@ -104,6 +113,17 @@ namespace UnityEditor.VFX
             }
             if (primitiveType == VFXPrimitiveType.Octagon)
                 yield return slotExpressions.First(o => o.name == "cropFactor");
+        }
+        protected override IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                foreach (var setting in base.untransferableSettings)
+                {
+                    yield return setting;
+                }
+                yield return "primitiveType";
+            }
         }
     }
 }

@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -31,7 +28,19 @@ namespace UnityEditor.VFX
     }
 
     class ShowAsColorAttribute : Attribute
-    {}
+    { }
+    public class MinMaxAttribute : PropertyAttribute
+    {
+        public readonly float min;
+        public readonly float max;
+
+        // Attribute used to make a float or int variable in a script be restricted to a specific range.
+        public MinMaxAttribute(float min, float max)
+        {
+            this.min = min;
+            this.max = max;
+        }
+    }
 
     class CoordinateSpaceInfo
     {

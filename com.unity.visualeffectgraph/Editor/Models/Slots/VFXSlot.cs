@@ -381,6 +381,11 @@ namespace UnityEditor.VFX
                 foreach (var subInfo in property.SubProperties())
                 {
                     var subSlot = CreateSub(subInfo, direction);
+                    if (slot.property.attributes.attributes.OfType<MinMaxAttribute>().Any())
+                    {
+                        var parentRange = property.attributes.FindRange();
+                        subSlot.UpdateAttributes(new VFXPropertyAttributes(new RangeAttribute(parentRange.x, parentRange.y)), false);
+                    }
                     if (subSlot != null)
                     {
                         subSlot.Attach(slot, false);
@@ -711,7 +716,7 @@ namespace UnityEditor.VFX
                 {
                     m_Property.attributes = attributes;
                     Invalidate(InvalidationCause.kUIChangedTransient); // TODO This will trigger a setDirty while it shouldn't as property attributes are not serialized
-                }         
+                }
             }
             else // fast path without comparison
                 m_Property.attributes = attributes;
