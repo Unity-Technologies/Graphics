@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     [VFXInfo(variantProvider = typeof(VFXPlanarPrimitiveVariantProvider))]
     class VFXLitPlanarPrimitiveOutput : VFXAbstractParticleHDRPLitOutput
@@ -92,6 +92,19 @@ namespace UnityEditor.VFX
                 yield return "FORCE_NORMAL_VARYING"; // To avoid discrepancy between depth and color pass which could cause glitch with ztest
 
                 yield return VFXPlanarPrimitiveHelper.GetShaderDefine(primitiveType);
+            }
+        }
+
+        protected override IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                foreach (var setting in base.untransferableSettings)
+                {
+                    yield return setting;
+                }
+
+                yield return "primitiveType";
             }
         }
     }

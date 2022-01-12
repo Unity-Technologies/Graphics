@@ -2,7 +2,7 @@ ${VFXBegin:VFXVertexCommonProcess}
 #if VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)
 o.VFX_VARYING_COLOR = attributes.color;
 #endif
-#if VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA) 
+#if VFX_USE_ALPHA_CURRENT && defined(VFX_VARYING_ALPHA)
 o.VFX_VARYING_ALPHA = attributes.alpha;
 #endif
 
@@ -27,6 +27,21 @@ ${VFXLoadParameter:{uvBias}}
 #if defined (VFX_VARYING_UV)
 o.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy * uvScale + uvBias;
 #endif
+#endif
+
+#ifdef VFX_VARYING_ANGLEFADE
+${VFXLoadParameter:{angleFade}}
+o.VFX_VARYING_ANGLEFADE = angleFade;
+#endif
+
+#ifdef VFX_VARYING_FADEFACTOR
+${VFXLoadParameter:{fadeFactor}}
+o.VFX_VARYING_FADEFACTOR = fadeFactor;
+#endif
+
+#ifdef VFX_VARYING_DECALLAYER
+${VFXLoadParameter:{decalLayerMask}}
+o.VFX_VARYING_DECALLAYER = decalLayerMask;
 #endif
 
 #if defined(VFX_VARYING_POSWS)
@@ -70,7 +85,7 @@ ${VFXBegin:VFXLoadAttributesOrCull}
 uint deadCount = 0;
 #if USE_DEAD_LIST_COUNT
 deadCount = deadListCount.Load(0);
-#endif	
+#endif
 if (index >= asuint(nbMax) - deadCount)
 #if USE_GEOMETRY_SHADER
 	return; // cull
@@ -96,7 +111,7 @@ if (!attributes.alive)
 	return o;
 }
 #endif
-	
+
 ${VFXLoadAttributes:{(?!(alive))(\b\w)}}
 #endif
 
@@ -236,7 +251,7 @@ void frag(ps_input i
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
 		dummy = (float4)0;
 	#else
-		#error VFX_PASSDEPTH undefined 
+		#error VFX_PASSDEPTH undefined
 	#endif
 }
 ${VFXEnd}
@@ -258,14 +273,14 @@ float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData st
 		uint prevIndex = GetParticleIndex(relativeIndex - 1,stripData);
 		prevTangent = normalize(currentPos - GetParticlePosition(prevIndex));
 	}
-	
+
 	float3 nextTangent = (float3)0.0f;
 	if (relativeIndex < stripData.nextIndex - 1)
 	{
 		uint nextIndex = GetParticleIndex(relativeIndex + 1,stripData);
 		nextTangent = normalize(GetParticlePosition(nextIndex) - currentPos);
 	}
-	
+
 	return normalize(prevTangent + nextTangent);
 }
 ${VFXEnd}

@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEditor.VFX.Block;
 using UnityEngine;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.HDRP
 {
     [VFXInfo(experimental = true)]
     class VFXLitSphereOutput : VFXAbstractParticleHDRPLitOutput
@@ -17,7 +17,7 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             blendMode = BlendMode.Opaque; // TODO use masked
-            doubleSided = false;
+            // doubleSided = false;
             base.OnEnable();
         }
 

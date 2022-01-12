@@ -31,6 +31,14 @@ namespace UnityEditor.VFX
 
         public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Delayed, SerializeField, Tooltip("Specifies an offset applied to the material render queue.")]
+        protected int materialOffset = 0;
+
+        public int GetMaterialOffset()
+        {
+            return materialOffset;
+        }
+
         public virtual bool hasMotionVector
         {
             get
@@ -55,6 +63,19 @@ namespace UnityEditor.VFX
         {
             return subOutput.GetFilteredOutEnumerators(name);
         }
+
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+
+                if (!subOutput.supportsMaterialOffset)
+                    yield return nameof(materialOffset);
+            }
+        }
+
         public VFXSRPSubOutput subOutput
         {
             get
