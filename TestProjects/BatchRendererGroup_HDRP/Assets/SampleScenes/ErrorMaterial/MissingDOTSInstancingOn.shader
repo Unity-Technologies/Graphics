@@ -99,6 +99,7 @@ Shader "HDRP/MissingDOTSInstancingOn"
 
     HLSLINCLUDE
 
+    // Comment this line out to cause missing DOTS_INSTANCING_ON errors
     #pragma multi_compile _ DOTS_INSTANCING_ON
 
     #pragma target 4.5
