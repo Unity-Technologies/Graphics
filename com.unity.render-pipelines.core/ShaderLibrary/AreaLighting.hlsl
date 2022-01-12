@@ -127,10 +127,10 @@ real DiffuseSphereLightIrradiance(real sinSqSigma, real cosOmega)
 // This function does not check whether light's contribution is 0.
 real3 PolygonFormFactor(real4x3 L)
 {
-    L[0] = normalize(L[0]);
-    L[1] = normalize(L[1]);
-    L[2] = normalize(L[2]);
-    L[3] = normalize(L[3]);
+    L[0] = SafeNormalize(L[0]);
+    L[1] = SafeNormalize(L[1]);
+    L[2] = SafeNormalize(L[2]);
+    L[3] = SafeNormalize(L[3]);
 
     real3 F  = ComputeEdgeFactor(L[0], L[1]);
           F += ComputeEdgeFactor(L[1], L[2]);

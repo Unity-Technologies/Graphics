@@ -30,8 +30,8 @@ namespace UnityEngine.Rendering.Universal
         PostProcessPass m_PostProcessPass;
         PostProcessPass m_FinalPostProcessPass;
 
-        RenderTargetHandle m_AfterPostProcessColor;
-        RenderTargetHandle m_ColorGradingLut;
+        internal RTHandle m_AfterPostProcessColor;
+        internal RTHandle m_ColorGradingLut;
 
         PostProcessData m_RendererPostProcessData;
         PostProcessData m_CurrentPostProcessData;
@@ -40,8 +40,8 @@ namespace UnityEngine.Rendering.Universal
         public ColorGradingLutPass colorGradingLutPass { get => m_ColorGradingLutPass; }
         public PostProcessPass postProcessPass { get => m_PostProcessPass; }
         public PostProcessPass finalPostProcessPass { get => m_FinalPostProcessPass; }
-        public RenderTargetHandle afterPostProcessColor { get => m_AfterPostProcessColor; }
-        public RenderTargetHandle colorGradingLut { get => m_ColorGradingLut; }
+        public RTHandle afterPostProcessColor { get => m_AfterPostProcessColor; }
+        public RTHandle colorGradingLut { get => m_ColorGradingLut; }
 
         public bool isCreated { get => m_CurrentPostProcessData != null; }
 
@@ -50,13 +50,11 @@ namespace UnityEngine.Rendering.Universal
             m_ColorGradingLutPass = null;
             m_PostProcessPass = null;
             m_FinalPostProcessPass = null;
-            m_AfterPostProcessColor = new RenderTargetHandle();
-            m_ColorGradingLut = new RenderTargetHandle();
             m_CurrentPostProcessData = null;
             m_BlitMaterial = null;
 
-            m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
-            m_ColorGradingLut.Init("_InternalGradingLut");
+            m_AfterPostProcessColor = null;
+            m_ColorGradingLut = null;
             m_RendererPostProcessData = rendererPostProcessData;
         }
 
@@ -123,6 +121,8 @@ namespace UnityEngine.Rendering.Universal
             m_ColorGradingLutPass?.Cleanup();
             m_PostProcessPass?.Cleanup();
             m_FinalPostProcessPass?.Cleanup();
+            m_AfterPostProcessColor?.Release();
+            m_ColorGradingLut?.Release();
         }
     }
 }
