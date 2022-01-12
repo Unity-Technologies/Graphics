@@ -124,8 +124,8 @@ void FilterScaleOffset(real3 coord, real maxSampleZDistance, real shadowmapSampl
     real d = shadowmapSamplingScale * maxSampleZDistance / (1 - coord.z);
     real2 target = (coord.xy + 0.5) * 0.5;
 
-    filterScalePos = target * d;
-    filterScaleNeg = (1 - target) * d;
+    filterScalePos = (1 - target) * d;
+    filterScaleNeg = target * d;
     filterOffset = (target - coord.xy) * d;
 }
 
@@ -134,6 +134,9 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
     real blockerSum = 0.0;
     real sampleCountInverse = rcp((real)sampleCount);
     real ditherRotation = sampleJitter.x;
+
+    // The z extent of the filter cone shouldn't go beyond the near plane of the shadow. Near plane at 1.
+    maxSampleZDistance = min(1 - posTCShadowmap.z, maxSampleZDistance);
 
     real2 filterScalePos, filterScaleNeg;
     real2 filterOffset;
