@@ -160,7 +160,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 var result = new SubShaderDescriptor()
                 {
                     pipelineTag = UniversalTarget.kPipelineTag,
-                    customTags = UniversalTarget.kUnlitMaterialTypeTag,
+                    customTags = new List<string>() { UniversalTarget.kUnlitMaterialTypeTag, },
                     renderType = renderType,
                     renderQueue = renderQueue,
                     generatesPreview = true,
@@ -192,7 +192,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 var result = new SubShaderDescriptor()
                 {
                     pipelineTag = UniversalTarget.kPipelineTag,
-                    customTags = UniversalTarget.kUnlitMaterialTypeTag,
+                    customTags = new List<string>() { UniversalTarget.kUnlitMaterialTypeTag, },
                     renderType = renderType,
                     renderQueue = renderQueue,
                     generatesPreview = true,

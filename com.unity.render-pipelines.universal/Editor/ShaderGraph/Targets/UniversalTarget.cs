@@ -83,6 +83,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public const string kPipelineTag = "UniversalPipeline";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
+        public const string kTerrainMaterialTypeTag = "\"TerrainCompatible\" = \"True\"";
         public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[]
         {
             "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates"
@@ -395,8 +396,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (VFXViewPreference.generateOutputContextWithShaderGraph)
             {
                 // VFX Support
-                if (!(m_ActiveSubTarget.value is UniversalSubTarget))
+                if (!CanSupportVFX())
+                {
                     context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
+                }
                 else
                 {
                     m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
@@ -627,6 +630,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             //It excludes:
             // - UniversalDecalSubTarget
+            // - UniversalTerrainLitSubTarget
             // - UniversalSpriteLitSubTarget
             // - UniversalSpriteUnlitSubTarget
             // - UniversalSpriteCustomLitSubTarget

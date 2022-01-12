@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 SubShaderDescriptor result = new SubShaderDescriptor()
                 {
                     pipelineTag = UniversalTarget.kPipelineTag,
-                    customTags = UniversalTarget.kLitMaterialTypeTag,
+                    customTags = new List<string>() { UniversalTarget.kLitMaterialTypeTag, },
                     renderType = $"{RenderType.Transparent}",
                     renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
                     generatesPreview = true,

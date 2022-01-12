@@ -75,7 +75,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         private static readonly List<Type> m_IncompatibleVFXSubTargets = new List<Type>
         {
             // Currently there is not support for VFX decals via HDRP master node.
-            typeof(DecalSubTarget)
+            typeof(DecalSubTarget),
+            typeof(TerrainLitSubTarget),
         };
 
         internal override bool ignoreCustomInterpolators => false;
@@ -1000,6 +1001,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kStackLitPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitPathTracing.hlsl";
         public const string kHairRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairRaytracing.hlsl";
         public const string kHairPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairPathTracing.hlsl";
+        public const string kTerrainRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitRaytracing.hlsl";
+        public const string kTerrainPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLitPathtracing.hlsl";
         public const string kRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl";
         public const string kRaytracingCommon = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl";
         public const string kNormalBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl";

@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph
     internal struct SubShaderDescriptor
     {
         public string pipelineTag;
-        public string customTags;
+        public List<string> customTags;
         public string renderType;
         public string renderQueue;
         public bool generatesPreview;

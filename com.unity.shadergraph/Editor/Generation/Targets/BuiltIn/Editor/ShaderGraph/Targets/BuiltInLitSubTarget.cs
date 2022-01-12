@@ -193,7 +193,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 var result = new SubShaderDescriptor()
                 {
                     //pipelineTag = BuiltInTarget.kPipelineTag,
-                    customTags = BuiltInTarget.kLitMaterialTypeTag,
+                    customTags = new List<string>() { BuiltInTarget.kLitMaterialTypeTag, },
                     renderType = renderType,
                     renderQueue = renderQueue,
                     generatesPreview = true,

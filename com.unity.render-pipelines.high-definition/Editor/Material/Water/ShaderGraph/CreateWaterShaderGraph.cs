@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class CreateWaterShaderGraph
     {
-        [MenuItem("Assets/Create/Shader Graph/HDRP/Water Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 7)]
+        [MenuItem("Assets/Create/Shader Graph/HDRP/Water Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 8)]
         public static void CreateWaterGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));

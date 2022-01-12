@@ -111,7 +111,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 var result = new SubShaderDescriptor()
                 {
                     //pipelineTag = UniversalTarget.kPipelineTag,
-                    customTags = BuiltInTarget.kUnlitMaterialTypeTag,
+                    customTags = new List<string>() { BuiltInTarget.kUnlitMaterialTypeTag, },
                     renderType = renderType,
                     renderQueue = renderQueue,
                     generatesPreview = true,

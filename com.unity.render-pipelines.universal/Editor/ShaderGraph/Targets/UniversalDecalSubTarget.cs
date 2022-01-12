@@ -313,7 +313,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static SubShaderDescriptor Decal = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
-                customTags = "\"PreviewType\"=\"Plane\"",
+                customTags = new List<string>() { "\"PreviewType\"=\"Plane\"", },
                 generatesPreview = true,
                 passes = new PassCollection
                 {
