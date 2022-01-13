@@ -1271,8 +1271,6 @@ namespace UnityEngine.Rendering.Universal
                 Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, renderData?.postProcessData?.textures.bayerMatrixTex);
             else if (asset.lodCrossFadeType == LODCrossFadeType.BlueNoiseDither)
                 Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, renderData?.postProcessData?.textures.blueNoise64LTex);
-
-            LODGroup.crossFadeAnimationDuration = 2.0f;
         }
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)

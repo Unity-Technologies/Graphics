@@ -180,8 +180,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsHDR = true;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
-        [SerializeField] LODCrossFadeType m_LODCrossFadeType = LODCrossFadeType.BayerMatrixDither;
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
+        [SerializeField] LODCrossFadeType m_LODCrossFadeType = LODCrossFadeType.BlueNoiseDither;
+        [SerializeField] bool m_EnableLODCrossFadeAlphaToMask = false; 
         // TODO: Shader Quality Tiers
 
         // Main directional light Settings
@@ -690,6 +691,11 @@ namespace UnityEngine.Rendering.Universal
         public LODCrossFadeType lodCrossFadeType
         {
             get { return m_LODCrossFadeType; }
+        }
+
+        public bool enableLODCrossFadeAlphaToMask
+        {
+            get { return m_EnableLODCrossFadeAlphaToMask; }
         }
 
         /// <summary>

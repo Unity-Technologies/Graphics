@@ -45,7 +45,6 @@ half GetLODDithering(float2 crossFadeSeed, half crossFadeFactor)
     switch (_LODCrossFadeType)
     {
     case k_LODCrossFadeTypeHashDither:
-        // Hash based dithering can be made camera rotation independent.
         d = GenerateHashedRandomFloat(crossFadeSeed);
         break;
     case k_LODCrossFadeTypeBlueNoiseDither:
