@@ -216,7 +216,6 @@ namespace UnityEngine.Rendering.Universal
                     case SoftShadowQuality.High: kernelRadius = 3.5f; break; // 7x7
                     case SoftShadowQuality.Medium: kernelRadius = 2.5f; break; // 5x5
                     case SoftShadowQuality.Low: kernelRadius = 1.5f; break; // 3x3
-                    case SoftShadowQuality.Lowest: kernelRadius = 1.5f; break; // 3x3
                     default: break;
                 }
 

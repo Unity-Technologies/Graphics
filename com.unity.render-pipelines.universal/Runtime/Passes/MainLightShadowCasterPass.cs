@@ -212,19 +212,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                 shadowData.isKeywordSoftShadowsEnabled = shadowLight.light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, shadowData.mainLightShadowCascadesCount == 1);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, shadowData.mainLightShadowCascadesCount > 1);
-                UniversalRenderPipeline.SetSoftShadowKeywords(cmd, shadowData.isKeywordSoftShadowsEnabled, shadowData.softShadowQuality);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
 
-                SetupMainLightShadowReceiverConstants(cmd, shadowLight, shadowData.supportsSoftShadows);
+                SetupMainLightShadowReceiverConstants(cmd, shadowLight, ref shadowData);
             }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
-        void SetupMainLightShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight, bool supportsSoftShadows)
+        void SetupMainLightShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight, ref ShadowData shadowData)
         {
             Light light = shadowLight.light;
-            bool softShadows = shadowLight.light.shadows == LightShadows.Soft && supportsSoftShadows;
+            bool softShadows = shadowLight.light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
 
             int cascadeCount = m_ShadowCasterCascadesCount;
             for (int i = 0; i < cascadeCount; ++i)
@@ -243,6 +243,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
             float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
             float softShadowsProp = softShadows ? 1.0f : 0.0f;
+            softShadowsProp *= 1 + (int)shadowData.softShadowQuality;
 
             ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
 
@@ -272,7 +273,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // If any additional light has soft shadows it will force soft shadows on main light too.
             // As it is not trivial finding out which additional light has soft shadows, we will pass main light properties if soft shadows are supported.
             // This workaround will be removed once we will support soft shadows per light.
-            if (supportsSoftShadows)
+            if (shadowData.supportsSoftShadows)
             {
                 cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowOffset0,
                     new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight,

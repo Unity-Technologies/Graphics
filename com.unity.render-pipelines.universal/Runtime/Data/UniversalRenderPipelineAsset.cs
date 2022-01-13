@@ -22,9 +22,6 @@ namespace UnityEngine.Rendering.Universal
 
     public enum SoftShadowQuality
     {
-        // Disabled, TODO: should we wrap the bool into this enum?
-        // TODO: or try reuse above enum?
-        Lowest, // TODO: temp for perf testing, remove before landing
         Low,
         Medium,
         High,

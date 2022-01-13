@@ -690,6 +690,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                     var light = shadowLight.light;
                                     float shadowStrength = light.shadowStrength;
                                     float softShadows = (supportsSoftShadows && light.shadows == LightShadows.Soft) ? 1.0f : 0.0f;
+                                    softShadows *= 1 + (int)renderingData.shadowData.softShadowQuality;
                                     Vector4 shadowParams = new Vector4(shadowStrength, softShadows, LightTypeIdentifierInShadowParams_Spot, perLightFirstShadowSliceIndex);
                                     m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = shadowTransform;
                                     m_AdditionalLightIndexToShadowParams[additionalLightIndex] = shadowParams;
@@ -719,6 +720,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                     var light = shadowLight.light;
                                     float shadowStrength = light.shadowStrength;
                                     float softShadows = (supportsSoftShadows && light.shadows == LightShadows.Soft) ? 1.0f : 0.0f;
+                                    softShadows *= 1 + (int)renderingData.shadowData.softShadowQuality;
                                     Vector4 shadowParams = new Vector4(shadowStrength, softShadows, LightTypeIdentifierInShadowParams_Point, perLightFirstShadowSliceIndex);
                                     m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = shadowTransform;
                                     m_AdditionalLightIndexToShadowParams[additionalLightIndex] = shadowParams;
@@ -922,7 +924,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 shadowData.isKeywordAdditionalLightShadowsEnabled = anyShadowSliceRenderer;
                 shadowData.isKeywordSoftShadowsEnabled = softShadows;
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, shadowData.isKeywordAdditionalLightShadowsEnabled);
-                UniversalRenderPipeline.SetSoftShadowKeywords(cmd, shadowData.isKeywordSoftShadowsEnabled, shadowData.softShadowQuality);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, shadowData.isKeywordSoftShadowsEnabled);
 
                 if (anyShadowSliceRenderer)
                     SetupAdditionalLightsShadowReceiverConstants(cmd, ref shadowData, softShadows);

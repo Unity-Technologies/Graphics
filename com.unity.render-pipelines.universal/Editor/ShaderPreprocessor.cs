@@ -24,39 +24,32 @@ namespace UnityEditor.Rendering.Universal
         AdditionalLights = (1 << 2),
         AdditionalLightShadows = (1 << 3),
         VertexLighting = (1 << 4),
-        MixedLighting = (1 << 5),
-        TerrainHoles = (1 << 6),
-        DeferredShading = (1 << 7), // DeferredRenderer is in the list of renderer
-        AccurateGbufferNormals = (1 << 8),
-        ScreenSpaceOcclusion = (1 << 9),
-        ScreenSpaceShadows = (1 << 10),
-        UseFastSRGBLinearConversion = (1 << 11),
-        LightLayers = (1 << 12),
-        ReflectionProbeBlending = (1 << 13),
-        ReflectionProbeBoxProjection = (1 << 14),
-        DBufferMRT1 = (1 << 15),
-        DBufferMRT2 = (1 << 16),
-        DBufferMRT3 = (1 << 17),
-        DecalScreenSpace = (1 << 18),
-        DecalGBuffer = (1 << 19),
-        DecalNormalBlendLow = (1 << 20),
-        DecalNormalBlendMedium = (1 << 21),
-        DecalNormalBlendHigh = (1 << 22),
-        ClusteredRendering = (1 << 23),
-        RenderPassEnabled = (1 << 24),
-        MainLightShadowsCascade = (1 << 25),
-        DrawProcedural = (1 << 26),
-        ScreenSpaceOcclusionAfterOpaque = (1 << 27),
-        AdditionalLightsKeepOffVariants = (1 << 28),
-        ShadowsKeepOffVariants = (1 << 29),
-        SoftShadowsHigh = (1 << 30),
-
-        SoftShadowsMedium = (1ul << 31),
-        SoftShadowsLow = (1ul << 32),
-        SoftShadowsLowest = (1ul << 33),
-
-        ShaderQualityMedium = (1ul << 34),
-        ShaderQualityLow = (1ul << 35),
+        SoftShadows = (1 << 5),
+        MixedLighting = (1 << 6),
+        TerrainHoles = (1 << 7),
+        DeferredShading = (1 << 8), // DeferredRenderer is in the list of renderer
+        AccurateGbufferNormals = (1 << 9),
+        ScreenSpaceOcclusion = (1 << 10),
+        ScreenSpaceShadows = (1 << 11),
+        UseFastSRGBLinearConversion = (1 << 12),
+        LightLayers = (1 << 13),
+        ReflectionProbeBlending = (1 << 14),
+        ReflectionProbeBoxProjection = (1 << 15),
+        DBufferMRT1 = (1 << 16),
+        DBufferMRT2 = (1 << 17),
+        DBufferMRT3 = (1 << 18),
+        DecalScreenSpace = (1 << 19),
+        DecalGBuffer = (1 << 20),
+        DecalNormalBlendLow = (1 << 21),
+        DecalNormalBlendMedium = (1 << 22),
+        DecalNormalBlendHigh = (1 << 23),
+        ClusteredRendering = (1 << 24),
+        RenderPassEnabled = (1 << 25),
+        MainLightShadowsCascade = (1 << 26),
+        DrawProcedural = (1 << 27),
+        ScreenSpaceOcclusionAfterOpaque = (1 << 28),
+        AdditionalLightsKeepOffVariants = (1 << 29),
+        ShadowsKeepOffVariants = (1 << 30),
     }
 
     [Flags]
@@ -95,10 +88,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ReflectionProbeBlending;
         LocalKeyword m_ReflectionProbeBoxProjection;
         LocalKeyword m_CastingPunctualLightShadow;
-        LocalKeyword m_SoftShadowsHigh;
-        LocalKeyword m_SoftShadowsMedium;
-        LocalKeyword m_SoftShadowsLow;
-        LocalKeyword m_SoftShadowsLowest;
+        LocalKeyword m_SoftShadows;
         LocalKeyword m_MixedLightingSubtractive;
         LocalKeyword m_LightmapShadowMixing;
         LocalKeyword m_ShadowsShadowMask;
@@ -122,8 +112,6 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_DecalNormalBlendHigh;
         LocalKeyword m_ClusteredRendering;
         LocalKeyword m_EditorVisualization;
-        LocalKeyword m_ShaderQualityLow;
-        LocalKeyword m_ShaderQualityMedium;
 
         LocalKeyword m_LocalDetailMulx2;
         LocalKeyword m_LocalDetailScaled;
@@ -172,10 +160,7 @@ namespace UnityEditor.Rendering.Universal
             m_ReflectionProbeBlending = TryGetLocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeBlending);
             m_ReflectionProbeBoxProjection = TryGetLocalKeyword(shader, ShaderKeywordStrings.ReflectionProbeBoxProjection);
             m_CastingPunctualLightShadow = TryGetLocalKeyword(shader, ShaderKeywordStrings.CastingPunctualLightShadow);
-            m_SoftShadowsHigh = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsHigh);
-            m_SoftShadowsMedium = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsMedium);
-            m_SoftShadowsLow = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsLow);
-            m_SoftShadowsLowest = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsLowest);
+            m_SoftShadows = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadows);
             m_MixedLightingSubtractive = TryGetLocalKeyword(shader, ShaderKeywordStrings.MixedLightingSubtractive);
             m_LightmapShadowMixing = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightmapShadowMixing);
             m_ShadowsShadowMask = TryGetLocalKeyword(shader, ShaderKeywordStrings.ShadowsShadowMask);
@@ -199,8 +184,6 @@ namespace UnityEditor.Rendering.Universal
             m_DecalNormalBlendHigh = TryGetLocalKeyword(shader, ShaderKeywordStrings.DecalNormalBlendHigh);
             m_ClusteredRendering = TryGetLocalKeyword(shader, ShaderKeywordStrings.ClusteredRendering);
             m_EditorVisualization = TryGetLocalKeyword(shader, ShaderKeywordStrings.EDITOR_VISUALIZATION);
-            m_ShaderQualityMedium = TryGetLocalKeyword(shader, ShaderKeywordStrings.ShaderQualityMedium);
-            m_ShaderQualityLow = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsLow);
 
             m_LocalDetailMulx2 = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_MULX2);
             m_LocalDetailScaled = TryGetLocalKeyword(shader, ShaderKeywordStrings._DETAIL_SCALED);
@@ -395,19 +378,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             // TODO: Strip off variants once we have global soft shadows option for forcing instead as support
-            if (stripTool.StripMultiCompileKeepOffVariant(m_SoftShadowsHigh, ShaderFeatures.SoftShadowsHigh))
-                return true;
-            if (stripTool.StripMultiCompileKeepOffVariant(m_SoftShadowsHigh, ShaderFeatures.SoftShadowsMedium))
-                return true;
-            if (stripTool.StripMultiCompileKeepOffVariant(m_SoftShadowsHigh, ShaderFeatures.SoftShadowsLow))
-                return true;
-            if (stripTool.StripMultiCompileKeepOffVariant(m_SoftShadowsHigh, ShaderFeatures.SoftShadowsLowest))
-                return true;
-
-            // _ variant is ShaderQualityHigh
-            if (stripTool.StripMultiCompileKeepOffVariant(m_ShaderQualityMedium, ShaderFeatures.ShaderQualityMedium))
-                return true;
-            if (stripTool.StripMultiCompileKeepOffVariant(m_ShaderQualityLow, ShaderFeatures.ShaderQualityLow))
+            if (stripTool.StripMultiCompileKeepOffVariant(m_SoftShadows, ShaderFeatures.SoftShadows))
                 return true;
 
             // Left for backward compatibility
@@ -630,11 +601,7 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             bool isShadowVariant = isMainShadow || isAdditionalShadow;
-            if (!isShadowVariant &&
-                (compilerData.shaderKeywordSet.IsEnabled(m_SoftShadowsHigh) ||
-                 compilerData.shaderKeywordSet.IsEnabled(m_SoftShadowsMedium) ||
-                 compilerData.shaderKeywordSet.IsEnabled(m_SoftShadowsLow) ||
-                 compilerData.shaderKeywordSet.IsEnabled(m_SoftShadowsLowest)))
+            if (!isShadowVariant && compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
                 return true;
 
             return false;
@@ -948,12 +915,7 @@ namespace UnityEditor.Rendering.Universal
             bool anyShadows = pipelineAsset.supportsMainLightShadows ||
                 (shaderFeatures & ShaderFeatures.AdditionalLightShadows) != 0;
             if (pipelineAsset.supportsSoftShadows && anyShadows)
-            {
-                shaderFeatures |= ShaderFeatures.SoftShadowsHigh;
-                shaderFeatures |= ShaderFeatures.SoftShadowsMedium;
-                shaderFeatures |= ShaderFeatures.SoftShadowsLow;
-                shaderFeatures |= ShaderFeatures.SoftShadowsLowest;
-            }
+                shaderFeatures |= ShaderFeatures.SoftShadows;
 
             if (pipelineAsset.supportsMixedLighting)
                 shaderFeatures |= ShaderFeatures.MixedLighting;
