@@ -103,7 +103,7 @@ struct SHProperties
 
 public unsafe class RenderBRG : MonoBehaviour
 {
-    public bool EnableErrorLoadingMaterial = true;
+    public bool SetFallbackMaterialsOnStart = true;
 
     private BatchRendererGroup m_BatchRendererGroup;
     private GraphicsBuffer m_GPUPersistentInstanceData;
@@ -387,8 +387,6 @@ public unsafe class RenderBRG : MonoBehaviour
         return jobHandleOutput;
     }
 
-#if UNITY_EDITOR
-
     static Material LoadMaterialWithHideAndDontSave(string name)
     {
         Shader shader = Shader.Find(name);
@@ -407,19 +405,15 @@ public unsafe class RenderBRG : MonoBehaviour
     Material m_ErrorMaterial;
     Material m_LoadingMaterial;
 
-#endif
-
-
     // Start is called before the first frame update
     void Start()
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
-#if UNITY_EDITOR
         m_PickingMaterial = LoadMaterialWithHideAndDontSave("Hidden/HDRP/BRGPicking");
         m_BatchRendererGroup.SetPickingMaterial(m_PickingMaterial);
 
-        if (EnableErrorLoadingMaterial)
+        if (SetFallbackMaterialsOnStart)
         {
             m_ErrorMaterial = LoadMaterialWithHideAndDontSave("Hidden/HDRP/MaterialError");
             m_BatchRendererGroup.SetErrorMaterial(m_ErrorMaterial);
@@ -427,7 +421,6 @@ public unsafe class RenderBRG : MonoBehaviour
             m_LoadingMaterial = LoadMaterialWithHideAndDontSave("Hidden/HDRP/MaterialLoading");
             m_BatchRendererGroup.SetLoadingMaterial(m_LoadingMaterial);
         }
-#endif
 
         // Create a batch...
         var renderers = FindObjectsOfType<MeshRenderer>();
@@ -696,14 +689,9 @@ public unsafe class RenderBRG : MonoBehaviour
             m_instanceIndices.Dispose();
             m_drawIndices.Dispose();
 
-#if UNITY_EDITOR
             DestroyImmediate(m_PickingMaterial);
-            if (EnableErrorLoadingMaterial)
-            {
-                DestroyImmediate(m_ErrorMaterial);
-                DestroyImmediate(m_LoadingMaterial);
-            }
-#endif
+            DestroyImmediate(m_ErrorMaterial);
+            DestroyImmediate(m_LoadingMaterial);
         }
     }
 }
