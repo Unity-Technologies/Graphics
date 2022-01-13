@@ -30,7 +30,7 @@ Shader "Universal Render Pipeline/VR/SpatialMapping/Wireframe"
 
             #include "UnlitInput.hlsl"
 
-            fw∑loat _WireThickness;
+            float _WireThickness;
 
             struct Attributes
             {
