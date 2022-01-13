@@ -28,7 +28,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public static CapsuleOccluderData GetOccluderData(this CapsuleOccluder occluder, Vector3 originWS)
         {
-            Transform tr = occluder.transform;
             Matrix4x4 localToWorld = occluder.capsuleToWorld;
 
             float offset = Mathf.Max(0.0f, 0.5f * occluder.height - occluder.radius);
