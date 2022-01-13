@@ -28,6 +28,9 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty customShadowLayers { get; }
         public SerializedProperty shadowLayerMask { get; }
 
+        public SerializedProperty capsuleShadowAngle { get; }
+        public SerializedProperty capsuleShadowRange { get; }
+
         /// <summary>Method that updates the <see cref="SerializedObject"/> of the Light and the Additional Light Data</summary>
         public void Update()
         {
@@ -68,6 +71,9 @@ namespace UnityEditor.Rendering.Universal
             lightLayerMask = serializedAdditionalDataObject.FindProperty("m_LightLayerMask");
             customShadowLayers = serializedAdditionalDataObject.FindProperty("m_CustomShadowLayers");
             shadowLayerMask = serializedAdditionalDataObject.FindProperty("m_ShadowLayerMask");
+
+            capsuleShadowAngle = serializedAdditionalDataObject.FindProperty("m_CapsuleShadowAngle");
+            capsuleShadowRange = serializedAdditionalDataObject.FindProperty("m_CapsuleShadowRange");
 
             settings.ApplyModifiedProperties();
         }

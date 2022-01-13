@@ -810,7 +810,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xrRendering && rendererSupportsMSAA)
                 msaaSamples = (int)XRSystem.GetDisplayMSAASamples();
 
-            bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
+            bool needsAlphaChannel = Graphics.preserveFramebufferAlpha || CapsuleOccluderManager.instance.occluders.Count > 0;
 
             // Render scale is not intended to affect the scene view so override the scale to 1.0 when it's rendered.
             bool isSceneViewCamera = (camera.cameraType == CameraType.SceneView);

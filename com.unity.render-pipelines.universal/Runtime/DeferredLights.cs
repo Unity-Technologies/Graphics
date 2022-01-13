@@ -61,6 +61,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _ClearStencilRef = Shader.PropertyToID("_ClearStencilRef");
             public static readonly int _ClearStencilReadMask = Shader.PropertyToID("_ClearStencilReadMask");
             public static readonly int _ClearStencilWriteMask = Shader.PropertyToID("_ClearStencilWriteMask");
+            public static readonly int _DirCapsuleStencilRef = Shader.PropertyToID("_DirCapsuleStencilRef");
+            public static readonly int _DirCapsuleStencilReadMask = Shader.PropertyToID("_DirCapsuleStencilReadMask");
+            public static readonly int _DirCapsuleStencilWriteMask = Shader.PropertyToID("_DirCapsuleStencilWriteMask");
+            public static readonly int _DirCapsuleShadowStencilRef = Shader.PropertyToID("_DirCapsuleShadowStencilRef");
+            public static readonly int _DirCapsuleShadowStencilReadMask = Shader.PropertyToID("_DirCapsuleShadowStencilReadMask");
+            public static readonly int _DirCapsuleShadowStencilWriteMask = Shader.PropertyToID("_DirCapsuleShadowStencilWriteMask");
 
             public static readonly int _ScreenToWorld = Shader.PropertyToID("_ScreenToWorld");
 
@@ -79,6 +85,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _ShadowLightIndex = Shader.PropertyToID("_ShadowLightIndex");
             public static int _LightLayerMask = Shader.PropertyToID("_LightLayerMask");
             public static int _CookieLightIndex = Shader.PropertyToID("_CookieLightIndex");
+            public static int _CapsuleCenterWS = Shader.PropertyToID("_CapsuleCenterWS");
+            public static int _CapsuleAxisDirWS = Shader.PropertyToID("_CapsuleAxisDirWS");
+            public static int _CapsuleParams = Shader.PropertyToID("_CapsuleParams");
         }
 
         internal static readonly string[] k_GBufferNames = new string[]
@@ -101,7 +110,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             "Deferred Directional Light (SimpleLit)",
             "ClearStencilPartial",
             "Fog",
-            "SSAOOnly"
+            "SSAOOnly",
+            "Directional Capsule Stencil Volume",
+            "Directional Capsule Shadow"
         };
 
         internal enum StencilDeferredPasses
@@ -113,7 +124,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             DirectionalSimpleLit,
             ClearStencilPartial,
             Fog,
-            SSAOOnly
+            SSAOOnly,
+            DirectionalCapsuleStencilVolume,
+            DirectionalCapsuleShadow
         };
 
         static readonly ushort k_InvalidLightOffset = 0xFFFF;
@@ -212,6 +225,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         Mesh m_HemisphereMesh;
         // For rendering directional lights.
         Mesh m_FullscreenMesh;
+        // For capsule shadows.
+        Mesh m_CubeMesh;
 
         // Hold all shaders for stencil-volume deferred shading.
         Material m_StencilDeferredMaterial;
@@ -719,6 +734,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
+            if (m_CubeMesh == null)
+                m_CubeMesh = CoreUtils.CreateCubeMesh(-0.5f * Vector3.one, 0.5f * Vector3.one);
 
             cmd.EnableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
 
@@ -771,6 +788,57 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(ShaderConstants._LightDirection, lightDir);
                 cmd.SetGlobalInt(ShaderConstants._LightFlags, lightFlags);
                 cmd.SetGlobalInt(ShaderConstants._LightLayerMask, (int)lightLayerMask);
+
+                // extract light data
+                var lightData = vl.light.GetUniversalAdditionalLightData();
+                float lightHalfAngle = Mathf.Deg2Rad * Mathf.Clamp(lightData.capsuleShadowAngle, 0.1f, 90.0f) * 0.5f;
+                float shadowRange = Mathf.Max(lightData.capsuleShadowRange, 0.0f);
+                float lightCosTheta = Mathf.Cos(lightHalfAngle);
+
+                foreach (CapsuleOccluder occluder in CapsuleOccluderManager.instance.occluders)
+                {
+                    // extract capsule data into world space
+                    Matrix4x4 localToWorld = occluder.capsuleToWorld;
+                    Vector3 centerWS = localToWorld.MultiplyPoint3x4(Vector3.zero);
+                    Vector3 axisDirWS = localToWorld.MultiplyVector(Vector3.forward).normalized;
+                    float radius = localToWorld.MultiplyVector(occluder.radius * Vector3.right).magnitude;
+                    float offset = Mathf.Max(0.0f, 0.5f * occluder.height - occluder.radius);
+
+                    // align local X with the capsule axis
+                    Vector3 localZ = lightDir;
+                    Vector3 localX = Vector3.Cross(localZ, axisDirWS).normalized;
+                    Vector3 localY = Vector3.Cross(localZ, localX);
+
+                    // capsule bounds, extended along light direction
+                    Vector3 cubeCenterWS = centerWS;
+                    Vector3 halfExtentLS = new Vector3(
+                        Mathf.Abs(Vector3.Dot(axisDirWS, localX)) * offset + radius,
+                        Mathf.Abs(Vector3.Dot(axisDirWS, localY)) * offset + radius,
+                        Mathf.Abs(Vector3.Dot(axisDirWS, localZ)) * offset + radius);
+                    halfExtentLS.z += 0.5f * shadowRange;
+                    cubeCenterWS -= (0.5f * shadowRange) * localZ;
+
+                    // expand by max penumbra
+                    float penumbraSize = Mathf.Tan(lightHalfAngle) * shadowRange;
+                    halfExtentLS.x += penumbraSize;
+                    halfExtentLS.y += penumbraSize;
+
+                    Matrix4x4 worldFromCube = new Matrix4x4(
+                        2.0f * halfExtentLS.x * localX,
+                        2.0f * halfExtentLS.y * localY,
+                        2.0f * halfExtentLS.z * localZ,
+                        cubeCenterWS);
+
+                    // stencil the volume of influence for this capsules
+                    cmd.DrawMesh(m_CubeMesh, worldFromCube, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.DirectionalCapsuleStencilVolume]);
+
+                    // combine capsule shadow into dest alpha
+                    cmd.SetGlobalVector(ShaderConstants._CapsuleCenterWS, centerWS);
+                    cmd.SetGlobalVector(ShaderConstants._CapsuleAxisDirWS, axisDirWS);
+                    cmd.SetGlobalVector(ShaderConstants._CapsuleParams, new Vector4(radius, offset, lightCosTheta, shadowRange));
+
+                    cmd.DrawMesh(m_CubeMesh, worldFromCube, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.DirectionalCapsuleShadow]);
+                }
 
                 // Lighting pass.
                 cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.DirectionalLit]);
@@ -963,6 +1031,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_StencilDeferredMaterial.SetFloat(ShaderConstants._ClearStencilRef, 0.0f);
             m_StencilDeferredMaterial.SetFloat(ShaderConstants._ClearStencilReadMask, (float)StencilUsage.MaterialMask);
             m_StencilDeferredMaterial.SetFloat(ShaderConstants._ClearStencilWriteMask, (float)StencilUsage.MaterialMask);
+            m_StencilDeferredMaterial.SetFloat(ShaderConstants._DirCapsuleStencilRef, (float)StencilUsage.MaterialUnlit);
+            m_StencilDeferredMaterial.SetFloat(ShaderConstants._DirCapsuleStencilReadMask, (float)StencilUsage.MaterialMask);
+            m_StencilDeferredMaterial.SetFloat(ShaderConstants._DirCapsuleStencilWriteMask, (float)StencilUsage.StencilShadow);
+            m_StencilDeferredMaterial.SetFloat(ShaderConstants._DirCapsuleShadowStencilRef, (float)StencilUsage.StencilShadow);
+            m_StencilDeferredMaterial.SetFloat(ShaderConstants._DirCapsuleShadowStencilReadMask, (float)StencilUsage.StencilShadow);
+            m_StencilDeferredMaterial.SetFloat(ShaderConstants._DirCapsuleShadowStencilWriteMask, (float)StencilUsage.StencilShadow);
         }
 
         static Mesh CreateSphereMesh()

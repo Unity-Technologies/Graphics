@@ -362,6 +362,12 @@ namespace UnityEditor.Rendering.Universal
                         }
                     }
                 }
+
+                if (lightType == LightType.Directional)
+                {
+                    EditorGUILayout.Slider(serializedLight.capsuleShadowAngle, 0.0f, 90.0f, Styles.CapsuleShadowAngle);
+                    EditorGUILayout.PropertyField(serializedLight.capsuleShadowRange, Styles.CapsuleShadowRange);
+                }
             }
 
             if (!UnityEditor.Lightmapping.bakedGI && !serializedLight.settings.lightmapping.hasMultipleDifferentValues && serializedLight.settings.isBakedOrMixed)
