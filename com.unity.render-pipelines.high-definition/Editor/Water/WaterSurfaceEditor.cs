@@ -147,10 +147,10 @@ namespace UnityEditor.Rendering.HighDefinition
             m_LightLayerMask = o.Find(x => x.lightLayerMask);
         }
 
-        static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Specifies the normalized (between 0.0 and 1.0) amplitude of each simulation band.");
-        static public readonly GUIContent k_Choppiness = EditorGUIUtility.TrTextContent("Choppiness", "Controls the choppiness factor the waves. Higher values may introduce visual artifacts.");
-        static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Controls the speed of the water simulation.This allows to slow down the wave's speed or to accelerate it.");
-        static public readonly GUIContent k_WaterSmoothness = EditorGUIUtility.TrTextContent("Water Smoothness", "Control the smoothness used to render the water surface.");
+        static public readonly GUIContent k_Amplitude = EditorGUIUtility.TrTextContent("Amplitude", "Sets the normalized (between 0.0 and 1.0) amplitude of each simulation band (from lower to higher frequencies).");
+        static public readonly GUIContent k_Choppiness = EditorGUIUtility.TrTextContent("Choppiness", "Sets the choppiness factor the waves. Higher values combined with high wind speed may introduce visual artifacts.");
+        static public readonly GUIContent k_TimeMultiplier = EditorGUIUtility.TrTextContent("Time Multiplier", "Sets the speed of the water simulation. This allows to slow down the wave's speed or to accelerate it.");
+        static public readonly GUIContent k_WaterSmoothness = EditorGUIUtility.TrTextContent("Water Smoothness", "Controls the smoothness used to render the water surface.");
         static public readonly GUIContent k_MaxRefractionDistance = EditorGUIUtility.TrTextContent("Maximum Refraction Distance", "Controls the maximum distance in meters used to clamp the under water refraction depth. Higher value increases the distortion amount.");
         static public readonly GUIContent k_MaxAbsorptionDistance = EditorGUIUtility.TrTextContent("Maximum Absorption Distance", "Controls the maximum distance in meters that the camera can perceive under the water surface.");
 
@@ -159,12 +159,10 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_DirectLightTipScattering = EditorGUIUtility.TrTextContent("Direct Light Tip Scattering", "Controls the intensity of the direct light scattering on the tip of the waves. The effect is more perceivable at grazing angles.");
         static public readonly GUIContent k_DirectLightBodyScattering = EditorGUIUtility.TrTextContent("Direct Light Body Scattering", "Controls the intensity of the direct light scattering on the body of the waves. The effect is more perceivable at grazing angles.");
 
-        static public readonly GUIContent k_CausticsDispersionAmount = EditorGUIUtility.TrTextContent("Caustics Dispersion Amount", "Controls the amount of dispersion of the caustics.");
         static public readonly GUIContent k_CausticsBand = EditorGUIUtility.TrTextContent("Caustics Band", "Controls which band is used for the caustics evaluation.");
 
         static public readonly GUIContent k_SimulationFoamSmoothness = EditorGUIUtility.TrTextContent("Simulation Foam Smoothness", "Controls the simulation foam smoothness.");
-        static public readonly GUIContent k_SimulationFoamIntensity = EditorGUIUtility.TrTextContent("Simulation Foam Intensity", "Controls the simulation foam brightness.");
-        static public readonly GUIContent k_SimulationFoamDrag = EditorGUIUtility.TrTextContent("Simulation Foam Drag", "Controls the simulation foam drag.");
+        static public readonly GUIContent k_SimulationFoamDrag = EditorGUIUtility.TrTextContent("Simulation Foam Drag", "Controls the life span of the surface foam. A higher value will cause the foam to persist longer and leave a trail.");
         static public readonly GUIContent k_SimulationFoamAmount = EditorGUIUtility.TrTextContent("Simulation Foam Amount", "Controls the simulation foam amount. Higher values generate larger foam patches. Foam presence is highly dependent on the wind speed and chopiness values.");
 
         static public readonly GUIContent k_WindSpeed = EditorGUIUtility.TrTextContent("Wind Speed", "Controls the wind speed in kilometers per hour.");
