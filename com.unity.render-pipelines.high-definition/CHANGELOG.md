@@ -94,6 +94,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed NeedMotionVectorForTransparent checking the wrong flag.
 - Fixed debug probe visualization affecting screen space effects.
 - Fixed issue of index for APV running out space way before it should.
+- Fixed an issue where APV cells were not populated properly when probe volumes have rotations
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
