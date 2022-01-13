@@ -9,7 +9,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Migration
 {
-    class ActivationToControlTrack : AssetPostprocessor
+    static class ActivationToControlTrack
     {
         static IEnumerable<VisualEffectControlTrack> GetOutOfDateControlTrack(TimelineAsset timeline)
         {
@@ -149,28 +149,25 @@ namespace UnityEditor.VFX.Migration
             }
         }
 
-        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+        public static void SanitizeAssetAtPath(string assetPath)
         {
-            foreach (var str in importedAssets)
+            var controlTrack =
+                AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath("8852af5319304157ae899fcbd2593ea9")) as
+                    MonoScript;
+            var oldAssets = AssetDatabase.LoadAllAssetsAtPath(assetPath).OfType<VisualEffectActivationTrack>().ToArray();
+            using var so = new SerializedObject(oldAssets);
+            using var property = so.FindProperty("m_Script");
+            property.objectReferenceValue = controlTrack;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            AssetDatabase.ForceReserializeAssets(new []{assetPath});
+            var timeline = AssetDatabase.LoadAssetAtPath<TimelineAsset>(assetPath);
+            if (timeline != null)
             {
-                try
+                var activationTracks = GetOutOfDateControlTrack(timeline);
+                if (activationTracks.Any())
                 {
-                    if (str.EndsWith(".playable", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        var timeline = AssetDatabase.LoadAssetAtPath<TimelineAsset>(str);
-                        if (timeline != null)
-                        {
-                            var activationTracks = GetOutOfDateControlTrack(timeline);
-                            if (activationTracks.Any())
-                            {
-                                SanitizeActivationToControl(timeline, activationTracks.ToArray());
-                            }
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.LogErrorFormat("Failed to migrate VisualEffectActivationTrack: {0}\n{1}", str, e);
+                    SanitizeActivationToControl(timeline, activationTracks.ToArray());
                 }
             }
         }

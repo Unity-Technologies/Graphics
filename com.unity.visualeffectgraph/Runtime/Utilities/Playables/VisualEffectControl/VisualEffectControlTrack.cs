@@ -1,9 +1,6 @@
-#if VFX_HAS_TIMELINE
-using System;
+﻿using System;
 using System.Linq;
-#if UNITY_EDITOR
 using UnityEditor;
-#endif
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
 
@@ -127,4 +124,3 @@ namespace UnityEngine.VFX
         }
     }
 }
-#endif
