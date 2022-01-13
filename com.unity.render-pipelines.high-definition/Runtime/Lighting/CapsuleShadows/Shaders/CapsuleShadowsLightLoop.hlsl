@@ -100,7 +100,7 @@ float EvaluateCapsuleShadow(
                 float occlusion = smoothstep(1.0f, 0.75f, length(surfaceToCapsuleVec)/shadowRange);
 
                 // amount the light source is occluded by the capsule shape
-                if (visibility > 0.f) {
+                if (occlusion > 0.f) {
                     occlusion *= EvaluateCapsuleOcclusion(
                         featureBits,
                         surfaceToLightVec,
