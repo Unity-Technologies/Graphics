@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Adaptive Performance Decals scaler access.
 
 ### Fixed
+- Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]
 - Fixed incorrect light indexing on Windows Editor with Android target. [case 1378103](https://issuetracker.unity3d.com/product/unity/issues/guid/1378103/)
 - Fixed a performance regression in the 2D renderer regarding the PostProcessPass [case 1347893]
 - Fixed a regression where filtering the scene view yielded incorrect visual results [case 1360233] (https://issuetracker.unity3d.com/product/unity/issues/guid/1360233)
