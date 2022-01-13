@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed XR support in CoreUtils.DrawFullscreen function.
 - Fixed issue in DynamicResolutionHandler when camera request was turned off at runtime, the ScalableBufferManager would leak state and not unset DRS state (case 1383093).
+- Fixed `DebugUI.Enum` fields collapsing their parent `DebugUI.Foldout`
+- Fixed IES profile importer handling of overflow (outside 0-1 range) of attenutation splines values.
+- Fixed issue with Probe Volume Baking window incorrectly displaying the icon for probe volumes in scenes that don't contain probe volumes.
+- Fixed unnecessary memory allocation inside FSR's RCAS shader constants helper function.
+- Fixed the issue with the special Turkish i, when looking for the m_IsGlobal property in VolumeEditor. (case 1276892)
+
+### Changed
+- Removed FSR_ENABLE_16BIT option from FSRCommon.hlsl. The 16-bit FSR implementation is now automatically enabled when supported by the target platform.
 
 ## [13.1.2] - 2021-11-05
 
