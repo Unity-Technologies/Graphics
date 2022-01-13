@@ -26,8 +26,12 @@ namespace UnityEngine.Experimental.Rendering
         struct SceneData
         {
             public SceneAsset asset;
-            public string path;
             public string guid;
+
+            public string GetPath()
+            {
+                return AssetDatabase.GUIDToAssetPath(guid);
+            }
         }
 
         static class Styles
@@ -200,7 +204,6 @@ namespace UnityEngine.Experimental.Rendering
                 return new SceneData
                 {
                     asset = asset,
-                    path = path,
                     guid = s
                 };
             }).ToList();
@@ -242,7 +245,7 @@ namespace UnityEngine.Experimental.Rendering
                 // display the probe volume icon in the scene if it have one
                 Rect probeVolumeIconRect = rect;
                 probeVolumeIconRect.xMin = rect.xMax - k_ProbeVolumeIconSize;
-                if (sceneData.hasProbeVolumes.ContainsKey(scene.guid))
+                if (sceneData.hasProbeVolumes.ContainsKey(scene.guid) && sceneData.hasProbeVolumes[scene.guid])
                     EditorGUI.LabelField(probeVolumeIconRect, new GUIContent(Styles.probeVolumeIcon));
 
                 // Display the lighting settings of the first scene (it will be used for baking)
@@ -419,10 +422,10 @@ namespace UnityEngine.Experimental.Rendering
                 if (m_ProbeVolumeProfileEditor.target != set.profile)
                     Editor.CreateCachedEditor(set.profile, m_ProbeVolumeProfileEditor.GetType(), ref m_ProbeVolumeProfileEditor);
 
-                EditorGUILayout.LabelField("Probe Volume Profile", EditorStyles.largeLabel);
+                EditorGUILayout.LabelField("Probe Volume Profile", EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
                 m_ProbeVolumeProfileEditor.OnInspectorGUI();
-
-                EditorGUILayout.Space();
+                EditorGUI.indentLevel--;
 
                 var serializedSets = m_ProbeSceneData.FindPropertyRelative("serializedBakingSets");
                 var serializedSet = serializedSets.GetArrayElementAtIndex(m_BakingSets.index);
@@ -529,7 +532,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         void LoadScenesInBakingSet(ProbeVolumeSceneData.BakingSet set)
-            => LoadScenes(GetCurrentBakingSet().sceneGUIDs.Select(sceneGUID => m_ScenesInProject.FirstOrDefault(s => s.guid == sceneGUID).path));
+            => LoadScenes(GetCurrentBakingSet().sceneGUIDs.Select(sceneGUID => m_ScenesInProject.FirstOrDefault(s => s.guid == sceneGUID).GetPath()));
 
         void LoadScenes(IEnumerable<string> scenePathes)
         {

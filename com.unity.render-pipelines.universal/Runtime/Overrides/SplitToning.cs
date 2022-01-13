@@ -14,8 +14,10 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Balance between the colors in the highlights and shadows.")]
         public ClampedFloatParameter balance = new ClampedFloatParameter(0f, -100f, 100f);
 
+        /// <inheritdoc/>
         public bool IsActive() => shadows != Color.grey || highlights != Color.grey;
 
+        /// <inheritdoc/>
         public bool IsTileCompatible() => true;
     }
 }
