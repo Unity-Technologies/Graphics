@@ -333,7 +333,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 // Find the set in which the new active scene belongs
                 // If the active baking state does not exist for this set, load the default state of the set
-               string sceneGUID = sceneData.GetSceneGUID(scene);
+                string sceneGUID = sceneData.GetSceneGUID(scene);
                 var set = sceneData.bakingSets.FirstOrDefault(s => s.sceneGUIDs.Contains(sceneGUID));
                 if (set != null && !set.bakingStates.Contains(ProbeReferenceVolume.instance.bakingState))
                     ProbeReferenceVolume.instance.bakingState = set.bakingStates[0];

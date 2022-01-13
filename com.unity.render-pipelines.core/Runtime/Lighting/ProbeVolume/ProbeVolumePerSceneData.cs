@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering
             public string state;
             public PerStateData data;
         }
-        
+
         [SerializeField] internal ProbeVolumeAsset asset;
         [SerializeField] internal TextAsset cellSharedDataAsset; // Contains bricks data
         [SerializeField] internal TextAsset cellSupportDataAsset; // Contains debug data

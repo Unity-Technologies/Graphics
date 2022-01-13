@@ -657,7 +657,8 @@ namespace UnityEngine.Experimental.Rendering
         public string bakingState
         {
             get => sceneData.bakingState;
-            set {
+            set
+            {
                 sceneData.bakingState = value;
 #if UNITY_EDITOR
                 EditorUtility.SetDirty(sceneData.parentAsset);
