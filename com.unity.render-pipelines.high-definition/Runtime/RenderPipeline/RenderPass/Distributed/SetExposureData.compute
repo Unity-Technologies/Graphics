@@ -1,0 +1,20 @@
+#pragma kernel SetExposureData
+#pragma kernel GetExposureData
+
+RWStructuredBuffer<float2> _ExposureData;
+RWTexture2D<float2> _PrevExposureTexture;
+RWTexture2D<float2> _NextExposureTexture;
+
+[numthreads(1,1,1)]
+void SetExposureData (uint3 id : SV_DispatchThreadID)
+{
+    _PrevExposureTexture[id.xy] = _ExposureData[id.x + id.y + 0];
+    _NextExposureTexture[id.xy] = _ExposureData[id.x + id.y + 1];
+}
+
+[numthreads(1,1,1)]
+void GetExposureData (uint3 id : SV_DispatchThreadID)
+{
+    _ExposureData[id.x + id.y + 0] = _PrevExposureTexture[id.xy];
+    _ExposureData[id.x + id.y + 1] = _NextExposureTexture[id.xy];
+}

@@ -88,6 +88,11 @@ MonoBehaviour:
     blitPS: {fileID: 4800000, guid: 370f7a9cc4e362d488af024d371091e8, type: 3}
     blitColorAndDepthPS: {fileID: 4800000, guid: c6e57f5bdbd2a284a86a3097c03884c8,
       type: 3}
+    setExposureDataCS: {fileID: 7200000, guid: a73520c062253124894e9d8b94f00058, type: 3}
+    blitRGBToYUVPS: {fileID: 4800000, guid: a29bd67c75c3d25419c0314bfbeec55e, type: 3}
+    blitYUVToRGBPS: {fileID: 4800000, guid: 066e29f0be1080e40855de7a6c29abd8, type: 3}
+    convertBufferYUVCS: {fileID: 7200000, guid: 7c48c2bc0628e1c4481c33a65fd05e55,
+      type: 3}
     downsampleDepthPS: {fileID: 4800000, guid: 67d6171b0acc6554aad48c845ec7e67f, type: 3}
     upsampleTransparentPS: {fileID: 4800000, guid: 2ad7ce40f0dbaf64dadef1f58d8524d3,
       type: 3}

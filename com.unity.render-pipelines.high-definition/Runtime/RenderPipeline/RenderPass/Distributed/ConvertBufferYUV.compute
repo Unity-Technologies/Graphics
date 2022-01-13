@@ -1,0 +1,107 @@
+#pragma kernel TextureToBuffer
+#pragma kernel BufferToTexture
+
+#pragma multi_compile _ USE_TEXTURE_ARRAY 
+
+RWStructuredBuffer<half2> _YUVDataBuffer;
+#if defined(USE_TEXTURE_ARRAY)
+RWTexture2DArray<half> _YTexture;
+RWTexture2DArray<half> _UTexture;
+RWTexture2DArray<half> _VTexture;
+#else
+RWTexture2D<half> _YTexture;
+RWTexture2D<half> _UTexture;
+RWTexture2D<half> _VTexture;
+#endif
+uint _FullWidth;
+uint _FullHeight;
+
+[numthreads(32,32,1)]
+void TextureToBuffer (uint3 id : SV_DispatchThreadID)
+{
+    uint currentX = id.x;
+    uint currentY = id.y;
+    if (currentX >= _FullWidth || currentY >= _FullHeight)
+    {
+        return;
+    }
+
+    uint arrayIndex = id.z;
+#if defined(USE_TEXTURE_ARRAY)
+    uint3 currentXY = id.xyz;
+    uint3 currentXYHalf = uint3(id.xy / 2, id.z);
+#else
+    uint2 currentXY = id.xy;
+    uint2 currentXYHalf = id.xy / 2;
+#endif
+    uint pixelCount = _FullWidth * _FullHeight;
+    uint yStart = arrayIndex * pixelCount * 3 / 2;
+    uint uStart = yStart + pixelCount;
+    uint vStart = uStart + pixelCount / 4;
+
+    uint yIndex = yStart + currentXY.y * _FullWidth + currentXY.x;
+    uint uIndex = uStart + currentXYHalf.y * _FullWidth / 2 + currentXYHalf.x;
+    uint vIndex = vStart + currentXYHalf.y * _FullWidth / 2 + currentXYHalf.x;
+
+    half yVal = _YTexture[currentXY];
+    half uVal = _UTexture[currentXYHalf];
+    half vVal = _VTexture[currentXYHalf];
+
+    if (yIndex % 2 == 0)
+        _YUVDataBuffer[yIndex / 2].x = yVal;
+    else
+        _YUVDataBuffer[yIndex / 2].y = yVal;
+
+    if (uIndex % 2 == 0)
+        _YUVDataBuffer[uIndex / 2].x = uVal;
+    else
+        _YUVDataBuffer[uIndex / 2].y = uVal;
+
+    if (vIndex % 2 == 0)
+        _YUVDataBuffer[vIndex / 2].x = vVal;
+    else
+        _YUVDataBuffer[vIndex / 2].y = vVal;
+}
+
+[numthreads(32,32,1)]
+void BufferToTexture (uint3 id : SV_DispatchThreadID)
+{
+    uint currentX = id.x;
+    uint currentY = id.y;
+    if (currentX >= _FullWidth || currentY >= _FullHeight)
+    {
+        return;
+    }
+
+    uint arrayIndex = id.z;
+#if defined(USE_TEXTURE_ARRAY)
+    uint3 currentXY = id.xyz;
+    uint3 currentXYHalf = uint3(id.xy / 2, id.z);
+#else
+    uint2 currentXY = id.xy;
+    uint2 currentXYHalf = id.xy / 2;
+#endif
+    uint pixelCount = _FullWidth * _FullHeight;
+    uint yStart = arrayIndex * pixelCount * 3 / 2;
+    uint uStart = yStart + pixelCount;
+    uint vStart = uStart + pixelCount / 4;
+
+    uint yIndex = yStart + currentXY.y * _FullWidth + currentXY.x;
+    uint uIndex = uStart + currentXYHalf.y * _FullWidth / 2 + currentXYHalf.x;
+    uint vIndex = vStart + currentXYHalf.y * _FullWidth / 2 + currentXYHalf.x;
+
+    if (yIndex % 2 == 0)
+        _YTexture[currentXY] = _YUVDataBuffer[yIndex / 2].x;
+    else
+        _YTexture[currentXY] = _YUVDataBuffer[yIndex / 2].y;
+
+    if (yIndex % 2 == 0)
+        _UTexture[currentXYHalf] = _YUVDataBuffer[uIndex / 2].x;
+    else
+        _UTexture[currentXYHalf] = _YUVDataBuffer[uIndex / 2].y;
+
+    if (yIndex % 2 == 0)
+        _VTexture[currentXYHalf] = _YUVDataBuffer[vIndex / 2].x;
+    else
+        _VTexture[currentXYHalf] = _YUVDataBuffer[vIndex / 2].y;
+}

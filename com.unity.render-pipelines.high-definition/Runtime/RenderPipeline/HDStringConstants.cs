@@ -924,6 +924,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AtlasTextureOctahedralDepthScaleBias = Shader.PropertyToID("_AtlasTextureOctahedralDepthScaleBias");
         public static readonly int _ValidRange                     = Shader.PropertyToID("_ValidRange");
         public static readonly int _ProbeVolumeAtlasSliceMode      = Shader.PropertyToID("_ProbeVolumeAtlasSliceMode");
+        
+        // Distributed Rendering
+        public static readonly int _YUVBufferID = Shader.PropertyToID("_YUVDataBuffer");
+        public static readonly int _YUVYTexID = Shader.PropertyToID("_YTexture");
+        public static readonly int _YUVUTexID = Shader.PropertyToID("_UTexture");
+        public static readonly int _YUVVTexID = Shader.PropertyToID("_VTexture");
+        public static readonly int _YUVFullWidthID = Shader.PropertyToID("_FullWidth");
+        public static readonly int _YUVFullHeightID = Shader.PropertyToID("_FullHeight");
+        public static readonly int _BlitTextureY = Shader.PropertyToID("_BlitTextureY");
+        public static readonly int _BlitTextureU = Shader.PropertyToID("_BlitTextureU");
+        public static readonly int _BlitTextureV = Shader.PropertyToID("_BlitTextureV");
     }
 
     // Shared material property names

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -275,48 +277,61 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var exposureParameters = PrepareExposureParameters(hdCamera);
 
-                GrabExposureRequiredTextures(hdCamera, out var prevExposure, out var nextExposure);
+                RTHandle prevExposure = null;
+                RTHandle nextExposure = null;
+
+                GrabExposureRequiredTextures(hdCamera, out prevExposure, out nextExposure);
 
                 var prevExposureHandle = renderGraph.ImportTexture(prevExposure);
                 var nextExposureHandle = renderGraph.ImportTexture(nextExposure);
 
-                using (var builder = renderGraph.AddRenderPass<DynamicExposureData>("Dynamic Exposure", out var passData, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
+                if (HDRenderPipeline.GetDistributedMode() == HDRenderPipeline.DistributedMode.Renderer)
+                    ReceiveExposurePass(renderGraph, prevExposureHandle, nextExposureHandle, hdCamera);
+
+                if (HDRenderPipeline.GetDistributedMode() == HDRenderPipeline.DistributedMode.Merger || 
+                    HDRenderPipeline.GetDistributedMode() == HDRenderPipeline.DistributedMode.None)
                 {
-                    passData.source = builder.ReadTexture(source);
-                    passData.parameters = PrepareExposureParameters(hdCamera);
-                    passData.prevExposure = builder.ReadTexture(prevExposureHandle);
-                    passData.nextExposure = builder.WriteTexture(nextExposureHandle);
-
-                    if (m_Exposure.mode.value == ExposureMode.AutomaticHistogram)
+                    using (var builder = renderGraph.AddRenderPass<DynamicExposureData>("Dynamic Exposure", out var passData, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
                     {
-                        passData.exposureDebugData = builder.WriteTexture(renderGraph.ImportTexture(m_DebugExposureData));
-                        builder.SetRenderFunc(
-                            (DynamicExposureData data, RenderGraphContext ctx) =>
-                            {
-                                DoHistogramBasedExposure(data.parameters, ctx.cmd, data.source,
-                                                                                   data.prevExposure,
-                                                                                   data.nextExposure,
-                                                                                   data.exposureDebugData);
-                            });
-                    }
-                    else
-                    {
-                        passData.tmpTarget1024 = builder.CreateTransientTexture(new TextureDesc(1024, 1024, false, false)
-                        { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 1024" });
-                        passData.tmpTarget32 = builder.CreateTransientTexture(new TextureDesc(32, 32, false, false)
-                        { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 32" });
+                        passData.source = builder.ReadTexture(source);
+                        passData.parameters = PrepareExposureParameters(hdCamera);
+                        passData.prevExposure = builder.ReadTexture(prevExposureHandle);
+                        passData.nextExposure = builder.WriteTexture(nextExposureHandle);
 
-                        builder.SetRenderFunc(
-                            (DynamicExposureData data, RenderGraphContext ctx) =>
-                            {
-                                DoDynamicExposure(data.parameters, ctx.cmd, data.source,
-                                                                            data.prevExposure,
-                                                                            data.nextExposure,
-                                                                            data.tmpTarget1024,
-                                                                            data.tmpTarget32);
-                            });
+                        if (m_Exposure.mode.value == ExposureMode.AutomaticHistogram)
+                        {
+                            passData.exposureDebugData = builder.WriteTexture(renderGraph.ImportTexture(m_DebugExposureData));
+                            builder.SetRenderFunc(
+                                (DynamicExposureData data, RenderGraphContext ctx) =>
+                                {
+                                    DoHistogramBasedExposure(data.parameters, ctx.cmd, data.source,
+                                                                                    data.prevExposure,
+                                                                                    data.nextExposure,
+                                                                                    data.exposureDebugData);
+                                });
+                        }
+                        else
+                        {
+                            passData.tmpTarget1024 = builder.CreateTransientTexture(new TextureDesc(1024, 1024, false, false)
+                            { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 1024" });
+                            passData.tmpTarget32 = builder.CreateTransientTexture(new TextureDesc(32, 32, false, false)
+                            { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 32" });
+
+                            builder.SetRenderFunc(
+                                (DynamicExposureData data, RenderGraphContext ctx) =>
+                                {
+                                    DoDynamicExposure(data.parameters, ctx.cmd, data.source,
+                                                                                data.prevExposure,
+                                                                                data.nextExposure,
+                                                                                data.tmpTarget1024,
+                                                                                data.tmpTarget32);
+                                });
+                        }
                     }
                 }
+
+                if (HDRenderPipeline.GetDistributedMode() == HDRenderPipeline.DistributedMode.Merger)
+                    SendExposurePass(renderGraph, prevExposureHandle, nextExposureHandle, hdCamera);
 
                 if (hdCamera.resetPostProcessingHistory)
                 {

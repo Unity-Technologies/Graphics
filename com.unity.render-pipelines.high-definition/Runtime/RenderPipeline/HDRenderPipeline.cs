@@ -6,6 +6,8 @@ using System.Linq;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.TCPTransmissionDatagrams;
+using System.Threading;
 #if UNITY_EDITOR
 using UnityEditorInternal;
 using UnityEditor.Rendering;
@@ -177,6 +179,12 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_BlitTexArray;
         Material m_BlitTexArraySingleSlice;
         Material m_BlitColorAndDepth;
+        Material m_BlitRGBToYUV;
+        Material m_BlitRGBToYUVTexArray;
+        Material m_BlitRGBToYUVTexArraySingleSlice;
+        Material m_BlitYUVToRGB;
+        Material m_BlitYUVToRGBTexArray;
+        Material m_BlitYUVToRGBTexArraySingleSlice;
         MaterialPropertyBlock m_BlitPropertyBlock = new MaterialPropertyBlock();
 
         RenderTargetIdentifier[] m_MRTCache2 = new RenderTargetIdentifier[2];
@@ -366,6 +374,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
         internal bool reflectionProbeBaking { get; set; }
+
+        // Networking controller
+        SocketClient clientToController;
+        int frameID;
 
         /// <summary>
         /// HDRenderPipeline constructor.
@@ -597,6 +609,23 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowManager.InitializeNonRenderGraphResources();
 
             EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
+
+#if SYNC
+            if (GetDistributedMode() != DistributedMode.None)
+            {            
+                if (Application.isPlaying && clientToController == null)
+                {
+                    clientToController = new SocketClient();
+                    clientToController.Init(Const.IP, Const.CONTROLLER_PORT);
+                    //while (true)
+                    //{
+                    //    clientToController.GetReceived(Datagram.DatagramType.StartFrame, out byte[] data);
+                    //    if (data != null)
+                    //        break;
+                    //}
+                }
+            }
+#endif
         }
 
 #if UNITY_EDITOR
@@ -1069,6 +1098,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugExposure = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugExposurePS);
             m_Blit = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
             m_BlitColorAndDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitColorAndDepthPS);
+            m_BlitRGBToYUV = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitRGBToYUVPS);
+            m_BlitYUVToRGB = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitYUVToRGBPS);
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
 
             // With texture array enabled, we still need the normal blit version for other systems like atlas
@@ -1078,6 +1109,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_BlitTexArray = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
                 m_BlitTexArraySingleSlice = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
                 m_BlitTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
+                
+                m_BlitYUVToRGB.EnableKeyword("DISABLE_TEXTURE2D_X_ARRAY");
+                m_BlitYUVToRGBTexArray = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitYUVToRGBPS);
+                m_BlitYUVToRGBTexArraySingleSlice = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitYUVToRGBPS);
+                m_BlitYUVToRGBTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
+                
+                m_BlitRGBToYUV.EnableKeyword("DISABLE_TEXTURE2D_X_ARRAY");
+                m_BlitRGBToYUVTexArray = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitRGBToYUVPS);
+                m_BlitRGBToYUVTexArraySingleSlice = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitRGBToYUVPS);
+                m_BlitRGBToYUVTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
             }
         }
 
@@ -1108,6 +1149,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="disposing">Is disposing.</param>
         protected override void Dispose(bool disposing)
         {
+            Debug.Log("HDRPDispose");
+
+            if (GetDistributedMode() == DistributedMode.Renderer)
+                SocketClient.Instance.CloseSocket();
+            if (GetDistributedMode() == DistributedMode.Merger)
+                SocketServer.Instance.CloseSocket();
+
             DisposeProbeCameraPool();
 
             UnsetRenderingFeatures();
@@ -1171,6 +1219,16 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_UpsampleTransparency);
             CoreUtils.Destroy(m_ApplyDistortionMaterial);
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
+            
+            // Distributed
+            CoreUtils.Destroy(m_BlitYUVToRGB);
+            CoreUtils.Destroy(m_BlitYUVToRGBTexArray);
+            CoreUtils.Destroy(m_BlitYUVToRGBTexArraySingleSlice);
+            
+            
+            CoreUtils.Destroy(m_BlitRGBToYUV);
+            CoreUtils.Destroy(m_BlitRGBToYUVTexArray);
+            CoreUtils.Destroy(m_BlitRGBToYUVTexArraySingleSlice);
 
             m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
@@ -1582,6 +1640,39 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 return;
 
+#if SYNC
+            if (GetDistributedMode() == DistributedMode.Renderer || GetDistributedMode() == DistributedMode.Merger)
+            {
+                if (Application.isPlaying)
+                {
+                    while (true)
+                    {
+                        clientToController.GetReceived(Datagram.DatagramType.StartFrame, out byte[] data);
+                        if (data != null)
+                        {
+                            frameID = BitConverter.ToInt32(data, 0);
+                            //Debug.Log($"Start frame {frameID}");
+                            break;
+                        }
+
+                        clientToController.GetReceived(Datagram.DatagramType.Error, out byte[] err);
+                        if (err != null)
+                        {
+            #if UNITY_EDITOR
+                            UnityEditor.EditorApplication.isPlaying = false;
+            #elif UNITY_WEBPLAYER
+                            Application.OpenURL(webplayerQuitURL);
+            #else
+                            Application.Quit();
+            #endif
+                            clientToController.CloseSocket();
+                            return;
+                        }
+                        //return;
+                    }
+                }
+            }
+#endif
             GetOrCreateDefaultVolume();
             GetOrCreateDebugTextures();
 
@@ -2334,7 +2425,20 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
             EndFrameRendering(renderContext, cameras);
 #endif
-
+#if SYNC
+            if (GetDistributedMode() == DistributedMode.Renderer || GetDistributedMode() == DistributedMode.Merger)
+            {
+                if (Application.isPlaying)
+                {
+                    byte[] sendTata = new byte[8];
+                    BitConverter.GetBytes(frameID).CopyTo(sendTata, 0);
+                    BitConverter.GetBytes(4).CopyTo(sendTata, Const.controlID);
+                    clientToController.Set(Datagram.DatagramType.EndFrame, sendTata);
+                    //Debug.Log($"End frame {frameID}");
+                }
+            }
+#endif
+            AsyncGPUReadback.WaitAllRequests();
         }
 
         void PropagateScreenSpaceShadowData()

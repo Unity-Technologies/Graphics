@@ -116,6 +116,16 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/ShaderLibrary/BlitColorAndDepth.shader")]
             public Shader blitColorAndDepthPS;
 
+            // Distributed Rendering
+            [Reload("Runtime/RenderPipeline/RenderPass/DistributedRendering/SetExposureData.compute")]
+            public ComputeShader setExposureDataCS;
+            [Reload("Runtime/RenderPipeline/RenderPass/DistributedRendering/BlitRGBToYUV.shader")]
+            public Shader blitRGBToYUVPS;
+            [Reload("Runtime/RenderPipeline/RenderPass/DistributedRendering/BlitYUVToRGB.shader")]
+            public Shader blitYUVToRGBPS;
+            [Reload("Runtime/RenderPipeline/RenderPass/DistributedRendering/ConvertBufferYUV.compute")]
+            public ComputeShader convertBufferYUVCS;
+
             [Reload("Runtime/ShaderLibrary/DownsampleDepth.shader")]
             public Shader downsampleDepthPS;
             [Reload("Runtime/ShaderLibrary/UpsampleTransparent.shader")]
