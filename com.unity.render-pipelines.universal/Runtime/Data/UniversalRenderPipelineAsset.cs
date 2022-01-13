@@ -57,13 +57,6 @@ namespace UnityEngine.Rendering.Universal
         ColorHDR,
     }
 
-    public enum ShaderQuality
-    {
-        Low,
-        Medium,
-        High,
-    }
-
     public enum MsaaQuality
     {
         Disabled = 1,
@@ -190,8 +183,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
-        // TODO: Shader Quality Tiers
-        [SerializeField] ShaderQuality m_ShaderQuality = ShaderQuality.High;
 
         // Main directional light Settings
         [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
@@ -706,11 +697,6 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UpscalingFilter; }
             set { m_UpscalingFilter = value; }
-        }
-        public ShaderQuality shaderQuality
-        {
-            get { return m_ShaderQuality; }
-            set { m_ShaderQuality = value; }
         }
 
         public LightRenderingMode mainLightRenderingMode
