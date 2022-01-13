@@ -114,7 +114,7 @@ namespace UnityEditor.ShaderGraph
 
             var id = GetSlotValue(TextureInputId, generationMode);
 
-            // GLES2 does not always support LOD sampling
+            // GLES3 is required to support explicit gradients
             sb.AppendLine("#if defined(SHADER_API_GLES) && (SHADER_TARGET < 30)");
             {
                 sb.AppendLine("  $precision4 {0} = $precision4(0.0f, 0.0f, 0.0f, 1.0f);", GetVariableNameForSlot(OutputSlotRGBAId));
