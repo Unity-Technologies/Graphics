@@ -30,6 +30,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
 - Fixed NullReferenceException when opening a Volume Component with a Diffusion Profile with any inspector.
 
+### Changed
+- Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
+
 ## [13.1.5] - 2021-12-17
 
 ### Fixed
