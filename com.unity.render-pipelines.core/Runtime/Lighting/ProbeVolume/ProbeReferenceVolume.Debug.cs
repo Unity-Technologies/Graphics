@@ -120,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering
                 subdivisionDebugColors[4] = new Color(1.0f, 0.0f, 1.0f);
                 subdivisionDebugColors[5] = new Color(0.0f, 1.0f, 1.0f);
                 subdivisionDebugColors[6] = new Color(0.5f, 0.5f, 0.5f);
-			}
+            }
 
             RegisterDebug(parameters);
 
