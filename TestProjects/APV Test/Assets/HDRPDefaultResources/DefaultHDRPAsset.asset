@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DefaultHDRPAsset
   m_EditorClassIdentifier: 
   m_RenderPipelineSettings:
-    supportShadowMask: 0
+    supportShadowMask: 1
     supportSSR: 0
     supportSSRTransparent: 0
     supportSSAO: 1
@@ -26,6 +26,8 @@ MonoBehaviour:
     supportVolumetrics: 1
     supportVolumetricClouds: 0
     supportLightLayers: 1
+    supportWater: 0
+    waterSimulationResolution: 128
     supportDistortion: 1
     supportTransparentBackface: 1
     supportTransparentDepthPrepass: 1
@@ -126,6 +128,8 @@ MonoBehaviour:
       DLSSPerfQualitySetting: 0
       DLSSUseOptimalSettings: 1
       DLSSSharpness: 0.5
+      fsrOverrideSharpness: 0
+      fsrSharpness: 0.92
       maxPercentage: 100
       minPercentage: 100
       dynResType: 1
@@ -142,6 +146,7 @@ MonoBehaviour:
       singlePass: 1
       occlusionMesh: 1
       cameraJitter: 0
+      allowMotionBlur: 0
     postProcessQualitySettings:
       NearBlurSampleCount: 030000000400000005000000
       NearBlurMaxRadius:
@@ -156,6 +161,7 @@ MonoBehaviour:
       DoFResolution: 040000000200000002000000
       DoFHighQualityFiltering: 000001
       DoFPhysicallyBased: 000000
+      LimitManualRangeNearBlur: 000000
       MotionBlurSampleCount: 04000000080000000c000000
       BloomRes: 040000000200000002000000
       BloomHighQualityFiltering: 000101

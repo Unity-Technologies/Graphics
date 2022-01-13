@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 2177.1995, g: 2307.6506, b: 2757.1448, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000004, guid: 5ddb76e5429bc3a4d8436f1a5de23be8, type: 2}
+  m_LightingDataAsset: {fileID: 112000004, guid: 0867c6af8f694a441b2178ad037e321a, type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 3c3f44bb2e5fe154ea11676587259362, type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -710,7 +710,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 2019943083}
-  m_BakedTexture: {fileID: 8900000, guid: a93b8419b41e9fa4c99a683fea343039, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 0c723b23e318d764cb2f6afb2c01f3a5, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -792,33 +792,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    sh[ 0]: 5.9216805
-    sh[ 1]: -3.0144336
-    sh[ 2]: -1.7503302
-    sh[ 3]: 0.7379615
-    sh[ 4]: -0.038203876
-    sh[ 5]: 0.3400969
-    sh[ 6]: -0.10838981
-    sh[ 7]: 0.018697213
-    sh[ 8]: -0.28886855
-    sh[ 9]: 3.3847992
-    sh[10]: -1.3873599
-    sh[11]: -1.4377352
-    sh[12]: 0.2489903
-    sh[13]: 0.09244595
-    sh[14]: 0.22383624
-    sh[15]: 0.031394865
-    sh[16]: -0.0026606286
-    sh[17]: -0.13970532
-    sh[18]: 2.1063943
-    sh[19]: -0.6308596
-    sh[20]: -1.1555536
-    sh[21]: 0.047694415
-    sh[22]: 0.12679847
-    sh[23]: 0.093612365
-    sh[24]: 0.091571905
-    sh[25]: -0.0083602555
-    sh[26]: -0.051623337
+    sh[ 0]: 7.0316334
+    sh[ 1]: -4.3188663
+    sh[ 2]: -1.5876399
+    sh[ 3]: 1.3352926
+    sh[ 4]: -0.34849733
+    sh[ 5]: 0.42266512
+    sh[ 6]: -0.20290716
+    sh[ 7]: -0.059578706
+    sh[ 8]: -0.21969542
+    sh[ 9]: 3.443479
+    sh[10]: -1.9796909
+    sh[11]: -1.137339
+    sh[12]: 0.5048838
+    sh[13]: -0.117305666
+    sh[14]: 0.2854862
+    sh[15]: -0.072848804
+    sh[16]: -0.03131106
+    sh[17]: -0.097266
+    sh[18]: 1.6891183
+    sh[19]: -0.8929218
+    sh[20]: -0.76956475
+    sh[21]: 0.15460338
+    sh[22]: -0.028200008
+    sh[23]: 0.16777664
+    sh[24]: -0.018173797
+    sh[25]: -0.022154404
+    sh[26]: -0.037766144
   m_SHValidForCapturePosition: {x: 57.385612, y: 4.015636, z: 2.559598}
   m_SHValidForSourcePosition: {x: 57.711205, y: 4.1310596, z: 2.215231}
   m_HDProbeVersion: 3
@@ -3547,7 +3547,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 2019943083}
-  m_BakedTexture: {fileID: 8900000, guid: b1908e8d2a8df3048a8f67fab2b4da3f, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 0051e94fa864c1a46b724912f2fb3f73, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -3629,33 +3629,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    sh[ 0]: 6.7249417
-    sh[ 1]: -2.6046708
-    sh[ 2]: -3.7701623
-    sh[ 3]: 0.12938999
-    sh[ 4]: -0.01710693
-    sh[ 5]: 0.95896816
-    sh[ 6]: 0.044664893
-    sh[ 7]: -0.06129723
-    sh[ 8]: -0.05461814
-    sh[ 9]: 3.779021
-    sh[10]: -1.5866487
-    sh[11]: -2.3323305
-    sh[12]: 0.04278304
-    sh[13]: 0.0016140131
-    sh[14]: 0.52355975
-    sh[15]: 0.04705784
-    sh[16]: -0.019295396
-    sh[17]: -0.029746665
-    sh[18]: 1.8335454
-    sh[19]: -0.67518127
-    sh[20]: -1.2655813
-    sh[21]: 0.024568614
-    sh[22]: 0.013975734
-    sh[23]: 0.20133464
-    sh[24]: 0.04045282
-    sh[25]: -0.00925804
-    sh[26]: -0.013036538
+    sh[ 0]: 7.530066
+    sh[ 1]: -2.0732636
+    sh[ 2]: -4.2658043
+    sh[ 3]: -0.31840995
+    sh[ 4]: 0.023396414
+    sh[ 5]: 0.7229528
+    sh[ 6]: 0.110460296
+    sh[ 7]: 0.09711527
+    sh[ 8]: -0.10060232
+    sh[ 9]: 4.5559235
+    sh[10]: -1.2263526
+    sh[11]: -2.917387
+    sh[12]: -0.17546262
+    sh[13]: 0.02839263
+    sh[14]: 0.36200908
+    sh[15]: 0.10635469
+    sh[16]: 0.06364255
+    sh[17]: -0.050681002
+    sh[18]: 2.5852344
+    sh[19]: -0.40193242
+    sh[20]: -1.9281662
+    sh[21]: -0.06846239
+    sh[22]: 0.022457108
+    sh[23]: 0.07711712
+    sh[24]: 0.09457887
+    sh[25]: 0.026727779
+    sh[26]: -0.024743052
   m_SHValidForCapturePosition: {x: 57.696465, y: 2.5544112, z: 2.596468}
   m_SHValidForSourcePosition: {x: 57.342613, y: 2.4917622, z: 2.215231}
   m_HDProbeVersion: 3
@@ -4015,7 +4015,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 0}
-  m_BakedTexture: {fileID: 8900000, guid: 3376b22a87d67ab45b6deeba09212566, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 68ae86baccfd62046b5067b6cb68ce1f, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -4097,33 +4097,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    sh[ 0]: 3.0180283
-    sh[ 1]: -1.8848729
-    sh[ 2]: 0.0723728
-    sh[ 3]: -0.42917058
-    sh[ 4]: 0.034731332
-    sh[ 5]: -0.061010268
-    sh[ 6]: -0.10742635
-    sh[ 7]: 0.056308754
-    sh[ 8]: -0.28904012
-    sh[ 9]: 1.385341
-    sh[10]: -0.9186783
-    sh[11]: 0.028810482
-    sh[12]: -0.24079697
-    sh[13]: 0.044682
-    sh[14]: -0.024798706
-    sh[15]: -0.05091764
-    sh[16]: 0.02317752
-    sh[17]: -0.13078174
-    sh[18]: 0.4809611
-    sh[19]: -0.34962356
-    sh[20]: 0.0047928602
-    sh[21]: -0.1341369
-    sh[22]: 0.044542838
-    sh[23]: -0.005427905
-    sh[24]: -0.019071914
-    sh[25]: 0.0064157536
-    sh[26]: -0.04156686
+    sh[ 0]: 2.1174257
+    sh[ 1]: -1.1294501
+    sh[ 2]: 0.2908784
+    sh[ 3]: 0.1411051
+    sh[ 4]: 0.23183239
+    sh[ 5]: 0.26198745
+    sh[ 6]: -0.114384755
+    sh[ 7]: 0.2155007
+    sh[ 8]: -0.3801674
+    sh[ 9]: 0.8724448
+    sh[10]: -0.51653415
+    sh[11]: 0.0998723
+    sh[12]: 0.029214477
+    sh[13]: 0.092044555
+    sh[14]: 0.09696188
+    sh[15]: -0.04942287
+    sh[16]: 0.07122755
+    sh[17]: -0.16698068
+    sh[18]: 0.22218326
+    sh[19]: -0.13536552
+    sh[20]: 0.023647059
+    sh[21]: -0.0025158445
+    sh[22]: 0.02290199
+    sh[23]: 0.022652531
+    sh[24]: -0.012905259
+    sh[25]: 0.012976855
+    sh[26]: -0.04439739
   m_SHValidForCapturePosition: {x: 63.38092, y: 6.6842666, z: -0.22000003}
   m_SHValidForSourcePosition: {x: 63.339996, y: 5.6865034, z: -0.22000003}
   m_HDProbeVersion: 3
@@ -4614,7 +4614,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 1748380297}
-  m_BakedTexture: {fileID: 8900000, guid: 9c629511c4c373e44ba3af80f3ef230e, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 5b0c35cc7b8602549976b3ea7844345b, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -4696,33 +4696,33 @@ MonoBehaviour:
     m_Aspect: 0
   m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    sh[ 0]: 2.3841035
-    sh[ 1]: -1.4075451
-    sh[ 2]: 0.47730532
-    sh[ 3]: 0.20500901
-    sh[ 4]: 0.0038174167
-    sh[ 5]: -0.14320132
-    sh[ 6]: -0.038696423
-    sh[ 7]: 0.03444508
-    sh[ 8]: -0.09266101
-    sh[ 9]: 1.1733714
-    sh[10]: -0.59603906
-    sh[11]: 0.22359125
-    sh[12]: 0.19616465
-    sh[13]: -0.0006456791
-    sh[14]: -0.059496958
-    sh[15]: -0.018974558
-    sh[16]: 0.032615855
-    sh[17]: -0.024121659
-    sh[18]: 0.53669876
-    sh[19]: -0.20480782
-    sh[20]: 0.10417197
-    sh[21]: 0.17488807
-    sh[22]: -0.004436791
-    sh[23]: -0.020293005
-    sh[24]: -0.009709313
-    sh[25]: 0.029515244
-    sh[26]: 0.006493198
+    sh[ 0]: 7.9709415
+    sh[ 1]: -1.0513061
+    sh[ 2]: 2.25043
+    sh[ 3]: -5.86278
+    sh[ 4]: -0.25575635
+    sh[ 5]: -0.043583002
+    sh[ 6]: -0.26036018
+    sh[ 7]: -0.928791
+    sh[ 8]: 0.6638343
+    sh[ 9]: 4.700147
+    sh[10]: -0.35850453
+    sh[11]: 1.3634386
+    sh[12]: -3.7842278
+    sh[13]: -0.18488297
+    sh[14]: 0.00010570437
+    sh[15]: -0.15967518
+    sh[16]: -0.6008444
+    sh[17]: 0.45799512
+    sh[18]: 2.8147535
+    sh[19]: -0.03207001
+    sh[20]: 0.8496603
+    sh[21]: -2.5248926
+    sh[22]: -0.13319482
+    sh[23]: 0.01719719
+    sh[24]: -0.10100137
+    sh[25]: -0.40186495
+    sh[26]: 0.32195815
   m_SHValidForCapturePosition: {x: 49.978077, y: 2.9098535, z: -0.8799891}
   m_SHValidForSourcePosition: {x: 48.703957, y: 2.761774, z: 0.0028426647}
   m_HDProbeVersion: 3
@@ -4945,6 +4945,54 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2210832531695253830, guid: 21070906cbcbb6541b8cf1d24a5c4fbc, type: 3}
   m_PrefabInstance: {fileID: 1898095924}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1937711213
+GameObject:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1937711215}
+  - component: {fileID: 1937711214}
+  m_Layer: 0
+  m_Name: StaticLightingSky
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1937711214
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1937711213}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 441482e8936e35048a1dffac814e3ef8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Profile: {fileID: 11400000, guid: 7f342610b85f4164f808a1f380dcc668, type: 2}
+  m_StaticLightingSkyUniqueID: 0
+  m_StaticLightingCloudsUniqueID: 0
+  m_StaticLightingVolumetricClouds: 0
+--- !u!4 &1937711215
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1937711213}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 32
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1942720866
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6122,7 +6170,7 @@ MonoBehaviour:
     camera:
       camera: 0
   m_ProxyVolume: {fileID: 2019943083}
-  m_BakedTexture: {fileID: 8900000, guid: 724479c2e52ae4748b466f12eaa99f58, type: 3}
+  m_BakedTexture: {fileID: 8900000, guid: 072133e8f2fdf2f4fa84a21acba4ccc2, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
     m_WorldToCameraRHS:
@@ -6202,35 +6250,35 @@ MonoBehaviour:
     m_CaptureRotation: {x: 0, y: 0, z: 0, w: 0}
     m_FieldOfView: 0
     m_Aspect: 0
-  m_HasValidSHForNormalization: 0
+  m_HasValidSHForNormalization: 1
   m_SHForNormalization:
-    sh[ 0]: 14.555012
-    sh[ 1]: -1.8504875
-    sh[ 2]: -0.13038184
-    sh[ 3]: -8.029456
-    sh[ 4]: 0.46487984
-    sh[ 5]: -1.1645428
-    sh[ 6]: -0.2906708
-    sh[ 7]: -0.5516937
-    sh[ 8]: 0.8053066
-    sh[ 9]: 10.599931
-    sh[10]: -0.8979714
-    sh[11]: -1.091248
-    sh[12]: -5.608857
-    sh[13]: 0.27310884
-    sh[14]: -0.97452044
-    sh[15]: -0.16314569
-    sh[16]: -0.30324212
-    sh[17]: 0.49786475
-    sh[18]: 8.359737
-    sh[19]: -0.15914418
-    sh[20]: -1.7017612
-    sh[21]: -4.4786773
-    sh[22]: 0.16979678
-    sh[23]: -0.8439318
-    sh[24]: -0.099441685
-    sh[25]: -0.17929758
-    sh[26]: 0.37445062
+    sh[ 0]: 6.2069254
+    sh[ 1]: -2.2729495
+    sh[ 2]: 0.3836626
+    sh[ 3]: 0.055370986
+    sh[ 4]: 0.27296337
+    sh[ 5]: -1.0616106
+    sh[ 6]: -0.02516725
+    sh[ 7]: -0.1825803
+    sh[ 8]: -0.13987166
+    sh[ 9]: 4.484555
+    sh[10]: -1.435998
+    sh[11]: -0.24385521
+    sh[12]: -0.1590893
+    sh[13]: 0.2809326
+    sh[14]: -0.823912
+    sh[15]: -0.0068007517
+    sh[16]: -0.19460793
+    sh[17]: -0.11799862
+    sh[18]: 3.2595558
+    sh[19]: -0.73975974
+    sh[20]: -0.7254165
+    sh[21]: -0.20093018
+    sh[22]: 0.2551829
+    sh[23]: -0.64560467
+    sh[24]: 0.007845301
+    sh[25]: -0.19418378
+    sh[26]: -0.08816721
   m_SHValidForCapturePosition: {x: 57.680187, y: 3.3250947, z: -0.30450857}
   m_SHValidForSourcePosition: {x: 58.600563, y: 3.69, z: -0.24048615}
   m_HDProbeVersion: 3
