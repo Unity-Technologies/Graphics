@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty hdr { get; }
         public SerializedProperty msaa { get; }
         public SerializedProperty renderScale { get; }
+        public SerializedProperty upscalingFilter { get; }
 
         public SerializedProperty mainLightRenderingModeProp { get; }
         public SerializedProperty mainLightShadowsSupportedProp { get; }
@@ -55,7 +56,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty supportsLightLayers { get; }
         public SerializedProperty debugLevelProp { get; }
 
-        public SerializedProperty shaderVariantLogLevel { get; }
         public SerializedProperty volumeFrameworkUpdateModeProp { get; }
 
         public SerializedProperty colorGradingMode { get; }
@@ -84,6 +84,7 @@ namespace UnityEditor.Rendering.Universal
             hdr = serializedObject.FindProperty("m_SupportsHDR");
             msaa = serializedObject.FindProperty("m_MSAA");
             renderScale = serializedObject.FindProperty("m_RenderScale");
+            upscalingFilter = serializedObject.FindProperty("m_UpscalingFilter");
 
             mainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
             mainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");
@@ -122,7 +123,6 @@ namespace UnityEditor.Rendering.Universal
             supportsLightLayers = serializedObject.FindProperty("m_SupportsLightLayers");
             debugLevelProp = serializedObject.FindProperty("m_DebugLevel");
 
-            shaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
             volumeFrameworkUpdateModeProp = serializedObject.FindProperty("m_VolumeFrameworkUpdateMode");
 
             storeActionsOptimizationProperty = serializedObject.FindProperty("m_StoreActionsOptimization");

@@ -1,0 +1,157 @@
+#pragma kernel InitializePhillipsSpectrum
+#pragma kernel EvaluateDispersion
+#pragma kernel EvaluateNormalsFoam
+#pragma kernel PrepareCausticsGeometry
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+// #pragma enable_d3d11_debug_symbols
+
+// Required to be defined for some includes
+#define WATER_SIMULATION
+
+// SRP generic includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterSystemDef.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Water/WaterUtilities.hlsl"
+
+// InitializePhillipsSpectrum UAVS
+RWTexture2DArray<float2> _H0BufferRW;
+
+[numthreads(8, 8, 1)]
+void InitializePhillipsSpectrum(uint3 currentThread : SV_DispatchThreadID)
+{
+    // We need 4 random numbers
+    float4 rn = GenerateRandomNumbers(currentThread);
+
+    // First part of the phillips spectrum term
+    float2 E = ONE_OVER_SQRT2 * float2(GaussianDis(rn.x, rn.y), GaussianDis(rn.z, rn.w));
+
+    // Second part of the phillips spectrum term
+    float2 nDC = (currentThread.xy / (float)_BandResolution - 0.5f) * 2.0f;
+    float2 k = (TWO_PI * nDC) * _BandPatchSize[0] / _BandPatchSize[currentThread.z];
+    float P = Phillips(k, _WindDirection, _WindSpeed[currentThread.z]);
+
+    // Combine and output
+    _H0BufferRW[int3(currentThread.xy, currentThread.z)] = E * sqrt(P);
+}
+
+// EvaluateDispersion UAVS
+Texture2DArray<float2> _H0Buffer;
+RWTexture2DArray<float4> _HtRealBufferRW;
+RWTexture2DArray<float4> _HtImaginaryBufferRW;
+
+[numthreads(8, 8, 1)]
+void EvaluateDispersion(uint3 currentThread : SV_DispatchThreadID)
+{
+    float2 nDC = (currentThread.xy / (float)_BandResolution - 0.5) * 2.0;
+    float2 k = (TWO_PI * nDC) / _BandPatchSize[currentThread.z] * _BandPatchSize[0];
+
+    float  kl = length(k);
+    float  w = sqrt(EARTH_GRAVITY * kl);
+    float2 kx = float2(k.x / kl, 0.0);
+    float2 ky = float2(k.y / kl, 0.0);
+
+    float2 h0 = LOAD_TEXTURE2D_ARRAY(_H0Buffer, currentThread.xy, currentThread.z);
+    float2 ht = ComplexMult(h0, ComplexExp(w * _SimulationTime));
+    float2 dx = ComplexMult(ComplexMult(float2(0, -1), kx), ht);
+    float2 dy = ComplexMult(ComplexMult(float2(0, -1), ky), ht);
+
+    if (dx.x != dx.x) dx.x = 0.f;
+    if (dx.y != dx.y) dx.y = 0.f;
+    if (dy.x != dy.x) dy.x = 0.f;
+    if (dy.y != dy.y) dy.y = 0.f;
+
+    // TODO: This is a work around to handle singularity at origin.
+    // The above nan check should have picked it up but it doesn't
+    // work on metal. Must investigate.
+    uint halfBandResolution = _BandResolution / 2;
+    if((currentThread.x == halfBandResolution) && (currentThread.y == halfBandResolution))
+    {
+        dx = float2(0, 0);
+        dy = float2(0, 0);
+    }
+
+    _HtRealBufferRW[int3(currentThread.xy, currentThread.z)] = float4(ht.x, dx.x, dy.x, 0);
+    _HtImaginaryBufferRW[int3(currentThread.xy, currentThread.z)] = float4(ht.y, dx.y, dy.y, 0);
+}
+
+// EvaluateNormals UAVS
+RWTexture2DArray<float4> _WaterAdditionalDataBufferRW;
+
+[numthreads(8, 8, 1)]
+void EvaluateNormalsFoam(uint3 currentThread : SV_DispatchThreadID)
+{
+    // Extract the information about the pixel to process
+    uint2 coord = currentThread.xy;
+    uint bandIdx = currentThread.z;
+
+    // Get the displacement we need for the evaluate (and re-order them)
+    float3 displacementCenter = ShuffleDisplacement(LOAD_TEXTURE2D_ARRAY(_WaterDisplacementBuffer, coord, bandIdx).xyz);
+    float3 displacementRight = ShuffleDisplacement(LOAD_TEXTURE2D_ARRAY(_WaterDisplacementBuffer, uint2(coord + int2(1, 0)) & (_BandResolution - 1), bandIdx).xyz);
+    float3 displacementUp = ShuffleDisplacement(LOAD_TEXTURE2D_ARRAY(_WaterDisplacementBuffer, uint2(coord + int2(0, 1)) & (_BandResolution - 1), bandIdx).xyz);
+
+    // Evaluate the displacement normalization factor and pixel size
+    float pixelSize = _BandPatchSize[bandIdx] / _BandResolution;
+    float normalization = EvaluateDisplacementNormalization(bandIdx);
+
+    // We evaluate the displacement without the choppiness as it doesn't behave properly for distance surfaces
+    float3 p0, p1, p2;
+    EvaluateDisplacedPoints(displacementCenter, displacementRight, displacementUp, normalization, pixelSize, 1, p0, p1, p2);
+
+    // Compute the surface gradients of this band
+    float2 surfaceGradient = EvaluateSurfaceGradients(p0, p1, p2);
+
+    // Apply the choppiness to the displacements (the normal doesn't behave that good with the choppiness)
+    float foamChoppiness = FOAM_CHOPPINESS_MULTIPLIER * _Choppiness * _SimulationFoamAmount;
+
+    // Compute the points positions with the choppiness
+    EvaluateDisplacedPoints(displacementCenter, displacementRight, displacementUp, normalization, pixelSize, foamChoppiness, p0, p1, p2);
+
+    // Compute the jacobian of this texel
+    float jacobian = EvaluateJacobian(p0, p1, p2, foamChoppiness, pixelSize);
+
+    // Output the normal and foam
+    _WaterAdditionalDataBufferRW[int3(coord, bandIdx)] = float4(surfaceGradient, jacobian, 1.0);
+}
+
+// Output indices for the caustics buffer
+RWBuffer<int> _CauticsGeometryRW;
+int _CausticGeometryResolution;
+
+[numthreads(8, 8, 1)]
+void PrepareCausticsGeometry(uint3 currentThread : SV_DispatchThreadID)
+{
+    // This thread is in charge of outputing the indices of the quad which coordinates is currentThread.xy
+    uint2 coord = currentThread.xy;
+
+    // For a given quad resolution N x P, we have (N + 1) x (P + 1) vertices
+    // Vertices are ordered this way (N being the resolution of the grid)
+    // 0                1            2            ...          N
+    // N+1              N+2          N+3          ...          2N+1
+    // ...              ...          ...          ...          ...
+    // (P-1)*N+P-1   (P -1)N+P    (P -1)N+P+1     ...          P*N+P
+    int quadIndex = currentThread.y * _CausticGeometryResolution + currentThread.x;
+
+    // Indices are ordered this way to be up facing
+    // A --- C
+    // |   | |
+    // | |   |
+    // B ----D
+    // A -> B -> C and C -> B -> D
+    uint A = quadIndex + currentThread.y;
+    uint B = A + _CausticGeometryResolution + 1;
+    uint C = A + 1;
+    uint D = B + 1;
+
+    // Output the indices of triangle 0 of the quad
+    _CauticsGeometryRW[6 * quadIndex] = A;
+    _CauticsGeometryRW[6 * quadIndex + 1] = B;
+    _CauticsGeometryRW[6 * quadIndex + 2] = C;
+
+    // Output the indices of triangle 1 of the quad
+    _CauticsGeometryRW[6 * quadIndex + 3] = C;
+    _CauticsGeometryRW[6 * quadIndex + 4] = B;
+    _CauticsGeometryRW[6 * quadIndex + 5] = D;
+}

@@ -4,6 +4,142 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [14.0.0] - 2021-11-17
+
+### Added
+- Added FSR sharpness override to camera and pipeline asset.
+- Added an option on the lit shader to perform Planar and Triplanar mapping in Object Space.
+- Added a button in the Probe Volume Baking window to open the Probe Volume debug panel.
+- Added importance sampling of the sky in path tracing (aka environment sampling).
+- Added the overlay render queue to custom passes.
+- Added a callback to override the View matrix of Spot Lights.
+- Added Expose SSR parameters to control speed rejection from Motion Vector including computing Motion Vector in World Space.
+- Added a Layer Mask in the Probe Volume Settings window to filter which renderers to consider when placing the probes.
+- Added Refract Node, Fresnel Equation Node and Scene-Difference-Node (https://jira.unity3d.com/browse/HDRP-1599)
+- Added Remap alpha channel of baseColorMap for Lit and LayeredLit
+
+### Fixed
+- Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
+- Fixed Xbox Series X compilation issue with DoF shader
+- Fixed references to reflection probes that wouldn't be cleared when unloading a scene. (case 1357459)
+- Fixed issue with Stacklit raytrace reflection
+- Fixed various issues with using SSR lighting with IBL fallback for Lit shader with clear coat(case 1380351)
+- Fixed stackLit coat screen space reflection and raytrace reflection light hierarchy and IBL fallback
+- Fixed compilation errors from Path Tracing on the PS5 build.
+- Fixed custom shader GUI for material inspector.
+- Fixed custom pass utils Blur and Copy functions in XR.
+- Fixed the ray tracing acceleration structure build marker not being included in the ray tracing stats (case 1379383).
+- Fixed missing information in the tooltip of affects smooth surfaces of the ray traced reflections denoiser (case 1376918).
+- Fixed broken debug views when dynamic resolution was enabled (case 1365368).
+- Fixed shader graph errors when disabling the bias on texture samplers.
+- Fixed flickering / edge aliasing issue when DoF and TAAU or DLSS are enabled (case 1381858).
+- Fixed options to trigger cached shadows updates on light transform changes.
+- Fixed objects belonging to preview scenes being marked as dirty during migration (case 1367204).
+- Fixed interpolation issue with wind orientation (case 1379841).
+- Fixed range fields for depth of field (case 1376609).
+- Fixed exception on DLSS when motion vectors are disabled (case # 1377986).
+- Fixed decal performances when they use different material and the same draw order.
+- Fixed alpha channel display in color picker in Local Volumetric Fog component (the alpha is not used for the fog) (case 1381267).
+- Fixed Nans happening due to volumetric clouds when the pixel color is perfectly black (case 1379185).
+- Fixed for screen space overlay rendered by camera when HDR is disabled.
+- Fixed dirtiness handling in path tracing, when using multiple cameras at once (case 1376940).
+- Fixed taa jitter for after post process materials (case 1380967).
+- Fixed rasterized accumulation motion blur when DoF is enabled (case 1378497).
+- Fixed light mode not available after switching a light to area "Disc" or "Tube" (case 1372588).
+- Fixed CoC size computation when dynamic resolution is enabled
+- Fixed shadow cascade transition not working properly with bias.
+- Fixed broken rendering when duplicating a camera while the Rendering Debugger is opened.
+- Fixed screen space shadow debug view not showing when no shadows is available.
+- Fixed nullref from debug menu in release build (case 1381556).
+- Fixed debug window reset.
+- Fixed camera bridge action in release build (case 1367866).
+- Fixed contact shadow disappearing when shadowmask is used and no non-static object is available.
+- Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
+- Fixed for changes of color curves not being applied immediately.
+- Fixed edges and ghosting appearing on shadow matte due to the shadow being black outside the range of the light (case 1371441).
+- Fixed the ray tracing fallbacks being broken since an Nvidia Driver Update.
+- Fixed layer lit shader UI.
+- Fixed a warning because of a null texture in the lens flare pass.
+- Fixed a nullref when enabling raycount without ray tracing.
+- Fixed error thrown when layered lit material has an invalid material type.
+- Fixed HDRP build issues with DOTS_INSTANCING_ON shader variant.
+- Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
+- Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
+- Fixed build warnings due to the exception in burst code (case 1382827).
+- Fixed SpeedTree graph compatibility by removing custom interpolators.
+- Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
+- Fixed FOV change when enabling physical camera.
+- Fixed spot light shadows near plane
+- Fixed unsupported material properties show when rendering pass is Low Resolution.
+- Fixed auto-exposure mismatch between sky background and scene objects in path tracing (case 1385131).
+- Fixed option to force motion blur off when in XR.
+- Fixed write to VT feedback in debug modes (case 1376874)
+- Fixed the water system not working on metal.
+- Fixed the missing debug menus to visualize the ray tracing acceleration structure (case 1371410).
+- Fixed compilation issue related to shader stripping in ray tracing.
+- Fixed flipped UV for directional light cookie on PBR Sky (case 1382656).
+- Fixing missing doc API for RTAS Debug display.
+- Fixed AO dissapearing when DRS would be turned off through a camera, while hardware drs is active in DX12 or Vulkan (case 1383093).
+- Fixed misc shader warnings.
+- Fixed a shader warning in UnityInstancing.hlsl
+- Fixed for APV debug mode breaking rendering when switching to an asset with APV disabled.
+- Fixed potential asymmetrical resource release in the volumetric clouds (case 1388218).
+- Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
+- Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
+- Fixed the intensity of the sky being reduced signficantly even if there is no clouds (case 1388279).
+- Fixed a crash with render graph viewer when render graph is not provided with an execution name.
+- Fixed rendering in the editor when an incompatible API is added (case 1384634).
+- Fixed issue with typed loads on RGBA16F in Volumetric Lighting Filtering.
+- Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
+- Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
+- Fixed NeedMotionVectorForTransparent checking the wrong flag.
+- Fixed debug probe visualization affecting screen space effects.
+- Fixed issue of index for APV running out space way before it should.
+- Fixed issue during reloading scenes in a set when one of the scenes has been renamed.
+- Fixed Local Volumetric Fog tooltips.
+- Fixed issue with automatic RendererList culling option getting ignored (case 1388854).
+- Fixed an issue where APV cells were not populated properly when probe volumes have rotations
+- Fixed issue where changes to APV baking set lists were not saved.
+
+### Changed
+- Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
+- Changed sample scene in HDRP material samples: add shadow transparency (raster, ray-traced, path-traced).
+- Support for encoded HDR cubemaps, configurable via the HDR Cubemap Encoding project setting.
+- The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
+- Render Graph object pools are now cleared with render graph cleanup
+- Updated Physically Based Sky documentation with more warnings about warmup cost.
+- Force Alpha To Coverage to be enabled when MSAA is enabled. Remove the Alpha to Mask UI control.
+- Improved the probe placement of APV when dealing with scenes that contains objects smaller than a brick.
+- Replaced the geometry distance offset in the Probe Volume component by a minimum renderer volume threshold to ignore small objects when placing probes.
+- Small improvement changes in the UX for the Unlit Distortion field.
+- Improvements done to the water system (Deferred, Decals, SSR, Foam, Caustics, etc.).
+- Changed the behavior the max ray length for recursive rendering to match RTR and rasterization.
+- Moved more internals of the sky manager to proper Render Graph passes.
+- Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
+
+## [13.1.2] - 2021-11-05
+
+### Added
+- Added minimal picking support for DOTS 1.0 (on parity with Hybrid Renderer V2)
+- Implemented an initial version of the HDRP water system.
+
+### Fixed
+- Fixed compilation errors when using Elipse, Rectangle, Polygon, Checkerboard, RoundedPolygon, RoundedRectangle in a ray tracing shader graph (case 1377610).
+- Fixed outdated documentation about supported GPUs for ray tracing (case 1375895).
+- Fixed outdated documentation about recursie ray tracing effects support (case 1374904).
+- Fixed Shadow Matte not appearing in ray tracing effects (case 1364005).
+- Fixed Crash issue when adding an area light on its own.
+- Fixed rendertarget ColorMask in Forward with virtual texturing and transparent motion vectors.
+- Fixed light unit conversion after changing mid gray value.
+- Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
+- Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
+- Fixed Lens Flare visible when being behind a camera with Panini Projection on (case 1370214);
+- Fixed Correlated Color Temperature not being applied in Player builds for Enlighten realtime GI lights (case 1370438);
+
+### Changed
+- Optimizations for the physically based depth of field.
+- Volumetric Lighting now uses an ambient probe computed directly on the GPU to avoid latency.
+
 ## [13.1.1] - 2021-10-04
 
 ### Added
@@ -14,7 +150,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added API to edit diffusion profiles and set IES on lights.
 - Added public API to reset path tracing accumulation, and check its status.
 - Added support for SensorSDK's Lidar and camera models in path tracing.
-- Added minimal picking support for DOTS 1.0 (on parity with Hybrid Renderer V2)
 
 ### Fixed
 - Fixed decal position when created from context menu. (case 1368987)
@@ -53,15 +188,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the point distribution for the diffuse denoiser sometimes not being properly intialized.
 - Fixed the bad blending between the sun and the clouds (case 1373282).
 - Fixed and optimize distance shadowmask fade.
-- Fixed compilation errors when using Elipse, Rectangle, Polygon, Checkerboard, RoundedPolygon, RoundedRectangle in a ray tracing shader graph (case 1377610).
-- Fixed outdated documentation about supported GPUs for ray tracing (case 1375895).
-- Fixed outdated documentation about recursie ray tracing effects support (case 1374904).
-- Fixed Shadow Matte not appearing in ray tracing effects (case 1364005).
-- Fixed Crash issue when adding an area light on its own.
-- Fixed rendertarget ColorMask in Forward with virtual texturing and transparent motion vectors.
-- Fixed light unit conversion after changing mid gray value.
-- Fixed Focus distance in path traced depth of field now takes into account the focus mode setting (volume vs camera).
-- Fixed stencil buffer resolve when MSAA is enabled so that OR operator is used instead of picking the last sample.
 
 ### Changed
 - Use RayTracingAccelerationStructure.CullInstances to filter Renderers and populate the acceleration structure with ray tracing instances for improved CPU performance on the main thread.
@@ -75,6 +201,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Modified HDRP to use common FSR logic from SRP core.
 - Optimized FSR by merging the RCAS logic into the FinalPass shader.
 - Integrate a help box to inform users of the potential dependency to directional lights when baking.
+- Changed default numbder of physically based sky bounce from 8 to 3
+- Shader Variant Log Level moved from Miscellaneous section to Shader Stripping section on the HDRP Global Settings.
 
 ## [13.1.0] - 2021-09-24
 
@@ -88,7 +216,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - MaterialReimporter.ReimportAllMaterials and MaterialReimporter.ReimportAllHDShaderGraphs now batch the asset database changes to improve performance.
-- Optimizations for the physically based depth of field.
 
 ### Fixed
 - Fixed the volume not being assigned on some scene templates.

@@ -692,11 +692,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void AlphaToMaskUIFix(Material material, ShaderID id)
         {
-            if (material.HasProperty(kAlphaToMask) && material.HasProperty(kAlphaToMaskInspector))
-            {
-                material.SetFloat(kAlphaToMaskInspector, material.GetFloat(kAlphaToMask));
-                HDShaderUtils.ResetMaterialKeywords(material);
-            }
+            // Not used anymore, alpha to mask option is removed
         }
 
         static void MigrateDecalRenderQueue(Material material, ShaderID id)
