@@ -62,6 +62,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed misc shader warnings.
 - Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
 - Fixed Correlated Color Temperature not being applied in Player builds for Enlighten realtime GI lights (case 1370438);
+- Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
+- Fixed NeedMotionVectorForTransparent checking the wrong flag.
+- Fixed rendering in the editor when an incompatible API is added (case 1384634).
+- Fixed a crash with render graph viewer when render graph is not provided with an execution name.
 
 ## [12.1.3] - 2021-11-17
 
