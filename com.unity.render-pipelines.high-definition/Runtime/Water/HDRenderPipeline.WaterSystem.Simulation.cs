@@ -72,6 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Keep track of the values that constraint the texture allocation.
             simulationResolution = simulationRes;
             numBands = nbBands;
+            m_Time = Time.realtimeSinceStartup;
 
             // Allocate the buffers
             phillipsSpectrumBuffer = RTHandles.Alloc(simulationResolution, simulationResolution, numBands, dimension: TextureDimension.Tex2DArray, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, wrapMode: TextureWrapMode.Repeat);

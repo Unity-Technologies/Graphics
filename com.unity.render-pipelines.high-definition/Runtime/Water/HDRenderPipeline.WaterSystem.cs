@@ -147,7 +147,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 WaterSurface waterSurface = waterSurfaces[surfaceIdx];
                 if (waterSurface.simulation != null)
+                {
                     waterSurface.simulation.ReleaseSimulationResources();
+                    waterSurface.simulation = null;
+                }
             }
 
             // Release the caustics geometry
