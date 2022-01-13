@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a callback to override the View matrix of Spot Lights.
 - Added Expose SSR parameters to control speed rejection from Motion Vector including computing Motion Vector in World Space.
 - Added a Layer Mask in the Probe Volume Settings window to filter which renderers to consider when placing the probes.
-- Adding Refract Node, Fresnel Equation Node and Scene-Difference-Node (https://jira.unity3d.com/browse/HDRP-1599)
+- Added Refract Node, Fresnel Equation Node and Scene-Difference-Node (https://jira.unity3d.com/browse/HDRP-1599)
+- Added Remap alpha channel of baseColorMap for Lit and LayeredLit
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
@@ -98,6 +99,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Local Volumetric Fog tooltips.
 - Fixed issue with automatic RendererList culling option getting ignored (case 1388854).
 - Fixed an issue where APV cells were not populated properly when probe volumes have rotations
+- Fixed issue where changes to APV baking set lists were not saved.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
@@ -113,6 +115,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improvements done to the water system (Deferred, Decals, SSR, Foam, Caustics, etc.).
 - Changed the behavior the max ray length for recursive rendering to match RTR and rasterization.
 - Moved more internals of the sky manager to proper Render Graph passes.
+- Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
 
 ## [13.1.2] - 2021-11-05
 
