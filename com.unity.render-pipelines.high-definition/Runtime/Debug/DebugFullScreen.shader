@@ -47,7 +47,6 @@ Shader "Hidden/HDRP/DebugFullScreen"
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -60,7 +59,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-                UNITY_SETUP_INSTANCE_ID(input);
+                ZERO_INITIALIZE(Varyings, output);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
 

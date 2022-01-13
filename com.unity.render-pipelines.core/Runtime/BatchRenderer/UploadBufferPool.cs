@@ -15,7 +15,7 @@ public unsafe class UploadBufferPool
         public GraphicsBufferHandle bufferHandle;
         public int index;
     }
-    
+
     public GraphicsBuffer[] m_buffers;
     public NativeArray<GraphicsBufferHandle> m_bufferHandles;
     public NativeArray<int> m_usedFrame;
@@ -93,6 +93,8 @@ public unsafe class UploadBufferPool
     public void Dispose()
     {
         m_bufferHandles.Dispose();
+        m_countWrittenAsync.Dispose();
+        m_usedFrame.Dispose();
         for (int i = 0; i < m_buffers.Length; ++i)
         {
             m_buffers[i].Dispose();

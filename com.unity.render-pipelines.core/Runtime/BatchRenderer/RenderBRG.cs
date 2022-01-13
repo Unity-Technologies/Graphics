@@ -767,7 +767,7 @@ namespace UnityEngine.Rendering
             // TODO: WAITING FOR THE JOB HERE! THIS IS SLOW! NEED THE MULTITHREADED FENCE VERSION!
             jobHandleOutput.Complete();
             m_visibleInstancesBufferPool.EndBufferWrite(visibleInstancesUploadBuffer);
-            //m_visibleInstancesBufferPool.EndBufferWriteAfterJob(visibleInstancesUploadBuffer, jobHandleOutput); 
+            //m_visibleInstancesBufferPool.EndBufferWriteAfterJob(visibleInstancesUploadBuffer, jobHandleOutput);
 
             return jobHandleOutput;
         }

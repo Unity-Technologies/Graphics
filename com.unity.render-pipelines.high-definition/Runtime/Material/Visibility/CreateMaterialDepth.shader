@@ -32,13 +32,12 @@ Shader "Hidden/HDRP/CreateMaterialDepth"
         struct Attributes
         {
             uint vertexID : SV_VertexID;
-            UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
         Varyings Vert(Attributes inputMesh)
         {
             Varyings output;
-            UNITY_SETUP_INSTANCE_ID(inputMesh);
+            ZERO_INITIALIZE(Varyings, output);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
             output.positionCS = GetFullScreenTriangleVertexPosition(inputMesh.vertexID);
             output.texcoord = GetFullScreenTriangleTexCoord(inputMesh.vertexID);

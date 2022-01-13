@@ -8,14 +8,14 @@
 struct Attributes
 {
     uint vertexID : SV_VertexID;
-    uint instanceID : SV_InstanceID;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct Varyings
 {
     float4 positionCS : SV_POSITION;
     uint lightAndMaterialFeatures : FEATURES0;
-    uint debugIndex : FEATURES1;
+    uint currentMaterialKey : FEATURES1;
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -26,23 +26,14 @@ float4 _VisBufferTileData;
 #define _QuadTileSize (uint)_VisBufferTileData.z
 #define _TotalTiles (uint) _VisBufferTileData.w
 
-uint GetCurrentMaterialBatchGPUKey()
+uint GetCurrentMaterialGPUKey(uint materialBatchGPUKey)
 {
-#ifdef DOTS_INSTANCING_ON
-    return unity_DOTSVisibleInstances[0].VisibleData.x;
-#else
-    return 0;
-#endif
+    return materialBatchGPUKey >> 8;
 }
 
-uint getCurrentMaterialGPUKey()
+uint GetCurrentBatchID(uint materialBatchGPUKey)
 {
-    return GetCurrentMaterialBatchGPUKey() >> 8;
-}
-
-uint GetCurrentBatchID()
-{
-    return GetCurrentMaterialBatchGPUKey() & 0xFF;
+    return materialBatchGPUKey & 0xFF;
 }
 
 uint GetShaderTileCategory()
@@ -103,12 +94,15 @@ Varyings Vert(Attributes inputMesh)
     uint currentTileCategory = Visibility::GetLightTileCategory(output.lightAndMaterialFeatures);
 
     uint shaderTileCategory = GetShaderTileCategory();
+    uint materialBatchGPUKey = UNITY_GET_INSTANCE_ID(inputMesh);
+    uint currentMaterialKey = GetCurrentMaterialGPUKey(materialBatchGPUKey);
 
-    if (((getCurrentMaterialGPUKey() & bucketIDMask) != 0) && (getCurrentMaterialGPUKey() >= matMinMax.x && getCurrentMaterialGPUKey() <= matMinMax.y) && shaderTileCategory == currentTileCategory)
+    if (((currentMaterialKey & bucketIDMask) != 0) && (currentMaterialKey >= matMinMax.x && currentMaterialKey <= matMinMax.y) && shaderTileCategory == currentTileCategory)
     {
         output.positionCS.xy = vertPos * 2 - 1;
         output.positionCS.w = 1;
-        output.positionCS.z = Visibility::PackDepthMaterialKey(GetCurrentMaterialBatchGPUKey());
+        output.positionCS.z = Visibility::PackDepthMaterialKey(materialBatchGPUKey);
+        output.currentMaterialKey = currentMaterialKey;
     }
 
 #endif
@@ -248,7 +242,7 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
 
     GeoPoolMetadataEntry geometryMetadata;
     uint materialKey = Visibility::GetMaterialKey(visData, geometryMetadata);
-    if (materialKey != getCurrentMaterialGPUKey())
+    if (materialKey != packedInput.currentMaterialKey)
     {
         outColor = float4(0,0,0,0);
         return;
