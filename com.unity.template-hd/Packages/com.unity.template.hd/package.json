@@ -1,7 +1,7 @@
 {
   "name": "com.unity.template.hd",
   "displayName": "High Definition RP",
-  "version": "12.3.0",
+  "version": "12.4.0",
   "type": "template",
   "host": "hub",
   "unity": "2021.2",
@@ -12,8 +12,8 @@
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.cinemachine": "2.8.1",
     "com.unity.inputsystem": "1.1.1",
-    "com.unity.learn.iet-framework": "2.1.0",
-    "com.unity.render-pipelines.high-definition": "12.1.1",
+    "com.unity.learn.iet-framework": "2.1.1",
+    "com.unity.render-pipelines.high-definition": "12.1.2",
     "com.unity.timeline": "1.6.2",
     "com.unity.ugui": "1.0.0"
   }

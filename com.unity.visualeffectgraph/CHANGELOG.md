@@ -5,7 +5,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [12.1.4] - 2021-12-07
-### Fixed
 - Unexpected possible connection between GPUEvent and Spawn context [Case 1362739](https://issuetracker.unity3d.com/product/unity/issues/guid/1362739/)
 - Fix bounds helper tool (automatic systems culling, world bounds computation, ...)
 - Fixed null reference exception when opening another VFX and a debug mode is enabled [Case 1347420](https://issuetracker.unity3d.com/product/unity/issues/guid/1347420/)
@@ -20,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [12.1.3] - 2021-11-17
 ### Fixed
 - Automatically offset contexts when a new node is inserted to avoid overlapping
+
 
 ## [12.1.2] - 2021-10-22
 ### Fixed
@@ -117,7 +117,6 @@ The version number for this package has increased due to a version update of a r
 - Fix culling of point output [Case 1225764](https://issuetracker.unity3d.com/product/unity/issues/guid/1225764/)
 - Compilation issue when normal is used in shadergraph for opacity with unlit output
 - Fix Exception on trying to invert a degenerate TRS matrix [Case 1307068](https://issuetracker.unity3d.com/product/unity/issues/guid/1307068/)
-- Fix bounds helper tool (automatic systems culling, world bounds computation, ...)
 - Fix IsFrontFace shader graph node for VFX.
 - Fix crash when loading SDF Baker settings holding a mesh prefab [Case 1343898](https://issuetracker.unity3d.com/product/unity/issues/guid/1343898/)
 - Exception using gizmo on exposed properties [Case 1340818](https://issuetracker.unity3d.com/product/unity/issues/guid/1340818/)
