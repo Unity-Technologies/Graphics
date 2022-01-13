@@ -387,7 +387,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
                 {
-                    if (!bakingSet.sceneGUIDs.Contains(sceneData.GetSceneGUID(data.gameObject.scene)))
+                    if (!bakingSet.sceneGUIDs.Contains(sceneData.GetSceneGUID(data.gameObject.scene)) || !sceneData.SceneHasProbeVolumes(data.gameObject.scene))
                         continue;
 
                     if (!data.states.TryGetValue(bakingSet.bakingStates[i], out var stateData) || stateData.cellDataAsset == null)
