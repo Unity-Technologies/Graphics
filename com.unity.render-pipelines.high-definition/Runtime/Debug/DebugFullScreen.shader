@@ -17,6 +17,9 @@ Shader "Hidden/HDRP/DebugFullScreen"
             #pragma vertex Vert
             #pragma fragment Frag
 
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma enable_d3d11_debug_symbols
+
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
@@ -26,7 +29,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/FullScreenDebug.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/Visibility.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityCommon.hlsl"
 
             CBUFFER_START (UnityDebug)
             float _FullScreenDebugMode;
@@ -341,12 +344,53 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord) * GetCurrentExposureMultiplier();
                     return float4(color.rgb, 1.0f);
                 }
-                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_BUFFER)
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_BUFFER_INSTANCES ||
+                    _FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_BUFFER_MATERIALS ||
+                    _FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_BUFFER_PRIMITIVES ||
+                    _FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_BUFFER_BATCH)
                 {
-                    uint value = LOAD_TEXTURE2D_X(_VisibilityTexture, (uint2)input.positionCS.xy).x;
-                    VisibilityData visData;
-                    unpackVisibilityData(value, visData);
-                    return float4(DebugVisIndexToRGB(visData.primitiveID), 1.0f);
+                    uint debugIndex = 0;
+
+                    #ifdef DOTS_INSTANCING_ON
+                    Visibility::VisibilityData visData = Visibility::LoadVisibilityData(input.positionCS.xy);
+
+                    if (!visData.valid)
+                        return float4(pow(input.texcoord.yyy, 4.0), 1.0f);
+                    if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_BUFFER_INSTANCES)
+                        debugIndex = visData.DOTSInstanceIndex;
+                    else if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_BUFFER_PRIMITIVES)
+                        debugIndex = visData.primitiveID;
+                    else if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_BUFFER_MATERIALS)
+                        debugIndex = Visibility::GetMaterialKey(visData);
+                    else if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_BUFFER_BATCH)
+                        debugIndex = visData.batchID;
+                    #endif
+
+                    return float4(Visibility::DebugVisIndexToRGB(debugIndex), 1.0f);
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_FEATURE_TILE ||
+                    _FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_MATERIALS_TILE ||
+                    _FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_BUCKET_ID)
+                {
+                    uint debugIndex = 0;
+                    #ifdef DOTS_INSTANCING_ON
+                    uint2 tileCoord = Visibility::GetTileCoord(input.positionCS.xy);
+                    if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_FEATURE_TILE)
+                    {
+                        bool validTile = Visibility::LoadMaterialTile(tileCoord).y != 0;
+                        if (validTile)
+                        {
+                            uint tileFeatures = Visibility::LoadFeatureTile(tileCoord);
+                            debugIndex = Visibility::GetLightTileCategory(tileFeatures) + 1;
+                        }
+                    }
+                    else if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_MATERIALS_TILE)
+                        debugIndex = Visibility::LoadMaterialTile(tileCoord).y; //max is more interesting
+                    else if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_BUCKET_ID)
+                        debugIndex = Visibility::LoadBucketTile(tileCoord);
+                    #endif
+
+                    return float4(Visibility::DebugVisIndexToRGB(debugIndex), 1.0f);
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_PRE_REFRACTION_COLOR_PYRAMID
                     || _FullScreenDebugMode == FULLSCREENDEBUGMODE_FINAL_COLOR_PYRAMID)

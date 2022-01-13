@@ -18,8 +18,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed inspector documentation URLs for the URP asset and Universal Renderer asset.
 - Fixed render scale setting unintentionally affecting the scene view camera.
 - Fixed property wrappers around material properties.
+- Fixed incorrect light indexing on Windows Editor with Android target. [case 1378103](https://issuetracker.unity3d.com/product/unity/issues/guid/1378103/)
 - Fixed missing depth for Depth of Field in an overlay camera. [case 1365623](https://issuetracker.unity3d.com/product/unity/issues/guid/1365623/)
 - Fixed FXAA quality issues when render scale is not 1.0.
+- Fixed an issue where specular color was not matching behaviour in Legacy and HDRP. [case 1326941](https://issuetracker.unity3d.com/issues/urp-specular-color-behavior-does-not-match-legacy-or-hdrp)
+- Fixed a shader compiler issue with mismatching variable types when calling lerp.
 
 ## [13.1.2] - 2021-11-05
 

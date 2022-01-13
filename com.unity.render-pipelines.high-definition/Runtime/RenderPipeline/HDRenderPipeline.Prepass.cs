@@ -219,7 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, decalBuffer, result);
                 }
 
-                RenderVBuffer(renderGraph, hdCamera, cullingResults, ref result);
+                RenderVBuffer(renderGraph, colorBuffer, hdCamera, cullingResults, ref result);
 
                 // If we have MSAA, we need to complete the motion vector buffer before buffer resolves, hence we need to run camera mv first.
                 // This is always fine since shouldRenderMotionVectorAfterGBuffer is always false for forward.
@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderCameraMotionVectors(renderGraph, hdCamera, result.depthBuffer, result.motionVectorsBuffer);
                 }
 
-                PreRenderSky(renderGraph, hdCamera, colorBuffer, result.depthBuffer, result.normalBuffer);
+                PreRenderSky(renderGraph, hdCamera, result.depthBuffer, result.normalBuffer);
 
                 PreRenderVolumetricClouds(renderGraph, hdCamera);
 
@@ -478,7 +478,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Forward)
                 {
-                    RenderStateBlock? stateBlock = hdCamera.msaaEnabled ? null : m_AlphaToMaskBlock;
+                    RenderStateBlock? stateBlock = null;
+                    if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
+                        stateBlock = m_AlphaToMaskBlock;
 
                     passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(
                         CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_DepthOnlyAndDepthForwardOnlyPassNames, stateBlock: stateBlock, excludeObjectMotionVectors: objectMotionEnabled)));
@@ -544,7 +546,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 BindMotionVectorPassColorBuffers(builder, output, decalBuffer, hdCamera);
 
                 RenderStateBlock? stateBlock = null;
-                if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred || !hdCamera.msaaEnabled)
+                if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred || !hdCamera.frameSettings.IsEnabled(FrameSettingsField.AlphaToMask))
                     stateBlock = m_AlphaToMaskBlock;
                 passData.rendererList = builder.UseRendererList(
                     renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, HDShaderPassNames.s_MotionVectorsName, PerObjectData.MotionVectors, stateBlock: stateBlock)));

@@ -175,6 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 hasMixedValues: serialized.msaaMode.hasMultipleDifferentValues
             );
 
+            area.AmmendInfo(FrameSettingsField.AlphaToMask, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.DecalLayers, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.TransparentsWriteMotionVector, ignoreDependencies: true);

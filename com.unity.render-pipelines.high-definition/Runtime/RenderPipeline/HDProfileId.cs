@@ -21,6 +21,10 @@ namespace UnityEngine.Rendering.HighDefinition
         DeferredDepthPrepass,
         TransparentDepthPrepass,
         VBuffer,
+        VBufferMaterialDepth,
+        VBufferLightTileClassification,
+        VBufferMaterialTileClassification,
+        VBufferLighting,
         GBuffer,
         DBufferRender,
         DBufferPrepareDrawData,
@@ -103,7 +107,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Water surface
         WaterSurfaceSimulation,
-        WaterSurfaceRendering,
+        WaterSurfaceRenderingGBuffer,
+        WaterSurfaceRenderingSSR,
+        WaterSurfaceRenderingDeferred,
 
         // RT Cluster
         RaytracingBuildCluster,

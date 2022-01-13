@@ -1,75 +1,52 @@
-#ifndef VISIBILITY_PASS_HLSL
-#define VISIBILITY_PASS_HLSL
-
-
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/Visibility.hlsl"
-#include "Packages/com.unity.render-pipelines.core/Runtime/GeometryPool/Resources/GeometryPool.hlsl"
-
-CBUFFER_START(UnityPerMaterial)
-    float4 _DeferredMaterialInstanceData;
-CBUFFER_END
-
-#if defined(UNITY_DOTS_INSTANCING_ENABLED)
-UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
-    UNITY_DOTS_INSTANCED_PROP(float4, _DeferredMaterialInstanceData)
-UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
-
-#define _DeferredMaterialInstanceData UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _DeferredMaterialInstanceData)
-
+#if SHADERPASS != SHADERPASS_VISIBILITY
+#error SHADERPASS_is_not_correctly_define
 #endif
 
-struct GeoPoolInput
+#ifndef ATTRIBUTES_NEED_VERTEX_ID
+    #error Attributes_requires_vertex_id
+#endif
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
+
+PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
-    uint vertId : SV_VertexID;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-};
+    VaryingsType varyingsType;
 
-struct VisibilityVtoP
-{
-    float4 pos : SV_Position;
+#if defined(HAVE_RECURSIVE_RENDERING)
+    // If we have a recursive raytrace object, we will not render it.
+    // As we don't want to rely on renderqueue to exclude the object from the list,
+    // we cull it by settings position to NaN value.
+    // TODO: provide a solution to filter dyanmically recursive raytrace object in the DrawRenderer
+    if (_EnableRecursiveRayTracing && _RayTracing > 0.0)
+    {
+        ZERO_INITIALIZE(VaryingsType, varyingsType); // Divide by 0 should produce a NaN and thus cull the primitive.
+    }
+    else
+#endif
+    {
+        varyingsType.vmesh = VertMesh(inputMesh);
+        varyingsType.vpass.batchID = (int)_DeferredMaterialInstanceData.y;
+    }
 
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-    UNITY_VERTEX_OUTPUT_STEREO
-};
-
-struct VisibilityDrawInput
-{
-    uint vertexIndex : SV_VertexID;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-};
-
-VisibilityVtoP Vert(VisibilityDrawInput input)
-{
-    VisibilityVtoP v2p;
-
-    UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_TRANSFER_INSTANCE_ID(input, v2p);
-
-    GeoPoolMetadataEntry metadata = _GeoPoolGlobalMetadataBuffer[(int)_DeferredMaterialInstanceData.x];
-
-    GeoPoolVertex vertexData;
-    GeometryPool::LoadVertex(input.vertexIndex, metadata, vertexData);
-
-    float3 worldPos = TransformObjectToWorld(vertexData.pos);
-    v2p.pos = TransformWorldToHClip(worldPos);
-    return v2p;
+    return PackVaryingsType(varyingsType);
 }
 
 void Frag(
-    VisibilityVtoP packedInput,
-    uint primitiveID : SV_PrimitiveID,
-    out uint outVisibility : SV_Target0)
+    PackedVaryingsToPS packedInput,
+    out uint outVisibility0 : SV_Target0,
+    out uint2 outVisibility1 : SV_Target1)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
-    UNITY_SETUP_INSTANCE_ID(packedInput);
+    FragInputs input = UnpackVaryingsToFragInputs(packedInput);
     #ifdef DOTS_INSTANCING_ON
-        VisibilityData visData;
+        Visibility::VisibilityData visData;
+        visData.valid = true;
         visData.DOTSInstanceIndex = GetDOTSInstanceIndex();
-        visData.primitiveID = primitiveID;
-        outVisibility = packVisibilityData(visData);
+        visData.primitiveID = input.primitiveID;
+        visData.batchID = packedInput.vpass.batchID;
+        Visibility::PackVisibilityData(visData, outVisibility0, outVisibility1);
     #else
-        outVisibility = InvalidVisibilityData;
+        outVisibility0 = 0;
+        outVisibility1 = 0;
     #endif
 }
-
-#endif

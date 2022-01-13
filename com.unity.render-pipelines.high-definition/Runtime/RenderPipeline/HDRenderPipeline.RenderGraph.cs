@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
                 // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
                 if (!m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
-                    m_SkyManager.UpdateEnvironment(m_RenderGraph, hdCamera, GetMainLight());
+                    m_SkyManager.UpdateEnvironment(m_RenderGraph, hdCamera, GetMainLight(), m_CurrentDebugDisplaySettings);
 
                 // We need to initialize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
                 // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.
@@ -100,6 +100,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 BuildGPULightListOutput gpuLightListOutput = new BuildGPULightListOutput();
                 TextureHandle uiBuffer = m_RenderGraph.defaultResources.blackTextureXR;
                 TextureHandle sunOcclusionTexture = m_RenderGraph.defaultResources.whiteTexture;
+
+                var vBufferInfo = VBufferInformation.NewDefault();
 
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.IsFullScreenDebugPassEnabled())
                 {
@@ -182,6 +184,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     var maxZMask = GenerateMaxZPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, hdCamera.depthBufferMipChainInfo);
 
                     var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult);
+
+                    vBufferInfo = VBufferTileClassification(m_RenderGraph, hdCamera, gpuLightListOutput.tileFeatureFlags, colorBuffer, prepassOutput.vbuffer);
+
+                    colorBuffer = RenderVBufferLighting(m_RenderGraph, cullingResults, hdCamera, vBufferInfo, shadowResult, colorBuffer, prepassOutput.depthBuffer, lightingBuffers, gpuLightListOutput);
 
                     var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
 
@@ -311,7 +317,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     postProcessDest = RenderDebug(m_RenderGraph,
                         hdCamera,
                         postProcessDest,
-                        prepassOutput.vbuffer.vbuffer,
+                        vBufferInfo,
                         prepassOutput.resolvedDepthBuffer,
                         prepassOutput.depthPyramidTexture,
                         colorPickerTexture,
@@ -1315,6 +1321,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderTransparentDepthPrepass(renderGraph, hdCamera, prepassOutput, cullingResults);
 
+            // Render the water gbuffer (and prepare for the transparent SSR pass)
+            var waterGBuffer = RenderWaterGBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, currentColorPyramid);
+
+            // Render the transparent SSR lighting
             var ssrLightingBuffer = RenderSSR(renderGraph, hdCamera, ref prepassOutput, renderGraph.defaultResources.blackTextureXR, rayCountTexture, skyTexture, transparent: true);
 
             colorBuffer = RaytracingRecursiveRender(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, flagMaskBuffer, rayCountTexture);
@@ -1338,8 +1348,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 GenerateColorPyramid(renderGraph, hdCamera, resolvedColorBuffer, currentColorPyramid, FullScreenDebugMode.FinalColorPyramid);
             }
 
-            // For now, the water surface rendering happens all here.
-            RenderWaterSurfaces(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, currentColorPyramid);
+            // Render the deferred water lighting
+            RenderWaterLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, currentColorPyramid, waterGBuffer);
 
             // We don't have access to the color pyramid with transparent if rough refraction is disabled
             RenderCustomPass(m_RenderGraph, hdCamera, colorBuffer, prepassOutput, customPassCullingResults, cullingResults, CustomPassInjectionPoint.BeforeTransparent, aovRequest, aovCustomPassBuffers);
@@ -1572,53 +1582,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class PreRenderSkyPassData
+        void PreRenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, TextureHandle normalbuffer)
         {
-            public Light sunLight;
-            public HDCamera hdCamera;
-            public TextureHandle colorBuffer;
-            public TextureHandle depthStencilBuffer;
-            public TextureHandle normalBuffer;
-            public DebugDisplaySettings debugDisplaySettings;
-            public SkyManager skyManager;
-        }
-
-        void PreRenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthStencilBuffer, TextureHandle normalbuffer)
-        {
-            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
-                !m_SkyManager.RequiresPreRenderSky(hdCamera))
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<PreRenderSkyPassData>("Pre Render Sky", out var passData))
-            {
-                passData.sunLight = GetMainLight();
-                passData.hdCamera = hdCamera;
-                passData.colorBuffer = builder.WriteTexture(colorBuffer);
-                passData.depthStencilBuffer = builder.WriteTexture(depthStencilBuffer);
-                passData.normalBuffer = builder.WriteTexture(normalbuffer);
-                passData.debugDisplaySettings = m_CurrentDebugDisplaySettings;
-                passData.skyManager = m_SkyManager;
-
-                builder.SetRenderFunc(
-                    (PreRenderSkyPassData data, RenderGraphContext context) =>
-                    {
-                        data.skyManager.PreRenderSky(data.hdCamera, data.sunLight, data.colorBuffer, data.normalBuffer, data.depthStencilBuffer, data.debugDisplaySettings, context.cmd);
-                    });
-            }
-        }
-
-        class RenderSkyPassData
-        {
-            public VisualEnvironment visualEnvironment;
-            public Light sunLight;
-            public HDCamera hdCamera;
-            public TextureHandle volumetricLighting;
-            public TextureHandle colorBuffer;
-            public TextureHandle depthTexture;
-            public TextureHandle depthStencilBuffer;
-            public TextureHandle intermediateBuffer;
-            public DebugDisplaySettings debugDisplaySettings;
-            public SkyManager skyManager;
+            m_SkyManager.PreRenderSky(renderGraph, hdCamera, normalbuffer, depthStencilBuffer);
         }
 
         void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle volumetricLighting, TextureHandle depthStencilBuffer, TextureHandle depthTexture)
@@ -1626,35 +1595,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) || CoreUtils.IsSceneFilteringEnabled())
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Sky And Fog", out var passData))
-            {
-                passData.visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-                passData.sunLight = GetMainLight();
-                passData.hdCamera = hdCamera;
-                passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
-                passData.colorBuffer = builder.WriteTexture(colorBuffer);
-                passData.depthTexture = builder.ReadTexture(depthTexture);
-                passData.depthStencilBuffer = builder.WriteTexture(depthStencilBuffer);
-                if (Fog.IsPBRFogEnabled(hdCamera))
-                    passData.intermediateBuffer = builder.CreateTransientTexture(colorBuffer);
-                passData.debugDisplaySettings = m_CurrentDebugDisplaySettings;
-                passData.skyManager = m_SkyManager;
-
-                builder.SetRenderFunc(
-                    (RenderSkyPassData data, RenderGraphContext context) =>
-                    {
-                        // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity.
-                        // We load from the color buffer, perform blending manually, and store to the atmospheric scattering buffer.
-                        // Then we perform a copy from the atmospheric scattering buffer back to the color buffer.
-                        data.skyManager.RenderSky(data.hdCamera, data.sunLight, data.colorBuffer, data.depthStencilBuffer, data.debugDisplaySettings, context.cmd);
-
-                        if (Fog.IsFogEnabled(data.hdCamera) || Fog.IsPBRFogEnabled(data.hdCamera))
-                        {
-                            var pixelCoordToViewDirWS = data.hdCamera.mainViewConstants.pixelCoordToViewDirWS;
-                            data.skyManager.RenderOpaqueAtmosphericScattering(context.cmd, data.hdCamera, data.colorBuffer, data.depthTexture, data.volumetricLighting, data.intermediateBuffer, data.depthStencilBuffer, pixelCoordToViewDirWS, data.hdCamera.msaaEnabled);
-                        }
-                    });
-            }
+            m_SkyManager.RenderSky(renderGraph, hdCamera, colorBuffer, depthStencilBuffer, "Render Sky", ProfilingSampler.Get(HDProfileId.RenderSky));
+            m_SkyManager.RenderOpaqueAtmosphericScattering(renderGraph, hdCamera, colorBuffer, depthTexture, volumetricLighting, depthStencilBuffer);
         }
 
         class GenerateColorPyramidData

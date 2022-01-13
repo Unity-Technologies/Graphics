@@ -34,6 +34,21 @@
 #define LIGHTFEATUREFLAGS_SSREFLECTION (262144)
 
 //
+// UnityEngine.Rendering.HighDefinition.LightVBufferTileCategory:  static fields
+//
+#define LIGHTVBUFFERTILECATEGORY_ENV (0)
+#define LIGHTVBUFFERTILECATEGORY_ENV_PUNCTUAL (1)
+#define LIGHTVBUFFERTILECATEGORY_EVERYTHING (2)
+#define LIGHTVBUFFERTILECATEGORY_UNKNOWN (3)
+
+//
+// UnityEngine.Rendering.HighDefinition.LightVBufferTileCategoryFeatures:  static fields
+//
+#define VBUFFER_LIGHTING_FEATURES_ENV (118783)
+#define VBUFFER_LIGHTING_FEATURES_ENV_PUNCTUAL (122879)
+#define VBUFFER_LIGHTING_FEATURES_EVERYTHING (131071)
+
+//
 // UnityEngine.Rendering.HighDefinition.LightDefinitions:  static fields
 //
 #define MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE (512)

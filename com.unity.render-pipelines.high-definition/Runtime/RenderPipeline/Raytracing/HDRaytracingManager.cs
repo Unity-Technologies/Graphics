@@ -185,14 +185,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return currentMaterial.GetTag("RenderPipeline", false) == "HDRenderPipeline" && !DecalSystem.IsDecalMaterial(currentMaterial); ;
         }
 
-        static bool IsTransparentMaterial(Material currentMaterial)
+        internal static bool IsTransparentMaterial(Material currentMaterial)
         {
             return currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
                 || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
                     && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
         }
 
-        static bool IsAlphaTestedMaterial(Material currentMaterial)
+        internal static bool IsAlphaTestedMaterial(Material currentMaterial)
         {
             return currentMaterial.IsKeywordEnabled("_ALPHATEST_ON")
                 || (HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.lowerBound <= currentMaterial.renderQueue

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a callback to override the View matrix of Spot Lights.
 - Added Expose SSR parameters to control speed rejection from Motion Vector including computing Motion Vector in World Space.
 - Added a Layer Mask in the Probe Volume Settings window to filter which renderers to consider when placing the probes.
+- Adding Refract Node, Fresnel Equation Node and Scene-Difference-Node (https://jira.unity3d.com/browse/HDRP-1599)
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
@@ -88,6 +89,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a crash with render graph viewer when render graph is not provided with an execution name.
 - Fixed rendering in the editor when an incompatible API is added (case 1384634).
 - Fixed issue with typed loads on RGBA16F in Volumetric Lighting Filtering.
+- Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
+- Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
+- Fixed NeedMotionVectorForTransparent checking the wrong flag.
+- Fixed debug probe visualization affecting screen space effects.
+- Fixed issue of index for APV running out space way before it should.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
@@ -96,10 +102,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
 - Render Graph object pools are now cleared with render graph cleanup
 - Updated Physically Based Sky documentation with more warnings about warmup cost.
-- Force Alpha To Coverage to be enabled when MSAA is enabled. Remove the Alpha to Mask UI control.
 - Improved the probe placement of APV when dealing with scenes that contains objects smaller than a brick.
 - Replaced the geometry distance offset in the Probe Volume component by a minimum renderer volume threshold to ignore small objects when placing probes.
 - Small improvement changes in the UX for the Unlit Distortion field.
+- Improvements done to the water system (Deferred, Decals, SSR, Foam, Caustics, etc.).
+- Changed the behavior the max ray length for recursive rendering to match RTR and rasterization.
+- Moved more internals of the sky manager to proper Render Graph passes.
 
 ## [13.1.2] - 2021-11-05
 
