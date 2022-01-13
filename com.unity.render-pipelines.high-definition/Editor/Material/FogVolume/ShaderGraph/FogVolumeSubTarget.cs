@@ -184,6 +184,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { RenderState.Cull(Cull.Front) }, // When we do the ray marching, we don't want the camera to clip in the geometry
                 { RenderState.ZTest(ZTest.Always) },
                 { RenderState.ZWrite(ZWrite.Off) },
+                { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha) }, // TODO: blend mode options
             };
         }
         #endregion
