@@ -49,6 +49,16 @@ Shader "HDRP/LayeredLit"
         _SmoothnessRemapMax2("SmoothnessRemapMax2", Range(0.0, 1.0)) = 1.0
         _SmoothnessRemapMax3("SmoothnessRemapMax3", Range(0.0, 1.0)) = 1.0
 
+        _AlphaRemapMin0("AlphaRemapMin0", Range(0.0, 1.0)) = 0.0
+        _AlphaRemapMin1("AlphaRemapMin1", Range(0.0, 1.0)) = 0.0
+        _AlphaRemapMin2("AlphaRemapMin2", Range(0.0, 1.0)) = 0.0
+        _AlphaRemapMin3("AlphaRemapMin3", Range(0.0, 1.0)) = 0.0
+
+        _AlphaRemapMax0("AlphaRemapMax0", Range(0.0, 1.0)) = 1.0
+        _AlphaRemapMax1("AlphaRemapMax1", Range(0.0, 1.0)) = 1.0
+        _AlphaRemapMax2("AlphaRemapMax2", Range(0.0, 1.0)) = 1.0
+        _AlphaRemapMax3("AlphaRemapMax3", Range(0.0, 1.0)) = 1.0
+
         _AORemapMin0("AORemapMin0", Range(0.0, 1.0)) = 0.0
         _AORemapMin1("AORemapMin1", Range(0.0, 1.0)) = 0.0
         _AORemapMin2("AORemapMin2", Range(0.0, 1.0)) = 0.0

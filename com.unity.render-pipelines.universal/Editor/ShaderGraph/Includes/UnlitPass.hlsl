@@ -52,7 +52,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 #endif
 
 #if defined(_ALPHAMODULATE_ON)
-    surfaceDescription.BaseColor = lerp(1, surfaceDescription.BaseColor, alpha);
+    surfaceDescription.BaseColor = AlphaModulate(surfaceDescription.BaseColor, alpha);
 #endif
 
 #if defined(_DBUFFER)
