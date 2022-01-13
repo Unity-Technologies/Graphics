@@ -26,8 +26,12 @@ namespace UnityEngine.Experimental.Rendering
         struct SceneData
         {
             public SceneAsset asset;
-            public string path;
             public string guid;
+
+            public string GetPath()
+            {
+                return AssetDatabase.GUIDToAssetPath(guid);
+            }
         }
 
         static class Styles
@@ -200,7 +204,6 @@ namespace UnityEngine.Experimental.Rendering
                 return new SceneData
                 {
                     asset = asset,
-                    path = path,
                     guid = s
                 };
             }).ToList();
@@ -529,7 +532,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         void LoadScenesInBakingSet(ProbeVolumeSceneData.BakingSet set)
-            => LoadScenes(GetCurrentBakingSet().sceneGUIDs.Select(sceneGUID => m_ScenesInProject.FirstOrDefault(s => s.guid == sceneGUID).path));
+            => LoadScenes(GetCurrentBakingSet().sceneGUIDs.Select(sceneGUID => m_ScenesInProject.FirstOrDefault(s => s.guid == sceneGUID).GetPath()));
 
         void LoadScenes(IEnumerable<string> scenePathes)
         {
