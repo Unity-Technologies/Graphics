@@ -105,6 +105,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The rendering order of decals that have a similar draw order value was modified. The new order should be the reverse of the previous order.
 - Render Graph object pools are now cleared with render graph cleanup
 - Updated Physically Based Sky documentation with more warnings about warmup cost.
+- Force Alpha To Coverage to be enabled when MSAA is enabled. Remove the Alpha to Mask UI control.
 - Improved the probe placement of APV when dealing with scenes that contains objects smaller than a brick.
 - Replaced the geometry distance offset in the Probe Volume component by a minimum renderer volume threshold to ignore small objects when placing probes.
 - Small improvement changes in the UX for the Unlit Distortion field.
