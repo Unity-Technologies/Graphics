@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+using UnityEngine.VFX;
+#endif
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -86,6 +89,13 @@ namespace UnityEngine.Rendering.Universal
 #endif
 #if UNITY_EDITOR
         CopyDepthPass m_FinalDepthCopyPass;
+#endif
+
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+        CopyDepthPass m_VFXDepthCopy;
+        CopyColorPass m_VFXColorCopy;
+        RTHandle m_VFXDepthTexture;
+        RTHandle m_VFXColorTexture;
 #endif
 
         internal RenderTargetBufferSystem m_ColorBufferSystem;
@@ -258,6 +268,11 @@ namespace UnityEngine.Rendering.Universal
             m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
 #endif
 
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+            m_VFXColorCopy = new CopyColorPass(RenderPassEvent.AfterRendering, m_SamplingMaterial, m_BlitMaterial);
+            m_VFXDepthCopy = new CopyDepthPass(RenderPassEvent.AfterRendering, m_CopyDepthMaterial, true);
+#endif
+
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
             m_ColorBufferSystem = new RenderTargetBufferSystem("_CameraColorAttachment");
@@ -303,6 +318,11 @@ namespace UnityEngine.Rendering.Universal
             m_OpaqueColor?.Release();
             m_MotionVectorColor?.Release();
             m_MotionVectorDepth?.Release();
+
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+            m_VFXColorTexture?.Release();
+            m_VFXDepthTexture?.Release();
+#endif
 
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
@@ -910,6 +930,20 @@ namespace UnityEngine.Rendering.Universal
                     m_CapturePass.Setup(sourceForFinalPass);
                     EnqueuePass(m_CapturePass);
                 }
+
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+                var vfxBufferNeeded = VFXManager.IsCameraBufferNeeded(cameraData.camera);
+                if (vfxBufferNeeded.HasFlag(VFXCameraBufferTypes.Color))
+                {
+                    var colorDescriptor = cameraTargetDescriptor;
+                    colorDescriptor.depthBufferBits = (int)DepthBits.None;
+                    RenderingUtils.ReAllocateIfNeeded(ref m_VFXColorTexture, colorDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "VFXColorCopy");
+
+                    VFXManager.SetCameraBuffer(cameraData.camera, VFXCameraBufferTypes.Color, m_VFXColorTexture, 0, 0, cameraData.pixelWidth, cameraData.pixelHeight);
+                    m_VFXColorCopy.Setup(sourceForFinalPass, m_VFXColorTexture, Downsampling.None);
+                    EnqueuePass(m_VFXColorCopy);
+                }
+#endif
 
                 // if post-processing then we already resolved to camera target while doing post.
                 // Also only do final blit if camera is not rendering to RT.
