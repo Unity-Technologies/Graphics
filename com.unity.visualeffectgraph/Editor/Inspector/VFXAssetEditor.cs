@@ -548,11 +548,11 @@ class VisualEffectAssetEditor : Editor
 
             int newOption =
                 EditorGUILayout.Popup(
-                    Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags) cullingFlagsProperty.intValue),
+                    Array.IndexOf(k_CullingOptionsValue, (VFXCullingFlags)cullingFlagsProperty.intValue),
                     k_CullingOptionsContents);
             if (EditorGUI.EndChangeCheck())
             {
-                cullingFlagsProperty.intValue = (int) k_CullingOptionsValue[newOption];
+                cullingFlagsProperty.intValue = (int)k_CullingOptionsValue[newOption];
                 resourceObject.ApplyModifiedProperties();
             }
         }

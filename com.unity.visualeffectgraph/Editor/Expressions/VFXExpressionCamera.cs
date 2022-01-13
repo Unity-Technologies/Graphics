@@ -216,7 +216,7 @@ namespace UnityEditor.VFX
 
     class VFXExpressionExtractLensShiftFromMainCamera : VFXExpression
     {
-        public VFXExpressionExtractLensShiftFromMainCamera(): base(VFXExpression.Flags.InvalidOnGPU){}
+        public VFXExpressionExtractLensShiftFromMainCamera() : base(VFXExpression.Flags.InvalidOnGPU) { }
 
         public override VFXExpressionOperation operation => VFXExpressionOperation.ExtractLensShiftFromMainCamera;
 
