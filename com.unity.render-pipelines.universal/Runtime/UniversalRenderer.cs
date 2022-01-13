@@ -943,6 +943,20 @@ namespace UnityEngine.Rendering.Universal
                     m_VFXColorCopy.Setup(sourceForFinalPass, m_VFXColorTexture, Downsampling.None);
                     EnqueuePass(m_VFXColorCopy);
                 }
+
+                if (vfxBufferNeeded.HasFlag(VFXCameraBufferTypes.Depth))
+                {
+                    var depthDescriptor = cameraTargetDescriptor;
+                    depthDescriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
+                    depthDescriptor.depthStencilFormat = GraphicsFormat.None;
+                    depthDescriptor.depthBufferBits = 0;
+                    depthDescriptor.msaaSamples = 1;
+
+                    RenderingUtils.ReAllocateIfNeeded(ref m_VFXDepthTexture, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "VFXDepthCopy");
+                    VFXManager.SetCameraBuffer(cameraData.camera, VFXCameraBufferTypes.Depth, m_VFXDepthTexture, 0, 0, cameraData.pixelWidth, cameraData.pixelHeight);
+                    m_VFXDepthCopy.Setup(m_DepthTexture, m_VFXDepthTexture);
+                    EnqueuePass(m_VFXDepthCopy);
+                }
 #endif
 
                 // if post-processing then we already resolved to camera target while doing post.
