@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEditor.VFX;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 public class VFXGraphAssetModel : GraphAssetModel

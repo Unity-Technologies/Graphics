@@ -2,6 +2,7 @@
 
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEngine;
+using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.VFX
 {
@@ -22,7 +23,7 @@ namespace UnityEditor.VFX
         {
             base.OnDefineNode();
 
-            AddOutputPort("Value", PortType.Data, VFXStencil.Operator, options: PortModelOptions.NoEmbeddedConstant);
+            AddOutputPort("Value", PortType.Data, typeof(float).GenerateTypeHandle(), options: PortModelOptions.NoEmbeddedConstant);
         }
     }
 }

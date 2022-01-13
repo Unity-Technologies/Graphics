@@ -1,21 +1,24 @@
 ﻿using System;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
-using UnityEngine;
 using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.VFX
 {
     [Serializable]
-    public class VFXNodeBaseModel : NodeModel
+    public class VFXBlockBaseModel : BlockNodeModel
     {
+        public VFXBlockBaseModel()
+        {
+            m_Capabilities.Remove(GraphToolsFoundation.Overdrive.Capabilities.NeedsContainer);
+        }
     }
 
-    public class VFXOperatorNode : VFXNodeBaseModel
+    public class VFXBlockNode : VFXBlockBaseModel
     {
-        private VFXOperator m_NodeModel;
+        private VFXBlock m_NodeModel;
 
-        internal void SetOperator(VFXOperator model)
+        internal void SetBlock(VFXBlock model)
         {
             m_NodeModel = model;
             DefineNode();
@@ -30,16 +33,7 @@ namespace UnityEditor.VFX
 
             foreach (var inputSlot in m_NodeModel.inputSlots)
             {
-                switch (inputSlot.property.type.Name)
-                {
-                    case nameof(AABox):
-                        this.AddDataInputPort("Center", typeof(Vector3).GenerateTypeHandle());
-                        this.AddDataInputPort("Size", typeof(Vector3).GenerateTypeHandle());
-                        break;
-                    default:
-                        this.AddDataInputPort(inputSlot.name, inputSlot.property.type.GenerateTypeHandle());
-                        break;
-                }
+                this.AddDataInputPort(inputSlot.name, inputSlot.property.type.GenerateTypeHandle());
             }
 
             foreach (var outputSlot in m_NodeModel.outputSlots)
