@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Forbid pasting a subgraph in the same subgraph [Case 1364480](https://issuetracker.unity3d.com/product/unity/issues/guid/1364480/)
 - VFX Subgraph operator and block windows now have dedicated icons
 - Some operators were missing in node search window (gradient for instance)
+- Allows for attribute-less systems. [Case 1341789](https://issuetracker.unity3d.com/product/unity/issues/guid/1341789/)
+- Editing the values in the graph did not impact the system in real-time after saving [Case 1371089](https://issuetracker.unity3d.com/product/unity/issues/guid/1371089/)
+- Fixed null reference exception when opening another VFX and a debug mode is enabled [Case 1347420](https://issuetracker.unity3d.com/product/unity/issues/guid/1347420/)
+- Sticky note title keeps the selected font sizewhen being edited
+- Collision with zero scale lead to undefined behavior [Case 1381562](https://issuetracker.unity3d.com/product/unity/issues/guid/1381562/)
+- Fixed GPU event particle init after restarting VisualEffect [Case 1378335](https://issuetracker.unity3d.com/product/unity/issues/guid/1378335/)
+- No more exception raised when selecting all nodes with CTRL+A and then deleting them
+- Particle Strip without lifetime do not die when Alive is set to false. [Case 1376278](https://issuetracker.unity3d.com/product/unity/issues/guid/1376278/)
 
 ## [13.1.2] - 2021-11-05
 
