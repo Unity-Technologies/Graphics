@@ -36,7 +36,10 @@ namespace UnityEditor.VFX.Block
                 var minorRadius = allSlots.FirstOrDefault(o => o.name == "arcTorus_torus_minorRadius").exp;
 
                 yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, majorRadius, thickness), "volumeFactor");
-                yield return new VFXNamedExpression(VFXOperatorUtility.Saturate(minorRadius / majorRadius), "r"); // Saturate can be removed once degenerated torus are correctly handled
+
+                var majorRadiusNotZero = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Greater, new VFXExpressionAbs(majorRadius), VFXOperatorUtility.EpsilonExpression[VFXValueType.Float]);
+                var r = new VFXExpressionBranch(majorRadiusNotZero, VFXOperatorUtility.Saturate(minorRadius / majorRadius), VFXOperatorUtility.ZeroExpression[VFXValueType.Float]);
+                yield return new VFXNamedExpression(r, "r"); // Saturate can be removed once degenerated torus are correctly handled
 
                 var transformMatrix = allSlots.FirstOrDefault(o => o.name == "arcTorus_torus_transform").exp;
                 var invFinalTransform = new VFXExpressionTransposeMatrix(new VFXExpressionInverseTRSMatrix(transformMatrix));
