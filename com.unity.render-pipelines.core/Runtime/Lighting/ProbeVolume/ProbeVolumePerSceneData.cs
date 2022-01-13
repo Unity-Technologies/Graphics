@@ -101,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
                     if (refVol.sceneData != null)
                     {
-                    	refVol.bakingProcessSettings = refVol.sceneData.GetBakeSettingsForScene(gameObject.scene);
+                        refVol.bakingProcessSettings = refVol.sceneData.GetBakeSettingsForScene(gameObject.scene);
                     }
 #endif
 
