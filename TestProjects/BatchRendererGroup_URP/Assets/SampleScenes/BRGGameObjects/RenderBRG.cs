@@ -1,3 +1,7 @@
+#if UNITY_EDITOR
+//#define ENABLE_PICKING
+#endif
+
 using System;
 using System.Collections.Generic;
 using Unity.Burst;
@@ -33,16 +37,21 @@ public struct DrawKey : IEquatable<DrawKey>
     public uint submeshIndex;
     public BatchMaterialID material;
     public ShadowCastingMode shadows;
+
+#if ENABLE_PICKING
     public int pickableObjectInstanceID;
+#endif
 
     public bool Equals(DrawKey other)
     {
         return
+#if ENABLE_PICKING
+            pickableObjectInstanceID == other.pickableObjectInstanceID &&
+#endif
             meshID == other.meshID &&
             submeshIndex == other.submeshIndex &&
             material == other.material &&
-            shadows == other.shadows &&
-            pickableObjectInstanceID == other.pickableObjectInstanceID;
+            shadows == other.shadows;
     }
 }
 
@@ -273,12 +282,12 @@ public unsafe class RenderBRG : MonoBehaviour
                             flags = BatchDrawCommandFlags.None,
                             sortingPosition = 0
                         };
-
+#if ENABLE_PICKING
                         if (draws.drawCommandPickingInstanceIDs != null)
                         {
                             draws.drawCommandPickingInstanceIDs[outBatch] = drawBatches[remappedIndex].key.pickableObjectInstanceID;
                         }
-
+#endif
                         outBatch++;
                     }
 
@@ -333,6 +342,10 @@ public unsafe class RenderBRG : MonoBehaviour
             return new JobHandle();
         }
 
+#if ENABLE_PICKING
+        bool isPickingCulling = cullingContext.viewType == BatchCullingViewType.Picking;
+#endif
+
         var splitCounts = new NativeArray<int>(cullingContext.cullingSplits.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
         for (int i = 0; i < splitCounts.Length; ++i)
         {
@@ -347,8 +360,10 @@ public unsafe class RenderBRG : MonoBehaviour
         drawCommands.drawCommands = Malloc<BatchDrawCommand>(m_drawBatches.Length *
             splitCounts.Length * 10); // TODO: Multiplying the DrawCommand count by splitCount*10 is NOT an conservative upper bound. But in practice is enough. Sorting would give us a real conservative bound...
 
-        drawCommands.drawCommandPickingInstanceIDs = Malloc<int>(m_drawBatches.Length);
         drawCommands.visibleInstances = Malloc<int>(m_instanceIndices.Length);
+#if ENABLE_PICKING
+        drawCommands.drawCommandPickingInstanceIDs = isPickingCulling ? Malloc<int>(m_drawBatches.Length) : null;
+#endif
 
         // Zero init: Culling job sets the values!
         drawCommands.drawRangeCount = 0;
@@ -411,8 +426,10 @@ public unsafe class RenderBRG : MonoBehaviour
     {
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
+#if ENABLE_PICKING
         m_PickingMaterial = LoadMaterialWithHideAndDontSave("Hidden/Universal Render Pipeline/BRGPicking");
         m_BatchRendererGroup.SetPickingMaterial(m_PickingMaterial);
+#endif
 
         if (SetFallbackMaterialsOnStart)
         {
@@ -512,13 +529,17 @@ public unsafe class RenderBRG : MonoBehaviour
             renderer.GetSharedMaterials(sharedMaterials);
 
             var shadows = renderer.shadowCastingMode;
-            int instanceID = renderer.gameObject.GetInstanceID();
 
             for (int matIndex = 0; matIndex < sharedMaterials.Count; matIndex++)
             {
                 var material = m_BatchRendererGroup.RegisterMaterial(sharedMaterials[matIndex]);
 
-                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, shadows = shadows, pickableObjectInstanceID = instanceID };
+                var key = new DrawKey { material = material, meshID = mesh, submeshIndex = (uint)matIndex, shadows = shadows };
+
+#if ENABLE_PICKING
+                key.pickableObjectInstanceID = renderer.gameObject.GetInstanceID();
+#endif
+
                 var drawBatch = new DrawBatch
                 {
                     key = key,
@@ -691,7 +712,9 @@ public unsafe class RenderBRG : MonoBehaviour
             m_instanceIndices.Dispose();
             m_drawIndices.Dispose();
 
+#if ENABLE_PICKING
             DestroyImmediate(m_PickingMaterial);
+#endif
             DestroyImmediate(m_ErrorMaterial);
             DestroyImmediate(m_LoadingMaterial);
         }
