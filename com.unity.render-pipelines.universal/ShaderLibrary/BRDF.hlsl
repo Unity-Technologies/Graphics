@@ -28,7 +28,7 @@ struct BRDFData
 half ReflectivitySpecular(half3 specular)
 {
 #if defined(SHADER_API_GLES)
-    return specular.r; // Red channel - because most metals are either monocrhome or with redish/yellowish tint
+    return specular.r; // Red channel - because most metals are either monochrome or with redish/yellowish tint
 #else
     return Max3(specular.r, specular.g, specular.b);
 #endif
@@ -88,7 +88,7 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 #ifdef _SPECULAR_SETUP
     half reflectivity = ReflectivitySpecular(specular);
     half oneMinusReflectivity = half(1.0) - reflectivity;
-    half3 brdfDiffuse = albedo * (half3(1.0, 1.0, 1.0) - specular);
+    half3 brdfDiffuse = albedo * oneMinusReflectivity;
     half3 brdfSpecular = specular;
 #else
     half oneMinusReflectivity = OneMinusReflectivityMetallic(metallic);
