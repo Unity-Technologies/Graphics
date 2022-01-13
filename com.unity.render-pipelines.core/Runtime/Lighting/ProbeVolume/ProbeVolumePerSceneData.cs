@@ -106,17 +106,23 @@ namespace UnityEngine.Experimental.Rendering
             states.Remove(state);
         }
 
-        internal void RenameBakingState(string state, string newName)
+        internal void RenameBakingState(string state, string newState)
         {
             if (!states.TryGetValue(state, out var stateData))
                 return;
             states.Remove(state);
-            states.Add(newName, stateData);
+            states.Add(newState, stateData);
 
 #if UNITY_EDITOR
-            AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(stateData.cellDataAsset), $"{newName}-{state}.CellData.bytes");
-            AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(stateData.cellOptionalDataAsset), $"{newName}-{state}.CellOptionalData.bytes");
             EditorUtility.SetDirty(this);
+            var baseName = ProbeVolumeAsset.assetName + "-" + newState;
+            void RenameAsset(Object asset, string extension)
+            {
+                var oldPath = AssetDatabase.GetAssetPath(asset);
+                AssetDatabase.RenameAsset(oldPath, baseName + extension);
+            }
+            RenameAsset(stateData.cellDataAsset, ".CellData.bytes");
+            RenameAsset(stateData.cellOptionalDataAsset, ".CellOptionalData.bytes");
 #endif
         }
 
@@ -136,9 +142,7 @@ namespace UnityEngine.Experimental.Rendering
             refVol.AddPendingAssetLoading(asset);
 #if UNITY_EDITOR
             if (refVol.sceneData != null)
-            {
-                refVol.dilationValidtyThreshold = refVol.sceneData.GetBakeSettingsForScene(gameObject.scene).dilationSettings.dilationValidityThreshold;
-            }
+                refVol.bakingProcessSettings = refVol.sceneData.GetBakeSettingsForScene(gameObject.scene);
 #endif
         }
 

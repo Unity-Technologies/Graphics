@@ -53,6 +53,7 @@ namespace UnityEngine.Experimental.Rendering
         public Dictionary<int, List<Scene>> cellIndex2SceneReferences = new Dictionary<int, List<Scene>>();
         public List<BakingCell> cells = new List<BakingCell>();
         public Dictionary<Vector3, int> uniquePositions = new Dictionary<Vector3, int>();
+        public Vector3[] virtualOffsets;
         // Allow to get a mapping to subdiv level with the unique positions. It stores the minimum subdiv level found for a given position.
         // Can be probably done cleaner.
         public Dictionary<Vector3, int> uniqueBrickSubdiv = new Dictionary<Vector3, int>();
@@ -226,9 +227,6 @@ namespace UnityEngine.Experimental.Rendering
             if (hasFoundInvalidSetup) return;
 
             SetBakingContext(ProbeReferenceVolume.instance.perSceneDataList);
-
-            if (m_BakingSettings.virtualOffsetSettings.useVirtualOffset)
-                AddOccluders();
 
             RunPlacement();
         }
@@ -476,12 +474,11 @@ namespace UnityEngine.Experimental.Rendering
             // Use the globalBounds we just computed, as the one in probeRefVolume doesn't include scenes that have never been baked
             probeRefVolume.globalBounds = globalBounds;
 
-            // Use the globalBounds we just computed, as the one in probeRefVolume doesn't include scenes that have never been baked
-            probeRefVolume.globalBounds = globalBounds;
-
             onAdditionalProbesBakeCompletedCalled = true;
 
             var dilationSettings = m_BakingSettings.dilationSettings;
+            var virtualOffsets = m_BakingBatch.virtualOffsets;
+
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
             {
@@ -497,12 +494,16 @@ namespace UnityEngine.Experimental.Rendering
 
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
-                cell.offsetVectors = new Vector3[0]; // pending PR #6169
+                cell.offsetVectors = new Vector3[virtualOffsets != null ? numProbes : 0];
                 cell.minSubdiv = probeRefVolume.GetMaxSubdivision();
 
                 for (int i = 0; i < numProbes; ++i)
                 {
                     int j = cell.probeIndices[i];
+
+                    if (virtualOffsets != null)
+                        cell.offsetVectors[i] = virtualOffsets[j];
+
                     SphericalHarmonicsL2 shv = sh[j];
 
                     int brickIdx = i / 64;
@@ -563,7 +564,7 @@ namespace UnityEngine.Experimental.Rendering
                     cell.validity[i] = validity[j];
                 }
 
-                cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out _, out _);
+                cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
                 cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Length);
 
                 m_BakedCells[cell.index] = cell;
@@ -622,7 +623,6 @@ namespace UnityEngine.Experimental.Rendering
                 data.ResolveCells();
             }
 
-            // Connect the assets to their components
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
             {
                 if (Lightmapping.giWorkflowMode != Lightmapping.GIWorkflowMode.Iterative)
@@ -698,7 +698,7 @@ namespace UnityEngine.Experimental.Rendering
         ///  2 assets per baking state:
         ///   CellData: a binary flat file containing L0L1 probes data
         ///   CellOptionalData: a binary flat file containing L2 probe data (when present)
-        ///  3 assets per baking set:
+        ///  3 assets shared between states:
         ///   ProbeVolumeAsset: a Scriptable Object which currently contains book-keeping data, runtime cells, and references to flattened data
         ///   CellSharedData: a binary flat file containing bricks data
         ///   CellSupportData: a binary flat file containing debug data (stripped from player builds if building without debug shaders)
@@ -787,7 +787,6 @@ namespace UnityEngine.Experimental.Rendering
             EditorUtility.SetDirty(asset);
             AssetDatabase.SaveAssets();
 
-            
             data.GetBlobFileNames(out var cellDataFilename, out var cellOptionalDataFilename, out var cellSharedDataFilename, out var cellSupportDataFilename);
 
             unsafe
@@ -1104,24 +1103,9 @@ namespace UnityEngine.Experimental.Rendering
                 m_BakingBatch.cellIndex2SceneReferences[cell.index] = results.scenesPerCells[cellPos].ToList();
             }
 
-
-            // Move positions before sending them
+            // Virtually offset positions before passing them to lightmapper
             var positions = m_BakingBatch.uniquePositions.Keys.ToArray();
-            VirtualOffsetSettings voSettings = m_BakingSettings.virtualOffsetSettings;
-            if (voSettings.useVirtualOffset)
-            {
-                for (int i = 0; i < positions.Length; ++i)
-                {
-                    int subdivLevel = 0;
-                    m_BakingBatch.uniqueBrickSubdiv.TryGetValue(positions[i], out subdivLevel);
-                    float brickSize = ProbeReferenceVolume.CellSize(subdivLevel);
-                    float searchDistance = (brickSize * m_BakingProfile.minBrickSize) / ProbeBrickPool.kBrickCellCount;
-
-                    float scaleForSearchDist = voSettings.searchMultiplier;
-                    positions[i] = PushPositionOutOfGeometry(positions[i], scaleForSearchDist * searchDistance, voSettings.outOfGeoOffset);
-                }
-                CleanupOccluders();
-            }
+            ApplyVirtualOffsets(positions, out m_BakingBatch.virtualOffsets);
 
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, positions);
         }
