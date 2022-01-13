@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed XR support in CoreUtils.DrawFullscreen function.
 - Fixed an issue causing Render Graph execution errors after a random amount of time.
 - Fixed issue in DynamicResolutionHandler when camera request was turned off at runtime, the ScalableBufferManager would leak state and not unset DRS state (case 1383093).
+- Fixed the issue with the special Turkish i, when looking for the m_IsGlobal property in VolumeEditor. (case 1276892)
 
 ## [12.1.3] - 2021-11-17
 Version Updated
