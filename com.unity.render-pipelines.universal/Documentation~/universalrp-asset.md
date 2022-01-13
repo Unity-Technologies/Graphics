@@ -22,7 +22,23 @@ In the URP, you can configure settings for:
 
 **Note:** If you have the experimental 2D Renderer enabled (menu: **Graphics Settings** > add the 2D Renderer Asset under **Scriptable Render Pipeline Settings**), some of the options related to 3D rendering in the URP Asset don't have any impact on your final app or game.
 
+### How to show Additional Properties
 
+Unity does not show certain advanced properties in the URP Asset by default. To see all available properties:
+
+* In the [URP Asset](../universalrp-asset.md), in any section, click the vertical ellipsis icon (&vellip;) and select **Show Additional Properties**
+
+    ![Show Additional Properties](Images/settings-general/show-additional-properties.png)
+
+    Unity shows all available properties in the current section.
+
+To show all additional properties in all sections:
+
+1. Click the vertical ellipsis icon (&vellip;) and select **Show All Additional Properties**. Unity opens the **Core Render Pipeline** section in the **Preferences** window.
+
+2. In the property **Additional Properties > Visibility**, select **All Visible**.
+
+    ![Additional Properties > Visibility > All Visible](Images/settings-general/show-all-additional-properties.png)
 
 ### General
 The __General__ settings control the core part of the pipeline rendered frame.
@@ -87,8 +103,7 @@ The **Shadows** section has the following properties.
 | **Depth Bias** | Use this setting to reduce [shadow acne](https://docs.unity3d.com/Manual/ShadowPerformance.html). |
 | **Normal Bias** | Use this setting to reduce [shadow acne](https://docs.unity3d.com/Manual/ShadowPerformance.html). |
 | __Soft Shadows__ | Select this check box to enable extra processing of the shadow maps to give them a smoother look.<br/>When enabled, Unity uses the following shadow map filtering method:<br/>Desktop platforms: 5x5 tent filter, mobile platforms: 4 tap filter.<br/>**Performance impact**: high.<br/>When this option is disabled, Unity samples the shadow map once with the default hardware filtering. |
-
-
+| **Conservative Enclosing Sphere** | Enable this option to improve shadow frustum culling and prevent Unity from excessively culling shadows in the corners of the shadow cascades.<br/>Disable this option only for compatibility purposes of existing projects created in previous Unity versions.<br/>If you enable this option in an existing project, you might need to adjust the shadows cascade distances because the shadow culling enclosing spheres change their size and position.<br/>**Performance impact**: enabling this option is likely to improve performance, because the option minimizes the overlap of shadow cascades, which reduces the number of redundant static shadow casters. |
 
 ### Post-processing
 

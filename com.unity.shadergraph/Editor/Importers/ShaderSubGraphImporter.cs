@@ -19,7 +19,7 @@ using UnityEngine.Pool;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(29, Extension, -905)]
+    [ScriptedImporter(30, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -197,6 +197,11 @@ namespace UnityEditor.ShaderGraph
             foreach (var node in nodes)
                 node.SetUsedByGenerator();
 
+            // Start with a clean slate for the input/output capabilities and dependencies
+            asset.inputCapabilities.Clear();
+            asset.outputCapabilities.Clear();
+            asset.slotDependencies.Clear();
+
             ShaderStageCapability effectiveShaderStage = ShaderStageCapability.All;
             foreach (var slot in outputSlots)
             {
@@ -292,7 +297,10 @@ namespace UnityEditor.ShaderGraph
                 foreach (var child in category.Children)
                 {
                     var prop = propertiesList.Find(p => p.guid == child.guid);
-                    orderedProperties.Add(prop);
+                    // Not all properties in the category are actually on the graph.
+                    // In particular, it seems as if keywords are not properties on sub-graphs.
+                    if (prop != null)
+                        orderedProperties.Add(prop);
                 }
             }
 

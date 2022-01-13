@@ -1083,6 +1083,7 @@ struct PreLightData
     float    coatPartLambdaV;
     float3   coatIblR;
     float    coatIblF;               // Fresnel term for view vector
+    float    clearCoatIndirectSpec;  // Weight used to support the clear coat's SSR/IBL blending
     float3x3 ltcTransformCoat;       // Inverse transformation for GGX                                 (4x VGPRs)
 
 #if HAS_REFRACTION
@@ -1144,6 +1145,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         preLightData.coatPartLambdaV = GetSmithJointGGXPartLambdaV(clampedNdotV, CLEAR_COAT_ROUGHNESS);
         preLightData.coatIblR = reflect(-V, N);
         preLightData.coatIblF = F_Schlick(CLEAR_COAT_F0, clampedNdotV) * bsdfData.coatMask;
+        preLightData.clearCoatIndirectSpec = 1.0;
     }
 
     // Handle IBL + area light + multiscattering.
@@ -1803,7 +1805,8 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 // ----------------------------------------------------------------------------
 
 IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
-                                                    PreLightData   preLightData,
+                                                    // Note: We use inout here with PreLightData for a hack we do with clear coat to transfer value of clearCoatIndirectSpec but it should be avoided for other Material
+                                                    inout PreLightData   preLightData,
                                                     BSDFData       bsdfData,
                                                     inout float    reflectionHierarchyWeight)
 {
@@ -1822,17 +1825,37 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     // of a materia feature and the coat mask.
     float clampedNdotV = ClampNdotV(preLightData.NdotV);
     float F = F_Schlick(CLEAR_COAT_F0, clampedNdotV);
-    lighting.specularReflected = ssrLighting.rgb * (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ?
-                                                    lerp(preLightData.specularFGD, F, bsdfData.coatMask)
-                                                    : preLightData.specularFGD);
-    // Set the default weight value
-    reflectionHierarchyWeight  = ssrLighting.a;
 
-    // In case this is a clear coat material, we only need to add to the reflectionHierarchyWeight the amount of energy that the clear coat has already
-    // provided to the indirect specular lighting. That would be reflectionHierarchyWeight * F (if has a coat mask). In the environement lighting,
-    // we do something similar. The base layer coat is multiplied by (1-coatF)^2, but that we cannot do as we have no lighting to provid for the base layer.
+    // Set the default weight value
+    reflectionHierarchyWeight = ssrLighting.a;
+
+    // If this material has a clear coat, the behavior is more complex
+    // For clear coat we change a bit how reflection hierarchy is handled
+    // With a regular Material, we do SSR to get lighting then fallback on other method based on reflectionHierarchyWeight
+    // but for clear coat Material we try to do this mechanism separately for each layer. So clear coat do SSR then fallback but with the weight of clearCoatIndirectSpec
+    // base layer will get reamining energy of coat layer via reflectionHierarchyWeight with the fallback (i.e the cubemap).
+    // On top of this above we also add an additional hack to limit the smoothness used on based layer depending on coat layer for SSR application (See below)
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
-        reflectionHierarchyWeight  = lerp(reflectionHierarchyWeight, reflectionHierarchyWeight * F, bsdfData.coatMask);
+    {
+        // Because we do not want to have a double contribution, we need to keep track that the clear coat's indirect specular contribution was added
+        preLightData.clearCoatIndirectSpec = 1.0 - ssrLighting.a;
+
+        // We have three possible behaviors in this case:
+        // - The smoothness is superior or equal to 0.9, we approximate the fact that the clear coat and base layer have the same roughness and use the SSR as the indirect specular signal.
+        // - The smoothness is inferior to 0.8. We cannot use the SSR for the base layer, but we use the fresnel to lerp between the two lobes.
+        // - The smooothness is between 0.8 and 0.9, we lerp between the two behaviors.
+        float blendingFactor = lerp(0.0, 1.0, saturate((bsdfData.perceptualRoughness - 0.1) / 0.2));
+
+        // Combine the three behaviors for the lighting signal
+        lighting.specularReflected = ssrLighting.rgb * lerp(preLightData.specularFGD, lerp(preLightData.specularFGD, F, bsdfData.coatMask), blendingFactor);
+
+        // We only need to add to the reflectionHierarchyWeight the amount of energy that the clear coat has already
+        // provided to the indirect specular lighting. That would be reflectionHierarchyWeight * F (if has a coat mask). In the environement lighting,
+        // we do something similar. The base layer coat is multiplied by (1-coatF)^2, but that we cannot do as we have no lighting to provid for the base layer.
+        reflectionHierarchyWeight  = lerp(reflectionHierarchyWeight, lerp(reflectionHierarchyWeight, reflectionHierarchyWeight * F, bsdfData.coatMask), blendingFactor);
+    }
+    else
+        lighting.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
 
     return lighting;
 }
@@ -2002,7 +2025,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
             // Evaluate the Clear Coat color
             float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, coatR, 0.0, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
-            envLighting += preLightData.coatIblF * preLD.rgb;
+            envLighting += preLightData.coatIblF * preLD.rgb * preLightData.clearCoatIndirectSpec;
 
             // Can't attenuate diffuse lighting here, may try to apply something on bakeLighting in PostEvaluateBSDF
         }

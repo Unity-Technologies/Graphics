@@ -24,6 +24,7 @@ Shader "Renderers/#SCRIPTNAME#"
 
     SubShader
     {
+        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Name "FirstPass"

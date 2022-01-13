@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Iridescence
             public static GUIContent iridescenceMaskText = new GUIContent("Iridescence Mask", "Specifies the Iridescence Mask (R) for this Material - This map controls the intensity of the iridescence.");
             public static GUIContent iridescenceThicknessText = new GUIContent("Iridescence Layer Thickness");
-            public static GUIContent iridescenceThicknessMapText = new GUIContent("Iridescence Layer Thickness map", "Specifies the Iridescence Layer Thickness map (R) for this Material.");
+            public static GUIContent iridescenceThicknessMapText = new GUIContent("Iridescence Layer Thickness map", "Specifies the Thickness map (R) of the thin iridescence layer over the material. Unit is micrometer multiplied by 3. A value of 1 is remapped to 3 micrometers or 3000 nanometers.");
             public static GUIContent iridescenceThicknessRemapText = new GUIContent("Iridescence Layer Thickness remap");
 
             // Clear Coat

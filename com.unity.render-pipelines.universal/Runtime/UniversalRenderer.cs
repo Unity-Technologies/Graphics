@@ -107,6 +107,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_DepthPrimingRecommended;
         StencilState m_DefaultStencilState;
         LightCookieManager m_LightCookieManager;
+        IntermediateTextureMode m_IntermediateTextureMode;
 
         // Materials used in URP Scriptable Render Passes
         Material m_BlitMaterial = null;
@@ -151,6 +152,8 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetFailOperation(stencilData.failOperation);
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
+            m_IntermediateTextureMode = data.intermediateTextureMode;
+
             {
                 var settings = LightCookieManager.Settings.GetDefault();
                 var asset = UniversalRenderPipeline.asset;
@@ -162,6 +165,9 @@ namespace UnityEngine.Rendering.Universal
 
                 m_LightCookieManager = new LightCookieManager(ref settings);
             }
+
+            this.stripShadowsOffVariants = true;
+            this.stripAdditionalLightOffVariants = true;
 
             ForwardLights.InitParams forwardInitParams;
             forwardInitParams.lightCookieManager = m_LightCookieManager;
@@ -183,6 +189,7 @@ namespace UnityEngine.Rendering.Universal
             // we inject the builtin passes in the before events.
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_XROcclusionMeshPass = new XROcclusionMeshPass(RenderPassEvent.BeforeRenderingOpaques);
             // Schedule XR copydepth right after m_FinalBlitPass(AfterRendering + 1)
@@ -285,6 +292,10 @@ namespace UnityEngine.Rendering.Universal
                     GraphicsDeviceType.OpenGLES3
                 };
             }
+
+            LensFlareCommonSRP.mergeNeeded = 0;
+            LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample = 1;
+            LensFlareCommonSRP.Initialize();
         }
 
         /// <inheritdoc />
@@ -303,6 +314,8 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_ObjectMotionVecMaterial);
 
             Blitter.Cleanup();
+
+            LensFlareCommonSRP.Dispose();
         }
 
         private void SetupFinalPassDebug(ref CameraData cameraData)
@@ -390,7 +403,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Assign the camera color target early in case it is needed during AddRenderPasses.
             bool isPreviewCamera = cameraData.isPreviewCamera;
-            var createColorTexture = rendererFeatures.Count != 0 && !isPreviewCamera;
+            var createColorTexture = m_IntermediateTextureMode == IntermediateTextureMode.Always && !isPreviewCamera;
             if (createColorTexture)
             {
                 m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer();
@@ -887,6 +900,10 @@ namespace UnityEngine.Rendering.Universal
                 cullingParameters.maximumVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights + 1;
             }
             cullingParameters.shadowDistance = cameraData.maxShadowDistance;
+
+            cullingParameters.conservativeEnclosingSphere = UniversalRenderPipeline.asset.conservativeEnclosingSphere;
+
+            cullingParameters.numIterationsEnclosingSphere = UniversalRenderPipeline.asset.numIterationsEnclosingSphere;
         }
 
         /// <inheritdoc />
@@ -1115,7 +1132,7 @@ namespace UnityEngine.Rendering.Universal
 
             // copying depth on GLES3 is giving invalid results. Needs investigation (Fogbugz issue 1339401)
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
-                msaaDepthResolve = false;
+                return false;
 
             return supportsDepthCopy || msaaDepthResolve;
         }

@@ -4,6 +4,25 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.1.3] - 2021-11-17
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [12.1.2] - 2021-10-22
+
+### Fixed
+- Fixed serialization of DebugStateFlags, the internal Enum was not being serialized.
+- Fixed issue when changing volume profiles at runtime with a script (case 1364256).
+
+## [12.1.1] - 2021-10-04
+
+### Fixed
+- Fixed black pixel issue in AMD FidelityFX RCAS implementation
+- Fixed a critical issue on android devices & lens flares. Accidentally creating a 16 bit texture was causing gpus not supporting them to fail.
+
+## [12.1.0] - 2021-09-23
+
 ## [12.0.0] - 2021-01-11
 
 ### Added
@@ -81,6 +100,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed potentially conflicting runtime Rendering Debugger UI command by adding an option to disable runtime UI altogether (1345783).
 - Fixed Lens Flare position for celestial at very far camera distances. It now locks correctly into the celestial position regardless of camera distance (1363291)
 - Fixed issues caused by automatically added EventSystem component, required to support Rendering Debugger Runtime UI input. (1361901)
+- Fixed API to draw color temperature for Lights.
 
 ### Changed
 - Improved the warning messages for Volumes and their Colliders.

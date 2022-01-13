@@ -277,7 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.worldToLocalMatrix = m_WorldToLocalArea.inverse;
                 passData.historyValidity = EvaluateHistoryValidity(hdCamera);
                 passData.filterTracedShadow = additionalLightData.filterTracedShadow;
-                passData.areaShadowSlot = m_lightList.lights[lightIndex].screenSpaceShadowIndex;
+                passData.areaShadowSlot = m_GpuLightsBuilder.lights[lightIndex].screenSpaceShadowIndex;
                 passData.filterSize = additionalLightData.filterSizeTraced;
 
                 // Kernels
@@ -343,7 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 areaShadow = passData.outputShadowTexture;
             }
 
-            int areaShadowSlot = m_lightList.lights[lightIndex].screenSpaceShadowIndex;
+            int areaShadowSlot = m_GpuLightsBuilder.lights[lightIndex].screenSpaceShadowIndex;
             WriteScreenSpaceShadow(renderGraph, hdCamera, areaShadow, screenSpaceShadowArray, areaShadowSlot, ScreenSpaceShadowType.Area);
 
             if (additionalLightData.filterTracedShadow)

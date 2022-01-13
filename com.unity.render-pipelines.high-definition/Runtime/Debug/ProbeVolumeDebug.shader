@@ -13,7 +13,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
         #pragma editor_sync_compilation
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-        #pragma multi_compile PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+        #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
@@ -50,6 +50,7 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
         UNITY_INSTANCING_BUFFER_START(Props)
             UNITY_DEFINE_INSTANCED_PROP(float4, _IndexInAtlas)
             UNITY_DEFINE_INSTANCED_PROP(float, _Validity)
+            UNITY_DEFINE_INSTANCED_PROP(float, _RelativeSize)
         UNITY_INSTANCING_BUFFER_END(Props)
 
         v2f vert(appdata v)
@@ -148,6 +149,11 @@ Shader "Hidden/HDRP/ProbeVolumeDebug"
                 {
                     return float4(0, 1, 0, 1);
                 }
+            }
+            else if (_ShadingMode == DEBUGPROBESHADINGMODE_SIZE)
+            {
+                float4 col = lerp(float4(0, 1, 0, 1), float4(1, 0, 0, 1), UNITY_ACCESS_INSTANCED_PROP(Props, _RelativeSize));
+                return col;
             }
 
             return _Color;

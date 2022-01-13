@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Lens Flare Data-Driven
         Material m_LensFlareDataDrivenShader;
+        ComputeShader m_LensFlareMergeOcclusionDataDrivenCS { get { return defaultResources.shaders.lensFlareMergeOcclusionCS; } }
 
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
@@ -70,6 +71,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector2Int m_BeforeDynamicResUpscaleRes = new Vector2Int(1, 1);
 
         // TAA
+        internal const float TAABaseBlendFactorMin = 0.6f;
+        internal const float TAABaseBlendFactorMax = 0.95f;
         float[] taaSampleWeights = new float[9];
 
         private enum ResolutionGroup
@@ -433,6 +436,7 @@ namespace UnityEngine.Rendering.HighDefinition
             in PrepassOutput prepassOutput,
             TextureHandle inputColor,
             TextureHandle backBuffer,
+            TextureHandle sunOcclusionTexture,
             CullingResults cullResults,
             HDCamera hdCamera)
         {
@@ -466,6 +470,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_PostProcessEnabled || m_AntialiasingFS)
             {
+                bool taaEnabled = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+                LensFlareComputeOcclusionDataDrivenPass(renderGraph, hdCamera, depthBuffer, taaEnabled);
+                if (taaEnabled)
+                {
+                    LensFlareMergeOcclusionDataDrivenPass(renderGraph, hdCamera, taaEnabled);
+                }
+
                 source = StopNaNsPass(renderGraph, hdCamera, source);
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
@@ -513,7 +524,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // HDRP to reduce the amount of resolution lost at the center of the screen
                 source = PaniniProjectionPass(renderGraph, hdCamera, source);
 
-                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source);
+                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source, depthBuffer, sunOcclusionTexture);
 
                 TextureHandle bloomTexture = BloomPass(renderGraph, hdCamera, source);
                 TextureHandle logLutOutput = ColorGradingPass(renderGraph, hdCamera);
@@ -1578,7 +1589,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 taaSampleWeights[i] /= totalWeight;
             }
 
-            passData.taaParameters1 = new Vector4(camera.camera.cameraType == CameraType.SceneView ? 0.2f : 1.0f - camera.taaBaseBlendFactor, taaSampleWeights[0], (int)StencilUsage.ExcludeFromTAA, 0);
+            // For post dof we can be a bit more agressive with the taa base blend factor, since most aliasing has already been taken care of in the first TAA pass.
+            // The following MAD operation expands the range to a new minimum (and keeps max the same).
+            const float postDofMin = 0.4f;
+            const float scale = (TAABaseBlendFactorMax - postDofMin) / (TAABaseBlendFactorMax - TAABaseBlendFactorMin);
+            const float offset = postDofMin - TAABaseBlendFactorMin * scale;
+            float taaBaseBlendFactor = postDoF ? camera.taaBaseBlendFactor * scale + offset : camera.taaBaseBlendFactor;
+
+            passData.taaParameters1 = new Vector4(camera.camera.cameraType == CameraType.SceneView ? 0.2f : 1.0f - taaBaseBlendFactor, taaSampleWeights[0], (int)StencilUsage.ExcludeFromTAA, 0);
             passData.taaFilterWeights = new Vector4(taaSampleWeights[1], taaSampleWeights[2], taaSampleWeights[3], taaSampleWeights[4]);
             passData.taaFilterWeights1 = new Vector4(taaSampleWeights[5], taaSampleWeights[6], taaSampleWeights[7], taaSampleWeights[8]);
 
@@ -1937,6 +1955,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public int pbDoFGatherKernel;
             public ComputeShader pbDoFDilateCS;
             public int pbDoFDilateKernel;
+            public ComputeShader pbDoFCombineCS;
+            public int pbDoFCombineKernel;
             public int minMaxCoCTileSize;
 
             public BlueNoise.DitheredTextureSet ditheredTextureSet;
@@ -2017,6 +2037,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.pbDoFDilateKernel = parameters.pbDoFDilateCS.FindKernel("KMain");
             parameters.pbDoFGatherCS = defaultResources.shaders.dofGatherCS;
             parameters.pbDoFGatherKernel = parameters.pbDoFGatherCS.FindKernel("KMain");
+            parameters.pbDoFCombineCS = defaultResources.shaders.dofCombineCS;
+            parameters.pbDoFCombineKernel = parameters.pbDoFGatherCS.FindKernel("KMain");
             parameters.minMaxCoCTileSize = 8;
 
             parameters.camera = camera;
@@ -2030,7 +2052,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.resolution = m_DepthOfField.resolution;
 
-            float scale = m_DepthOfField.physicallyBased ? 1f : 1f / (float)parameters.resolution; // Note: physical dof always runs at full resolution
+            float scale = m_DepthOfField.physicallyBased ? 1f : 1f / (float)parameters.resolution;
             float resolutionScale = (postProcessViewportSize.y / 1080f) * (scale * 2f);
 
             int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
@@ -2104,6 +2126,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.dofCombineCS.EnableKeyword("ENABLE_ALPHA");
                 parameters.dofPrecombineFarCS.EnableKeyword("ENABLE_ALPHA");
                 parameters.pbDoFGatherCS.EnableKeyword("ENABLE_ALPHA");
+                parameters.pbDoFCombineCS.EnableKeyword("ENABLE_ALPHA");
             }
 
             if (parameters.resolution == DepthOfFieldResolution.Full)
@@ -2141,10 +2164,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.dofGatherCS.EnableKeyword("USE_TILES");
             }
 
+            // Settings specific to the physically based option
             if (m_DepthOfField.physicallyBased)
             {
                 parameters.dofCoCReprojectCS.EnableKeyword("ENABLE_MAX_BLENDING");
                 parameters.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
+                // Fix the resolution to half. This only affects the out-of-focus regions (and there is no visible benefit at computing those at higher res). Tiles with pixels near the focus plane always run at full res.
+                parameters.resolution = DepthOfFieldResolution.Half;
             }
 
             if (camera.msaaEnabled)
@@ -2669,7 +2695,7 @@ namespace UnityEngine.Rendering.HighDefinition
             fullresCoC = nextCoC;
         }
 
-        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, RTHandle depthBuffer, RTHandle minMaxCoCPing, RTHandle minMaxCoCPong, bool taaEnabled, RTHandle depthMinMaxAvgMSAA)
+        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, RTHandle depthBuffer, RTHandle minMaxCoCPing, RTHandle minMaxCoCPong, RTHandle scaledDof, bool taaEnabled, RTHandle depthMinMaxAvgMSAA)
         {
             // Currently Physically Based DoF is performed at "full" resolution (ie does not utilize DepthOfFieldResolution)
             // However, to produce similar results when switching between various resolutions, or dynamic resolution,
@@ -2679,11 +2705,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float farMaxBlur = resolutionScale * dofParameters.farMaxBlur;
             float nearMaxBlur = resolutionScale * dofParameters.nearMaxBlur;
+            bool usePhysicalCamera = dofParameters.focusMode == DepthOfFieldMode.UsePhysicalCamera;
 
-            // Map the old "max radius" parameters to a bigger range, so we can work on more challenging scenes, [0, 16] --> [0, 64]
+            // Map the old "max radius" parameters to a bigger range when driving the dof from physical camera settings, so we can work on more challenging scenes, [0, 16] --> [0, 64]
+            float radiusMultiplier = usePhysicalCamera ? 4.0f : 1.0f;
             Vector2 cocLimit = new Vector2(
-                Mathf.Max(4 * farMaxBlur, 0.01f),
-                Mathf.Max(4 * nearMaxBlur, 0.01f));
+                Mathf.Max(radiusMultiplier * farMaxBlur, 0.01f),
+                Mathf.Max(radiusMultiplier * nearMaxBlur, 0.01f));
             float maxCoc = Mathf.Max(cocLimit.x, cocLimit.y);
 
             ComputeShader cs;
@@ -2694,7 +2722,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cs = dofParameters.dofCircleOfConfusionCS;
                 kernel = dofParameters.dofCircleOfConfusionKernel;
 
-                if (dofParameters.focusMode == DepthOfFieldMode.UsePhysicalCamera)
+                if (usePhysicalCamera)
                 {
                     // The sensor scale is used to convert the CoC size from mm to screen pixels
                     float sensorScale;
@@ -2792,7 +2820,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCombine)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldGatherNear)))
             {
                 cs = dofParameters.pbDoFGatherCS;
                 kernel = dofParameters.pbDoFGatherKernel;
@@ -2801,12 +2829,33 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, 0, 0, (float)dofParameters.resolution));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, 3, 1.0f / (float)dofParameters.resolution, (float)dofParameters.resolution));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, sourcePyramid != null ? sourcePyramid : source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, scaledDof);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileList, minMaxCoCPing, 0);
                 BlueNoise.BindDitheredTextureSet(cmd, dofParameters.ditheredTextureSet);
+                int scaledWidth = (dofParameters.viewportSize.x / (int)dofParameters.resolution + 7) / 8;
+                int scaledHeight = (dofParameters.viewportSize.y / (int)dofParameters.resolution + 7) / 8;
+
+                cmd.DispatchCompute(cs, kernel, scaledWidth, scaledHeight, dofParameters.camera.viewCount);
+            }
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCombine)))
+            {
+                cs = dofParameters.pbDoFCombineCS;
+                kernel = dofParameters.pbDoFCombineKernel;
+                float sampleCount = Mathf.Max(dofParameters.nearSampleCount, dofParameters.farSampleCount);
+                float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
+
+                float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputNearTexture, scaledDof);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileList, minMaxCoCPing, 0);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+
                 cmd.DispatchCompute(cs, kernel, (dofParameters.viewportSize.x + 7) / 8, (dofParameters.viewportSize.y + 7) / 8, dofParameters.camera.viewCount);
             }
         }
@@ -2847,6 +2896,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool postDoFTAAEnabled = false;
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
             bool taaEnabled = m_AntialiasingFS && hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
+            bool isOrtho = hdCamera.camera.orthographic;
 
             // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
             bool isDoFPathTraced = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
@@ -2856,7 +2906,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Depth of Field is done right after TAA as it's easier to just re-project the CoC
             // map rather than having to deal with all the implications of doing it before TAA
-            if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS && !isDoFPathTraced)
+            if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS && !isDoFPathTraced && !isOrtho)
             {
                 // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
                 // Note: for Rendergraph the m_IsDoFHisotoryValid perhaps should be moved to the "pass data" struct
@@ -3012,19 +3062,26 @@ namespace UnityEngine.Rendering.HighDefinition
                             debugCocTextureScales = hdCamera.postProcessRTScalesHistory;
                         }
 
+                        passData.pongFarRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, IsDynamicResUpscaleTargetEnabled(), true)
+                        { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "Scaled DoF" });
+
                         passData.pingFarRGB = builder.CreateTransientTexture(GetPostprocessOutputHandle(renderGraph, "DoF Source Pyramid", GetPostprocessTextureFormat(), true));
 
-                        float scaleFactor = 1.0f / passData.parameters.minMaxCoCTileSize;
-                        passData.pingNearRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scaleFactor, IsDynamicResUpscaleTargetEnabled(), true)
+                        // The size of the tile texture should be rounded-up, so we use a custom scale operator
+                        // We cannot use the tile size in the scale call callback (to avoid gc alloc), so for now we use an assert
+                        Assert.IsTrue(passData.parameters.minMaxCoCTileSize == 8);
+                        ScaleFunc scaler = delegate (Vector2Int size) { return new Vector2Int((size.x + 7) / 8, (size.y + 7) / 8); };
+
+                        passData.pingNearRGB = builder.CreateTransientTexture(new TextureDesc(scaler, IsDynamicResUpscaleTargetEnabled(), true)
                         { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
 
-                        passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scaleFactor, IsDynamicResUpscaleTargetEnabled(), true)
+                        passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(scaler, IsDynamicResUpscaleTargetEnabled(), true)
                         { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
 
                         builder.SetRenderFunc(
                             (DepthofFieldData data, RenderGraphContext ctx) =>
                             {
-                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.taaEnabled, data.depthMinMaxAvgMSAA);
+                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.pongFarRGB, data.taaEnabled, data.depthMinMaxAvgMSAA);
                             });
 
                         source = passData.destination;
@@ -3061,20 +3118,90 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public LensFlareParameters parameters;
             public TextureHandle source;
+            public TextureHandle depthBuffer;
+            public TextureHandle occlusion;
             public HDCamera hdCamera;
             public Vector2Int viewport;
+            public bool taaEnabled;
         }
 
-        TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        void LensFlareComputeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, bool taaEnabled)
         {
             if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
             {
+                RTHandle occH = LensFlareCommonSRP.occlusionRT;
+                TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
+
+                using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare Compute Occlusion", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareComputeOcclusionDataDriven)))
+                {
+                    passData.source = builder.WriteTexture(occlusionHandle);
+                    passData.parameters = PrepareLensFlareParameters(hdCamera);
+                    passData.viewport = new Vector2Int(LensFlareCommonSRP.maxLensFlareWithOcclusion, LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample);
+                    passData.hdCamera = hdCamera;
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                    passData.taaEnabled = taaEnabled;
+
+                    builder.SetRenderFunc(
+                        (LensFlareData data, RenderGraphContext ctx) =>
+                        {
+                            float width = (float)data.viewport.x;
+                            float height = (float)data.viewport.y;
+
+                            LensFlareCommonSRP.ComputeOcclusion(
+                                data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera,
+                                width, height,
+                                data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit, ShaderConfig.s_CameraRelativeRendering != 0,
+                                data.hdCamera.mainViewConstants.worldSpaceCameraPos,
+                                data.hdCamera.mainViewConstants.viewProjMatrix,
+                                ctx.cmd, data.taaEnabled,
+                                HDShaderIDs._FlareOcclusionTex, HDShaderIDs._FlareOcclusionIndex, HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
+                                HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4);
+                        });
+                }
+            }
+        }
+
+        void LensFlareMergeOcclusionDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, bool taaEnabled)
+        {
+            if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
+            {
+                TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
+
+                using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare Merge Occlusion", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareMergeOcclusionDataDriven)))
+                {
+                    passData.source = builder.WriteTexture(occlusionHandle);
+                    passData.hdCamera = hdCamera;
+                    passData.parameters = PrepareLensFlareParameters(hdCamera);
+                    passData.viewport = new Vector2Int(LensFlareCommonSRP.maxLensFlareWithOcclusion, 1);
+
+                    builder.SetRenderFunc(
+                        (LensFlareData data, RenderGraphContext ctx) =>
+                        {
+                            ctx.cmd.SetComputeTextureParam(data.parameters.lensFlareMergeOcclusion, data.parameters.mergeOcclusionKernel, HDShaderIDs._LensFlareOcclusion, LensFlareCommonSRP.occlusionRT);
+                            ctx.cmd.DispatchCompute(data.parameters.lensFlareMergeOcclusion, data.parameters.mergeOcclusionKernel,
+                                HDUtils.DivRoundUp(LensFlareCommonSRP.maxLensFlareWithOcclusion, 8),
+                                HDUtils.DivRoundUp(LensFlareCommonSRP.maxLensFlareWithOcclusionTemporalSample, 8),
+                                data.hdCamera.viewCount);
+                        });
+                }
+            }
+        }
+
+        TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle depthBuffer, TextureHandle sunOcclusionTexture)
+        {
+            if (m_LensFlareDataDataDrivenFS && !LensFlareCommonSRP.Instance.IsEmpty())
+            {
+                TextureHandle occlusionHandle = renderGraph.ImportTexture(LensFlareCommonSRP.occlusionRT);
+
                 using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareDataDriven)))
                 {
                     passData.source = builder.WriteTexture(source);
                     passData.parameters = PrepareLensFlareParameters(hdCamera);
                     passData.viewport = postProcessViewportSize;
                     passData.hdCamera = hdCamera;
+                    passData.depthBuffer = depthBuffer;
+                    passData.occlusion = builder.ReadTexture(occlusionHandle);
+
                     TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Lens Flare Destination");
 
                     builder.SetRenderFunc(
@@ -3083,17 +3210,19 @@ namespace UnityEngine.Rendering.HighDefinition
                             float width = (float)data.viewport.x;
                             float height = (float)data.viewport.y;
 
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
+
                             LensFlareCommonSRP.DoLensFlareDataDrivenCommon(
                                 data.parameters.lensFlareShader, data.parameters.lensFlares, data.hdCamera.camera, width, height,
                                 data.parameters.usePanini, data.parameters.paniniDistance, data.parameters.paniniCropToFit,
                                 ShaderConfig.s_CameraRelativeRendering != 0,
-                                //data.hdCamera.mainViewConstants.nonJitteredViewProjMatrix,
+                                data.hdCamera.mainViewConstants.worldSpaceCameraPos,
                                 data.hdCamera.mainViewConstants.viewProjMatrix,
                                 ctx.cmd, data.source,
                                 // If you pass directly 'GetLensFlareLightAttenuation' that create alloc apparently to cast to System.Func
                                 // And here the lambda setup like that seem to not alloc anything.
                                 (a, b, c) => { return GetLensFlareLightAttenuation(a, b, c); },
-                                HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
+                                HDShaderIDs._FlareOcclusionTex, HDShaderIDs._FlareOcclusionIndex, HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
                                 HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4,
                                 data.parameters.skipCopy);
                         });
@@ -3108,6 +3237,8 @@ namespace UnityEngine.Rendering.HighDefinition
         struct LensFlareParameters
         {
             public Material lensFlareShader;
+            public ComputeShader lensFlareMergeOcclusion;
+            public int mergeOcclusionKernel;
             public LensFlareCommonSRP lensFlares;
             public float paniniDistance;
             public float paniniCropToFit;
@@ -3121,6 +3252,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.lensFlares = LensFlareCommonSRP.Instance;
             parameters.lensFlareShader = m_LensFlareDataDrivenShader;
+            parameters.lensFlareMergeOcclusion = m_LensFlareMergeOcclusionDataDrivenCS;
+            parameters.mergeOcclusionKernel = m_LensFlareMergeOcclusionDataDrivenCS.FindKernel("MainCS");
             parameters.skipCopy = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.LensFlareDataDriven;
 
             PaniniProjection panini = camera.volumeStack.GetComponent<PaniniProjection>();
@@ -3986,7 +4119,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Returns color balance coefficients in the LMS space
-        public static Vector3 GetColorBalanceCoeffs(float temperature, float tint)
+        static Vector3 GetColorBalanceCoeffs(float temperature, float tint)
         {
             // Range ~[-1.5;1.5] works best
             float t1 = temperature / 65f;
@@ -4596,6 +4729,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     source = passData.destination;
                 }
+
+                SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
             }
             return source;
         }
@@ -4733,6 +4868,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     source = passData.destination;
                 }
+
+                SetCurrentResolutionGroup(renderGraph, hdCamera, ResolutionGroup.AfterDynamicResUpscale);
             }
             return source;
         }
@@ -4761,8 +4898,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public float filmGrainIntensity;
             public float filmGrainResponse;
 
-            public Vector2Int viewportSize;
-
             public bool ditheringEnabled;
 
             public TextureHandle source;
@@ -4788,7 +4923,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.dynamicResIsOn = hdCamera.canDoDynamicResolution && hdCamera.DynResRequest.enabled;
                 passData.dynamicResFilter = hdCamera.DynResRequest.filter;
                 passData.useFXAA = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.FastApproximateAntialiasing && !passData.dynamicResIsOn && m_AntialiasingFS;
-                passData.viewportSize = postProcessViewportSize;
 
                 // Film Grain
                 passData.filmGrainEnabled = m_FilmGrain.IsActive() && m_FilmGrainFS;
@@ -4859,8 +4993,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     finalPassMaterial.SetTexture(HDShaderIDs._GrainTexture, data.filmGrainTexture);
                                     finalPassMaterial.SetVector(HDShaderIDs._GrainParams, new Vector2(data.filmGrainIntensity * 4f, data.filmGrainResponse));
 
-                                    float uvScaleX = (float)data.viewportSize.x / (float)data.filmGrainTexture.width;
-                                    float uvScaleY = (float)data.viewportSize.y / (float)data.filmGrainTexture.height;
+                                    float uvScaleX = data.hdCamera.finalViewport.width / (float)data.filmGrainTexture.width;
+                                    float uvScaleY = data.hdCamera.finalViewport.height / (float)data.filmGrainTexture.height;
                                     float scaledOffsetX = offsetX * uvScaleX;
                                     float scaledOffsetY = offsetY * uvScaleY;
 
@@ -4881,7 +5015,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 finalPassMaterial.EnableKeyword("DITHER");
                                 finalPassMaterial.SetTexture(HDShaderIDs._BlueNoiseTexture, blueNoiseTexture);
                                 finalPassMaterial.SetVector(HDShaderIDs._DitherParams,
-                                    new Vector3((float)data.viewportSize.x / blueNoiseTexture.width, (float)data.viewportSize.y / blueNoiseTexture.height, textureId));
+                                    new Vector3(data.hdCamera.finalViewport.width / blueNoiseTexture.width, data.hdCamera.finalViewport.height / blueNoiseTexture.height, textureId));
                             }
                         }
 

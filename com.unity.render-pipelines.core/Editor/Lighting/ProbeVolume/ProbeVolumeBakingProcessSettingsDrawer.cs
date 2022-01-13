@@ -8,9 +8,9 @@ namespace UnityEngine.Experimental.Rendering
     {
         static class Styles
         {
-            public static readonly GUIContent enableDilation = new GUIContent("Enable Dilation", "Whether to enable dilation after the baking.");
+            public static readonly GUIContent enableDilation = new GUIContent("Enable Dilation", "Whether to enable dilation after the baking. Dilation will dilate valid probes data into invalid probes.");
             public static readonly GUIContent dilationDistance = new GUIContent("Dilation Distance", "The distance used to pick neighbouring probes to dilate into the invalid probe.");
-            public static readonly GUIContent dilationValidityDistance = new GUIContent("Dilation Validity Threshold", "The validity threshold used to identify invalid probes.");
+            public static readonly GUIContent dilationValidity = new GUIContent("Dilation Validity Threshold", "The validity threshold used to identify invalid probes.");
             public static readonly GUIContent dilationIterationCount = new GUIContent("Dilation Iteration Count", "The number of times the dilation process takes place.");
             public static readonly GUIContent dilationSquaredDistanceWeighting = new GUIContent("Squared Distance Weighting", "Whether to weight neighbouring probe contribution using squared distance rather than linear distance.");
             public static readonly GUIContent useVirtualOffset = EditorGUIUtility.TrTextContent("Use Virtual Offset", "Push invalid probes out of geometry. Please note, this feature is currently a proof of concept, it is fairly slow and not optimal in quality.");
@@ -57,8 +57,8 @@ namespace UnityEngine.Experimental.Rendering
             enableDilation.boolValue = EditorGUILayout.Toggle(Styles.enableDilation, enableDilation.boolValue);
             EditorGUI.BeginDisabledGroup(!enableDilation.boolValue);
             maxDilationSampleDistance.floatValue = Mathf.Max(EditorGUILayout.FloatField(Styles.dilationDistance, maxDilationSampleDistance.floatValue), 0);
-            dilationValidityThresholdInverted = EditorGUILayout.Slider(Styles.dilationValidityDistance, dilationValidityThresholdInverted, 0f, 1f);
-            dilationValidityThreshold.floatValue = 1f - dilationValidityThresholdInverted;
+            dilationValidityThresholdInverted = EditorGUILayout.Slider(Styles.dilationValidity, dilationValidityThresholdInverted, 0f, 0.95f);
+            dilationValidityThreshold.floatValue = Mathf.Max(0.05f, 1.0f - dilationValidityThresholdInverted);
             dilationIterations.intValue = EditorGUILayout.IntSlider(Styles.dilationIterationCount, dilationIterations.intValue, 1, 5);
             dilationInvSquaredWeight.boolValue = EditorGUILayout.Toggle(Styles.dilationSquaredDistanceWeighting, dilationInvSquaredWeight.boolValue);
             EditorGUI.indentLevel--;

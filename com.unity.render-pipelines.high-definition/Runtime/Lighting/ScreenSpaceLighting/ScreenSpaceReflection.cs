@@ -55,6 +55,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Enable Screen Space Reflections.")]
         public BoolParameter enabled = new BoolParameter(true);
 
+        /// <summary>Enable Transparent Screen Space Reflections.</summary>
+        [Tooltip("Enable Transparent Screen Space Reflections.")]
+        public BoolParameter enabledTransparent = new BoolParameter(true);
+
         /// <summary>
         /// </summary>
         [Tooltip("Controls the casting technique used to evaluate the effect.")]

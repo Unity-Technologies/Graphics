@@ -198,6 +198,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
+        [SerializeField] bool m_ConservativeEnclosingSphere = false;
+        [SerializeField] int m_NumIterationsEnclosingSphere = 64;
 
         // Light Cookie Settings
         [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
@@ -259,6 +261,9 @@ namespace UnityEngine.Rendering.Universal
 
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
+
+            // Only enable for new URP assets by default
+            instance.m_ConservativeEnclosingSphere = true;
 
             return instance;
         }
@@ -911,6 +916,25 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UseAdaptivePerformance; }
             set { m_UseAdaptivePerformance = value; }
+        }
+
+        /// <summary>
+        /// Set to true to enable a conservative method for calculating the size and position of the minimal enclosing sphere around the frustum cascade corner points for shadow culling.
+        /// </summary>
+        public bool conservativeEnclosingSphere
+        {
+            get { return m_ConservativeEnclosingSphere; }
+            set { m_ConservativeEnclosingSphere = value; }
+        }
+
+        /// <summary>
+        /// Set the number of iterations to reduce the cascade culling enlcosing sphere to be closer to the absolute minimun enclosing sphere, but will also require more CPU computation for increasing values.
+        /// This parameter is used only when conservativeEnclosingSphere is set to true. Default value is 64.
+        /// </summary>
+        public int numIterationsEnclosingSphere
+        {
+            get { return m_NumIterationsEnclosingSphere; }
+            set { m_NumIterationsEnclosingSphere = value; }
         }
 
         public override Material defaultMaterial

@@ -105,8 +105,9 @@ void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, f
 
     aoFactor.indirectSpecularOcclusion = GTAOMultiBounce(min(specularOcclusionFromData, indirectSpecularOcclusion), fresnel0);
     aoFactor.indirectAmbientOcclusion = GTAOMultiBounce(min(ambientOcclusionFromData, indirectAmbientOcclusion), diffuseColor);
-    aoFactor.directSpecularOcclusion = GTAOMultiBounce(directSpecularOcclusion, fresnel0);
-    aoFactor.directAmbientOcclusion = GTAOMultiBounce(directAmbientOcclusion, diffuseColor);
+    // Note: when affecting direct lighting we don't used the fake bounce.
+    aoFactor.directSpecularOcclusion = directSpecularOcclusion.xxx;
+    aoFactor.directAmbientOcclusion = directAmbientOcclusion.xxx;
 }
 
 void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinData builtinData, inout AggregateLighting lighting)

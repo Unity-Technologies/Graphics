@@ -89,8 +89,8 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField, Tooltip("When enabled, transparent particles fade out when near the surface of objects writing into the depth buffer (e.g. when intersecting with solid objects in the level).")]
         protected bool useSoftParticle = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, Header("Rendering Options"), Tooltip("")]
-        protected int sortPriority = 0;
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), FormerlySerializedAs("sortPriority"), SerializeField, Header("Rendering Options"), Tooltip("")]
+        protected int vfxSystemSortPriority = 0;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies whether to use GPU sorting for transparent particles.")]
         protected SortMode sort = SortMode.Auto;
@@ -148,17 +148,17 @@ namespace UnityEditor.VFX
             }
         }
 
-        int IVFXSubRenderer.sortPriority
+        int IVFXSubRenderer.vfxSystemSortPriority
         {
             get
             {
-                return sortPriority;
+                return vfxSystemSortPriority;
             }
             set
             {
-                if (sortPriority != value)
+                if (vfxSystemSortPriority != value)
                 {
-                    sortPriority = value;
+                    vfxSystemSortPriority = value;
                     Invalidate(InvalidationCause.kSettingChanged);
                 }
             }
@@ -573,7 +573,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                yield return new VFXMapping("sortPriority", sortPriority);
+                yield return new VFXMapping("sortPriority", vfxSystemSortPriority);
                 if (HasIndirectDraw())
                 {
                     yield return new VFXMapping("indirectDraw", 1);

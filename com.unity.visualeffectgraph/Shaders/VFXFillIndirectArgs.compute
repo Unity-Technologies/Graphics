@@ -1,5 +1,7 @@
 #pragma kernel CSVFXIndirectArgs
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl
+
 #include "HLSLSupport.cginc"
 
 CBUFFER_START(Uniform)

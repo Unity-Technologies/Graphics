@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class DocumentationInfo
     {
-        const string fallbackVersion = "12.0";
+        const string fallbackVersion = "12.1";
         const string url = "https://docs.unity3d.com/Packages/{0}@{1}/manual/{2}.html";
 
         /// <summary>

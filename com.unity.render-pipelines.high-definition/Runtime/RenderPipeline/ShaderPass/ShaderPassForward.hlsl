@@ -75,32 +75,35 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #endif
 
 #ifdef UNITY_VIRTUAL_TEXTURING
-#define VT_BUFFER_TARGET SV_Target1
-#define EXTRA_BUFFER_TARGET SV_Target2
+    #ifdef OUTPUT_SPLIT_LIGHTING
+    #define DIFFUSE_LIGHTING_TARGET SV_Target2
+    #define SSS_BUFFER_TARGET SV_Target3
+    #elif defined(_WRITE_TRANSPARENT_MOTION_VECTOR)
+    #define MOTION_VECTOR_TARGET SV_Target2
+    #endif
 #else
-#define EXTRA_BUFFER_TARGET SV_Target1
+    #ifdef OUTPUT_SPLIT_LIGHTING
+    #define DIFFUSE_LIGHTING_TARGET SV_Target1
+    #define SSS_BUFFER_TARGET SV_Target2
+    #elif defined(_WRITE_TRANSPARENT_MOTION_VECTOR)
+    #define MOTION_VECTOR_TARGET SV_Target1
+    #endif
 #endif
 
-void Frag(PackedVaryingsToPS packedInput,
-        #ifdef OUTPUT_SPLIT_LIGHTING
-            out float4 outColor : SV_Target0,  // outSpecularLighting
-            #ifdef UNITY_VIRTUAL_TEXTURING
-                out float4 outVTFeedback : VT_BUFFER_TARGET,
-            #endif
-            out float4 outDiffuseLighting : EXTRA_BUFFER_TARGET,
-            OUTPUT_SSSBUFFER(outSSSBuffer)
-        #else
-            out float4 outColor : SV_Target0
-            #ifdef UNITY_VIRTUAL_TEXTURING
-                ,out float4 outVTFeedback : VT_BUFFER_TARGET
-            #endif
-        #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
-          , out float4 outMotionVec : EXTRA_BUFFER_TARGET
-        #endif // _WRITE_TRANSPARENT_MOTION_VECTOR
-        #endif // OUTPUT_SPLIT_LIGHTING
-        #ifdef _DEPTHOFFSET_ON
-            , out float outputDepth : DEPTH_OFFSET_SEMANTIC
-        #endif
+void Frag(PackedVaryingsToPS packedInput
+    , out float4 outColor : SV_Target0  // outSpecularLighting when outputting split lighting
+    #ifdef UNITY_VIRTUAL_TEXTURING
+        , out float4 outVTFeedback : SV_Target1
+    #endif
+    #ifdef OUTPUT_SPLIT_LIGHTING
+        , out float4 outDiffuseLighting : DIFFUSE_LIGHTING_TARGET
+        , OUTPUT_SSSBUFFER(outSSSBuffer) : SSS_BUFFER_TARGET
+    #elif defined(_WRITE_TRANSPARENT_MOTION_VECTOR)
+          , out float4 outMotionVec : MOTION_VECTOR_TARGET
+    #endif
+    #ifdef _DEPTHOFFSET_ON
+        , out float outputDepth : DEPTH_OFFSET_SEMANTIC
+    #endif
 )
 {
 #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
