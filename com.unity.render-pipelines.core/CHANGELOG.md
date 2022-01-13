@@ -6,8 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.1.5] - 2021-12-17
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed the issue with the special Turkish i, when looking for the m_IsGlobal property in VolumeEditor. (case 1276892)
+- Fixed IES profile importer handling of overflow (outside 0-1 range) of attenutation splines values.
 
 ## [13.1.4] - 2021-12-04
 
