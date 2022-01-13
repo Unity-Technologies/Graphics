@@ -27,7 +27,7 @@ RWTexture2DArray<float2> _H0BufferRW;
 void InitializePhillipsSpectrum(uint3 currentThread : SV_DispatchThreadID)
 {
     // We need 4 random numbers
-    float4 rn = GenerateRandomNumbers(currentThread);
+    float4 rn = GenerateRandomNumbers(int3(currentThread.xy + _WaterSampleOffset, currentThread.z));
 
     // First part of the phillips spectrum term
     float2 E = ONE_OVER_SQRT2 * float2(GaussianDis(rn.x, rn.y), GaussianDis(rn.z, rn.w));

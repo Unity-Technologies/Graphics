@@ -269,6 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._FoamJacobianLambda = new Vector4(cb._BandPatchSize.x, cb._BandPatchSize.y, cb._BandPatchSize.z, cb._BandPatchSize.w);
 
             cb._CausticsRegionSize = cb._BandPatchSize[currentWater.causticsBand];
+            cb._WaterSampleOffset = EvaluateWaterNoiseSampleOffset(m_WaterBandResolution);
         }
 
         void UpdateWaterSurface(CommandBuffer cmd, WaterSurface currentWater, int surfaceIndex)

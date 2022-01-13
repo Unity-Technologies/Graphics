@@ -41,6 +41,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 break;
             }
         }
+
+        static internal int EvaluateWaterNoiseSampleOffset(WaterSimulationResolution resolution)
+        {
+            switch (resolution)
+            {
+                case WaterSimulationResolution.Ultra512:
+                    return 0;
+                case WaterSimulationResolution.High256:
+                    return 128;
+                case WaterSimulationResolution.Medium128:
+                    return 192;
+                case WaterSimulationResolution.Low64:
+                    return 224;
+                default:
+                    return 0;
+            }
+        }
+
         static internal void BuildGridMesh(ref Mesh mesh)
         {
             mesh = new Mesh();

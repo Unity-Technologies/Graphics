@@ -56,6 +56,9 @@ CBUFFER_START(ShaderVariablesWater)
     float _HeightBasedScattering;
     float _WindSpeedMultiplier;
     float4 _FoamJacobianLambda;
+    float2 _PaddinwW0;
+    int _PaddinwW1;
+    int _WaterSampleOffset;
 CBUFFER_END
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesWaterRendering

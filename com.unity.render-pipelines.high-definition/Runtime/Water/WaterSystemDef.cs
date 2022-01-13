@@ -96,6 +96,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _WindSpeedMultiplier;
 
         public Vector4 _FoamJacobianLambda;
+
+        public Vector2 _PaddinwW0;
+        public int _PaddinwW1;
+        public int _WaterSampleOffset;
     }
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
