@@ -313,24 +313,52 @@ namespace UnityEngine.Rendering.Universal
         private bool IsAutomaticDBuffer()
         {
 #if UNITY_EDITOR
-            var selectedBuildTargetGroup = UnityEditor.EditorUserBuildSettings.selectedBuildTargetGroup;
-            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.Standalone)
-                return true;
-            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.GameCoreXboxOne)
-                return true;
-            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.GameCoreXboxSeries)
-                return true;
-            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.PS4)
-                return true;
-            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.PS5)
-                return true;
-            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.WSA)
-                return true;
-            if (selectedBuildTargetGroup == UnityEditor.BuildTargetGroup.Switch)
-                return true;
-            return false;
+            switch (UnityEditor.EditorUserBuildSettings.selectedBuildTargetGroup)
+            {
+                // Standalone
+                case UnityEditor.BuildTargetGroup.Standalone:
+                    return true;
+
+                // WSA
+                case UnityEditor.BuildTargetGroup.WSA:
+                    return true;
+
+                // Console
+                case UnityEditor.BuildTargetGroup.GameCoreXboxOne:
+                case UnityEditor.BuildTargetGroup.GameCoreXboxSeries:
+                case UnityEditor.BuildTargetGroup.PS4:
+                case UnityEditor.BuildTargetGroup.PS5:
+                case UnityEditor.BuildTargetGroup.Switch:
+                    return true;
+
+                default:
+                    return false;
+            }
 #else
-            return SystemInfo.deviceType == DeviceType.Desktop || SystemInfo.deviceType == DeviceType.Console;
+            switch (Application.platform)
+            {
+                // Standalone
+                case RuntimePlatform.WindowsPlayer:
+                case RuntimePlatform.OSXPlayer:
+                case RuntimePlatform.LinuxPlayer:
+                    return true;
+
+                // WSA
+                case RuntimePlatform.WSAPlayerX64:
+                case RuntimePlatform.WSAPlayerX86:
+                    return true;
+
+                // Console
+                case RuntimePlatform.GameCoreXboxOne:
+                case RuntimePlatform.GameCoreXboxSeries:
+                case RuntimePlatform.PS4:
+                case RuntimePlatform.PS5:
+                case RuntimePlatform.Switch:
+                    return true;
+
+                default:
+                    return false;
+            }
 #endif
         }
 
