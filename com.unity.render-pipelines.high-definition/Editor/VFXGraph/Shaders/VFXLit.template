@@ -7,9 +7,9 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData,
 {
     #if HDRP_MATERIAL_TYPE_TRANSLUCENT
 	    ${VFXLoadParameter:{diffusionProfileHash}} // Loads diffusion profile
-	    #else
+	#else
 	    const uint diffusionProfileHash = 0;
-	    #endif
+	#endif
 	    float alpha;
 	    surfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfileHash,alpha);
 	    bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS.xy, surfaceData);
@@ -18,7 +18,6 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData,
 #else
         preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posInput.positionWS),posInput,bsdfData);
 #endif
-
 	    preLightData.diffuseFGD = 1.0f;
         //TODO: investigate why this is needed
         preLightData.coatPartLambdaV = 0;
