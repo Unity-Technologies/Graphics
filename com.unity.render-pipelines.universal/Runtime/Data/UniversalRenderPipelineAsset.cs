@@ -80,15 +80,6 @@ namespace UnityEngine.Rendering.Universal
         PerPixel = 1,
     }
 
-    public enum ShaderVariantLogLevel
-    {
-        Disabled,
-        [InspectorName("Only URP Shaders")]
-        OnlyUniversalRPShaders,
-        [InspectorName("All Shaders")]
-        AllShaders
-    }
-
     [Obsolete("PipelineDebugLevel is unused and has no effect.", false)]
     public enum PipelineDebugLevel
     {
@@ -137,6 +128,19 @@ namespace UnityEngine.Rendering.Universal
         UsePipelineSettings = 2,
     }
 
+    /// <summary>
+    /// Defines the upscaling filter selected by the user the universal render pipeline asset.
+    /// </summary>
+    public enum UpscalingFilterSelection
+    {
+        [InspectorName("Automatic")]
+        Auto,
+        [InspectorName("Bilinear")]
+        Linear,
+        [InspectorName("Nearest-Neighbor")]
+        Point
+    }
+
     [ExcludeFromPreset]
     [URPHelpURL("universalrp-asset")]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
@@ -145,8 +149,8 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 9;
-        [SerializeField] int k_AssetPreviousVersion = 9;
+        [SerializeField] int k_AssetVersion = 10;
+        [SerializeField] int k_AssetPreviousVersion = 10;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
@@ -167,6 +171,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsHDR = true;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
+        [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
         // TODO: Shader Quality Tiers
 
         // Main directional light Settings
@@ -228,7 +233,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_MaxPixelLights = 0;
         [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._256;
 
-        [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
         [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
 
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
@@ -673,6 +677,17 @@ namespace UnityEngine.Rendering.Universal
             set { m_RenderScale = ValidateRenderScale(value); }
         }
 
+        /// <summary>
+        /// Returns the upscaling filter desired by the user
+        /// Note: Filter selections differ from actual filters in that they may include "meta-filters" such as
+        ///       "Automatic" which resolve to an actual filter at a later time.
+        /// </summary>
+        public UpscalingFilterSelection upscalingFilter
+        {
+            get { return m_UpscalingFilter; }
+            set { m_UpscalingFilter = value; }
+        }
+
         public LightRenderingMode mainLightRenderingMode
         {
             get { return m_MainLightRenderingMode; }
@@ -876,12 +891,6 @@ namespace UnityEngine.Rendering.Universal
         public bool supportsLightLayers
         {
             get { return m_SupportsLightLayers; }
-        }
-
-        public ShaderVariantLogLevel shaderVariantLogLevel
-        {
-            get { return m_ShaderVariantLogLevel; }
-            set { m_ShaderVariantLogLevel = value; }
         }
 
         /// <summary>
@@ -1175,6 +1184,12 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetVersion = 9;
             }
 
+            if (k_AssetVersion < 10)
+            {
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 10;
+            }
+
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
@@ -1211,6 +1226,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 // The added feature was reverted, we keep this version to avoid breakage in case somebody already has version 7
                 asset.k_AssetPreviousVersion = 9;
+            }
+
+            if (asset.k_AssetPreviousVersion < 10)
+            {
+                UniversalRenderPipelineGlobalSettings.Ensure().shaderVariantLogLevel = (Rendering.ShaderVariantLogLevel) asset.m_ShaderVariantLogLevel;
+                asset.k_AssetPreviousVersion = 10;
             }
 
             EditorUtility.SetDirty(asset);

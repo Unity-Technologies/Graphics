@@ -64,11 +64,14 @@ namespace UnityEngine.Experimental.Rendering
             EditorGUI.indentLevel--;
             EditorGUI.EndDisabledGroup();
 
-            // if (GUILayout.Button(EditorGUIUtility.TrTextContent("Refresh dilation"), EditorStyles.miniButton))
-            // {
-            //     ProbeGIBaking.RevertDilation();
-            //     ProbeGIBaking.PerformDilation();
-            // }
+            if (Unsupported.IsDeveloperMode())
+            {
+                if (GUILayout.Button(EditorGUIUtility.TrTextContent("Refresh dilation"), EditorStyles.miniButton))
+                {
+                    ProbeGIBaking.RevertDilation();
+                    ProbeGIBaking.PerformDilation();
+                }
+            }
         }
 
         void DrawVirtualOffsetSettings(SerializedProperty virtualOffsetSettings)
