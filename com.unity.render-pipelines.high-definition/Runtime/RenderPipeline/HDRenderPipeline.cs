@@ -446,13 +446,16 @@ namespace UnityEngine.Rendering.HighDefinition
             if (IsAPVEnabled())
             {
                 var pvr = ProbeReferenceVolume.instance;
-                ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters()
+                ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
                     probeDebugMesh = defaultResources.assets.probeDebugSphere,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
+                    offsetDebugMesh = defaultResources.assets.pyramidMesh,
+                    offsetDebugShader = defaultResources.shaders.probeVolumeOffsetDebugShader,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
+                    supportsRuntimeDebug = Application.isEditor || m_GlobalSettings.supportRuntimeDebugDisplay,
                     supportStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeStreaming
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
@@ -2668,7 +2671,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static bool NeedMotionVectorForTransparent(FrameSettings frameSettings)
         {
-            return frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
+            return frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector);
         }
 
         /// <summary>
