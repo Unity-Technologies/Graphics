@@ -70,7 +70,6 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _CLUSTERED_RENDERING
-            #pragma multi_compile _ _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_LOW  // Implicit _ or None == SHADER_QUALITY_HIGH
 
             // -------------------------------------
             // Unity defined keywords
@@ -115,7 +114,6 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             #pragma multi_compile_fragment _ _SHADOWS_SOFT_HIGH _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_LOW _SHADOWS_SOFT_LOWEST
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile_fragment _ _LIGHT_LAYERS
-            #pragma multi_compile _ _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_LOW  // Implicit _ or None == SHADER_QUALITY_HIGH
 
             // -------------------------------------
             // Unity defined keywords

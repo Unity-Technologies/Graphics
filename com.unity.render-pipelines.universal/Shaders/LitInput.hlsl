@@ -114,7 +114,6 @@ half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
 half SampleOcclusion(float2 uv)
 {
     #ifdef _OCCLUSIONMAP
-        // TODO: LOW === defined(SHADER_API_GLES)
         #if SHADER_QUALITY_LOW
             return SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
         #else

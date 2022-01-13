@@ -18,11 +18,10 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 
-// SHADER_QUALITY is a keyword set. Defined in shader that have quality options.
-// Default Empty/None is HIGH, define SHADER_QUALITY_HIGH here for consistency.
-// SRP doesn't use Graphics Settings Quality Tiers.
-#if !(_SHADER_QUALITY_LOW || _SHADER_QUALITY_MEDIUM)
-    #define _SHADER_QUALITY_HIGH 1
+// Opt-in lower shader quality.
+//#define _SHADER_QUALITY_LOW 1
+#ifndef _SHADER_QUALITY_LOW
+#define _SHADER_QUALITY_HIGH 1
 #endif
 
 // Backwards compatibility. _SHADOWS_SOFT is deprecated.
