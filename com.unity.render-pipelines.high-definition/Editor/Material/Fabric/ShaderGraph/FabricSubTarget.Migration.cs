@@ -41,7 +41,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             builtinData.transparencyFog = fabricMasterNode.m_TransparencyFog;
             builtinData.addPrecomputedVelocity = fabricMasterNode.m_AddPrecomputedVelocity;
             builtinData.depthOffset = fabricMasterNode.m_depthOffset;
-            builtinData.alphaToMask = fabricMasterNode.m_AlphaToMask;
 
             lightingData.blendPreserveSpecular = fabricMasterNode.m_BlendPreserveSpecular;
             lightingData.receiveDecals = fabricMasterNode.m_ReceiveDecals;
