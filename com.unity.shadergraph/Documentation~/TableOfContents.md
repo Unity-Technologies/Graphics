@@ -116,6 +116,7 @@
         * PBR
             * [Dielectric Specular](Dielectric-Specular-Node)
             * [Metal Reflectance](Metal-Reflectance-Node)
+            * [Fresnel Equation](Fresnel-Equation-Node)
         * Scene
             * [Camera](Camera-Node)
             * [Eye Index](Eye-Index-Node)
@@ -123,6 +124,7 @@
             * [Object](Object-Node)
             * [Scene Color](Scene-Color-Node)
             * [Scene Depth](Scene-Depth-Node)
+            * [Scene Depth Difference](Scene-Depth-Difference-Node)
             * [Screen](Screen-Node)
         * Texture
             * [Calculate Level Of Detail Texture 2D Node](Calculate-Level-Of-Detail-Texture-2D-Node)
@@ -209,6 +211,7 @@
             * [Fresnel Effect](Fresnel-Effect-Node)
             * [Projection](Projection-Node)
             * [Reflection](Reflection-Node)
+            * [Refract](Refract-Node)
             * [Rejection](Rejection-Node)
             * [Rotate About Axis](Rotate-About-Axis-Node)
             * [Sphere Mask](Sphere-Mask-Node)
