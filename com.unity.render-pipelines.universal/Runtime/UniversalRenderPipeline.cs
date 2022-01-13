@@ -706,7 +706,7 @@ namespace UnityEngine.Rendering.Universal
             if (!cameraData.postProcessEnabled)
                 return false;
 
-            if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+            if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && cameraData.renderType == CameraRenderType.Base)
                 return true;
 
             var stack = VolumeManager.instance.stack;
@@ -935,7 +935,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             cameraData.requiresDepthTexture |= isSceneViewCamera;
-            cameraData.postProcessingRequiresDepthTexture |= CheckPostProcessForDepth(cameraData);
+            cameraData.postProcessingRequiresDepthTexture = CheckPostProcessForDepth(cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
 
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
