@@ -96,7 +96,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue of index for APV running out space way before it should.
 - Fixed issue during reloading scenes in a set when one of the scenes has been renamed.
 - Fixed Local Volumetric Fog tooltips.
-
+- Fixed issue with automatic RendererList culling option getting ignored (case 1388854).
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
