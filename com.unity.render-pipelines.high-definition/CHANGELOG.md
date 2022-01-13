@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a callback to override the View matrix of Spot Lights.
 - Added Expose SSR parameters to control speed rejection from Motion Vector including computing Motion Vector in World Space.
 - Added a Layer Mask in the Probe Volume Settings window to filter which renderers to consider when placing the probes.
+- Adding Refract Node, Fresnel Equation Node and Scene-Difference-Node (https://jira.unity3d.com/browse/HDRP-1599)
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
@@ -90,6 +91,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with typed loads on RGBA16F in Volumetric Lighting Filtering.
 - Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
 - Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
+- Fixed NeedMotionVectorForTransparent checking the wrong flag.
+- Fixed debug probe visualization affecting screen space effects.
+- Fixed issue of index for APV running out space way before it should.
+- Fixed issue during reloading scenes in a set when one of the scenes has been renamed.
+- Fixed Local Volumetric Fog tooltips.
+
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
