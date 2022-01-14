@@ -179,6 +179,9 @@ namespace UnityEngine.Experimental.Rendering
                 sceneBakingSettings.Add(settingsItem.sceneGUID, settingsItem.settings);
             }
 
+            if (string.IsNullOrEmpty(m_BakingState))
+                m_BakingState = ProbeReferenceVolume.defaultBakingState;
+
             foreach (var set in serializedBakingSets)
                 bakingSets.Add(set);
         }

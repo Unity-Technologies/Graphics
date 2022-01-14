@@ -728,14 +728,14 @@ namespace UnityEngine.Experimental.Rendering
 
 #if UNITY_EDITOR
             if (sceneData != null)
-            {
                 UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneData.OnSceneSaved;
-                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
-                    data.SetBakingState(sceneData.bakingState);
-            }
             AdditionalGIBakeRequestsManager.instance.Init();
 #endif
             m_EnabledBySRP = true;
+
+            if (sceneData != null)
+                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                    data.SetBakingState(sceneData.bakingState);
         }
 
         /// <summary>
