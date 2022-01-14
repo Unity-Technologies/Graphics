@@ -92,6 +92,13 @@ namespace UnityEngine.Experimental.Rendering
                 Object.DestroyImmediate(m_ProbeVolumeProfileEditor);
         }
 
+        void UpdateSceneData()
+        {
+            // Should not be needed on top of the Update call.
+            EditorUtility.SetDirty(sceneData.parentAsset);
+            m_SerializedObject.Update();
+        }
+
         void Initialize()
         {
             if (m_Initialized)
@@ -152,7 +159,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Added new baking set");
                 sceneData.CreateNewBakingSet("New Baking Set");
-                m_SerializedObject.Update();
+                UpdateSceneData();
                 OnBakingSetSelected(list);
             };
 
@@ -170,6 +177,7 @@ namespace UnityEngine.Experimental.Rendering
                         AssetDatabase.DeleteAsset(pathToDelete);
                     Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Deleted baking set");
                     ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                    UpdateSceneData();
                 }
             };
 
@@ -284,6 +292,8 @@ namespace UnityEngine.Experimental.Rendering
             {
                 Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Deleted scene in baking set");
                 ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                // Should not be needed on top of the Update call.
+                UpdateSceneData();
             };
 
             void TryAddScene(SceneData scene)
@@ -303,7 +313,7 @@ namespace UnityEngine.Experimental.Rendering
                     set.sceneGUIDs.Add(scene.guid);
 
                 sceneData.SyncBakingSetSettings();
-                m_SerializedObject.Update();
+                UpdateSceneData();
             }
         }
 
