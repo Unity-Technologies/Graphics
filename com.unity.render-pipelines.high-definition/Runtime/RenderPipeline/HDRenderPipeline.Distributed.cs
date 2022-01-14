@@ -44,6 +44,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+        private static int FrameID = -1;
+
+        public static int CurrentFrameID
+        {
+            get => FrameID;
+            set => FrameID = value;
+        }
+
         class ReceiveData
         {
             public TextureHandle whiteTexture;
@@ -81,14 +89,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle computeBuffer;
         }
 
-        void CreateYUVTexture(RenderGraphBuilder builder, Vector2Int layout, 
+        void CreateYUVTexture(RenderGraphBuilder builder, Vector2Int layout,
             out TextureHandle yTex,
             out TextureHandle uTex,
             out TextureHandle vTex)
         {
             if (GetDistributedMode() == DistributedMode.Renderer)
                 layout = Vector2Int.one;
-            
+
             TextureDesc GetTextureDesc(Vector2 scale)
             {
                 return new TextureDesc(scale, false, false)
@@ -183,16 +191,19 @@ namespace UnityEngine.Rendering.HighDefinition
 #if SYNC
                                 while (frameData == null)
 #endif
-                                dataLen = SocketServer.Instance.ReceiveLastOne(i, Datagram.DatagramType.VideoFrame, out datagram);
+                                dataLen = SocketServer.Instance.ReceiveLastOne(i, Datagram.DatagramType.VideoFrame,
+                                    out datagram);
                                 if (datagram == null)
                                     continue;
                                 context.cmd.SetComputeBufferData(data.receivedYUVDataBuffer, datagram.data,
                                     0, 0, dataLen);
-                                SocketServer.Instance.AddReceiveRingBuffer(i, Datagram.DatagramType.VideoFrame, in datagram);
+                                SocketServer.Instance.AddReceiveRingBuffer(i, Datagram.DatagramType.VideoFrame,
+                                    in datagram);
                             }
 
                             // Use compute shader to move the data to YUV textures
-                            using (new ProfilingScope(context.cmd, new ProfilingSampler($"Copy Buffer {i} to YUV Textures")))
+                            using (new ProfilingScope(context.cmd,
+                                       new ProfilingSampler($"Copy Buffer {i} to YUV Textures")))
                             {
                                 ComputeShader cs = data.computeBufferToYUVTexturesCS;
                                 int kernelID = cs.FindKernel("BufferToTexture");
@@ -200,10 +211,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                 int width = Screen.width / data.layout.x;
                                 int height = Screen.height / data.layout.y;
 
-                                context.cmd.SetComputeBufferParam(cs, kernelID, HDShaderIDs._YUVBufferID, data.receivedYUVDataBuffer);
-                                context.cmd.SetComputeTextureParam(cs, kernelID, HDShaderIDs._YUVYTexID, data.tempYTexture);
-                                context.cmd.SetComputeTextureParam(cs, kernelID, HDShaderIDs._YUVUTexID, data.tempUTexture);
-                                context.cmd.SetComputeTextureParam(cs, kernelID, HDShaderIDs._YUVVTexID, data.tempVTexture);
+                                context.cmd.SetComputeBufferParam(cs, kernelID, HDShaderIDs._YUVBufferID,
+                                    data.receivedYUVDataBuffer);
+                                context.cmd.SetComputeTextureParam(cs, kernelID, HDShaderIDs._YUVYTexID,
+                                    data.tempYTexture);
+                                context.cmd.SetComputeTextureParam(cs, kernelID, HDShaderIDs._YUVUTexID,
+                                    data.tempUTexture);
+                                context.cmd.SetComputeTextureParam(cs, kernelID, HDShaderIDs._YUVVTexID,
+                                    data.tempVTexture);
                                 context.cmd.SetComputeIntParam(cs, HDShaderIDs._YUVFullWidthID, width);
                                 context.cmd.SetComputeIntParam(cs, HDShaderIDs._YUVFullHeightID, height);
                                 int threadGroupZ;
@@ -228,7 +243,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
 
                             // Blit YUV textures to a RGB temp texture
-                            using (new ProfilingScope(context.cmd, new ProfilingSampler($"Blit YUV Textures {i} to RGB Section")))
+                            using (new ProfilingScope(context.cmd,
+                                       new ProfilingSampler($"Blit YUV Textures {i} to RGB Section")))
                             {
                                 var mpbYUVToRGB = context.renderGraphPool.GetTempMaterialPropertyBlock();
                                 mpbYUVToRGB.SetTexture(HDShaderIDs._BlitTextureY, data.tempYTexture);
@@ -240,7 +256,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
 
                             // Blit the temp texture to part of the color buffer
-                            using (new ProfilingScope(context.cmd, new ProfilingSampler($"Copy Section {i} to Color Buffer")))
+                            using (new ProfilingScope(context.cmd,
+                                       new ProfilingSampler($"Copy Section {i} to Color Buffer")))
                             {
                                 context.cmd.SetRenderTarget(data.colorBuffer);
 
@@ -249,7 +266,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.colorBufferSection,
                                     new Vector2(960, 540),
                                     new Vector4(1, 1, 0, 0),
-                                    new Vector4(1.0f / data.layout.x, 1.0f / data.layout.y, subsection.xMin, subsection.yMin),
+                                    new Vector4(1.0f / data.layout.x, 1.0f / data.layout.y, subsection.xMin,
+                                        subsection.yMin),
                                     0,
                                     false,
                                     0);
@@ -284,7 +302,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     (SendData data, RenderGraphContext context) =>
                     {
                         // Blit color buffer to YUV Textures
-                        using (new ProfilingScope(context.cmd, new ProfilingSampler("Blit Color Buffer to YUV Textures")))
+                        using (new ProfilingScope(context.cmd,
+                                   new ProfilingSampler("Blit Color Buffer to YUV Textures")))
                         {
                             var mpbRGBToYUV = context.renderGraphPool.GetTempMaterialPropertyBlock();
                             mpbRGBToYUV.SetTexture(HDShaderIDs._BlitTexture, data.colorBuffer);
@@ -320,7 +339,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             int width = Screen.width;
                             int height = Screen.height;
 
-                            context.cmd.SetComputeBufferParam(cs, kernelID, HDShaderIDs._YUVBufferID, data.computeBuffer);
+                            context.cmd.SetComputeBufferParam(cs, kernelID, HDShaderIDs._YUVBufferID,
+                                data.computeBuffer);
                             context.cmd.SetComputeTextureParam(cs, kernelID, HDShaderIDs._YUVYTexID, data.tempYTexture);
                             context.cmd.SetComputeTextureParam(cs, kernelID, HDShaderIDs._YUVUTexID, data.tempUTexture);
                             context.cmd.SetComputeTextureParam(cs, kernelID, HDShaderIDs._YUVVTexID, data.tempVTexture);
@@ -330,8 +350,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             cs.GetKernelThreadGroupSizes(kernelID, out var threadGroupSizeX, out var threadGroupSizeY,
                                 out _);
 
-                            int threadGroupX = Mathf.CeilToInt((float) width / threadGroupSizeX);
-                            int threadGroupY = Mathf.CeilToInt((float) height / threadGroupSizeY);
+                            int threadGroupX = Mathf.CeilToInt((float)width / threadGroupSizeX);
+                            int threadGroupY = Mathf.CeilToInt((float)height / threadGroupSizeY);
 
                             context.cmd.DispatchCompute(cs, kernelID, threadGroupX, threadGroupY, threadGroupZ);
                         }
