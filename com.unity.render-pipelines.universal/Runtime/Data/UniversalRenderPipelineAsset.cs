@@ -795,7 +795,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Specifies the maximum amount of additional lights which can be used by this <c>UniversalRenderPipelineAsset</c>.
+        /// Specifies the maximum amount of per-object additional lights which can be used by this <c>UniversalRenderPipelineAsset</c>.
         /// </summary>
         public int maxAdditionalLightsCount
         {
