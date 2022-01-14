@@ -474,7 +474,7 @@ namespace UnityEditor.VFX
                 EditorGUILayout.PropertyField(prewarmEnable, EditorGUIUtility.TrTextContent("Enable PreWarm"));
                 using (new EditorGUI.DisabledScope(!prewarmEnable.boolValue))
                 {
-                    VisualEffectAssetEditor.PrewarmGenericInspector(serializedObject, prewarmDeltaTime, prewarmStepCount);
+                    VisualEffectAssetEditor.DisplayPrewarmInspectorGUI(serializedObject, prewarmDeltaTime, prewarmStepCount);
                     EditorGUILayout.PropertyField(prewarmEvent, EditorGUIUtility.TrTextContent("PreWarm Event Name"));
                 }
             }

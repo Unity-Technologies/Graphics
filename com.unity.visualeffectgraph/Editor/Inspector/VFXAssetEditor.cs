@@ -421,7 +421,7 @@ class VisualEffectAssetEditor : Editor
 
     private static readonly float k_MinimalCommonDeltaTime = 1.0f / 800.0f;
 
-    public static void PrewarmGenericInspector(SerializedObject resourceObject, SerializedProperty prewarmDeltaTime, SerializedProperty prewarmStepCount)
+    public static void DisplayPrewarmInspectorGUI(SerializedObject resourceObject, SerializedProperty prewarmDeltaTime, SerializedProperty prewarmStepCount)
     {
         if (!prewarmDeltaTime.hasMultipleDifferentValues && !prewarmStepCount.hasMultipleDifferentValues)
         {
@@ -651,7 +651,7 @@ class VisualEffectAssetEditor : Editor
         VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Initial state"), false, false);
         if (prewarmDeltaTime != null && prewarmStepCount != null)
         {
-            PrewarmGenericInspector(resourceObject, prewarmDeltaTime, prewarmStepCount);
+            DisplayPrewarmInspectorGUI(resourceObject, prewarmDeltaTime, prewarmStepCount);
         }
 
         if (initialEventName != null)
