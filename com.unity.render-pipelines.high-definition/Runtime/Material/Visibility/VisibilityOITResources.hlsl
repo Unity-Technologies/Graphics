@@ -68,7 +68,7 @@ void GetVisibilitySample(uint i, uint listOffset, out Visibility::VisibilityData
 {
     uint3 packedData = _VisOITBuffer.Load3(((listOffset + i) * 3) << 2);
     VisibilityOIT::UnpackVisibilityData(packedData, data, texelCoordinate);
-} 
+}
 
 }
 
