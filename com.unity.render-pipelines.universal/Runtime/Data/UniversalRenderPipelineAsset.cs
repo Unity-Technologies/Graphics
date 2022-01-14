@@ -767,7 +767,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Specifies if shadows for the main light should be used for this <c>UniversalRenderPipelineAsset</c>.
+        /// Specifies if objects lit by main light cast shadows.
         /// </summary>
         public bool supportsMainLightShadows
         {
