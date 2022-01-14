@@ -11,9 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added inspector documentation URLs to the SSAO, Decal, and Render Objects renderer features.
 - Changed "_USE_DRAW_PROCEDURAL" to be used only in vertex shader in Post Processing related shaders as they are not needed for fragment shaders. In result we now generate less shader variants.
 - Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
+- Added FP16 camera render target option.
 
 ### Changed
 - Re-added the menu button to be able to convert selected materials.
+- PostProcessPass to internal visibility since it's in Internal namespace.
 
 ### Fixed
 - Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]
