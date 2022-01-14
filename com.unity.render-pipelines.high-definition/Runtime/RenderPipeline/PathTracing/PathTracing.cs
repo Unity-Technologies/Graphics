@@ -636,6 +636,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
+            // Check the validity of the state before moving on with the computation
+            if (!m_GlobalSettings.renderPipelineRayTracingResources.pathTracingRT || !m_PathTracingSettings.enable.value)
+                return TextureHandle.nullHandle;
+
             var motionVector = TextureHandle.nullHandle;
             var albedo = TextureHandle.nullHandle;
             var normal = TextureHandle.nullHandle;
@@ -664,10 +668,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             pathTracedAOVs.Clear();
 #endif
-
-            // Check the validity of the state before moving on with the computation
-            if (!m_GlobalSettings.renderPipelineRayTracingResources.pathTracingRT || !m_PathTracingSettings.enable.value)
-                return TextureHandle.nullHandle;
 
             int camID = hdCamera.camera.GetInstanceID();
             CameraData camData = m_SubFrameManager.GetCameraData(camID);
