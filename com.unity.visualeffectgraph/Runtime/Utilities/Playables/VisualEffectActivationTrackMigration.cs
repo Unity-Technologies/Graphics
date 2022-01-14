@@ -1,4 +1,4 @@
-#if VFX_HAS_TIMELINE && UNITY_EDITOR
+﻿#if VFX_HAS_TIMELINE && UNITY_EDITOR
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Migration
 {
-    class ActivationToControlTrack : AssetPostprocessor
+    class ActivationToControlTrack
     {
         static IEnumerable<VisualEffectControlTrack> GetOutOfDateControlTrack(TimelineAsset timeline)
         {
@@ -149,7 +149,7 @@ namespace UnityEditor.VFX.Migration
             }
         }
 
-        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+        public static void UpgradeVFXPlayable(string[] importedAssets)
         {
             foreach (var str in importedAssets)
             {
@@ -157,6 +157,45 @@ namespace UnityEditor.VFX.Migration
                 {
                     if (str.EndsWith(".playable", StringComparison.InvariantCultureIgnoreCase))
                     {
+                        int workAround = 2;
+                        //0. LoadAssetAtPath: Doesn't list hidden asset => Fail (initial intention)
+                        //1. Works but only with text serialization => Hacky
+                        //2. LoadAllAssetsAtPath works but also loading the TimelineAsset => Useless
+                        //3. LoadAllAssetRepresentationsAtPath doesn't list hidden asset => Fail
+                        //¯\_(ツ)_/¯
+                        if (workAround == 0)
+                        {
+                            var firstActivationClip = AssetDatabase.LoadAssetAtPath<VisualEffectActivationClip>(str);
+                            //Early skip: if there isn't VisualEffectActivationClip, we don't need to load TimelineAsset.
+                            //This playable doesn't contains any VFX track and/or is already up to date.
+                            if (firstActivationClip == null)
+                                continue;
+                        }
+                        else if (workAround == 1)
+                        {
+                            const string guidOfVisualEffectActivationClip = "e0d1ad44666d1b64fb45664b4dbcbb8f";
+                            if (System.IO.File.ReadAllText(str).Contains(guidOfVisualEffectActivationClip) == false)
+                                continue;
+                        }
+                        else if (workAround == 2)
+                        {
+                            var firstActivationClip = AssetDatabase
+                                .LoadAllAssetsAtPath(str)
+                                .OfType<VisualEffectActivationClip>()
+                                .FirstOrDefault();
+                            if (firstActivationClip == null)
+                                continue;
+                        }
+                        else if (workAround == 3)
+                        {
+                            var firstActivationClip = AssetDatabase
+                                .LoadAllAssetRepresentationsAtPath(str)
+                                .OfType<VisualEffectActivationClip>()
+                                .FirstOrDefault();
+                            if (firstActivationClip == null)
+                                continue;
+                        }
+
                         var timeline = AssetDatabase.LoadAssetAtPath<TimelineAsset>(str);
                         if (timeline != null)
                         {

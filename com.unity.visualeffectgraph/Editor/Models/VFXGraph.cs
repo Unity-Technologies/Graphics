@@ -18,8 +18,9 @@ namespace UnityEditor.VFX
     {
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            List<string> assetToReimport = null;
+            Migration.ActivationToControlTrack.UpgradeVFXPlayable(importedAssets);
 
+            List<string> assetToReimport = null;
             foreach (var assetPath in importedAssets)
             {
                 bool isVFX = VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath);
