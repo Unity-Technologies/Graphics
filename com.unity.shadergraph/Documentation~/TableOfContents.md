@@ -17,6 +17,7 @@
     * [Custom Function Node](Custom-Function-Node)
     * [Shader Graph Preferences](Shader-Graph-Preferences)
     * [Samples](ShaderGraph-Samples.md)
+    * [Mips and mipmaps](Mipmaps-Mip-Bias.md)
 * Upgrade Guides
   * [Upgrade to Shader Graph 10.0.x](Upgrade-Guide-10-0-x)
 * Inside Shader Graph
