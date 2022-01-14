@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         HardShadows,
         /// <summary>
-        /// Shadows has smoother edges.
+        /// Filtering is applied when sampling shadows. Shadows have smooth edges.
         /// </summary>
         SoftShadows,
     }
@@ -673,7 +673,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Specifies if the Camera Depth Texture should be used for this <c>UniversalRenderPipelineAsset</c>.
+        /// When true, the pipeline creates a depth texture that can be read in shaders. The depth texture can be accessed as _CameraDepthTexture. This setting can be overridden per camera.
         /// </summary>
         public bool supportsCameraDepthTexture
         {
@@ -682,7 +682,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Specifies if the Camera Opaque Texture should be used for this <c>UniversalRenderPipelineAsset</c>.
+        /// When true, the pipeline creates a texture that contains a copy of the color buffer after rendering opaque objects. This texture can be accessed in shaders as _CameraOpaqueTexture. This setting can be overridden per camera.
         /// </summary>
         public bool supportsCameraOpaqueTexture
         {
@@ -691,7 +691,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the downsampling used for this <c>UniversalRenderPipelineAsset</c>.
+        /// Returns the downsampling method used when copying the camera color texture after rendering opaques. 
         /// </summary>
         public Downsampling opaqueDownsampling
         {
@@ -718,7 +718,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Specifies if HDR is used.
+        /// When enabled, the camera renders to HDR buffers. This setting can be overridden per camera.
         /// </summary>
         /// <see href="https://docs.unity3d.com/Manual/HDR.html"/>
         public bool supportsHDR
@@ -768,7 +768,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Specifies if shadows for the main light should be used for this <c>UniversalRenderPipelineAsset</c>.
+        /// Specifies if objects lit by main light cast shadows.
         /// </summary>
         public bool supportsMainLightShadows
         {
@@ -796,7 +796,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Specifies the maximum amount of additional lights which can be used by this <c>UniversalRenderPipelineAsset</c>.
+        /// Specifies the maximum amount of per-object additional lights which can be used by this <c>UniversalRenderPipelineAsset</c>.
         /// </summary>
         public int maxAdditionalLightsCount
         {
@@ -805,7 +805,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Specifies if shadows for the additional lights should be used for this <c>UniversalRenderPipelineAsset</c>.
+        /// Specifies if objects lit by additional lights cast shadows.
         /// </summary>
         public bool supportsAdditionalLightShadows
         {
@@ -814,7 +814,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the additional lights shadowmap resolution used for this <c>UniversalRenderPipelineAsset</c>.
+        /// Additional light shadows are rendered into a single shadow map atlas texture. This setting controls the resolution of the shadow map atlas texture. 
         /// </summary>
         public int additionalLightsShadowmapResolution
         {
@@ -1146,7 +1146,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the default shader for the specified renderer.
+        /// Returns the default shader for the specified renderer. When creating new objects in the editor, the materials of those objects will use the selected default shader.
         /// </summary>
         /// <returns>Returns the default shader for the specified renderer.</returns>
         public override Shader defaultShader
