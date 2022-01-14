@@ -127,6 +127,13 @@ namespace UnityEngine.Rendering.PostProcessing
         [Range(1f, 10f), Tooltip("This modifies the thickness of occluders. It increases the size of dark areas and also introduces a dark halo around objects.")]
         public FloatParameter thicknessModifier = new FloatParameter { value = 1f };
 
+        /// <summary>
+        /// Tweak this value to remove artifacts that can show up as stripes in the AO, 0.025 is the value that hide
+        /// most artefacts with the lowest impact on quality.
+        /// </summary>
+        [Range(0f, 0.05f), Tooltip("Tweak this value to remove artifacts that can show up as stripes in the AO, 0.025 is the value that hide most artefacts with the lowest impact on quality.")]
+        public FloatParameter precisionModifier = new FloatParameter { value = 0f };
+
         // HDRP-only parameters
 
         /// <summary>

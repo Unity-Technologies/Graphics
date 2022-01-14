@@ -62,5 +62,6 @@ This mode is optimized for consoles and desktop platforms. It has better graphic
 | :------------------ | :------------------------------------------------------------ |
 | Intensity          | Adjust the degree of darkness **Ambient Occlusion** produces.                  |
 | Thickness Modifier | Modify the thickness of occluders. This increases dark areas but can introduce dark halos around objects. |
+| Precision Modifier | Tweak this value to remove artifacts that can show up as stripes in the AO. |
 | Color              | Set the tint color of the ambient occlusion.                                 |
 | Ambient Only       | Enable this checkbox to make the **Ambient Occlusion** effect only affect ambient lighting. This option is only available with the Deferred rendering path and HDR rendering. |

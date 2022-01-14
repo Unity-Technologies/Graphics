@@ -80,11 +80,12 @@ CBUFFER_START(CB1)
     float4 gInvThicknessTable[3];
     float4 gSampleWeightTable[3];
     float4 gInvSliceDimension;
-    float2 AdditionalParams;
+    float3 AdditionalParams;
 CBUFFER_END
 
 #define gRejectFadeoff AdditionalParams.x
 #define gIntensity AdditionalParams.y
+#define gPrecisionModifier AdditionalParams.z
 
 #ifdef MSAA
 float2 TestSamplePair(float frontDepth, float2 invRange, uint base, int offset)
@@ -289,6 +290,19 @@ void MAIN(uint3 Gid : SV_GroupID, uint GI : SV_GroupIndex, uint3 GTid : SV_Group
 #else
     uint2 OutPixel = DTid.xy;
 #endif
+
+    // Since the effect use a low-precision format like FP16 to store the tiledDepth, we need to account for a bit or
+    // error otherwise we can see some stripes artefacts appear in some cases
+    if (gPrecisionModifier > 0.00001) // If it is set to zero-ish, just skip this
+    {
+	    if(ao.x > 1.0 - gPrecisionModifier)
+	        ao.x = 1.0;
+#ifdef MSAA
+	    if(ao.y > 1.0 - gPrecisionModifier)
+	        ao.y = 1.0;
+#endif
+	}
+
     Occlusion[OutPixel] = lerp(1, ao, gIntensity);
 }
 

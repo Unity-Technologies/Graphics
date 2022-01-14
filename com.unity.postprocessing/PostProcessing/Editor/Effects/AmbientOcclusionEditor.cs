@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering.PostProcessing
         SerializedParameterOverride m_DirectLightingStrength;
         SerializedParameterOverride m_Quality;
         SerializedParameterOverride m_Radius;
+        SerializedParameterOverride m_PrecisionModifier;
 
         public override void OnEnable()
         {
@@ -25,6 +26,7 @@ namespace UnityEditor.Rendering.PostProcessing
             m_DirectLightingStrength = FindParameterOverride(x => x.directLightingStrength);
             m_Quality = FindParameterOverride(x => x.quality);
             m_Radius = FindParameterOverride(x => x.radius);
+            m_PrecisionModifier = FindParameterOverride(x => x.precisionModifier);
         }
 
         public override void OnInspectorGUI()
@@ -51,6 +53,7 @@ namespace UnityEditor.Rendering.PostProcessing
                     EditorGUILayout.HelpBox("Multi-scale volumetric obscurance requires compute shader support.", MessageType.Warning);
 
                 PropertyField(m_ThicknessModifier);
+                PropertyField(m_PrecisionModifier);
 
                 if (RuntimeUtilities.scriptableRenderPipelineActive)
                     PropertyField(m_DirectLightingStrength);
