@@ -67,6 +67,11 @@ Varyings Vert(Attributes inputMesh)
     Varyings output;
     ZERO_INITIALIZE(Varyings, output);
 
+   // NaN SV_Position causes GPU to reject all triangles that use this vertex
+    //float nan = sqrt(-1);
+    float nan = 0.0f / 0.0f;
+    output.positionCS = float4(nan, nan, nan, nan);
+
 #ifdef DOTS_INSTANCING_ON
     UNITY_SETUP_INSTANCE_ID(inputMesh);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
@@ -96,7 +101,7 @@ Varyings Vert(Attributes inputMesh)
     uint shaderTileCategory = GetShaderTileCategory();
     uint materialBatchGPUKey = UNITY_GET_INSTANCE_ID(inputMesh);
     uint currentMaterialKey = GetCurrentMaterialGPUKey(materialBatchGPUKey);
-
+     
     if (((currentMaterialKey & bucketIDMask) != 0) && (currentMaterialKey >= matMinMax.x && currentMaterialKey <= matMinMax.y) && shaderTileCategory == currentTileCategory)
     {
         output.positionCS.xy = vertPos * 2 - 1;

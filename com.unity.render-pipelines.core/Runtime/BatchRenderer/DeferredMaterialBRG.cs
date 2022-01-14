@@ -238,7 +238,7 @@ namespace UnityEngine.Rendering
             m_TileMesh.vertexBufferTarget = GraphicsBuffer.Target.Raw;
             m_TileMesh.indexBufferTarget = GraphicsBuffer.Target.Raw;
             m_TileMesh.subMeshCount = 1;
-            m_TileMesh.SetIndexBufferParams(m_MaxNumberOfTiles * 6, IndexFormat.UInt16);
+            m_TileMesh.SetIndexBufferParams(m_MaxNumberOfTiles * 6, IndexFormat.UInt32);
             m_TileMesh.SetSubMesh(0, new SubMeshDescriptor(0, m_MaxNumberOfTiles * 6), MeshUpdateFlags.DontValidateIndices | MeshUpdateFlags.DontNotifyMeshUsers | MeshUpdateFlags.DontRecalculateBounds);
             var indices = new int[m_MaxNumberOfTiles * 6];
             for (int tileId = 0; tileId < m_MaxNumberOfTiles; ++tileId)
