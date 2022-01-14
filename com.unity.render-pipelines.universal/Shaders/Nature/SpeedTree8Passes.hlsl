@@ -369,7 +369,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     half alpha = diffuse.a * input.interpolated.color.a;
     AlphaDiscard(alpha, 0.3333);
 
-    ApplyLODCrossFade(input.interpolated.clipPos);
+    LODFadeCrossFade(input.interpolated.clipPos);
 
     half3 albedo = diffuse.rgb;
     half3 emission = 0;
@@ -493,7 +493,7 @@ half4 SpeedTree8FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
     half alpha = diffuse.a * input.color.a;
     AlphaDiscard(alpha, 0.3333);
 
-    ApplyLODCrossFade(input.clipPos);
+    LODFadeCrossFade(input.clipPos);
 
     #if defined(SCENESELECTIONPASS)
         // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
@@ -548,7 +548,7 @@ half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Ta
     half alpha = diffuse.a * input.interpolated.color.a;
     AlphaDiscard(alpha, 0.3333);
 
-    ApplyLODCrossFade(input.interpolated.clipPos);
+    LODFadeCrossFade(input.interpolated.clipPos);
 
     // normal
     #if defined(EFFECT_BUMP)

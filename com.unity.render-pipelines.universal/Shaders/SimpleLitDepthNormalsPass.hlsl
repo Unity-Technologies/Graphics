@@ -61,7 +61,7 @@ half4 DepthNormalsFragment(Varyings input) : SV_TARGET
 
     Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap)).a, _BaseColor, _Cutoff);
 
-    ApplyLODCrossFade(input.positionCS);
+    LODFadeCrossFade(input.positionCS);
 
     #if defined(_GBUFFER_NORMALS_OCT)
         float3 normalWS = normalize(input.normalWS);

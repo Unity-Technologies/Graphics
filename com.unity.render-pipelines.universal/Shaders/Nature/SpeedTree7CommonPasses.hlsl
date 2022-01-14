@@ -146,7 +146,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
         AlphaDiscard(diffuse.a, _Cutoff);
     #endif
 
-    ApplyLODCrossFade(input.clipPos);
+    LODFadeCrossFade(input.clipPos);
 
     half3 diffuseColor = diffuse.rgb;
 
@@ -224,7 +224,7 @@ half4 SpeedTree7FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
         AlphaDiscard(diffuse.a, _Cutoff);
     #endif
 
-    ApplyLODCrossFade(input.clipPos);
+    LODFadeCrossFade(input.clipPos);
 
     #if defined(SCENESELECTIONPASS)
         // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
@@ -247,7 +247,7 @@ half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Tar
         AlphaDiscard(diffuse.a, _Cutoff);
     #endif
 
-    ApplyLODCrossFade(input.clipPos);
+    LODFadeCrossFade(input.clipPos);
 
     #if defined(EFFECT_BUMP)
         half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));

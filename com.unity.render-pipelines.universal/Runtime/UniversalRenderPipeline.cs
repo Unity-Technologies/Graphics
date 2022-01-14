@@ -1282,8 +1282,6 @@ namespace UnityEngine.Rendering.Universal
                 else
                     Debug.LogError("LOD Cross Fade: unable to find Blue Noise dithering Texture.");
             }
-
-            LODGroup.crossFadeAnimationDuration = 2.0f;
         }
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)

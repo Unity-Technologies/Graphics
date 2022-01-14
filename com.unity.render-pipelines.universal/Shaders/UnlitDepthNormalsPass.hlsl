@@ -38,7 +38,7 @@ float4 DepthNormalsFragment(Varyings input) : SV_TARGET
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    ApplyLODCrossFade(input.positionCS);
+    LODFadeCrossFade(input.positionCS);
 
     // Output...
     #if defined(_GBUFFER_NORMALS_OCT)

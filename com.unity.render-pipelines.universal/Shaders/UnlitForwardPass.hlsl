@@ -102,7 +102,7 @@ half4 UnlitPassFragment(Varyings input) : SV_Target
     AlphaDiscard(alpha, _Cutoff);
     color = AlphaModulate(color, alpha);
 
-    ApplyLODCrossFade(input.positionCS);
+    LODFadeCrossFade(input.positionCS);
 
     InputData inputData;
     InitializeInputData(input, inputData);

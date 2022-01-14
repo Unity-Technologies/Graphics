@@ -93,9 +93,6 @@ Shader "Universal Render Pipeline/Lit"
             ZWrite[_ZWrite]
             Cull[_Cull]
 
-            //@ This shoult be enabled only when msaa enabled and when material is not alpha blended
-            AlphaToMask On
-
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
@@ -414,9 +411,6 @@ Shader "Universal Render Pipeline/Lit"
             Blend[_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
             ZWrite[_ZWrite]
             Cull[_Cull]
-
-            //@ This shoult be enabled only when msaa enabled and when material is not alpha blended
-            AlphaToMask On
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore d3d11

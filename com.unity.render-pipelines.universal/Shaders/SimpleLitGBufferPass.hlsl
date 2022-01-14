@@ -164,7 +164,7 @@ FragmentOutput LitPassFragmentSimple(Varyings input)
     SurfaceData surfaceData;
     InitializeSimpleLitSurfaceData(input.uv, surfaceData);
 
-    ApplyLODCrossFade(input.positionCS);
+    LODFadeCrossFade(input.positionCS);
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);

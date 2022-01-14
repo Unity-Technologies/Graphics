@@ -193,7 +193,7 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     SurfaceData surfaceData;
     InitializeStandardLitSurfaceData(input.uv, surfaceData);
 
-    ApplyLODCrossFade(input.positionCS);
+    LODFadeCrossFade(input.positionCS);
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);

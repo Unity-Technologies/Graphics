@@ -129,7 +129,7 @@ half4 BakedLitForwardPassFragment(Varyings input) : SV_Target
     AlphaDiscard(alpha, _Cutoff);
     color = AlphaModulate(color, alpha);
 
-    ApplyLODCrossFade(input.positionCS);
+    LODFadeCrossFade(input.positionCS);
 
 #ifdef _DBUFFER
     ApplyDecalToBaseColorAndNormal(input.positionCS, color, inputData.normalWS);

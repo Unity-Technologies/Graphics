@@ -54,7 +54,7 @@ half GetLODDithering(float2 crossFadeSeed, half crossFadeFactor)
     return crossFadeFactor - CopySign(d, crossFadeFactor);
 }
 
-void ApplyLODCrossFade(float4 positionCS)
+void LODFadeCrossFade(float4 positionCS)
 {
 #ifdef LOD_FADE_CROSSFADE
     half d = GetLODDithering(positionCS.xy, unity_LODFade.x);
