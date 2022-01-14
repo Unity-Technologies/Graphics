@@ -1391,10 +1391,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Fill depth buffer to reduce artifact for transparent object during postprocess
-            RenderTransparentDepthPostpass(renderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, cullingResults);
+            RenderTransparentDepthPostpass(renderGraph, hdCamera, prepassOutput.depthBuffer, cullingResults);
 
             //TODO simple test to see / debug results of OIT visibility buffer.
-            colorBuffer = TestOITLighting(renderGraph, ref prepassOutput, colorBuffer, hdCamera);
+            //colorBuffer = TestOITLighting(renderGraph, ref prepassOutput, colorBuffer, hdCamera);
+
+            RenderOITLighting(
+                renderGraph, cullingResults, hdCamera, shadowResult,
+                lightLists, prepassOutput, prepassOutput.resolvedDepthBuffer,
+                ref colorBuffer);
 
             return colorBuffer;
         }

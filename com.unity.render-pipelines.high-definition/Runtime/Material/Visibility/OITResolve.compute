@@ -1,15 +1,18 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityOITResources.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 
 //#pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel MainResolveOffscreenLighting
 
 #define GROUP_SIZE 8
 
+TEXTURE2D_X(_DepthTexture);
 RW_TEXTURE2D_X(float4, _OutputTexture);
-RW_TEXTURE2D_X(float, _OutputDepthTexture);
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
@@ -20,8 +23,13 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
 
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(1.0, 0.0, 0.0, 1.0);
-    _OutputDepthTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = 1.0;
+    uint pixelOffset = posInputs.positionSS.y * _ScreenSize.x + posInputs.positionSS.x;
+    uint listCount, listOffset;
+    VisibilityOIT::GetPixelList(pixelOffset, listCount, listOffset);
+    if (listCount == 0)
+        return;
+
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(1.0, 0.0, 0.0, 1.0);
 }
 
 

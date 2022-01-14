@@ -353,20 +353,39 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector2Int(acceptedWidth, (int)HDUtils.DivRoundUp(maxSampleCounts, acceptedWidth));
         }
 
+        void RenderOITLighting(
+            RenderGraph renderGraph,
+            CullingResults cull,
+            HDCamera hdCamera,
+            ShadowResult shadowResult,
+            in BuildGPULightListOutput lightLists,
+            in PrepassOutput prepassData,
+            in TextureHandle depthBuffer,
+            ref TextureHandle colorBuffer)
+        {
+            if (!prepassData.vbufferOIT.valid)
+                return;
+            
+            TextureHandle offscreenLightingTexture = RenderOITVBufferLightingOffscreen(
+                renderGraph, cull, hdCamera, shadowResult, prepassData.vbufferOIT, lightLists, prepassData, out var offscreenDimensions);
+
+            OITResolveLighting(renderGraph, hdCamera, prepassData.vbufferOIT, offscreenLightingTexture, offscreenDimensions, depthBuffer, ref colorBuffer);
+        }
+
         TextureHandle RenderOITVBufferLightingOffscreen(
             RenderGraph renderGraph,
             CullingResults cull,
             HDCamera hdCamera,
             ShadowResult shadowResult,
             in VBufferOITOutput vbufferOIT,
-            in LightingBuffers lightingBuffers,
             in BuildGPULightListOutput lightLists,
-            in PrepassOutput prepassData)
+            in PrepassOutput prepassData,
+            out Vector2Int offscreenDimensions)
         {
             var BRGBindingData = RenderBRG.GetRenderBRGMaterialBindingData();
 
             int maxSampleCounts = GetMaxMaterialOITSampleCount();
-            Vector2Int offscreenDimensions = GetOITOffscreenLightingSize(hdCamera, maxSampleCounts);
+            offscreenDimensions = GetOITOffscreenLightingSize(hdCamera, maxSampleCounts);
 
             TextureHandle outputColor;
             using (var builder = renderGraph.AddRenderPass<VBufferOITLightingOffscreen>("VBufferOITLightingOffscreen", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITLightingOffscreen)))
@@ -399,14 +418,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         BindGlobalLightListBuffers(data, context);
                         BindDBufferGlobalData(data.dbuffer, context);
-                        BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
 
-                        //TODO: use clustered light list exclusively!
-                        bool useFptl = data.frameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque);
-                        CoreUtils.SetKeyword(context.cmd, "USE_FPTL_LIGHTLIST", useFptl);
-                        CoreUtils.SetKeyword(context.cmd, "USE_CLUSTERED_LIGHTLIST", !useFptl);
-
-                        //TODO: figure out depth
+                        CoreUtils.SetKeyword(context.cmd, "USE_FPTL_LIGHTLIST", false);
+                        CoreUtils.SetKeyword(context.cmd, "USE_CLUSTERED_LIGHTLIST", true);
 
                         data.BRGBindingData.globalGeometryPool.BindResourcesGlobal(context.cmd);
                         Rect targetViewport = new Rect(0.0f, 0.0f, (float)data.offscreenDimensions.x, (float)data.offscreenDimensions.y);
@@ -418,6 +432,48 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return outputColor;
+        }
+
+
+        class OITResolveRenderPass
+        {
+            public ComputeShader cs;
+            public Vector2Int screenSize;
+            public TextureHandle offscreenLighting;
+            public TextureHandle depthBuffer;
+            public ComputeBufferHandle offsetListBuffer;
+            public ComputeBufferHandle sublistCounterBuffer;
+            public TextureHandle outputColor;
+        }
+
+        void OITResolveLighting(RenderGraph renderGraph, HDCamera hdCamera, 
+            in VBufferOITOutput vbufferOIT,
+            TextureHandle offscreenLighting, Vector2Int offscreenLightingSize, TextureHandle depthBuffer, ref TextureHandle colorBuffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<OITResolveRenderPass>("OITResolveRenderPass", out var passData, ProfilingSampler.Get(HDProfileId.OITResolveLighting)))
+            {
+                passData.cs = defaultResources.shaders.oitResolveCS;
+                passData.screenSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
+                passData.sublistCounterBuffer = builder.ReadComputeBuffer(vbufferOIT.sublistCounterBuffer);
+                passData.offsetListBuffer = builder.ReadComputeBuffer(vbufferOIT.sampleListOffsetBuffer);
+                passData.offscreenLighting = builder.ReadTexture(offscreenLighting);
+                passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                passData.outputColor = builder.WriteTexture(colorBuffer);
+
+                colorBuffer = passData.outputColor;
+
+                builder.SetRenderFunc(
+                    (OITResolveRenderPass data, RenderGraphContext context) =>
+                    {
+                        int kernel = data.cs.FindKernel("MainResolveOffscreenLighting");
+                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenLighting, data.offscreenLighting);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);
+                        context.cmd.DispatchCompute(data.cs, kernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), 1);
+                    });
+            }
         }
 
         class VBufferOITTestLighting

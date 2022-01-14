@@ -14,6 +14,8 @@ ByteAddressBuffer _VisOITListsCounts;
 ByteAddressBuffer _VisOITListsOffsets;
 ByteAddressBuffer _VisOITSubListsCounts;
 
+TEXTURE2D(_VisOITOffscreenLighting);
+
 float4 DebugDrawOITHistogram(float2 sampleUV, float2 screenSize)
 {
     float2 workOffset = float2(0.02,0.02);

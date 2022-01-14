@@ -1123,6 +1123,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VisOITSubListsCounts = Shader.PropertyToID("_VisOITSubListsCounts");
         public static readonly int _PackedOITTileHistogramArgs = Shader.PropertyToID("_PackedOITTileHistogramArgs");
         public static readonly int _VBufferLightingOffscreenParams = Shader.PropertyToID("_VBufferLightingOffscreenParams");
+        public static readonly int _VisOITOffscreenLighting = Shader.PropertyToID("_VisOITOffscreenLighting");
 
         //Visibility classification
         public static readonly int _VisBufferFeatureTileOutput = Shader.PropertyToID("_VisBufferFeatureTileOutput");
