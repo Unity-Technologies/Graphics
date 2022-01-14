@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
 
         public static void AddPort(this NodeModel node, PortDirection direction, string name, Type type)
         {
-            Action<string, TypeHandle> function = direction == PortDirection.Input
+            Func<string, TypeHandle, IPortModel> function = direction == PortDirection.Input
                 ? (n, th) => node.AddDataInputPort(n, th, GUID.Generate().ToString())
                 : (n, th) => node.AddDataOutputPort(n, th, GUID.Generate().ToString(), options: PortModelOptions.NoEmbeddedConstant);
 

@@ -18,23 +18,24 @@ namespace UnityEditor.VFX
             m_Capabilities.Remove(GraphToolsFoundation.Overdrive.Capabilities.NeedsContainer);
         }
 
-        public override string Title
-        {
-            get => m_NodeModel != null ? ((VFXModel)m_NodeModel).libraryName : base.Title;
-            set { }
-        }
-
         void IVFXNode.SetModel(IVFXSlotContainer model)
         {
             if (model is VFXBlock vfxBlock)
             {
                 m_NodeModel = vfxBlock;
+                //Title = m_NodeModel.libraryName;
                 DefineNode();
             }
             else
             {
                 throw new ArgumentException("model must be a VFXBlock");
             }
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+            Debug.Log("deserialize");
         }
 
         protected override void OnDefineNode()

@@ -13,17 +13,12 @@ namespace UnityEditor.VFX
         [SerializeField, HideInInspector]
         private VFXContext m_NodeModel;
 
-        public override string Title
-        {
-            get => m_NodeModel != null ? ((VFXModel)m_NodeModel).libraryName : base.Title;
-            set { }
-        }
-
         void IVFXNode.SetModel(IVFXSlotContainer model)
         {
             if (model is VFXContext vfxContext)
             {
                 m_NodeModel = vfxContext;
+                //Title = m_NodeModel.libraryName;
                 DefineNode();
             }
             else

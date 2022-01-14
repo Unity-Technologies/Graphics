@@ -6,7 +6,7 @@ using Type = System.Type;
 
 namespace UnityEditor.VFX
 {
-    abstract class VFXBlock : VFXSlotContainerModel<VFXContext, VFXModel>
+    class VFXBlock : VFXSlotContainerModel<VFXContext, VFXModel>
     {
         public VFXBlock()
         {
@@ -53,8 +53,8 @@ namespace UnityEditor.VFX
             get { return enabled && isValid; }
         }
 
-        public abstract VFXContextType compatibleContexts { get; }
-        public abstract VFXDataType compatibleData { get; }
+        public virtual VFXContextType compatibleContexts { get; }
+        public virtual VFXDataType compatibleData { get; }
         public virtual IEnumerable<VFXAttributeInfo> attributes { get { return Enumerable.Empty<VFXAttributeInfo>(); } }
         public virtual IEnumerable<VFXNamedExpression> parameters { get { return GetExpressionsFromSlots(this); } }
         public virtual IEnumerable<string> includes { get { return Enumerable.Empty<string>(); } }
