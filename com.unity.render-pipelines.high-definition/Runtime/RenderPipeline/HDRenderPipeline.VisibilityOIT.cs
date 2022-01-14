@@ -411,8 +411,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.BRGBindingData.globalGeometryPool.BindResourcesGlobal(context.cmd);
                         Rect targetViewport = new Rect(0.0f, 0.0f, (float)data.offscreenDimensions.x, (float)data.offscreenDimensions.y);
                         context.cmd.SetGlobalBuffer(HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
+                        context.cmd.SetGlobalVector(HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
                         context.cmd.SetViewport(targetViewport);
-
                         DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
                     });
             }
