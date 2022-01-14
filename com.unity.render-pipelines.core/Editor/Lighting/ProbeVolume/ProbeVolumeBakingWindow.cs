@@ -94,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering
 
         void UpdateSceneData()
         {
-            // Should not be needed on top of the Update call. 
+            // Should not be needed on top of the Update call.
             EditorUtility.SetDirty(sceneData.parentAsset);
             m_SerializedObject.Update();
         }
@@ -292,7 +292,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Deleted scene in baking set");
                 ReorderableList.defaultBehaviours.DoRemoveButton(list);
-                // Should not be needed on top of the Update call. 
+                // Should not be needed on top of the Update call.
                 UpdateSceneData();
             };
 
