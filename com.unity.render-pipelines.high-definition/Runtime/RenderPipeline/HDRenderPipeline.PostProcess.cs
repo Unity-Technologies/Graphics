@@ -4477,9 +4477,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // float lthresh = Mathf.GammaToLinearSpace(m_AutoLensFlare.threshold.value);
             // float knee = lthresh * k_Softness + 1e-5f;
             // return new Vector4(lthresh, lthresh - knee, knee * 2f, 0.25f / knee);
-			data.autoLensFlareParameters = new Vector4(m_AutoLensFlare.intensity.value, m_AutoLensFlare.blurSize.value, m_AutoLensFlare.blurSampleCount.value,m_AutoLensFlare.vignetteInfluence.value);
-			data.autoLensFlareParameters2 = new Vector4(m_AutoLensFlare.chromaticAbberationIntensity.value, m_AutoLensFlare.chromaticAbberationSampleCount.value, 0,0);
-			data.autoLensFlareParameters3 = new Vector4(m_AutoLensFlare.firstFlareIntensity.value,m_AutoLensFlare.secondaryFlareIntensity.value,m_AutoLensFlare.polarFlareIntensity.value,0);
+			data.autoLensFlareParameters = new Vector4(m_AutoLensFlare.intensity.value, m_AutoLensFlare.blurSize.value, m_AutoLensFlare.blurSampleCount.value, m_AutoLensFlare.blurContribution.value);
+			data.autoLensFlareParameters2 = new Vector4(m_AutoLensFlare.chromaticAbberationIntensity.value, m_AutoLensFlare.chromaticAbberationSampleCount.value, m_AutoLensFlare.chromaContribution.value,0);
+			data.autoLensFlareParameters3 = new Vector4(m_AutoLensFlare.firstFlareIntensity.value,m_AutoLensFlare.secondaryFlareIntensity.value,m_AutoLensFlare.polarFlareIntensity.value,m_AutoLensFlare.vignetteInfluence.value);
 		}
 
         void PrepareChromaticAberrationParameters(UberPostPassData data, UberPostFeatureFlags flags)
