@@ -339,6 +339,87 @@ namespace UnityEngine.Rendering.HighDefinition
             return outVisibilityBuffer;
         }
 
+        class VBufferOITLightingOffscreen : ForwardOpaquePassData
+        {
+            public RenderBRGBindingData BRGBindingData;
+            public ComputeBufferHandle oitVisibilityBuffer;
+            public Vector4 packedArgs;
+            public Vector2Int offscreenDimensions;
+        }
+
+        Vector2Int GetOITOffscreenLightingSize(HDCamera hdCamera, int maxSampleCounts)
+        {
+            int acceptedWidth = Math.Max(hdCamera.actualWidth, 1024);
+            return new Vector2Int(acceptedWidth, (int)HDUtils.DivRoundUp(maxSampleCounts, acceptedWidth));
+        }
+
+        TextureHandle RenderOITVBufferLightingOffscreen(
+            RenderGraph renderGraph,
+            CullingResults cull,
+            HDCamera hdCamera,
+            ShadowResult shadowResult,
+            in VBufferOITOutput vbufferOIT,
+            in LightingBuffers lightingBuffers,
+            in BuildGPULightListOutput lightLists,
+            in PrepassOutput prepassData)
+        {
+            var BRGBindingData = RenderBRG.GetRenderBRGMaterialBindingData();
+
+            int maxSampleCounts = GetMaxMaterialOITSampleCount();
+            Vector2Int offscreenDimensions = GetOITOffscreenLightingSize(hdCamera, maxSampleCounts);
+
+            TextureHandle outputColor;
+            using (var builder = renderGraph.AddRenderPass<VBufferOITLightingOffscreen>("VBufferOITLightingOffscreen", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITLightingOffscreen)))
+            {;
+                var renderListDesc = CreateOpaqueRendererListDesc(
+                                    cull,
+                                    hdCamera.camera,
+                                    HDShaderPassNames.s_VBufferLightingOffscreenName, m_CurrentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllTransparentOIT);
+                //TODO: hide this from the UI!!
+                renderListDesc.renderingLayerMask = DeferredMaterialBRG.RenderLayerMask;
+                PrepareCommonForwardPassData(renderGraph, builder, passData, true, hdCamera.frameSettings, renderListDesc, lightLists, shadowResult);
+
+                outputColor = builder.UseColorBuffer(renderGraph.CreateTexture(
+                    new TextureDesc(offscreenDimensions.x, offscreenDimensions.y, false, true)
+                    {
+                        colorFormat = GetColorBufferFormat(),
+                        name = "OITOffscreenLighting"
+                    }), 0);
+
+                passData.BRGBindingData = BRGBindingData;
+                passData.oitVisibilityBuffer = builder.ReadComputeBuffer(vbufferOIT.oitVisibilityBuffer);
+
+                float packedWidth; unsafe { int offscreenDimsWidth = offscreenDimensions.x; packedWidth = *((float*)&offscreenDimsWidth); };
+                float packedMaxSamples; unsafe { packedMaxSamples = *((float*)&maxSampleCounts); };
+                passData.packedArgs = new Vector4(packedWidth, packedMaxSamples, 0.0f, 0.0f);
+                passData.offscreenDimensions = offscreenDimensions;
+
+                builder.SetRenderFunc(
+                    (VBufferOITLightingOffscreen data, RenderGraphContext context) =>
+                    {
+                        BindGlobalLightListBuffers(data, context);
+                        BindDBufferGlobalData(data.dbuffer, context);
+                        BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
+
+                        //TODO: use clustered light list exclusively!
+                        bool useFptl = data.frameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque);
+                        CoreUtils.SetKeyword(context.cmd, "USE_FPTL_LIGHTLIST", useFptl);
+                        CoreUtils.SetKeyword(context.cmd, "USE_CLUSTERED_LIGHTLIST", !useFptl);
+
+                        //TODO: figure out depth
+
+                        data.BRGBindingData.globalGeometryPool.BindResourcesGlobal(context.cmd);
+                        Rect targetViewport = new Rect(0.0f, 0.0f, (float)data.offscreenDimensions.x, (float)data.offscreenDimensions.y);
+                        context.cmd.SetGlobalBuffer(HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
+                        context.cmd.SetViewport(targetViewport);
+
+                        DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
+                    });
+            }
+
+            return outputColor;
+        }
+
         class VBufferOITTestLighting
         {
             public RenderBRGBindingData BRGBindingData;
@@ -404,54 +485,5 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return outputColor;
         }
-
-        /*
-        class VBufferOITLightingOffscreen
-        {
-            public RenderBRGBindingData BRGBindingData;
-            public ComputeBufferHandle oitVisibilityBuffer;
-            public int width;
-            public int height;
-        }
-
-        TextureHandle RenderOITVBufferLightingOffscreen(RenderGraph renderGraph, ref PrepassOutput prepassData)
-        {
-            var vbufferOIT = prepassData.vbufferOIT;
-            if (!vbufferOIT.valid)
-                return colorBuffer;
-
-            var BRGBindingData = RenderBRG.GetRenderBRGMaterialBindingData();
-
-            TextureHandle outputColor;
-            using (var builder = renderGraph.AddRenderPass<VBufferOITTestLighting>("VBufferTestLighting", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITTestLighting)))
-            {
-                outputColor = builder.UseColorBuffer(colorBuffer, 0);
-                passData.BRGBindingData = BRGBindingData;
-                passData.testLightingMaterial = testLightingMaterial;
-                passData.testLightingPass = testLightingPass;
-                passData.oitVisibilityBuffer = builder.ReadComputeBuffer(vbufferOIT.oitVisibilityBuffer);
-                passData.sampleListCountBuffer = builder.ReadComputeBuffer(vbufferOIT.sampleListCountBuffer);
-                passData.sampleListOffsetBuffer = builder.ReadComputeBuffer(vbufferOIT.sampleListOffsetBuffer);
-                passData.sublistCounterBuffer = builder.ReadComputeBuffer(vbufferOIT.sublistCounterBuffer);
-                passData.width = hdCamera.actualWidth;
-                passData.height = hdCamera.actualHeight;
-
-                builder.SetRenderFunc(
-                    (VBufferOITTestLighting data, RenderGraphContext context) =>
-                    {
-                        data.BRGBindingData.globalGeometryPool.BindResourcesGlobal(context.cmd);
-                        Rect targetViewport = new Rect(0.0f, 0.0f, data.width, data.height);
-                        context.cmd.SetGlobalBuffer(HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
-                        context.cmd.SetGlobalBuffer(HDShaderIDs._VisOITListsCounts, data.sampleListCountBuffer);
-                        context.cmd.SetGlobalBuffer(HDShaderIDs._VisOITListsOffsets, data.sampleListOffsetBuffer);
-                        context.cmd.SetGlobalBuffer(HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
-                        context.cmd.SetViewport(targetViewport);
-                        context.cmd.DrawProcedural(Matrix4x4.identity, data.testLightingMaterial, data.testLightingPass, MeshTopology.Triangles, 3, 1, null);
-                    });
-            }
-
-            return outputColor;
-        }
-        */
     }
 }

@@ -96,6 +96,7 @@ Shader "HDRP/VisibilityOIT"
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #define SHADERPASS SHADERPASS_VISIBILITY_OIT_STORAGE
+            #define ENCODE_VIS_DEPTH
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityPass.hlsl"

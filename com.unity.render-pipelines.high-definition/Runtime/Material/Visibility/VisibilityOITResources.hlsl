@@ -43,19 +43,20 @@ float4 DebugDrawOITHistogram(float2 sampleUV, float2 screenSize)
 namespace VisibilityOIT
 {
 
-void PackVisibilityData(Visibility::VisibilityData data, uint2 texelCoordinate, out uint3 packedData)
+void PackVisibilityData(Visibility::VisibilityData data, uint2 texelCoordinate, float depth, out uint3 packedData)
 {
     uint2 packedDataHalfs;
     Visibility::PackVisibilityData(data, packedData.x, packedDataHalfs);
-    packedData.y = (packedDataHalfs.x & 0xFF) | (packedDataHalfs.y << 8);
+    packedData.y = (packedDataHalfs.x & 0xFF) | (packedDataHalfs.y << 8) | ((uint)(depth * 0xFFFF) << 16);
     packedData.z = (texelCoordinate.x & 0xFFFF) | ((texelCoordinate.y << 16) & 0xFFFF);
 }
 
-void UnpackVisibilityData(uint3 packedData, out Visibility::VisibilityData data, out uint2 texelCoordinate)
+void UnpackVisibilityData(uint3 packedData, out Visibility::VisibilityData data, out uint2 texelCoordinate, out float depth)
 {
-    uint2 packedDataHalfs = uint2(packedData.y & 0xFF, packedData.y >> 8);
+    uint2 packedDataHalfs = uint2(packedData.y & 0xFF, (packedData.y >> 8) & 0xFF);
     Visibility::UnpackVisibilityData(packedData.x, packedDataHalfs, data);
     texelCoordinate = uint2(packedData.z & 0xFFFF, (packedData.z >> 16) & 0xFFFF);
+    depth = (packedData.y >> 16) * (1.0/(float)0xFFFF);
 }
 
 void GetPixelList(uint pixelOffset, out uint listCount, out uint listOffset)
@@ -64,10 +65,10 @@ void GetPixelList(uint pixelOffset, out uint listCount, out uint listOffset)
     listOffset = _VisOITListsOffsets.Load(pixelOffset << 2);
 }
 
-void GetVisibilitySample(uint i, uint listOffset, out Visibility::VisibilityData data, out uint2 texelCoordinate)
+void GetVisibilitySample(uint i, uint listOffset, out Visibility::VisibilityData data, out uint2 texelCoordinate, out float depthValue)
 {
     uint3 packedData = _VisOITBuffer.Load3(((listOffset + i) * 3) << 2);
-    VisibilityOIT::UnpackVisibilityData(packedData, data, texelCoordinate);
+    VisibilityOIT::UnpackVisibilityData(packedData, data, texelCoordinate, depthValue);
 }
 
 }

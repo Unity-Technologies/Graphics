@@ -246,7 +246,7 @@ FragInputs EvaluateFragInput(
     return outFragInputs;
 }
 
-VBufferDeferredMaterialFragmentData BootstrapDeferredMaterialFragmentShader(float4 positionCS, uint currentMaterialKey, Visibility::VisibilityData visData)
+VBufferDeferredMaterialFragmentData BootstrapDeferredMaterialFragmentShader(float4 positionCS, uint currentMaterialKey, Visibility::VisibilityData visData, float customDepthValue, bool useCustomDepthValue)
 {
     VBufferDeferredMaterialFragmentData fragmentData;
     ZERO_INITIALIZE(VBufferDeferredMaterialFragmentData, fragmentData);
@@ -268,7 +268,7 @@ VBufferDeferredMaterialFragmentData BootstrapDeferredMaterialFragmentShader(floa
         return fragmentData;
 
     float2 pixelCoord = positionCS.xy;
-    float depthValue = LOAD_TEXTURE2D_X(_VisBufferDepthTexture, pixelCoord).x;
+    float depthValue = useCustomDepthValue ? customDepthValue : LOAD_TEXTURE2D_X(_VisBufferDepthTexture, pixelCoord).x;;
     float2 ndc = pixelCoord * _ScreenSize.zw;
     float3 posWS = ComputeWorldSpacePosition(ndc, depthValue, UNITY_MATRIX_I_VP);
     ndc = (ndc * 2.0 - 1.0) * float2(1.0, -1.0);
@@ -292,7 +292,7 @@ VBufferDeferredMaterialFragmentData BootstrapDeferredMaterialFragmentShader(Vary
     ZERO_INITIALIZE(VBufferDeferredMaterialFragmentData, fragmentData);
 #ifdef DOTS_INSTANCING_ON
     Visibility::VisibilityData visData = Visibility::LoadVisibilityData(packedInput.positionCS.xy);
-    fragmentData = BootstrapDeferredMaterialFragmentShader(packedInput.positionCS, packedInput.currentMaterialKey, visData);
+    fragmentData = BootstrapDeferredMaterialFragmentShader(packedInput.positionCS, packedInput.currentMaterialKey, visData, 0.0f, false);
 #endif
     return fragmentData;
 }

@@ -432,8 +432,9 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     for (uint i = 0; i < listCount; ++i)
                     {
                         uint2 unusedTexelCoords;
+                        float unusedDepthValue;
                         Visibility::VisibilityData visData;
-                        VisibilityOIT::GetVisibilitySample(i, listOffset, visData, unusedTexelCoords);
+                        VisibilityOIT::GetVisibilitySample(i, listOffset, visData, unusedTexelCoords, unusedDepthValue);
                         sumColor += Visibility::DebugVisIndexToRGB(visData.primitiveID);
                     }
 

@@ -62,12 +62,13 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
 
     uint3 packedData = _VisOITBuffer.Load3((visibilityIndex * 3) << 2);
     uint2 pixelCoordinate;
+    float depthValue;
     Visibility::VisibilityData visibilityData;
-    VisibilityOIT::UnpackVisibilityData(packedData, visibilityData, pixelCoordinate);
+    VisibilityOIT::UnpackVisibilityData(packedData, visibilityData, pixelCoordinate, depthValue);
     float2 pixelCoordinateCS = pixelCoordinate + 0.5;
 
     VBufferDeferredMaterialFragmentData fragmentData = BootstrapDeferredMaterialFragmentShader(
-        float4((float2)pixelCoordinateCS.xy, 0.0, 1.0), packedInput.currentMaterialKey, visibilityData);
+        float4((float2)pixelCoordinateCS.xy, 0.0, 1.0), packedInput.currentMaterialKey, visibilityData, depthValue, true/*custom depth value*/);
 
     if (!fragmentData.valid)
     {
@@ -78,7 +79,6 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     //Sampling of deferred material has been done.
     //Now perform forward lighting.
     FragInputs input = fragmentData.fragInputs;
-    float depthValue = fragmentData.depthValue;
     float3 V = fragmentData.V;
 
     int2 tileCoord = (float2)input.positionSS.xy / GetTileSize();

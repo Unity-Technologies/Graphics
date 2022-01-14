@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VBuffer,
         VBufferOITCount,
         VBufferOITStorage,
+        VBufferOITLightingOffscreen,
         VBufferOITTestLighting,
         OITHistogram,
         OITHistogramPrefixSum,

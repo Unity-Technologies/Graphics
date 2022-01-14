@@ -14,6 +14,9 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
     VaryingsType varyingsType;
     varyingsType.vmesh = VertMesh(inputMesh);
     varyingsType.vpass.batchID = (int)_DeferredMaterialInstanceData.y;
+#ifdef ENCODE_VIS_DEPTH
+    varyingsType.vpass.depthValue = varyingsType.vmesh.positionCS.zw;
+#endif
     return PackVaryingsType(varyingsType);
 }
 
@@ -48,8 +51,13 @@ void FragStoreVis(PackedVaryingsToPS packedInput)
     visData.primitiveID = input.primitiveID;
     visData.batchID = packedInput.vpass.batchID;
 
+    float zValue = 0.0f;
+#ifdef ENCODE_VIS_DEPTH
+    zValue = packedInput.vpass.depthValue.x/packedInput.vpass.depthValue.y;
+#endif
+
     uint3 outPackedData;
-    VisibilityOIT::PackVisibilityData(visData, texelCoord, outPackedData);
+    VisibilityOIT::PackVisibilityData(visData, texelCoord, zValue, outPackedData);
     _OITOutputSamples.Store3(((globalOffset + outputSublistOffset) * 3) << 2, outPackedData);
 #endif
 }

@@ -16,17 +16,26 @@
 struct PackedVaryingsPassToPS
 {
     uint batchID : ATTRIBUTE6;
+#ifdef ENCODE_VIS_DEPTH
+    float2 depthValue : ATTRIBUTE7;
+#endif
 };
 
 struct VaryingsPassToPS
 {
     uint batchID;
+#ifdef ENCODE_VIS_DEPTH
+    float2 depthValue;
+#endif
 };
 
 PackedVaryingsPassToPS PackVaryingsPassToPS(VaryingsPassToPS vpass)
 {
     PackedVaryingsPassToPS packedToPS;
     packedToPS.batchID = vpass.batchID;
+#ifdef ENCODE_VIS_DEPTH
+    packedToPS.depthValue = vpass.depthValue;
+#endif
     return packedToPS;
 }
 
