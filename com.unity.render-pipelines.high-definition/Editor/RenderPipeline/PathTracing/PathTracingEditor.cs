@@ -2,7 +2,6 @@ using System;
 
 using UnityEditor.Rendering;
 using UnityEditor.Rendering.HighDefinition;
-using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HighDefinition
