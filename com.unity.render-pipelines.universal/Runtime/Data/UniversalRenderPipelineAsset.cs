@@ -813,7 +813,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the additional lights shadowmap resolution used for this <c>UniversalRenderPipelineAsset</c>.
+        /// Additional light shadows are rendered into a single shadow map atlas texture. This setting controls the resolution of the shadow map atlas texture. 
         /// </summary>
         public int additionalLightsShadowmapResolution
         {
