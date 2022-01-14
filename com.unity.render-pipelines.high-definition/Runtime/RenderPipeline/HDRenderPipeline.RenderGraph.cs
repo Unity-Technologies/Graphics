@@ -1068,7 +1068,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.renderOITFallback = !preRefractionPass && !IsVisibilityOITPassEnabled();
 
                 if (passData.renderOITFallback)
-                   passData.oitFallbackRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareForwardTransparentRendererList(cullResults, hdCamera, preRefraction: false, oitRange: true)));
+                    passData.oitFallbackRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareForwardTransparentRendererList(cullResults, hdCamera, preRefraction: false, oitRange: true)));
 
                 int index = 0;
                 builder.UseColorBuffer(colorBuffer, index++);

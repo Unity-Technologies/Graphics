@@ -30,26 +30,19 @@ float4 Frag(Varyings input) : SV_Target
     uint2 texelCoord = (uint2)input.positionCS.xy;
     uint pixelOffset = texelCoord.y * (uint)_ScreenSize.x + texelCoord.x;
 
-    uint listCount = _VisOITListsCounts.Load(pixelOffset << 2);
+    uint listCount, listOffset;
+    VisibilityOIT::GetPixelList(pixelOffset, listCount, listOffset);
+
     if (listCount == 0)
         return float4(0,0,0,0);
 
-    uint globalOffset = _VisOITListsOffsets.Load(pixelOffset << 2);
-    uint sublistCount = _VisOITSubListsCounts.Load(pixelOffset << 2);
-
-
     float3 sumColor = float3(0,0,0);
-    for (uint i = 0; i < sublistCount; ++i)
+    for (uint i = 0; i < listCount; ++i)
     {
-        uint3 packedData = _VisOITBuffer.Load3(((globalOffset + i) * 3) << 2);
-
         uint2 unusedTexelCoords;
         Visibility::VisibilityData visData;
-        VisibilityOIT::UnpackVisibilityData(packedData, visData, unusedTexelCoords);
-
+        VisibilityOIT::GetVisibilitySample(i, listOffset, visData, unusedTexelCoords);
         sumColor += Visibility::DebugVisIndexToRGB(visData.primitiveID);
-        //sumColor += float3(0.1,0.1,0.1);//Visibility::DebugVisIndexToRGB(visData.primitiveID);
-        
     }
     return float4(sumColor,1);
 }

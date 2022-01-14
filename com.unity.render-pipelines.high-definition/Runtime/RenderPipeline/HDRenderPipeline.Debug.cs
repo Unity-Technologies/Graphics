@@ -415,6 +415,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             mpb.SetBuffer(HDShaderIDs._VisOITPrefixedHistogramBuffer, data.vBufferOIT.prefixedHistogramBuffer);
                             mpb.SetBuffer(HDShaderIDs._VisOITListsCounts, data.vBufferOIT.sampleListCountBuffer);
                             mpb.SetBuffer(HDShaderIDs._VisOITListsOffsets, data.vBufferOIT.sampleListOffsetBuffer);
+                            mpb.SetBuffer(HDShaderIDs._VisOITSubListsCounts, data.vBufferOIT.sublistCounterBuffer);
+                            mpb.SetBuffer(HDShaderIDs._VisOITBuffer, data.vBufferOIT.oitVisibilityBuffer);
                         }
 
                         if (fullscreenBuffer != null)

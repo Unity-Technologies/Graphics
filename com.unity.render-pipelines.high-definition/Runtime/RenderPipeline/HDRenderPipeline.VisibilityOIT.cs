@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsVisibilityOITPassEnabled()
         {
-            return currentAsset != null && currentAsset.VisibilityOITMaterial != null && currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.enabled && RenderBRG.GetRenderBRGMaterialBindingData().valid;;
+            return currentAsset != null && currentAsset.VisibilityOITMaterial != null && currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.enabled && RenderBRG.GetRenderBRGMaterialBindingData().valid; ;
         }
 
         void RenderVBufferOIT(RenderGraph renderGraph, TextureHandle colorBuffer, HDCamera hdCamera, CullingResults cullResults, ref PrepassOutput output)
@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             output.vbufferOIT.valid = true;
 
-            output.vbufferOIT.stencilBuffer = RenderVBufferOITCountPass(renderGraph, colorBuffer, hdCamera, cullResults, BRGBindingData); 
+            output.vbufferOIT.stencilBuffer = RenderVBufferOITCountPass(renderGraph, colorBuffer, hdCamera, cullResults, BRGBindingData);
 
             var screenSize = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
             int histogramSize, tileSize;

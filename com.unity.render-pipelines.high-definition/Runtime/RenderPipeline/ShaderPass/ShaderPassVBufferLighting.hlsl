@@ -101,7 +101,7 @@ Varyings Vert(Attributes inputMesh)
     uint shaderTileCategory = GetShaderTileCategory();
     uint materialBatchGPUKey = UNITY_GET_INSTANCE_ID(inputMesh);
     uint currentMaterialKey = GetCurrentMaterialGPUKey(materialBatchGPUKey);
-     
+
     if (((currentMaterialKey & bucketIDMask) != 0) && (currentMaterialKey >= matMinMax.x && currentMaterialKey <= matMinMax.y) && shaderTileCategory == currentTileCategory)
     {
         output.positionCS.xy = vertPos * 2 - 1;

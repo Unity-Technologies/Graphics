@@ -50,6 +50,6 @@ void FragStoreVis(PackedVaryingsToPS packedInput)
 
     uint3 outPackedData;
     VisibilityOIT::PackVisibilityData(visData, texelCoord, outPackedData);
-    _OITOutputSamples.Store3(((globalOffset + outputSublistOffset) * 3) << 2, outPackedData); 
+    _OITOutputSamples.Store3(((globalOffset + outputSublistOffset) * 3) << 2, outPackedData);
 #endif
 }

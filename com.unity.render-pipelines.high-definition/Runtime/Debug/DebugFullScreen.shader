@@ -415,6 +415,33 @@ Shader "Hidden/HDRP/DebugFullScreen"
                         return float4(1,0,0,0);
                     #endif
                 }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_OITPRIMITIVES)
+                {
+                    #ifdef DOTS_INSTANCING_ON
+                    float2 sampleUV = input.texcoord.xy / _RTHandleScale.xy;
+                    uint2 samplePosition = (uint2)(sampleUV * _DebugViewportSize.xy);
+                    uint pixelOffset = samplePosition.y * _DebugViewportSize.x + samplePosition.x;
+
+                    uint listCount, listOffset;
+                    VisibilityOIT::GetPixelList(pixelOffset, listCount, listOffset);
+
+                    if (listCount == 0)
+                        return float4((sampleUV.yyy * sampleUV.yyy * float3(0,0,0.08)), 1.0);
+
+                    float3 sumColor = float3(0,0,0);
+                    for (uint i = 0; i < listCount; ++i)
+                    {
+                        uint2 unusedTexelCoords;
+                        Visibility::VisibilityData visData;
+                        VisibilityOIT::GetVisibilitySample(i, listOffset, visData, unusedTexelCoords);
+                        sumColor += Visibility::DebugVisIndexToRGB(visData.primitiveID);
+                    }
+
+                    return float4(sumColor / (float)listCount, 1.0);
+                    #else
+                        return float4(1,0,0,0);
+                    #endif
+                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_PRE_REFRACTION_COLOR_PYRAMID
                     || _FullScreenDebugMode == FULLSCREENDEBUGMODE_FINAL_COLOR_PYRAMID)
                 {

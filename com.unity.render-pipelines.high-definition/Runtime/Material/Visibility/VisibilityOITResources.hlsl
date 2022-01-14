@@ -58,6 +58,17 @@ void UnpackVisibilityData(uint3 packedData, out Visibility::VisibilityData data,
     texelCoordinate = uint2(packedData.z & 0xFFFF, (packedData.z >> 16) & 0xFFFF);
 }
 
+void GetPixelList(uint pixelOffset, out uint listCount, out uint listOffset)
+{
+    listCount = _VisOITSubListsCounts.Load(pixelOffset << 2);
+    listOffset = _VisOITListsOffsets.Load(pixelOffset << 2);
+}
+
+void GetVisibilitySample(uint i, uint listOffset, out Visibility::VisibilityData data, out uint2 texelCoordinate)
+{
+    uint3 packedData = _VisOITBuffer.Load3(((listOffset + i) * 3) << 2);
+    VisibilityOIT::UnpackVisibilityData(packedData, data, texelCoordinate);
+} 
 
 }
 
