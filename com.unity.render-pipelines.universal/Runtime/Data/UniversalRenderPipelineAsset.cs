@@ -681,7 +681,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Specifies if the Camera Opaque Texture should be used for this <c>UniversalRenderPipelineAsset</c>.
+        /// When true, the pipeline creates a texture that contains a copy of the color buffer after rendering opaque objects. This texture can be accessed in shaders as _CameraOpaqueTexture. This setting can be overridden per camera.
         /// </summary>
         public bool supportsCameraOpaqueTexture
         {
