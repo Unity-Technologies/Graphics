@@ -4,6 +4,24 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.1.4] - 2021-12-07
+
+### Added
+- Added Adaptive Performance Decals scaler access.
+
+### Fixed
+- Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]
+- Fixed incorrect light indexing on Windows Editor with Android target. [case 1378103](https://issuetracker.unity3d.com/product/unity/issues/guid/1378103/)
+- Fixed a performance regression in the 2D renderer regarding the PostProcessPass [case 1347893]
+- Fixed a regression where filtering the scene view yielded incorrect visual results [case 1360233] (https://issuetracker.unity3d.com/product/unity/issues/guid/1360233)
+- VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
+- Fixed decal compilation issue on mac.
+
+## [12.1.3] - 2021-11-17
+
+## Fixed
+- Fixed broken soft shadow filtering. [case 1374960](https://issuetracker.unity3d.com/product/unity/issues/guid/1374960/)
+
 ## [12.1.2] - 2021-10-22
 
 ### Fixed
@@ -12,12 +30,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed disabled debug lighting modes on Vulkan and OpenGL following a shader compiler fix. [case 1334240]
 - Fixed incorrect behavior of Reflections with Smoothness lighting debug mode. [case 1374181]
 - Fixed an issue in where the Convert Renderering Settings would cause a freeze. [case 1353885](https://issuetracker.unity3d.com/issues/urp-builtin-to-urp-render-pipeline-converter-freezes-the-editor-when-converting-rendering-settings)
+- Fixed performance regression for 2D shaders where alpha discard was disabled. [case 1335648]
+- Fixed an issue with MSAA falling back to the incorrect value when sample count 2 is not supported on some Android GPUs.
 
 ## [12.1.1] - 2021-10-04
 
 ### Fixed
 - Fixed a regression bug where XR camera postion can not be modified in beginCameraRendering [case 1365000]
 - Fix for rendering thumbnails. [case 1348209](https://issuetracker.unity3d.com/issues/preview-of-assets-do-not-show-in-the-project-window)
+- Fix shadow rendering correctly to work with shader stripping in WebGl. [case 1381881](https://issuetracker.unity3d.com/issues/webgl-urp-mesh-is-not-rendered-in-the-scene-on-webgl-build)
 
 ## [12.1.0] - 2021-09-23
 
@@ -113,6 +134,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Refactored some of the array resizing code around decal projector rendering to use new APIs in render core
 - UniversalRendererData and ForwardRendererData GUIDs have been reversed so that users coming from 2019LTS, 2020LTS and 2021.1 have a smooth upgrade path, you may encounter issues coming from 2021.2 Alpha/Beta versions and are recommended to start with a fresh library if initial upgrade fails.
 - VFX: New shadergraph support directly on Universal target.
+- Changed `BaseShaderGUI.DrawAdditionalFoldouts`to `BaseShaderGUI.FillAdditionalFoldouts`.
 
 ### Fixed
 - Fixed an issue in PostProcessPass causing OnGUI draws to not show on screen. [case 1346650]
@@ -214,6 +236,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed memory leak with XR combined occlusion meshes. [case 1366173]
 - Added "Conservative Enclosing Sphere" setting to fix shadow frustum culling issue where shadows are erroneously culled in corners of cascades [case 1153151](https://issuetracker.unity3d.com/issues/lwrp-shadows-are-being-culled-incorrectly-in-the-corner-of-the-camera-viewport-when-the-far-clip-plane-is-small)
 - Fixed an issue where screen space shadows has flickering with deferred mode [case 1354681](https://issuetracker.unity3d.com/issues/screen-space-shadows-flicker-in-scene-view-when-using-deferred-rendering)
+- Fixed shadowCascadeBlendCullingFactor to be 1.0
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
