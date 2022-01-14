@@ -144,7 +144,8 @@ namespace UnityEngine.Experimental.Rendering
             this.profile = profile;
             float cellSize = profile.cellSizeInMeters;
 
-            foreach (var pv in UnityEngine.Object.FindObjectsOfType<ProbeVolume>())
+            var pvList = ProbeGIBaking.GetProbeVolumeList();
+            foreach (var pv in pvList)
             {
                 if (!pv.isActiveAndEnabled)
                     continue;

@@ -78,6 +78,8 @@ namespace UnityEngine.Experimental.Rendering
         static Dictionary<Vector3Int, int> m_CellPosToIndex = new Dictionary<Vector3Int, int>();
         static Dictionary<int, BakingCell> m_BakedCells = new Dictionary<int, BakingCell>();
 
+        internal static bool isBakingOnlyActiveScene = false;
+
         static ProbeGIBaking()
         {
             Init();
@@ -116,6 +118,50 @@ namespace UnityEngine.Experimental.Rendering
             {
                 probeVolume.OnLightingDataAssetCleared();
             }
+        }
+
+        static List<ProbeVolumePerSceneData> GetPerSceneDataList()
+        {
+            var fullPerSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
+            List<ProbeVolumePerSceneData> usedPerSceneDataList;
+
+            if (isBakingOnlyActiveScene)
+            {
+                usedPerSceneDataList = new List<ProbeVolumePerSceneData>();
+                foreach (var sceneData in fullPerSceneDataList)
+                {
+                    if (sceneData.gameObject.scene == SceneManager.GetActiveScene())
+                        usedPerSceneDataList.Add(sceneData);
+                }
+            }
+            else
+            {
+                usedPerSceneDataList = new List<ProbeVolumePerSceneData>(fullPerSceneDataList);
+            }
+
+            return usedPerSceneDataList;
+        }
+
+        internal static List<ProbeVolume> GetProbeVolumeList()
+        {
+            var fullPvList = GameObject.FindObjectsOfType<ProbeVolume>();
+            List<ProbeVolume> usedPVList;
+
+            if (isBakingOnlyActiveScene)
+            {
+                usedPVList = new List<ProbeVolume>();
+                foreach (var pv in fullPvList)
+                {
+                    if (pv.isActiveAndEnabled && pv.gameObject.scene == SceneManager.GetActiveScene())
+                        usedPVList.Add(pv);
+                }
+            }
+            else
+            {
+                usedPVList = new List<ProbeVolume>(fullPvList);
+            }
+
+            return usedPVList;
         }
 
         public static void FindWorldBounds(out bool hasFoundInvalidSetup)
@@ -205,14 +251,17 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (!ProbeReferenceVolume.instance.isInitialized) return;
 
-            var pvList = GameObject.FindObjectsOfType<ProbeVolume>();
-            if (pvList.Length == 0) return; // We have no probe volumes.
+            List<ProbeVolume> usedPVList = GetProbeVolumeList();
+
+            if (usedPVList.Count == 0) return; // We have no probe volumes.
 
             FindWorldBounds(out bool hasFoundInvalidSetup);
-            var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
-            if (perSceneDataList.Length == 0 || hasFoundInvalidSetup) return;
 
-            SetBakingContext(perSceneDataList);
+            List<ProbeVolumePerSceneData> usedPerSceneDataList = GetPerSceneDataList();
+
+            if (usedPerSceneDataList.Count == 0 || hasFoundInvalidSetup) return;
+
+            SetBakingContext(usedPerSceneDataList.ToArray());
 
             RunPlacement();
         }
@@ -285,14 +334,14 @@ namespace UnityEngine.Experimental.Rendering
         {
             Dictionary<int, List<string>> cell2Assets = new Dictionary<int, List<string>>();
             List<CellInfo> tempLoadedCells = new List<CellInfo>();
-            var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
-            if (perSceneDataList.Length == 0) return;
+
+            List<ProbeVolumePerSceneData> usedPerSceneDataList = GetPerSceneDataList();
 
             var prv = ProbeReferenceVolume.instance;
 
-            SetBakingContext(perSceneDataList);
+            SetBakingContext(usedPerSceneDataList.ToArray());
 
-            foreach (var sceneData in perSceneDataList)
+            foreach (var sceneData in usedPerSceneDataList)
             {
                 var asset = sceneData.GetCurrentStateAsset();
                 string assetPath = asset.GetSerializedFullPath();
@@ -384,7 +433,7 @@ namespace UnityEngine.Experimental.Rendering
                         }
                     }
 
-                    foreach (var sceneData in perSceneDataList)
+                    foreach (var sceneData in usedPerSceneDataList)
                     {
                         var asset = sceneData.GetCurrentStateAsset();
                         string assetPath = asset.GetSerializedFullPath();
@@ -401,7 +450,7 @@ namespace UnityEngine.Experimental.Rendering
                     HashSet<string> assetsCommitted = new HashSet<string>();
                     foreach (var cell in dilatedCells)
                     {
-                        foreach (var sceneData in perSceneDataList)
+                        foreach (var sceneData in usedPerSceneDataList)
                         {
                             var asset = sceneData.GetCurrentStateAsset();
 
@@ -424,7 +473,7 @@ namespace UnityEngine.Experimental.Rendering
                     AssetDatabase.SaveAssets();
                     AssetDatabase.Refresh();
 
-                    foreach (var sceneData in perSceneDataList)
+                    foreach (var sceneData in usedPerSceneDataList)
                     {
                         sceneData.QueueAssetLoading();
                     }
@@ -452,6 +501,8 @@ namespace UnityEngine.Experimental.Rendering
             var bakedProbeOctahedralDepth = new NativeArray<float>(numUniqueProbes * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
             bool validBakedProbes = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(m_BakingBatch.index, sh, validity, bakedProbeOctahedralDepth);
+
+            Debug.Log($"{numUniqueProbes}");
 
             if (!validBakedProbes)
             {
@@ -571,7 +622,9 @@ namespace UnityEngine.Experimental.Rendering
 
             // Map from each scene to an existing reference volume
             var scene2Data = new Dictionary<Scene, ProbeVolumePerSceneData>();
-            foreach (var data in GameObject.FindObjectsOfType<ProbeVolumePerSceneData>())
+            List<ProbeVolumePerSceneData> usedPerSceneDataList = GetPerSceneDataList();
+
+            foreach (var data in usedPerSceneDataList)
                 scene2Data[data.gameObject.scene] = data;
 
             // Map from each reference volume to its asset
@@ -635,7 +688,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            var probeVolumes = GameObject.FindObjectsOfType<ProbeVolume>();
+            var probeVolumes = GetProbeVolumeList();
             foreach (var probeVolume in probeVolumes)
             {
                 probeVolume.OnBakeCompleted();
@@ -654,6 +707,10 @@ namespace UnityEngine.Experimental.Rendering
 
             // ---- Perform dilation ---
             PerformDilation();
+
+            // We are done with baking so we reset whether we need to bake only the active or not.
+            isBakingOnlyActiveScene = false;
+
         }
 
         static void OnLightingDataCleared()
@@ -916,7 +973,7 @@ namespace UnityEngine.Experimental.Rendering
             Vector3 refVolOrigin = Vector3.zero; // TODO: This will need to be center of the world bounds.
             if (m_BakingProfile == null)
             {
-                var perSceneDataList = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
+                var perSceneDataList = GetPerSceneDataList().ToArray();
                 if (perSceneDataList.Length == 0) return ctx;
                 SetBakingContext(perSceneDataList);
             }
