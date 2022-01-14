@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Removed the name input for the SSAO and Screen Space Shadows renderer features.
 
+### Changed
+- Re-added the menu button to be able to convert selected materials.
+
 ### Fixed
 - Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]
 - Fix shadow rendering correctly to work with shader stripping in WebGl. [case 1381881](https://issuetracker.unity3d.com/issues/webgl-urp-mesh-is-not-rendered-in-the-scene-on-webgl-build)
