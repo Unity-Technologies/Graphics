@@ -46,10 +46,14 @@ namespace UnityEngine.Rendering.Universal
         ColorHDR,
     }
 
-    // TODO: should this be like light cookie format, an index to a  list of formats that are tested in order for support.
-    public enum HDRFormat
+    /// <summary>
+    /// Color Buffer format in HDR (only).
+    /// </summary>
+    public enum HDRColorBufferFormat
     {
+        /// <summary>R11G11B10f for faster rendering. Recommend for mobile.</summary>
         Default = GraphicsFormat.B10G11R11_UFloatPack32,
+        /// <summary>R16G16B16A16f for better quality. Can alleviate banding at the cost of memory and performance.</summary>
         High = GraphicsFormat.R16G16B16A16_SFloat,
     }
 
@@ -176,7 +180,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
-        [SerializeField] HDRFormat m_HDRFormat = HDRFormat.Default; // TODO: could just replace bool with the enum
+        [SerializeField] HDRColorBufferFormat m_HDRColorBufferFormat = HDRColorBufferFormat.Default;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
@@ -673,10 +677,13 @@ namespace UnityEngine.Rendering.Universal
             set { m_SupportsHDR = value; }
         }
 
-        public HDRFormat hdrFormat
+        /// <summary>
+        /// Graphics format requested for HDR color buffers.
+        /// </summary>
+        public HDRColorBufferFormat hdrColorBufferFormat
         {
-            get { return m_HDRFormat; }
-            set { m_HDRFormat = value; }
+            get { return m_HDRColorBufferFormat; }
+            set { m_HDRColorBufferFormat = value; }
         }
 
         public int msaaSampleCount

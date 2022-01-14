@@ -499,8 +499,6 @@ namespace UnityEngine.Rendering.Universal
         RTHandleRenderTargetIdentifierCompat m_CameraDepthTarget;
         RTHandleRenderTargetIdentifierCompat m_CameraResolveTarget;
 
-        HDRFormat m_HDRFormat;
-
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
 
@@ -585,10 +583,7 @@ namespace UnityEngine.Rendering.Universal
             if (UniversalRenderPipeline.asset)
             {
                 m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;
-                m_HDRFormat = UniversalRenderPipeline.asset.hdrFormat;
             }
-            else
-                m_HDRFormat = HDRFormat.Default;
 
             m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
         }

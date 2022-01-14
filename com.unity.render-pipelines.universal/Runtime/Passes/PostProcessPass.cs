@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// <summary>
     /// Renders the post-processing effect stack.
     /// </summary>
-    public class PostProcessPass : ScriptableRenderPass
+    internal class PostProcessPass : ScriptableRenderPass
     {
         RenderTextureDescriptor m_Descriptor;
         RTHandle m_Source;
@@ -98,56 +98,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         Material m_BlitMaterial;
 
-        public PostProcessPass(RenderPassEvent evt, PostProcessData data, ref PostProcessParams postProcessParams) : this(evt, data)
-        {
-            m_BlitMaterial = postProcessParams.blitMaterial;
-
-            // Texture format pre-lookup
-            const FormatUsage usage = FormatUsage.Linear | FormatUsage.Render;
-            if (SystemInfo.IsFormatSupported(postProcessParams.requestHDRFormat, usage))
-            {
-                // TODO: we could get render target format from
-                // static `UniversalRenderPipeline.asset.hdrFormat´ but that would means a static tight dependency to the pipeline asset.
-
-                m_DefaultHDRFormat = postProcessParams.requestHDRFormat;
-                m_UseRGBM = false;
-            }
-            else if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, usage)) // HDR fallback
-            {
-                m_DefaultHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-                m_UseRGBM = false;
-            }
-            else
-            {
-                m_DefaultHDRFormat = QualitySettings.activeColorSpace == ColorSpace.Linear
-                    ? GraphicsFormat.R8G8B8A8_SRGB
-                    : GraphicsFormat.R8G8B8A8_UNorm;
-                m_UseRGBM = true;
-            }
-        }
-
-        [Obsolete]
-        public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial) : this(evt, data)
-        {
-            m_BlitMaterial = blitMaterial;
-
-            // Texture format pre-lookup
-            const FormatUsage usage = FormatUsage.Linear | FormatUsage.Render;
-            if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, usage))
-            {
-                m_DefaultHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-                m_UseRGBM = false;
-            }
-            else
-            {
-                m_DefaultHDRFormat = QualitySettings.activeColorSpace == ColorSpace.Linear
-                    ? GraphicsFormat.R8G8B8A8_SRGB
-                    : GraphicsFormat.R8G8B8A8_UNorm;
-                m_UseRGBM = true;
-            }
-        }
-
-        private PostProcessPass(RenderPassEvent evt, PostProcessData data)
+        public PostProcessPass(RenderPassEvent evt, PostProcessData data, ref PostProcessParams postProcessParams)
         {
             base.profilingSampler = new ProfilingSampler(nameof(PostProcessPass));
             renderPassEvent = evt;
@@ -181,6 +132,28 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MRT2 = new RenderTargetIdentifier[2];
             m_ResetHistory = true;
             base.useNativeRenderPass = false;
+
+            m_BlitMaterial = postProcessParams.blitMaterial;
+
+            // Texture format pre-lookup
+            const FormatUsage usage = FormatUsage.Linear | FormatUsage.Render;
+            if (SystemInfo.IsFormatSupported(postProcessParams.requestHDRFormat, usage))
+            {
+                m_DefaultHDRFormat = postProcessParams.requestHDRFormat;
+                m_UseRGBM = false;
+            }
+            else if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, usage)) // HDR fallback
+            {
+                m_DefaultHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+                m_UseRGBM = false;
+            }
+            else
+            {
+                m_DefaultHDRFormat = QualitySettings.activeColorSpace == ColorSpace.Linear
+                    ? GraphicsFormat.R8G8B8A8_SRGB
+                    : GraphicsFormat.R8G8B8A8_UNorm;
+                m_UseRGBM = true;
+            }
         }
 
         public void Cleanup() => m_Materials.Cleanup();

@@ -68,11 +68,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             public bool clusteredRendering;
             public int tileSize;
 
-            static internal InitParams GetDefault()
+            static internal InitParams Create()
             {
                 InitParams p;
                 {
-                    var settings = LightCookieManager.Settings.GetDefault();
+                    var settings = LightCookieManager.Settings.Create();
                     var asset = UniversalRenderPipeline.asset;
                     if (asset)
                     {
@@ -88,7 +88,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
-        public ForwardLights() : this(InitParams.GetDefault()) { }
+        public ForwardLights() : this(InitParams.Create()) { }
 
         internal ForwardLights(InitParams initParams)
         {

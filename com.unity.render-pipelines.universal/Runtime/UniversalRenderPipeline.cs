@@ -788,7 +788,7 @@ namespace UnityEngine.Rendering.Universal
             float renderScale = isSceneViewCamera ? 1.0f : cameraData.renderScale;
 
             cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, renderScale,
-                cameraData.isHdrEnabled, asset.hdrFormat, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
+                cameraData.isHdrEnabled, asset.hdrColorBufferFormat, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
         }
 
         /// <summary>
@@ -1299,8 +1299,10 @@ namespace UnityEngine.Rendering.Universal
                 if (!debugDisplaySettings.IsPostProcessingAllowed)
                     cameraData.postProcessEnabled = false;
 
-                cameraData.cameraTargetDescriptor.graphicsFormat = MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, asset.hdrFormat, true);
+                cameraData.hdrColorBufferFormat = asset ? asset.hdrColorBufferFormat : HDRColorBufferFormat.Default;
+                cameraData.cameraTargetDescriptor.graphicsFormat = MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferFormat, true);
                 cameraData.cameraTargetDescriptor.msaaSamples = msaaSamples;
+
             }
         }
 

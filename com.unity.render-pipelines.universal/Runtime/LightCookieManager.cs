@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal
             public float cubeOctahedralSizeScale;  // Cube octahedral projection size scale.
             public bool useStructuredBuffer;       // RenderingUtils.useStructuredBuffer
 
-            public static Settings GetDefault()
+            public static Settings Create()
             {
                 Settings s;
                 s.atlas.resolution = new Vector2Int(1024, 1024);
