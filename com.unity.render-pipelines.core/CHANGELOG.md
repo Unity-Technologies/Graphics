@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Context menu on Volume Parameters to restore them to their default values.
 - Linear version of function that sets FSR RCAS shader constants
 - Add probe volume influence weight parameter
+- Added support for multiple Baking States to Prove Volumes.
 
 ### Fixed
 - Fixed XR support in CoreUtils.DrawFullscreen function.
