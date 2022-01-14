@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed FXAA quality issues when render scale is not 1.0.
 - Fixed an issue where specular color was not matching behaviour in Legacy and HDRP. [case 1326941](https://issuetracker.unity3d.com/issues/urp-specular-color-behavior-does-not-match-legacy-or-hdrp)
 - Fixed a shader compiler issue with mismatching variable types when calling lerp.
+- Fixed an issue in where a user could stack cameras with different renderers and not get a warning in the editor (this is not supported).
 
 ## [13.1.2] - 2021-11-05
 
