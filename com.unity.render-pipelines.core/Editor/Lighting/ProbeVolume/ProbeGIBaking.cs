@@ -105,15 +105,24 @@ namespace UnityEngine.Experimental.Rendering
 
         static public void Clear()
         {
-            var perSceneData = GameObject.FindObjectsOfType<ProbeVolumePerSceneData>();
+            var perSceneData = GetPerSceneDataList();
             foreach (var data in perSceneData)
             {
                 data.InvalidateAllAssets();
+            }
+
+            if (isBakingOnlyActiveScene)
+            {
+                // Perform the pending removal.
+                ProbeReferenceVolume.instance.PerformPendingOperations();
+            }
+            else
+            {
                 var refVol = ProbeReferenceVolume.instance;
                 refVol.Clear();
             }
 
-            var probeVolumes = GameObject.FindObjectsOfType<ProbeVolume>();
+            var probeVolumes = GetProbeVolumeList();
             foreach (var probeVolume in probeVolumes)
             {
                 probeVolume.OnLightingDataAssetCleared();
