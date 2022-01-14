@@ -209,30 +209,6 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap
 {
     real attenuation = 1.0f;
 
-// TODO: benchmark
-#if 0
-    attenuation = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz));
-#endif
-#if 0
-    // 4-tap hardware comparison
-    real4 attenuation4;
-    attenuation4.x = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, real3(shadowCoord.xy + real2(-0.5, 0.5) * samplingData.shadowmapSize.xy, shadowCoord.z)));
-    attenuation4.y = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, real3(shadowCoord.xy + real2( 0.5, 0.5) * samplingData.shadowmapSize.xy, shadowCoord.z)));
-    attenuation4.z = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, real3(shadowCoord.xy + real2( 0.5,-0.5) * samplingData.shadowmapSize.xy, shadowCoord.z)));
-    attenuation4.w = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, real3(shadowCoord.xy + real2(-0.5,-0.5) * samplingData.shadowmapSize.xy, shadowCoord.z)));
-    attenuation = dot(attenuation4, real(0.25));
-#endif
-#if 0
-    real fetchesWeights[4];
-    real2 fetchesUV[4];
-    SampleShadow_ComputeSamples_Tent_3x3(samplingData.shadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
-
-    attenuation = fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy, shadowCoord.z))
-                + fetchesWeights[1] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[1].xy, shadowCoord.z))
-                + fetchesWeights[2] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[2].xy, shadowCoord.z))
-                + fetchesWeights[3] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[3].xy, shadowCoord.z));
-#endif
-
     if (samplingData.softShadowQuality == 1.0h) // Low
     {
         // 4-tap hardware comparison
