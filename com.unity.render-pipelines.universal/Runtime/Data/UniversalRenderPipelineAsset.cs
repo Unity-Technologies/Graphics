@@ -158,8 +158,8 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 10;
-        [SerializeField] int k_AssetPreviousVersion = 10;
+        [SerializeField] int k_AssetVersion = 11;
+        [SerializeField] int k_AssetPreviousVersion = 11;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
@@ -1205,6 +1205,12 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetVersion = 10;
             }
 
+            if (k_AssetVersion < 11)
+            {
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 11;
+            }
+
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
@@ -1247,6 +1253,18 @@ namespace UnityEngine.Rendering.Universal
             {
                 UniversalRenderPipelineGlobalSettings.Ensure().shaderVariantLogLevel = (Rendering.ShaderVariantLogLevel) asset.m_ShaderVariantLogLevel;
                 asset.k_AssetPreviousVersion = 10;
+            }
+
+            if(asset.k_AssetPreviousVersion < 11)
+            {
+                PostProcessData defaultPostProcessData = PostProcessData.GetDefaultPostProcessData();
+                ResourceReloader.ReloadAllNullIn(defaultPostProcessData, packagePath);
+
+                PostProcessData postProcessData = (asset.scriptableRendererData as UniversalRendererData)?.postProcessData;
+                if(postProcessData != defaultPostProcessData)
+                    ResourceReloader.ReloadAllNullIn(postProcessData, packagePath);
+                
+                asset.k_AssetPreviousVersion = 11;
             }
 
             EditorUtility.SetDirty(asset);
