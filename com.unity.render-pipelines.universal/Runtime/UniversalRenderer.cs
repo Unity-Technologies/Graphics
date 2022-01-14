@@ -451,6 +451,12 @@ namespace UnityEngine.Rendering.Universal
             // This indicates whether the renderer will output a depth texture.
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || m_DepthPrimingMode == DepthPrimingMode.Forced;
 
+#if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+            var vfxBufferNeeded = VFXManager.IsCameraBufferNeeded(cameraData.camera);
+            requiresDepthTexture = requiresDepthTexture || vfxBufferNeeded.HasFlag(VFXCameraBufferTypes.Depth);
+            createColorTexture = createColorTexture || vfxBufferNeeded.HasFlag(VFXCameraBufferTypes.Color);
+#endif
+
 #if UNITY_EDITOR
             bool isGizmosEnabled = UnityEditor.Handles.ShouldRenderGizmos();
 #else
@@ -505,7 +511,6 @@ namespace UnityEngine.Rendering.Universal
                 // If only post process requires depth texture, we can re-use depth buffer from main geometry pass instead of enqueuing a depth copy pass, but no proper API to do that for now, so resort to depth copy pass for now
                 m_CopyDepthPass.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
             }
-
 
             createColorTexture |= RequiresIntermediateColorTexture(ref cameraData);
             createColorTexture |= renderPassInputs.requiresColorTexture;
@@ -932,7 +937,6 @@ namespace UnityEngine.Rendering.Universal
                 }
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-                var vfxBufferNeeded = VFXManager.IsCameraBufferNeeded(cameraData.camera);
                 if (vfxBufferNeeded.HasFlag(VFXCameraBufferTypes.Color))
                 {
                     var colorDescriptor = cameraTargetDescriptor;
