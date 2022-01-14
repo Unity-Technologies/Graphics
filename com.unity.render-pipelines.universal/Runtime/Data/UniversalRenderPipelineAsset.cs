@@ -169,7 +169,8 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// An asset that produces a RenderPipeline for URP.
+    /// An asset that contains the setting for the RenderPipeline in can produce for URP.
+    /// This asset can be assigned as a quality level.
     /// <see cref="RenderPipelineAsset"\>
     /// <see cref="UniversalRenderPipeline"/>
     /// </summary>
@@ -382,9 +383,9 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
         /// <summary>
-        /// Used to create a renderer give a <c>RendererType</c>.
+        /// Used to initialized the rendererData that is required by the renderer.
         /// </summary>
-        /// <param name="type">The <c>RendererType</c> of the new renderer it should create.</param>
+        /// <param name="type">The <c>RendererType</c> of the new renderer it should initialized within this asset.</param>
         /// <returns></returns>
         /// <see cref="RendererType"/>
         public ScriptableRendererData LoadBuiltinRendererData(RendererType type = RendererType.UniversalRenderer)
@@ -698,7 +699,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// This is to check if this <c>UniversalRenderPipelineAsset</c> supports terrain holes.
+        /// This settings controls if the asset <c>UniversalRenderPipelineAsset</c> supports terrain holes.
         /// </summary>
         /// <see href="https://docs.unity3d.com/Manual/terrain-PaintHoles.html"/>
         public bool supportsTerrainHoles
@@ -719,6 +720,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Specifies if HDR is used.
         /// </summary>
+        /// <see href="https://docs.unity3d.com/Manual/HDR.html"/>
         public bool supportsHDR
         {
             get { return m_SupportsHDR; }
@@ -729,7 +731,6 @@ namespace UnityEngine.Rendering.Universal
         /// Specifies the msaa sample count used by this <c>UniversalRenderPipelineAsset</c>
         /// </summary>
         /// <see cref="SampleCount"/>
-        /// <see href="https://docs.unity3d.com/Manual/HDR.html"/>
         public int msaaSampleCount
         {
             get { return (int)m_MSAA; }
@@ -984,6 +985,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Returns true if the Render Pipeline Asset supports mixed lighting, false otherwise.
         /// </summary>
+        /// <see href="https://docs.unity3d.com/Manual/LightMode-Mixed.html"/>
         public bool supportsMixedLighting
         {
             get { return m_MixedLightingSupported; }
@@ -1239,18 +1241,12 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public string[] lightLayerMaskNames => UniversalRenderPipelineGlobalSettings.instance.lightLayerNames;
 
-        /// <summary>
-        /// Before Serializing.
-        /// </summary>
-        /// <see href="https://docs.unity3d.com/ScriptReference/ISerializationCallbackReceiver.OnBeforeSerialize.html"/>
+        /// <inheritdoc/>
         public void OnBeforeSerialize()
         {
         }
 
-        /// <summary>
-        /// After Deserializing.
-        /// </summary>
-        /// <see href="https://docs.unity3d.com/ScriptReference/ISerializationCallbackReceiver.OnAfterDeserialize.html"/>
+        /// <inheritdoc/>
         public void OnAfterDeserialize()
         {
             if (k_AssetVersion < 3)
