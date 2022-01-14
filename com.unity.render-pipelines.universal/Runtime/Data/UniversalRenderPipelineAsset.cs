@@ -1144,7 +1144,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the default shader for the specified renderer.
+        /// Returns the default shader for the specified renderer. When creating new objects in the editor, the materials of those objects will use the selected default shader.
         /// </summary>
         /// <returns>Returns the default shader for the specified renderer.</returns>
         public override Shader defaultShader
