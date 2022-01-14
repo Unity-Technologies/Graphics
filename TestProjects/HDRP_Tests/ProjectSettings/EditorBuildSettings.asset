@@ -234,6 +234,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1910_DepthOffset.unity
     guid: 8c039225354f2b24390b4c8c735ab141
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1911_RemapAlpha.unity
+    guid: 36f4211ae48e9f0478383e852955e5c6
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2001_Light_DynamicDirectional.unity
     guid: 09baf18a7e1f6584f86675e6a2141c66
   - enabled: 1
