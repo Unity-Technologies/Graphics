@@ -35,7 +35,7 @@ float4 DebugDrawOITHistogram(float2 sampleUV, float2 screenSize)
         accumulation += _VisOITHistogramBuffer.Load(clamp((offset + i), 0, DITHER_TILE_TOTAL_PIXELS - 1) << 2);
     }
 
-    float perc = float(accumulation);;
+    float perc = float(accumulation);
     float maxVal = (float)_VisOITPrefixedHistogramBuffer.Load((DITHER_TILE_TOTAL_PIXELS - 1) << 2);
     return float4(sqrt(perc/maxVal).xxx, 1.0);
 }
