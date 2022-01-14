@@ -170,6 +170,8 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     SurfaceData surfaceData;
     InitializeSimpleLitSurfaceData(input.uv, surfaceData);
 
+    ApplyLODCrossFade(input.positionCS);
+
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
@@ -181,8 +183,6 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, _Surface);
-
-    ApplyLODCrossFade(input.positionCS, color);
 
     return color;
 }

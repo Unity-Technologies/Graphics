@@ -95,15 +95,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
 
-                var urp = UniversalRenderPipeline.asset;
-
-                if (urp)
-                {
-                    bool msaa = renderingData.cameraData.cameraTargetDescriptor.msaaSamples > 1;
-                    float alphaToMaskEnabled = urp.enableLODCrossFadeAlphaToMask && msaa ? 1.0f : 0.0f;
-                    cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskEnabled, alphaToMaskEnabled);
-                }
-
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -140,8 +131,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // Render objects that did not match any shader pass with error shader
                     RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
                 }
-
-                cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskEnabled, 0.0f);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

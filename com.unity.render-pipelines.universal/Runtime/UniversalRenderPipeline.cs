@@ -1267,10 +1267,23 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalInt(ShaderPropertyId.lodCrossFadeType, (int)asset.lodCrossFadeType);
 
             UniversalRendererData renderData = asset.scriptableRendererData as UniversalRendererData;
+
             if (asset.lodCrossFadeType == LODCrossFadeType.BayerMatrixDither)
-                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, renderData?.postProcessData?.textures.bayerMatrixTex);
+            {
+                if (renderData?.postProcessData?.textures.bayerMatrixTex)
+                    Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, renderData.postProcessData.textures.bayerMatrixTex);
+                else
+                    Debug.LogError("LOD Cross Fade: unable to find Bayer Matrix dithering Texture.");
+            }
             else if (asset.lodCrossFadeType == LODCrossFadeType.BlueNoiseDither)
-                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, renderData?.postProcessData?.textures.blueNoise64LTex);
+            {
+                if (renderData?.postProcessData?.textures.blueNoise64LTex)
+                    Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, renderData.postProcessData.textures.blueNoise64LTex);
+                else
+                    Debug.LogError("LOD Cross Fade: unable to find Blue Noise dithering Texture.");
+            }
+
+            LODGroup.crossFadeAnimationDuration = 2.0f;
         }
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)

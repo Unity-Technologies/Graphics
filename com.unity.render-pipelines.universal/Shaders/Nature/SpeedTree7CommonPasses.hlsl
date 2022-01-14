@@ -146,11 +146,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
         AlphaDiscard(diffuse.a, _Cutoff);
     #endif
 
-    #ifdef GBUFFER
-        ApplyLODCrossFade(input.clipPos);
-    #else
-        ApplyLODCrossFade(input.clipPos, diffuse);
-    #endif
+    ApplyLODCrossFade(input.clipPos);
 
     half3 diffuseColor = diffuse.rgb;
 

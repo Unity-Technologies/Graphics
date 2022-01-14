@@ -59,9 +59,6 @@ float4 _ProjectionParams;
 // w = 1 + 1.0/height
 float4 _ScreenParams;
 
-// 1.0 if AlphaToMask is enabled and 0.0 otherwise
-float _AlphaToMaskEnabled;
-
 // x = Mip Bias
 // y = 2.0 ^ [Mip Bias]
 float2 _GlobalMipBias;

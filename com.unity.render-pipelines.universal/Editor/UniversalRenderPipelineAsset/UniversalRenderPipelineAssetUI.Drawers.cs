@@ -149,8 +149,6 @@ namespace UnityEditor.Rendering.Universal
             serialized.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
             EditorGUILayout.PropertyField(serialized.upscalingFilter, Styles.upscalingFilterText);
             EditorGUILayout.PropertyField(serialized.lodCrossFadeTypeProp, Styles.lodCrossFadeTypeText);
-            if((MsaaQuality)serialized.msaa.intValue != MsaaQuality.Disabled)
-                EditorGUILayout.PropertyField(serialized.enableLodCrossFadeAlphaToMaskProp, Styles.enableLodCrossFadeAlphaToMaskText);
         }
 
         static void DrawLighting(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)

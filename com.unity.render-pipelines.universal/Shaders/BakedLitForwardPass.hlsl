@@ -129,15 +129,14 @@ half4 BakedLitForwardPassFragment(Varyings input) : SV_Target
     AlphaDiscard(alpha, _Cutoff);
     color = AlphaModulate(color, alpha);
 
+    ApplyLODCrossFade(input.positionCS);
+
 #ifdef _DBUFFER
     ApplyDecalToBaseColorAndNormal(input.positionCS, color, inputData.normalWS);
 #endif
 
     half4 finalColor = UniversalFragmentBakedLit(inputData, color, alpha, normalTS);
-
     finalColor.a = OutputAlpha(finalColor.a, _Surface);
-
-    ApplyLODCrossFade(input.positionCS, finalColor);
 
     return finalColor;
 }

@@ -102,6 +102,8 @@ half4 UnlitPassFragment(Varyings input) : SV_Target
     AlphaDiscard(alpha, _Cutoff);
     color = AlphaModulate(color, alpha);
 
+    ApplyLODCrossFade(input.positionCS);
+
     InputData inputData;
     InitializeInputData(input, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
@@ -130,8 +132,6 @@ half4 UnlitPassFragment(Varyings input) : SV_Target
     half fogFactor = input.fogCoord;
 #endif
     finalColor.rgb = MixFog(finalColor.rgb, fogFactor);
-
-    ApplyLODCrossFade(input.positionCS, finalColor);
 
     return finalColor;
 }

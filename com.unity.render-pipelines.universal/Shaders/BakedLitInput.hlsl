@@ -2,6 +2,7 @@
 #define UNIVERSAL_BAKEDLIT_INPUT_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
     float4 _BaseMap_ST;

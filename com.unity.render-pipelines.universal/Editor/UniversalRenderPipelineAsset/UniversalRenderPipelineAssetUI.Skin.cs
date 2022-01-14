@@ -38,7 +38,6 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent renderScaleText = EditorGUIUtility.TrTextContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
             public static GUIContent upscalingFilterText = EditorGUIUtility.TrTextContent("Upscaling Filter", "Controls the type of filter used for upscaling when render scale is lower than 1.0.");
             public static GUIContent lodCrossFadeTypeText = EditorGUIUtility.TrTextContent("LOD Cross Fade Type", "Type of the LOD Cross Fade that is used to draw Renderer LOD when LODGroup has CrossFade Fade Mode selected.");
-            public static GUIContent enableLodCrossFadeAlphaToMaskText = EditorGUIUtility.TrTextContent("Enable LOD Cross Fade AlphaToMask", "Enables AlphaToMask when blends between LODs and adjusts fragment's alpha by LOD Cross Fade value. This makes LOD Cross Fade to look smoother when Anti Aliasing (MSAA) is enabled.");
 
             // Main light
             public static GUIContent mainLightRenderingModeText = EditorGUIUtility.TrTextContent("Main Light", "Main light is the brightest directional light.");

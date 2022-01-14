@@ -369,11 +369,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     half alpha = diffuse.a * input.interpolated.color.a;
     AlphaDiscard(alpha, 0.3333);
 
-#ifdef GBUFFER
     ApplyLODCrossFade(input.interpolated.clipPos);
-#else
-    ApplyLODCrossFade(input.interpolated.clipPos, diffuse);
-#endif
 
     half3 albedo = diffuse.rgb;
     half3 emission = 0;

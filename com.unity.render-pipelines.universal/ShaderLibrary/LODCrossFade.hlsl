@@ -15,11 +15,6 @@ half CopySign(half x, half s)
     return (s >= 0) ? abs(x) : -abs(x);
 }
 
-half DitheringToAlpha(half d)
-{
-    return d * 8.0 + 1.0;
-}
-
 half GetBayerMatrixDithering(float2 seed)
 {
     const half k_BayerMatrixTexSize = 4.0; 
@@ -65,30 +60,6 @@ void ApplyLODCrossFade(float4 positionCS)
     half d = GetLODDithering(positionCS.xy, unity_LODFade.x);
 
     clip(d);
-#endif
-}
-
-void ApplyLODCrossFade(float4 positionCS, inout half4 color)
-{
-#ifdef LOD_FADE_CROSSFADE
-    #if _SURFACE_TYPE_TRANSPARENT
-        bool alphaToMask = false;
-    #else
-        bool alphaToMask = _AlphaToMaskEnabled;
-    #endif
-
-        if (!alphaToMask)
-        {
-            ApplyLODCrossFade(positionCS);
-        }
-        else
-        {
-            half d = GetLODDithering(positionCS.xy, unity_LODFade.x);
-
-            color.a = DitheringToAlpha(d);
-
-            clip(color.a);
-        }
 #endif
 }
 
