@@ -243,6 +243,4 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
 #endif
 }
 
-//@ View invariant dithering is not needed for non camera rendering.
-
 #endif // UNIVERSAL_INPUT_SURFACE_PBR_INCLUDED
