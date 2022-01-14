@@ -717,7 +717,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Specifies if HDR is used.
+        /// When enabled, the camera renders to HDR buffers. This setting can be overridden per camera.
         /// </summary>
         public bool supportsHDR
         {
