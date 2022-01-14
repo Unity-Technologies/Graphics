@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         HardShadows,
         /// <summary>
-        /// Shadows has smoother edges.
+        /// Filtering is applied when sampling shadows. Shadows have smooth edges.
         /// </summary>
         SoftShadows,
     }
