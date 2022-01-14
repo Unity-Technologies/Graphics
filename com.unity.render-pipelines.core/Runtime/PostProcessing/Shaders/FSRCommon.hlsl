@@ -17,8 +17,6 @@
 ///     - The sample to use for FSR_INPUT_TEXTURE
 ///
 /// The following preprocessor parameters are optional and MAY be defined before including this file:
-/// - FSR_ENABLE_16BIT
-///     - Enables the 16-bit implementation of FSR (should only be used when supported by hardware!)
 /// - FSR_ENABLE_ALPHA
 ///     - Enables alpha pass-through functionality for the RCAS pass
 ///
@@ -32,8 +30,10 @@
 #define A_GPU 1
 #define A_HLSL 1
 
-// Enable either the 16-bit or the 32-bit implementation of FSR depending on preprocessor definitions
-#if FSR_ENABLE_16BIT
+// Enable either the 16-bit or the 32-bit implementation of FSR depending on platform support
+// Note: There are known issues relating to the math approximation functions on some DX11 drivers when FP16 is used.
+//       Due to this issue, we currently prevent the 16-bit implementation from being used when DX11 is detected.
+#if REAL_IS_HALF && !defined(SHADER_API_D3D11)
     #define A_HALF
     #define FSR_EASU_H 1
     #define FSR_RCAS_H 1
@@ -105,23 +105,21 @@ AF4 FsrEasuBF(AF2 p)
 /// Ex: #define FSR_INPUT_SAMPLER sampler_LinearClamp
 ///
 /// The color data stored in the source texture should be in gamma 2.0 color space
-#if FSR_EASU_H
-half3 ApplyEASU(uint2 positionSS)
+real3 ApplyEASU(uint2 positionSS)
 {
+#if FSR_EASU_H
     // Execute 16-bit EASU
     AH3 color;
-    FsrEasuH(color, positionSS, FSR_EASU_CONSTANTS_0, FSR_EASU_CONSTANTS_1, FSR_EASU_CONSTANTS_2, FSR_EASU_CONSTANTS_3);
-    return color;
-}
+    FsrEasuH(
 #else
-float3 ApplyEASU(uint2 positionSS)
-{
     // Execute 32-bit EASU
     AF3 color;
-    FsrEasuF(color, positionSS, FSR_EASU_CONSTANTS_0, FSR_EASU_CONSTANTS_1, FSR_EASU_CONSTANTS_2, FSR_EASU_CONSTANTS_3);
+    FsrEasuF(
+#endif
+        color, positionSS, FSR_EASU_CONSTANTS_0, FSR_EASU_CONSTANTS_1, FSR_EASU_CONSTANTS_2, FSR_EASU_CONSTANTS_3
+    );
     return color;
 }
-#endif
 
 /// Bindings for FSR RCAS constants provided by the CPU
 ///
@@ -166,13 +164,13 @@ void FsrRcasInputF(inout AF1 r, inout AF1 g, inout AF1 b)
 /// When passthrough is enabled, this function will return the input texture's alpha channel unmodified
 ///
 /// The color data stored in the source texture should be in linear color space
-#if FSR_RCAS_H
 #if FSR_ENABLE_ALPHA
-half4 ApplyRCAS(uint2 positionSS)
+real4 ApplyRCAS(uint2 positionSS)
 #else
-half3 ApplyRCAS(uint2 positionSS)
+real3 ApplyRCAS(uint2 positionSS)
 #endif
 {
+#if FSR_RCAS_H
     // Execute 16-bit RCAS
 #if FSR_ENABLE_ALPHA
     AH4 color;
@@ -180,24 +178,7 @@ half3 ApplyRCAS(uint2 positionSS)
     AH3 color;
 #endif
     FsrRcasH(
-        color.r,
-        color.g,
-        color.b,
-#if FSR_ENABLE_ALPHA
-        color.a,
-#endif
-        positionSS,
-        FSR_RCAS_CONSTANTS
-    );
-    return color;
-}
 #else
-#if FSR_ENABLE_ALPHA
-float4 ApplyRCAS(uint2 positionSS)
-#else
-float3 ApplyRCAS(uint2 positionSS)
-#endif
-{
     // Execute 32-bit RCAS
 #if FSR_ENABLE_ALPHA
     AF4 color;
@@ -205,6 +186,7 @@ float3 ApplyRCAS(uint2 positionSS)
     AF3 color;
 #endif
     FsrRcasF(
+#endif
         color.r,
         color.g,
         color.b,
@@ -216,4 +198,3 @@ float3 ApplyRCAS(uint2 positionSS)
     );
     return color;
 }
-#endif
