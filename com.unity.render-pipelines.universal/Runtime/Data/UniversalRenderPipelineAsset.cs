@@ -672,7 +672,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Specifies if the Camera Depth Texture should be used for this <c>UniversalRenderPipelineAsset</c>.
+        /// When true, the pipeline creates a depth texture that can be read in shaders. The depth texture can be accessed as _CameraDepthTexture. This setting can be overridden per camera.
         /// </summary>
         public bool supportsCameraDepthTexture
         {
