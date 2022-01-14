@@ -111,12 +111,7 @@ namespace UnityEngine.Experimental.Rendering
                 data.InvalidateAllAssets();
             }
 
-            if (isBakingOnlyActiveScene)
-            {
-                // Perform the pending removal.
-                ProbeReferenceVolume.instance.PerformPendingOperations();
-            }
-            else
+            if (!isBakingOnlyActiveScene)
             {
                 var refVol = ProbeReferenceVolume.instance;
                 refVol.Clear();
@@ -389,11 +384,24 @@ namespace UnityEngine.Experimental.Rendering
                     List<ProbeReferenceVolume.Cell> dilatedCells = new List<ProbeReferenceVolume.Cell>(prv.cells.Values.Count);
                     bool everythingLoaded = !prv.hasUnloadedCells;
 
+                    var activeSceneAssetID = -1;
+                    if (isBakingOnlyActiveScene)
+                    {
+                        Debug.Assert(usedPerSceneDataList.Count <= 1); // We have max one per scene data as we only consider one scene here.
+                        activeSceneAssetID = usedPerSceneDataList.Count > 0 ? usedPerSceneDataList[0].GetCurrentStateAsset().GetInstanceID() : -1;
+                    }
+
                     if (everythingLoaded)
                     {
                         foreach (var cellInfo in prv.cells.Values)
                         {
                             var cell = cellInfo.cell;
+
+                            if (isBakingOnlyActiveScene)
+                            {
+                                if (cellInfo.sourceAssetInstanceID != activeSceneAssetID) continue;
+                            }
+
                             PerformDilation(cell, dilationSettings);
                             dilatedCells.Add(cell);
                         }
@@ -423,6 +431,11 @@ namespace UnityEngine.Experimental.Rendering
                                         {
                                             if (prv.cells.TryGetValue(cellToLoadIndex, out var cellToLoad))
                                             {
+                                                if (isBakingOnlyActiveScene)
+                                                {
+                                                    if (cellToLoad.sourceAssetInstanceID != activeSceneAssetID) continue;
+                                                }
+
                                                 if (prv.LoadCell(cellToLoad))
                                                 {
                                                     tempLoadedCells.Add(cellToLoad);
@@ -510,8 +523,6 @@ namespace UnityEngine.Experimental.Rendering
             var bakedProbeOctahedralDepth = new NativeArray<float>(numUniqueProbes * 64, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
             bool validBakedProbes = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(m_BakingBatch.index, sh, validity, bakedProbeOctahedralDepth);
-
-            Debug.Log($"{numUniqueProbes}");
 
             if (!validBakedProbes)
             {
