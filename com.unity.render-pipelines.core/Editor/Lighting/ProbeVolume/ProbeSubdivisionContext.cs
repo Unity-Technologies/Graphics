@@ -118,7 +118,11 @@ namespace UnityEngine.Experimental.Rendering
                             ctx.cells.Add(cell);
 
                             var result = ProbeGIBaking.BakeBricks(ctx);
-                            ProbeReferenceVolume.instance.realtimeSubdivisionInfo[cell.volume] = result.bricksPerCells[cell.position];
+
+                            if (result.bricksPerCells.TryGetValue(cell.position, out var bricks))
+                                ProbeReferenceVolume.instance.realtimeSubdivisionInfo[cell.volume] = bricks;
+                            else
+                                ProbeReferenceVolume.instance.realtimeSubdivisionInfo.Remove(cell.volume);
 
                             yield return null;
                         }
@@ -180,10 +184,10 @@ namespace UnityEngine.Experimental.Rendering
             HashSet<Vector3Int> cellPositions = new HashSet<Vector3Int>();
             foreach (var pv in probeVolumes)
             {
-                var probeVolume = pv.component;
-                var halfSize = probeVolume.size / 2.0f;
-                var minCellPosition = (probeVolume.transform.position - halfSize) / cellSize;
-                var maxCellPosition = (probeVolume.transform.position + halfSize) / cellSize;
+                // This method generates many cells outside of the probe volumes but it's ok because next step will do obb collision tests between each cell and each probe volumes so we will eliminate them.
+                var aabb = pv.volume.CalculateAABB();
+                var minCellPosition = aabb.min / cellSize;
+                var maxCellPosition = aabb.max / cellSize;
 
                 Vector3Int min = new Vector3Int(Mathf.FloorToInt(minCellPosition.x), Mathf.FloorToInt(minCellPosition.y), Mathf.FloorToInt(minCellPosition.z));
                 Vector3Int max = new Vector3Int(Mathf.CeilToInt(maxCellPosition.x), Mathf.CeilToInt(maxCellPosition.y), Mathf.CeilToInt(maxCellPosition.z));

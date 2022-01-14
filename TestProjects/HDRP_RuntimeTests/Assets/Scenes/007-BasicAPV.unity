@@ -1495,7 +1495,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   globalVolume: 1
   size: {x: 11.439015, y: 16.300907, z: 18.955118}
-  geometryDistanceOffset: 0.2
+  overrideRendererFilters: 0
+  minRendererVolumeSize: 0.1
   objectLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -1520,7 +1521,7 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  cachedHashCode: -670471317
+  cachedHashCode: 507495071
 --- !u!4 &1017176620
 Transform:
   m_ObjectHideFlags: 0
@@ -1888,6 +1889,8 @@ MonoBehaviour:
   deepLearningSuperSamplingUseCustomAttributes: 0
   deepLearningSuperSamplingUseOptimalSettings: 1
   deepLearningSuperSamplingSharpening: 0
+  fsrOverrideSharpness: 0
+  fsrSharpness: 0.92
   exposureTarget: {fileID: 0}
   materialMipBias: 0
   m_RenderingPathCustomFrameSettings:
@@ -2104,6 +2107,11 @@ MonoBehaviour:
   serializedAssets:
   - state: 0
     asset: {fileID: 11400000, guid: a51673b8ec3ae0e48a8e2463c9b5bfdd, type: 2}
+    cellDataAsset: {fileID: 4900000, guid: d242fbd78111c364d875a7bfeba7a296, type: 3}
+    cellOptionalDataAsset: {fileID: 4900000, guid: 90c23848a8b537b40bff950ae945448d,
+      type: 3}
+    cellSupportDataAsset: {fileID: 4900000, guid: acb4ae6ad947b73478110ec6f398e997,
+      type: 3}
 --- !u!4 &1943135966
 Transform:
   m_ObjectHideFlags: 1

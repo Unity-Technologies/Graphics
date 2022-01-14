@@ -26,8 +26,12 @@ namespace UnityEngine.Experimental.Rendering
         struct SceneData
         {
             public SceneAsset asset;
-            public string path;
             public string guid;
+
+            public string GetPath()
+            {
+                return AssetDatabase.GUIDToAssetPath(guid);
+            }
         }
 
         static class Styles
@@ -86,6 +90,13 @@ namespace UnityEngine.Experimental.Rendering
             Undo.undoRedoPerformed -= RefreshAfterUndo;
             if (m_ProbeVolumeProfileEditor != null)
                 Object.DestroyImmediate(m_ProbeVolumeProfileEditor);
+        }
+
+        void UpdateSceneData()
+        {
+            // Should not be needed on top of the Update call.
+            EditorUtility.SetDirty(sceneData.parentAsset);
+            m_SerializedObject.Update();
         }
 
         void Initialize()
@@ -148,7 +159,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Added new baking set");
                 sceneData.CreateNewBakingSet("New Baking Set");
-                m_SerializedObject.Update();
+                UpdateSceneData();
                 OnBakingSetSelected(list);
             };
 
@@ -166,6 +177,7 @@ namespace UnityEngine.Experimental.Rendering
                         AssetDatabase.DeleteAsset(pathToDelete);
                     Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Deleted baking set");
                     ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                    UpdateSceneData();
                 }
             };
 
@@ -200,7 +212,6 @@ namespace UnityEngine.Experimental.Rendering
                 return new SceneData
                 {
                     asset = asset,
-                    path = path,
                     guid = s
                 };
             }).ToList();
@@ -242,7 +253,7 @@ namespace UnityEngine.Experimental.Rendering
                 // display the probe volume icon in the scene if it have one
                 Rect probeVolumeIconRect = rect;
                 probeVolumeIconRect.xMin = rect.xMax - k_ProbeVolumeIconSize;
-                if (sceneData.hasProbeVolumes.ContainsKey(scene.guid))
+                if (sceneData.hasProbeVolumes.ContainsKey(scene.guid) && sceneData.hasProbeVolumes[scene.guid])
                     EditorGUI.LabelField(probeVolumeIconRect, new GUIContent(Styles.probeVolumeIcon));
 
                 // Display the lighting settings of the first scene (it will be used for baking)
@@ -281,6 +292,8 @@ namespace UnityEngine.Experimental.Rendering
             {
                 Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Deleted scene in baking set");
                 ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                // Should not be needed on top of the Update call.
+                UpdateSceneData();
             };
 
             void TryAddScene(SceneData scene)
@@ -300,7 +313,7 @@ namespace UnityEngine.Experimental.Rendering
                     set.sceneGUIDs.Add(scene.guid);
 
                 sceneData.SyncBakingSetSettings();
-                m_SerializedObject.Update();
+                UpdateSceneData();
             }
         }
 
@@ -529,7 +542,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         void LoadScenesInBakingSet(ProbeVolumeSceneData.BakingSet set)
-            => LoadScenes(GetCurrentBakingSet().sceneGUIDs.Select(sceneGUID => m_ScenesInProject.FirstOrDefault(s => s.guid == sceneGUID).path));
+            => LoadScenes(GetCurrentBakingSet().sceneGUIDs.Select(sceneGUID => m_ScenesInProject.FirstOrDefault(s => s.guid == sceneGUID).GetPath()));
 
         void LoadScenes(IEnumerable<string> scenePathes)
         {
