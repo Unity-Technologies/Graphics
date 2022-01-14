@@ -804,7 +804,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Specifies if shadows for the additional lights should be used for this <c>UniversalRenderPipelineAsset</c>.
+        /// Specifies if objects lit by additional lights cast shadows.
         /// </summary>
         public bool supportsAdditionalLightShadows
         {
