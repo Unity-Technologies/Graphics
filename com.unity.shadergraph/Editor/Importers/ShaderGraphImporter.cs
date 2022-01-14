@@ -124,7 +124,7 @@ Shader ""Hidden/GraphErrorShader2""
                         shaderString = k_ErrorShader.Replace("Hidden/GraphErrorShader2", generatedShader.shaderName);
                     }
 
-                    var shader = ShaderUtil.CreateShaderAsset(importContext, generatedShader.codeString, false);
+                    var shader = ShaderUtil.CreateShaderAsset(importContext, shaderString, false);
 
                     ReportErrors(graph, shader, path, importErrorLog);
 
@@ -141,6 +141,8 @@ Shader ""Hidden/GraphErrorShader2""
                     if (first)
                     {
                         // first shader is always the primary shader
+                        // we return the primary shader so it can be attached to the import context at the outer level
+                        // allowing it to bind a custom icon as well
                         primaryShader = shader;
 
                         // only the main shader gets a material created
@@ -182,7 +184,6 @@ Shader ""Hidden/GraphErrorShader2""
             graph.OnEnable();
             graph.ValidateGraph();
 
-            // Shader shader = null;
             UnityEngine.Object mainObject = null;
 #if VFX_GRAPH_10_0_0_OR_NEWER
             if (!graph.isOnlyVFXTarget)

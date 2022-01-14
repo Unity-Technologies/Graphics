@@ -10,9 +10,9 @@ namespace UnityEditor.ShaderGraph
 
         public int CompareTo(ShaderDependency other)
         {
-            int result = dependencyName.CompareTo(other.dependencyName);
+            int result = string.CompareOrdinal(dependencyName, other.dependencyName);
             if (result == 0)
-                result = shaderName.CompareTo(other.shaderName);
+                result = string.CompareOrdinal(shaderName, other.shaderName);
             return result;
         }
     }
@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph
 
         public int CompareTo(ShaderCustomEditor other)
         {
-            int result = renderPipelineAssetType.CompareTo(other.renderPipelineAssetType);
+            int result = string.CompareOrdinal(renderPipelineAssetType, other.renderPipelineAssetType);
             if (result == 0)
-                result = shaderGUI.CompareTo(other.shaderGUI);
+                result = string.CompareOrdinal(shaderGUI, other.shaderGUI);
             return result;
         }
     }

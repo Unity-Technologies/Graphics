@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
         public string codeString;
         public string shaderName;
         public List<PropertyCollector.TextureInfo> assignedTextures;
-        public bool isErrorShader;
+        public string errorMessage;
     }
 
     class Generator
@@ -104,8 +104,8 @@ namespace UnityEditor.ShaderGraph
 
             m_PrimaryShaderTemporaryBlocks = new List<BlockNode>();
 
-            // build the primary shader immediately
-            m_PrimaryShader = BuildShader(null);
+            // build the primary shader immediately (and populate the temporary block list for it)
+            m_PrimaryShader = BuildShader(null, m_PrimaryShaderTemporaryBlocks);
         }
 
         Target[] GetTargetImplementations()
@@ -162,18 +162,30 @@ namespace UnityEditor.ShaderGraph
             return activeFields;
         }
 
+        GeneratedShader ErrorShader(string shaderName, string errorMessage)
+        {
+            Debug.LogError(errorMessage);
+
+            var codeString = ShaderGraphImporter.k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
+
+            return new GeneratedShader()
+            {
+                codeString = codeString,
+                shaderName = shaderName,
+                assignedTextures = null,
+                errorMessage = errorMessage
+            };
+        }
+
         // temporary used by BuildShader()
         ShaderStringBuilder m_Builder;
-        GeneratedShader BuildShader(string additionalShaderID)
+        GeneratedShader BuildShader(string additionalShaderID, List<BlockNode> outTemporaryBlocks = null)
         {
             bool isPrimaryShader = string.IsNullOrEmpty(additionalShaderID);
             string shaderName =
                 isPrimaryShader ?
                     m_PrimaryShaderFullName :
                     additionalShaderID.Replace("{Name}", m_PrimaryShaderFullName, StringComparison.Ordinal);
-
-            // initialize builder
-            m_Builder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
 
             var activeNodeList = Pool.ListPool<AbstractMaterialNode>.Get();
             bool ignoreActiveState = (m_Mode == GenerationMode.Preview);  // for previews, we ignore node active state
@@ -211,7 +223,6 @@ namespace UnityEditor.ShaderGraph
                     });
                 }
             }
-            string path = AssetDatabase.GUIDToAssetPath(m_GraphData.assetGuid);
 
             // Send an action about our current variant usage. This will either add or clear a warning if it exists
             var action = new ShaderVariantLimitAction(shaderKeywords.permutations.Count, ShaderGraphPreferences.variantLimit);
@@ -219,26 +230,9 @@ namespace UnityEditor.ShaderGraph
 
             if (shaderKeywords.permutations.Count > ShaderGraphPreferences.variantLimit)
             {
-                string graphName = "";
-                if (m_GraphData.owner != null)
-                {
-                    if (path != null)
-                    {
-                        graphName = Path.GetFileNameWithoutExtension(path);
-                    }
-                }
-                Debug.LogError($"Error in Shader Graph {graphName}:{ShaderKeyword.kVariantLimitWarning}");
-
-                m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader.Replace("Hidden/GraphErrorShader2", graphName));
-
-                // Don't continue building the shader, we've already built an error shader.
-                return new GeneratedShader()
-                {
-                    codeString = m_Builder.ToCodeBlock(),
-                    shaderName = shaderName,
-                    assignedTextures = shaderProperties.GetConfiguredTextures(), // not clear why we return this on the error shader...
-                    isErrorShader = true
-                };
+                // ideally we would not rely on the graph having an asset guid / asset path here (to support compiling asset-less graph datas)
+                string path = AssetDatabase.GUIDToAssetPath(m_GraphData.assetGuid);
+                return ErrorShader(shaderName, $"Error in Shader Graph {path}: {ShaderKeyword.kVariantLimitWarning}");
             }
 
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
@@ -257,6 +251,8 @@ namespace UnityEditor.ShaderGraph
             // (to ensure no rogue target or pass starts adding more properties later..)
             shaderProperties.SetReadOnly();
 
+            // initialize builder
+            m_Builder = new ShaderStringBuilder(humanReadable: m_HumanReadable);
             m_Builder.AppendLine(@"Shader ""{0}""", shaderName);
             using (m_Builder.BlockScope())
             {
@@ -271,27 +267,27 @@ namespace UnityEditor.ShaderGraph
                     var context = m_TargetContexts[i];
 
                     // process the subshaders
-                    var subShaderProperties = GetSubShaderPropertiesForTarget(m_Targets[i], m_GraphData, m_Mode, m_OutputNode, isPrimaryShader ? m_PrimaryShaderTemporaryBlocks : null);
+                    var subShaderProperties = GetSubShaderPropertiesForTarget(m_Targets[i], m_GraphData, m_Mode, m_OutputNode, outTemporaryBlocks);
                     foreach (SubShaderDescriptor subShader in context.subShaders)
                     {
                         // only generate subshaders that belong to the current shader we are building
-                        if (subShader.additionalShaderID == additionalShaderID)
-                        {
-                            GenerateSubShader(i, subShader, subShaderProperties);
+                        if (subShader.additionalShaderID != additionalShaderID)
+                            continue;
 
-                            // pull out shader data from the subshader
-                            if (subShader.shaderDependencies != null)
-                                shaderDependencies.AddRange(subShader.shaderDependencies);
+                        GenerateSubShader(i, subShader, subShaderProperties);
 
-                            if (subShader.shaderCustomEditor != null)
-                                shaderCustomEditor = subShader.shaderCustomEditor;
+                        // pull out shader data from the subshader
+                        if (subShader.shaderDependencies != null)
+                            shaderDependencies.AddRange(subShader.shaderDependencies);
 
-                            if (subShader.shaderCustomEditors != null)
-                                shaderCustomEditors.AddRange(subShader.shaderCustomEditors);
+                        if (subShader.shaderCustomEditor != null)
+                            shaderCustomEditor = subShader.shaderCustomEditor;
 
-                            if (subShader.shaderFallback != null)
-                                shaderFallback = subShader.shaderFallback;
-                        }
+                        if (subShader.shaderCustomEditors != null)
+                            shaderCustomEditors.AddRange(subShader.shaderCustomEditors);
+
+                        if (subShader.shaderFallback != null)
+                            shaderFallback = subShader.shaderFallback;
                     }
                 }
 
@@ -330,7 +326,7 @@ namespace UnityEditor.ShaderGraph
                 codeString = m_Builder.ToCodeBlock(),
                 shaderName = shaderName,
                 assignedTextures = shaderProperties.GetConfiguredTextures(),
-                isErrorShader = false
+                errorMessage = null
             };
 
             // kill builder to ensure it doesn't get used outside of this function
