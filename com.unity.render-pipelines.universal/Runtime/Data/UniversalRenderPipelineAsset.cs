@@ -690,7 +690,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Returns the downsampling used for this <c>UniversalRenderPipelineAsset</c>.
+        /// Returns the downsampling method used when copying the camera color texture after rendering opaques. 
         /// </summary>
         public Downsampling opaqueDownsampling
         {
