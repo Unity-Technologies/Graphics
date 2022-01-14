@@ -71,14 +71,11 @@ void UnpackVisibilityData(uint packedData0, uint2 packedData1, out VisibilityDat
 
 uint GetMaterialKey(in VisibilityData visData, out GeoPoolMetadataEntry metadataEntry)
 {
-    if (!visData.valid)
-    {
-        metadataEntry = (GeoPoolMetadataEntry)0;
-        return 0;
-    }
+    ZERO_INITIALIZE(GeoPoolMetadataEntry, metadataEntry);
+    if (visData.valid)
+        metadataEntry = GeometryPool::GetMetadataEntry(visData.DOTSInstanceIndex, visData.batchID);
 
-    metadataEntry = GeometryPool::GetMetadataEntry(visData.DOTSInstanceIndex, visData.batchID);
-    return GeometryPool::GetMaterialKey(metadataEntry, visData.primitiveID);
+    return visData.valid ? GeometryPool::GetMaterialKey(metadataEntry, visData.primitiveID) : 0;
 }
 
 VisibilityData LoadVisibilityData(uint2 coord)
@@ -86,6 +83,7 @@ VisibilityData LoadVisibilityData(uint2 coord)
     uint value0 = LOAD_TEXTURE2D_X(_VisBufferTexture0, (uint2)coord.xy).x;
     uint2 value1 = LOAD_TEXTURE2D_X(_VisBufferTexture1, (uint2)coord.xy).xy;
     VisibilityData visData;
+    ZERO_INITIALIZE(VisibilityData, visData);
     Visibility::UnpackVisibilityData(value0, value1, visData);
     return visData;
 }
@@ -93,6 +91,7 @@ VisibilityData LoadVisibilityData(uint2 coord)
 uint GetMaterialKey(in VisibilityData visData)
 {
     GeoPoolMetadataEntry unused;
+    ZERO_INITIALIZE(GeoPoolMetadataEntry, unused);
     return GetMaterialKey(visData, unused);
 }
 
