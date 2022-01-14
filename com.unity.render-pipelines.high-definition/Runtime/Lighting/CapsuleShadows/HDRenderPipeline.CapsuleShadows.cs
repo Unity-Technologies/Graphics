@@ -104,11 +104,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         Vector3 localY = Vector3.Cross(localZ, localX);
 
                         // capsule bounds, extended along light direction
+                        Vector3 centerRWS = data.centerRWS;
                         Vector3 halfExtentLS = new Vector3(
                             Mathf.Abs(Vector3.Dot(data.axisDirWS, localX)) * data.offset + data.radius,
                             Mathf.Abs(Vector3.Dot(data.axisDirWS, localY)) * data.offset + data.radius,
                             Mathf.Abs(Vector3.Dot(data.axisDirWS, localZ)) * data.offset + data.radius);
-                        halfExtentLS.z += maxRange;
+                        halfExtentLS.z += 0.5f * maxRange;
+                        centerRWS += (0.5f * maxRange) * localZ;
 
                         // expand by max penumbra
                         float penumbraSize = Mathf.Tan(lightHalfAngle) * maxRange;
@@ -119,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             2.0f * halfExtentLS.x * localX,
                             2.0f * halfExtentLS.y * localY,
                             2.0f * halfExtentLS.z * localZ,
-                            data.centerRWS));
+                            centerRWS));
                     }
                     else
                     {
