@@ -960,6 +960,8 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
+            renderPass.SetFinalBlitSettings(ref cameraData);
+
             if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
                 ExecuteNativeRenderPass(context, renderPass, cameraData, ref renderingData);
             else

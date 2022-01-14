@@ -254,6 +254,7 @@ namespace UnityEngine.Rendering.Universal
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
+            resultOnScreen = false;
             isBlitRenderPass = false;
             profilingSampler = new ProfilingSampler($"Unnamed_{nameof(ScriptableRenderPass)}");
             useNativeRenderPass = true;
@@ -426,6 +427,17 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = clearColor;
         }
 
+        public void SkipFinalBlit(bool toScreen)
+        {
+            resultOnScreen = toScreen;
+        }
+
+        internal void SetFinalBlitSettings(ref CameraData data)
+        {
+            if(resultOnScreen)
+                data.renderer.LastBlit();
+        }
+
         /// <summary>
         /// This method is called by the renderer before rendering a camera
         /// Override this method if you need to to configure render targets and their clear state, and to create temporary render target textures.
@@ -505,13 +517,12 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="data">RenderingData to access the active renderer.</param>
         /// <param name="material">Material to use.</param>
         /// <param name="passIndex">Shader pass to use. Default is 0.</param>
-        public void Blit(CommandBuffer cmd, ref RenderingData data, Material material, int passIndex = 0, bool isLastPass = false)
+        public void Blit(CommandBuffer cmd, ref RenderingData data, Material material, int passIndex = 0)
         {
             var renderer = data.cameraData.renderer;
 
-            if(isLastPass)
+            if(resultOnScreen)
             {
-                renderer.LastBlit();
                 Blit(cmd, renderer.cameraColorTarget, BuiltinRenderTextureType.CameraTarget, material, passIndex);
             }
             else
@@ -519,8 +530,6 @@ namespace UnityEngine.Rendering.Universal
                 Blit(cmd, renderer.cameraColorTarget, renderer.GetCameraColorFrontBuffer(cmd), material, passIndex);
                 renderer.SwapColorBuffer(cmd);
             }
-
-
         }
 
         /// <summary>
