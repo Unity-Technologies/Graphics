@@ -661,6 +661,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 albedo = renderGraph.CreateTexture(aovDesc);
                 normal = renderGraph.CreateTexture(aovDesc);
             }
+
+            pathTracedAOVs.Clear();
 #endif
 
             // Check the validity of the state before moving on with the computation
@@ -697,8 +699,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SubFrameManager.subFrameCount = 1;
             }
 #endif
-
-            pathTracedAOVs.Clear();
 
             if (camData.currentIteration < m_SubFrameManager.subFrameCount)
             {
