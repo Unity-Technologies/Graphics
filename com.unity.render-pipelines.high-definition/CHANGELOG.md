@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a Layer Mask in the Probe Volume Settings window to filter which renderers to consider when placing the probes.
 - Added Refract Node, Fresnel Equation Node and Scene-Difference-Node (https://jira.unity3d.com/browse/HDRP-1599)
 - Added Remap alpha channel of baseColorMap for Lit and LayeredLit
+- Added way to bake APV data only for active scene.
 
 ### Fixed
 - Fixed some XR devices: Pulling camera world space position from mainViewConstants instead of transform.
