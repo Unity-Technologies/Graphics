@@ -6,7 +6,7 @@ using UnityEngine.GraphToolsFoundation.Overdrive;
 
 namespace UnityEditor.VFX
 {
-    [Serializable]
+    /*[Serializable]
     [SearcherItem(typeof(VFXStencil), SearcherContext.Graph, "Operator/Inline/Float")]
     public class VFXFloatNodeModel : VFXNodeBaseModel
     {
@@ -25,5 +25,5 @@ namespace UnityEditor.VFX
 
             AddOutputPort("Value", PortType.Data, typeof(float).GenerateTypeHandle(), options: PortModelOptions.NoEmbeddedConstant);
         }
-    }
+    }*/
 }

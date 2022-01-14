@@ -121,7 +121,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    [VFXInfo]
+    [VFXInfo(category = "Context")]
     class VFXBasicUpdate : VFXContext
     {
         public enum VFXIntegrationMode

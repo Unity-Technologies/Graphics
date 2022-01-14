@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
         };
     }
 
-    [VFXInfo(variantProvider = typeof(InitializeVariantProvider))]
+    [VFXInfo(variantProvider = typeof(InitializeVariantProvider), category = "Context")]
     class VFXBasicInitialize : VFXContext
     {
         public VFXBasicInitialize() : base(VFXContextType.Init, VFXDataType.SpawnEvent, VFXDataType.None) { }

@@ -24,10 +24,10 @@ namespace UnityEditor.VFX
                 //.AddConstant(typeof(Attitude))
                 .AddStickyNote();
 
-            return AddContexts(AddBlocks(AddInlineOperators(db)));
+            return AddContexts(AddBlocks(AddOperators(db)));
         }
 
-        private GraphElementSearcherDatabase AddInlineOperators(GraphElementSearcherDatabase db)
+        private GraphElementSearcherDatabase AddOperators(GraphElementSearcherDatabase db)
         {
             db.Items.AddRange(LoadModels<VFXOperator>().Select(MakeOperatorItem));
             return db;
@@ -38,11 +38,11 @@ namespace UnityEditor.VFX
                         descriptor.name,
                         null,
                         x => x.GraphModel.CreateNode(
-                            typeof(VFXOperatorNode),
+                            typeof(VFXNodeBaseModel),
                             descriptor.name,
                             x.Position,
                             x.Guid,
-                            y => (y as VFXOperatorNode).SetOperator(descriptor.CreateInstance()),
+                            y => (y as IVFXNode).SetModel(descriptor.CreateInstance()),
                             x.SpawnFlags))
                     { CategoryPath = descriptor.category };
             }
@@ -59,9 +59,9 @@ namespace UnityEditor.VFX
                         descriptor.name,
                         null,
                         x => x.CreateBlock(
-                            typeof(VFXBlockNode),
-                            y => (y as VFXBlockNode).SetBlock(descriptor.CreateInstance()),
-                            typeof(VFXContextNode)))
+                            typeof(VFXBlockBaseModel),
+                            y => (y as IVFXNode).SetModel(descriptor.CreateInstance()),
+                            typeof(VFXContextBaseModel)))
                     { CategoryPath = descriptor.category };
             }
         }
@@ -77,11 +77,11 @@ namespace UnityEditor.VFX
                         descriptor.name,
                         null,
                         x => x.GraphModel.CreateNode(
-                            typeof(VFXContextNode),
+                            typeof(VFXContextBaseModel),
                             descriptor.name,
                             x.Position,
                             x.Guid,
-                            y => (y as VFXContextNode).SetContext(descriptor.CreateInstance()),
+                            y => (y as IVFXNode).SetModel(descriptor.CreateInstance()),
                             x.SpawnFlags))
                     { CategoryPath = descriptor.category };
             }
@@ -89,7 +89,7 @@ namespace UnityEditor.VFX
 
         private IEnumerable<VFXModelDescriptor<T>> LoadModels<T>() where T : VFXModel
         {
-            var modelTypes = FindConcreteSubclasses(typeof(T), typeof(VFXInfoGTFAttribute));
+            var modelTypes = FindConcreteSubclasses(typeof(T), typeof(VFXInfoAttribute));
             var modelDescs = new List<VFXModelDescriptor<T>>();
             var error = new StringBuilder();
 

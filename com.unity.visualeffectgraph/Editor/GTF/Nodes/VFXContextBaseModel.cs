@@ -1,22 +1,17 @@
 ﻿using System;
 using System.Linq;
 
-using UnityEngine;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    interface IVFXNode
-    {
-        void SetModel(IVFXSlotContainer model);
-    }
-
     [Serializable]
-    public class VFXNodeBaseModel : NodeModel, IVFXNode
+    public class VFXContextBaseModel : ContextNodeModel, IVFXNode
     {
         [SerializeField, HideInInspector]
-        private VFXOperator m_NodeModel;
+        private VFXContext m_NodeModel;
 
         public override string Title
         {
@@ -26,14 +21,14 @@ namespace UnityEditor.VFX
 
         void IVFXNode.SetModel(IVFXSlotContainer model)
         {
-            if (model is VFXOperator vfxOperator)
+            if (model is VFXContext vfxContext)
             {
-                m_NodeModel = vfxOperator;
+                m_NodeModel = vfxContext;
                 DefineNode();
             }
             else
             {
-                throw new ArgumentException("model must be a VFXBlock");
+                throw new ArgumentException("model must be a VFXContext");
             }
         }
 
@@ -46,6 +41,9 @@ namespace UnityEditor.VFX
 
             m_NodeModel.inputSlots.ToList().ForEach(x => this.AddPort(PortDirection.Input, x.name, x.property.type));
             m_NodeModel.outputSlots.ToList().ForEach(x => this.AddPort(PortDirection.Output, x.name, x.property.type));
+
+            this.AddExecutionInputPort(null, GUID.Generate().ToString(), PortOrientation.Vertical);
+            this.AddExecutionOutputPort(null, GUID.Generate().ToString(), PortOrientation.Vertical);
         }
     }
 }

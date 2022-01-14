@@ -1,22 +1,22 @@
 ﻿using System;
 using System.Linq;
 
-using UnityEngine;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
+using UnityEngine;
 
 namespace UnityEditor.VFX
 {
-    interface IVFXNode
-    {
-        void SetModel(IVFXSlotContainer model);
-    }
-
     [Serializable]
-    public class VFXNodeBaseModel : NodeModel, IVFXNode
+    public class VFXBlockBaseModel : BlockNodeModel, IVFXNode
     {
         [SerializeField, HideInInspector]
-        private VFXOperator m_NodeModel;
+        private VFXBlock m_NodeModel;
+
+        public VFXBlockBaseModel()
+        {
+            m_Capabilities.Remove(GraphToolsFoundation.Overdrive.Capabilities.NeedsContainer);
+        }
 
         public override string Title
         {
@@ -26,9 +26,9 @@ namespace UnityEditor.VFX
 
         void IVFXNode.SetModel(IVFXSlotContainer model)
         {
-            if (model is VFXOperator vfxOperator)
+            if (model is VFXBlock vfxBlock)
             {
-                m_NodeModel = vfxOperator;
+                m_NodeModel = vfxBlock;
                 DefineNode();
             }
             else
