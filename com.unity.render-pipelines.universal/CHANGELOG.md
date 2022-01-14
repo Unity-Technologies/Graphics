@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added inspector documentation URLs to the SSAO, Decal, and Render Objects renderer features.
 - Changed "_USE_DRAW_PROCEDURAL" to be used only in vertex shader in Post Processing related shaders as they are not needed for fragment shaders. In result we now generate less shader variants.
 - Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
+- Soft shadow quality. Low, PCF 3x3 recommended for mobile. Medium, Tent 5x5. High, Tent 7x7.
+
+### Changed
+- Remove SHADER_API_MOBILE from shaders in cases where it affects quality.
+- Remove SHADER_HINT_NICE_QUALITY from shaders.
+- Remove low quality light fade.
+- Remove implicit SHADER_QUALITY_LOW. It now must be defined in .shader file to opt-in. SHADER_QUALITY_LOW affects particle, grass and nature view vector normalization, LOD crossfade, SH eval vertex/pixel.
+- Always normalize normal per vertex.
+- Packed additionalShadowOffsets into 2 float4 constants instead of 4.
 
 ### Fixed
 - Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]
