@@ -148,7 +148,8 @@ namespace UnityEditor.VFX
                 size = GetBufferSize(capacity),
                 stride = 4,
                 capacity = capacity,
-                layout = layout.ToArray()
+                layout = layout.ToArray(),
+                mode = ComputeBufferMode.Immutable
             };
         }
 
