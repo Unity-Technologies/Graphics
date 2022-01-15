@@ -16,11 +16,12 @@ namespace UnityEditor.ShaderFoundry
 
         internal static void Build(ShaderContainer container, Target target, string shaderName, BuildCallback buildCallback, ShaderBuilder shaderBuilder)
         {
+            // ideally the settings for this provider would be provided through the same interface as workflow settings
+            // but for now it is directly populated by this special constructor
             ITemplateProvider provider = new LegacyTemplateProvider(target, new ShaderGraph.AssetCollection());
 
-            var shaderInstBuilder = new ShaderInstance.Builder(container, shaderName);
-            
-            foreach(var template in provider.GetTemplates(container))
+            var shaderInstBuilder = new ShaderInstance.Builder(container, shaderName);            
+            foreach (var template in provider.GetTemplates(container))
             {
                 var templateInstanceBuilder = new TemplateInstance.Builder(container, template);
 
@@ -40,8 +41,7 @@ namespace UnityEditor.ShaderFoundry
             }
             
             var shaderInst = shaderInstBuilder.Build();
-            var generator = new ShaderGenerator();
-            generator.Generate(shaderBuilder, container, shaderInst);
+            var shader = ShaderGenerator.Generate(container, shaderInst, shaderBuilder);
         }
 
         internal class PropertyAttributeData

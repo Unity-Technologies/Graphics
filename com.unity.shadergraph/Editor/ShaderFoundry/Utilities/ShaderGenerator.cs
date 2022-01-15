@@ -3,10 +3,21 @@ using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
 
 namespace UnityEditor.ShaderFoundry
 {
-    internal class ShaderGenerator
+    internal struct GeneratedShader
     {
-        internal void Generate(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
+        public string shaderName;
+        public string codeString;
+        // public List<PropertyCollector.TextureInfo> assignedTextures;     // TODO: needed for populating compiled shader
+        public string errorMessage;
+    }
+
+    internal static class ShaderGenerator
+    {
+        internal static GeneratedShader Generate(ShaderContainer container, ShaderInstance shaderInst, ShaderBuilder builder = null)
         {
+            if (builder == null)
+                builder = new ShaderBuilder();
+
             builder.AddLine(string.Format(@"Shader ""{0}""", shaderInst.Name));
             using (builder.BlockScope())
             {
@@ -15,9 +26,17 @@ namespace UnityEditor.ShaderFoundry
                 if (!string.IsNullOrEmpty(shaderInst.FallbackShader))
                     builder.AddLine(shaderInst.FallbackShader);
             }
+
+            GeneratedShader result = new GeneratedShader()
+            {
+                shaderName = shaderInst.Name,
+                codeString = builder.ToString(),
+                errorMessage = null
+            };
+            return result;
         }
 
-        void GenerateProperties(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
+        static void GenerateProperties(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
         {
             var propertiesMap = new Dictionary<string, BlockProperty>();
             var propertiesList = new List<BlockProperty>();
@@ -68,7 +87,7 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        void GenerateSubShaders(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
+        static void GenerateSubShaders(ShaderBuilder builder, ShaderContainer container, ShaderInstance shaderInst)
         {
             foreach (var templateInst in shaderInst.TemplateInstances)
             {
