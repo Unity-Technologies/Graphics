@@ -63,19 +63,19 @@ CBUFFER_END
 #define DistScale               _DistortionParams2.z
 #define DistIntensity           _DistortionParams2.w
 
-#define AutoLensFlareAmount		_AutoLensFlareParams.x
-#define AutoLensFlareBlurSize	_AutoLensFlareParams.y
-#define AutoLensFlareBlurSample	_AutoLensFlareParams.z
-#define AutoLensFlareBlurContribution	_AutoLensFlareParams.w
+#define AutoLensFlareAmount     _AutoLensFlareParams.x
+#define AutoLensFlareBlurSize   _AutoLensFlareParams.y
+#define AutoLensFlareBlurSample _AutoLensFlareParams.z
+#define AutoLensFlareBlurContribution   _AutoLensFlareParams.w
 
-#define ChromaticAbberationIntensity		_AutoLensFlareParams2.x
-#define ChromaticAbberationSample			_AutoLensFlareParams2.y
-#define ChromaticAbberationContribution		_AutoLensFlareParams2.z
+#define ChromaticAbberationIntensity        _AutoLensFlareParams2.x
+#define ChromaticAbberationSample           _AutoLensFlareParams2.y
+#define ChromaticAbberationContribution     _AutoLensFlareParams2.z
 
-#define AutoLensFlareFirstIntensity			_AutoLensFlareParams3.x
-#define AutoLensFlareSecondaryIntensity		_AutoLensFlareParams3.y
-#define AutoLensFlarePolarIntensity			_AutoLensFlareParams3.z
-#define AutoLensFlareVignetteInfluence		_AutoLensFlareParams3.w
+#define AutoLensFlareFirstIntensity         _AutoLensFlareParams3.x
+#define AutoLensFlareSecondaryIntensity     _AutoLensFlareParams3.y
+#define AutoLensFlarePolarIntensity         _AutoLensFlareParams3.z
+#define AutoLensFlareVignetteInfluence      _AutoLensFlareParams3.w
 
 
 
@@ -138,79 +138,79 @@ float map(float value, float min1, float max1, float min2, float max2) {
 
 float2 scaleUV(float2 uv, float2 center, float scale, bool invert, bool logistic, bool polar)
 {
-	
-	if(polar){
 
-		scale = 1/scale;
-		uv = float2(map(uv.x, 0,1,-1*scale,1*scale), map(uv.y, 0,1,-1*scale,1*scale));
+    if(polar){
+
+        scale = 1/scale;
+        uv = float2(map(uv.x, 0,1,-1*scale,1*scale), map(uv.y, 0,1,-1*scale,1*scale));
 
 
-		float x = sqrt(pow(uv.x,2) + pow(uv.y, 2));
-		float x1 = map(x, 0,1.414,0,1);
-		float y = atan2(uv.x,-uv.y);
-		float y1 = map(y, -3.14, 3.14 , 0, 1);
-		
-		return float2(1-y1,invert ? (1-x1) : x1); //Can be removed
-	}
-	
-	if(logistic)
-	{
-		float k = 3.0 + (1/(scale));
-		k = invert ? k : -k;
-		uv.x = 1/(1 + exp(k*(uv.x - center.x)));
-		uv.y = 1/(1+exp(k*(uv.y - center.y)));
+        float x = sqrt(pow(uv.x,2) + pow(uv.y, 2));
+        float x1 = map(x, 0,1.414,0,1);
+        float y = atan2(uv.x,-uv.y);
+        float y1 = map(y, -3.14, 3.14 , 0, 1);
 
-		return uv; 
-		
-	}
-	else
-	{
-	
-		uv.x -= center.x;
-		uv.y -= center.y;
-		
-		uv.x *= (1.0f/(scale));
-		uv.y *= (1.0f/(scale));
-		
-		uv.x += center.x;
-		uv.y += center.y;
-		
-		if(invert){
-			uv.x = 1-uv.x;
-			uv.y = 1-uv.y;
-		}
-		
-		return uv; 
-	}
+        return float2(1-y1,invert ? (1-x1) : x1); //Can be removed
+    }
+
+    if(logistic)
+    {
+        float k = 3.0 + (1/(scale));
+        k = invert ? k : -k;
+        uv.x = 1/(1 + exp(k*(uv.x - center.x)));
+        uv.y = 1/(1+exp(k*(uv.y - center.y)));
+
+        return uv;
+
+    }
+    else
+    {
+
+        uv.x -= center.x;
+        uv.y -= center.y;
+
+        uv.x *= (1.0f/(scale));
+        uv.y *= (1.0f/(scale));
+
+        uv.x += center.x;
+        uv.y += center.y;
+
+        if(invert){
+            uv.x = 1-uv.x;
+            uv.y = 1-uv.y;
+        }
+
+        return uv;
+    }
 }
 
 float3 GetFlareTexture(float2 uv, float scale, float intensity, bool invert, bool polar){
-	
-	float chromaIntensityDampen = 0.05f;			//0 and 1 max
-	
-	float chromaAmount = ChromaticAbberationIntensity;			//0 and 1 max
-	float chromSampleCount = ChromaticAbberationSample;
-	
-	float blurSize = AutoLensFlareBlurSize;	// 0 /8	
-	float blurSampleCount = AutoLensFlareBlurSample; 		// 3 and 16 max
-	
-	uv = DistortUV(uv);
-	
-	//Chromatic
-	float2 coords = 2.0 * uv - 1.0;
-    float2 end = uv - coords * dot(coords, coords) * chromaAmount;	//Amount
+
+    float chromaIntensityDampen = 0.05f;            //0 and 1 max
+
+    float chromaAmount = ChromaticAbberationIntensity;          //0 and 1 max
+    float chromSampleCount = ChromaticAbberationSample;
+
+    float blurSize = AutoLensFlareBlurSize; // 0 /8
+    float blurSampleCount = AutoLensFlareBlurSample;        // 3 and 16 max
+
+    uv = DistortUV(uv);
+
+    //Chromatic
+    float2 coords = 2.0 * uv - 1.0;
+    float2 end = uv - coords * dot(coords, coords) * chromaAmount;  //Amount
     float2 diff = end - uv;
     int samples = clamp(int(length(_PostProcessScreenSize.xy * diff / 2.0)), 3, chromSampleCount); //max sample
     float2 delta = diff / samples;
     float2 pos = uv;
 
-	pos = scaleUV(uv, float2(0.5,0.5), scale, invert, polar, polar);
+    pos = scaleUV(uv, float2(0.5,0.5), scale, invert, polar, polar);
 
     float3 sum = 0.0, filterSum = 0.0;
 
     for (int i = 0; i < samples; i++)
     {
-		float sign = invert ? -1 : 1;
+        float sign = invert ? -1 : 1;
         float t = (i + 0.5) / samples;
         float3 s = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(DistortUV(pos)), 0.0).xyz;
         float3 filter = SAMPLE_TEXTURE2D_LOD(_ChromaSpectralLut, sampler_ChromaSpectralLut, float2(invert ? 1-t : t, 0.0), 0).xyz;
@@ -220,42 +220,42 @@ float3 GetFlareTexture(float2 uv, float scale, float intensity, bool invert, boo
         pos += delta;
     }
 
-	//Debug
-	float3 chromaTexture = chromaIntensityDampen * (sum / filterSum);
-	
-	float2 uv1 = scaleUV(uv, float2(0.5f,0.5f), scale, invert, polar, polar);
+    //Debug
+    float3 chromaTexture = chromaIntensityDampen * (sum / filterSum);
 
-	float3 blurTexture = float3(0,0,0);
+    float2 uv1 = scaleUV(uv, float2(0.5f,0.5f), scale, invert, polar, polar);
 
-	
-	for(float x = -blurSampleCount; x <= blurSampleCount; x++){
-		if(abs(x) >= 1){
-			float2 uv2 = uv1 + float2((x/_PostProcessScreenSize.x) * blurSize/blurSampleCount, 0);
-			blurTexture +=  SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(uv2), 0.0);
-		}
-	}
-	
-	for(float y = -blurSampleCount; y <= blurSampleCount; y++){
-		if(abs(y) >= 1){
-			float2 uv2 = uv1 + float2(0, (y/_PostProcessScreenSize.y) * blurSize/blurSampleCount);
-			blurTexture += SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(uv2), 0.0);
-		}
-	}
+    float3 blurTexture = float3(0,0,0);
 
-	// Intensity threshold
-	blurTexture /= 100 * ((blurSampleCount*4) - 2); // Bad way to make a threshold
-	
-	
-	
-	//Combine
-	// return lerp(float3(0,0,0), ca.xyz, mask.xyz) * intensity;
-	
-	return (	
-				blurTexture.xyz * AutoLensFlareBlurContribution + 
-				pow(chromaTexture.xyz,1) * ChromaticAbberationContribution
-			) * intensity;
-	// return pow(ca.xyz,1) * intensity;
-	// return ca.xyz * mask.xyz * intensity;
+
+    for(float x = -blurSampleCount; x <= blurSampleCount; x++){
+        if(abs(x) >= 1){
+            float2 uv2 = uv1 + float2((x/_PostProcessScreenSize.x) * blurSize/blurSampleCount, 0);
+            blurTexture +=  SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(uv2), 0.0).xyz;
+        }
+    }
+
+    for(float y = -blurSampleCount; y <= blurSampleCount; y++){
+        if(abs(y) >= 1){
+            float2 uv2 = uv1 + float2(0, (y/_PostProcessScreenSize.y) * blurSize/blurSampleCount);
+            blurTexture += SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(uv2), 0.0).xyz;
+        }
+    }
+
+    // Intensity threshold
+    blurTexture /= 100 * ((blurSampleCount*4) - 2); // Bad way to make a threshold
+
+
+
+    //Combine
+    // return lerp(float3(0,0,0), ca.xyz, mask.xyz) * intensity;
+
+    return (
+                blurTexture.xyz * AutoLensFlareBlurContribution
+                +  pow(chromaTexture.xyz,1) * ChromaticAbberationContribution
+            ) * intensity;
+    // return pow(ca.xyz,1) * intensity;
+    // return ca.xyz * mask.xyz * intensity;
 }
 
 #define GROUP_SIZE 8
@@ -275,7 +275,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Chromatic aberration
     // Inspired by the method described in "Rendering Inside" [Playdead 2016]
     // https://twitter.com/pixelmager/status/717019757766123520
-	/*
+    /*
 #ifdef CHROMATIC_ABERRATION
     float2 coords = 2.0 * uv - 1.0;
     float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
@@ -308,7 +308,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
 */
 
-	color = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(uvDistorted), 0.0).CTYPE_SWIZZLE;
+    color = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, sampler_LinearClamp, ClampAndScaleUVForBilinearPostProcessTexture(uvDistorted), 0.0).CTYPE_SWIZZLE;
     inputColor = color;
 
     // Bloom
@@ -366,60 +366,70 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 //Parameters
 // float sampleScale = 1.0f;
-// float chromaAmount = 0.075f;			//0 and 1 max
+// float chromaAmount = 0.075f;         //0 and 1 max
 // float chromSample = 1;
 float vignettePow = 2.0;
-float vignetteScale = 2.0f;			//Scale Multiplier	// 1.0 is great too
-float vignetteSquaredness = 2.0f; 	//1.0 means star, 2.0 circle, above more squared
+float vignetteScale = 2.0f;         //Scale Multiplier  // 1.0 is great too
+float vignetteSquaredness = 2.0f;   //1.0 means star, 2.0 circle, above more squared
 
 /*Vignette*/
-	float2 uvVignette = scaleUV(uv, float2(0.5,0.5), vignetteScale, false, false, false);
-	float vignetteX = (pow(abs(2 * uvVignette.x - 1) , vignetteSquaredness));
-	float vignetteY = (pow(abs(2 * uvVignette.y - 1) , vignetteSquaredness));
-	float vignetteRound = (pow((vignetteX + vignetteY), vignettePow)); 
-	// float vignetteStar = (pow((vignetteX * vignetteY), vignettePow/4)); 
-	// float vignette = vignetteRound; 
-	// float vignette = vignetteStar; 
-	
-	vignetteRound = lerp(float3(1,1,1),vignetteRound,AutoLensFlareVignetteInfluence);
-	
-	float3 classicInv = GetFlareTexture(uv, 4.0f,AutoLensFlareFirstIntensity, true, false);
-	float3 classic = GetFlareTexture(uv, 4.0f,AutoLensFlareSecondaryIntensity, false, false);
+    float2 uvVignette = scaleUV(uv, float2(0.5,0.5), vignetteScale, false, false, false);
+    float vignetteX = (pow(abs(2 * uvVignette.x - 1) , vignetteSquaredness));
+    float vignetteY = (pow(abs(2 * uvVignette.y - 1) , vignetteSquaredness));
+    float vignetteRound = (pow((vignetteX + vignetteY), vignettePow));
+    // float vignetteStar = (pow((vignetteX * vignetteY), vignettePow/4));
+    // float vignette = vignetteRound;
+    // float vignette = vignetteStar;
 
-	float3 polar = GetFlareTexture(uv, 1.0f,AutoLensFlarePolarIntensity, false, true);
-	float3 polarInv = GetFlareTexture(uv, 1.0f,AutoLensFlarePolarIntensity, true, true);
-	
-	float3 classic2Inv = GetFlareTexture(uv, 2.0f,AutoLensFlareFirstIntensity, true, false);
-	float3 classic2 = GetFlareTexture(uv, 2.0f,AutoLensFlareSecondaryIntensity, false, false);
-	
-	float3 classic1Inv = GetFlareTexture(uv, 1.0f,AutoLensFlareFirstIntensity, true, false);
-	float3 classic1 = GetFlareTexture(uv, 1.0f,AutoLensFlareSecondaryIntensity, false, false);
+    vignetteRound = lerp(1,vignetteRound,AutoLensFlareVignetteInfluence);
 
-	float3 final = (
-						(classicInv + classic) * vignetteRound + 
-						(classic2Inv + classic2) * vignetteRound + 
-						(classic1Inv + classic1) * vignetteRound + 
-						(polarInv + polar) * vignetteX*(vignetteX + vignetteY)
-						
-						) * AutoLensFlareAmount;
+    float3 classicInv = GetFlareTexture(uv, 4.0f,AutoLensFlareFirstIntensity, true, false);
+    float3 classic = GetFlareTexture(uv, 4.0f,AutoLensFlareSecondaryIntensity, false, false);
 
-	color = color + final;
-	
-	// color = classicInv;
+    float3 polar = GetFlareTexture(uv, 1.0f,AutoLensFlarePolarIntensity, false, true);
+    float3 polarInv = GetFlareTexture(uv, 1.0f,AutoLensFlarePolarIntensity, true, true);
 
-	/*Debug*/
-	// color = ca;
-	// color = mask;
-	// color = (mask) * (ca);
-	// color = vignette;
-	
-	/*TODO*/
-	// Mask don't really coincide with what I want
-	// UVScale should scale more and more as we go in outercoordinate
-	// Make everything parametrable
-	// Make Other effect work again
-	
-#endif	
+    float3 classic2Inv = GetFlareTexture(uv, 2.0f,AutoLensFlareFirstIntensity, true, false);
+    float3 classic2 = GetFlareTexture(uv, 2.0f,AutoLensFlareSecondaryIntensity, false, false);
+
+    float3 classic1Inv = GetFlareTexture(uv, 1.0f,AutoLensFlareFirstIntensity, true, false);
+    float3 classic1 = GetFlareTexture(uv, 1.0f,AutoLensFlareSecondaryIntensity, false, false);
+
+    float3 final = (
+                        (classicInv + classic) * vignetteRound +
+                        (classic2Inv + classic2) * vignetteRound +
+                        (classic1Inv + classic1) * vignetteRound +
+                        (polarInv + polar) * vignetteX*(vignetteX + vignetteY)
+
+                        ) * AutoLensFlareAmount;
+
+    color = float4(color.xyz + final.xyz, 1);
+
+    // color = final;
+    // color = vignetteRound;
+    // color = GetFlareTexture(uv, 1.1f,AutoLensFlareFirstIntensity, false, false);;
+    // color = GetFlareTexture(uv, 1.1f,AutoLensFlareFirstIntensity, true, false);;
+    // color = (classicInv + classic) + (classic2Inv + classic2) + (classic1Inv + classic1);
+    // color = ((classicInv + classic) + (classic2Inv + classic2) + (classic1Inv + classic1) +  (polarInv + polar));
+    // color = AutoLensFlareAmount * ((classicInv + classic) + (classic2Inv + classic2) + (classic1Inv + classic1) +(polarInv + polar));
+    // color = vignetteRound;
+    // color = final;
+
+    // color += final;
+
+    /*Debug*/
+    // color = ca;
+    // color = mask;
+    // color = (mask) * (ca);
+    // color = vignette;
+
+    /*TODO*/
+    // Mask don't really coincide with what I want
+    // UVScale should scale more and more as we go in outercoordinate
+    // Make everything parametrable
+    // Make Other effect work again
+
+#endif
 
     // Grading, tonemapping
     // The branch is only used for frame settings & exr log export - else grading is always enabled
