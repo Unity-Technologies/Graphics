@@ -365,7 +365,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!prepassData.vbufferOIT.valid)
                 return;
-            
+
             TextureHandle offscreenLightingTexture = RenderOITVBufferLightingOffscreen(
                 renderGraph, cull, hdCamera, shadowResult, prepassData.vbufferOIT, lightLists, prepassData, out var offscreenDimensions);
 
@@ -389,7 +389,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle outputColor;
             using (var builder = renderGraph.AddRenderPass<VBufferOITLightingOffscreen>("VBufferOITLightingOffscreen", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITLightingOffscreen)))
-            {;
+            {
+                ;
                 var renderListDesc = CreateOpaqueRendererListDesc(
                                     cull,
                                     hdCamera.camera,
@@ -441,13 +442,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector2Int screenSize;
             public TextureHandle offscreenLighting;
             public TextureHandle depthBuffer;
+            public ComputeBufferHandle oitVisibilityBuffer;
             public ComputeBufferHandle offsetListBuffer;
             public ComputeBufferHandle sublistCounterBuffer;
             public TextureHandle outputColor;
             public Vector4 packedArgs;
         }
 
-        void OITResolveLighting(RenderGraph renderGraph, HDCamera hdCamera, 
+        void OITResolveLighting(RenderGraph renderGraph, HDCamera hdCamera,
             in VBufferOITOutput vbufferOIT,
             TextureHandle offscreenLighting,
             Vector2Int offscreenLightingSize,
@@ -457,14 +459,15 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.cs = defaultResources.shaders.oitResolveCS;
                 passData.screenSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
+                passData.oitVisibilityBuffer = builder.ReadComputeBuffer(vbufferOIT.oitVisibilityBuffer);
                 passData.sublistCounterBuffer = builder.ReadComputeBuffer(vbufferOIT.sublistCounterBuffer);
                 passData.offsetListBuffer = builder.ReadComputeBuffer(vbufferOIT.sampleListOffsetBuffer);
                 passData.offscreenLighting = builder.ReadTexture(offscreenLighting);
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.outputColor = builder.WriteTexture(colorBuffer);
 
-                float offscreenWidthAsFloat; unsafe { int offscreenWidthInt = offscreenLightingSize.x;  offscreenWidthAsFloat = *((float*)&offscreenWidthInt); }
-                passData.packedArgs = new Vector4(offscreenWidthAsFloat, 0.0f ,0.0f ,0.0f);
+                float offscreenWidthAsFloat; unsafe { int offscreenWidthInt = offscreenLightingSize.x; offscreenWidthAsFloat = *((float*)&offscreenWidthInt); }
+                passData.packedArgs = new Vector4(offscreenWidthAsFloat, 0.0f, 0.0f, 0.0f);
 
                 colorBuffer = passData.outputColor;
 
@@ -473,6 +476,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         int kernel = data.cs.FindKernel("MainResolveOffscreenLighting");
                         context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
+                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenLighting, data.offscreenLighting);
