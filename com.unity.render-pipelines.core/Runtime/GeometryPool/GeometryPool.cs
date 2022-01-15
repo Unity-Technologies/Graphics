@@ -26,11 +26,11 @@ namespace UnityEngine.Rendering
         {
             return new GeometryPoolDesc()
             {
-                vertexPoolByteSize = 32 * 1024 * 1024, //32 mb
-                indexPoolByteSize = 16 * 1024 * 1024, //16 mb
-                subMeshLookupPoolByteSize = 3 * 1024 * 1024, // 3mb
-                subMeshEntryPoolByteSize = 2 * 1024 * 1024, // 2mb
-                batchInstancePoolByteSize = 4 * 1024 * 1024, //4 mb
+                vertexPoolByteSize = 64 * 1024 * 1024, //64 mb
+                indexPoolByteSize = 32 * 1024 * 1024, //32 mb
+                subMeshLookupPoolByteSize = 6 * 1024 * 1024, // 6mb
+                subMeshEntryPoolByteSize = 4 * 1024 * 1024, // 4mb
+                batchInstancePoolByteSize = 8 * 1024 * 1024, //16 mb
                 maxMeshes = 4096
             };
         }
