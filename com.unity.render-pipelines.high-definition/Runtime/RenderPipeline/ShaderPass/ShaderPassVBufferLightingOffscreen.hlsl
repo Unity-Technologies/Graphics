@@ -46,6 +46,7 @@ Varyings VertSingleTile(Attributes inputMesh)
     output.positionCS.w = 1;
     output.positionCS.z = Visibility::PackDepthMaterialKey(materialBatchGPUKey);
     output.currentMaterialKey = currentMaterialKey;
+    output.lightAndMaterialFeatures = GetShaderFeatureMask();
 #endif
     return output;
 }
@@ -103,6 +104,9 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     diffuseLighting *= GetCurrentExposureMultiplier();
     specularLighting *= GetCurrentExposureMultiplier();
 
+    //outColor.rgb = saturate(dot(V, fragmentData.debugData.vertexNormal.xyz));
+    //outColor.rgb = surfaceData.baseColor;
     outColor.rgb = diffuseLighting + specularLighting;
+    //outColor.rgb = fragmentData.debugData.barycentrics.m_lambda;
     outColor.a = 1;
 }

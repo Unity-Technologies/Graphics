@@ -14,7 +14,7 @@ ByteAddressBuffer _VisOITListsCounts;
 ByteAddressBuffer _VisOITListsOffsets;
 ByteAddressBuffer _VisOITSubListsCounts;
 
-TEXTURE2D(_VisOITOffscreenLighting);
+TEXTURE2D_X(_VisOITOffscreenLighting);
 
 float4 DebugDrawOITHistogram(float2 sampleUV, float2 screenSize)
 {
@@ -50,7 +50,7 @@ void PackVisibilityData(Visibility::VisibilityData data, uint2 texelCoordinate, 
     uint2 packedDataHalfs;
     Visibility::PackVisibilityData(data, packedData.x, packedDataHalfs);
     packedData.y = (packedDataHalfs.x & 0xFF) | (packedDataHalfs.y << 8) | ((uint)(depth * 0xFFFF) << 16);
-    packedData.z = (texelCoordinate.x & 0xFFFF) | ((texelCoordinate.y << 16) & 0xFFFF);
+    packedData.z = (texelCoordinate.x & 0xFFFF) | ((texelCoordinate.y & 0xFFFF) << 16);
 }
 
 void UnpackVisibilityData(uint3 packedData, out Visibility::VisibilityData data, out uint2 texelCoordinate, out float depth)

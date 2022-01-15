@@ -14,6 +14,13 @@
 TEXTURE2D_X(_DepthTexture);
 RW_TEXTURE2D_X(float4, _OutputTexture);
 
+float4 _VBufferLightingOffscreenParams;
+
+uint GetOffscreenLightBufferWidth()
+{
+    return asuint(_VBufferLightingOffscreenParams.x);
+}
+
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -29,7 +36,17 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     if (listCount == 0)
         return;
 
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(1.0, 0.0, 0.0, 1.0);
+    float3 lighting = float3(0.0f, 0.0f, 0.0f);
+    for (uint i = 0; i < listCount; ++i)
+    {
+        int globalOffset = i + listOffset;
+        uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
+        lighting += _VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
+    }
+
+    lighting /= (float)listCount;
+
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(lighting, 1.0);
 }
 
 

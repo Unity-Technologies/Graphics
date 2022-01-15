@@ -981,6 +981,7 @@ Shader "HDRP/Lit"
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
+            #pragma multi_compile_fragment USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
             #define VARIANT_DIR_PUNCTUAL_AREA_ENV 1
 
@@ -996,7 +997,7 @@ Shader "HDRP/Lit"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
 
-            #define USE_FPTL_LIGHTLIST // Use light tiles for contact shadows
+            //#define USE_FPTL_LIGHTLIST // Use light tiles for contact shadows
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"

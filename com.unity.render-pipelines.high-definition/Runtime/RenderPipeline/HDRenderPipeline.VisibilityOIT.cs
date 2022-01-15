@@ -444,11 +444,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle offsetListBuffer;
             public ComputeBufferHandle sublistCounterBuffer;
             public TextureHandle outputColor;
+            public Vector4 packedArgs;
         }
 
         void OITResolveLighting(RenderGraph renderGraph, HDCamera hdCamera, 
             in VBufferOITOutput vbufferOIT,
-            TextureHandle offscreenLighting, Vector2Int offscreenLightingSize, TextureHandle depthBuffer, ref TextureHandle colorBuffer)
+            TextureHandle offscreenLighting,
+            Vector2Int offscreenLightingSize,
+            TextureHandle depthBuffer, ref TextureHandle colorBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<OITResolveRenderPass>("OITResolveRenderPass", out var passData, ProfilingSampler.Get(HDProfileId.OITResolveLighting)))
             {
@@ -460,12 +463,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.outputColor = builder.WriteTexture(colorBuffer);
 
+                float offscreenWidthAsFloat; unsafe { int offscreenWidthInt = offscreenLightingSize.x;  offscreenWidthAsFloat = *((float*)&offscreenWidthInt); }
+                passData.packedArgs = new Vector4(offscreenWidthAsFloat, 0.0f ,0.0f ,0.0f);
+
                 colorBuffer = passData.outputColor;
 
                 builder.SetRenderFunc(
                     (OITResolveRenderPass data, RenderGraphContext context) =>
                     {
                         int kernel = data.cs.FindKernel("MainResolveOffscreenLighting");
+                        context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenLighting, data.offscreenLighting);
