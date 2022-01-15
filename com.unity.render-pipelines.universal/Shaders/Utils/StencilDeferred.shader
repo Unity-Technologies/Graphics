@@ -260,12 +260,18 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half4 shadowMask = 1.0;
         #endif
 
-        #ifdef _LIGHT_LAYERS
-        float4 renderingLayers = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_point_clamp_sampler, screen_uv, 0);
-        uint meshRenderingLayers = uint(renderingLayers.r * 255.5);
-        #else
+        //#ifdef _LIGHT_LAYERS
+        //float4 renderingLayers = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_point_clamp_sampler, screen_uv, 0);
+        //uint meshRenderingLayers = uint(renderingLayers.r * 255.5);
+        //#else
         uint meshRenderingLayers = DEFAULT_LIGHT_LAYERS;
-        #endif
+        //#endif
+
+#ifdef _LIGHT_LAYERS
+        float4 wetness = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_point_clamp_sampler, screen_uv, 0);
+#else
+        float4 wetness = 0.0;
+#endif
 
         half surfaceDataOcclusion = gbuffer1.a;
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
@@ -289,8 +295,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         Light unityLight = GetStencilLight(posWS.xyz, screen_uv, shadowMask, materialFlags);
 
-        [branch] if (!IsMatchingLightLayer(unityLight.layerMask, meshRenderingLayers))
-            return half4(color, alpha); // Cannot discard because stencil must be updated.
+        //[branch] if (!IsMatchingLightLayer(unityLight.layerMask, meshRenderingLayers))
+        //    return half4(color, alpha); // Cannot discard because stencil must be updated.
 
         #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
             AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
@@ -314,16 +320,21 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             bool materialSpecularHighlightsOff = (materialFlags & kMaterialFlagSpecularHighlightsOff);
             #endif
             BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+            BRDFData brdfDataWetness = BRDFDataFromGbufferWetness(wetness);
             color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
+            float colorWetness = LightingPhysicallyBased(brdfDataWetness, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
+            color += colorWetness;
         #elif defined(_SIMPLELIT)
-            SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, kLightingSimpleLit);
-            half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
-            half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);
-            half smoothness = exp2(10 * surfaceData.smoothness + 1);
-            half3 specularColor = LightingSpecular(attenuatedLightColor, unityLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
+            //SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, kLightingSimpleLit);
+            //half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
+            //half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);
+            //half smoothness = exp2(10 * surfaceData.smoothness + 1);
+            //half3 specularColor = LightingSpecular(attenuatedLightColor, unityLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
 
-            // TODO: if !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), force specularColor to 0 in gbuffer code
-            color = diffuseColor * surfaceData.albedo + specularColor;
+            //// TODO: if !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), force specularColor to 0 in gbuffer code
+            //color = diffuseColor * surfaceData.albedo + specularColor;
+            color = float3(0,0,0);
+            alpha = 0;
         #endif
 
         return half4(color, alpha);

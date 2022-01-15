@@ -324,6 +324,10 @@ void Frag(PackedVaryings packedInput,
     fragmentOutput.GBuffer4 = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
 #endif
 
+#ifdef _MATERIAL_AFFECTS_EMISSION
+    fragmentOutput.GBuffer4 = 1;
+#endif
+
 #elif defined(DECAL_FORWARD_EMISSIVE)
     // Emissive need to be pre-exposed
     outEmissive.rgb = surfaceData.emissive;// *GetCurrentExposureMultiplier();

@@ -24,6 +24,8 @@ Pass
     $splice(PassKeywords)
     $splice(GraphKeywords)
 
+    #pragma multi_compile_fragment _ _LIGHT_LAYERS
+
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
 
@@ -56,6 +58,8 @@ Pass
     $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE
 
     $splice(GraphDefines)
+
+    $SurfaceDescription.Emission: #define _LIGHT_LAYERS
 
     // -- Properties used by ScenePickingPass
     #ifdef SCENEPICKINGPASS

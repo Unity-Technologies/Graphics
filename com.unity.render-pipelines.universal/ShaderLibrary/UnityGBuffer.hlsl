@@ -3,6 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Wetness.hlsl"
 
 // inspired from [builtin_shaders]/CGIncludes/UnityGBuffer.cginc
 
@@ -144,7 +145,7 @@ FragmentOutput SurfaceDataToGbuffer(SurfaceData surfaceData, InputData inputData
     #ifdef _LIGHT_LAYERS
     uint renderingLayers = GetMeshRenderingLightLayer();
     // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
-    output.GBUFFER_LIGHT_LAYERS = float4((renderingLayers & 0x000000FF) / 255.0, 0.0, 0.0, 0.0);
+    output.GBUFFER_LIGHT_LAYERS = 0;// float4(1.0, 0.75, 0.5, 0.25);// float4((renderingLayers & 0x000000FF) / 255.0, 0.0, 0.0, 0.0);
     #endif
 
     return output;
@@ -218,7 +219,7 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
     #ifdef _LIGHT_LAYERS
     uint renderingLayers = GetMeshRenderingLightLayer();
     // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
-    output.GBUFFER_LIGHT_LAYERS = float4((renderingLayers & 0x000000FF) / 255.0, 0.0, 0.0, 0.0);
+    output.GBUFFER_LIGHT_LAYERS = 0;// float4(1.0, 0.75, 0.5, 0.25);// float4((renderingLayers & 0x000000FF) / 255.0, 0.0, 0.0, 0.0);
     #endif
 
     return output;
@@ -257,6 +258,25 @@ BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
         brdfDiffuse = albedo * oneMinusReflectivity;
         brdfSpecular = lerp(kDieletricSpec.rgb, albedo, metallic);
     }
+    InitializeBRDFDataDirect(albedo, brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, alpha, brdfData);
+
+    return brdfData;
+}
+
+BRDFData BRDFDataFromGbufferWetness(float4 wetness)
+{
+    half3 albedo = 0.0;
+    half3 specular = kDieletricSpec.rgb * wetness.r;
+    half smoothness = 1.0;
+
+    BRDFData brdfData = (BRDFData)0;
+    half alpha = half(1.0); // NOTE: alpha can get modfied, forward writes it out (_ALPHAPREMULTIPLY_ON).
+
+    half3 brdfDiffuse = 0;
+    half3 brdfSpecular = specular;
+    half reflectivity = specular.r;
+    half oneMinusReflectivity = 1.0 - reflectivity;
+
     InitializeBRDFDataDirect(albedo, brdfDiffuse, brdfSpecular, reflectivity, oneMinusReflectivity, smoothness, alpha, brdfData);
 
     return brdfData;
