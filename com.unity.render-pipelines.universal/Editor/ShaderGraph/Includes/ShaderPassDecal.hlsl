@@ -319,13 +319,13 @@ void Frag(PackedVaryings packedInput,
     fragmentOutput.GBuffer0 = half4(surfaceData.baseColor.rgb, surfaceData.baseColor.a);
     fragmentOutput.GBuffer1 = 0;
     fragmentOutput.GBuffer2 = half4(packedNormalWS, surfaceData.normalWS.a);
-    fragmentOutput.GBuffer3 = half4(surfaceData.emissive + color, surfaceData.baseColor.a);
+    fragmentOutput.GBuffer3 = half4(/*surfaceData.emissive + */color, surfaceData.baseColor.a);
 #if OUTPUT_SHADOWMASK
     fragmentOutput.GBuffer4 = inputData.shadowMask; // will have unity_ProbesOcclusion value if subtractive lighting is used (baked)
 #endif
 
 #ifdef _MATERIAL_AFFECTS_EMISSION
-    fragmentOutput.GBuffer4 = 1;
+    fragmentOutput.GBUFFER_LIGHT_LAYERS = half4(surfaceData.emissive, 0.0);
 #endif
 
 #elif defined(DECAL_FORWARD_EMISSIVE)

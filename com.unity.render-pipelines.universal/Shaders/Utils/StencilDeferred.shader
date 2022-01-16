@@ -319,11 +319,32 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #else
             bool materialSpecularHighlightsOff = (materialFlags & kMaterialFlagSpecularHighlightsOff);
             #endif
+
             BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
-            BRDFData brdfDataWetness = BRDFDataFromGbufferWetness(wetness);
+
+            WetnessData wetnessData = GetWetnessData(wetness, brdfData, inputData.normalWS);
+            BRDFData brdfDataWetness = BRDFDataFromGbufferWetnessData(wetnessData);
+
+            float3 colorWetness = LightingPhysicallyBased(brdfDataWetness, unityLight, wetnessData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
+            half3 giWetness = GlobalIllumination(brdfDataWetness, inputData.bakedGI, wetnessData.occlusion, posWS, wetnessData.normalWS, inputData.viewDirectionWS);
+
+            AllpyWetnessToBRDF(wetnessData, brdfData);
+
             color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
-            float colorWetness = LightingPhysicallyBased(brdfDataWetness, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
-            color += colorWetness;
+
+            if (wetness.r > 0.0)
+            {
+                float lightAtten = saturate(1.0 - Fresnel(brdfDataWetness.reflectivity, dot(unityLight.direction, wetnessData.normalWS)));
+                float giAtten = saturate(1.0 - Fresnel(brdfDataWetness.reflectivity, dot(inputData.viewDirectionWS, wetnessData.normalWS)));
+
+                color *= lightAtten; //@ << too weak attenuation
+                alpha = lerp(1.0, giAtten, wetnessData.waterSaturation);//@ << too weak attenuation
+                //@ Problems in shadows
+                //@ Occlusion disappears in the beginning
+            }
+                
+            color += colorWetness + giWetness;
+
         #elif defined(_SIMPLELIT)
             //SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, kLightingSimpleLit);
             //half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
