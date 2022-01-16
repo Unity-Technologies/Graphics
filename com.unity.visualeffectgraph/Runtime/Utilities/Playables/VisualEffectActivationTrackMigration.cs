@@ -9,7 +9,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Migration
 {
-    class ActivationToControlTrack : AssetPostprocessor
+    class ActivationToControlTrack
     {
         static IEnumerable<VisualEffectControlTrack> GetOutOfDateControlTrack(TimelineAsset timeline)
         {
@@ -149,13 +149,13 @@ namespace UnityEditor.VFX.Migration
             }
         }
 
-        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+        public static void SanitizeAtPath(string str)
         {
-            foreach (var str in importedAssets)
+            //foreach (var str in importedAssets)
             {
                 try
                 {
-                    if (str.EndsWith(".playable", StringComparison.InvariantCultureIgnoreCase))
+                    //if (str.EndsWith(".playable", StringComparison.InvariantCultureIgnoreCase))
                     {
                         var timeline = AssetDatabase.LoadAssetAtPath<TimelineAsset>(str);
                         if (timeline != null)

@@ -35,6 +35,7 @@ namespace UnityEditor.VFX.Test
 
                 foreach (var clip in track.GetClips())
                 {
+                    Assert.IsInstanceOf<VisualEffectControlClip>(clip.asset);
                     var vfxClip = clip.asset as VisualEffectControlClip;
                     Assert.IsNotNull(vfxClip);
                     Assert.IsFalse(vfxClip.scrubbing);

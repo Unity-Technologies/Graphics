@@ -51,6 +51,17 @@ namespace UnityEngine.VFX
         }
 
 #if UNITY_EDITOR
+        void Awake()
+        {
+            if (!IsUpToDate())
+            {
+                var path = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(this));
+                UnityEditor.VFX.Migration.ActivationToControlTrack.SanitizeAtPath(path);
+            }
+        }
+#endif
+
+#if UNITY_EDITOR
         protected override void OnCreateClip(TimelineClip clip)
         {
             base.OnCreateClip(clip);
