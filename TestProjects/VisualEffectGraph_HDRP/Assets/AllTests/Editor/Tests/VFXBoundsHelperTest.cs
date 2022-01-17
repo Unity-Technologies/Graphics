@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.TestTools;
@@ -64,9 +64,9 @@ namespace UnityEditor.VFX.Test
                 ? Mathf.Sqrt(3.0f)
                 : Mathf.Sqrt(1.0f / Mathf.Pow(m_Scale.x,2) + 1.0f / Mathf.Pow(m_Scale.y,2) + 1.0f /  Mathf.Pow(m_Scale.z,2)));
 
-            Assert.AreEqual(expectedCenter.x, bounds.center.x, .001);
-            Assert.AreEqual(expectedCenter.y, bounds.center.y, .001);
-            Assert.AreEqual(expectedCenter.z, bounds.center.z, .001);
+            Assert.AreEqual(expectedCenter.x, bounds.center.x, .002);
+            Assert.AreEqual(expectedCenter.y, bounds.center.y, .002);
+            Assert.AreEqual(expectedCenter.z, bounds.center.z, .002);
             Assert.AreEqual(expectedExtent.x, bounds.extents.x, .005);
             Assert.AreEqual(expectedExtent.y, bounds.extents.y, .005);
             Assert.AreEqual(expectedExtent.z, bounds.extents.z, .005);

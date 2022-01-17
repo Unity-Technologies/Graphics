@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     TextureHandle outputCubemap = renderGraph.CreateTexture(new TextureDesc(16, 16)
                     { slices = TextureXR.slices, dimension = TextureDimension.Cube, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true });
 
-                    outputCubemap = m_SkyManager.RenderSkyToCubemap(renderGraph, hdCamera.lightingSky, includeSunInBaking: false, renderCloudLayers: false, outputCubemap);
+                    outputCubemap = m_SkyManager.RenderSkyToCubemap(renderGraph, hdCamera.lightingSky, hdCamera, includeSunInBaking: false, renderCloudLayers: false, outputCubemap);
                     m_SkyManager.UpdateAmbientProbe(renderGraph, outputCubemap, outputForClouds: true, m_CloudsAmbientProbeBuffer, null, null, null, OnComputeAmbientProbeDone);
                 }
             }
