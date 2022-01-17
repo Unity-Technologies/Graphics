@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -29,7 +30,7 @@ namespace UnityEditor.Experimental.VFX.Utility
         {
             public string Name;
             public string PropertyType;
-            public List<int> indices;
+            public int[] indices;
         }
 
         public static void GetHeader(Stream s, out long byteLength, out List<string> lines)
@@ -61,6 +62,9 @@ namespace UnityEditor.Experimental.VFX.Utility
             while (!found_end_header);
         }
 
+        private const int kMaxChannelCount = 4;
+        private const int kChannelError = -1;
+
         public override void OnImportAsset(AssetImportContext ctx)
         {
             try
@@ -75,8 +79,9 @@ namespace UnityEditor.Experimental.VFX.Utility
                 Dictionary<string, OutProperty> outProperties = new Dictionary<string, OutProperty>();
                 Dictionary<OutProperty, Texture2D> surfaces = new Dictionary<OutProperty, Texture2D>();
 
-                foreach (var prop in pcache.properties)
+                for (int bucketIndex = 0; bucketIndex < pcache.properties.Count; ++bucketIndex)
                 {
+                    var prop = pcache.properties[bucketIndex];
                     OutProperty p_out;
                     if (outProperties.ContainsKey(prop.ComponentName))
                     {
@@ -88,13 +93,13 @@ namespace UnityEditor.Experimental.VFX.Utility
                     {
                         p_out = new OutProperty()
                         {
-                            Name = prop.Name,
+                            Name = prop.ComponentName,
                             PropertyType = prop.Type,
-                            indices = new List<int>()
+                            indices = Enumerable.Repeat(kChannelError, kMaxChannelCount).ToArray()
                         };
                         outProperties.Add(prop.ComponentName, p_out);
                     }
-                    p_out.indices.Add(prop.ComponentIndex);
+                    p_out.indices[prop.ComponentIndex] = bucketIndex;
                 }
 
 
@@ -106,7 +111,8 @@ namespace UnityEditor.Experimental.VFX.Utility
                 {
                     //Initialize Texture
                     var surfaceFormat = GraphicsFormat.None;
-                    var size = kvp.Value.indices.Count;
+                    var lastIndex = Array.LastIndexOf(kvp.Value.indices, kChannelError);
+                    var size = lastIndex == -1 ? kMaxChannelCount : lastIndex;
                     switch (kvp.Value.PropertyType)
                     {
                         case "uchar":
@@ -141,9 +147,10 @@ namespace UnityEditor.Experimental.VFX.Utility
                         var data = new byte[actualPixelCount * actualSize];
                         for (var point = 0; point < pcache.elementCount; ++point)
                         {
-                            for (var channel = 0; channel < size; ++channel)
+                            for (var channel = 0; channel < kMaxChannelCount; ++channel)
                             {
-                                data[point * actualSize + channel] = (byte)pcache.buckets[kvp.Value.indices[channel]][point];
+                                if (kvp.Value.indices[channel] != kChannelError)
+                                    data[point * actualSize + channel] = (byte)pcache.buckets[kvp.Value.indices[channel]][point];
                             }
                         }
                         surface.SetPixelData(data, 0);
@@ -153,9 +160,10 @@ namespace UnityEditor.Experimental.VFX.Utility
                         var data = new ushort[actualPixelCount * actualSize];
                         for (var point = 0; point < pcache.elementCount; ++point)
                         {
-                            for (var channel = 0; channel < size; ++channel)
+                            for (var channel = 0; channel < kMaxChannelCount; ++channel)
                             {
-                                data[point * actualSize + channel] = Mathf.FloatToHalf((float)pcache.buckets[kvp.Value.indices[channel]][point]);
+                                if (kvp.Value.indices[channel] != kChannelError)
+                                    data[point * actualSize + channel] = Mathf.FloatToHalf((float)pcache.buckets[kvp.Value.indices[channel]][point]);
                             }
                         }
                         surface.SetPixelData(data, 0);
@@ -165,9 +173,10 @@ namespace UnityEditor.Experimental.VFX.Utility
                         var data = new int[actualPixelCount * actualSize];
                         for (var point = 0; point < pcache.elementCount; ++point)
                         {
-                            for (var channel = 0; channel < size; ++channel)
+                            for (var channel = 0; channel < kMaxChannelCount; ++channel)
                             {
-                                data[point * actualSize + channel] = (int)pcache.buckets[kvp.Value.indices[channel]][point];
+                                if (kvp.Value.indices[channel] != kChannelError)
+                                    data[point * actualSize + channel] = (int)pcache.buckets[kvp.Value.indices[channel]][point];
                             }
                         }
                         surface.SetPixelData(data, 0);
