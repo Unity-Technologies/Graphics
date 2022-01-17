@@ -35,6 +35,18 @@ namespace UnityEditor.Experimental.VFX.Utility
             elementCount = 0;
         }
 
+        public void AddIntegerProperty(string name)
+        {
+            properties.Add(new PropertyDesc()
+            {
+                Name = name,
+                ComponentIndex = 0,
+                ComponentName = name,
+                Type = "int"
+            });
+            buckets.Add(new List<object>());
+        }
+
         public void AddFloatProperty(string name)
         {
             properties.Add(new PropertyDesc()

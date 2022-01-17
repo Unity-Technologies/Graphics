@@ -27,6 +27,7 @@ namespace UnityEditor.Experimental.VFX.Utility
         bool m_ExportUV = false;
         bool m_ExportNormals = true;
         bool m_ExportColors = false;
+        bool m_ExportBarycentric = false;
 
         Mesh m_Mesh;
         int m_OutputPointCount = 4096;
@@ -43,6 +44,8 @@ namespace UnityEditor.Experimental.VFX.Utility
             m_ExportNormals = EditorGUILayout.Toggle("Export Normals", m_ExportNormals);
             m_ExportColors = EditorGUILayout.Toggle("Export Colors", m_ExportColors);
             m_ExportUV = EditorGUILayout.Toggle("Export UVs", m_ExportUV);
+            if (m_MeshBakeMode == MeshBakeMode.Triangle)
+                m_ExportBarycentric = EditorGUILayout.Toggle("Export Barycentric Coordinate", m_ExportBarycentric);
 
             m_OutputPointCount = EditorGUILayout.IntField("Point Count", m_OutputPointCount);
             if (m_Distribution != Distribution.Sequential)
@@ -206,7 +209,14 @@ namespace UnityEditor.Experimental.VFX.Utility
 
         abstract class Picker
         {
-            public abstract MeshData.Vertex GetNext();
+            public struct Result
+            {
+                public MeshData.Vertex vertex;
+                public Vector2 barycentric;
+                public int triangleIndex;
+            }
+
+            public abstract Result GetNext();
 
             protected Picker(MeshData data)
             {
@@ -259,10 +269,10 @@ namespace UnityEditor.Experimental.VFX.Utility
             {
             }
 
-            public override sealed MeshData.Vertex GetNext()
+            public sealed override Result GetNext()
             {
-                int randomIndex = m_Rand.Next(0, m_cacheData.vertices.Length);
-                return m_cacheData.vertices[randomIndex];
+                var randomIndex = m_Rand.Next(0, m_cacheData.vertices.Length);
+                return new Result(){ vertex = m_cacheData.vertices[randomIndex] };
             }
         }
 
@@ -273,13 +283,13 @@ namespace UnityEditor.Experimental.VFX.Utility
             {
             }
 
-            public override sealed MeshData.Vertex GetNext()
+            public sealed override Result GetNext()
             {
                 var r = m_cacheData.vertices[m_Index];
                 m_Index++;
                 if (m_Index >= m_cacheData.vertices.Length)
                     m_Index = 0;
-                return r;
+                return new Result() { vertex = r };
             }
         }
 
@@ -289,17 +299,22 @@ namespace UnityEditor.Experimental.VFX.Utility
             {
             }
 
-            public override sealed MeshData.Vertex GetNext()
+            public sealed override Result GetNext()
             {
                 var index = m_Rand.Next(0, m_cacheData.triangles.Length);
                 var rand = new Vector2(GetNextRandFloat(), GetNextRandFloat());
-                return Interpolate(m_cacheData.triangles[index], rand);
+                return new Result()
+                {
+                    vertex = Interpolate(m_cacheData.triangles[index], rand),
+                    triangleIndex = index,
+                    barycentric = rand
+                };
             }
         }
 
         class RandomPickerUniformArea : RandomPicker
         {
-            private double[] m_accumulatedAreaTriangles;
+            private readonly double[] m_accumulatedAreaTriangles;
 
             private double ComputeTriangleArea(MeshData.Triangle t)
             {
@@ -347,13 +362,18 @@ namespace UnityEditor.Experimental.VFX.Utility
                 throw new InvalidOperationException("Cannot FindIndexOfArea");
             }
 
-            public override sealed MeshData.Vertex GetNext()
+            public sealed override Result GetNext()
             {
                 var areaPosition = m_Rand.NextDouble() * m_accumulatedAreaTriangles.Last();
-                uint areaIndex = FindIndexOfArea(areaPosition);
-
+                var areaIndex = FindIndexOfArea(areaPosition);
                 var rand = new Vector2(GetNextRandFloat(), GetNextRandFloat());
-                return Interpolate(m_cacheData.triangles[areaIndex], rand);
+
+                return new Result()
+                {
+                    vertex = Interpolate(m_cacheData.triangles[areaIndex], rand),
+                    barycentric	= rand,
+                    triangleIndex = (int)areaIndex
+                };
             }
         }
 
@@ -364,13 +384,18 @@ namespace UnityEditor.Experimental.VFX.Utility
             {
             }
 
-            public override sealed MeshData.Vertex GetNext()
+            public override sealed Result GetNext()
             {
                 var t = m_cacheData.triangles[m_Index];
                 m_Index++;
                 if (m_Index >= m_cacheData.triangles.Length)
                     m_Index = 0;
-                return Interpolate(t, center_of_sampling);
+                return new Result()
+                {
+                    vertex = Interpolate(t, center_of_sampling),
+                    barycentric = center_of_sampling,
+                    triangleIndex = (int)m_Index
+                };
             }
         }
 
@@ -413,6 +438,9 @@ namespace UnityEditor.Experimental.VFX.Utility
             var colors = m_ExportColors ? new List<Vector4>() : null;
             var uvs = m_ExportUV ? new List<Vector4>() : null;
 
+            var exportBarycentric = m_ExportBarycentric && m_MeshBakeMode == MeshBakeMode.Triangle;
+            var barycentrics = exportBarycentric ? new List<(Vector2 coord, int triangle)>() : null;
+
             for (int i = 0; i < m_OutputPointCount; ++i)
             {
                 if (i % 64 == 0)
@@ -424,11 +452,12 @@ namespace UnityEditor.Experimental.VFX.Utility
                     }
                 }
 
-                var vertex = picker.GetNext();
-                positions.Add(vertex.position);
-                if (m_ExportNormals) normals.Add(vertex.normal);
-                if (m_ExportColors) colors.Add(vertex.color);
-                if (m_ExportUV) uvs.Add(vertex.uvs.Any() ? vertex.uvs[0] : Vector4.zero);
+                var r = picker.GetNext();
+                positions.Add(r.vertex.position);
+                if (m_ExportNormals) normals.Add(r.vertex.normal);
+                if (m_ExportColors) colors.Add(r.vertex.color);
+                if (m_ExportUV) uvs.Add(r.vertex.uvs.Any() ? r.vertex.uvs[0] : Vector4.zero);
+                if (exportBarycentric) barycentrics.Add((r.barycentric, r.triangleIndex));
             }
 
             var file = new PCache();
