@@ -612,7 +612,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if SYNC
             if (GetDistributedMode() != DistributedMode.None)
-            {            
+            {
                 if (Application.isPlaying && clientToController == null)
                 {
                     clientToController = new SocketClient();
@@ -993,7 +993,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDUtils.DisplayMessageNotification("Unable to compile Default Material based on Lit.shader. Either there is a compile error in Lit.shader or the current platform / API isn't compatible.");
                 return false;
-            }            
+            }
 
 #if UNITY_EDITOR
             UnityEditor.BuildTarget activeBuildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
@@ -1109,12 +1109,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_BlitTexArray = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
                 m_BlitTexArraySingleSlice = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
                 m_BlitTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
-                
+
                 m_BlitYUVToRGB.EnableKeyword("DISABLE_TEXTURE2D_X_ARRAY");
                 m_BlitYUVToRGBTexArray = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitYUVToRGBPS);
                 m_BlitYUVToRGBTexArraySingleSlice = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitYUVToRGBPS);
                 m_BlitYUVToRGBTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
-                
+
                 m_BlitRGBToYUV.EnableKeyword("DISABLE_TEXTURE2D_X_ARRAY");
                 m_BlitRGBToYUVTexArray = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitRGBToYUVPS);
                 m_BlitRGBToYUVTexArraySingleSlice = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitRGBToYUVPS);
@@ -1219,13 +1219,13 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_UpsampleTransparency);
             CoreUtils.Destroy(m_ApplyDistortionMaterial);
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
-            
+
             // Distributed
             CoreUtils.Destroy(m_BlitYUVToRGB);
             CoreUtils.Destroy(m_BlitYUVToRGBTexArray);
             CoreUtils.Destroy(m_BlitYUVToRGBTexArraySingleSlice);
-            
-            
+
+
             CoreUtils.Destroy(m_BlitRGBToYUV);
             CoreUtils.Destroy(m_BlitRGBToYUVTexArray);
             CoreUtils.Destroy(m_BlitRGBToYUVTexArraySingleSlice);
@@ -2438,7 +2438,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 #endif
-            AsyncGPUReadback.WaitAllRequests();
         }
 
         void PropagateScreenSpaceShadowData()

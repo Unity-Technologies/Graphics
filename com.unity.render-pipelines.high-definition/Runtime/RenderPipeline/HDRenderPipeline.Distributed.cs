@@ -360,6 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         using (new ProfilingScope(context.cmd,
                                    new ProfilingSampler("Readback and Send Buffer")))
                         {
+                            int currentFrameID = CurrentFrameID;
                             context.cmd.RequestAsyncReadback(data.computeBuffer, request =>
                             {
                                 while (!request.done)
@@ -372,7 +373,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 byte[] managedData = nativeData.ToArray();
 
                                 //SocketClient.Instance.ReplaceOrSet(Datagram.DatagramType.VideoFrame, managedData);
-                                SocketClient.Instance.Set(Datagram.DatagramType.VideoFrame, managedData, CurrentFrameID);
+                                SocketClient.Instance.Set(Datagram.DatagramType.VideoFrame, managedData, currentFrameID);
 
                                 Profiling.Profiler.EndSample();
                             });

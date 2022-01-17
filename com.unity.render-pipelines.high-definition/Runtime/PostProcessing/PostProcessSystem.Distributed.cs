@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 //TCPTransmissionDatagrams.SocketServer.Instance.SendAll(TCPTransmissionDatagrams.Datagram.DatagramType.Exposure, bytes);
                                 data.additionalData.ExposureFromBytes(bytes);
-                                Debug.Log($"Exposure {BitConverter.ToSingle(bytes, 0)}");
+                                //Debug.Log($"Exposure {BitConverter.ToSingle(bytes, 0)}");
                             }
                         );
                     });
@@ -138,11 +138,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             //     Debug.Log("data null");
                             //     return;
                             // }
-                            // else 
+                            // else
                             // {
                             //     Debug.Log($"Exposure {BitConverter.ToSingle(datagram.data, 0)}");
                             // }
-                            Debug.Log($"Exposure {data.additionalData.m_ExposureData}");
+                            //Debug.Log($"Exposure {data.additionalData.m_ExposureData}");
 
                             byte[] exposureBytes = data.additionalData.ExposureAsBytes();
 
