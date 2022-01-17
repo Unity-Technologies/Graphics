@@ -6,6 +6,10 @@ Pass
         $splice(LightMode)
     }
 
+    //Blend Max Max
+    $SurfaceDescription.Emission: ColorMask R 4
+    $SurfaceDescription.MAOSAlpha: ColorMask G 4
+
     // Render State
     $splice(RenderState)
 
@@ -23,8 +27,6 @@ Pass
     // Keywords
     $splice(PassKeywords)
     $splice(GraphKeywords)
-
-    #pragma multi_compile_fragment _ _LIGHT_LAYERS
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
@@ -150,7 +152,7 @@ Pass
             surfaceData.normalWS.w = half(0.0);
         #endif
 
-        $SurfaceDescription.Emission:       surfaceData.emissive.rgb = half3(surfaceDescription.Emission.rgb * fadeFactor);
+        $SurfaceDescription.Emission:       surfaceData.emissive = half3(surfaceDescription.Emission * fadeFactor);
 
         // copy across graph values, if defined
         $SurfaceDescription.BaseColor:      surfaceData.baseColor.xyz = half3(surfaceDescription.BaseColor);
@@ -181,7 +183,7 @@ Pass
         $SurfaceDescription.Metallic:       surfaceData.metallic = half(surfaceDescription.Metallic);
         $SurfaceDescription.Occlusion:      surfaceData.occlusion = half(surfaceDescription.Occlusion);
         $SurfaceDescription.Smoothness:     surfaceData.smoothness = half(surfaceDescription.Smoothness);
-        $SurfaceDescription.MAOSAlpha:      surfaceData.MAOSAlpha = half(surfaceDescription.MAOSAlpha * fadeFactor);
+        //$SurfaceDescription.MAOSAlpha:      surfaceData.MAOSAlpha = half(surfaceDescription.MAOSAlpha * fadeFactor);
     }
 
     // --------------------------------------------------
