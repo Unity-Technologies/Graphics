@@ -61,8 +61,6 @@ namespace UnityEngine.Experimental.Rendering
             public List<Matrix4x4[]> probeBuffers;
             public List<Matrix4x4[]> offsetBuffers;
             public List<MaterialPropertyBlock> props;
-            public Hash128 cellHash;
-            public Vector3 cellPosition;
         }
 
         const int kProbesPerBatch = 511;
@@ -296,11 +294,12 @@ namespace UnityEngine.Experimental.Rendering
 
             foreach (var cellInfo in ProbeReferenceVolume.instance.cells.Values)
             {
-                CreateInstancedProbes(cellInfo);
+                if (ShouldCullCell(cellInfo.cell.position, camera.transform, m_DebugFrustumPlanes))
+                    continue;
 
-                var debug = cellInfo.debugProbes;
+                var debug = CreateInstancedProbes(cellInfo);
 
-                if (debug == null || ShouldCullCell(debug.cellPosition, camera.transform, m_DebugFrustumPlanes))
+                if (debug == null)
                     continue;
 
                 for (int i = 0; i < debug.probeBuffers.Count; ++i)
@@ -334,17 +333,17 @@ namespace UnityEngine.Experimental.Rendering
             realtimeSubdivisionInfo.Clear();
         }
 
-        void CreateInstancedProbes(CellInfo cellInfo)
+        CellInstancedDebugProbes CreateInstancedProbes(CellInfo cellInfo)
         {
             if (cellInfo.debugProbes != null)
-                return;
+                return cellInfo.debugProbes;
 
             int maxSubdiv = ProbeReferenceVolume.instance.GetMaxSubdivision() - 1;
 
             var cell = cellInfo.cell;
 
             if (!cell.shL0L1Data.IsCreated || cell.shL0L1Data.Length == 0 || !cellInfo.loaded)
-                return;
+                return null;
 
             List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
             List<Matrix4x4[]> offsetBuffers = new List<Matrix4x4[]>();
@@ -363,7 +362,6 @@ namespace UnityEngine.Experimental.Rendering
             debugData.probeBuffers = probeBuffers;
             debugData.offsetBuffers = offsetBuffers;
             debugData.props = props;
-            debugData.cellPosition = cell.position;
 
             int idxInBatch = 0;
             for (int i = 0; i < cell.probePositions.Length; i++)
@@ -429,6 +427,8 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             cellInfo.debugProbes = debugData;
+
+            return debugData;
         }
 
         void OnClearLightingdata()
