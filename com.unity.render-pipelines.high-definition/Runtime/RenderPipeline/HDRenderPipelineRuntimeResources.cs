@@ -341,6 +341,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader DLSSBiasColorMaskPS;
             [Reload("Runtime/PostProcessing/Shaders/CompositeWithUIAndOETF.shader")]
             public Shader compositeUIAndOETFApplyPS;
+            [Reload("Runtime/PostProcessing/Shaders/ScreenSpaceScattering.compute")]
+            public ComputeShader screenSpaceScatteringCS;
 
             // Physically based DoF
             [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]

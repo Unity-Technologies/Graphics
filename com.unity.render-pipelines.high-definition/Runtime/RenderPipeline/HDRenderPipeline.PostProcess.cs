@@ -630,6 +630,146 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        #region Screen Space Multiple Scattering
+
+        class ScreenSpaceScatteringPassData
+        {
+            public HDCamera hdCamera;
+            public ComputeShader screenSpaceScatteringCS;
+            public TextureHandle screenSpaceScatteringDensityBuffer;
+            public TextureHandle colorBuffer;
+            public TextureHandle outputColor;
+            public TextureHandle[] mipsUp;
+            public TextureHandle[] mipsDown;
+            public TextureHandle blurOutput;
+            public Vector4[] bloomMipInfo;
+            public int bloomMipCount;
+            public int blurKernel;
+            public int upsampleKernel;
+            public int scatteringKernel;
+        }
+
+        TextureHandle ScreenSpaceScattering(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle screenSpaceScatteringDensityBuffer)
+        {
+            var ssms = hdCamera.volumeStack.GetComponent<SSMS>();
+
+            if (!ssms.enabled.value)
+                return colorBuffer;
+ 
+            using (var builder = renderGraph.AddRenderPass<ScreenSpaceScatteringPassData>("Screen-Space Scattering", out var passData))
+            {
+                passData.hdCamera = hdCamera;
+                passData.screenSpaceScatteringCS = defaultResources.shaders.screenSpaceScatteringCS;
+                passData.screenSpaceScatteringDensityBuffer = builder.ReadTexture(screenSpaceScatteringDensityBuffer);
+                passData.colorBuffer = builder.ReadTexture(colorBuffer);
+                passData.outputColor = builder.WriteTexture(renderGraph.CreateTexture(colorBuffer));
+                passData.blurKernel = passData.screenSpaceScatteringCS.FindKernel("BloomTest");
+                passData.upsampleKernel = passData.screenSpaceScatteringCS.FindKernel("Upsample");
+                passData.scatteringKernel = passData.screenSpaceScatteringCS.FindKernel("Scattering");
+
+                int maxSize = Mathf.Max(hdCamera.actualWidth, hdCamera.actualHeight);
+                int iterations = Mathf.FloorToInt(Mathf.Log(maxSize, 2f) - 2);
+                passData.bloomMipCount = Mathf.Clamp(iterations, 1, k_MaxBloomMipCount);
+
+                passData.mipsUp = new TextureHandle[passData.bloomMipCount];
+                passData.mipsDown = new TextureHandle[passData.bloomMipCount];
+                passData.bloomMipInfo = new Vector4[passData.bloomMipCount];
+                for (int i = 0; i < passData.bloomMipCount; i++)
+                {
+                    float p = 1f / Mathf.Pow(2f, i);
+                    float sw = p;
+                    float sh = p;
+                    int pw = Mathf.Max(1, Mathf.RoundToInt(sw * postProcessViewportSize.x));
+                    int ph = Mathf.Max(1, Mathf.RoundToInt(sh * postProcessViewportSize.y));
+                    var scale = new Vector2(sw, sh);
+                    var pixelSize = new Vector2Int(pw, ph);
+
+                    passData.bloomMipInfo[i] = new Vector4(pw, ph, sw, sh);
+                    passData.mipsDown[i] = builder.CreateTransientTexture(new TextureDesc(scale, IsDynamicResUpscaleTargetEnabled(), true)
+                    { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "MipDown" });
+
+                    passData.mipsUp[i] = builder.CreateTransientTexture(new TextureDesc(scale, IsDynamicResUpscaleTargetEnabled(), true)
+                    { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "MipUp" });
+                    if (i == 0)
+                        passData.blurOutput = passData.mipsUp[i];
+                }
+
+                passData.mipsDown[0] = passData.colorBuffer;
+
+                void DispatchWithGuardBands(CommandBuffer cmd, ComputeShader shader, RTHandle sourceRT, int kernelId, in Vector2Int size, in int viewCount)
+                {
+                    int w = size.x;
+                    int h = size.y;
+
+                    if (w < sourceRT.rt.width && w % 8 < k_RTGuardBandSize)
+                        w += k_RTGuardBandSize;
+                    if (h < sourceRT.rt.height && h % 8 < k_RTGuardBandSize)
+                        h += k_RTGuardBandSize;
+
+                    cmd.DispatchCompute(shader, kernelId, (w + 7) / 8, (h + 7) / 8, viewCount);
+                }
+
+                builder.SetRenderFunc((ScreenSpaceScatteringPassData data, RenderGraphContext ctx) =>
+                {
+                    RTHandle colorBuffer = data.colorBuffer;
+
+                    // Blur pyramid
+                    for (int i = 0; i < data.bloomMipCount - 1; i++)
+                    {
+                        var src = data.mipsDown[i];
+                        var dst = data.mipsDown[i + 1];
+                        var size = new Vector2Int((int)data.bloomMipInfo[i + 1].x, (int)data.bloomMipInfo[i + 1].y);
+
+                        ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.blurKernel, "_Input", src);
+                        ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.blurKernel, "_Output", dst);
+                        ctx.cmd.SetComputeVectorParam(data.screenSpaceScatteringCS, "_InputSize", new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
+                        DispatchWithGuardBands(ctx.cmd, data.screenSpaceScatteringCS, colorBuffer, data.blurKernel, size, data.hdCamera.viewCount);
+                        // ctx.cmd.DispatchCompute(data.screenSpaceScatteringCS, data.blurKernel, (size.x + 7) / 8, (size.y + 7) / 8, data.hdCamera.viewCount);
+                    }
+
+                    // Upsample & combine
+                    for (int i = data.bloomMipCount - 2; i >= 0; i--)
+                    {
+                        var low = (i == data.bloomMipCount - 2) ? data.mipsDown : data.mipsUp;
+                        var srcLow = low[i + 1];
+                        var srcHigh = data.mipsDown[i];
+                        var dst = data.mipsUp[i];
+                        var highSize = new Vector2Int((int)data.bloomMipInfo[i].x, (int)data.bloomMipInfo[i].y);
+                        var lowSize = new Vector2Int((int)data.bloomMipInfo[i + 1].x, (int)data.bloomMipInfo[i + 1].y);
+
+                        ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.upsampleKernel, HDShaderIDs._InputLowTexture, srcLow);
+                        ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.upsampleKernel, HDShaderIDs._InputHighTexture, srcHigh);
+                        ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.upsampleKernel, HDShaderIDs._OutputTexture, dst);
+                        // Scatter param
+                        ctx.cmd.SetComputeVectorParam(data.screenSpaceScatteringCS, HDShaderIDs._Params, new Vector4(1, 0f, 0f, 0f));
+                        ctx.cmd.SetComputeVectorParam(data.screenSpaceScatteringCS, HDShaderIDs._BloomBicubicParams, new Vector4(lowSize.x, lowSize.y, 1f / lowSize.x, 1f / lowSize.y));
+                        ctx.cmd.SetComputeVectorParam(data.screenSpaceScatteringCS, HDShaderIDs._TexelSize, new Vector4(highSize.x, highSize.y, 1f / highSize.x, 1f / highSize.y));
+                        DispatchWithGuardBands(ctx.cmd, data.screenSpaceScatteringCS, colorBuffer, data.upsampleKernel, highSize, data.hdCamera.viewCount);
+                    }
+
+                    // SSMS
+                    RTHandle densityBuffer = data.screenSpaceScatteringDensityBuffer;
+                    var densityBufferSize = new Vector4(
+                        densityBuffer.rt.width,
+                        densityBuffer.rt.height,
+                        1.0f / densityBuffer.rt.width,
+                        1.0f / densityBuffer.rt.height
+                    );
+                    ctx.cmd.SetComputeVectorParam(data.screenSpaceScatteringCS, "_DensityBufferSize", densityBufferSize);
+                    ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.scatteringKernel, "_DensityBuffer", densityBuffer);
+
+                    ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.scatteringKernel, "_Input", data.blurOutput);
+                    ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.scatteringKernel, "_Output", data.colorBuffer);
+
+                    ctx.cmd.DispatchCompute(data.screenSpaceScatteringCS, data.scatteringKernel, (hdCamera.actualWidth + 7) / 8, (hdCamera.actualHeight + 7) / 8, data.hdCamera.viewCount);
+                });
+
+                return passData.outputColor;
+            }
+        }
+
+        #endregion
+
         #region DLSS
         class DLSSColorMaskPassData
         {
@@ -3892,6 +4032,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var pixelSize = new Vector2Int(pw, ph);
 
                 passData.bloomMipInfo[i] = new Vector4(pw, ph, sw, sh);
+                Debug.Log(passData.bloomMipInfo[i]);
                 passData.mipsDown[i] = builder.CreateTransientTexture(new TextureDesc(scale, IsDynamicResUpscaleTargetEnabled(), true)
                 { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "BloomMipDown" });
 

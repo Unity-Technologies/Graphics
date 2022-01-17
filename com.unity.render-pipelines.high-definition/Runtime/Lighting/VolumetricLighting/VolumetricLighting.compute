@@ -81,6 +81,7 @@ RW_TEXTURE3D(float4, _VBufferFeedback);
 TEXTURE3D(_VBufferHistory);
 TEXTURE3D(_VBufferDensity);                     // RGB = scattering, A = extinction
 TEXTURE2D_X(_MaxZMaskTexture);
+RW_TEXTURE2D_X(float4, _ScreenSpaceScatteringDensity);
 StructuredBuffer<float4> _VolumetricAmbientProbeBuffer;
 
 //--------------------------------------------------------------------------------------------------
@@ -580,6 +581,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     // Note: anisotropic, no jittering.
     float3 probeInScatteredRadiance = EvaluateVolumetricAmbientProbe(ray.centerDirWS);
 
+    float totalExtinction = 0;
+    float3 totalScattering = 0;
     float3 totalRadiance = 0;
     float  opticalDepth  = 0;
     uint slice = 0;
@@ -627,6 +630,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float3 scattering = density.rgb;
         float  extinction = density.a;
         float  anisotropy = _GlobalFogAnisotropy;
+        totalExtinction += density.a;
+        totalScattering += density.rgb * density.a;
 
         // Perform per-pixel randomization by adding an offset and then sampling uniformly
         // (in the log space) in a vein similar to Stochastic Universal Sampling:
@@ -785,6 +790,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         t0 = tNext;
     }
+
+    _ScreenSpaceScatteringDensity[COORD_TEXTURE2D_X(posInput.positionSS)] = float4(totalScattering, totalExtinction);
 
     for (; slice < _VBufferSliceCount; slice++)
     {

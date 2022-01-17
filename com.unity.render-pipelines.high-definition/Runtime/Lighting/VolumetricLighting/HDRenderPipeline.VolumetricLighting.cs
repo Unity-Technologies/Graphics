@@ -973,6 +973,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool tiledLighting;
             public Vector4 resolution;
             public bool enableReprojection;
+            public bool enableScreenSpaceScattering;
             public int viewCount;
             public int sliceCount;
             public bool filterVolume;
@@ -981,6 +982,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShaderVariablesLightList lightListCB;
 
             public TextureHandle densityBuffer;
+            public TextureHandle screenSpaceScatteringDensityBuffer;
             public TextureHandle depthTexture;
             public TextureHandle lightingBuffer;
             public TextureHandle filteringOutputBuffer;
@@ -991,7 +993,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer volumetricAmbientProbeBuffer;
         }
 
-        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer, TextureHandle maxZBuffer, ComputeBufferHandle bigTileLightListBuffer, ShadowResult shadowResult)
+        (TextureHandle lightingBuffer, TextureHandle screenSpaceScatteringDensityBuffer) VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture,
+            TextureHandle densityBuffer, TextureHandle maxZBuffer, ComputeBufferHandle bigTileLightListBuffer, ShadowResult shadowResult)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -1017,6 +1020,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.volumetricLightingFilteringCS = m_VolumetricLightingFilteringCS;
                     passData.volumetricLightingCS.shaderKeywords = null;
                     passData.volumetricLightingFilteringCS.shaderKeywords = null;
+
+                    var ssms = hdCamera.volumeStack.GetComponent<SSMS>();
+                    passData.enableScreenSpaceScattering = ssms.enabled.value;
 
                     CoreUtils.SetKeyword(passData.volumetricLightingCS, "LIGHTLOOP_DISABLE_TILE_AND_CLUSTER", !passData.tiledLighting);
                     CoreUtils.SetKeyword(passData.volumetricLightingCS, "ENABLE_REPROJECTION", passData.enableReprojection);
@@ -1062,6 +1068,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.historyBuffer = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.volumetricHistoryBuffers[prevIdx]));
                     }
 
+                    if (passData.enableScreenSpaceScattering)
+                    {
+                        passData.screenSpaceScatteringDensityBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
+                        {
+                            colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureXR.dimension, enableRandomWrite = true, name = "ScreenSpaceScatteringDensity"
+                        }));
+                    }
+
                     passData.volumetricAmbientProbeBuffer = m_SkyManager.GetVolumetricAmbientProbeBuffer(hdCamera);
 
                     HDShadowManager.ReadShadowResult(shadowResult, builder);
@@ -1088,6 +1102,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             ConstantBuffer.Push(ctx.cmd, data.volumetricCB, data.volumetricLightingCS, HDShaderIDs._ShaderVariablesVolumetric);
                             ConstantBuffer.Set<ShaderVariablesLightList>(ctx.cmd, data.volumetricLightingCS, HDShaderIDs._ShaderVariablesLightList);
 
+                            if (data.enableScreenSpaceScattering)
+                            {
+                                ctx.cmd.SetComputeTextureParam(data.volumetricLightingCS, data.volumetricLightingKernel, HDShaderIDs._ScreenSpaceScatteringDensity, data.screenSpaceScatteringDensityBuffer);
+                            }
+
                             // The shader defines GROUP_SIZE_1D = 8.
                             ctx.cmd.DispatchCompute(data.volumetricLightingCS, data.volumetricLightingKernel, ((int)data.resolution.x + 7) / 8, ((int)data.resolution.y + 7) / 8, data.viewCount);
 
@@ -1113,14 +1132,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         hdCamera.volumetricValidFrames++;
 
+                    TextureHandle lightingBuffer;
                     if (passData.filterVolume && passData.filteringNeedsExtraBuffer)
-                        return passData.filteringOutputBuffer;
+                        lightingBuffer = passData.filteringOutputBuffer;
                     else
-                        return passData.lightingBuffer;
+                        lightingBuffer = passData.lightingBuffer;
+
+                    TextureHandle screenSpaceScatteringDensityBuffer = renderGraph.ImportTexture(HDUtils.clearTexture3DRTH);
+                    if (passData.enableScreenSpaceScattering)
+                        screenSpaceScatteringDensityBuffer = passData.screenSpaceScatteringDensityBuffer;
+
+                    return (lightingBuffer, screenSpaceScatteringDensityBuffer);
                 }
             }
 
-            return renderGraph.ImportTexture(HDUtils.clearTexture3DRTH);
+            return (renderGraph.ImportTexture(HDUtils.clearTexture3DRTH), renderGraph.ImportTexture(HDUtils.clearTexture3DRTH));
         }
     }
 } // namespace UnityEngine.Rendering.HighDefinition
