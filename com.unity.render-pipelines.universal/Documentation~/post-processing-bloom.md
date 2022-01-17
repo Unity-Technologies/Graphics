@@ -1,9 +1,9 @@
 # Bloom
 
-![Bloom](Images/AssetShots/PostProcessing/Bloom-off.png)
+![Bloom](Images/post-proc/Bloom-off.png)
 <br/>_Scene with Bloom effect turned off._
 
-![Bloom](Images/AssetShots/PostProcessing/Bloom.png)
+![Bloom](Images/post-proc/Bloom.png)
 <br/>_Scene with Bloom effect turned on._
 
 The Bloom effect creates fringes of light extending from the borders of bright areas in an image. This creates the illusion of extremely bright light overwhelming the Camera.
@@ -37,7 +37,7 @@ To add **Bloom** to a Volume:
 
 ### Lens Dirt
 
-![Lens Dirt](Images/AssetShots/PostProcessing/bloom-lens-dirt.png)
+![Lens Dirt](Images/post-proc/bloom-lens-dirt.png)
 
 | **Property**  | **Description**                                              |
 | ------------- | ------------------------------------------------------------ |

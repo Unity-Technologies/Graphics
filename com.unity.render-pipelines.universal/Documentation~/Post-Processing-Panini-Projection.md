@@ -1,9 +1,9 @@
 # Panini Projection
 
-![Panini Projection off](Images/AssetShots/PostProcessing/panini-off.png)
+![Panini Projection off](Images/post-proc/panini-off.png)
 <br/>_Scene with Panini Projection effect turned off._
 
-![Panini Projection on](Images/AssetShots/PostProcessing/panini.png)
+![Panini Projection on](Images/post-proc/panini.png)
 <br/>_Scene with Panini Projection effect turned on._
 
 This effect helps you to render perspective views in Scenes with a very large field of view. Panini projection is a cylindrical projection, which means that it keeps vertical straight lines straight and vertical. Unlike other cylindrical projections, panini projection keeps radial lines through the center of the image straight too.
