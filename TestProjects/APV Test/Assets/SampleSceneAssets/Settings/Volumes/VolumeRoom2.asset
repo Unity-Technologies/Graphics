@@ -19,6 +19,31 @@ MonoBehaviour:
   tint:
     m_OverrideState: 0
     m_Value: 0
+--- !u!114 &-1888989411698709034
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bd486065ce11414fa40e631affc4900, type: 3}
+  m_Name: ProbeVolumesOptions
+  m_EditorClassIdentifier: 
+  active: 1
+  normalBias:
+    m_OverrideState: 1
+    m_Value: 1.027
+  viewBias:
+    m_OverrideState: 1
+    m_Value: 0.948
+  scaleBiasWithMinProbeDistance:
+    m_OverrideState: 0
+    m_Value: 0
+  samplingNoise:
+    m_OverrideState: 0
+    m_Value: 0.125
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35,6 +60,7 @@ MonoBehaviour:
   - {fileID: -5339457426107574039}
   - {fileID: 4022551663448852175}
   - {fileID: 5933630138310514568}
+  - {fileID: -1888989411698709034}
 --- !u!114 &4022551663448852175
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -68,7 +94,7 @@ MonoBehaviour:
     m_Value: 4
   limitMax:
     m_OverrideState: 1
-    m_Value: 8
+    m_Value: 8.591862
   curveMap:
     m_OverrideState: 0
     m_Value:

@@ -15,6 +15,7 @@ MonoBehaviour:
   components:
   - {fileID: 8896021737368581315}
   - {fileID: 3621318029959498200}
+  - {fileID: 3955514346703712417}
 --- !u!114 &3621318029959498200
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -166,6 +167,31 @@ MonoBehaviour:
   proceduralSoftness:
     m_OverrideState: 0
     m_Value: 0.5
+--- !u!114 &3955514346703712417
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bd486065ce11414fa40e631affc4900, type: 3}
+  m_Name: ProbeVolumesOptions
+  m_EditorClassIdentifier: 
+  active: 1
+  normalBias:
+    m_OverrideState: 1
+    m_Value: 0.53
+  viewBias:
+    m_OverrideState: 1
+    m_Value: 0.57
+  scaleBiasWithMinProbeDistance:
+    m_OverrideState: 0
+    m_Value: 0
+  samplingNoise:
+    m_OverrideState: 0
+    m_Value: 0.125
 --- !u!114 &8896021737368581315
 MonoBehaviour:
   m_ObjectHideFlags: 3
