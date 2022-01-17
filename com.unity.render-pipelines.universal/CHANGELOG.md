@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a performance regression in the 2D renderer regarding the PostProcessPass [case 1347893]
 - Fixed a regression where filtering the scene view yielded incorrect visual results [case 1360233] (https://issuetracker.unity3d.com/product/unity/issues/guid/1360233)
 - VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
+- Fixed decal compilation issue on mac.
 - Reverted intermediate texture behavior.
 
 ## [12.1.3] - 2021-11-17
