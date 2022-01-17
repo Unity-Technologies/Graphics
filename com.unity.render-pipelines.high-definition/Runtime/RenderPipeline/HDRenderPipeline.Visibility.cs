@@ -55,6 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public FrameSettings frameSettings;
             public RendererListHandle rendererList;
             public RenderBRGBindingData BRGBindingData;
+            public ComputeShader updateVisibility;
         }
 
         void RenderVBuffer(RenderGraph renderGraph, TextureHandle colorBuffer, HDCamera hdCamera, CullingResults cull, ref PrepassOutput output)
@@ -109,9 +110,21 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_CurrentRendererConfigurationBakedLighting,
                         new RenderQueueRange() { lowerBound = (int)HDRenderQueue.Priority.Visibility, upperBound = (int)(int)HDRenderQueue.Priority.Visibility })));
 
+                passData.updateVisibility = defaultResources.shaders.updateVisibilityCS;
+
                 builder.SetRenderFunc(
                     (VBufferPassData data, RenderGraphContext context) =>
                     {
+                        var updateVisibility = data.updateVisibility;
+                        var bindings = data.BRGBindingData;
+                        updateVisibility.SetBuffer(0, HDShaderIDs._VisIndirectArgs, bindings.indirectArgs);
+                        updateVisibility.SetBuffer(0, HDShaderIDs._VisInputData, bindings.inputVisibleIndices);
+                        updateVisibility.SetBuffer(0, HDShaderIDs._VisOutputData, bindings.outputVisibleIndices);
+                        updateVisibility.SetInt(HDShaderIDs._VisDrawCommandCount, bindings.drawCommandCount);
+                        updateVisibility.SetInt(HDShaderIDs._VisDebugVisibilityMask, (int)bindings.debugVisibleMask);
+                        int threadGroups = bindings.drawCommandCount / 64 + 1;
+                        context.cmd.DispatchCompute(updateVisibility, 0, threadGroups, 1, 1);
+
                         data.BRGBindingData.globalGeometryPool.BindResourcesGlobal(context.cmd);
                         DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
                     });

@@ -1098,6 +1098,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         //Visibility Lighting
         public static readonly int _VisBufferTileData = Shader.PropertyToID("_VisBufferTileData");
+
+        public static readonly int _VisIndirectArgs = Shader.PropertyToID("indirectArgs");
+        public static readonly int _VisInputData = Shader.PropertyToID("inputVisibleInstanceData");
+        public static readonly int _VisOutputData = Shader.PropertyToID("outputVisibleInstanceData");
+        public static readonly int _VisDrawCommandCount = Shader.PropertyToID("drawCommandCount");
+        public static readonly int _VisDebugVisibilityMask = Shader.PropertyToID("debugVisibilityMask");
     }
 
     /// <summary>

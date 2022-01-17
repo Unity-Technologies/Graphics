@@ -39,7 +39,7 @@ public unsafe class UploadBufferPool
         m_buffers = new GraphicsBuffer[numBuffers];
         for (int i = 0; i < m_buffers.Length; ++i)
         {
-            m_buffers[i] = new GraphicsBuffer(GraphicsBuffer.Target.Vertex, GraphicsBuffer.UsageFlags.LockBufferForWrite, bufferSizeBytes / 4, 4);
+            m_buffers[i] = new GraphicsBuffer(GraphicsBuffer.Target.Vertex | GraphicsBuffer.Target.Raw, GraphicsBuffer.UsageFlags.LockBufferForWrite, bufferSizeBytes / 4, 4);
             m_bufferHandles[i] = m_buffers[i].bufferHandle;
         }
 

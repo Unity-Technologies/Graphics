@@ -131,6 +131,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader createMaterialDepthPS;
             [Reload("Runtime/Material/Visibility/VBufferClassification.compute")]
             public ComputeShader vbufferTileClassificationCS;
+            [Reload("Runtime/Material/Visibility/UpdateVisibility.compute")]
+            public ComputeShader updateVisibilityCS;
 
             // Sky
             [Reload("Runtime/Sky/BlitCubemap.shader")]

@@ -57,6 +57,7 @@ namespace UnityEngine.Rendering
         public uint submeshIndex;
         public BatchMaterialID material;
         public BatchDrawCommandFlags flags;
+        public int submeshProceduralIndex;
 
         public RangeKey range;
 
@@ -67,6 +68,7 @@ namespace UnityEngine.Rendering
                 submeshIndex == other.submeshIndex &&
                 material == other.material &&
                 flags == other.flags &&
+                submeshProceduralIndex == other.submeshProceduralIndex &&
                 range.Equals(other.range);
         }
     }
@@ -150,6 +152,19 @@ namespace UnityEngine.Rendering
 
         private NativeHashMap<DrawKey, int> m_batchHash;
         private NativeList<DrawBatch> m_drawBatches;
+
+        private NativeHashMap<ulong, int> m_proceduralHash;
+        private NativeList<BatchDrawCommandProcedural> m_proceduralInfos;
+
+        private GraphicsBuffer m_DrawIndirectArgs;
+        private GraphicsBuffer m_OcclusionVisibilityBitfield;
+        private GraphicsBuffer m_OcclusionVisibleInstanceData;
+
+        internal static GraphicsBuffer s_DrawIndirectArgs;
+        internal static GraphicsBuffer s_InputVisibleInstanceData;
+        internal static GraphicsBuffer s_OutputVisibleInstanceData;
+        internal static int s_VisibleCount;
+        internal static uint s_DebugVisibleMask;
 
         private NativeList<DrawInstance> m_instances;
         private NativeArray<int> m_instanceIndices;
@@ -252,6 +267,12 @@ namespace UnityEngine.Rendering
 
             public NativeArray<BatchCullingOutputDrawCommands> drawCommands;
 
+            public bool useIndirects;
+            [ReadOnly] public GraphicsBufferHandle drawIndirectArgs;
+            [ReadOnly] public GraphicsBufferHandle gpuCulledVisibleInstances;
+            [ReadOnly] public NativeList<BatchDrawCommandProcedural> proceduralInfos;
+            [WriteOnly] public NativeArray<GraphicsBuffer.IndirectDrawIndexedArgs> drawIndirectArgData;
+
 #if DEBUG
             [IgnoreWarning(1370)] //Ignore throwing exception warning.
 #endif
@@ -282,8 +303,9 @@ namespace UnityEngine.Rendering
                     for (int activeBatch = 0; activeBatch < batchCount; ++activeBatch)
                     {
                         var remappedDrawIndex = drawIndices[drawRangeInfo.drawOffset + activeBatch];
-                        var instanceCount = drawBatches[remappedDrawIndex].instanceCount;
-                        var instanceOffset = drawBatches[remappedDrawIndex].instanceOffset;
+                        var drawBatch = drawBatches[remappedDrawIndex];
+                        var instanceCount = drawBatch.instanceCount;
+                        var instanceOffset = drawBatch.instanceOffset;
 
                         // Output visible instances to the array
                         for (int i = 0; i < instanceCount; ++i)
@@ -312,21 +334,44 @@ namespace UnityEngine.Rendering
                                 throw new Exception("Exceeding draw count");
 #endif
 
-                            draws.drawCommands[outBatch] = new BatchDrawCommand
+                            var drawCommand = new BatchDrawCommand
                             {
-                                flags = drawBatches[remappedDrawIndex].key.flags,
+                                flags = drawBatch.key.flags,
                                 visibleOffset = (uint)batchStartIndex,
                                 visibleCount = (uint)visibleCount,
                                 batchID = batchID,
-                                materialID = drawBatches[remappedDrawIndex].key.material,
+                                materialID = drawBatch.key.material,
                                 splitVisibilityMask = 0x1,
                                 sortingPosition = 0,
                                 regular = new BatchDrawCommandRegular
                                 {
-                                    meshID = drawBatches[remappedDrawIndex].key.meshID,
-                                    submeshIndex = (ushort)drawBatches[remappedDrawIndex].key.submeshIndex,
+                                    meshID = drawBatch.key.meshID,
+                                    submeshIndex = (ushort)drawBatch.key.submeshIndex,
                                 },
                             };
+
+                            if (useIndirects)
+                            {
+                                drawCommand.flags |= BatchDrawCommandFlags.Indirect;
+
+                                drawCommand.regular.indirectBufferHandle = drawIndirectArgs;
+                                drawCommand.regular.indirectBufferOffset =
+                                    (uint)(outBatch * GraphicsBuffer.IndirectDrawIndexedArgs.size);
+
+                                var info = proceduralInfos[drawBatch.key.submeshProceduralIndex];
+                                var args = new GraphicsBuffer.IndirectDrawIndexedArgs
+                                {
+                                    indexCountPerInstance = info.indexCount,
+                                    instanceCount = drawCommand.visibleCount,
+                                    startIndex = info.indexOffset,
+                                    baseVertexIndex = info.vertexOffset,
+                                    startInstance = drawCommand.visibleOffset,
+                                };
+                                drawIndirectArgData[outBatch] = args;
+                            }
+
+                            draws.drawCommands[outBatch] = drawCommand;
+
                             outBatch++;
                         }
 
@@ -342,7 +387,7 @@ namespace UnityEngine.Rendering
                         {
                             drawCommandsBegin = (uint)rangeStartIndex,
                             drawCommandsCount = (uint)visibleDrawCount,
-                            visibleInstancesBufferHandle = visibleInstancesBufferHandle,
+                            visibleInstancesBufferHandle = gpuCulledVisibleInstances,
                             filterSettings = new BatchFilterSettings
                             {
                                 renderingLayerMask = rangeKey.renderingLayerMask,
@@ -725,6 +770,11 @@ namespace UnityEngine.Rendering
             // Use optimized culling job for single split callbacks
             if (cc.cullingSplits.Length == 1)
             {
+                var debugIndirectData = new NativeArray<GraphicsBuffer.IndirectDrawIndexedArgs>(
+                    maxDrawCounts,
+                    Allocator.TempJob,
+                    NativeArrayOptions.ClearMemory);
+
                 var drawOutputJob = new DrawCommandOutputSingleSplitJob
                 {
                     viewID = cc.viewID.GetInstanceID(),
@@ -740,8 +790,22 @@ namespace UnityEngine.Rendering
                     drawCommands = cullingOutput.drawCommands,
                     visibleInstancesBufferHandle = visibleInstancesUploadBuffer.bufferHandle,
                     visibleInstancesGPU = visibleInstancesUploadBuffer.gpuData,
+                    useIndirects = true,
+                    proceduralInfos = m_proceduralInfos,
+                    drawIndirectArgs = m_DrawIndirectArgs.bufferHandle,
+                    drawIndirectArgData = debugIndirectData,
+                    gpuCulledVisibleInstances = m_OcclusionVisibleInstanceData.bufferHandle,
                 };
                 jobHandleOutput = drawOutputJob.Schedule(jobHandleCulling);
+
+                jobHandleOutput.Complete();
+                m_DrawIndirectArgs.SetData(debugIndirectData);
+                debugIndirectData.Dispose();
+
+                s_DrawIndirectArgs = m_DrawIndirectArgs;
+                s_InputVisibleInstanceData = m_visibleInstancesBufferPool.m_buffers[visibleInstancesUploadBuffer.index];
+                s_OutputVisibleInstanceData = m_OcclusionVisibleInstanceData;
+                s_VisibleCount = cullingOutput.drawCommands[0].drawCommandCount;
             }
             else
             {
@@ -908,6 +972,8 @@ namespace UnityEngine.Rendering
             m_rangeHash = new NativeHashMap<RangeKey, int>(1024, Allocator.Persistent);
             m_drawBatches = new NativeList<DrawBatch>(Allocator.Persistent);
             m_drawRanges = new NativeList<DrawRange>(Allocator.Persistent);
+            m_proceduralHash = new NativeHashMap<ulong, int>(1024, Allocator.Persistent);
+            m_proceduralInfos = new NativeList<BatchDrawCommandProcedural>(Allocator.Persistent);
             m_AddedRenderers = new List<MeshRenderer>(renderersLength);
             m_DeferredMaterialBRG = deferredMaterialBRG;
 
@@ -1098,8 +1164,11 @@ namespace UnityEngine.Rendering
                         meshID = mesh,
                         submeshIndex = (uint)usedSubmeshIndices[matIndex],
                         flags = flags,
-                        range = rangeKey
+                        range = rangeKey,
+                        submeshProceduralIndex = -1,
                     };
+
+                    key.submeshProceduralIndex = GetProceduralIndex(usedMesh, mesh, key.submeshIndex);
 
                     var drawBatch = new DrawBatch { key = key, instanceCount = 0, instanceOffset = 0 };
 
@@ -1129,6 +1198,24 @@ namespace UnityEngine.Rendering
                 new GraphicsBuffer(GraphicsBuffer.Target.Raw, (int)bigDataBufferVector4Count * 16 / 4, 4);
             m_GPUPersistentInstanceData.SetData(vectorBuffer);
 
+            m_DrawIndirectArgs =
+                new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments | GraphicsBuffer.Target.Structured,
+                    GraphicsBuffer.UsageFlags.None,
+                    kMaxDrawCount * kIndirectArgCount,
+                    sizeof(int));
+            m_DrawIndirectArgs.name = "Occlusion culling indirect args";
+            m_OcclusionVisibilityBitfield =
+                new GraphicsBuffer(GraphicsBuffer.Target.Raw,
+                    GraphicsBuffer.UsageFlags.None,
+                    kMaxOcclusionInstances / 32,
+                    sizeof(int));
+            m_OcclusionVisibilityBitfield.name = "Occlusion culling visibility bitfield";
+            m_OcclusionVisibleInstanceData =
+                new GraphicsBuffer(GraphicsBuffer.Target.Vertex | GraphicsBuffer.Target.Raw,
+                    GraphicsBuffer.UsageFlags.None,
+                    kMaxOcclusionInstances,
+                    sizeof(int));
+            m_OcclusionVisibleInstanceData.name = "Occlusion culling visible INSTANCEDATA";
 
 #if DEBUG_LOG_SCENE
             Debug.Log("DrawRanges: " + m_drawRanges.Length + ", DrawBatches: " + m_drawBatches.Length + ", Instances: " + m_instances.Length);
@@ -1241,6 +1328,35 @@ namespace UnityEngine.Rendering
             m_initialized = true;
         }
 
+        private const int kMaxDrawCount = 64 * 1024;
+        private const int kIndirectArgCount = 5;
+        private const int kMaxOcclusionInstances = 128 * 1024;
+
+        private int GetProceduralIndex(Mesh mesh, BatchMeshID meshID, uint submesh)
+        {
+            ulong key = ((ulong)meshID.value << 32) | submesh;
+
+            if (m_proceduralHash.TryGetValue(key, out int index))
+                return index;
+
+            var sm = mesh.GetSubMesh((int)submesh);
+
+            var procedural = new BatchDrawCommandProcedural
+            {
+                indexBufferHandle = mesh.GetIndexBuffer().bufferHandle,
+                indexCount = (uint)sm.indexCount,
+                indexOffset = (uint)sm.indexStart,
+                topology = sm.topology,
+                vertexCount = (uint)sm.vertexCount,
+                vertexOffset = (uint)sm.baseVertex,
+            };
+
+            index = m_proceduralInfos.Length;
+            m_proceduralInfos.Add(procedural);
+            m_proceduralHash[key] = index;
+            return index;
+        }
+
         public void Update()
         {
             m_visibleInstancesBufferPool.SetFrame(m_frame);
@@ -1270,12 +1386,18 @@ namespace UnityEngine.Rendering
                 m_GPUPersistentInstanceData.Dispose();
                 m_BRGTransformUpdater.Dispose();
 
+                m_DrawIndirectArgs.Dispose();
+                m_OcclusionVisibilityBitfield.Dispose();
+                m_OcclusionVisibleInstanceData.Dispose();
+
                 m_visibleInstancesBufferPool.Dispose();
 
                 m_batchHash.Dispose();
                 m_rangeHash.Dispose();
                 m_drawBatches.Dispose();
                 m_drawRanges.Dispose();
+                m_proceduralHash.Dispose();
+                m_proceduralInfos.Dispose();
                 m_instances.Dispose();
                 m_instanceIndices.Dispose();
                 m_drawIndices.Dispose();
@@ -1316,6 +1438,11 @@ namespace UnityEngine.Rendering
     public struct RenderBRGBindingData
     {
         public GeometryPool globalGeometryPool;
+        public GraphicsBuffer indirectArgs;
+        public GraphicsBuffer inputVisibleIndices;
+        public GraphicsBuffer outputVisibleIndices;
+        public int drawCommandCount;
+        public uint debugVisibleMask;
 
         public bool valid => globalGeometryPool != null;
 
@@ -1360,11 +1487,25 @@ namespace UnityEngine.Rendering
         private static uint s_DeferredMaterialBRGRef = 0;
         private static DeferredMaterialBRG s_DeferredMaterialBRG;
 
+        public bool DebugVisibility0 = true;
+        public bool DebugVisibility1 = true;
+        public bool DebugVisibility2 = true;
+        public bool DebugVisibility3 = true;
+        public bool DebugVisibility4 = true;
+        public bool DebugVisibility5 = true;
+        public bool DebugVisibility6 = true;
+        public bool DebugVisibility7 = true;
+
         public static RenderBRGBindingData GetRenderBRGMaterialBindingData()
         {
             return new RenderBRGBindingData()
             {
-                globalGeometryPool = s_DeferredMaterialBRG == null ? null : s_DeferredMaterialBRG.geometryPool
+                globalGeometryPool = s_DeferredMaterialBRG == null ? null : s_DeferredMaterialBRG.geometryPool,
+                indirectArgs = SceneBRG.s_DrawIndirectArgs,
+                inputVisibleIndices = SceneBRG.s_InputVisibleInstanceData,
+                outputVisibleIndices = SceneBRG.s_OutputVisibleInstanceData,
+                drawCommandCount = SceneBRG.s_VisibleCount,
+                debugVisibleMask = SceneBRG.s_DebugVisibleMask,
             };
         }
 
@@ -1527,6 +1668,17 @@ namespace UnityEngine.Rendering
                 if (gpuCmds > 0)
                     Graphics.ExecuteCommandBuffer(m_gpuCmdBuffer);
             }
+
+            uint debugVisibleMask = 0xffffffff ^
+                                    ((DebugVisibility0 ? 0 : (1u << 0)) |
+                                     (DebugVisibility1 ? 0 : (1u << 1)) |
+                                     (DebugVisibility2 ? 0 : (1u << 2)) |
+                                     (DebugVisibility3 ? 0 : (1u << 3)) |
+                                     (DebugVisibility4 ? 0 : (1u << 4)) |
+                                     (DebugVisibility5 ? 0 : (1u << 5)) |
+                                     (DebugVisibility6 ? 0 : (1u << 6)) |
+                                     (DebugVisibility7 ? 0 : (1u << 7)));
+            SceneBRG.s_DebugVisibleMask = debugVisibleMask;
         }
 
         private void OnDestroy()

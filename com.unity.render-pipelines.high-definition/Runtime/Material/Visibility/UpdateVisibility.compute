@@ -1,0 +1,58 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+#pragma enable_d3d11_debug_symbols
+
+static const uint kIndexCountPerInstance = 0;
+static const uint kInstanceCount         = 1;
+static const uint kStartIndex            = 2;
+static const uint kBaseVertexIndex       = 3;
+static const uint kStartInstance         = 4;
+static const uint kSizeofIndirectArgs    = 5;
+
+RWStructuredBuffer<uint> indirectArgs;
+RWByteAddressBuffer outputVisibleInstanceData;
+ByteAddressBuffer   inputVisibleInstanceData;
+
+uint drawCommandCount;
+uint debugVisibilityMask;
+
+[numthreads(64,1,1)]
+void CSMain (uint3 tid : SV_DispatchThreadID)
+{
+    uint id = tid.x;
+
+    if (id >= drawCommandCount)
+        return;
+
+    uint drawCommandBase = id * kSizeofIndirectArgs;
+
+    uint instanceBegin = indirectArgs[drawCommandBase + kStartInstance];
+    uint instanceCount = indirectArgs[drawCommandBase + kInstanceCount];
+    uint instanceEnd = instanceBegin + instanceCount;
+
+    if (instanceCount == 0)
+        return;
+
+    // 1 = visible
+    uint visibleMask = debugVisibilityMask;
+
+    // copy only indices of visible instances
+    uint writeIndex = instanceBegin;
+    for (uint i = instanceBegin; i < instanceEnd; ++i)
+    {
+        uint readIndex = i;
+        uint bitIndex = readIndex & 0x1f;
+        uint mask = 1 << bitIndex;
+
+        if (visibleMask & mask)
+        {
+            uint instance = inputVisibleInstanceData.Load(readIndex << 2);
+            outputVisibleInstanceData.Store(writeIndex << 2, instance);
+            ++writeIndex;
+        }
+    }
+
+    instanceCount = writeIndex - instanceBegin;
+    indirectArgs[drawCommandBase + kInstanceCount] = instanceCount;
+}
+
