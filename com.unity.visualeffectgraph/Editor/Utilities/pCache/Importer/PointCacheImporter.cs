@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Globalization;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 #if UNITY_2020_2_OR_NEWER
 using UnityEditor.AssetImporters;
 #else
@@ -24,33 +25,11 @@ namespace UnityEditor.Experimental.VFX.Utility
             return result;
         }
 
-        class InProperty
-        {
-            public string PropertyType;
-            public string Name;
-            public int Index;
-            public OutProperty OutProperty;
-
-            public InProperty(string propertyType, string name, int index, OutProperty outProperty)
-            {
-                PropertyType = propertyType;
-                Name = name;
-                Index = index;
-                OutProperty = outProperty;
-            }
-        }
-
         class OutProperty
         {
-            public string PropertyType;
             public string Name;
-            public int Size;
-            public OutProperty(string propertyType, string name, int size)
-            {
-                PropertyType = propertyType;
-                Name = name;
-                Size = size;
-            }
+            public string PropertyType;
+            public List<int> indices;
         }
 
         public static void GetHeader(Stream s, out long byteLength, out List<string> lines)
@@ -93,7 +72,6 @@ namespace UnityEditor.Experimental.VFX.Utility
                 ctx.AddObjectToAsset("PointCache", cache);
                 ctx.SetMainObject(cache);
 
-                List<InProperty> inProperties = new List<InProperty>();
                 Dictionary<string, OutProperty> outProperties = new Dictionary<string, OutProperty>();
                 Dictionary<OutProperty, Texture2D> surfaces = new Dictionary<OutProperty, Texture2D>();
 
@@ -103,15 +81,20 @@ namespace UnityEditor.Experimental.VFX.Utility
                     if (outProperties.ContainsKey(prop.ComponentName))
                     {
                         p_out = outProperties[prop.ComponentName];
-                        p_out.Size = Math.Max(p_out.Size, prop.ComponentIndex + 1);
+                        if (prop.Type != p_out.PropertyType)
+                            throw new InvalidOperationException("Unexpected pCache format");
                     }
                     else
                     {
-                        p_out = new OutProperty(prop.Type, prop.ComponentName, prop.ComponentIndex + 1);
+                        p_out = new OutProperty()
+                        {
+                            Name = prop.Name,
+                            PropertyType = prop.Type,
+                            indices = new List<int>()
+                        };
                         outProperties.Add(prop.ComponentName, p_out);
                     }
-
-                    inProperties.Add(new InProperty(prop.Type, prop.Name, prop.ComponentIndex, p_out));
+                    p_out.indices.Add(prop.ComponentIndex);
                 }
 
 
@@ -121,60 +104,81 @@ namespace UnityEditor.Experimental.VFX.Utility
                 // Output Surface Creation
                 foreach (var kvp in outProperties)
                 {
-                    TextureFormat surfaceFormat = TextureFormat.Alpha8;
+                    //Initialize Texture
+                    var surfaceFormat = GraphicsFormat.None;
+                    var size = kvp.Value.indices.Count;
                     switch (kvp.Value.PropertyType)
                     {
                         case "uchar":
-                            if (kvp.Value.Size == 1) surfaceFormat = TextureFormat.Alpha8;
-                            else surfaceFormat = TextureFormat.RGBA32;
+                            if (size == 1) surfaceFormat = GraphicsFormat.R8_SRGB;
+                            else if (size == 2) surfaceFormat = GraphicsFormat.R8G8_SRGB;
+                            else if (size == 3) surfaceFormat = GraphicsFormat.R8G8B8_SRGB;
+                            else surfaceFormat = GraphicsFormat.R8G8B8A8_SRGB;
                             break;
                         case "float":
-                            if (kvp.Value.Size == 1) surfaceFormat = TextureFormat.RHalf;
-                            else surfaceFormat = TextureFormat.RGBAHalf;
+                            if (size == 1) surfaceFormat = GraphicsFormat.R16_SFloat;
+                            else if (size == 2) surfaceFormat = GraphicsFormat.R16G16_SFloat;
+                            else if (size == 3) surfaceFormat = GraphicsFormat.R16G16B16A16_SFloat; //RGB_Half not supported on most platform
+                            else surfaceFormat = GraphicsFormat.R16G16B16A16_SFloat;
                             break;
-                        default: throw new NotImplementedException("Types other than uchar/float are not supported yet");
+                        case "int":
+                            if (size == 1) surfaceFormat = GraphicsFormat.R32_SInt;
+                            else if (size == 2) surfaceFormat = GraphicsFormat.R32G32_SInt;
+                            else if (size == 3) surfaceFormat = GraphicsFormat.R32G32B32_SInt;
+                            else surfaceFormat = GraphicsFormat.R32G32B32A32_SInt;
+                            break;
+                        default: throw new NotImplementedException("Types other than uchar/int/float are not supported yet");
                     }
 
-                    Texture2D surface = new Texture2D(width, height, surfaceFormat, false);
+                    var surface = new Texture2D(width, height, surfaceFormat, TextureCreationFlags.DontInitializePixels);
                     surface.name = kvp.Key;
+
+                    var actualSize = GraphicsFormatUtility.GetComponentCount(surfaceFormat);
+                    var actualPixelCount = width * height;
+                    //Filling Texture (TODOPAUL: Factorize)
+                    if (kvp.Value.PropertyType == "uchar")
+                    {
+                        var data = new byte[actualPixelCount * actualSize];
+                        for (var point = 0; point < pcache.elementCount; ++point)
+                        {
+                            for (var channel = 0; channel < size; ++channel)
+                            {
+                                data[point * actualSize + channel] = (byte)pcache.buckets[kvp.Value.indices[channel]][point];
+                            }
+                        }
+                        surface.SetPixelData(data, 0);
+                    }
+                    else if (kvp.Value.PropertyType == "float")
+                    {
+                        var data = new ushort[actualPixelCount * actualSize];
+                        for (var point = 0; point < pcache.elementCount; ++point)
+                        {
+                            for (var channel = 0; channel < size; ++channel)
+                            {
+                                data[point * actualSize + channel] = Mathf.FloatToHalf((float)pcache.buckets[kvp.Value.indices[channel]][point]);
+                            }
+                        }
+                        surface.SetPixelData(data, 0);
+                    }
+                    else if (kvp.Value.PropertyType == "int")
+                    {
+                        var data = new int[actualPixelCount * actualSize];
+                        for (var point = 0; point < pcache.elementCount; ++point)
+                        {
+                            for (var channel = 0; channel < size; ++channel)
+                            {
+                                data[point * actualSize + channel] = (int)pcache.buckets[kvp.Value.indices[channel]][point];
+                            }
+                        }
+                        surface.SetPixelData(data, 0);
+                    }
                     surfaces.Add(kvp.Value, surface);
                 }
 
                 cache.PointCount = pcache.elementCount;
                 cache.surfaces = new Texture2D[surfaces.Count];
 
-                Dictionary<OutProperty, Color> outValues = new Dictionary<OutProperty, Color>();
-                foreach (var kvp in outProperties)
-                    outValues.Add(kvp.Value, new Color());
-
-                for (int i = 0; i < pcache.elementCount; i++)
-                {
-                    int idx = 0;
-                    foreach (var prop in inProperties)
-                    {
-                        float val = 0.0f;
-                        switch (prop.PropertyType)
-                        {
-                            case "uchar":
-                                val = Mathf.Clamp01(((byte)pcache.buckets[idx][i]) / 255.0f);
-                                break;
-                            case "float":
-                                val = ((float)pcache.buckets[idx][i]);
-                                break;
-                            default: throw new NotImplementedException("Types other than uchar/float are not supported yet");
-                        }
-
-                        SetPropValue(prop.Index, outValues, prop.OutProperty, val);
-                        idx++;
-                    }
-                    foreach (var kvp in outProperties)
-                    {
-                        surfaces[kvp.Value].SetPixel(i % width, i / width, outValues[kvp.Value]);
-                    }
-                }
-
                 int k = 0;
-
                 foreach (var kvp in surfaces)
                 {
                     kvp.Value.Apply();
@@ -187,20 +191,6 @@ namespace UnityEditor.Experimental.VFX.Utility
             {
                 Debug.LogException(e);
             }
-        }
-
-        private void SetPropValue(int index, Dictionary<OutProperty, Color> data, OutProperty prop, float val)
-        {
-            Color c = data[prop];
-
-            switch (index)
-            {
-                case 0: if (prop.Size == 1 && prop.PropertyType == "int") c.a = val; else c.r = val; break;
-                case 1: c.g = val; break;
-                case 2: c.b = val; break;
-                case 3: c.a = val; break;
-            }
-            data[prop] = c;
         }
 
         private void FindBestSize(int count, out int width, out int height)
