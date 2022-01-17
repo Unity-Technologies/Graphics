@@ -29,6 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public SerializedDataParameter lighting;
             public SerializedDataParameter steps;
+            public SerializedDataParameter altitude;
             public SerializedDataParameter thickness;
 
             public SerializedDataParameter castShadows;
@@ -59,6 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 lighting = Unpack(p.Find(x => x.lighting)),
                 steps = Unpack(p.Find(x => x.steps)),
+                altitude = Unpack(p.Find(x => x.altitude)),
                 thickness = Unpack(p.Find(x => x.thickness)),
                 castShadows = Unpack(p.Find(x => x.castShadows)),
             };
@@ -124,6 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new IndentLevelScope())
             {
                 PropertyField(map.steps);
+                PropertyField(map.altitude);
                 PropertyField(map.thickness);
             }
             PropertyField(map.castShadows);

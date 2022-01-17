@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ColorParameter tint = new ColorParameter(Color.white, false, false, true);
             /// <summary>Relative exposure of the clouds.</summary>
             [Tooltip("Sets the exposure of the clouds in EV relative to the sun light intensity.")]
-            public FloatParameter exposure = new FloatParameter(0.0f);
+            public ClampedFloatParameter exposure = new ClampedFloatParameter(0.0f, 0, 1);
 
             /// <summary>Distortion mode.</summary>
             [Tooltip("Distortion mode used to simulate cloud movement.\nIn Scene View, requires Always Refresh to be enabled.")]
@@ -170,9 +170,12 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Number of raymarching steps.</summary>
             [Tooltip("Number of raymarching steps.")]
             public ClampedIntParameter steps = new ClampedIntParameter(4, 1, 10);
+            /// <summary>TODO.</summary>
+            [Tooltip("Altitude of the cloud layer.")]
+            public MinFloatParameter altitude = new MinFloatParameter(1000.0f, 0.0f);
             /// <summary>Thickness of the clouds.</summary>
             [Tooltip("Controls the thickness of the clouds.")]
-            public ClampedFloatParameter thickness = new ClampedFloatParameter(0.5f, 0, 1);
+            public MinFloatParameter thickness = new MinFloatParameter(8000.0f, 0);
 
             /// <summary>Enable to cast shadows.</summary>
             [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows. This will override the cookie of your directional light.")]
@@ -183,11 +186,12 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int NumSteps => lighting.value ? steps.value : 0;
             internal Vector4 Opacities => new Vector4(opacityR.value, opacityG.value, opacityB.value, opacityA.value);
 
-            internal (Vector4, Vector4) GetRenderingParameters(HDCamera camera, float intensity)
+            internal (Vector4, Vector4) GetRenderingParameters(HDCamera camera)
             {
                 float angle = Mathf.Deg2Rad * scrollOrientation.GetValue(camera);
                 Vector4 params1 = new Vector3(-Mathf.Cos(angle), -Mathf.Sin(angle), scrollFactor / 200.0f);
-                Vector4 params2 = tint.value * (ColorUtils.ConvertEV100ToExposure(-exposure.value) * intensity);
+                Vector4 params2 = Color.white - 0.75f * tint.value;
+                params2.w = exposure.value;
                 return (params1, params2);
             }
 

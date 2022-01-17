@@ -99,9 +99,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PrecomputedData.InitIfNeeded(cloudLayer, builtinParams.sunLight, builtinParams.commandBuffer);
             m_CloudLayerMaterial.SetTexture(_CloudTexture, m_PrecomputedData.cloudTextureRT);
 
-            float intensity = builtinParams.sunLight ? builtinParams.sunLight.intensity : 1;
-            var paramsA = cloudLayer.layerA.GetRenderingParameters(hdCamera, intensity);
-            var paramsB = cloudLayer.layerB.GetRenderingParameters(hdCamera, intensity);
+            var paramsA = cloudLayer.layerA.GetRenderingParameters(hdCamera);
+            var paramsB = cloudLayer.layerB.GetRenderingParameters(hdCamera);
             paramsA.Item1.w = cloudLayer.upperHemisphereOnly.value ? 1 : 0;
             paramsB.Item1.w = cloudLayer.opacity.value;
 
@@ -127,6 +126,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (cloudLayer.layerB.distortionMode.value == CloudDistortionMode.Flowmap)
                     m_CloudLayerMaterial.SetTexture(_FlowmapB, cloudLayer.layerB.flowmap.value);
             }
+
+            var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
+            bool pbs = visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased;
+            CoreUtils.SetKeyword(m_CloudLayerMaterial, "PHYSICALLY_BASED_SUN", pbs);
+            if (pbs && builtinParams.sunLight != null)
+            {
+                var lightComponent = builtinParams.sunLight.GetComponent<Light>();
+                var additionalLightData = builtinParams.sunLight.GetComponent<HDAdditionalLightData>();
+                var finalColor = lightComponent.color.linear* lightComponent.intensity;
+                if (additionalLightData.useColorTemperature)
+                    finalColor *= Mathf.CorrelatedColorTemperatureToRGB(lightComponent.colorTemperature);
+
+                m_CloudLayerMaterial.SetVector("_SunDirection", -builtinParams.sunLight.transform.forward);
+                m_CloudLayerMaterial.SetVector("_SunLightColor", finalColor);
+            }
+
+            m_CloudLayerMaterial.SetFloat("_LowestCloudAltitude", cloudLayer.layerA.altitude.value);
+            m_CloudLayerMaterial.SetFloat("_MaxThickness", cloudLayer.layerA.thickness.value);
 
             // This matrix needs to be updated at the draw call frequency.
             m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
@@ -311,8 +328,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _CloudTexture, cloudTextureRT);
                 cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _CloudShadows, cloudShadowsRT);
 
-                var paramsA = cloudLayer.layerA.GetRenderingParameters(camera, 0);
-                var paramsB = cloudLayer.layerB.GetRenderingParameters(camera, 0);
+                var paramsA = cloudLayer.layerA.GetRenderingParameters(camera);
+                var paramsB = cloudLayer.layerB.GetRenderingParameters(camera);
                 paramsA.Item1.z = paramsA.Item1.z * 0.2f;
                 paramsB.Item1.z = paramsB.Item1.z * 0.2f;
                 paramsA.Item1.w = cloudLayer.upperHemisphereOnly.value ? 1 : 0;
