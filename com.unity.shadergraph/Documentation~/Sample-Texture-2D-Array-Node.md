@@ -16,6 +16,10 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** shader stage.
 | Index   | Input | Float       | None  | Index of array to sample |
 | UV      | Input | Vector 2    |   UV  | UV coordinates |
 | Sampler | Input | Sampler State | Default sampler state | Sampler for the texture |
+| LOD | Input | Float | LOD | Available when mip sampling mode is LOD. The actual mip to sample from. |
+| Bias | Input | Float | Bias | Available when mip sampling mode is Bias. A bias on top of the current global mip bias to sample from. |
+| DDX | Input | Float | DDX | Only available when mip sampling mode is Gradient. The uv derivative with respect to the X axis. |
+| DDY | Input | Float | DDY | Only available when mip sampling mode is Gradient. The uv derivative with respect to the Y axis. |
 | RGBA  | Output    | Vector 4  | None  | Output value as RGBA |
 | R     | Output    | Float     | None  | red (x) component of RGBA output |
 | G     | Output    | Float     | None  | green (y) component of RGBA output |
@@ -27,7 +31,8 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** shader stage.
 
 | Name                     | Type     | Options         | Description |
 |:------------------------ |:---------|:----------------|:-------------------------|
-|  Enable Global Mip Bias | Toggle   | On, Off         | Enables the global mipmap bias that Unity automatically imposes at runtime. Unity sets this bias during certain dynamic resolution scaling algorithms to improve detail reconstruction. |
+|  Use Global Mip Bias | Toggle   | On, Off         | Enables the global mipmap bias that Unity automatically imposes at runtime. Unity sets this bias during certain dynamic resolution scaling algorithms to improve detail reconstruction. |
+|  Mip Sampling Mode  | Dropdown   | Standard, LOD, Gradient, Bias | Chooses different types of mip sampling modes. Standard calculates the mip automatically. LOD mode specifies a mip explicitely. Bias mode applies an offset bias to regular texture sampling. If "Use Global Mip Bias" is enabled, this bias gets added to the Global Mip Bias. Gradient utilizes explicit gradients for the UVs. |
 
 
 ## Generated Code Example
