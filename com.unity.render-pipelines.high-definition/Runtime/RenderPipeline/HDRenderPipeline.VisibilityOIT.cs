@@ -49,24 +49,30 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        GraphicsFormat GetForwardFastFormat()
+        {
+            return GetColorBufferFormat();
+        }
+
+        GraphicsFormat GetDeferredSSTracingFormat()
+        {
+            return GraphicsFormat.R32G32B32A32_UInt;
+        }
+
         int GetOITVisibilityBufferSize()
         {
-            return sizeof(uint) * 3; //12 bytes
+            //return sizeof(uint) * 3; //12 bytes
+            // @kleber: review?
+            if (currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode == OITLightingMode.ForwardFast)
+                return HDUtils.GetFormatSizeInBytes(GetForwardFastFormat());
+            else // if (currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode == OITLightingMode.DeferredSSTracing)
+                return HDUtils.GetFormatSizeInBytes(GetDeferredSSTracingFormat());
         }
 
         int GetMaxMaterialOITSampleCount()
         {
             float budget = currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.memoryBudget;
-            float coef;
-            if (currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode == OITLightingMode.DeferredSSTracing)
-            {
-                coef = 2.0f; // { Normal_Roughess, DiffuseAlbedo }
-            }
-            else
-            {
-                coef = 1.0f;
-            }
-            float availableBytes = coef * budget * 1024.0f * 1024.0f;
+            float availableBytes = budget * 1024.0f * 1024.0f;
 
             //for now store visibility
             float visibilityCost = GetOITVisibilityBufferSize();
@@ -384,8 +390,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else //if (m_Asset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode == OITLightingMode.DeferredSSTracing)
             {
-                //TextureHandle normalRoughnessTexture;
-                //TextureHandle diffuseAlbedoTexture;
                 TextureHandle normalRoughnessDiffuseAlbedoTexture;
                 RenderOITVBufferLightingOffscreenDeferredSSTracing(
                     renderGraph, cull, hdCamera, shadowResult, prepassData.vbufferOIT, lightLists, prepassData, out normalRoughnessDiffuseAlbedoTexture, out var offscreenDimensions);
@@ -423,7 +427,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 outputColor = builder.UseColorBuffer(renderGraph.CreateTexture(
                     new TextureDesc(offscreenDimensions.x, offscreenDimensions.y, false, true)
                     {
-                        colorFormat = GetColorBufferFormat(),
+                        colorFormat = GetForwardFastFormat(),
                         name = "OITOffscreenLightingForwardFast"
                     }), 0);
 
@@ -485,7 +489,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 normalRoughnessDiffuseAlbedoTexture = builder.UseColorBuffer(renderGraph.CreateTexture(
                     new TextureDesc(offscreenDimensions.x, offscreenDimensions.y, false, true)
                     {
-                        colorFormat = GraphicsFormat.R16G16B16A16_UInt, // TODO: test with GraphicsFormat.A2R10G10B10_UNormPack32
+                        colorFormat = GetDeferredSSTracingFormat(),
                         name = "OITOffscreenLightingDeferredSSTracing_Normal_Roughness_DiffuseAlbedo"
                     }), 0);
 
@@ -608,7 +612,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         //CoreUtils.SetKeyword(context.cmd, "USE_FPTL_LIGHTLIST", false);
                         //CoreUtils.SetKeyword(context.cmd, "USE_CLUSTERED_LIGHTLIST", true);
 
+                        CoreUtils.SetKeyword(context.cmd, "OIT_DEFERRED_SS_TRACING", true);
+
                         int kernel = data.cs.FindKernel("MainResolveOffscreenLighting");
+                        //context.cmd.SetKeyword(data.cs, new LocalKeyword(ComputeShader shader, string name), true);
                         context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);

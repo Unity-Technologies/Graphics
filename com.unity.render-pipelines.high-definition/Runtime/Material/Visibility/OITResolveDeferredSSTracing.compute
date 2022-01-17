@@ -55,7 +55,12 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
         minDepth = max(depthValue, minDepth);
         // .
-        lighting += _VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
+        uint4 packedData = _VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
+        float3 normal;
+        float roughness;
+        float3 diffuseAlbedo;
+        VisibilityOIT::UnpackOITGBufferData(packedData, normal, roughness, diffuseAlbedo);
+        lighting += roughness.xxx;
     }
 
     lighting /= (float)listCount;

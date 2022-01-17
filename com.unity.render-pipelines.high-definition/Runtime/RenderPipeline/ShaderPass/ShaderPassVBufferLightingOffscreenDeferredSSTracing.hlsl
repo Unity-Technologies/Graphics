@@ -93,7 +93,7 @@ void Frag(Varyings packedInput, out uint4 outNormalRoughnessDiffuseAlbedoTexture
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
 
     //outNormalRoughnessDiffuseAlbedoTexture = 0;
-    PackOITGBufferData(bsdfData.normalWS.xyz, bsdfData.perceptualRoughness, bsdfData.diffuseColor.rgb, outNormalRoughnessDiffuseAlbedoTexture);
+    VisibilityOIT::PackOITGBufferData(bsdfData.normalWS.xyz, bsdfData.perceptualRoughness, bsdfData.diffuseColor.rgb, outNormalRoughnessDiffuseAlbedoTexture);
     //outNormalRoughness.rgb = float3(0, 1, 0);// bsdfData.normalWS.xyz;
     //outNormalRoughness.a = 1.0f;// bsdfData.perceptualRoughness;
     //diffuseAlbedoColor.rgb = float3(1, 0, 0);// bsdfData.diffuseColor.rgb;
@@ -104,7 +104,7 @@ void Frag(Varyings packedInput, out uint4 outNormalRoughnessDiffuseAlbedoTexture
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
     float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
-    PackOITGBufferData(surfaceData.normalWS.xyz, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), ComputeDiffuseColor(surfaceData.baseColor, metallic), outNormalRoughnessDiffuseAlbedoTexture);
+    VisibilityOIT::PackOITGBufferData(surfaceData.normalWS.xyz, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), ComputeDiffuseColor(surfaceData.baseColor, metallic), outNormalRoughnessDiffuseAlbedoTexture);
     //outNormalRoughness.rgb = surfaceData.normalWS.xyz;
     //outNormalRoughness.a = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
     //float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;

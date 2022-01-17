@@ -15,7 +15,11 @@ ByteAddressBuffer _VisOITListsCounts;
 ByteAddressBuffer _VisOITListsOffsets;
 ByteAddressBuffer _VisOITSubListsCounts;
 
+#ifdef OIT_DEFERRED_SS_TRACING
+TEXTURE2D_X_UINT4(_VisOITOffscreenLighting);
+#else
 TEXTURE2D_X(_VisOITOffscreenLighting);
+#endif
 
 float4 DebugDrawOITHistogram(float2 sampleUV, float2 screenSize)
 {
