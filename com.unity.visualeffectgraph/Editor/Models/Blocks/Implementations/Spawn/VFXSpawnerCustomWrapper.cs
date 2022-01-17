@@ -93,8 +93,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        protected sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
+            base.GenerateErrors(manager);
+
             //Type isn't reachable ... but we already stored a type, log an error.
             if (m_customType == null
                 && !object.ReferenceEquals(m_customType, null)

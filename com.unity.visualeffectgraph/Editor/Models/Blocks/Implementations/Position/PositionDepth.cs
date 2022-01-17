@@ -81,6 +81,7 @@ namespace UnityEditor.VFX.Block
 
         protected override sealed void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
+            base.GenerateErrors(manager);
             if (camera == CameraMode.Main && (UnityEngine.Rendering.RenderPipelineManager.currentPipeline == null || !UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline")))
                 manager.RegisterError("PositionDepthBlockUnavailableWithoutHDRP", VFXErrorType.Warning, "Position (Depth) is currently only supported in the High Definition Render Pipeline (HDRP).");
         }

@@ -324,8 +324,10 @@ axisY = cross(axisZ, axisX);
             base.Sanitize(version);
         }
 
-        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        protected sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
+            base.GenerateErrors(manager);
+
             if (!canTestStrips)
                 return;
 

@@ -78,8 +78,9 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        protected override sealed void GenerateErrors(VFXInvalidateErrorReporter manager)
+        protected sealed override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
+            base.GenerateErrors(manager);
             if (affectShadows && Camera.allCamerasCount > 1)
                 manager.RegisterError("CameraFadeShadowsMultipleCamera", VFXErrorType.Warning, "Camera fade in shadow maps may be incorrect when rendered in more than one camera.");
         }

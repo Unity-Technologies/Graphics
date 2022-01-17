@@ -62,23 +62,13 @@ namespace UnityEditor.VFX
             }
         }
 
-        bool reetrant = false;
         protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
         {
             base.Invalidate(model, cause);
-
-            //Our system cannot retrieve the actual space with subgraph blocks (yet)
-            //Forcing all input slot in VFXCoordinateSpace.None for user consistency
-            if (!spaceable && !reetrant)
+            //Called from VFXSlot.InvalidateExpressionTree, can be triggered from a space change, need to refresh block warning
+            if (cause == InvalidationCause.kExpressionInvalidated)
             {
-                var notUndefinedSpace = children.SelectMany(o => o.inputSlots).Where(o => o.space != VFXCoordinateSpace.None);
-                if (notUndefinedSpace.Any())
-                {
-                    reetrant = true;
-                    foreach (var slot in notUndefinedSpace)
-                        slot.space = VFXCoordinateSpace.None;
-                    reetrant = false;
-                }
+                model.RefreshErrors(GetGraph());
             }
         }
 
