@@ -20,13 +20,6 @@ namespace UnityEditor.Rendering.HighDefinition
             bool alphaTestEnable = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
             CoreUtils.SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
 
-            // Setup alpha to mask using the _AlphaToMaskInspectorValue that we configure in the material UI
-            float alphaToMaskEnabled = material.HasProperty("_AlphaToMaskInspectorValue") && material.GetFloat("_AlphaToMaskInspectorValue") > 0.0 ? 1 : 0;
-            material.SetFloat(kAlphaToMask, alphaTestEnable ? alphaToMaskEnabled : 0);
-
-            bool alphaToMaskEnable = alphaTestEnable && material.HasProperty(kAlphaToMask) && material.GetFloat(kAlphaToMask) > 0.0f;
-            CoreUtils.SetKeyword(material, "_ALPHATOMASK_ON", alphaToMaskEnable);
-
             SurfaceType surfaceType = material.GetSurfaceType();
             CoreUtils.SetKeyword(material, "_SURFACE_TYPE_TRANSPARENT", surfaceType == SurfaceType.Transparent);
 

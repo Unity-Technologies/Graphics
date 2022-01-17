@@ -147,6 +147,9 @@ namespace UnityEngine.Rendering.Universal
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 
+        // flag to keep track of depth buffer requirements by any of the cameras in the stack
+        internal static bool cameraStackRequiresDepthForPostprocessing = false;
+
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
 #if UNITY_EDITOR
@@ -488,6 +491,8 @@ namespace UnityEngine.Rendering.Universal
                 var baseCameraRendererType = baseCameraAdditionalData?.scriptableRenderer.GetType();
                 bool shouldUpdateCameraStack = false;
 
+                cameraStackRequiresDepthForPostprocessing = false;
+
                 for (int i = 0; i < cameraStack.Count; ++i)
                 {
                     Camera currCamera = cameraStack[i];
@@ -506,6 +511,8 @@ namespace UnityEngine.Rendering.Universal
                             Debug.LogWarning(string.Format("Stack can only contain Overlay cameras. {0} will skip rendering.", currCamera.name));
                             continue;
                         }
+
+                        cameraStackRequiresDepthForPostprocessing |= CheckPostProcessForDepth();
 
                         var currCameraRendererType = data?.scriptableRenderer.GetType();
                         if (currCameraRendererType != baseCameraRendererType)
@@ -582,6 +589,9 @@ namespace UnityEngine.Rendering.Universal
             if (asset.useAdaptivePerformance)
                 ApplyAdaptivePerformance(ref baseCameraData);
 #endif
+            // update the base camera flag so that the scene depth is stored if needed by overlay cameras later in the frame
+            baseCameraData.postProcessingRequiresDepthTexture |= cameraStackRequiresDepthForPostprocessing;
+
             RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
             using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
             {
@@ -708,9 +718,14 @@ namespace UnityEngine.Rendering.Universal
             if (!cameraData.postProcessEnabled)
                 return false;
 
-            if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+            if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && cameraData.renderType == CameraRenderType.Base)
                 return true;
 
+            return CheckPostProcessForDepth();
+        }
+
+        static bool CheckPostProcessForDepth()
+        {
             var stack = VolumeManager.instance.stack;
 
             if (stack.GetComponent<DepthOfField>().IsActive())
@@ -946,7 +961,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             cameraData.requiresDepthTexture |= isSceneViewCamera;
-            cameraData.postProcessingRequiresDepthTexture |= CheckPostProcessForDepth(cameraData);
+            cameraData.postProcessingRequiresDepthTexture = CheckPostProcessForDepth(cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
 
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
