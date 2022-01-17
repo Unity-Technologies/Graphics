@@ -40,9 +40,9 @@ The **Bokeh** Depth of Field mode closely imitates the effect of a real-life cam
 
 | **Property**        | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |
-| **Focus Distance**  | Set the distance from the Camera to the focus point.         |
+| **Focus&#160;Distance**  | Set the distance from the Camera to the focus point.         |
 | **Focal Length**    | Set the distance, in millimeters, between the Camera sensor and the Camera lens. The larger the value is, the shallower the depth of field. |
 | **Aperture**        | Set the ratio of aperture (known as f-stop or f-number). The smaller the value is, the shallower the depth of field is. |
 | **Blade Count**     | Use the slider to set the number of diaphragm blades the Camera uses to form the aperture. The more blades you use, the rounder the bokeh appears.<br/>![Blade Count example](Images/post-proc/dof-bokeh-bladecount.png)<br/>_Blade Count from left to right: 3, 4, 5, and 6._ |
-| **Blade Curvature** | Use the slider to set the curvature of diaphragm blades the Camera uses to form the aperture.<br />The smaller the value is, the more visible aperture blades are. A value of 1 makes the bokeh perfectly circular.<br/>![Blade Curvature example](Images/post-proc/dof-bokeh-curvature.png)<br/>_Blade Curvature value of 1 (left), and 0 (right)._ |
+| **Blade&#160;Curvature** | Use the slider to set the curvature of diaphragm blades the Camera uses to form the aperture.<br />The smaller the value is, the more visible aperture blades are. A value of 1 makes the bokeh perfectly circular.<br/>![Blade Curvature example](Images/post-proc/dof-bokeh-curvature.png)<br/>_Blade Curvature value of 1 (left), and 0 (right)._ |
 | **Blade Rotation**  | Use the slider to set the rotation of diaphragm blades in degrees. |
