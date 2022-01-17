@@ -135,6 +135,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
     float4x4 _ScreenToWorld[2];
     SamplerState my_point_clamp_sampler;
+    SamplerState my_linear_clamp_sampler;
 
     float3 _LightPosWS;
     half3 _LightColor;
@@ -268,9 +269,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         //#endif
 
 #ifdef _LIGHT_LAYERS
-        float4 wetness = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_point_clamp_sampler, screen_uv, 0);
+        float4 gbufferWetness = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_point_clamp_sampler, screen_uv, 0);
 #else
-        float4 wetness = 0.0;
+        float4 gbufferWetness = 0.0;
 #endif
 
         half surfaceDataOcclusion = gbuffer1.a;
@@ -322,29 +323,35 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
 
-            WetnessData wetnessData = GetWetnessData(wetness, brdfData, inputData.normalWS);
-            BRDFData brdfDataWetness = BRDFDataFromGbufferWetnessData(wetnessData);
-
-            float3 colorWetness = LightingPhysicallyBased(brdfDataWetness, unityLight, wetnessData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
-            half3 giWetness = GlobalIllumination(brdfDataWetness, inputData.bakedGI, wetnessData.occlusion, posWS, wetnessData.normalWS, inputData.viewDirectionWS);
-
-            AllpyWetnessToBRDF(wetnessData, brdfData);
-
-            color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
-
-            if (wetness.r > 0.0)
+            if (IsSurfaceWet(gbufferWetness))
             {
-                float lightAtten = saturate(1.0 - Fresnel(brdfDataWetness.reflectivity, dot(unityLight.direction, wetnessData.normalWS)));
+#ifdef _LIGHT_LAYERS
+                float depth = LinearEyeDepth(d, _ZBufferParams);
+                WetnessData wetnessData = GetWetnessData(gbufferWetness, brdfData, posWS, inputData.normalWS, screen_uv, MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_linear_clamp_sampler, depth);
+                BRDFData brdfDataWetness = BRDFDataFromGbufferWetnessData(wetnessData);
+
+                float3 colorWetness = LightingPhysicallyBased(brdfDataWetness, unityLight, wetnessData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
+                half3 giWetness = GlobalIllumination(brdfDataWetness, inputData.bakedGI, wetnessData.occlusion, posWS, wetnessData.normalWS, inputData.viewDirectionWS);
+
+                AllpyWetnessToBRDF(wetnessData, brdfData);
+
+                color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
+
+                float colorAtten = saturate(1.0 - Fresnel(brdfDataWetness.reflectivity, dot(unityLight.direction, wetnessData.normalWS)));
                 float giAtten = saturate(1.0 - Fresnel(brdfDataWetness.reflectivity, dot(inputData.viewDirectionWS, wetnessData.normalWS)));
 
-                color *= lightAtten; //@ << too weak attenuation
+                color *= colorAtten; //@ << too weak attenuation
                 alpha = lerp(1.0, giAtten, wetnessData.waterSaturation);//@ << too weak attenuation
                 //@ Problems in shadows
                 //@ Occlusion disappears in the beginning
-            }
-                
-            color += colorWetness + giWetness;
 
+                color += colorWetness + giWetness;
+#endif
+            }
+            else
+            {
+                color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
+            }
         #elif defined(_SIMPLELIT)
             //SurfaceData surfaceData = SurfaceDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, kLightingSimpleLit);
             //half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
