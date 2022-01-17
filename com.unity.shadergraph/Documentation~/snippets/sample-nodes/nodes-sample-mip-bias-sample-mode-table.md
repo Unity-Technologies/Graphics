@@ -22,7 +22,7 @@ title: nodes-sample-mip-bias-sample-mode-table.md
 <td><strong>Mip Sampling Mode</strong></td>
 <td>Dropdown</td>
 <td>Standard, LOD, Gradient, Bias</td>
-<td>Choose the sampling mode that the Sample Texture 2D Array node should use for calculating the mip level of the texture:
+<td>Choose the sampling mode that the node should use for calculating the mip level of the texture:
 <br/> <br/>
 <ul>
 <li><strong>Standard</strong>: The mip is calculated and selected automatically for the texture.</li>

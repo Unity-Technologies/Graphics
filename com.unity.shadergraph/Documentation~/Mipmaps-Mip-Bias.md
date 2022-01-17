@@ -1,6 +1,6 @@
 # Mips and mipmaps
 
-A mip or mip level is a specific version of a texture with a specific resolution or level of detail. Mips exist in chains called mipmaps, which are progressively smaller and lower resolution versions of a single texture.
+A mip (multi in parvo) or mip level is a specific version of a texture with a specific resolution or level of detail. Mips exist in chains called mipmaps, which are progressively smaller and lower resolution versions of a single texture.
 
 For example, a mipmap could contain 4 versions of a texture, from the original texture (Mip 0), to Mip 1, Mip 2, and Mip 3:
 
@@ -18,8 +18,8 @@ For more information on generating mipmaps in Unity, see [Texture Import Setting
 
 ## Mip bias
 
-The percentage of texture information taken from one mip during sampling can be biased by the rendering pipeline when using systems like Dynamic Resolution Scaling (DRS). This mip bias tells the GPU to prefer one mip over another by an exact percentage when sampling.
+The percentage of texture information taken from one mip during sampling can be biased by the rendering pipeline when using systems like Dynamic Resolution Scaling (DRS). This global mip bias tells the GPU to prefer one mip over another by an exact percentage when sampling.
 
 For example, when selecting a mip, the GPU's calculations could return a value of `0.5`. The `0.5` value tells the GPU to take 50% of the texture information it needs from one mip, and the remaining 50% from the next mip in the mipmap. With an added mip bias of `0.2`, the `0.5` value would change to `0.7`, and the GPU would take 70% of the texture information from the first mip and only 30% from the second.
 
-When sampling using the Sample Texture 2D Array or Sample Texture 2D node in Shader Graph, you can set your own bias value to use in your mip calculations. Depending on your settings, your specified bias increases, decreases, or completely replaces the Global Mip Bias added to any sampling. For more information, see [Sample Texture 2D Array node](Sample-Texture-2D-Array-Node.md) or [Sample Texture 2D node](Sample-Texture-2D-Node.md).
+When sampling using the Sample Texture 2D Array or Sample Texture 2D node in Shader Graph, you can also set your own bias value to use in your mip calculations. Depending on your settings, your specified bias increases, decreases, or completely replaces the Global Mip Bias added to any sampling. For more information, see [Sample Texture 2D Array node](Sample-Texture-2D-Array-Node.md) or [Sample Texture 2D node](Sample-Texture-2D-Node.md).

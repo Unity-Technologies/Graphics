@@ -45,7 +45,7 @@ If you need to sample a texture for use in the Vertex Context of your Shader Gra
 <td><strong>Index</strong></td>
 <td>Float</td>
 <td>None</td>
-<td>The index of the specific texture in the texture array that the node should sample. The index value is the texture's location in the texture array.</td>
+<td>The index of the specific texture in the texture array that the node should sample. The index value is the texture's location in the texture array, starting at 0. An array with four textures would have locations 0, 1, 2, and 3.</td>
 </tr>
 [!include[nodes-sample-uv-table](./snippets/sample-nodes/nodes-sample-uv-table.md)]
 [!include[nodes-sample-ss-table](./snippets/sample-nodes/nodes-sample-ss-table.md)]
