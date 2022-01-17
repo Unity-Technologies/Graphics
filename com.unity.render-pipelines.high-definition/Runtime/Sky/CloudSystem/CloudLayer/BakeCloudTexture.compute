@@ -77,7 +77,7 @@ float2 ComputeCloudLighting(TEXTURE2D(_CloudMap), SAMPLER(sampler_CloudMap), flo
     int numSteps = (int)_LightingSteps;
     if (numSteps != 0)
     {
-        float3 sun = -_SunDirection;
+        float3 sun = _SunDirection;
         sun = RotationUp(sun, float2(cos(_Rotation*PI*2.0), sin(_Rotation*PI*2.0)));
 
         float3 dir = InverseLatLong(uv, _UpperHemisphere);

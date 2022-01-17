@@ -44,7 +44,7 @@ A flowmap only uses the red and green channels and they represent horizontal and
 
 | Property                  | Description                                                  |
 | ------------------------- | ------------------------------------------------------------ |
-| **Opacity**               | The global opacity of the cloud layer. A value of 0 makes clouds completely transparent. |
+| **Coverage**              | The global coverage of the cloud layer. A value of 0 removes all the clouds. |
 | **Upper Hemisphere Only** | Indicates whether the Cloud Layer exclusively renders above the horizon or not. When enabled, HDRP still uses the entire **Cloud Map** texture, but the clouds will be renderer above the horizon. |
 | **Layers**                | The number of cloud layers to render. Each layer has its own set of properties. The options are:<br/>&#8226; **1**: Renders a single cloud layer.<br/>&#8226; **2**: Renders two cloud layers. |
 | **Resolution**            | The resolution of the texture HDRP uses to bake the clouds.  |
@@ -60,14 +60,15 @@ The Inspector shows the following properties for each cloud layer. The **Layers*
 | - **Opacity G**        | The opacity multiplier to apply to the **Cloud Map**'s green channel. |
 | - **Opacity B**        | The opacity multiplier to apply to the **Cloud Map**'s blue channel. |
 | - **Opacity A**        | The opacity multiplier to apply to the **Cloud Map**'s alpha channel. |
+| **Altitude**           | The altitude of the Cloud Layer in meters, used to calculate the sun light attenuation. |
 | **Rotation**           | The angle to rotate the **Cloud Layer** texture by, in degrees. |
 | **Tint**               | The color HDRP uses to tint the clouds.                      |
 | **Exposure**           | The amount of light per unit area that HDRP applies to the cloud layer based on the main directional [Light](Light-Component.md) intensity. |
-| **Distortion Mode**    | Specifies the distortion mode HDRP uses to simulate cloud movement.<br />&#8226; **None**: No distortion.<br />&#8226; **Procedural**: HDRP distorts the clouds using a uniform wind direction.<br />&#8226; **Flowmap**: HDRP distorts the clouds using the **Flowmap** texture. |
-| - **Orientation**      | The orientation of the distortion relative to the X world vector (in degrees).<br />This value can be relative to the **Global Wind Orientation** defined in the **Visual Environment**. |
-| - **Speed**            | The speed at which HDRP scrolls the distortion texture.<br />This value can be relative to the **Global Wind Speed** defined in the **Visual Environment**. |
+| **Wind**               | Specifies the method HDRP uses to simulate wind.<br />&#8226; **None**: No wind.<br />&#8226; **Horizontal**: HDRP distorts the clouds using a uniform horizontal wind direction.<br />&#8226; **Flowmap**: HDRP distorts the clouds using the **Flowmap** texture. |
+| - **Orientation**      | The orientation of the wind relative to the X world vector (in degrees).<br />This value can be relative to the **Global Wind Orientation** defined in the **Visual Environment**. |
+| - **Speed**            | The wind speed in kilometers per hour.<br />This value can be relative to the **Global Wind Speed** defined in the **Visual Environment**. |
 | - **Flowmap**          | The flowmap HDRP uses to distort UVs when rendering the clouds. For more information about the flowmap, see [controlling cloud movement](#controlling-cloud-movement).<br />This property only appears when you select **Flowmap** from the **Distortion** drop-down. |
-| **Lighting**           | Indicates whether HDRP calculates lighting for the clouds using the main directional light. When enabled, HDRP uses 2D raymarching on the Cloud Map to approximate self-shadowing from the sun light.<br /> The lighting computations are baked inside a texture and only recomputed when any of the relevant parameter changes. |
+| **Raymarching**        | Indicates whether HDRP calculates lighting for the clouds using the main directional light. When enabled, HDRP uses 2D raymarching on the Cloud Map to approximate self-shadowing from the sun light.<br /> The lighting computations are baked inside a texture and only recomputed when any of the relevant parameter changes. |
 | - **Steps**            | The number of raymarching steps HDRP uses to calculate lighting for the clouds. The higher the value, the greater the travelled distance is. |
 | - **Thickness**        | The thickness of the clouds. The larger the value, the darker the clouds appear. |
 | **Cast Shadows**       | Indicates whether clouds cast shadows for the main directional light.<br/>This calculates the shadow texture and sets it as the light cookie for the main direction Light. |

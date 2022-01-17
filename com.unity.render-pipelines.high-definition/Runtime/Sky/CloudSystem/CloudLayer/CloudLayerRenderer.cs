@@ -90,29 +90,53 @@ namespace UnityEngine.Rendering.HighDefinition
             var hdCamera = builtinParams.hdCamera;
             var cmd = builtinParams.commandBuffer;
             var cloudLayer = builtinParams.cloudSettings as CloudLayer;
-            if (cloudLayer.opacity.value == 0.0f)
+            if (cloudLayer.coverage.value == 0.0f)
                 return;
 
             float dt = hdCamera.animateMaterials ? hdCamera.time - lastTime : 0.0f;
             lastTime = hdCamera.time;
+            if (!hdCamera.animateMaterials)
+                cloudLayer.layerA.scrollFactor = cloudLayer.layerB.scrollFactor = 0.0f;
 
             m_PrecomputedData.InitIfNeeded(cloudLayer, builtinParams.sunLight, builtinParams.commandBuffer);
             m_CloudLayerMaterial.SetTexture(_CloudTexture, m_PrecomputedData.cloudTextureRT);
 
-            float intensity = builtinParams.sunLight ? builtinParams.sunLight.intensity : 1;
-            var paramsA = cloudLayer.layerA.GetRenderingParameters(hdCamera, intensity);
-            var paramsB = cloudLayer.layerB.GetRenderingParameters(hdCamera, intensity);
-            paramsA.Item1.w = cloudLayer.upperHemisphereOnly.value ? 1 : 0;
-            paramsB.Item1.w = cloudLayer.opacity.value;
+            // Parameters
+            var _FlowmapParamA = cloudLayer.layerA.GetRenderingParameters(hdCamera);
+            var _FlowmapParamB = cloudLayer.layerB.GetRenderingParameters(hdCamera);
+            _FlowmapParamA.w = cloudLayer.upperHemisphereOnly.value ? 1 : 0;
+            _FlowmapParamB.w = cloudLayer.coverage.value;
 
-            s_VectorArray[0] = paramsA.Item1; s_VectorArray[1] = paramsB.Item1;
+            s_VectorArray[0] = _FlowmapParamA; s_VectorArray[1] = _FlowmapParamB;
             m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._FlowmapParam, s_VectorArray);
-            s_VectorArray[0] = paramsA.Item2; s_VectorArray[1] = paramsB.Item2;
-            m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._ColorFilter, s_VectorArray);
 
+
+            Color lightColor = Color.black;
+            if (builtinParams.sunLight != null)
+            {
+                s_VectorArray[0] = -builtinParams.sunLight.transform.forward;
+                s_VectorArray[0].w = cloudLayer.layerA.thickness.value;
+                s_VectorArray[1].w = cloudLayer.layerB.thickness.value;
+                m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._Params1, s_VectorArray);
+
+                var lightComponent = builtinParams.sunLight.GetComponent<Light>();
+                var additionalLightData = builtinParams.sunLight.GetComponent<HDAdditionalLightData>();
+                lightColor = lightComponent.color.linear * lightComponent.intensity;
+                if (additionalLightData.useColorTemperature)
+                    lightColor *= Mathf.CorrelatedColorTemperatureToRGB(lightComponent.colorTemperature);
+
+                s_VectorArray[0] = lightColor;
+                s_VectorArray[1] = lightColor;
+            }
+
+            s_VectorArray[0] = cloudLayer.layerA.tint.value * lightColor; s_VectorArray[1] = cloudLayer.layerB.tint.value * lightColor;
+            s_VectorArray[0].w = cloudLayer.layerA.altitude.value; s_VectorArray[1].w = cloudLayer.layerB.altitude.value;
+            m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._Params2, s_VectorArray);
+
+            // Keywords
             CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_CLOUD_MOTION", cloudLayer.layerA.distortionMode.value != CloudDistortionMode.None);
             if (cloudLayer.layerA.distortionMode.value != CloudDistortionMode.None)
-                cloudLayer.layerA.scrollFactor += cloudLayer.layerA.scrollSpeed.GetValue(hdCamera) * dt * 0.01f;
+                cloudLayer.layerA.scrollFactor += cloudLayer.layerA.scrollSpeed.GetValue(hdCamera) * dt * 0.277778f;
             CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_FLOWMAP", cloudLayer.layerA.distortionMode.value == CloudDistortionMode.Flowmap);
             if (cloudLayer.layerA.distortionMode.value == CloudDistortionMode.Flowmap)
                 m_CloudLayerMaterial.SetTexture(_FlowmapA, cloudLayer.layerA.flowmap.value);
@@ -122,11 +146,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_SECOND_CLOUD_MOTION", cloudLayer.layerB.distortionMode.value != CloudDistortionMode.None);
                 if (cloudLayer.layerB.distortionMode.value != CloudDistortionMode.None)
-                    cloudLayer.layerB.scrollFactor += cloudLayer.layerB.scrollSpeed.GetValue(hdCamera) * dt * 0.01f;
+                    cloudLayer.layerB.scrollFactor += cloudLayer.layerB.scrollSpeed.GetValue(hdCamera) * dt * 0.277778f;
                 CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_SECOND_FLOWMAP", cloudLayer.layerB.distortionMode.value == CloudDistortionMode.Flowmap);
                 if (cloudLayer.layerB.distortionMode.value == CloudDistortionMode.Flowmap)
                     m_CloudLayerMaterial.SetTexture(_FlowmapB, cloudLayer.layerB.flowmap.value);
             }
+
+            var visualEnvironment = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
+            CoreUtils.SetKeyword(m_CloudLayerMaterial, "PHYSICALLY_BASED_SUN", visualEnvironment.skyType.value == (int)SkyType.PhysicallyBased);
 
             // This matrix needs to be updated at the draw call frequency.
             m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
@@ -254,7 +281,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (initialized)
                     return false;
 
-                Vector4 params1 = sunLight == null ? Vector3.zero : sunLight.transform.forward;
+                Vector4 params1 = sunLight == null ? Vector3.zero : -sunLight.transform.forward;
                 params1.w = (cloudLayer.upperHemisphereOnly.value ? 1.0f : 0.0f);
 
                 cmd.SetComputeVectorParam(s_BakeCloudTextureCS, HDShaderIDs._Params, params1);
@@ -311,14 +338,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _CloudTexture, cloudTextureRT);
                 cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _CloudShadows, cloudShadowsRT);
 
-                var paramsA = cloudLayer.layerA.GetRenderingParameters(camera, 0);
-                var paramsB = cloudLayer.layerB.GetRenderingParameters(camera, 0);
-                paramsA.Item1.z = paramsA.Item1.z * 0.2f;
-                paramsB.Item1.z = paramsB.Item1.z * 0.2f;
-                paramsA.Item1.w = cloudLayer.upperHemisphereOnly.value ? 1 : 0;
-                paramsB.Item1.w = cloudLayer.opacity.value;
+                var paramA = cloudLayer.layerA.GetRenderingParameters(camera);
+                var paramB = cloudLayer.layerB.GetRenderingParameters(camera);
+                paramA.z *= 0.2f;
+                paramB.z *= 0.2f;
+                paramA.w = cloudLayer.upperHemisphereOnly.value ? 1 : 0;
+                paramB.w = cloudLayer.coverage.value; // TODO
 
-                s_VectorArray[0] = paramsA.Item1; s_VectorArray[1] = paramsB.Item1;
+                s_VectorArray[0] = paramA; s_VectorArray[1] = paramB;
                 cmd.SetComputeVectorArrayParam(s_BakeCloudShadowsCS, HDShaderIDs._FlowmapParam, s_VectorArray);
 
                 bool useSecond = (cloudLayer.layers.value == CloudMapMode.Double) && cloudLayer.layerB.castShadows.value;

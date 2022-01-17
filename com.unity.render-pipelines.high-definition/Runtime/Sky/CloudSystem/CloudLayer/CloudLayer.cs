@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>No distortion.</summary>
         None,
         /// <summary>Procedural distortion.</summary>
+        [InspectorName("Horizontal")]
         Procedural,
         /// <summary>Distortion from a flowmap.</summary>
         Flowmap,
@@ -88,8 +89,8 @@ namespace UnityEngine.Rendering.HighDefinition
     public class CloudLayer : CloudSettings
     {
         /// <summary>Controls the global opacity of the cloud layer.</summary>
-        [Tooltip("Controls the global opacity of the cloud layer.")]
-        public ClampedFloatParameter opacity = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        [Tooltip("Controls the global coverage of the cloud layer.")]
+        public ClampedFloatParameter coverage = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         /// <summary>Enable to cover only the upper part of the sky.</summary>
         [AdditionalProperty]
         [Tooltip("Check this box if the cloud layer covers only the upper part of the sky.")]
@@ -143,22 +144,27 @@ namespace UnityEngine.Rendering.HighDefinition
             [Tooltip("Opacity multiplier for the alpha channel.")]
             public ClampedFloatParameter opacityA = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
 
+            /// <summary>Altitude of the bottom of the cloud layer in meters.</summary>
+            [Tooltip("Altitude of the bottom of the cloud layer in meters.")]
+            public MinFloatParameter altitude = new MinFloatParameter(2000.0f, 0.0f);
             /// <summary>Rotation of the clouds.</summary>
             [Tooltip("Sets the rotation of the clouds (in degrees).")]
             public ClampedFloatParameter rotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
             /// <summary>Color multiplier of the clouds.</summary>
             [Tooltip("Specifies the color HDRP uses to tint the clouds.")]
             public ColorParameter tint = new ColorParameter(Color.white, false, false, true);
-            /// <summary>Relative exposure of the clouds.</summary>
-            [Tooltip("Sets the exposure of the clouds in EV relative to the sun light intensity.")]
-            public FloatParameter exposure = new FloatParameter(0.0f);
 
             /// <summary>Distortion mode.</summary>
+            [InspectorName("Wind")]
             [Tooltip("Distortion mode used to simulate cloud movement.\nIn Scene View, requires Always Refresh to be enabled.")]
             public VolumeParameter<CloudDistortionMode> distortionMode = new VolumeParameter<CloudDistortionMode>();
-            /// <summary>Direction of the distortion. This value can be relative to the Global Wind Orientation defined in the Visual Environment.</summary>
+            /// <summary>Direction of the wind relative to the X world vector. This value can be relative to the Global Wind Orientation defined in the Visual Environment.</summary>
+            [InspectorName("Orientation")]
+            [Tooltip("Controls the orientation of the wind relative to the X world vector.\nThis value can be relative to the Global Wind Orientation defined in the Visual Environment.")]
             public WindOrientationParameter scrollOrientation = new WindOrientationParameter();
-            /// <summary>Speed of the distortion. This value can be relative to the Global Wind Speed defined in the Visual Environment.</summary>
+            /// <summary>Sets the wind speed in kilometers per hour. This value can be relative to the Global Wind Speed defined in the Visual Environment.</summary>
+            [InspectorName("Speed")]
+            [Tooltip("Sets the wind speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.")]
             public WindSpeedParameter scrollSpeed = new WindSpeedParameter();
             /// <summary>Texture used to distort the UVs for the cloud layer.</summary>
             [Tooltip("Specify the flowmap HDRP uses for cloud distortion (in LatLong layout).")]
@@ -166,11 +172,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             /// <summary>Simulates cloud self-shadowing using raymarching.</summary>
             [Tooltip("Simulates cloud self-shadowing using raymarching.")]
-            public BoolParameter lighting = new BoolParameter(false);
+            public BoolParameter raymarching = new BoolParameter(false);
             /// <summary>Number of raymarching steps.</summary>
             [Tooltip("Number of raymarching steps.")]
-            public ClampedIntParameter steps = new ClampedIntParameter(4, 1, 10);
             /// <summary>Thickness of the clouds.</summary>
+            public ClampedIntParameter steps = new ClampedIntParameter(10, 2, 32);
             [Tooltip("Controls the thickness of the clouds.")]
             public ClampedFloatParameter thickness = new ClampedFloatParameter(0.5f, 0, 1);
 
@@ -180,26 +186,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
             internal float scrollFactor = 0.0f;
-            internal int NumSteps => lighting.value ? steps.value : 0;
+            internal int NumSteps => raymarching.value ? steps.value : 0;
             internal Vector4 Opacities => new Vector4(opacityR.value, opacityG.value, opacityB.value, opacityA.value);
 
-            internal (Vector4, Vector4) GetRenderingParameters(HDCamera camera, float intensity)
+            internal Vector4 GetRenderingParameters(HDCamera camera)
             {
                 float angle = Mathf.Deg2Rad * scrollOrientation.GetValue(camera);
-                Vector4 params1 = new Vector3(-Mathf.Cos(angle), -Mathf.Sin(angle), scrollFactor / 200.0f);
-                Vector4 params2 = tint.value * (ColorUtils.ConvertEV100ToExposure(-exposure.value) * intensity);
-                return (params1, params2);
+                return new Vector3(-Mathf.Cos(angle), -Mathf.Sin(angle), scrollFactor);
             }
 
             internal (Vector4, Vector4) GetBakingParameters()
             {
-                Vector4 parameters = new Vector4(
+                Vector4 params2 = new Vector4(
                     -rotation.value / 360.0f,
                     NumSteps,
                     thickness.value,
                     0
                 );
-                return (Opacities, parameters);
+                return (Opacities, params2);
             }
 
             internal int GetBakingHashCode()
@@ -217,10 +221,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     hash = hash * 23 + rotation.GetHashCode();
                     hash = hash * 23 + castShadows.GetHashCode();
 
-                    if (lighting.value)
+                    if (raymarching.value)
                     {
-                        hash = hash * 23 + lighting.GetHashCode();
+                        hash = hash * 23 + raymarching.GetHashCode();
                         hash = hash * 23 + steps.GetHashCode();
+                        hash = hash * 23 + altitude.GetHashCode();
                         hash = hash * 23 + thickness.GetHashCode();
                     }
 
@@ -245,7 +250,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 unchecked
                 {
                     hash = hash * 23 + tint.GetHashCode();
-                    hash = hash * 23 + exposure.GetHashCode();
 
                     hash = hash * 23 + distortionMode.GetHashCode();
                     hash = hash * 23 + scrollOrientation.GetHashCode();
@@ -273,10 +277,12 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int NumLayers => (layers == CloudMapMode.Single) ? 1 : 2;
         internal bool CastShadows => layerA.castShadows.value || (layers == CloudMapMode.Double && layerB.castShadows.value);
 
+        Vector3Int CastForAngleDiff(Vector3 vec, float factor) => new Vector3Int((int)(vec.x * factor), (int)(vec.y * factor), (int)(vec.z * factor));
+
         internal int GetBakingHashCode(Light sunLight)
         {
             int hash = 17;
-            bool lighting = layerA.lighting.value;
+            bool lighting = layerA.raymarching.value;
             bool shadows = sunLight != null && layerA.castShadows.value;
 
             unchecked
@@ -288,12 +294,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (layers.value == CloudMapMode.Double)
                 {
                     hash = hash * 23 + layerB.GetBakingHashCode();
-                    lighting |= layerB.lighting.value;
+                    lighting |= layerB.raymarching.value;
                     shadows |= layerB.castShadows.value;
                 }
 
                 if (lighting && sunLight != null)
-                    hash = hash * 23 + sunLight.transform.rotation.GetHashCode();
+                    hash = hash * 23 + CastForAngleDiff(sunLight.transform.rotation.eulerAngles, 1.0f).GetHashCode();
                 if (shadows)
                     hash = hash * 23 + shadowResolution.GetHashCode();
             }
@@ -311,7 +317,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
-                hash = hash * 23 + opacity.GetHashCode();
+                hash = hash * 23 + coverage.GetHashCode();
                 hash = hash * 23 + upperHemisphereOnly.GetHashCode();
                 hash = hash * 23 + layers.GetHashCode();
                 hash = hash * 23 + resolution.GetHashCode();

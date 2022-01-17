@@ -17,21 +17,17 @@
 RW_TEXTURE2D(float3, _CloudShadows);
 
 float4 _Params;
-float4 _Params1;
-float4 _Params2;
-float4 _Params3;
+float _Resolution;
 
-#define _SunForward     _Params.xyz
-#define _SunRight       _Params1.xyz
-#define _SunUp          _Params2.xyz
-#define _Resolution     _Params.w
-#define _ShadowTint     _Params3.rgb
-#define _ShadowOpacity  _Params3.a
+#define _ShadowTint     _Params.rgb
+#define _ShadowOpacity  _Params.a
+#define _SunRight       _Params2[0].xyz
+#define _SunUp          _Params2[1].xyz
 
 float ComputeCloudShadow(float2 uv)
 {
     const float width = 0.2;
-    float3 dir = -_SunForward + uv.x * width * _SunRight - uv.y * width * _SunUp;
+    float3 dir = -_SunDirection + uv.x * width * _SunRight - uv.y * width * _SunUp;
 
     return RenderClouds(normalize(dir)).a;
 }
