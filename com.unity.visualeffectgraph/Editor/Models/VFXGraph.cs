@@ -2,19 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using UnityEditor;
-using UnityEditor.VFX;
+
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Profiling;
 
-
 using UnityObject = UnityEngine.Object;
-using UnityEditor.Graphs;
-using UnityEditor.VFX.Operator;
 
 namespace UnityEditor.VFX
 {
@@ -316,7 +311,7 @@ namespace UnityEditor.VFX
 
         public static bool IsAssetEditable(this VisualEffectResource resource)
         {
-            return AssetDatabase.IsOpenForEdit(resource.asset, StatusQueryOptions.UseCachedIfPossible);
+            return AssetDatabase.IsOpenForEdit((UnityEngine.Object)resource.asset ?? resource.subgraph, StatusQueryOptions.UseCachedIfPossible);
         }
     }
 

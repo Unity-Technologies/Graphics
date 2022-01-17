@@ -56,6 +56,9 @@ namespace UnityEditor.VFX.Block
                 var finalTransform = new VFXExpressionTransformMatrix(transform, radiusScale);
                 yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(finalTransform), "invFieldTransform");
 
+                var isZeroScaled = VFXOperatorUtility.IsTRSMatrixZeroScaled(finalTransform);
+                yield return new VFXNamedExpression(isZeroScaled, "isZeroScaled");
+
                 if (mode == CollisionBase.Mode.Solid)
                     yield return new VFXNamedExpression(VFXValue.Constant(1.0f), "colliderSign");
                 else
@@ -68,6 +71,9 @@ namespace UnityEditor.VFX.Block
             get
             {
                 return @"
+if (isZeroScaled)
+    return;
+
 float3 tPos = mul(invFieldTransform, float4(position, 1.0f)).xyz;
 float sqrLength = dot(tPos, tPos);
 if (colliderSign * sqrLength <= colliderSign)
