@@ -54,6 +54,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
             continue;
 
         minDepth = max(depthValue, minDepth);
+        // .
         lighting += _VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
     }
 

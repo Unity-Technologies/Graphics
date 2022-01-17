@@ -24,8 +24,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_GBufferStr = "GBuffer";
         /// <summary>VBufferLighting pass name.</summary>
         public static readonly string s_VBufferLightingStr = "VBufferLighting";
-        /// <summary>VBufferLightingOffscreen pass name.</summary>
-        public static readonly string s_VBufferLightingOffscreenStr = "VBufferLightingOffscreen";
+        /// <summary>VBufferLightingOffscreenForwardFast pass name.</summary>
+        public static readonly string s_VBufferLightingOffscreenForwardFastStr = "VBufferLightingOffscreenForwardFast";
+        /// <summary>VBufferLightingOffscreenDeferredSSTracing pass name.</summary>
+        public static readonly string s_VBufferLightingOffscreenDeferredSSTracingStr = "VBufferLightingOffscreenDeferredSSTracing";
         /// <summary>GBuffer With Prepass pass name.</summary>
         public static readonly string s_GBufferWithPrepassStr = "GBufferWithPrepass";
         /// <summary>Legacy Unlit cross pipeline pass name.</summary>
@@ -91,8 +93,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_GBufferName = new ShaderTagId(s_GBufferStr);
         /// <summary>VBufferLighting shader tag id.</summary>
         public static readonly ShaderTagId s_VBufferLightingName = new ShaderTagId(s_VBufferLightingStr);
-        /// <summary>VBufferLightingOffscreen shader tag id.</summary>
-        public static readonly ShaderTagId s_VBufferLightingOffscreenName = new ShaderTagId(s_VBufferLightingOffscreenStr);
+        /// <summary>VBufferLightingOffscreenForwardFast shader tag id.</summary>
+        public static readonly ShaderTagId s_VBufferLightingOffscreenForwardFastName = new ShaderTagId(s_VBufferLightingOffscreenForwardFastStr);
+        /// <summary>VBufferLightingOffscreenDeferredSSTracing shader tag id.</summary>
+        public static readonly ShaderTagId s_VBufferLightingOffscreenDeferredSSTracingName = new ShaderTagId(s_VBufferLightingOffscreenDeferredSSTracingStr);
         /// <summary>GBufferWithPrepass shader tag id.</summary>
         public static readonly ShaderTagId s_GBufferWithPrepassName = new ShaderTagId(s_GBufferWithPrepassStr);
         /// <summary>Legacy Unlit cross pipeline shader tag id.</summary>

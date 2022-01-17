@@ -1,6 +1,7 @@
 #ifndef VISIBILITY_OIT_RESOURCES
 #define VISIBILITY_OIT_RESOURCES
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityCommon.hlsl"
 
 #define DITHER_TILE_SIZE 128
@@ -59,6 +60,31 @@ void UnpackVisibilityData(uint3 packedData, out Visibility::VisibilityData data,
     Visibility::UnpackVisibilityData(packedData.x, packedDataHalfs, data);
     texelCoordinate = uint2(packedData.z & 0xFFFF, (packedData.z >> 16) & 0xFFFF);
     depth = (packedData.y >> 16) * (1.0/(float)0xFFFF);
+}
+
+void PackOITGBufferData(float3 normal, float roughness, float3 diffuseAlbedo, out uint4 packedData)
+{
+    float2 oct = saturate(PackNormalOctRectEncode(normal) * 0.5f + 0.5f);
+
+    packedData.r = PackFloatToUInt(oct.x, 0, 16);
+    packedData.g = PackFloatToUInt(oct.y, 0, 16);
+    packedData.b = PackFloatToUInt(diffuseAlbedo.r, 0, 8) | PackFloatToUInt(diffuseAlbedo.g, 8, 8);
+    packedData.a = PackFloatToUInt(diffuseAlbedo.b, 0, 8) | PackFloatToUInt(roughness, 8, 8);
+}
+
+void UnpackOITGBufferData(uint4 packedData, out float3 normal, out float roughness, out float3 diffuseAlbedo)
+{
+    float2 oct;
+    oct.x = UnpackUIntToFloat(packedData.x, 0, 16);
+    oct.y = UnpackUIntToFloat(packedData.y, 0, 16);
+
+    normal = normalize(UnpackNormalOctRectEncode(oct) * 2.0f - 1.0f );
+
+    diffuseAlbedo.r = UnpackUIntToFloat(packedData.b, 0, 8);
+    diffuseAlbedo.g = UnpackUIntToFloat(packedData.b, 8, 8);
+    diffuseAlbedo.b = UnpackUIntToFloat(packedData.a, 0, 8);
+
+    roughness = UnpackUIntToFloat(packedData.a, 8, 8);
 }
 
 void GetPixelList(uint pixelOffset, out uint listCount, out uint listOffset)

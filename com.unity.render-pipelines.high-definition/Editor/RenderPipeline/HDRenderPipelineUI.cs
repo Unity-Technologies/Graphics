@@ -715,6 +715,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.orderIndependentTransparentSettings.enabled, Styles.orderIndepdendentTransparentEnabled);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.orderIndependentTransparentSettings.memoryBudget, Styles.orderIndepdendentTransparentMemBudget);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode, Styles.orderIndepdendentTransparentOITLightingMode);
         }
 
         static void Drawer_SectionWaterSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)

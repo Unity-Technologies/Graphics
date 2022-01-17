@@ -57,7 +57,16 @@ namespace UnityEngine.Rendering.HighDefinition
         int GetMaxMaterialOITSampleCount()
         {
             float budget = currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.memoryBudget;
-            float availableBytes = budget * 1024.0f * 1024.0f;
+            float coef;
+            if (currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode == OITLightingMode.DeferredSSTracing)
+            {
+                coef = 2.0f; // { Normal_Roughess, DiffuseAlbedo }
+            }
+            else
+            {
+                coef = 1.0f;
+            }
+            float availableBytes = coef * budget * 1024.0f * 1024.0f;
 
             //for now store visibility
             float visibilityCost = GetOITVisibilityBufferSize();
@@ -366,13 +375,26 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!prepassData.vbufferOIT.valid)
                 return;
 
-            TextureHandle offscreenLightingTexture = RenderOITVBufferLightingOffscreen(
-                renderGraph, cull, hdCamera, shadowResult, prepassData.vbufferOIT, lightLists, prepassData, out var offscreenDimensions);
+            if (m_Asset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode == OITLightingMode.ForwardFast)
+            {
+                TextureHandle offscreenLightingTexture = RenderOITVBufferLightingOffscreenForwardFast(
+                    renderGraph, cull, hdCamera, shadowResult, prepassData.vbufferOIT, lightLists, prepassData, out var offscreenDimensions);
 
-            OITResolveLighting(renderGraph, hdCamera, prepassData.vbufferOIT, offscreenLightingTexture, offscreenDimensions, depthBuffer, ref colorBuffer);
+                OITResolveLightingForwardFast(renderGraph, hdCamera, prepassData.vbufferOIT, offscreenLightingTexture, offscreenDimensions, depthBuffer, ref colorBuffer);
+            }
+            else //if (m_Asset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode == OITLightingMode.DeferredSSTracing)
+            {
+                //TextureHandle normalRoughnessTexture;
+                //TextureHandle diffuseAlbedoTexture;
+                TextureHandle normalRoughnessDiffuseAlbedoTexture;
+                RenderOITVBufferLightingOffscreenDeferredSSTracing(
+                    renderGraph, cull, hdCamera, shadowResult, prepassData.vbufferOIT, lightLists, prepassData, out normalRoughnessDiffuseAlbedoTexture, out var offscreenDimensions);
+
+                OITResolveLightingDeferredSSTracing(renderGraph, hdCamera, prepassData.vbufferOIT, normalRoughnessDiffuseAlbedoTexture, offscreenDimensions, depthBuffer, ref colorBuffer);
+            }
         }
 
-        TextureHandle RenderOITVBufferLightingOffscreen(
+        TextureHandle RenderOITVBufferLightingOffscreenForwardFast(
             RenderGraph renderGraph,
             CullingResults cull,
             HDCamera hdCamera,
@@ -388,13 +410,12 @@ namespace UnityEngine.Rendering.HighDefinition
             offscreenDimensions = GetOITOffscreenLightingSize(hdCamera, maxSampleCounts);
 
             TextureHandle outputColor;
-            using (var builder = renderGraph.AddRenderPass<VBufferOITLightingOffscreen>("VBufferOITLightingOffscreen", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITLightingOffscreen)))
+            using (var builder = renderGraph.AddRenderPass<VBufferOITLightingOffscreen>("VBufferOITLightingOffscreenForwardFast", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITLightingOffscreenForwardFast)))
             {
-                ;
                 var renderListDesc = CreateOpaqueRendererListDesc(
                                     cull,
                                     hdCamera.camera,
-                                    HDShaderPassNames.s_VBufferLightingOffscreenName, m_CurrentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllTransparentOIT);
+                                    HDShaderPassNames.s_VBufferLightingOffscreenForwardFastName, m_CurrentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllTransparentOIT);
                 //TODO: hide this from the UI!!
                 renderListDesc.renderingLayerMask = DeferredMaterialBRG.RenderLayerMask;
                 PrepareCommonForwardPassData(renderGraph, builder, passData, true, hdCamera.frameSettings, renderListDesc, lightLists, shadowResult);
@@ -403,7 +424,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     new TextureDesc(offscreenDimensions.x, offscreenDimensions.y, false, true)
                     {
                         colorFormat = GetColorBufferFormat(),
-                        name = "OITOffscreenLighting"
+                        name = "OITOffscreenLightingForwardFast"
                     }), 0);
 
                 passData.BRGBindingData = BRGBindingData;
@@ -435,8 +456,67 @@ namespace UnityEngine.Rendering.HighDefinition
             return outputColor;
         }
 
+        void RenderOITVBufferLightingOffscreenDeferredSSTracing(
+            RenderGraph renderGraph,
+            CullingResults cull,
+            HDCamera hdCamera,
+            ShadowResult shadowResult,
+            in VBufferOITOutput vbufferOIT,
+            in BuildGPULightListOutput lightLists,
+            in PrepassOutput prepassData,
+            out TextureHandle normalRoughnessDiffuseAlbedoTexture,
+            out Vector2Int offscreenDimensions)
+        {
+            var BRGBindingData = RenderBRG.GetRenderBRGMaterialBindingData();
 
-        class OITResolveRenderPass
+            int maxSampleCounts = GetMaxMaterialOITSampleCount();
+            offscreenDimensions = GetOITOffscreenLightingSize(hdCamera, maxSampleCounts);
+
+            using (var builder = renderGraph.AddRenderPass<VBufferOITLightingOffscreen>("VBufferOITLightingOffscreenDeferredSSTracing", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITLightingOffscreenDeferredSSTracing)))
+            {
+                var renderListDesc = CreateOpaqueRendererListDesc(
+                                    cull,
+                                    hdCamera.camera,
+                                    HDShaderPassNames.s_VBufferLightingOffscreenDeferredSSTracingName, m_CurrentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllTransparentOIT);
+                //TODO: hide this from the UI!!
+                renderListDesc.renderingLayerMask = DeferredMaterialBRG.RenderLayerMask;
+                PrepareCommonForwardPassData(renderGraph, builder, passData, true, hdCamera.frameSettings, renderListDesc, lightLists, shadowResult);
+
+                normalRoughnessDiffuseAlbedoTexture = builder.UseColorBuffer(renderGraph.CreateTexture(
+                    new TextureDesc(offscreenDimensions.x, offscreenDimensions.y, false, true)
+                    {
+                        colorFormat = GraphicsFormat.R16G16B16A16_UInt, // TODO: test with GraphicsFormat.A2R10G10B10_UNormPack32
+                        name = "OITOffscreenLightingDeferredSSTracing_Normal_Roughness_DiffuseAlbedo"
+                    }), 0);
+
+                passData.BRGBindingData = BRGBindingData;
+                passData.oitVisibilityBuffer = builder.ReadComputeBuffer(vbufferOIT.oitVisibilityBuffer);
+
+                float packedWidth; unsafe { int offscreenDimsWidth = offscreenDimensions.x; packedWidth = *((float*)&offscreenDimsWidth); };
+                float packedMaxSamples; unsafe { packedMaxSamples = *((float*)&maxSampleCounts); };
+                passData.packedArgs = new Vector4(packedWidth, packedMaxSamples, 0.0f, 0.0f);
+                passData.offscreenDimensions = offscreenDimensions;
+
+                builder.SetRenderFunc(
+                    (VBufferOITLightingOffscreen data, RenderGraphContext context) =>
+                    {
+                        BindGlobalLightListBuffers(data, context);
+                        BindDBufferGlobalData(data.dbuffer, context);
+
+                        //CoreUtils.SetKeyword(context.cmd, "USE_FPTL_LIGHTLIST", false);
+                        //CoreUtils.SetKeyword(context.cmd, "USE_CLUSTERED_LIGHTLIST", true);
+
+                        data.BRGBindingData.globalGeometryPool.BindResourcesGlobal(context.cmd);
+                        Rect targetViewport = new Rect(0.0f, 0.0f, (float)data.offscreenDimensions.x, (float)data.offscreenDimensions.y);
+                        context.cmd.SetGlobalBuffer(HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
+                        context.cmd.SetGlobalVector(HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
+                        context.cmd.SetViewport(targetViewport);
+                        DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
+                    });
+            }
+        }
+
+        class OITResolveForwardFastRenderPass
         {
             public ComputeShader cs;
             public Vector2Int screenSize;
@@ -449,15 +529,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 packedArgs;
         }
 
-        void OITResolveLighting(RenderGraph renderGraph, HDCamera hdCamera,
+        void OITResolveLightingForwardFast(RenderGraph renderGraph, HDCamera hdCamera,
             in VBufferOITOutput vbufferOIT,
             TextureHandle offscreenLighting,
             Vector2Int offscreenLightingSize,
             TextureHandle depthBuffer, ref TextureHandle colorBuffer)
         {
-            using (var builder = renderGraph.AddRenderPass<OITResolveRenderPass>("OITResolveRenderPass", out var passData, ProfilingSampler.Get(HDProfileId.OITResolveLighting)))
+            using (var builder = renderGraph.AddRenderPass<OITResolveForwardFastRenderPass>("OITResolveForwardFastRenderPass", out var passData, ProfilingSampler.Get(HDProfileId.OITResolveLightingForwardFast)))
             {
-                passData.cs = defaultResources.shaders.oitResolveCS;
+                passData.cs = defaultResources.shaders.oitResolveForwardFastCS;
                 passData.screenSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
                 passData.oitVisibilityBuffer = builder.ReadComputeBuffer(vbufferOIT.oitVisibilityBuffer);
                 passData.sublistCounterBuffer = builder.ReadComputeBuffer(vbufferOIT.sublistCounterBuffer);
@@ -472,7 +552,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 colorBuffer = passData.outputColor;
 
                 builder.SetRenderFunc(
-                    (OITResolveRenderPass data, RenderGraphContext context) =>
+                    (OITResolveForwardFastRenderPass data, RenderGraphContext context) =>
                     {
                         int kernel = data.cs.FindKernel("MainResolveOffscreenLighting");
                         context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
@@ -480,6 +560,61 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenLighting, data.offscreenLighting);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);
+                        context.cmd.DispatchCompute(data.cs, kernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), 1);
+                    });
+            }
+        }
+
+        class OITResolveDeferredSSTracingRenderPass
+        {
+            public ComputeShader cs;
+            public Vector2Int screenSize;
+            public TextureHandle normalRoughnessDiffuseAlbedo;
+            public TextureHandle depthBuffer;
+            public ComputeBufferHandle oitVisibilityBuffer;
+            public ComputeBufferHandle offsetListBuffer;
+            public ComputeBufferHandle sublistCounterBuffer;
+            public TextureHandle outputColor;
+            public Vector4 packedArgs;
+        }
+
+        void OITResolveLightingDeferredSSTracing(RenderGraph renderGraph, HDCamera hdCamera,
+            in VBufferOITOutput vbufferOIT,
+            TextureHandle normalRoughnessDiffuseAlbedoTexture,
+            Vector2Int offscreenLightingSize,
+            TextureHandle depthBuffer, ref TextureHandle colorBuffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<OITResolveDeferredSSTracingRenderPass>("OITResolveDeferredSSTracingRenderPass", out var passData, ProfilingSampler.Get(HDProfileId.OITResolveLightingDeferredSSTracing)))
+            {
+                passData.cs = defaultResources.shaders.oitResolveForwardFastCS;
+                passData.screenSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
+                passData.oitVisibilityBuffer = builder.ReadComputeBuffer(vbufferOIT.oitVisibilityBuffer);
+                passData.sublistCounterBuffer = builder.ReadComputeBuffer(vbufferOIT.sublistCounterBuffer);
+                passData.offsetListBuffer = builder.ReadComputeBuffer(vbufferOIT.sampleListOffsetBuffer);
+                passData.normalRoughnessDiffuseAlbedo = builder.ReadTexture(normalRoughnessDiffuseAlbedoTexture);
+                passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                passData.outputColor = builder.WriteTexture(colorBuffer);
+
+                float offscreenWidthAsFloat; unsafe { int offscreenWidthInt = offscreenLightingSize.x; offscreenWidthAsFloat = *((float*)&offscreenWidthInt); }
+                passData.packedArgs = new Vector4(offscreenWidthAsFloat, 0.0f, 0.0f, 0.0f);
+
+                colorBuffer = passData.outputColor;
+
+                builder.SetRenderFunc(
+                    (OITResolveDeferredSSTracingRenderPass data, RenderGraphContext context) =>
+                    {
+                        //CoreUtils.SetKeyword(context.cmd, "USE_FPTL_LIGHTLIST", false);
+                        //CoreUtils.SetKeyword(context.cmd, "USE_CLUSTERED_LIGHTLIST", true);
+
+                        int kernel = data.cs.FindKernel("MainResolveOffscreenLighting");
+                        context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
+                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
+                        //context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenLighting, data.offscreenLighting);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenLighting, data.normalRoughnessDiffuseAlbedo);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);
                         context.cmd.DispatchCompute(data.cs, kernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), 1);

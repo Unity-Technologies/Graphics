@@ -48,16 +48,17 @@ Varyings VertSingleTile(Attributes inputMesh)
     output.currentMaterialKey = currentMaterialKey;
     output.lightAndMaterialFeatures = GetShaderFeatureMask();
 #endif
+
     return output;
 }
 
-void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
+void Frag(Varyings packedInput, out uint4 outNormalRoughnessDiffuseAlbedoTexture : SV_Target0)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     uint visibilityIndex = (uint)packedInput.positionCS.y * GetDispatchWidth() + (uint)packedInput.positionCS.x;
     if (visibilityIndex >= GetMaximumSamplesCount())
     {
-        outColor = float4(0,0,0,0);
+        outNormalRoughnessDiffuseAlbedoTexture = uint4(0, 0, 0, 0);
         return;
     }
 
@@ -73,7 +74,7 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
 
     if (!fragmentData.valid)
     {
-        outColor = float4(0,0,0,0);
+        outNormalRoughnessDiffuseAlbedoTexture = uint4(0, 0, 0, 0);
         return;
     }
 
@@ -85,28 +86,29 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     int2 tileCoord = (float2)input.positionSS.xy / GetTileSize();
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
 
+#if 1
     SurfaceData surfaceData;
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
 
-    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+    //outNormalRoughnessDiffuseAlbedoTexture = 0;
+    PackOITGBufferData(bsdfData.normalWS.xyz, bsdfData.perceptualRoughness, bsdfData.diffuseColor.rgb, outNormalRoughnessDiffuseAlbedoTexture);
+    //outNormalRoughness.rgb = float3(0, 1, 0);// bsdfData.normalWS.xyz;
+    //outNormalRoughness.a = 1.0f;// bsdfData.perceptualRoughness;
+    //diffuseAlbedoColor.rgb = float3(1, 0, 0);// bsdfData.diffuseColor.rgb;
+    //diffuseAlbedoColor.a = 1.0f;
+#else
+    SurfaceData surfaceData;
+    BuiltinData builtinData;
+    GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
-    float3 colorVariantColor = 0;
-    uint featureFlags = packedInput.lightAndMaterialFeatures;
-
-    LightLoopOutput lightLoopOutput;
-    LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
-
-    float3 diffuseLighting =  lightLoopOutput.diffuseLighting;
-    float3 specularLighting = lightLoopOutput.specularLighting;
-
-    diffuseLighting *= GetCurrentExposureMultiplier();
-    specularLighting *= GetCurrentExposureMultiplier();
-
-    //outColor.rgb = saturate(dot(V, fragmentData.debugData.vertexNormal.xyz));
-    //outColor.rgb = surfaceData.baseColor;
-    outColor.rgb = diffuseLighting + specularLighting;
-    //outColor.rgb = fragmentData.debugData.barycentrics.m_lambda;
-    outColor.a = 1;
+    float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
+    PackOITGBufferData(surfaceData.normalWS.xyz, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), ComputeDiffuseColor(surfaceData.baseColor, metallic), outNormalRoughnessDiffuseAlbedoTexture);
+    //outNormalRoughness.rgb = surfaceData.normalWS.xyz;
+    //outNormalRoughness.a = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+    //float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
+    //diffuseAlbedoColor.rgb = ComputeDiffuseColor(surfaceData.baseColor, metallic);
+    //diffuseAlbedoColor.a = 1.0f;
+#endif
 }

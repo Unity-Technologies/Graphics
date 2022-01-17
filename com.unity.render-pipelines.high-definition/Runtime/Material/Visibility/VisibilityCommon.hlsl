@@ -66,7 +66,6 @@ void UnpackVisibilityData(uint packedData0, uint2 packedData1, out VisibilityDat
     data.DOTSInstanceIndex = (packedData0 & 0xffff);
     data.primitiveID = ((packedData0 >> 16) & 0x7fff ) | (packedData1.y << 15);
     data.batchID = packedData1.x;
-
 }
 
 uint GetMaterialKey(in VisibilityData visData, out GeoPoolMetadataEntry metadataEntry)
