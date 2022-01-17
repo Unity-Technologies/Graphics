@@ -1050,7 +1050,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Raise or remove the depth msaa flag based on the frame setting
                 CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.msaaEnabled);
 
-                ScreenCoordOverrideUtils.SetKeyword(cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenCoordOverride));
+                CoreUtils.SetKeyword(cmd, "SCREEN_COORD_OVERRIDE", hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenCoordOverride));
             }
         }
 
@@ -2238,12 +2238,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 FrameSettingsHistory.AggregateFrameSettings(ref currentFrameSettings, camera, additionalCameraData, m_Asset, null);
             else
                 FrameSettings.AggregateFrameSettings(ref currentFrameSettings, camera, additionalCameraData, m_Asset);
-
-            // Sanity check.
-            if (xrPass.enabled && currentFrameSettings.IsEnabled(FrameSettingsField.AsymmetricProjection))
-            {
-                Debug.LogError("XR and explicit Asymmetric Projection (Frame Settings) are not expected to be enabled simultaneously.");
-            }
 
             // With the Frame Settings now properly set up, we can resolve the sample budget.
             currentFrameSettings.sssResolvedSampleBudget = currentFrameSettings.GetResolvedSssSampleBudget(m_Asset);

@@ -3,6 +3,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ScreenCoordOverride.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ScreenCoordOverride.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/UberPostFeatures.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/BloomCommon.hlsl"
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
@@ -195,12 +196,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (VignetteMode == 0u) // Procedural
     {
         float2 d = abs(uvDistorted - VignetteCenter) * VignetteIntensity;
-        // SCREEN_SIZE_OVERRIDE defaults to _ScreenSize when SCREEN_COORD_OVERRIDE is not defined.
-#ifdef SCREEN_COORD_OVERRIDE
         d.x *= lerp(1.0, SCREEN_SIZE_OVERRIDE.x / SCREEN_SIZE_OVERRIDE.y, VignetteRounded);
-#else
-        d.x *= lerp(1.0, _PostProcessScreenSize.x / _PostProcessScreenSize.y, VignetteRounded);
-#endif
         d = pow(saturate(d), VignetteRoundness);
         float vfactor = pow(saturate(1.0 - dot(d, d)), VignetteSmoothness);
         color.xyz *= lerp(VignetteColor, (1.0).xxx, vfactor);

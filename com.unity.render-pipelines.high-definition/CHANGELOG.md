@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [TODO Next Release] - TODO Provide Date
+
+### Added
+- Added Asymmetric projection and Screen Coordinates Override frame settings. Adapted post effects to support Screen Coordinates Override. (Used, for example, to support Cluster Display.)
+
 ## [14.0.0] - 2021-11-17
 
 ### Added

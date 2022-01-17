@@ -4629,7 +4629,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_ScreenCoordOverride)
                 {
-                    ScreenCoordOverrideUtils.EnableKeyword(passData.uberPostCS);
+                    passData.uberPostCS.EnableKeyword("SCREEN_COORD_OVERRIDE");
                 }
 
                 if (PostProcessEnableAlpha())
