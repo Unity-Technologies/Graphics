@@ -395,6 +395,8 @@ namespace UnityEngine.Experimental.Rendering
             public float streamingScore;
             public int referenceCount = 0;
 
+            public CellInstancedDebugProbes debugProbes;
+
             public int CompareTo(CellInfo other)
             {
                 if (streamingScore < other.streamingScore)
@@ -415,6 +417,7 @@ namespace UnityEngine.Experimental.Rendering
                 sourceAssetInstanceID = -1;
                 streamingScore = 0;
                 referenceCount = 0;
+                debugProbes = null;
             }
         }
 
