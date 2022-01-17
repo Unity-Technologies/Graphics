@@ -461,11 +461,11 @@ namespace UnityEngine.Experimental.Rendering
 
             // Loop through all touched indices
             int chunkStart = cellInfo.firstChunkIndex * kIndexChunkSize;
-            for (int z = brickMin.z; z < brickMax.z; ++z)
+            for (int x = brickMin.x; x < brickMax.x; ++x)
             {
-                for (int y = brickMin.y; y < brickMax.y; ++y)
+                for (int z = brickMin.z; z < brickMax.z; ++z)
                 {
-                    for (int x = brickMin.x; x < brickMax.x; ++x)
+                    for (int y = brickMin.y; y < brickMax.y; ++y)
                     {
                         int localFlatIdx = z * (size.x * size.y) + x * size.y + y;
                         int actualIdx = chunkStart + localFlatIdx;
