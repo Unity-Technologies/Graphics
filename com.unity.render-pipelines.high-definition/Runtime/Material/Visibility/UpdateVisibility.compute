@@ -25,6 +25,11 @@ groupshared uint ldsVisibleInstances[kMaxDwordsPerDraw];
 groupshared uint ldsOutputIndex;
 groupshared uint ldsBroadcastValue;
 
+uint GetVisibleCount()
+{
+    return ldsOutputIndex;
+}
+
 uint GetOutputIndex()
 {
     uint idx;
@@ -109,5 +114,13 @@ void CSMain(uint3 svGid : SV_GroupID, uint3 svTid : SV_GroupThreadID)
                 outputVisibleInstanceData.Store((instanceBegin + outputIndex) << 2, instanceData);
             }
         }
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    if (tid == 0)
+    {
+        uint newInstanceCount = GetVisibleCount();
+        indirectArgs[drawCommandBase + kInstanceCount] = newInstanceCount;
     }
 }
