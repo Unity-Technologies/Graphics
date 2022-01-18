@@ -71,7 +71,7 @@ Build_VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_trun
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
       -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#update-shader-regex"
       -  unity-config project add testable com.unity.cli-project-setup
       -  unity-config project add testable com.unity.test.performance.runtimesettings
       -  unity-config project add testable com.unity.test.metadata-manager
@@ -132,7 +132,7 @@ VikingVillage_URP_Win_Vulkan_performance_build_editmode_mono_Linear_trunk:
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
       -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#update-shader-regex"
       -  unity-config project add testable com.unity.cli-project-setup
       -  unity-config project add testable com.unity.test.performance.runtimesettings
       -  unity-config project add testable com.unity.test.metadata-manager
@@ -225,7 +225,7 @@ Build_VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUST
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
       -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#update-shader-regex"
       -  unity-config project add testable com.unity.cli-project-setup
       -  unity-config project add testable com.unity.test.performance.runtimesettings
       -  unity-config project add testable com.unity.test.metadata-manager
@@ -286,7 +286,7 @@ VikingVillage_URP_Win_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVIS
       -  unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview
       -  unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12
       -  unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"
-      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git"
+      -  unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#update-shader-regex"
       -  unity-config project add testable com.unity.cli-project-setup
       -  unity-config project add testable com.unity.test.performance.runtimesettings
       -  unity-config project add testable com.unity.test.metadata-manager
