@@ -120,9 +120,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         updateVisibility.SetBuffer(0, HDShaderIDs._VisIndirectArgs, bindings.indirectArgs);
                         updateVisibility.SetBuffer(0, HDShaderIDs._VisInputData, bindings.inputVisibleIndices);
                         updateVisibility.SetBuffer(0, HDShaderIDs._VisOutputData, bindings.outputVisibleIndices);
+                        updateVisibility.SetBuffer(0, HDShaderIDs._VisInstanceVisibilityBitfield, bindings.instanceVisibilityBitfield);
                         updateVisibility.SetInt(HDShaderIDs._VisDrawCommandCount, bindings.drawCommandCount);
                         updateVisibility.SetInt(HDShaderIDs._VisDebugVisibilityMask, (int)bindings.debugVisibleMask);
-                        int threadGroups = bindings.drawCommandCount / 64 + 1;
+                        int threadGroups = bindings.drawCommandCount;
                         context.cmd.DispatchCompute(updateVisibility, 0, threadGroups, 1, 1);
 
                         data.BRGBindingData.globalGeometryPool.BindResourcesGlobal(context.cmd);

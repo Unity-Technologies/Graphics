@@ -3,56 +3,111 @@
 #pragma enable_d3d11_debug_symbols
 
 static const uint kIndexCountPerInstance = 0;
-static const uint kInstanceCount         = 1;
-static const uint kStartIndex            = 2;
-static const uint kBaseVertexIndex       = 3;
-static const uint kStartInstance         = 4;
-static const uint kSizeofIndirectArgs    = 5;
+static const uint kInstanceCount = 1;
+static const uint kStartIndex = 2;
+static const uint kBaseVertexIndex = 3;
+static const uint kStartInstance = 4;
+static const uint kSizeofIndirectArgs = 5;
 
 RWStructuredBuffer<uint> indirectArgs;
 RWByteAddressBuffer outputVisibleInstanceData;
-ByteAddressBuffer   inputVisibleInstanceData;
+ByteAddressBuffer inputVisibleInstanceData;
+ByteAddressBuffer instanceVisibilityBitfield;
 
 uint drawCommandCount;
 uint debugVisibilityMask;
 
-[numthreads(64,1,1)]
-void CSMain (uint3 tid : SV_DispatchThreadID)
-{
-    uint id = tid.x;
+static const uint kGroupSize = 64;
+static const uint kMaxInstancesPerDraw = 4096;
+static const uint kMaxDwordsPerDraw = kMaxInstancesPerDraw / 32 + 1;
 
-    if (id >= drawCommandCount)
+groupshared uint ldsVisibleInstances[kMaxDwordsPerDraw];
+groupshared uint ldsOutputIndex;
+groupshared uint ldsBroadcastValue;
+
+uint GetOutputIndex()
+{
+    uint idx;
+    InterlockedAdd(ldsOutputIndex, 1, idx);
+    return idx;
+}
+
+// Use a SM5.0 compatible way of broadcasting an uniform value
+// to all threads so the compiler knows about it. This could
+// be done with wave operations on SM6.1.
+uint PortableWaveBroadcast(uint tid, uint value)
+{
+    if (tid == 0)
+        ldsBroadcastValue = value;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    return ldsVisibleInstances[0];
+}
+
+[numthreads(kGroupSize, 1, 1)]
+void CSMain(uint3 svGid : SV_GroupID, uint3 svTid : SV_GroupThreadID)
+{
+    uint gid = svGid.x;
+    uint tid = svTid.x;
+
+    uint drawCommandIndex = gid;
+    if (drawCommandIndex >= drawCommandCount)
         return;
 
-    uint drawCommandBase = id * kSizeofIndirectArgs;
+    if (tid == 0)
+        ldsOutputIndex = 0;
+
+    uint drawCommandBase = drawCommandIndex * kSizeofIndirectArgs;
 
     uint instanceBegin = indirectArgs[drawCommandBase + kStartInstance];
     uint instanceCount = indirectArgs[drawCommandBase + kInstanceCount];
     uint instanceEnd = instanceBegin + instanceCount;
+    uint instanceLast = instanceEnd - 1;
 
-    if (instanceCount == 0)
-        return;
+    uint instanceDwordBegin = instanceBegin >> 5;
+    uint instanceDwordLast = instanceLast >> 5;
+    uint instanceDwordCount = (instanceCount == 0)
+            ? 0
+            : (instanceDwordLast - instanceDwordBegin + 1);
 
-    // 1 = visible
-    uint visibleMask = debugVisibilityMask;
-
-    // copy only indices of visible instances
-    uint writeIndex = instanceBegin;
-    for (uint i = instanceBegin; i < instanceEnd; ++i)
+    // Extra indent to not leak the "i" to outer scope
     {
-        uint readIndex = i;
-        uint bitIndex = readIndex & 0x1f;
-        uint mask = 1 << bitIndex;
-
-        if (visibleMask & mask)
+        for (uint i = 0; i < instanceDwordCount; i += kGroupSize)
         {
-            uint instance = inputVisibleInstanceData.Load(readIndex << 2);
-            outputVisibleInstanceData.Store(writeIndex << 2, instance);
-            ++writeIndex;
+            uint dwIndex = i + tid;
+            if (dwIndex < instanceDwordCount)
+            {
+                uint dwAddress = (instanceDwordBegin + dwIndex) << 2;
+                //uint dw = instanceVisibilityBitfield.Load(dwAddress);
+                uint dbg = debugVisibilityMask & 0xff;
+                uint dw = (dbg << 0) | (dbg << 8) | (dbg << 16) | (dbg << 24);
+                ldsVisibleInstances[dwIndex] = dw;
+            }
         }
     }
 
-    instanceCount = writeIndex - instanceBegin;
-    indirectArgs[drawCommandBase + kInstanceCount] = instanceCount;
-}
+    GroupMemoryBarrierWithGroupSync();
 
+    for (uint i = 0; i < instanceCount; i += kGroupSize)
+    {
+        uint instanceIndex = i + tid;
+        if (instanceIndex < instanceCount)
+        {
+            uint globalIndex = instanceIndex + instanceBegin;
+            uint globalDwordIndex = globalIndex >> 5;
+            uint localDwordIndex = globalDwordIndex - instanceDwordBegin;
+            uint bitIndex = globalIndex & 0x1f;
+
+            uint dw = ldsVisibleInstances[localDwordIndex];
+            bool isVisible = (dw & (1 << bitIndex)) != 0;
+
+            if (isVisible)
+            {
+                uint instanceData = inputVisibleInstanceData.Load((instanceBegin + instanceIndex) << 2);
+                uint outputIndex = GetOutputIndex();
+                outputVisibleInstanceData.Store((instanceBegin + outputIndex) << 2, instanceData);
+            }
+        }
+    }
+}

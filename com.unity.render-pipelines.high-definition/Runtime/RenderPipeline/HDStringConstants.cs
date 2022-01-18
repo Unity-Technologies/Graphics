@@ -1102,6 +1102,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VisIndirectArgs = Shader.PropertyToID("indirectArgs");
         public static readonly int _VisInputData = Shader.PropertyToID("inputVisibleInstanceData");
         public static readonly int _VisOutputData = Shader.PropertyToID("outputVisibleInstanceData");
+        public static readonly int _VisInstanceVisibilityBitfield = Shader.PropertyToID("instanceVisibilityBitfield");
         public static readonly int _VisDrawCommandCount = Shader.PropertyToID("drawCommandCount");
         public static readonly int _VisDebugVisibilityMask = Shader.PropertyToID("debugVisibilityMask");
     }
