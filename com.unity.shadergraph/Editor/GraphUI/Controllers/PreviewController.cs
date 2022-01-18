@@ -17,8 +17,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Controllers
             View = new Preview();
 
             m_PreviewStateObserver = new GraphPreviewStateObserver();
-            dispatcher.RegisterObserver(m_PreviewStateObserver);
-
+            parentGraphView.GraphTool.ObserverManager.RegisterObserver(m_PreviewStateObserver);
             dispatcher.RegisterCommandHandler<UpdatePortConstantCommand>(HandleUpdatePortConstant);
         }
 

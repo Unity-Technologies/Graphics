@@ -6,24 +6,30 @@ using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
 {
-    public class GraphPreviewStateObserver : StateObserver<ShaderGraphState>
+    public class GraphPreviewStateObserver : IStateObserver
     {
-        public GraphPreviewStateObserver() :
-        base(
-            new []
-            {
-                nameof(ShaderGraphState.GraphPreviewState),
-                nameof(ShaderGraphState.GraphViewState)
-            },
-            new []
-            {
-                nameof(ShaderGraphState.GraphPreviewState)
-            })
+
+        public GraphPreviewStateObserver(ShaderGraphState shaderGraphState)
         {
 
         }
+        //public GraphPreviewStateObserver() :
+        //base(
+        //    new []
+        //    {
+        //        nameof(ShaderGraphState.GraphPreviewState),
+        //        nameof(ShaderGraphState.GraphViewState)
+        //    },
+        //    new []
+        //    {
+        //        nameof(ShaderGraphState.GraphPreviewState)
+        //    })
+        //{
 
-        protected override void Observe(ShaderGraphState state)
+        //}
+
+        //protected override void Observe(ShaderGraphState state)
+        protected void Observe()
         {
             using var previewObservation = this.ObserveState(state.GraphPreviewState);
             if (previewObservation.UpdateType != UpdateType.None)

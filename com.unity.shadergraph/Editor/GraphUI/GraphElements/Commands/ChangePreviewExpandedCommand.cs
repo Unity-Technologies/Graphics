@@ -15,10 +15,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch
             m_IsPreviewExpanded = isPreviewExpanded;
         }
 
-        public static void DefaultCommandHandler(GraphToolState graphToolState, ChangePreviewExpandedCommand command)
+        public static void DefaultCommandHandler(
+            UndoStateComponent undoState,
+            GraphViewStateComponent graphViewState,
+            GraphPreviewStateComponent graphPreviewState,
+            ChangePreviewExpandedCommand command
+        )
         {
-            graphToolState.PushUndo(command);
-            using var graphUpdater = graphToolState.GraphViewState.UpdateScope;
+            undoState.UpdateScope.SaveSingleState(graphViewState, command);
+            using var graphUpdater = graphViewState.UpdateScope;
             {
                 foreach (var graphDataNodeModel in command.Models)
                 {
@@ -27,14 +32,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch
                 }
             }
 
-            if (graphToolState is ShaderGraphState shaderGraphState)
+            using var previewUpdater = graphPreviewState.UpdateScope;
             {
-                using var previewUpdater = shaderGraphState.GraphPreviewState.UpdateScope;
+                foreach (var graphDataNodeModel in command.Models)
                 {
-                    foreach (var graphDataNodeModel in command.Models)
-                    {
-                        previewUpdater.ChangePreviewExpansionState(graphDataNodeModel.Guid.ToString(), command.m_IsPreviewExpanded);
-                    }
+                    previewUpdater.ChangePreviewExpansionState(graphDataNodeModel.Guid.ToString(), command.m_IsPreviewExpanded);
                 }
             }
         }

@@ -18,10 +18,13 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             Position = position;
         }
 
-        public static void DefaultHandler(GraphToolState state, AddRedirectNodeCommand command)
+        public static void DefaultHandler(
+            GraphViewStateComponent graphViewState,
+            AddRedirectNodeCommand command
+        )
         {
-            var graphModel = state.GraphViewState.GraphModel;
-            using var updater = state.GraphViewState.UpdateScope;
+            var graphModel = graphViewState.GraphModel;
+            using var updater = graphViewState.UpdateScope;
 
             var fromPort = command.Edge.FromPort;
             var toPort = command.Edge.ToPort;

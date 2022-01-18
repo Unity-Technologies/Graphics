@@ -54,14 +54,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
 
         void InitializeSubWindows()
         {
-            m_InspectorController = new InspectorController(CommandDispatcher, GraphView, this);
-            m_BlackboardController = new BlackboardController(CommandDispatcher, GraphView, this);
-            m_PreviewController = new PreviewController(CommandDispatcher, GraphView, this);
+            m_InspectorController = new InspectorController((CommandDispatcher)GraphTool.Dispatcher, GraphView, this);
+            m_BlackboardController = new BlackboardController((CommandDispatcher)GraphTool.Dispatcher, GraphView, this);
+            m_PreviewController = new PreviewController((CommandDispatcher)GraphTool.Dispatcher, GraphView, this);
         }
 
         protected override void OnEnable()
         {
-            EditorToolName = "Shader Graph";
+            GraphTool.Name = "Shader Graph";
             WithSidePanel = false;
 
             base.OnEnable();
@@ -91,11 +91,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
             base.Update();
 
             CommandDispatcher.Dispatch(new GraphWindowTickCommand());
-        }
-
-        protected override void OnDestroy()
-        {
-            base.OnDestroy();
         }
 
         protected override GraphView CreateGraphView()

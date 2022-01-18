@@ -19,11 +19,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch
             m_Name = name;
         }
 
-        public static void DefaultCommandHandler(GraphToolState graphToolState, RemovePortCommand command)
+        public static void DefaultCommandHandler(
+            UndoStateComponent undoState,
+            GraphViewStateComponent graphViewState,
+            RemovePortCommand command
+        )
         {
-            graphToolState.PushUndo(command);
+            undoState.UpdateScope.SaveSingleState(graphViewState, command);
+            using var graphUpdater = graphViewState.UpdateScope;
 
-            using var graphUpdater = graphToolState.GraphViewState.UpdateScope;
             foreach (var nodeModel in command.Models)
             {
                 var removedPort =
@@ -36,7 +40,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch
                 foreach (var connectedEdge in edgesToDelete)
                 {
                     graphUpdater.MarkDeleted(connectedEdge);
-                    graphToolState.GraphViewState.GraphModel.DeleteEdge(connectedEdge);
+                    graphViewState.GraphModel.DeleteEdge(connectedEdge);
                 }
 
                 nodeModel.RemovePortByName(command.m_Name, command.m_Output);

@@ -16,10 +16,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch
             m_PreviewMode = previewMode;
         }
 
-        public static void DefaultCommandHandler(GraphToolState graphToolState, ChangePreviewModeCommand command)
+        public static void DefaultCommandHandler(
+            UndoStateComponent undoState,
+            GraphViewStateComponent graphViewState,
+            GraphPreviewStateComponent graphPreviewState,
+            ChangePreviewModeCommand command
+        )
         {
-            graphToolState.PushUndo(command);
-            using var graphUpdater = graphToolState.GraphViewState.UpdateScope;
+            undoState.UpdateScope.SaveSingleState(graphViewState, command);
+            using var graphUpdater = graphViewState.UpdateScope;
             {
                 foreach (var graphDataNodeModel in command.Models)
                 {
@@ -27,24 +32,20 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch
                     graphUpdater.MarkChanged(command.Models);
                 }
             }
-
-            if (graphToolState is ShaderGraphState shaderGraphState)
+            using var previewUpdater = graphPreviewState.UpdateScope;
             {
-                using var previewUpdater = shaderGraphState.GraphPreviewState.UpdateScope;
+                // Because every nodes preview mode can affect the modes of those downstream of it
+                // we first want to set the preview mode of all the nodes that are being modified
+                foreach (var graphDataNodeModel in command.Models)
                 {
-                    // Because every nodes preview mode can affect the modes of those downstream of it
-                    // we first want to set the preview mode of all the nodes that are being modified
-                    foreach (var graphDataNodeModel in command.Models)
-                    {
-                        graphDataNodeModel.NodePreviewMode = command.m_PreviewMode;
-                    }
+                    graphDataNodeModel.NodePreviewMode = command.m_PreviewMode;
+                }
 
-                    // After all the nodes preview modes are set, go through the nodes again
-                    // and concretize the preview modes that are set to inherit for preview data
-                    foreach (var graphDataNodeModel in command.Models)
-                    {
-                        previewUpdater.ChangeNodePreviewMode(graphDataNodeModel.Guid.ToString(), graphDataNodeModel, command.m_PreviewMode);
-                    }
+                // After all the nodes preview modes are set, go through the nodes again
+                // and concretize the preview modes that are set to inherit for preview data
+                foreach (var graphDataNodeModel in command.Models)
+                {
+                    previewUpdater.ChangeNodePreviewMode(graphDataNodeModel.Guid.ToString(), graphDataNodeModel, command.m_PreviewMode);
                 }
             }
         }
