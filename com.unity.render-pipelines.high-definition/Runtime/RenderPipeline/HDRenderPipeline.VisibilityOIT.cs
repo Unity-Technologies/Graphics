@@ -592,7 +592,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<OITResolveDeferredSSTracingRenderPass>("OITResolveDeferredSSTracingRenderPass", out var passData, ProfilingSampler.Get(HDProfileId.OITResolveLightingDeferredSSTracing)))
             {
-                passData.cs = defaultResources.shaders.oitResolveForwardFastCS;
+                passData.cs = defaultResources.shaders.oitResolveDeferredSSTracingCS;
                 passData.screenSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
                 passData.oitVisibilityBuffer = builder.ReadComputeBuffer(vbufferOIT.oitVisibilityBuffer);
                 passData.sublistCounterBuffer = builder.ReadComputeBuffer(vbufferOIT.sublistCounterBuffer);

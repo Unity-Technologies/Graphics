@@ -82,7 +82,7 @@ void UnpackOITGBufferData(uint4 packedData, out float3 normal, out float roughne
     oct.x = UnpackUIntToFloat(packedData.x, 0, 16);
     oct.y = UnpackUIntToFloat(packedData.y, 0, 16);
 
-    normal = normalize(UnpackNormalOctRectEncode(oct) * 2.0f - 1.0f );
+    normal = normalize(UnpackNormalOctRectEncode(oct * 2.0f - 1.0f));
 
     diffuseAlbedo.r = UnpackUIntToFloat(packedData.b, 0, 8);
     diffuseAlbedo.g = UnpackUIntToFloat(packedData.b, 8, 8);
