@@ -880,7 +880,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Convert the upscaling filter selection from the pipeline asset into an image upscaling filter
-            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter);
+            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.upscalingFilter, settings.casSharpness);
+            cameraData.casSharpness = settings.casSharpness;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             cameraData.xr = m_XRSystem.emptyPass;
@@ -1311,7 +1312,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderScale">Scale being applied to the final image size</param>
         /// <param name="selection">Upscaling filter selected by the user</param>
         /// <returns>Either the original filter provided, or the best replacement available</returns>
-        static ImageUpscalingFilter ResolveUpscalingFilterSelection(Vector2 imageSize, float renderScale, UpscalingFilterSelection selection)
+        static ImageUpscalingFilter ResolveUpscalingFilterSelection(Vector2 imageSize, float renderScale, UpscalingFilterSelection selection, float casSharpness)
         {
             // By default we just use linear filtering since it's the most compatible choice
             ImageUpscalingFilter filter = ImageUpscalingFilter.Linear;
@@ -1353,6 +1354,14 @@ namespace UnityEngine.Rendering.Universal
                 case UpscalingFilterSelection.Point:
                 {
                     filter = ImageUpscalingFilter.Point;
+
+                    break;
+                }
+
+                case UpscalingFilterSelection.CasUpsampling:
+                {
+                    // at a sharpness of 0, CAS will produce a result almost identical to a linear filter
+                    filter = casSharpness > 0.0f ? ImageUpscalingFilter.CasUpsampling : ImageUpscalingFilter.Linear;
 
                     break;
                 }

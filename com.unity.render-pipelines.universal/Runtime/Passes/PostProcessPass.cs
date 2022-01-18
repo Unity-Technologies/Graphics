@@ -1434,6 +1434,36 @@ namespace UnityEngine.Rendering.Universal.Internal
                                 // Do nothing as linear is the default filter in the shader
                                 break;
                             }
+
+                            case ImageUpscalingFilter.CasUpsampling:
+                            {
+                                Vector2 srcSize;
+                                Vector2 destSize;
+
+                                if (m_Source.useScaling)
+                                    srcSize = m_Source.GetScaledSize();
+                                else
+                                    srcSize = m_Source.referenceSize;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                                if (cameraData.xr.enabled)
+                                {
+                                    destSize.x = cameraData.xr.renderTargetDesc.width;
+                                    destSize.y = cameraData.xr.renderTargetDesc.height;
+                                }
+                                else
+#endif
+                                {
+                                    destSize.x = cameraData.pixelWidth;
+                                    destSize.y = cameraData.pixelHeight;
+                                }
+
+                                FfxCasUtils.CasSetup(cmd, cameraData.casSharpness, srcSize.x, srcSize.y,
+                                    destSize.x, destSize.y, false);
+                                material.EnableKeyword(ShaderKeywordStrings.CasUpsampling);
+
+                                break;
+                            }
                         }
 
                         break;

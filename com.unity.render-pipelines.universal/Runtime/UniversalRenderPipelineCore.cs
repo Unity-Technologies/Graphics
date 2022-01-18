@@ -39,7 +39,10 @@ namespace UnityEngine.Rendering.Universal
         Linear,
 
         /// Nearest-Neighbor filtering
-        Point
+        Point,
+
+        /// FidelityFX Contrast Adaptive Sharpening
+        CasUpsampling
     }
 
     public struct RenderingData
@@ -139,6 +142,7 @@ namespace UnityEngine.Rendering.Universal
         public float renderScale;
         internal ImageScalingMode imageScalingMode;
         internal ImageUpscalingFilter upscalingFilter;
+        internal float casSharpness;
         public bool clearDepth;
         public CameraType cameraType;
         public bool isDefaultViewport;
@@ -436,6 +440,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string Dithering = "_DITHERING";
         public static readonly string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
         public static readonly string PointSampling = "_POINT_SAMPLING";
+        public static readonly string CasUpsampling = "_CAS_UPSAMPLING";
 
         public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
 

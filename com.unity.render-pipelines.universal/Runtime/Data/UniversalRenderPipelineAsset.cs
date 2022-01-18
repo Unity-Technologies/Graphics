@@ -138,7 +138,9 @@ namespace UnityEngine.Rendering.Universal
         [InspectorName("Bilinear")]
         Linear,
         [InspectorName("Nearest-Neighbor")]
-        Point
+        Point,
+        [InspectorName("FidelityFX Contrast Adaptive Sharpening")]
+        CasUpsampling
     }
 
     [ExcludeFromPreset]
@@ -172,6 +174,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
+        [SerializeField] float m_CasSharpness = 0.5f;
+
         // TODO: Shader Quality Tiers
 
         // Main directional light Settings
@@ -686,6 +690,13 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UpscalingFilter; }
             set { m_UpscalingFilter = value; }
+        }
+
+
+        public float casSharpness
+        {
+            get { return m_CasSharpness; }
+            set { m_CasSharpness = Mathf.Clamp01(value); }
         }
 
         public LightRenderingMode mainLightRenderingMode
