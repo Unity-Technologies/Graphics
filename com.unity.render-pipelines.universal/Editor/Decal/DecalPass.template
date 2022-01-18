@@ -6,12 +6,16 @@ Pass
         $splice(LightMode)
     }
 
-    //Blend Max Max
+    // Render State
+    $splice(RenderState)
+
     $SurfaceDescription.Emission: ColorMask R 4
     $SurfaceDescription.MAOSAlpha: ColorMask G 4
 
-    // Render State
-    $splice(RenderState)
+    $SurfaceDescription.Emission: Blend 4 One One
+    $SurfaceDescription.Emission: BlendOp 4 Max
+
+    $SurfaceDescription.MAOSAlpha: BlendOp 4 Add
 
     // Debug
     $splice(Debug)

@@ -3,7 +3,7 @@
 
 static const float kWaterSpec = 0.02;
 static const float kWaterLevelMin = 0.5;
-static const float kWaterNormalGradientMult = 20.0;
+static const float kWaterNormalGradientMult = 25.0;
 
 struct WetnessData
 {
