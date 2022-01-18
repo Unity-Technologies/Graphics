@@ -253,7 +253,7 @@ namespace UnityEngine.Experimental.Rendering
             return (index & ~(mask << shift)) | ((size & mask) << shift);
         }
 
-        internal bool AssignIndexChunksToCell(int bricksCount, ref CellIndexUpdateInfo cellUpdateInfo)
+        internal bool AssignIndexChunksToCell(int bricksCount, ref CellIndexUpdateInfo cellUpdateInfo, bool ignoreErrorLog)
         {
             // We need to better handle the case where the chunks are full, this is where streaming will need to come into place swapping in/out
             // Also the current way to find an empty spot might be sub-optimal, when streaming is in place it'd be nice to have this more efficient
@@ -284,7 +284,11 @@ namespace UnityEngine.Experimental.Rendering
 
             if (firstValidChunk < 0)
             {
-                Debug.LogError("APV Index Allocation failed.");
+                // During baking we know we can hit this when trying to do dilation of all cells at the same time.
+                // We don't want controlled error message spam during baking so we ignore it.
+                // In theory this should never happen with proper streaming/defrag but we keep the message just in case otherwise.
+                if (!ignoreErrorLog)
+                    Debug.LogError("APV Index Allocation failed.");
                 return false;
             }
 

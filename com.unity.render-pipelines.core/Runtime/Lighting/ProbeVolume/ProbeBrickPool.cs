@@ -165,7 +165,7 @@ namespace UnityEngine.Experimental.Rendering
             return (brickCount + chunkSize - 1) / chunkSize;
         }
 
-        internal bool Allocate(int numberOfBrickChunks, List<BrickChunkAlloc> outAllocations)
+        internal bool Allocate(int numberOfBrickChunks, List<BrickChunkAlloc> outAllocations, bool ignoreErrorLog)
         {
             while (m_FreeList.Count > 0 && numberOfBrickChunks > 0)
             {
@@ -178,7 +178,11 @@ namespace UnityEngine.Experimental.Rendering
             {
                 if (m_NextFreeChunk.z >= m_Pool.depth)
                 {
-                    Debug.LogError("Cannot allocate more brick chunks, probe volume brick pool is full.");
+                    // During baking we know we can hit this when trying to do dilation of all cells at the same time.
+                    // We don't want controlled error message spam during baking so we ignore it.
+                    // In theory this should never happen with proper streaming/defrag but we keep the message just in case otherwise.
+                    if (!ignoreErrorLog)
+                        Debug.LogError("Cannot allocate more brick chunks, probe volume brick pool is full.");
                     return false; // failure case, pool is full
                 }
 

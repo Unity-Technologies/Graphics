@@ -876,11 +876,11 @@ namespace UnityEngine.Experimental.Rendering
 
         // This one is internal for baking purpose only.
         // Calling this from "outside" will not properly update Loaded/ToBeLoadedCells arrays and thus will break the state of streaming.
-        internal bool LoadCell(CellInfo cellInfo)
+        internal bool LoadCell(CellInfo cellInfo, bool ignoreErrorLog = false)
         {
-            if (GetCellIndexUpdate(cellInfo.cell, out var cellUpdateInfo)) // Allocate indices
+            if (GetCellIndexUpdate(cellInfo.cell, out var cellUpdateInfo, ignoreErrorLog)) // Allocate indices
             {
-                return AddBricks(cellInfo, cellUpdateInfo);
+                return AddBricks(cellInfo, cellUpdateInfo, ignoreErrorLog);
             }
             else
             {
@@ -895,7 +895,7 @@ namespace UnityEngine.Experimental.Rendering
             for (int i = 0; i < m_ToBeLoadedCells.size; ++i)
             {
                 CellInfo cellInfo = m_ToBeLoadedCells[i];
-                if (LoadCell(cellInfo))
+                if (LoadCell(cellInfo, ignoreErrorLog: true))
                     m_LoadedCells.Add(cellInfo);
             }
 
@@ -1153,7 +1153,7 @@ namespace UnityEngine.Experimental.Rendering
             return bricksForCell.x * bricksForCell.y * bricksForCell.z;
         }
 
-        bool GetCellIndexUpdate(Cell cell, out ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo)
+        bool GetCellIndexUpdate(Cell cell, out ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo, bool ignoreErrorLog)
         {
             cellUpdateInfo = new ProbeBrickIndex.CellIndexUpdateInfo();
 
@@ -1163,7 +1163,7 @@ namespace UnityEngine.Experimental.Rendering
             cellUpdateInfo.minValidBrickIndexForCellAtMaxRes = minValidLocalIdx;
             cellUpdateInfo.maxValidBrickIndexForCellAtMaxResPlusOne = sizeOfValidIndices + minValidLocalIdx;
 
-            return m_Index.AssignIndexChunksToCell(brickCountsAtResolution, ref cellUpdateInfo);
+            return m_Index.AssignIndexChunksToCell(brickCountsAtResolution, ref cellUpdateInfo, ignoreErrorLog);
         }
 
         /// <summary>
@@ -1277,7 +1277,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Runtime API starts here
-        bool AddBricks(CellInfo cellInfo, ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo)
+        bool AddBricks(CellInfo cellInfo, ProbeBrickIndex.CellIndexUpdateInfo cellUpdateInfo, bool ignoreErrorLog)
         {
             Profiler.BeginSample("AddBricks");
 
@@ -1290,7 +1290,7 @@ namespace UnityEngine.Experimental.Rendering
             cellInfo.chunkList.Clear();
 
             // Try to allocate texture space
-            if (!m_Pool.Allocate(brickChunksCount, cellInfo.chunkList))
+            if (!m_Pool.Allocate(brickChunksCount, cellInfo.chunkList, ignoreErrorLog))
                 return false;
 
             // In order not to pre-allocate for the worse case, we update the texture by smaller chunks with a preallocated DataLoc
