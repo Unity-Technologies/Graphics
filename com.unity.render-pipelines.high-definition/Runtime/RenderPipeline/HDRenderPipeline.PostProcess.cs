@@ -774,6 +774,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ctx.cmd.SetComputeFloatParam(data.screenSpaceScatteringCS, "_DensityScale", ssms.densityScaling.value);
                     ctx.cmd.SetComputeFloatParam(data.screenSpaceScatteringCS, "_MaxFogDistance2", fog.maxFogDistance.value);
                     ctx.cmd.SetComputeFloatParam(data.screenSpaceScatteringCS, "_ScatterStartDistance", ssms.scatteringStartDistance.value);
+                    ctx.cmd.SetComputeFloatParam(data.screenSpaceScatteringCS, "_DensityPower", ssms.densityPower.value);
                     ctx.cmd.SetComputeVectorParam(data.screenSpaceScatteringCS, "_Curve", ssms.densityCurve);
 
                     ctx.cmd.DispatchCompute(data.screenSpaceScatteringCS, data.scatteringKernel, (hdCamera.actualWidth + 7) / 8, (hdCamera.actualHeight + 7) / 8, data.hdCamera.viewCount); 

@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public FloatParameter densityScaling = new FloatParameter(1);
         public FloatParameter depthScaling = new FloatParameter(1);
         public MinFloatParameter densityThreshold = new MinFloatParameter(1, 0);
+        public MinFloatParameter densityPower = new MinFloatParameter(1, 0);
         [HideInInspector]
         public MinFloatParameter softKnee = new MinFloatParameter(1, 0);
         [HideInInspector]
