@@ -281,8 +281,8 @@ VBufferDeferredMaterialFragmentData BootstrapDeferredMaterialFragmentShader(floa
     fragmentData.fragInputs = fragInputs;
     fragmentData.depthValue = depthValue;
     fragmentData.V = V;
-
 #endif
+
     return fragmentData;
 }
 

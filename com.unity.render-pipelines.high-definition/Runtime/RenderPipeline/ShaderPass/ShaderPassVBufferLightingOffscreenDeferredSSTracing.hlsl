@@ -78,15 +78,14 @@ void Frag(Varyings packedInput, out uint4 outNormalRoughnessDiffuseAlbedoTexture
         return;
     }
 
-    //Sampling of deferred material has been done.
-    //Now perform forward lighting.
-    FragInputs input = fragmentData.fragInputs;
     float3 V = fragmentData.V;
+    //Sampling of deferred material has been done.
+    FragInputs input = fragmentData.fragInputs;
 
     int2 tileCoord = (float2)input.positionSS.xy / GetTileSize();
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
 
-#if 0
+#if 1
     SurfaceData surfaceData;
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);

@@ -61,12 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int GetOITVisibilityBufferSize()
         {
-            //return sizeof(uint) * 3; //12 bytes
-            // @kleber: review?
-            if (currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode == OITLightingMode.ForwardFast)
-                return HDUtils.GetFormatSizeInBytes(GetForwardFastFormat());
-            else // if (currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode == OITLightingMode.DeferredSSTracing)
-                return HDUtils.GetFormatSizeInBytes(GetDeferredSSTracingFormat());
+            return sizeof(uint) * 3; //12 bytes
         }
 
         int GetMaxMaterialOITSampleCount()
@@ -559,6 +554,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (OITResolveForwardFastRenderPass data, RenderGraphContext context) =>
                     {
                         int kernel = data.cs.FindKernel("MainResolveOffscreenLighting");
+                        context.cmd.SetKeyword(GlobalKeyword.Create("OIT_DEFERRED_SS_TRACING"), false);
                         context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
@@ -612,16 +608,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         //CoreUtils.SetKeyword(context.cmd, "USE_FPTL_LIGHTLIST", false);
                         //CoreUtils.SetKeyword(context.cmd, "USE_CLUSTERED_LIGHTLIST", true);
 
-                        CoreUtils.SetKeyword(context.cmd, "OIT_DEFERRED_SS_TRACING", true);
-
                         int kernel = data.cs.FindKernel("MainResolveOffscreenLighting");
-                        //context.cmd.SetKeyword(data.cs, new LocalKeyword(ComputeShader shader, string name), true);
                         context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
-                        //context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenLighting, data.offscreenLighting);
-                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenLighting, data.normalRoughnessDiffuseAlbedo);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenGBuffer, data.normalRoughnessDiffuseAlbedo);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);
                         context.cmd.DispatchCompute(data.cs, kernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), 1);
