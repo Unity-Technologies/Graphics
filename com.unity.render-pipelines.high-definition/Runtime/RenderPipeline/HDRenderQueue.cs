@@ -46,6 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Overlay = RenderQueue.Overlay,
 
+            OcclusionCulling = Visibility - 1,
             Visibility = Overlay + 500
         }
 

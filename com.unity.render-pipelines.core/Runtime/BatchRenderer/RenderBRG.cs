@@ -163,7 +163,9 @@ namespace UnityEngine.Rendering
         internal static GraphicsBuffer s_DrawIndirectArgs;
         internal static GraphicsBuffer s_InputVisibleInstanceData;
         internal static GraphicsBuffer s_OutputVisibleInstanceData;
-        internal static int s_VisibleCount;
+        internal static GraphicsBuffer s_InstanceVisibilityBitfield;
+        internal static int s_DrawCommandCount;
+        internal static int s_InstanceCount;
         internal static uint s_DebugVisibleMask;
 
         private NativeList<DrawInstance> m_instances;
@@ -805,7 +807,9 @@ namespace UnityEngine.Rendering
                 s_DrawIndirectArgs = m_DrawIndirectArgs;
                 s_InputVisibleInstanceData = m_visibleInstancesBufferPool.m_buffers[visibleInstancesUploadBuffer.index];
                 s_OutputVisibleInstanceData = m_OcclusionVisibleInstanceData;
-                s_VisibleCount = cullingOutput.drawCommands[0].drawCommandCount;
+                s_InstanceVisibilityBitfield = m_OcclusionVisibilityBitfield;
+                s_DrawCommandCount = cullingOutput.drawCommands[0].drawCommandCount;
+                s_InstanceCount = cullingOutput.drawCommands[0].visibleInstanceCount;
             }
             else
             {
@@ -1343,7 +1347,6 @@ namespace UnityEngine.Rendering
 
             var procedural = new BatchDrawCommandProcedural
             {
-                indexBufferHandle = mesh.GetIndexBuffer().bufferHandle,
                 indexCount = (uint)sm.indexCount,
                 indexOffset = (uint)sm.indexStart,
                 topology = sm.topology,
@@ -1441,7 +1444,9 @@ namespace UnityEngine.Rendering
         public GraphicsBuffer indirectArgs;
         public GraphicsBuffer inputVisibleIndices;
         public GraphicsBuffer outputVisibleIndices;
+        public GraphicsBuffer instanceVisibilityBitfield;
         public int drawCommandCount;
+        public int instanceCount;
         public uint debugVisibleMask;
 
         public bool valid => globalGeometryPool != null;
@@ -1504,7 +1509,9 @@ namespace UnityEngine.Rendering
                 indirectArgs = SceneBRG.s_DrawIndirectArgs,
                 inputVisibleIndices = SceneBRG.s_InputVisibleInstanceData,
                 outputVisibleIndices = SceneBRG.s_OutputVisibleInstanceData,
-                drawCommandCount = SceneBRG.s_VisibleCount,
+                instanceVisibilityBitfield = SceneBRG.s_InstanceVisibilityBitfield,
+                drawCommandCount = SceneBRG.s_DrawCommandCount,
+                instanceCount = SceneBRG.s_InstanceCount,
                 debugVisibleMask = SceneBRG.s_DebugVisibleMask,
             };
         }

@@ -133,6 +133,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader vbufferTileClassificationCS;
             [Reload("Runtime/Material/Visibility/UpdateVisibility.compute")]
             public ComputeShader updateVisibilityCS;
+            [Reload("Runtime/Material/Visibility/OcclusionCulling.shader")]
+            public Shader occlusionCullingPS;
 
             // Sky
             [Reload("Runtime/Sky/BlitCubemap.shader")]

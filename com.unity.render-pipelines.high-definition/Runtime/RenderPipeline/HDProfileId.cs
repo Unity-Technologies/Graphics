@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VBufferLightTileClassification,
         VBufferMaterialTileClassification,
         VBufferLighting,
+        VBufferOcclusionCulling,
         GBuffer,
         DBufferRender,
         DBufferPrepareDrawData,

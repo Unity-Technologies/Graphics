@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle vbuffer0;
             public TextureHandle vbuffer1;
             public TextureHandle vbufferMaterialDepth;
+            public TextureHandle occlusionPrevFrameDepth;
             public RenderBRGBindingData BRGBindingData;
 
             public static VBufferOutput NewDefault()
@@ -58,6 +59,40 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader updateVisibility;
         }
 
+        class VBufferOcclusionPassData
+        {
+            public int instanceCount;
+            public Material occlusionMaterial;
+        }
+
+        void RenderOcclusionCulling(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cull, ref PrepassOutput output)
+        {
+            const int kVerticesPerInstance = 3 * 2; // 3 front faces, 2 triangles per face to draw a box
+
+            var BRGBindingData = RenderBRG.GetRenderBRGMaterialBindingData();
+            if (!IsVisibilityPassEnabled() || !BRGBindingData.valid)
+            {
+                return;
+            }
+
+            using (var builder = renderGraph.AddRenderPass<VBufferOcclusionPassData>("VBufferOcclusionCulling",
+                       out var passData, ProfilingSampler.Get(HDProfileId.VBufferOcclusionCulling)))
+            {
+                output.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.Read);
+                passData.instanceCount = BRGBindingData.instanceCount;
+                passData.occlusionMaterial = currentAsset.OcclusionCullingMaterial;
+
+                builder.SetRenderFunc(
+                    (VBufferOcclusionPassData data, RenderGraphContext context) =>
+                    {
+                        int vertexCount = data.instanceCount * kVerticesPerInstance;
+                        context.cmd.DrawProcedural(Matrix4x4.identity, data.occlusionMaterial, 0,
+                            MeshTopology.Triangles,
+                            vertexCount, 1);
+                    });
+            }
+        }
+
         void RenderVBuffer(RenderGraph renderGraph, TextureHandle colorBuffer, HDCamera hdCamera, CullingResults cull, ref PrepassOutput output)
         {
             output.vbuffer = VBufferOutput.NewDefault();
@@ -68,6 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 output.vbuffer.vbuffer0 = renderGraph.defaultResources.blackUIntTextureXR;
                 output.vbuffer.vbuffer1 = renderGraph.defaultResources.blackUIntTextureXR;
                 output.vbuffer.vbufferMaterialDepth = renderGraph.defaultResources.blackUIntTextureXR;
+                output.vbuffer.occlusionPrevFrameDepth = renderGraph.defaultResources.blackTexture;
                 return;
             }
 

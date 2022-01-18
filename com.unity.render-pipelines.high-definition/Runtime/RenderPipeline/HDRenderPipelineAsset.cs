@@ -230,6 +230,9 @@ namespace UnityEngine.Rendering.HighDefinition
         private static Material s_CreateMaterialDepthMaterial = null;
         public Material CreateMaterialDepthMaterial { get { return s_CreateMaterialDepthMaterial; } }
 
+        private static Material s_OcclusionCullingMaterial = null;
+        public Material OcclusionCullingMaterial { get { return s_OcclusionCullingMaterial; } }
+
         internal bool HasVlightingPass(Material m)
         {
             for (int i = 0; i < m.passCount; ++i)
@@ -253,6 +256,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 s_VisibilityMaterial = CoreUtils.CreateEngineMaterial(globalSettings.renderPipelineResources.shaders.visibilityPS);
                 s_VisibilityMaterial.renderQueue = (int)HDRenderQueue.Priority.Visibility;
+            }
+
+            if (s_OcclusionCullingMaterial == null)
+            {
+                s_OcclusionCullingMaterial = CoreUtils.CreateEngineMaterial(globalSettings.renderPipelineResources.shaders.occlusionCullingPS);
+                s_OcclusionCullingMaterial.renderQueue = (int)HDRenderQueue.Priority.OcclusionCulling;
             }
 
             if (s_CreateMaterialDepthMaterial == null)
