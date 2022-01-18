@@ -116,13 +116,11 @@ void Frag(  PackedVaryingsToPS packedInput
 
     // Depth and Alpha to coverage
     #ifdef WRITE_MSAA_DEPTH
-        // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
-        depthColor = packedInput.vmesh.positionCS.z;
+    // In case we are rendering in MSAA, reading the an MSAA depth buffer is way too expensive. To avoid that, we export the depth to a color buffer
+    depthColor = packedInput.vmesh.positionCS.z;
 
-        #ifdef _ALPHATOMASK_ON
-        // Alpha channel is used for alpha to coverage
-        depthColor.a = SharpenAlpha(builtinData.opacity, builtinData.alphaClipTreshold);
-        #endif
+    // Alpha channel is used for alpha to coverage
+    depthColor.a = SharpenAlpha(builtinData.opacity, builtinData.alphaClipTreshold);
     #endif
 
     #if defined(WRITE_NORMAL_BUFFER)
