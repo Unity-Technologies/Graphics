@@ -86,12 +86,15 @@ namespace UnityEngine.Experimental.Rendering
             var autoSimState = Physics.autoSimulation;
             try
             {
-                Physics.autoSimulation = false;
+                if(autoSimState)
+	                Physics.autoSimulation = false;
+					
                 Physics.Simulate(0.1f);
             }
             finally
             {
-                Physics.autoSimulation = autoSimState;
+                if(autoSimState)
+	                Physics.autoSimulation = true;
             }
         }
 

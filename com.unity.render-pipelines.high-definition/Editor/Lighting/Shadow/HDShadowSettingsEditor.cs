@@ -4,7 +4,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(HDShadowSettings))]
+    [CustomEditor(typeof(HDShadowSettings))]
     class HDShadowSettingsEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_MaxShadowDistance;

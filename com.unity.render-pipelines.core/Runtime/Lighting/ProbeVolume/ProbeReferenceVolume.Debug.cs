@@ -67,6 +67,9 @@ namespace UnityEngine.Experimental.Rendering
 
         const int kProbesPerBatch = 511;
 
+        /// <summary>Name of debug panel for Probe Volume</summary>
+        public static readonly string k_DebugPanelName = "Probe Volume";
+
         internal ProbeVolumeDebug debugDisplay { get; } = new ProbeVolumeDebug();
 
         /// <summary>Colors that can be used for debug visualization of the brick structure subdivision.</summary>
@@ -80,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering
         List<CellInstancedDebugProbes> m_CellDebugData = new List<CellInstancedDebugProbes>();
         Plane[] m_DebugFrustumPlanes = new Plane[6];
 
-        internal float dilationValidtyThreshold = 0.25f; // We ned to store this here to access it
+        internal ProbeVolumeBakingProcessSettings bakingProcessSettings; /* DEFAULTS would be better but is implemented in PR#6174 = ProbeVolumeBakingProcessSettings.Defaults; */
 
         // Field used for the realtime subdivision preview
         internal Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>> realtimeSubdivisionInfo = new Dictionary<ProbeReferenceVolume.Volume, List<ProbeBrickIndex.Brick>>();
@@ -97,27 +100,30 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        void InitializeDebug(Mesh debugProbeMesh, Shader debugProbeShader, Mesh debugOffsetMesh, Shader debugOffsetShader)
+        void InitializeDebug(in ProbeVolumeSystemParameters parameters)
         {
-            m_DebugMesh = debugProbeMesh;
-            m_DebugMaterial = CoreUtils.CreateEngineMaterial(debugProbeShader);
-            m_DebugMaterial.enableInstancing = true;
+            if (parameters.supportsRuntimeDebug)
+            {
+                m_DebugMesh = parameters.probeDebugMesh;
+                m_DebugMaterial = CoreUtils.CreateEngineMaterial(parameters.probeDebugShader);
+                m_DebugMaterial.enableInstancing = true;
 
-            m_DebugOffsetMesh = debugOffsetMesh;
-            m_DebugOffsetMaterial = CoreUtils.CreateEngineMaterial(debugOffsetShader);
-            m_DebugOffsetMaterial.enableInstancing = true;
+                m_DebugOffsetMesh = parameters.offsetDebugMesh;
+                m_DebugOffsetMaterial = CoreUtils.CreateEngineMaterial(parameters.offsetDebugShader);
+                m_DebugOffsetMaterial.enableInstancing = true;
 
-            // Hard-coded colors for now.
-            Debug.Assert(ProbeBrickIndex.kMaxSubdivisionLevels == 7); // Update list if this changes.
-            subdivisionDebugColors[0] = new Color(1.0f, 0.0f, 0.0f);
-            subdivisionDebugColors[1] = new Color(0.0f, 1.0f, 0.0f);
-            subdivisionDebugColors[2] = new Color(0.0f, 0.0f, 1.0f);
-            subdivisionDebugColors[3] = new Color(1.0f, 1.0f, 0.0f);
-            subdivisionDebugColors[4] = new Color(1.0f, 0.0f, 1.0f);
-            subdivisionDebugColors[5] = new Color(0.0f, 1.0f, 1.0f);
-            subdivisionDebugColors[6] = new Color(0.5f, 0.5f, 0.5f);
+                // Hard-coded colors for now.
+                Debug.Assert(ProbeBrickIndex.kMaxSubdivisionLevels == 7); // Update list if this changes.
+                subdivisionDebugColors[0] = new Color(1.0f, 0.0f, 0.0f);
+                subdivisionDebugColors[1] = new Color(0.0f, 1.0f, 0.0f);
+                subdivisionDebugColors[2] = new Color(0.0f, 0.0f, 1.0f);
+                subdivisionDebugColors[3] = new Color(1.0f, 1.0f, 0.0f);
+                subdivisionDebugColors[4] = new Color(1.0f, 0.0f, 1.0f);
+                subdivisionDebugColors[5] = new Color(0.0f, 1.0f, 1.0f);
+                subdivisionDebugColors[6] = new Color(0.5f, 0.5f, 0.5f);
+            }
 
-            RegisterDebug();
+            RegisterDebug(parameters);
 
 #if UNITY_EDITOR
             UnityEditor.Lightmapping.lightingDataCleared += OnClearLightingdata;
@@ -135,19 +141,22 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         }
 
-        void RefreshDebug<T>(DebugUI.Field<T> field, T value)
-        {
-            UnregisterDebug(false);
-            RegisterDebug();
-        }
-
         void DebugCellIndexChanged<T>(DebugUI.Field<T> field, T value)
         {
             ClearDebugData();
         }
 
-        void RegisterDebug()
+        void RegisterDebug(ProbeVolumeSystemParameters parameters)
         {
+            void RefreshDebug<T>(DebugUI.Field<T> field, T value)
+            {
+                UnregisterDebug(false);
+                RegisterDebug(parameters);
+            }
+
+            const float kProbeSizeMin = 0.05f, kProbeSizeMax = 10.0f;
+            const float kOffsetSizeMin = 0.001f, kOffsetSizeMax = 0.1f;
+
             var widgetList = new List<DebugUI.Widget>();
 
             var subdivContainer = new DebugUI.Container() { displayName = "Subdivision Visualization" };
@@ -180,7 +189,7 @@ namespace UnityEngine.Experimental.Rendering
                     setIndex = value => debugDisplay.probeShading = (DebugProbeShadingMode)value,
                     onValueChanged = RefreshDebug
                 });
-                probeContainerChildren.children.Add(new DebugUI.FloatField { displayName = "Probe Size", getter = () => debugDisplay.probeSize, setter = value => debugDisplay.probeSize = value, min = () => 0.1f, max = () => 10.0f });
+                probeContainerChildren.children.Add(new DebugUI.FloatField { displayName = "Probe Size", getter = () => debugDisplay.probeSize, setter = value => debugDisplay.probeSize = value, min = () => kProbeSizeMin, max = () => kProbeSizeMax });
                 if (debugDisplay.probeShading == DebugProbeShadingMode.SH || debugDisplay.probeShading == DebugProbeShadingMode.SHL0 || debugDisplay.probeShading == DebugProbeShadingMode.SHL0L1)
                     probeContainerChildren.children.Add(new DebugUI.FloatField { displayName = "Probe Exposure Compensation", getter = () => debugDisplay.exposureCompensation, setter = value => debugDisplay.exposureCompensation = value });
 
@@ -196,10 +205,26 @@ namespace UnityEngine.Experimental.Rendering
                 probeContainer.children.Add(probeContainerChildren);
             }
 
-            probeContainer.children.Add(new DebugUI.BoolField { displayName = "Virtual Offset", getter = () => debugDisplay.drawVirtualOffsetPush, setter = value => debugDisplay.drawVirtualOffsetPush = value, onValueChanged = RefreshDebug });
+            probeContainer.children.Add(new DebugUI.BoolField
+            {
+                displayName = "Virtual Offset",
+                getter = () => debugDisplay.drawVirtualOffsetPush,
+                setter = value =>
+                {
+                    debugDisplay.drawVirtualOffsetPush = value;
+
+                    if (debugDisplay.drawVirtualOffsetPush && debugDisplay.drawProbes)
+                    {
+                        // If probes are being drawn when enabling offset, automatically scale them down to a reasonable size so the arrows aren't obscured by the probes.
+                        var searchDistance = CellSize(0) * MinBrickSize() / ProbeBrickPool.kBrickCellCount * bakingProcessSettings.virtualOffsetSettings.searchMultiplier + bakingProcessSettings.virtualOffsetSettings.outOfGeoOffset;
+                        debugDisplay.probeSize = Mathf.Min(debugDisplay.probeSize, Mathf.Clamp(searchDistance, kProbeSizeMin, kProbeSizeMax));
+                    }
+                },
+                onValueChanged = RefreshDebug
+            });
             if (debugDisplay.drawVirtualOffsetPush)
             {
-                var voOffset = new DebugUI.FloatField { displayName = "Offset Size", getter = () => debugDisplay.offsetSize, setter = value => debugDisplay.offsetSize = value, min = () => 0.001f, max = () => 0.1f };
+                var voOffset = new DebugUI.FloatField { displayName = "Offset Size", getter = () => debugDisplay.offsetSize, setter = value => debugDisplay.offsetSize = value, min = () => kOffsetSizeMin, max = () => kOffsetSizeMax };
                 probeContainer.children.Add(new DebugUI.Container { children = { voOffset } });
             }
 
@@ -208,21 +233,34 @@ namespace UnityEngine.Experimental.Rendering
             var streamingContainer = new DebugUI.Container() { displayName = "Streaming" };
             streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", getter = () => debugDisplay.freezeStreaming, setter = value => debugDisplay.freezeStreaming = value });
 
-            widgetList.Add(subdivContainer);
-            widgetList.Add(probeContainer);
-            widgetList.Add(streamingContainer);
+            if (parameters.supportsRuntimeDebug)
+            {
+                // Cells / Bricks visualization is not implemented in a runtime compatible way atm.
+                if (Application.isEditor)
+                    widgetList.Add(subdivContainer);
 
-            m_DebugItems = widgetList.ToArray();
-            var panel = DebugManager.instance.GetPanel("Probe Volume", true);
-            panel.children.Add(m_DebugItems);
+                widgetList.Add(probeContainer);
+            }
+
+            if (parameters.supportStreaming)
+            {
+                widgetList.Add(streamingContainer);
+            }
+
+            if (widgetList.Count > 0)
+            {
+                m_DebugItems = widgetList.ToArray();
+                var panel = DebugManager.instance.GetPanel(k_DebugPanelName, true);
+                panel.children.Add(m_DebugItems);
+            }
         }
 
         void UnregisterDebug(bool destroyPanel)
         {
             if (destroyPanel)
-                DebugManager.instance.RemovePanel("Probe Volume");
+                DebugManager.instance.RemovePanel(k_DebugPanelName);
             else
-                DebugManager.instance.GetPanel("Probe Volume", false).children.Remove(m_DebugItems);
+                DebugManager.instance.GetPanel(k_DebugPanelName, false).children.Remove(m_DebugItems);
         }
 
         bool ShouldCullCell(Vector3 cellPosition, Transform cameraTransform, Plane[] frustumPlanes)
@@ -243,6 +281,9 @@ namespace UnityEngine.Experimental.Rendering
 
         void DrawProbeDebug(Camera camera)
         {
+            if (!enabledBySRP || !isInitialized)
+                return;
+
             if (!debugDisplay.drawProbes && !debugDisplay.drawVirtualOffsetPush)
                 return;
 
@@ -271,7 +312,7 @@ namespace UnityEngine.Experimental.Rendering
                     props.SetFloat("_ProbeSize", debugDisplay.probeSize);
                     props.SetFloat("_CullDistance", debugDisplay.probeCullingDistance);
                     props.SetInt("_MaxAllowedSubdiv", debugDisplay.maxSubdivToVisualize);
-                    props.SetFloat("_ValidityThreshold", dilationValidtyThreshold);
+                    props.SetFloat("_ValidityThreshold", bakingProcessSettings.dilationSettings.dilationValidityThreshold);
                     props.SetFloat("_OffsetSize", debugDisplay.offsetSize);
 
                     if (debugDisplay.drawProbes)
@@ -302,10 +343,9 @@ namespace UnityEngine.Experimental.Rendering
             {
                 var cell = cellInfo.cell;
 
-                if (cell.sh == null || cell.sh.Length == 0 || !cellInfo.loaded)
+                if (!cell.shL0L1Data.IsCreated || cell.shL0L1Data.Length == 0 || !cellInfo.loaded)
                     continue;
 
-                float largestBrickSize = cell.bricks.Count == 0 ? 0 : cell.bricks[0].subdivisionLevel;
                 List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
                 List<Matrix4x4[]> offsetBuffers = new List<Matrix4x4[]>();
                 List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
