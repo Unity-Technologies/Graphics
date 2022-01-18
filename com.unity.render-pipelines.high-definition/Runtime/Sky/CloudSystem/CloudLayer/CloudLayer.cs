@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ClampedFloatParameter rotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
             /// <summary>Color multiplier of the clouds.</summary>
             [Tooltip("Specifies the color HDRP uses to tint the clouds.")]
-            public ColorParameter tint = new ColorParameter(Color.white, false, false, true);
+            public ColorParameter tint = new ColorParameter(Color.black, false, false, true);
 
             /// <summary>Distortion mode.</summary>
             [Tooltip("Distortion mode used to simulate cloud movement.\nIn Scene View, requires Always Refresh to be enabled.")]
@@ -163,10 +163,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             /// <summary>Simulates cloud self-shadowing using raymarching.</summary>
             [Tooltip("Simulates cloud self-shadowing using raymarching.")]
-            public BoolParameter lighting = new BoolParameter(false);
+            public BoolParameter raymarching = new BoolParameter(false);
             /// <summary>Number of raymarching steps.</summary>
             [Tooltip("Number of raymarching steps.")]
-            public ClampedIntParameter steps = new ClampedIntParameter(4, 1, 10);
+            public ClampedIntParameter steps = new ClampedIntParameter(4, 2, 10);
             /// <summary>TODO.</summary>
             [Tooltip("Altitude of the cloud layer.")]
             public MinFloatParameter altitude = new MinFloatParameter(1000.0f, 0.0f);
@@ -175,10 +175,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public MinFloatParameter thickness = new MinFloatParameter(8000.0f, 0);
             /// <summary>Thickness of the clouds.</summary>
             [Tooltip("Controls the thickness of the clouds.")]
-            public ClampedFloatParameter density = new ClampedFloatParameter(0.5f, 0, 1);
+            public ClampedFloatParameter density = new ClampedFloatParameter(0.05f, 0, 1);
             /// <summary>Thickness of the clouds.</summary>
             [Tooltip("Controls the thickness of the clouds.")]
-            public ClampedFloatParameter multiScattering = new ClampedFloatParameter(0.5f, 0, 1);
+            public ClampedFloatParameter multiScattering = new ClampedFloatParameter(0.0f, 0, 1);
 
             /// <summary>Enable to cast shadows.</summary>
             [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows. This will override the cookie of your directional light.")]
@@ -186,27 +186,30 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
             internal float scrollFactor = 0.0f;
-            internal int NumSteps => lighting.value ? steps.value : 0;
+            internal int NumSteps => raymarching.value ? steps.value : 0;
             internal Vector4 Opacities => new Vector4(opacityR.value, opacityG.value, opacityB.value, opacityA.value);
 
-            internal (Vector4, Vector4) GetRenderingParameters(HDCamera camera)
+            internal Vector4 GetRenderingParameters(HDCamera camera)
             {
                 float angle = Mathf.Deg2Rad * scrollOrientation.GetValue(camera);
-                Vector4 params1 = new Vector3(-Mathf.Cos(angle), -Mathf.Sin(angle), scrollFactor / 200.0f);
-                Vector4 params2 = Color.white - 0.75f * tint.value;
-                params2.w = density.value * 0.05f + 0.01f;
-                return (params1, params2);
+                return new Vector3(-Mathf.Cos(angle), -Mathf.Sin(angle), scrollFactor / 200.0f);
             }
 
-            internal (Vector4, Vector4) GetBakingParameters()
+            internal (Vector4, Vector4, Vector4) GetBakingParameters()
             {
-                Vector4 parameters = new Vector4(
+                Vector4 params2 = new Vector4(
                     -rotation.value / 360.0f,
                     NumSteps,
                     thickness.value,
                     0
                 );
-                return (Opacities, parameters);
+                Vector4 params3 = new Vector4(
+                    altitude.value,
+                    multiScattering.value,
+                    density.value * 0.05f + 0.001f,
+                    0
+                );
+                return (Opacities, params2, params3);
             }
 
             internal int GetBakingHashCode()
@@ -224,11 +227,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     hash = hash * 23 + rotation.GetHashCode();
                     hash = hash * 23 + castShadows.GetHashCode();
 
-                    if (lighting.value)
+                    if (raymarching.value)
                     {
-                        hash = hash * 23 + lighting.GetHashCode();
+                        hash = hash * 23 + raymarching.GetHashCode();
                         hash = hash * 23 + steps.GetHashCode();
+                        hash = hash * 23 + altitude.GetHashCode();
                         hash = hash * 23 + thickness.GetHashCode();
+                        hash = hash * 23 + density.GetHashCode();
+                        hash = hash * 23 + multiScattering.GetHashCode();
                     }
 
 #if UNITY_EDITOR
@@ -283,7 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int GetBakingHashCode(Light sunLight)
         {
             int hash = 17;
-            bool lighting = layerA.lighting.value;
+            bool lighting = layerA.raymarching.value;
             bool shadows = sunLight != null && layerA.castShadows.value;
 
             unchecked
@@ -295,7 +301,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (layers.value == CloudMapMode.Double)
                 {
                     hash = hash * 23 + layerB.GetBakingHashCode();
-                    lighting |= layerB.lighting.value;
+                    lighting |= layerB.raymarching.value;
                     shadows |= layerB.castShadows.value;
                 }
 

@@ -114,13 +114,6 @@ float EvaluatePerlinFractalBrownianMotion(float3 position, float initialFrequenc
 // Real-time only code
 #ifdef REAL_TIME_VOLUMETRIC_CLOUDS
 
-float HenyeyGreenstein(float cosAngle, float g)
-{
-    // There is a mistake in the GPU Gem7 Paper, the result should be divided by 1/(4.PI)
-    float g2 = g * g;
-    return (1.0 / (4.0 * PI)) * (1.0 - g2) / PositivePow(1.0 + g2 - 2.0 * g * cosAngle, 1.5);
-}
-
 float PowderEffect(float cloudDensity, float cosAngle, float intensity)
 {
     float powderEffect = 1.0 - exp(-cloudDensity * 4.0);

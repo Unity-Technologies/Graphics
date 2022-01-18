@@ -3,8 +3,10 @@
 #pragma multi_compile_local _ USE_SECOND_CLOUD_LAYER
 
 #pragma kernel BakeCloudTexture KERNEL_NAME=BakeCloudTexture
+//#pragma enable_d3d11_debug_symbols
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
@@ -16,6 +18,13 @@
     #define LAYER       dispatchThreadId.z
 #endif
 
+// The number of octaves for the multi-scattering
+#define NUM_MULTI_SCATTERING_OCTAVES 2
+// Forward eccentricity
+#define FORWARD_ECCENTRICITY 0.7
+// Forward eccentricity
+#define BACKWARD_ECCENTRICITY 0.7
+
 TEXTURE2D(_CloudMapA);
 SAMPLER(sampler_CloudMapA);
 
@@ -24,20 +33,108 @@ TEXTURE2D(_CloudMapB);
 SAMPLER(sampler_CloudMapB);
 #endif
 
+Texture3D<float> _Worley128RGBA;
+
 RW_TEXTURE2D_ARRAY(float2, _CloudTexture);
 
 float4 _Params;
 float4 _Params1[NUM_LAYERS];
 float4 _Params2[NUM_LAYERS];
+float4 _Params3[NUM_LAYERS];
 
 #define _SunDirection       _Params.xyz
 #define _UpperHemisphere    (_Params.w > 0)
-#define _Opacities          _Params1[LAYER]
+#define _Opacities          _Params1[data.index]
 #define _Rotation           _Params2[LAYER].x
-#define _LightingSteps      _Params2[LAYER].y
-#define _Thickness          _Params2[LAYER].z
+#define _LightingSteps      _Params2[data.index].y
+#define _Thickness          _Params2[data.index].z
 #define _Resolution         _Params2[0].w
+#define _LowestCloudAltitude _Params3[data.index].x
+#define _MultiScattering     _Params3[data.index].y
+#define _Density             _Params3[data.index].z
 
+#define _EarthRadius 6378100.0f
+
+struct LayerSamplingData
+{
+    int index;
+    float4 weights;
+
+    TEXTURE2D(cloudMap);
+    SAMPLER(sampler_cloudMap);
+};
+
+int RaySphereIntersection(float3 startWS, float3 dir, float radius, out float2 result)
+{
+    float3 startPS = startWS + float3(0, _EarthRadius, 0);
+    float a = dot(dir, dir);
+    float b = 2.0 * dot(dir, startPS);
+    float c = dot(startPS, startPS) - (radius * radius);
+    float d = (b*b) - 4.0*a*c;
+    result = 0.0;
+    int numSolutions = 0;
+    if (d >= 0.0)
+    {
+        // Compute the values required for the solution eval
+        float sqrtD = sqrt(d);
+        float q = -0.5*(b + FastSign(b) * sqrtD);
+        result = float2(c/q, q/a);
+        // Remove the solutions we do not want
+        numSolutions = 2;
+        if (result.x < 0.0)
+        {
+            numSolutions--;
+            result.x = result.y;
+        }
+        if (result.y < 0.0)
+            numSolutions--;
+    }
+    // Return the number of solutions
+    return numSolutions;
+}
+bool RaySphereIntersection(float3 startWS, float3 dir, float radius)
+{
+    float3 startPS = startWS + float3(0, _EarthRadius, 0);
+    float a = dot(dir, dir);
+    float b = 2.0 * dot(dir, startPS);
+    float c = dot(startPS, startPS) - (radius * radius);
+    float d = (b * b) - 4.0 * a * c;
+    bool flag = false;
+    if (d >= 0.0)
+    {
+        // Compute the values required for the solution eval
+        float sqrtD = sqrt(d);
+        float q = -0.5 * (b + FastSign(b) * sqrtD);
+        float2 result = float2(c/q, q/a);
+        flag = result.x > 0.0 || result.y > 0.0;
+    }
+    return flag;
+}
+void GetCloudVolumeIntersection(LayerSamplingData data, float3 dir, out float rangeStart, out float range)
+{
+    float _HighestCloudAltitude = _LowestCloudAltitude + _Thickness;
+
+    // intersect with all three spheres
+    float2 intersectionInter, intersectionOuter;
+    int numInterInner = RaySphereIntersection(0, dir, _LowestCloudAltitude + _EarthRadius, intersectionInter);
+    int numInterOuter = RaySphereIntersection(0, dir, _HighestCloudAltitude + _EarthRadius, intersectionOuter);
+
+    // The ray starts at the first intersection with the lower bound and goes up to the first intersection with the outer bound
+    rangeStart = intersectionInter.x;
+    range = intersectionOuter.x - rangeStart;
+}
+bool GetCloudVolumeIntersection_Light(LayerSamplingData data, float3 originWS, float3 dir, out float totalDistance)
+{
+    float _HighestCloudAltitude = _LowestCloudAltitude + _Thickness;
+
+    // Given that this is a light ray, it will always start from inside the volume and is guaranteed to exit
+    float2 intersection, intersectionEarth;
+    RaySphereIntersection(originWS, dir, _HighestCloudAltitude + _EarthRadius, intersection);
+    bool intersectEarth = RaySphereIntersection(originWS, dir, _EarthRadius);
+    totalDistance = intersection.x;
+    // If the ray intersects the earth, then the sun is occlued by the earth
+    return !intersectEarth;
+}
 
 float3 InverseLatLong(float2 uv, float upperHemisphereOnly)
 {
@@ -52,11 +149,11 @@ float3 InverseLatLong(float2 uv, float upperHemisphereOnly)
     return float3(sin(uv.x) * scale, y, cos(uv.x) * scale);
 }
 
-float SampleCloudMap(TEXTURE2D(_CloudMap), SAMPLER(sampler_CloudMap), float2 uv, float4 weights)
+float SampleCloudMap(LayerSamplingData data, float2 uv)
 {
-    float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_CloudMap, uv, 0);
+    float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(data.cloudMap, data.sampler_cloudMap, uv, 0);
 
-    float4 clouds = cloudLayerColor * weights;
+    float4 clouds = cloudLayerColor * data.weights;
     return clouds.r + clouds.g + clouds.b + clouds.a;
 }
 
@@ -68,35 +165,138 @@ float3 RotationUp(float3 p, float2 cos_sin)
     return float3(dot(rotDirX, p), p.y, dot(rotDirY, p));
 }
 
-float2 ComputeCloudLighting(TEXTURE2D(_CloudMap), SAMPLER(sampler_CloudMap), float2 uv, uint3 dispatchThreadId)
+float GetDensity(LayerSamplingData data, float3 positionWS)
 {
-    float4 weights = _Opacities / max(_Opacities.r + _Opacities.g + _Opacities.b + _Opacities.a, 1.0);
-    float opacity = SampleCloudMap(_CloudMap, sampler_CloudMap, uv, weights);
-    float2 finalColor = float2(1.0, opacity);
+    float3 dir = normalize(positionWS);
+    float thickness = SampleCloudMap(data, GetLatLongCoords(dir, _UpperHemisphere));
 
-    int numSteps = (int)_LightingSteps;
-    if (numSteps != 0)
+    float highFrequencyNoise = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_linear_repeat_sampler, positionWS/2000, 0).x;
+    //thickness *= 1.0 - highFrequencyNoise*0.9;
+    //thickness = saturate(remap(highFrequencyNoise, 0, 1, 0, thickness));
+
+    //thickness = max(0, thickness + (highFrequencyNoise - 1) * 0.2);
+
+    //float cosAngle = dot(dir, _SunDirection);
+    //thickness *= cosAngle * 0.4 + 0.6;
+
+    float rangeStart = _LowestCloudAltitude, range = _Thickness;
+    GetCloudVolumeIntersection(data, dir, rangeStart, range);
+
+    float distToCenter = length(dir * (rangeStart + 0.5 * range) - positionWS);
+    float density = 1 - saturate(distToCenter / (range * thickness));
+    //thickness *= 1.0 - highFrequencyNoise*0.1;
+    density *= _Density * thickness;
+    return density;
+}
+
+float EvaluateSunLuminance(LayerSamplingData data, float3 positionWS, float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES])
+{
+    const int _NumLightSteps = (int)_LightingSteps;
+
+    // Compute the Ray to the limits of the cloud volume in the direction of the light
+    float totalLightDistance;
+    float luminance = 0.0;
+
+    if (GetCloudVolumeIntersection_Light(data, positionWS, _SunDirection, totalLightDistance))
     {
-        float3 sun = -_SunDirection;
-        sun = RotationUp(sun, float2(cos(_Rotation*PI*2.0), sin(_Rotation*PI*2.0)));
+        totalLightDistance = clamp(totalLightDistance, 0, 1000);
 
-        float3 dir = InverseLatLong(uv, _UpperHemisphere);
-        float3 marchDir = sun - dir;
-        float marchDist = length(marchDir);
-        float3 marchStep = marchDir / marchDist;
-        float stepSize = 0.02;
+        float densitySum = 0.0f;
 
-        int i = 0;
-        finalColor.x = 1;
-        while (i++ < numSteps)
+        // Compute the size of the current step
+        float stepSize = totalLightDistance / (float)_NumLightSteps;
+
+        // Collect total density along light ray.
+        for (int j = 0; j < _NumLightSteps; j++)
         {
-            float3 ray = normalize(dir + marchStep * min(stepSize * i, marchDist));
-            ray.y = max(ray.y, 0.00f);
-            float2 coords = GetLatLongCoords(ray, _UpperHemisphere);
-            float newSample = SampleCloudMap(_CloudMap, sampler_CloudMap, coords, weights);
-            float c = 1/(1+_LightingSteps);
-            finalColor.x = lerp(finalColor.x, 0.02 + 0.98 * saturate(opacity - newSample), lerp(c, 0.5, _Thickness));
+            float dist = stepSize * (1 + j);
+
+            // Evaluate the current sample point
+            float3 currentSamplePointWS = positionWS + _SunDirection * dist;
+
+            // Get the cloud properties at the sample point
+            float density = GetDensity(data, currentSamplePointWS);
+
+            densitySum += density;
         }
+
+        // Compute the luminance for each octave
+        for (int o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
+            luminance += exp(-stepSize * densitySum * PositivePow(_MultiScattering, o))
+                         * phaseFunction[o]
+                         * PositivePow(_MultiScattering, o);
+    }
+
+    // return the combined luminance
+    return luminance;
+}
+
+float2 EvaluateCloud(LayerSamplingData data, float3 currentPositionWS, float3 dir, float2 scattering_transmittance, float stepSize, float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES])
+{
+    float density = GetDensity(data, currentPositionWS);
+    if (density != 0.0f)
+    {
+        // Apply the extinction
+        const float currentStepExtinction = exp(-density * stepSize);
+
+        // Evaluate the luminance at this sample
+        float luminance = EvaluateSunLuminance(data, currentPositionWS, phaseFunction);
+
+        // Improved analytical scattering
+        const float integScatt = (luminance - luminance * currentStepExtinction);
+        float inScattering = scattering_transmittance.x + integScatt * scattering_transmittance.y;
+        float transmittance = scattering_transmittance.y * currentStepExtinction;
+        scattering_transmittance = float2(inScattering, transmittance);
+    }
+
+    return scattering_transmittance;
+}
+
+float2 ComputeCloudLighting(TEXTURE2D(cloudMap), SAMPLER(sampler_cloudMap), float2 uv, uint index)
+{
+    LayerSamplingData data;
+
+    data.index = index;
+    data.cloudMap = cloudMap;
+    data.sampler_cloudMap = sampler_cloudMap;
+    data.weights = _Opacities / max(_Opacities.r + _Opacities.g + _Opacities.b + _Opacities.a, 1.0);
+
+    const int _NumPrimarySteps = 3;
+    const float opacity = SampleCloudMap(data, uv);
+    float2 finalColor = opacity;
+
+    if ((int)_LightingSteps != 0)
+    {
+        const float3 dir = InverseLatLong(uv, _UpperHemisphere);
+        const float cosAngle = dot(dir, _SunDirection);
+
+        float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES];
+        for (int o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
+        {
+            const float forwardP = HenyeyGreenstein(cosAngle, FORWARD_ECCENTRICITY * PositivePow(_MultiScattering, o));
+            const float backwardsP = HenyeyGreenstein(cosAngle, -BACKWARD_ECCENTRICITY * PositivePow(_MultiScattering, o));
+            phaseFunction[o] = backwardsP + forwardP;
+        }
+
+        float rangeStart, range;
+        GetCloudVolumeIntersection(data, dir, rangeStart, range);
+
+        float3 currentPositionWS = dir * (rangeStart + 0.5 * (1 - opacity) * range);
+        range *= opacity;
+
+        int currentIndex = 0;
+        float stepSize = range / (float)_NumPrimarySteps;
+        float2 scattering_transmittance = float2(0, 1);
+        while (currentIndex < _NumPrimarySteps)
+        {
+            scattering_transmittance = EvaluateCloud(data, currentPositionWS, dir,
+                scattering_transmittance, stepSize, phaseFunction);
+            currentPositionWS += dir * stepSize;
+            currentIndex++;
+        }
+
+        finalColor = scattering_transmittance;
+        finalColor.y = 1 - finalColor.y;
     }
 
     return finalColor;
@@ -110,11 +310,11 @@ void KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
         uv.y *= 2.0f;
 
 #ifndef USE_SECOND_CLOUD_LAYER
-    float2 cloudLayerColor = ComputeCloudLighting(_CloudMapA, sampler_CloudMapA, uv, dispatchThreadId);
+    float2 cloudLayerColor = ComputeCloudLighting(_CloudMapA, sampler_CloudMapA, uv, LAYER);
 #else
     float2 cloudLayerColor = LAYER == 0 ?
-        ComputeCloudLighting(_CloudMapA, sampler_CloudMapA, uv, dispatchThreadId) :
-        ComputeCloudLighting(_CloudMapB, sampler_CloudMapB, uv, dispatchThreadId);
+        ComputeCloudLighting(_CloudMapA, sampler_CloudMapA, uv, LAYER) :
+        ComputeCloudLighting(_CloudMapB, sampler_CloudMapB, uv, LAYER);
 #endif
 
     dispatchThreadId.x = frac(uv.x + _Rotation) / _Resolution;

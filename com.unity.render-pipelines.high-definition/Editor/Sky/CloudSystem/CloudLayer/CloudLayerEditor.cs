@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedDataParameter scrollSpeed;
             public SerializedDataParameter flowmap;
 
-            public SerializedDataParameter lighting;
+            public SerializedDataParameter raymarching;
             public SerializedDataParameter steps;
             public SerializedDataParameter altitude;
             public SerializedDataParameter thickness;
@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 scrollSpeed = Unpack(p.Find(x => x.scrollSpeed)),
                 flowmap = Unpack(p.Find(x => x.flowmap)),
 
-                lighting = Unpack(p.Find(x => x.lighting)),
+                raymarching = Unpack(p.Find(x => x.raymarching)),
                 steps = Unpack(p.Find(x => x.steps)),
                 altitude = Unpack(p.Find(x => x.altitude)),
                 thickness = Unpack(p.Find(x => x.thickness)),
@@ -123,7 +123,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel--;
             }
 
-            PropertyField(map.lighting);
+            PropertyField(map.raymarching);
             using (new IndentLevelScope())
             {
                 PropertyField(map.steps);

@@ -206,26 +206,11 @@ real RayleighPhaseFunction(real cosTheta)
     return k * (1 + cosTheta * cosTheta);
 }
 
-real HenyeyGreensteinPhasePartConstant(real anisotropy)
+real HenyeyGreenstein(real cosAngle, real g)
 {
-    real g = anisotropy;
-
-    return INV_FOUR_PI * (1 - g * g);
-}
-
-real HenyeyGreensteinPhasePartVarying(real anisotropy, real cosTheta)
-{
-    real g = anisotropy;
-    real x = 1 + g * g - 2 * g * cosTheta;
-    real f = rsqrt(max(x, REAL_EPS)); // x^(-1/2)
-
-    return f * f * f; // x^(-3/2)
-}
-
-real HenyeyGreensteinPhaseFunction(real anisotropy, real cosTheta)
-{
-    return HenyeyGreensteinPhasePartConstant(anisotropy) *
-           HenyeyGreensteinPhasePartVarying(anisotropy, cosTheta);
+    // There is a mistake in the GPU Gem7 Paper, the result should be divided by 1/(4.PI)
+    real g2 = g * g;
+    return (1.0 / (4.0 * PI)) * (1.0 - g2) / PositivePow(1.0 + g2 - 2.0 * g * cosAngle, 1.5);
 }
 
 real CornetteShanksPhasePartConstant(real anisotropy)
