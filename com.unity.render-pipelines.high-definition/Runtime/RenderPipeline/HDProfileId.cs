@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VBuffer,
         VBufferOITCount,
         VBufferOITStorage,
+        VBufferOITComputeHiZ,
         VBufferOITLightingOffscreenForwardFast,
         VBufferOITLightingOffscreenDeferredSSTracing,
         VBufferOITTestLighting,

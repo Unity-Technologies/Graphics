@@ -1125,6 +1125,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VisOITListsCounts = Shader.PropertyToID("_VisOITListsCounts");
         public static readonly int _VisOITListsOffsets = Shader.PropertyToID("_VisOITListsOffsets");
         public static readonly int _VisOITSubListsCounts = Shader.PropertyToID("_VisOITSubListsCounts");
+
+        public static readonly int _MipSource = Shader.PropertyToID("_MipSource");
+
+        public static readonly int _OITTileHiZ = Shader.PropertyToID("_OITTileHiZ");
+        public static readonly int _OITTileHiZInput = Shader.PropertyToID("_OITTileHiZInput");
+        public static readonly int _OITTileHiZOutput = Shader.PropertyToID("_OITTileHiZOutput");
+        public static readonly int _OITHiZMipInfos = Shader.PropertyToID("_OITHiZMipInfos");
+        public static readonly int _OITHiZOutputSize = Shader.PropertyToID("_OITHiZOutputSize");
+
         public static readonly int _PackedOITTileHistogramArgs = Shader.PropertyToID("_PackedOITTileHistogramArgs");
         public static readonly int _VBufferLightingOffscreenParams = Shader.PropertyToID("_VBufferLightingOffscreenParams");
         public static readonly int _VisOITOffscreenLighting = Shader.PropertyToID("_VisOITOffscreenLighting");
