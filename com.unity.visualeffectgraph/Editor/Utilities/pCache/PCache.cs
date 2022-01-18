@@ -179,6 +179,25 @@ namespace UnityEditor.Experimental.VFX.Utility
             buckets.Add(new List<object>());
         }
 
+        public void SetIntData(string property, List<int> data)
+        {
+            var prop = properties.FirstOrDefault(o => o.Name == property);
+            if (prop.Name != property)
+                throw new InvalidOperationException("Could not find property :" + property);
+
+            if (elementCount == 0 || data.Count == elementCount)
+            {
+                int index = properties.IndexOf(prop);
+                foreach (int i in data)
+                {
+                    buckets[index].Add(i);
+                }
+
+                if (elementCount == 0) elementCount = data.Count;
+            }
+            else throw new InvalidOperationException("Need to set data corresponding to the actual element count :" + elementCount);
+        }
+
         public void SetFloatData(string property, List<float> data)
         {
             var prop = properties.FirstOrDefault(o => o.Name == property);

@@ -16,7 +16,7 @@ using UnityEditor.Experimental.AssetImporters;
 
 namespace UnityEditor.Experimental.VFX.Utility
 {
-    [ScriptedImporter(1, "pcache")]
+    [ScriptedImporter(2, "pcache")]
     class PointCacheImporter : ScriptedImporter
     {
         public static T[] SubArray<T>(T[] data, int index, int length)
@@ -111,8 +111,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                 {
                     //Initialize Texture
                     var surfaceFormat = GraphicsFormat.None;
-                    var lastIndex = Array.LastIndexOf(kvp.Value.indices, kChannelError);
-                    var size = lastIndex == -1 ? kMaxChannelCount : lastIndex;
+                    var size = Array.IndexOf(kvp.Value.indices, kvp.Value.indices.Max()) + 1;
                     switch (kvp.Value.PropertyType)
                     {
                         case "uchar":
@@ -128,10 +127,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                             else surfaceFormat = GraphicsFormat.R16G16B16A16_SFloat;
                             break;
                         case "int":
-                            if (size == 1) surfaceFormat = GraphicsFormat.R32_SInt;
-                            else if (size == 2) surfaceFormat = GraphicsFormat.R32G32_SInt;
-                            else if (size == 3) surfaceFormat = GraphicsFormat.R32G32B32_SInt;
-                            else surfaceFormat = GraphicsFormat.R32G32B32A32_SInt;
+                            if (size == 1) surfaceFormat = GraphicsFormat.R32_SFloat; //Doesn't use R32_SInt here because can't be "Sampled" (will fail creation of Texture2D)
                             break;
                         default: throw new NotImplementedException("Types other than uchar/int/float are not supported yet");
                     }

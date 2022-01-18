@@ -465,12 +465,22 @@ namespace UnityEditor.Experimental.VFX.Utility
             if (m_ExportNormals) file.AddVector3Property("normal");
             if (m_ExportColors) file.AddColorProperty("color");
             if (m_ExportUV) file.AddVector4Property("uv");
+            if (exportBarycentric)
+            {
+                file.AddIntegerProperty("triangleIndex");
+                file.AddVector2Property("barycentric");
+            }
 
             EditorUtility.DisplayProgressBar("pCache bake tool", "Generating pCache...", 0.0f);
             file.SetVector3Data("position", positions);
             if (m_ExportNormals) file.SetVector3Data("normal", normals);
             if (m_ExportColors) file.SetColorData("color", colors);
             if (m_ExportUV) file.SetVector4Data("uv", uvs);
+            if (exportBarycentric)
+            {
+                file.SetIntData("triangleIndex", barycentrics.Select(o => o.triangle).ToList());
+                file.SetVector2Data("barycentric", barycentrics.Select(o => o.coord).ToList());
+            }
 
             EditorUtility.ClearProgressBar();
             return file;

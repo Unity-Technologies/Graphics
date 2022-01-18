@@ -22,6 +22,13 @@ namespace UnityEditor.VFX
         public sealed override string GetCodeString(string[] parents)
         {
             string typeString = VFXExpression.TypeToCode(valueType);
+
+			//TODOPAUL (clarify)
+            if (valueType == VFXValueType.Int32)
+            {
+                return string.Format("asint({0}.Load(int3({1}, {2}, 0)).r)", parents[0], parents[1], parents[2], typeString);
+            }
+
             return string.Format("({3}){0}.Load(int3({1}, {2}, 0))", parents[0], parents[1], parents[2], typeString);
         }
     }

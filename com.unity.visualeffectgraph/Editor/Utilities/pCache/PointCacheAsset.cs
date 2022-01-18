@@ -8,5 +8,6 @@ namespace UnityEditor.Experimental.VFX.Utility
     {
         public int PointCount;
         public Texture2D[] surfaces;
+        //TODOPAUL: Store expected output format for each surface
     }
 }
