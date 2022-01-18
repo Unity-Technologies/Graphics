@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Fixed
+ - Fixed bug with Shader Graph subwindows having their header text overflow when the window is resized smaller than the title [1378203]
+ 
 ## [13.1.4] - 2021-12-04
 
 Version Updated
