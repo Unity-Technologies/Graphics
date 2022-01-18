@@ -5,8 +5,11 @@ namespace UnityEngine.Rendering
     /// </summary>
     public enum ShaderVariantLogLevel
     {
+        /// <summary>Disable all log for Shader Variant</summary>
         Disabled,
+        /// <summary>Only logs SRP Shaders when logging Shader Variant</summary>
         OnlySRPShaders,
+        /// <summary>Logs all Shader Variant</summary>
         AllShaders,
     }
 

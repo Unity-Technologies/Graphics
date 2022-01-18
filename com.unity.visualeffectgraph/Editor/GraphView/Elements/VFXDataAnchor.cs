@@ -369,8 +369,16 @@ namespace UnityEditor.VFX.UI
                     validTypes = op.validTypes;
             }
 
-            var getSlots = direction == Direction.Input ? (System.Func<int, VFXSlot>)container.GetOutputSlot : (System.Func<int, VFXSlot>)container.GetInputSlot;
-            int count = direction == Direction.Input ? container.GetNbOutputSlots() : container.GetNbInputSlots();
+            var getSlots = direction == Direction.Input ? container.GetOutputSlot : (System.Func<int, VFXSlot>)container.GetInputSlot;
+            var count = direction == Direction.Input ? container.GetNbOutputSlots() : container.GetNbInputSlots();
+            // Template containers are not sync initially to save time during loading
+            // For container with no input or output this can be called everytime, but should also be very fast
+            if (count == 0)
+            {
+                container.ResyncSlots(false);
+                count = direction == Direction.Input ? container.GetNbOutputSlots() : container.GetNbInputSlots();
+            }
+
             for (int i = 0; i < count; ++i)
             {
                 var slot = getSlots(i);
