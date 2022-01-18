@@ -24,14 +24,18 @@ namespace UnityEditor.Experimental.VFX.Utility
         MeshBakeMode m_MeshBakeMode = MeshBakeMode.Triangle;
         PCache.Format m_OutputFormat = PCache.Format.Ascii;
 
+        bool m_ExportPositions = true;
         bool m_ExportUV = false;
-        bool m_ExportNormals = true;
+        bool m_ExportNormals = false;
         bool m_ExportColors = false;
         bool m_ExportBarycentric = false;
 
         Mesh m_Mesh;
         int m_OutputPointCount = 4096;
         int m_SeedMesh;
+
+        bool m_UseDensityMap = false;
+        Texture2D m_DensityMap;
 
         void OnGUI_Mesh()
         {
@@ -41,11 +45,19 @@ namespace UnityEditor.Experimental.VFX.Utility
             if (m_Distribution != Distribution.RandomUniformArea)
                 m_MeshBakeMode = (MeshBakeMode)EditorGUILayout.EnumPopup(Contents.meshBakeMode, m_MeshBakeMode);
 
+            if (m_Distribution == Distribution.RandomUniformArea)
+            {
+                m_UseDensityMap = EditorGUILayout.Toggle("Use Density Map", m_UseDensityMap);
+                if (m_UseDensityMap)
+                    m_DensityMap = (Texture2D)EditorGUILayout.ObjectField("Density Map", m_DensityMap, typeof(Texture2D), false);
+            }
+
+            m_ExportPositions = EditorGUILayout.Toggle("Export Positions", m_ExportPositions);
             m_ExportNormals = EditorGUILayout.Toggle("Export Normals", m_ExportNormals);
             m_ExportColors = EditorGUILayout.Toggle("Export Colors", m_ExportColors);
             m_ExportUV = EditorGUILayout.Toggle("Export UVs", m_ExportUV);
             if (m_MeshBakeMode == MeshBakeMode.Triangle)
-                m_ExportBarycentric = EditorGUILayout.Toggle("Export Barycentric Coordinate", m_ExportBarycentric);
+                m_ExportBarycentric = EditorGUILayout.Toggle("Export Barycentric", m_ExportBarycentric);
 
             m_OutputPointCount = EditorGUILayout.IntField("Point Count", m_OutputPointCount);
             if (m_Distribution != Distribution.Sequential)
@@ -57,7 +69,7 @@ namespace UnityEditor.Experimental.VFX.Utility
             {
                 if (GUILayout.Button("Save to pCache file..."))
                 {
-                    string fileName = EditorUtility.SaveFilePanelInProject("pCacheFile", m_Mesh.name, "pcache", "Save PCache");
+                    var fileName = EditorUtility.SaveFilePanelInProject("pCacheFile", m_Mesh.name, "pcache", "Save PCache");
                     if (!string.IsNullOrEmpty(fileName))
                     {
                         try
@@ -230,15 +242,21 @@ namespace UnityEditor.Experimental.VFX.Utility
                 return Interpolate(m_cacheData.vertices[triangle.a], m_cacheData.vertices[triangle.b], m_cacheData.vertices[triangle.c], p);
             }
 
-            protected static MeshData.Vertex Interpolate(MeshData.Vertex A, MeshData.Vertex B, MeshData.Vertex C, Vector2 p)
+            protected static Vector3 BarycentricFromSquare(Vector2 p)
             {
                 float s = p.x;
                 float t = Mathf.Sqrt(p.y);
                 float a = 1.0f - t;
                 float b = (1 - s) * t;
                 float c = s * t;
+                return new Vector3(a, b, c);
+            }
 
-                var r = a * A + b * B + c * C;
+            protected static MeshData.Vertex Interpolate(MeshData.Vertex A, MeshData.Vertex B, MeshData.Vertex C, Vector2 p)
+            {
+                var bary = BarycentricFromSquare(p);
+
+                var r = bary.x * A + bary.y * B + bary.z * C;
                 r.normal = r.normal.normalized;
                 var tangent = new Vector3(r.tangent.x, r.tangent.y, r.tangent.z).normalized;
                 r.tangent = new Vector4(tangent.x, tangent.y, tangent.z, r.tangent.w > 0.0f ? 1.0f : -1.0f);
@@ -250,9 +268,9 @@ namespace UnityEditor.Experimental.VFX.Utility
 
         abstract class RandomPicker : Picker
         {
-            protected RandomPicker(MeshData data, int seed) : base(data)
+            protected RandomPicker(MeshData data, System.Random rand) : base(data)
             {
-                m_Rand = new System.Random(seed);
+                m_Rand = rand;
             }
 
             protected float GetNextRandFloat()
@@ -265,7 +283,7 @@ namespace UnityEditor.Experimental.VFX.Utility
 
         class RandomPickerVertex : RandomPicker
         {
-            public RandomPickerVertex(MeshData data, int seed) : base(data, seed)
+            public RandomPickerVertex(MeshData data, System.Random rand) : base(data, rand)
             {
             }
 
@@ -295,7 +313,7 @@ namespace UnityEditor.Experimental.VFX.Utility
 
         class RandomPickerTriangle : RandomPicker
         {
-            public RandomPickerTriangle(MeshData data, int seed) : base(data, seed)
+            public RandomPickerTriangle(MeshData data, System.Random rand) : base(data, rand)
             {
             }
 
@@ -324,7 +342,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                 return 0.5f * Vector3.Cross(B - A, C - A).magnitude;
             }
 
-            public RandomPickerUniformArea(MeshData data, int seed) : base(data, seed)
+            public RandomPickerUniformArea(MeshData data, System.Random rand) : base(data, rand)
             {
                 m_accumulatedAreaTriangles = new double[data.triangles.Length];
                 m_accumulatedAreaTriangles[0] = ComputeTriangleArea(data.triangles[0]);
@@ -371,7 +389,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                 return new Result()
                 {
                     vertex = Interpolate(m_cacheData.triangles[areaIndex], rand),
-                    barycentric	= rand,
+                    barycentric	= BarycentricFromSquare(rand),
                     triangleIndex = (int)areaIndex
                 };
             }
@@ -403,6 +421,7 @@ namespace UnityEditor.Experimental.VFX.Utility
         {
             var meshCache = ComputeDataCache(m_Mesh);
 
+            var rand = new System.Random(m_SeedMesh);
             Picker picker = null;
             if (m_Distribution == Distribution.Sequential)
             {
@@ -419,40 +438,74 @@ namespace UnityEditor.Experimental.VFX.Utility
             {
                 if (m_MeshBakeMode == MeshBakeMode.Vertex)
                 {
-                    picker = new RandomPickerVertex(meshCache, m_SeedMesh);
+                    picker = new RandomPickerVertex(meshCache, rand);
                 }
                 else if (m_MeshBakeMode == MeshBakeMode.Triangle)
                 {
-                    picker = new RandomPickerTriangle(meshCache, m_SeedMesh);
+                    picker = new RandomPickerTriangle(meshCache, rand);
                 }
             }
             else if (m_Distribution == Distribution.RandomUniformArea)
             {
-                picker = new RandomPickerUniformArea(meshCache, m_SeedMesh);
+                picker = new RandomPickerUniformArea(meshCache, rand);
             }
             if (picker == null)
                 throw new InvalidOperationException("Unable to find picker");
+
+            var exportBarycentric = m_ExportBarycentric && m_MeshBakeMode == MeshBakeMode.Triangle;
 
             var positions = new List<Vector3>();
             var normals = m_ExportNormals ? new List<Vector3>() : null;
             var colors = m_ExportColors ? new List<Vector4>() : null;
             var uvs = m_ExportUV ? new List<Vector4>() : null;
-
-            var exportBarycentric = m_ExportBarycentric && m_MeshBakeMode == MeshBakeMode.Triangle;
             var barycentrics = exportBarycentric ? new List<(Vector2 coord, int triangle)>() : null;
 
-            for (int i = 0; i < m_OutputPointCount; ++i)
+            //bool restoreDensityToNotReadable = false; //TODOPAUL
+            bool useDensityMap = m_Distribution == Distribution.RandomUniformArea && m_UseDensityMap && m_DensityMap != null;
+            if (useDensityMap)
             {
-                if (i % 64 == 0)
+                if (!m_DensityMap.isReadable)
                 {
-                    var cancel = EditorUtility.DisplayCancelableProgressBar("pCache bake tool", string.Format("Sampling data... {0}/{1}", i, m_OutputPointCount), (float)i / (float)m_OutputPointCount);
+                    var path = AssetDatabase.GetAssetPath(m_DensityMap);
+                    var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+                    //var backupReadable = importer.isReadable;
+                    importer.isReadable = true;
+                    importer.SaveAndReimport();
+                    //pixels = m_Texture.GetPixels();
+                    //importer.isReadable = backupReadable;
+                    //importer.SaveAndReimport();
+                }
+
+                if (!meshCache.vertices[0].uvs.Any())
+                    throw new InvalidOperationException("Expecting UV0");
+            }
+
+            int iteration = 0;
+            while(positions.Count < m_OutputPointCount)
+            {
+                if (iteration-- < 0)
+                {
+                    iteration = 1024;
+                    var cancel = EditorUtility.DisplayCancelableProgressBar("pCache bake tool", string.Format("Sampling data... {0}/{1}", positions.Count, m_OutputPointCount), (float)positions.Count / (float)m_OutputPointCount);
                     if (cancel)
                     {
+                        //TODOPAUL take consideration of density map update
                         return null;
                     }
                 }
 
                 var r = picker.GetNext();
+                if (useDensityMap)
+                {
+                    var sampledColor = m_DensityMap.GetPixelBilinear(r.vertex.uvs[0].x, r.vertex.uvs[0].y);
+                    var draw = (float)rand.NextDouble();
+                    if (draw >= sampledColor.r)
+                    {
+                        //Skip this sampling
+                        continue;
+                    }
+                }
+
                 positions.Add(r.vertex.position);
                 if (m_ExportNormals) normals.Add(r.vertex.normal);
                 if (m_ExportColors) colors.Add(r.vertex.color);
@@ -461,7 +514,7 @@ namespace UnityEditor.Experimental.VFX.Utility
             }
 
             var file = new PCache();
-            file.AddVector3Property("position");
+            if (m_ExportPositions) file.AddVector3Property("position");
             if (m_ExportNormals) file.AddVector3Property("normal");
             if (m_ExportColors) file.AddColorProperty("color");
             if (m_ExportUV) file.AddVector4Property("uv");
@@ -472,7 +525,7 @@ namespace UnityEditor.Experimental.VFX.Utility
             }
 
             EditorUtility.DisplayProgressBar("pCache bake tool", "Generating pCache...", 0.0f);
-            file.SetVector3Data("position", positions);
+            if (m_ExportPositions) file.SetVector3Data("position", positions);
             if (m_ExportNormals) file.SetVector3Data("normal", normals);
             if (m_ExportColors) file.SetColorData("color", colors);
             if (m_ExportUV) file.SetVector4Data("uv", uvs);
