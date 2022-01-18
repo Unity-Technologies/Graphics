@@ -786,7 +786,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var selectedBuildTarget = CalculateSelectedBuildTarget();
             return IsHdrpGlobalSettingsUsedCorrect()
                 && HDRenderPipelineGlobalSettings.instance.AreRayTracingResourcesCreated()
-                && (SystemInfo.supportsRayTracing || selectedBuildTarget == BuildTarget.PS5);
+                && (SystemInfo.supportsRayTracing || selectedBuildTarget == BuildTarget.GameCoreXboxSeries || selectedBuildTarget == BuildTarget.PS5);
         }
 
         void FixDXRResources(bool fromAsyncUnused)
