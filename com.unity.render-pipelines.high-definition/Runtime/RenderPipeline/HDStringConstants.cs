@@ -412,6 +412,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SsrStencilBit = Shader.PropertyToID("_SsrStencilBit");
         public static readonly int _DeferredStencilBit = Shader.PropertyToID("_DeferredStencilBit");
 
+        public static readonly int _BakedGIPreviewTexture = Shader.PropertyToID("_BakedGIPreviewTexture");
         public static readonly int _ShadowMaskTexture = Shader.PropertyToID("_ShadowMaskTexture");
         public static readonly int _LightLayersTexture = Shader.PropertyToID("_LightLayersTexture");
         public static readonly int _DistortionTexture = Shader.PropertyToID("_DistortionTexture");

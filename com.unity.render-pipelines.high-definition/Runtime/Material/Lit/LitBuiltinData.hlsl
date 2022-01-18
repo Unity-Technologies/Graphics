@@ -14,6 +14,7 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
     builtinData.depthOffset = depthOffset;
 
     PostInitBuiltinData(V, posInput, surfaceData, builtinData);
+
 }
 
 float3 GetEmissiveColor(SurfaceData surfaceData)

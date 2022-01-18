@@ -55,6 +55,8 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
     SampleBakedGI(  posInput, normalWS, backNormalWS, builtinData.renderingLayers, texCoord1.xy, texCoord2.xy,
                     builtinData.bakeDiffuseLighting, builtinData.backBakeDiffuseLighting);
 
+    //builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_BakedGIPreviewTexture, float2(0.0, 0.0));
+
     builtinData.isLightmap =
 #if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)
         1;

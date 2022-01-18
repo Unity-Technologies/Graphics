@@ -41,7 +41,7 @@ TEXTURE2D_X(_GBufferTexture4); // VTFeedbakc or Light layer or shadow mask
 TEXTURE2D_X(_GBufferTexture5); // Light layer or shadow mask
 TEXTURE2D_X(_GBufferTexture6); // shadow mask
 
-
+TEXTURE2D(_BakedGIPreviewTexture);
 TEXTURE2D_X(_LightLayersTexture);
 #ifdef SHADOWS_SHADOWMASK
 TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to know which gbuffer is used for shadow mask
