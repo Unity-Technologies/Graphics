@@ -176,6 +176,9 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Thickness of the clouds.</summary>
             [Tooltip("Controls the thickness of the clouds.")]
             public MinFloatParameter thickness = new MinFloatParameter(8000.0f, 0);
+            /// <summary>Thickness of the clouds.</summary>
+            [Tooltip("Controls the thickness of the clouds.")]
+            public ClampedFloatParameter rain = new ClampedFloatParameter(0.5f, 0, 1);
 
             /// <summary>Enable to cast shadows.</summary>
             [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows. This will override the cookie of your directional light.")]

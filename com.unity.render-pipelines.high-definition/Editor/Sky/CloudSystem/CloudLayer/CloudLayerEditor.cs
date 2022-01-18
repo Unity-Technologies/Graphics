@@ -31,6 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedDataParameter steps;
             public SerializedDataParameter altitude;
             public SerializedDataParameter thickness;
+            public SerializedDataParameter rain;
 
             public SerializedDataParameter castShadows;
         }
@@ -62,6 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 steps = Unpack(p.Find(x => x.steps)),
                 altitude = Unpack(p.Find(x => x.altitude)),
                 thickness = Unpack(p.Find(x => x.thickness)),
+                rain = Unpack(p.Find(x => x.rain)),
                 castShadows = Unpack(p.Find(x => x.castShadows)),
             };
         }
@@ -128,6 +130,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(map.steps);
                 PropertyField(map.altitude);
                 PropertyField(map.thickness);
+                PropertyField(map.rain);
             }
             PropertyField(map.castShadows);
         }
