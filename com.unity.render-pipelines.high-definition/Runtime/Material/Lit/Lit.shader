@@ -964,7 +964,7 @@ Shader "HDRP/Lit"
             Tags{ "LightMode" = "VBufferLightingOffscreenForwardFast"}
 
             Cull Back
-            AlphaToMask [_AlphaToMask]
+            AlphaToMask On
 
             ZWrite Off
 
