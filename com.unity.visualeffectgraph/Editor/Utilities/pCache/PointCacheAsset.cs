@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 namespace UnityEditor.Experimental.VFX.Utility
 {
@@ -8,6 +9,6 @@ namespace UnityEditor.Experimental.VFX.Utility
     {
         public int PointCount;
         public Texture2D[] surfaces;
-        //TODOPAUL: Store expected output format for each surface
+        public VFXValueType[] types;
     }
 }

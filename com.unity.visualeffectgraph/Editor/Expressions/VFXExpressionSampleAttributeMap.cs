@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -13,23 +14,26 @@ namespace UnityEditor.VFX
         }
 
         public VFXExpressionSampleAttributeMap(VFXExpression texture, VFXExpression x, VFXExpression y)
-            : base(Flags.InvalidOnCPU, new VFXExpression[3] { texture, x, y })
-        { }
+            : base(Flags.InvalidOnCPU, new VFXExpression[3] {texture, x, y})
+        {
+        }
 
-        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
-        sealed public override VFXValueType valueType { get { return VFXExpression.GetVFXValueTypeFromType(typeof(T)); } }
+        public sealed override VFXExpressionOperation operation => VFXExpressionOperation.None;
+        public sealed override VFXValueType valueType => VFXExpression.GetVFXValueTypeFromType(typeof(T));
 
         public sealed override string GetCodeString(string[] parents)
         {
-            string typeString = VFXExpression.TypeToCode(valueType);
+            var readValue = $"{parents[0]}.Load(int3({parents[1]}, {parents[2]}, 0))";
 
-			//TODOPAUL (clarify)
+            //Int & UInt are actually stored in float
             if (valueType == VFXValueType.Int32)
-            {
-                return string.Format("asint({0}.Load(int3({1}, {2}, 0)).r)", parents[0], parents[1], parents[2], typeString);
-            }
+                return $"asint({readValue}.r)";
 
-            return string.Format("({3}){0}.Load(int3({1}, {2}, 0))", parents[0], parents[1], parents[2], typeString);
+            if (valueType == VFXValueType.Uint32)
+                return $"asuint({readValue}.r)";
+
+            var typeString = VFXExpression.TypeToCode(valueType);
+            return $"({typeString}){readValue}";
         }
     }
 }

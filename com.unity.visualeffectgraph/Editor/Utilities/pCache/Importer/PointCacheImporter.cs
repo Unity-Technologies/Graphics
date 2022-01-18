@@ -7,6 +7,7 @@ using System.Text;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.VFX;
 #if UNITY_2020_2_OR_NEWER
 using UnityEditor.AssetImporters;
 #else
@@ -76,8 +77,8 @@ namespace UnityEditor.Experimental.VFX.Utility
                 ctx.AddObjectToAsset("PointCache", cache);
                 ctx.SetMainObject(cache);
 
-                Dictionary<string, OutProperty> outProperties = new Dictionary<string, OutProperty>();
-                Dictionary<OutProperty, Texture2D> surfaces = new Dictionary<OutProperty, Texture2D>();
+                var outProperties = new Dictionary<string, OutProperty>();
+                var surfaces = new List<(Texture2D texture, VFXValueType type)>();
 
                 for (int bucketIndex = 0; bucketIndex < pcache.properties.Count; ++bucketIndex)
                 {
@@ -111,25 +112,68 @@ namespace UnityEditor.Experimental.VFX.Utility
                 {
                     //Initialize Texture
                     var surfaceFormat = GraphicsFormat.None;
+                    var outputType = VFXValueType.None;
                     var size = Array.IndexOf(kvp.Value.indices, kvp.Value.indices.Max()) + 1;
+
                     switch (kvp.Value.PropertyType)
                     {
                         case "uchar":
-                            if (size == 1) surfaceFormat = GraphicsFormat.R8_SRGB;
-                            else if (size == 2) surfaceFormat = GraphicsFormat.R8G8_SRGB;
-                            else if (size == 3) surfaceFormat = GraphicsFormat.R8G8B8_SRGB;
-                            else surfaceFormat = GraphicsFormat.R8G8B8A8_SRGB;
+                            switch (size)
+                            {
+                                case 1:
+                                    surfaceFormat = GraphicsFormat.R8_SRGB;
+                                    outputType = VFXValueType.Float;
+                                    break;
+                                case 2:
+                                    surfaceFormat = GraphicsFormat.R8G8_SRGB;
+                                    outputType = VFXValueType.Float2;
+                                    break;
+                                case 3:
+                                    surfaceFormat = GraphicsFormat.R8G8B8_SRGB;
+                                    outputType = VFXValueType.Float3;
+                                    break;
+                                default:
+                                    surfaceFormat = GraphicsFormat.R8G8B8A8_SRGB;
+                                    outputType = VFXValueType.Float4;
+                                    break;
+                            }
                             break;
                         case "float":
-                            if (size == 1) surfaceFormat = GraphicsFormat.R16_SFloat;
-                            else if (size == 2) surfaceFormat = GraphicsFormat.R16G16_SFloat;
-                            else if (size == 3) surfaceFormat = GraphicsFormat.R16G16B16A16_SFloat; //RGB_Half not supported on most platform
-                            else surfaceFormat = GraphicsFormat.R16G16B16A16_SFloat;
+                            switch (size)
+                            {
+                                case 1:
+                                    surfaceFormat = GraphicsFormat.R16_SFloat;
+                                    outputType = VFXValueType.Float;
+                                    break;
+                                case 2:
+                                    surfaceFormat = GraphicsFormat.R16G16_SFloat;
+                                    outputType = VFXValueType.Float2;
+                                    break;
+                                case 3:
+                                    //RGB_Half not supported on most platform
+                                    surfaceFormat = GraphicsFormat.R16G16B16A16_SFloat;
+                                    outputType = VFXValueType.Float3;
+                                    break;
+                                default:
+                                    surfaceFormat = GraphicsFormat.R8G8B8_SRGB;
+                                    outputType = VFXValueType.Float4;
+                                    break;
+                            }
                             break;
                         case "int":
-                            if (size == 1) surfaceFormat = GraphicsFormat.R32_SFloat; //Doesn't use R32_SInt here because can't be "Sampled" (will fail creation of Texture2D)
+                            switch (size)
+                            {
+                                case 1:
+                                    //R32_SInt isn't available on Texture2D (store in float and using asint later)
+                                    surfaceFormat = GraphicsFormat.R32_SFloat;
+                                    outputType = VFXValueType.Int32;
+                                    break;
+                                default:
+                                    throw new NotImplementedException("Vector int isn't supported");
+                            }
                             break;
-                        default: throw new NotImplementedException("Types other than uchar/int/float are not supported yet");
+                        default:
+                            throw new NotImplementedException("Types other than uchar/int/float are not supported yet");
                     }
 
                     var surface = new Texture2D(width, height, surfaceFormat, TextureCreationFlags.DontInitializePixels);
@@ -177,19 +221,16 @@ namespace UnityEditor.Experimental.VFX.Utility
                         }
                         surface.SetPixelData(data, 0);
                     }
-                    surfaces.Add(kvp.Value, surface);
+                    surface.Apply();
+                    surfaces.Add((surface, outputType));
                 }
 
                 cache.PointCount = pcache.elementCount;
-                cache.surfaces = new Texture2D[surfaces.Count];
-
-                int k = 0;
-                foreach (var kvp in surfaces)
+                cache.surfaces = surfaces.Select(o => o.texture).ToArray();
+                cache.types = surfaces.Select(o => o.type).ToArray();
+                foreach (var surface in surfaces)
                 {
-                    kvp.Value.Apply();
-                    ctx.AddObjectToAsset(kvp.Key.Name, kvp.Value);
-                    cache.surfaces[k] = kvp.Value;
-                    k++;
+                    ctx.AddObjectToAsset(surface.texture.name, surface.texture);
                 }
             }
             catch (System.Exception e)

@@ -27,31 +27,7 @@ namespace UnityEditor.VFX.Operator
 
         [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the particleId is out of the point cache bounds.")]
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
-
-        //TODOPAUL: retrieve from metadata
-        private static Type GetOutputType(Texture2D surface)
-        {
-            switch (surface.graphicsFormat)
-            {
-                case GraphicsFormat.R8_SRGB:
-                    return typeof(float);
-                case GraphicsFormat.R16G16_SFloat:
-                case GraphicsFormat.R8G8_SRGB:
-                    return typeof(Vector2);
-                case GraphicsFormat.R16G16B16_SFloat:
-                case GraphicsFormat.R8G8B8_SRGB:
-                    return typeof(Vector3);
-                case GraphicsFormat.R8G8B8A8_SRGB:
-                case GraphicsFormat.R16G16B16A16_SFloat:
-                    return typeof(Vector3); //TODOPAUL: Should we return alpha ??
-                case GraphicsFormat.R32_SFloat:
-                    return typeof(int); //TODOPAUL: trick !
-
-                default:
-                    throw new InvalidOperationException("Unsupported texture format  : " + surface.format);
-            }
-        }
-
+        
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get
@@ -61,13 +37,21 @@ namespace UnityEditor.VFX.Operator
                     if (asset == null)
                         asset = EditorUtility.InstanceIDToObject(asset.GetInstanceID()) as PointCacheAsset;
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "Point Count"));
-                    foreach (var surface in asset.surfaces)
-                        yield return new VFXPropertyWithValue(new VFXProperty(GetOutputType(surface), surface.name));
+
+                    if (asset.surfaces.Length != asset.types.Length)
+                        throw new InvalidOperationException("Unexpected pCache format: " + AssetDatabase.GetAssetPath(asset));
+
+                    for (int i = 0; i < asset.surfaces.Length; ++i)
+                    {
+                        var surface = asset.surfaces[i];
+                        var type = asset.types[i];
+                        yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(type), surface.name));
+                    }
                 }
             }
         }
 
-        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression[] expressions = new VFXExpression[asset.surfaces.Length + 1];
             expressions[0] = VFXValue.Constant((uint)asset.PointCount);
@@ -81,9 +65,9 @@ namespace UnityEditor.VFX.Operator
                 VFXExpression y = u_index / width;
                 VFXExpression x = u_index - (y * width);
 
-                Type outputType = GetOutputType(asset.surfaces[i]);
+                Type outputType = VFXExpression.TypeToType(asset.types[i]);
                 var type = typeof(VFXExpressionSampleAttributeMap<>).MakeGenericType(outputType);
-                var outputExpr = Activator.CreateInstance(type, new object[] { surfaceExpr, x, y });
+                var outputExpr = Activator.CreateInstance(type, surfaceExpr, x, y);
 
                 expressions[i + 1] = (VFXExpression)outputExpr;
             }
