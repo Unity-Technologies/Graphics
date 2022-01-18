@@ -3,6 +3,8 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VBuffer.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 #pragma enable_d3d11_debug_symbols
@@ -13,14 +15,12 @@
 
 #define GROUP_SIZE 8
 
-TEXTURE2D_X(_DensityBuffer);
-float4 _DensityBufferSize;
-
 TEXTURE2D_X(_Input);
 float4 _InputSize;
 
 RW_TEXTURE2D_X(float3, _Output);
-
+RW_TEXTURE2D_X(float4, _OutputColor);
+TEXTURE3D(_VBufferLighting);
 
 // 16x16 pixels with an 8x8 center that we will be blurring writing out. Each uint is two color
 // channels packed together.
@@ -185,10 +185,126 @@ void Upsample(uint3 dispatchThreadId : SV_DispatchThreadID)
     _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = output;
 }
 
+TEXTURE2D_X(_InputColorBuffer);
+// TEXTURE2D_X(_DensityBuffer);
+// float4 _DensityBufferSize;
+
+float _DepthScale;
+float _DensityScale;
+float _MaxFogDistance2;
+
+void EvaluateAtmosphericScattering2(PositionInputs posInput, float3 V, out float3 color, out float3 opacity)
+{
+    color = opacity = 0;
+
+    // TODO: do not recompute this, but rather pass it directly.
+    // Note1: remember the hacked value of 'posInput.positionWS'.
+    // Note2: we do not adjust it anymore to account for the distance to the planet. This can lead to wrong results (since the planet does not write depth).
+    float fogFragDist = distance(posInput.positionWS, GetCurrentViewPosition());
+
+    if (_FogEnabled)
+    {
+        float4 volFog = float4(0.0, 0.0, 0.0, 0.0);
+
+        float expFogStart = 0.0f;
+
+        if (_EnableVolumetricFog != 0)
+        {
+            bool doBiquadraticReconstruction = _VolumetricFilteringEnabled == 0; // Only if filtering is disabled.
+            float4 value = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLighting, s_linear_clamp_sampler),
+                                         posInput.positionNDC,
+                                         fogFragDist,
+                                         _VBufferViewportSize,
+                                         _VBufferLightingViewportScale.xyz,
+                                         _VBufferLightingViewportLimit.xyz,
+                                         _VBufferDistanceEncodingParams,
+                                         _VBufferDistanceDecodingParams,
+                                         true, doBiquadraticReconstruction, false);
+
+            // TODO: add some slowly animated noise (dither?) to the reconstructed value.
+            // TODO: re-enable tone mapping after implementing pre-exposure.
+            volFog = DelinearizeRGBA(float4(/*FastTonemapInvert*/(value.rgb), value.a));
+            expFogStart = _VBufferLastSliceDist;
+        }
+
+        // TODO: if 'posInput.linearDepth' is computed using 'posInput.positionWS',
+        // and the latter resides on the far plane, the computation will be numerically unstable.
+        float distDelta = fogFragDist - expFogStart;
+
+        if ((distDelta > 0))
+        {
+            // Apply the distant (fallback) fog.
+            float3 positionWS = GetCurrentViewPosition() - V * expFogStart;
+            float  startHeight = positionWS.y;
+            float  cosZenith = -V.y;
+
+            // For both homogeneous and exponential media,
+            // Integrate[Transmittance[x] * Scattering[x], {x, 0, t}] = Albedo * Opacity[t].
+            // Note that pulling the incoming radiance (which is affected by the fog) out of the
+            // integral is wrong, as it means that shadow rays are not volumetrically shadowed.
+            // This will result in fog looking overly bright.
+
+            float3 volAlbedo = _HeightFogBaseScattering.xyz / _HeightFogBaseExtinction;
+            float  odFallback = OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
+                _HeightFogExponents, cosZenith, startHeight, distDelta);
+            float  trFallback = TransmittanceFromOpticalDepth(odFallback);
+            float  trCamera = 1 - volFog.a;
+
+            // TODO: support for color
+            // volFog.rgb += trCamera * GetFogColor(V, fogFragDist) * GetCurrentExposureMultiplier() * volAlbedo * (1 - trFallback);
+            volFog.a = 1 - (trCamera * trFallback);
+        }
+
+        color = volFog.rgb; // Already pre-exposed
+        opacity = volFog.a;
+    }
+}
+
+float _ScatterStartDistance;
+float4 _Curve;
+
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void Scattering(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-    _Output[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = _Input[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
-    // TODO _DensityBuffer
+    float rawDepth = LoadCameraDepth(dispatchThreadId.xy).r;
+    PositionInputs posInput = GetPositionInput(dispatchThreadId.xy, _ScreenSize.zw, rawDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+    float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+
+    float3 fogColor;
+    float3 fogOpacity;
+    EvaluateAtmosphericScattering2(posInput, V, fogColor, fogOpacity);
+
+    float2 uv = float2(dispatchThreadId.xy) * _InputSize.zw;
+    float3 color;
+
+    float4 inputColor = _InputColorBuffer[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+    // TODO: implement scattering color
+    float3 blurColor = _Input[COORD_TEXTURE2D_X(dispatchThreadId.xy)].rgb;
+
+    // uint2 densityPixelCoords = uint2(uv * _DensityBufferSize.xy);
+    // float density = SAMPLE_TEXTURE2D_X_LOD(_DensityBuffer, s_linear_clamp_sampler, uv, 0).a;
+    float density = saturate(fogOpacity.x - _Curve.x);
+    
+    // float d2 = clamp(density - _Curve.x, 0, _Curve.y);
+    // d2 = _Curve.z * d2 * d2;
+    // density = d2;
+    density *= density;
+
+    // float blurAmount = saturate(density) / 5;
+
+    // Remap fog between 0 and 1 using max fog dist.
+    // TODO: take distance from camera instead of depth
+    float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
+    linearDepth = saturate(((linearDepth - _ScatterStartDistance) / _MaxFogDistance2));
+
+    // atenuate blur with original texture:
+    // blurColor = lerp(inputColor.rgb, blurColor, 0.2);
+
+    float t = density * _DensityScale + linearDepth * _DepthScale;
+    // float t = density * _DensityScale;
+    // color.rgb = lerp(inputColor.rgb, blurColor, density * _DensityScale * (linearDepth * _DepthScale));
+    color.rgb = lerp(inputColor.rgb, blurColor, saturate(t));
+
+    _OutputColor[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(color, inputColor.a); // keep alpha
 }

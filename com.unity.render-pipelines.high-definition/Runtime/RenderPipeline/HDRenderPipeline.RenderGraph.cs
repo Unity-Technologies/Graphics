@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     DoUserAfterOpaqueAndSky(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer);
 
-                    colorBuffer = ScreenSpaceScattering(m_RenderGraph, hdCamera, colorBuffer, screenSpaceScatteringDensityBuffer);
+                    colorBuffer = ScreenSpaceScattering(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, volumetricLighting, screenSpaceScatteringDensityBuffer);
 
                     // No need for old stencil values here since from transparent on different features are tagged
                     ClearStencilBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
