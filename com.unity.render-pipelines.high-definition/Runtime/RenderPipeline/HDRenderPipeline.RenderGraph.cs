@@ -176,6 +176,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         ProbeReferenceVolume.instance.generateExtraDataAction?.Invoke(Vector3.zero, Vector3.one * 10000.0f);
 
+                        // TODO_FCC : MEH. would need many more checks.
+                        ProbeDynamicGIManager.instance.SetRTAccelerationStructure(RequestAccelerationStructure(hdCamera));
+                        ProbeDynamicGIManager.instance.GenerateExtraDataRealtime(m_RenderGraph, hdCamera);
 
                         m_DynamicGI.LightPropagation(m_RenderGraph, hdCamera, ProbeReferenceVolume.instance.AnAssetHasBeenUnloadedThisFrame());
                         m_DynamicGI.CombineDynamicAndStaticPV(m_RenderGraph, hdCamera);

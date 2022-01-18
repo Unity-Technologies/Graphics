@@ -17,7 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
         GlobalIllumination = 0x20,
         RecursiveRendering = 0x40,
         PathTracing = 0x80,
-        All = Opaque | CastShadow | AmbientOcclusion | Reflection | GlobalIllumination | RecursiveRendering | PathTracing,
+        DynGIExtraData = PathTracing,
+        All = Opaque | CastShadow | AmbientOcclusion | Reflection | GlobalIllumination | RecursiveRendering | PathTracing | DynGIExtraData,
     }
 
     /// <summary>
@@ -512,10 +513,15 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.pathTracing = pathTracingSettings.enable.value;
             parameters.ptLayerMask = pathTracingSettings.layerMask.value;
 
+            // HACK WEEK
+            ProbeDynamicGI probeDynamicGI = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
+            parameters.dynGIExtraDataGen = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DynamicProbeVolumeGI);
+            parameters.dynGILayerMask = probeDynamicGI.rtLayerMask.value;
+
             // We need to check if at least one effect will require the acceleration structure
             parameters.rayTracingRequired = parameters.ambientOcclusion || parameters.reflections
                 || parameters.globalIllumination || parameters.recursiveRendering || parameters.subSurface
-                || parameters.pathTracing || parameters.shadows;
+                || parameters.pathTracing || parameters.shadows || parameters.dynGIExtraDataGen;
 
             // Return the result
             return parameters;

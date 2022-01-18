@@ -512,7 +512,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO_FCC: TODO ONLY WHEN AVAILABLE
 #if UNITY_EDITOR
-            ProbeDynamicGIManager.instance.Allocate(defaultResources);
+            ProbeDynamicGIManager.instance.Allocate(defaultResources, m_GlobalSettings.renderPipelineRayTracingResources);
             ProbeReferenceVolume.instance.generateExtraDataAction = null;
             ProbeReferenceVolume.instance.generateExtraDataAction += ProbeDynamicGIManager.instance.GenerateExtraDataForDynamicGI;
 #endif

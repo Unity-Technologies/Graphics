@@ -62,6 +62,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specified if at least one ray tracing effect is enabled.
         /// </summary>
         public bool rayTracingRequired;
+
+
+        //
+        public bool dynGIExtraDataGen;
+        public int dynGILayerMask;
     };
 
     class HDRTASManager
@@ -79,6 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RayTracingInstanceCullingTest RR_CT = new RayTracingInstanceCullingTest();
         RayTracingInstanceCullingTest SSS_CT = new RayTracingInstanceCullingTest();
         RayTracingInstanceCullingTest PT_CT = new RayTracingInstanceCullingTest();
+        RayTracingInstanceCullingTest DynGI_CT = new RayTracingInstanceCullingTest();
 
         // Path tracing dirtiness parameters
         public bool transformsDirty;
@@ -194,6 +200,14 @@ namespace UnityEngine.Rendering.HighDefinition
             PT_CT.layerMask = -1;
             PT_CT.shadowCastingModeMask = (1 << (int)ShadowCastingMode.Off) | (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided);
             PT_CT.instanceMask = (uint)RayTracingRendererFlag.PathTracing;
+
+            DynGI_CT.allowOpaqueMaterials = true;
+            DynGI_CT.allowAlphaTestedMaterials = true;
+            DynGI_CT.allowTransparentMaterials = false;
+            DynGI_CT.layerMask = -1;
+            DynGI_CT.shadowCastingModeMask = (1 << (int)ShadowCastingMode.Off) | (1 << (int)ShadowCastingMode.On) | (1 << (int)ShadowCastingMode.TwoSided);
+            DynGI_CT.instanceMask = (uint)RayTracingRendererFlag.DynGIExtraData;
+
         }
 
         public RayTracingInstanceCullingResults Cull(HDCamera hdCamera, in HDEffectsParameters parameters)
@@ -210,6 +224,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cullingConfig.lodParameters.fieldOfView = hdCamera.camera.fieldOfView;
             cullingConfig.lodParameters.cameraPosition = hdCamera.camera.transform.position;
             cullingConfig.lodParameters.cameraPixelHeight = hdCamera.camera.pixelHeight;
+
+            if (parameters.dynGIExtraDataGen)
+            {
+                DynGI_CT.layerMask = parameters.dynGILayerMask;
+                instanceTestArray.Add(DynGI_CT);
+            }
 
             // If we have path tracing, the shadow inclusion constraints must be aggregated with the layer masks of the path tracing.
             if (parameters.pathTracing)

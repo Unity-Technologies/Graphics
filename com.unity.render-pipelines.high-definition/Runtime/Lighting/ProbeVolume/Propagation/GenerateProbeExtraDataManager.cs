@@ -7,20 +7,21 @@ using System.Runtime.InteropServices;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class ProbeDynamicGIManager
+    public partial class ProbeDynamicGIManager
     {
         private static ProbeDynamicGIManager s_Instance = new ProbeDynamicGIManager();
 
         internal static ProbeDynamicGIManager instance { get { return s_Instance; } }
 
         private ComputeShader m_ExtractionShader = null;
+        private RayTracingShader m_GatherExtraDataRT = null;
 
-        internal void Allocate(HDRenderPipelineRuntimeResources resources)
+        internal void Allocate(HDRenderPipelineRuntimeResources resources, HDRenderPipelineRayTracingResources rtResources)
         {
             Dispose(); // To avoid double alloc.
 
             m_ExtractionShader = resources.shaders.extactProbeExtraDataCS;
-
+            m_GatherExtraDataRT = rtResources.raytracingExtraDataGen;
             dummyColor = RTHandles.Alloc(kDummyRTWidth, kDummyRTHeight, dimension: TextureDimension.Tex2D, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, name: "Dummy color");
         }
 

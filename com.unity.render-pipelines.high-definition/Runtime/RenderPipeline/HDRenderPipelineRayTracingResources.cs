@@ -27,6 +27,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingRenderer.raytrace")]
         public RayTracingShader forwardRaytracing;
 
+        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/DynGI/RaytracingDynGI.raytrace")]
+        public RayTracingShader raytracingExtraDataGen;
+
         // Light cluster
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightCluster.compute")]
         public ComputeShader lightClusterBuildCS;

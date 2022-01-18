@@ -1,0 +1,227 @@
+// We need only need one bounce given that we want to see the objects and then direct lighting is not done using raytracing
+#pragma max_recursion_depth 1
+#pragma enable_d3d11_debug_symbols
+
+// Given that the algorithm requires BSDF evaluation, we need to define this macro
+#define HAS_LIGHTLOOP
+
+// Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
+#define SHADOW_LOW
+
+// Include and define the shader pass
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+#define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
+
+// HDRP include
+#define SHADER_TARGET 50
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+
+// Lighting includes
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
+
+// Raytracing includes
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/DynGI/RaytracingIntersectonDynGI.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
+
+// DynGI Specific
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/Propagation/APVDynamicGICommon.hlsl"
+
+
+// Probe Extra Data.
+RWStructuredBuffer<uint3>  _PackedProbeExtraData;
+// Can be made relative to cell origin and probe distance and stored in a more compact fashion.
+StructuredBuffer<float3> _ProbeWorldLocations;
+
+
+RWStructuredBuffer<float4>  _DBGOUT;
+RWStructuredBuffer<float4>  _DBGRAY;
+
+
+float4 _RTExtraDataGenParam;
+#define _HitCount (uint)_RTExtraDataGenParam.x
+#define _DistanceBetweenProbes _RTExtraDataGenParam.y
+#define _RayTracingLayerMask (uint)_RTExtraDataGenParam.z
+
+
+[shader("miss")]
+void MissShaderGBuffer(inout RayIntersectionDynGI rayIntersection : SV_RayPayload)
+{
+    rayIntersection.t = RAY_TRACING_DISTANCE_FLAG_SKY;
+}
+
+
+static float s_Diagonal = 0.57735026919;
+static float s_DiagonalDist = 1.73205080757;
+
+float4 NeighbourAxis[14] =
+{
+    // primary axis
+    float4(1, 0, 0, 1),
+    float4(-1, 0, 0, 1),
+    float4(0, 1, 0, 1),
+    float4(0, -1, 0, 1),
+    float4(0, 0, 1, 1),
+    float4(0, 0, -1, 1),
+
+    // 3D diagonals
+    float4(s_Diagonal,  s_Diagonal,  s_Diagonal, s_DiagonalDist),
+    float4(s_Diagonal,  s_Diagonal, -s_Diagonal, s_DiagonalDist),
+    float4(s_Diagonal, -s_Diagonal,  s_Diagonal, s_DiagonalDist),
+    float4(s_Diagonal, -s_Diagonal, -s_Diagonal, s_DiagonalDist),
+
+    float4(-s_Diagonal,  s_Diagonal,  s_Diagonal, s_DiagonalDist),
+    float4(-s_Diagonal,  s_Diagonal, -s_Diagonal, s_DiagonalDist),
+    float4(-s_Diagonal, -s_Diagonal,  s_Diagonal, s_DiagonalDist),
+    float4(-s_Diagonal, -s_Diagonal, -s_Diagonal, s_DiagonalDist),
+};
+
+
+uint PackAlbedo(float3 color, float distance)
+{
+	float3 albedo = saturate(color);
+	float normalizedDistance = saturate(distance / (_DistanceBetweenProbes * sqrt(3.0f)));
+	uint packedOutput = 0;
+    packedOutput |= ((uint)(albedo.r * 255.5f) << 0);
+    packedOutput |= ((uint)(albedo.g * 255.5f) << 8);
+    packedOutput |= ((uint)(albedo.b * 255.5f) << 16);
+    packedOutput |= ((uint)(normalizedDistance * 255.0f) << 24);
+
+	return packedOutput;
+}
+
+uint PackAxisDir(float4 axis)
+{
+    uint axisType = (axis.w == 1.0f) ? 0 : 1;
+
+    uint encodedX = axis.x < 0 ? 0 :
+        axis.x == 0 ? 1 :
+        2;
+
+    uint encodedY = axis.y < 0 ? 0 :
+        axis.y == 0 ? 1 :
+        2;
+
+    uint encodedZ = axis.z < 0 ? 0 :
+        axis.z == 0 ? 1 :
+        2;
+
+    uint output = 0;
+    // Encode type of axis in bit 7
+    output |= (axisType << 6);
+    // Encode axis signs in [5:6] [3:4] [1:2]
+    output |= (encodedZ << 4);
+    output |= (encodedY << 2);
+    output |= (encodedX << 0);
+
+    return output;
+}
+
+uint PackIndexAndValidity(uint probeIndex, uint axisIndex, float validity)
+{
+    uint output = 0;
+
+    output |= axisIndex;
+    output |= ((uint)(validity * 255.5f) << 5);
+    output |= (probeIndex << 13);
+
+    return output;
+}
+
+// Same as PackNormalOctQuadEncode and PackFloat2To888 in Packing.hlsl
+uint PackNormalAndAxis(float3 N, float4 axis)
+{
+	uint packedOutput = 0;
+    float2 octNormalWS = PackNormalOctQuadEncode(N);
+    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);
+    uint i0 = (uint)(remappedOctNormalWS.x * 4095.5f);
+    uint i1 = (uint)(remappedOctNormalWS.y * 4095.5f);
+
+    packedOutput |= (i0 << 0);
+    packedOutput |= (i1 << 12);
+
+    packedOutput |= (PackAxisDir(axis) << 24);
+
+    return packedOutput;
+}
+
+//////////////
+
+void TraceExtraData(int probeAxisPair)
+{
+
+    uint3 data = _PackedProbeExtraData[probeAxisPair];
+    uint probeIndex, axisIndex;
+    float probeValidity;
+    UnpackIndicesAndValidity(data.z, probeIndex, axisIndex, probeValidity);
+
+    float3 probeWorldPosition = _ProbeWorldLocations[probeIndex];
+
+    bool wasAMiss = probeAxisPair > _HitCount;
+
+    // If we have a miss, no need to check against previous data. We just store.  
+
+    float4 axisDirection = UnpackAxis(data.y);
+
+    // Create the ray descriptor for this pixel
+    RayDesc rayDescriptor;
+    rayDescriptor.Origin = GetCameraRelativePositionWS(probeWorldPosition);
+    rayDescriptor.Direction = normalize(axisDirection.xyz);
+    rayDescriptor.TMin = 0.0;
+    // TODO: IMPORTANT!!! FOR TEST SCENES WE ARE GOING TO ASSUME ALWAYS MIN  BRICK SEARCH. BUT NOT CORRECT.
+    // NEEDS TO BE THE ACTUAL PROBE BRICK SIZE.    
+    rayDescriptor.TMax = _DistanceBetweenProbes * axisDirection.w;
+
+	_DBGRAY[probeAxisPair] = float4(rayDescriptor.Origin, _DistanceBetweenProbes * axisDirection.w);
+    
+    // Adjust world-space position to match the RAS setup with XR single-pass and camera relative
+    ApplyCameraRelativeXR(rayDescriptor.Origin);
+
+    // Create and init the RayIntersection structure for this
+    RayIntersectionDynGI rayIntersection;
+    rayIntersection.t = -1.0;
+    rayIntersection.albedo = float3(0.0, 0.0, 0.0);
+    rayIntersection.normalWS = float3(0.0, 0.0, 0.0);
+
+	// RAYTRACINGRENDERERFLAG_PATH_TRACING is tmp
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, rayDescriptor, rayIntersection);
+
+	// Unwrap what we found before. We only care about the distance really.
+    HitData prevHit;
+    float4 albedoAndDist = UnpackAlbedoAndDistance(data.x);
+	//if (rayIntersection.t > 0 && (wasAMiss || rayIntersection.t < albedoAndDist.w))
+	{
+		// We need to pack the data now.
+		data.x = PackAlbedo(rayIntersection.albedo, rayIntersection.t);
+		data.y = PackNormalAndAxis(rayIntersection.normalWS, axisDirection);
+	}
+
+	_DBGOUT[probeAxisPair] = float4(rayIntersection.t, rayIntersection.albedo.xyz);
+
+
+	_PackedProbeExtraData[probeAxisPair] = data;
+}
+
+[shader("raygeneration")]
+void RayGenExtraData()
+{
+    // Grab the dimensions of the current raytrace shader
+    uint3 LaunchIndex = DispatchRaysIndex();
+    uint3 LaunchDim = DispatchRaysDimensions();
+
+    UNITY_XR_ASSIGN_VIEW_INDEX(LaunchIndex.z);
+    TraceExtraData(LaunchIndex.x);
+}

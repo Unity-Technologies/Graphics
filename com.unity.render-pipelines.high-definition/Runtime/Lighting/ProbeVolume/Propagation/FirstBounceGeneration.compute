@@ -65,36 +65,6 @@ float3 GetPreviousIrradianceCacheValue(uint probeIndex, int axis)
 }
 
 
-struct HitData
-{
-    float3 albedo;
-    float3 position;
-    float3 normal;
-};
-
-// -------------------------------------------------------------
-// Get information from neighbours or hits
-// -------------------------------------------------------------
-
-
-// Returns true if a hit was found, if it has, then
-HitData UnpackInfoAlongAxis(uint2 extraData, float3 probePosition, float3 axisDirection)
-{
-    HitData hit;
-    float4 albedoAndDist = UnpackAlbedoAndDistance(extraData.x);
-    float  distToHit = albedoAndDist.w;
-    hit.normal = UnpackNormal(extraData.y);
-
-    float3 position = probePosition;
-    position += axisDirection * distToHit;
-    position += hit.normal * _RayBias;
-    hit.position = position;
-
-    hit.albedo = albedoAndDist.rgb;
-    //hit.albedo = float3(1, 1, 1);// albedoAndDist.rgb;
-
-    return hit;
-}
 
 // -------------------------------------------------------------
 // Lighting Utils
@@ -423,6 +393,7 @@ void GatherFirstBounceMiss(uint3 id : SV_DispatchThreadID)
 
         // Early out at far distances
         // NOTE: Proper culling outside of this would be significantly faster, but the culling might be too expensive to perform each frame.
+		// TODO: EZ WITH BURST.
         float3 V = (probeWorldPosition - _WorldSpaceCameraPos.xyz);
         float distAlongV = dot(GetViewForwardDir(), V);
         if (!(distAlongV < _UpdateDistInFrontOfCamera && distAlongV > -_UpdateDistBehindCamera)) return;

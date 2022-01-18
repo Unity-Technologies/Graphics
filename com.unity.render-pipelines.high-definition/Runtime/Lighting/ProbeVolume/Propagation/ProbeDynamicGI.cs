@@ -23,6 +23,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         public BoolParameter clear = new BoolParameter(false);
+
+
+        ///////// --- HW START
+        public LayerMaskParameter rtLayerMask = new LayerMaskParameter(-1);
+        //// --- HW END
     }
 
     internal class ProbeDynamicGISystem

@@ -1163,6 +1163,42 @@ Shader "HDRP/Lit"
             ENDHLSL
         }
 
+
+        Pass
+        {
+            Name "ExtraDataGenDXR"
+            Tags{ "LightMode" = "ExtraDataGenDXR" }
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 ps5
+            #pragma raytracing surface_shader
+
+            #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+
+            #define SHADERPASS SHADERPASS_RAYTRACING_EXTRA_DATA_GEN
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/DynGI/RaytracingIntersectonDynGI.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StandardLit/StandardLit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingDynamicGI.hlsl"
+
+            ENDHLSL
+        }
         Pass
         {
             Name "VisibilityDXR"

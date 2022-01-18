@@ -398,3 +398,34 @@ void AddToOutputRepresentation(float3 value, float3 direction, inout OutputRepre
 
 #endif
 }
+
+// -------------------------------------------------------------
+// Get information from neighbours or hits
+// -------------------------------------------------------------
+
+
+struct HitData
+{
+    float3 albedo;
+    float3 position;
+    float3 normal;
+};
+
+// Returns true if a hit was found, if it has, then
+HitData UnpackInfoAlongAxis(uint2 extraData, float3 probePosition, float3 axisDirection)
+{
+    HitData hit;
+    float4 albedoAndDist = UnpackAlbedoAndDistance(extraData.x);
+    float  distToHit = albedoAndDist.w;
+    hit.normal = UnpackNormal(extraData.y);
+
+    float3 position = probePosition;
+    position += axisDirection * distToHit;
+    position += hit.normal * _RayBias;
+    hit.position = position;
+
+    hit.albedo = albedoAndDist.rgb;
+    //hit.albedo = float3(1, 1, 1);// albedoAndDist.rgb;
+
+    return hit;
+}

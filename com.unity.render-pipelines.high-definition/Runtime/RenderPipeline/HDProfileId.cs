@@ -42,6 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Dynamic GI
         InjectInDynamicAPV,
         CombineDynamicGI,
+        GenerateExtraData,
 
         ForwardOpaque,
         ForwardOpaqueDebug,
