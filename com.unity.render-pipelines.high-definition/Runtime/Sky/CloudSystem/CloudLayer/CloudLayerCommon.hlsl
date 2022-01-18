@@ -4,24 +4,13 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalCone.hlsl"
 
-//#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricCloudsUtilities.hlsl"
+
 float HenyeyGreenstein(float cosAngle, float g)
 {
     // There is a mistake in the GPU Gem7 Paper, the result should be divided by 1/(4.PI)
     float g2 = g * g;
     return (1.0 / (4.0 * PI)) * (1.0 - g2) / PositivePow(1.0 + g2 - 2.0 * g * cosAngle, 1.5);
-}
-float PowderEffect(float cloudDensity, float cosAngle, float intensity)
-{
-    float powderEffect = 1.0 - exp(-cloudDensity * 4.0);
-    powderEffect = saturate(powderEffect * 2.0);
-    return lerp(1.0, lerp(1.0, powderEffect, smoothstep(0.5, -0.5, cosAngle)), intensity);
-}
-float remap(float x, float a, float b, float c, float d)
-{
-    return (((x - a) / (b - a)) * (d - c)) + c;
 }
 
 // The number of octaves for the multi-scattering
@@ -48,9 +37,7 @@ float3 _SunLightColor;
 float3 _SunDirection;
 float _LowestCloudAltitude;
 float _MaxThickness;
-float _Rain;
-
-const float _EarthRadius = 6378100.0f;
+float _MultiScattering;
 
 #define _ScrollDirection(l) _FlowmapParam[l].xy
 #define _ScrollFactor(l)    _FlowmapParam[l].z
@@ -59,6 +46,8 @@ const float _EarthRadius = 6378100.0f;
 
 #define _Tint(l)            _ColorFilter[l].xyz
 #define _Density(l)         _ColorFilter[l].w
+
+#define _EarthRadius 6378100.0f
 
 struct CloudLayerData
 {
@@ -210,28 +199,32 @@ float GetDensity(float3 positionWS)
     float3 dir = normalize(positionWS);
     float thickness = SampleCloudMap(dir, 0).y;
 
-    float highFrequencyNoise = 1.0 - SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_linear_repeat_sampler, positionWS/2000, 0).x;
-    thickness = remap(thickness, 0, 1, 0, highFrequencyNoise);
+    float highFrequencyNoise = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_linear_repeat_sampler, positionWS/2000, 0).x;
+    //thickness *= 1.0 - highFrequencyNoise*0.9;
+    //thickness = saturate(remap(highFrequencyNoise, 0, 1, 0, thickness));
+
+    //thickness = max(0, thickness + (highFrequencyNoise - 1) * 0.2);
+
+    //float cosAngle = dot(dir, _SunDirection);
+    //thickness *= cosAngle * 0.4 + 0.6;
 
     float rangeStart = _LowestCloudAltitude, range = _MaxThickness;
     GetCloudVolumeIntersection(dir, rangeStart, range);
 
     float distToCenter = length(dir * (rangeStart + 0.5 * range) - positionWS);
-    float density = 1 - saturate(distToCenter / (range * thickness * 0.5));
+    float density = 1 - saturate(distToCenter / (range * thickness));
     density *= _Density(0) * thickness;
     return density;
 }
 
-float3 EvaluateSunLuminance(float3 positionWS, float3 sunDirection, float3 sunColor, float density, float powderEffect, float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES], float2 currentCoord)
+float EvaluateSunLuminance(float3 positionWS, float3 sunDirection, float density, float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES], float2 currentCoord)
 {
     float _NumLightSteps = 8;
-    float3 _ScatteringTint = _Tint(0);
-    float sigmaT = lerp(0.04, 0.12, _Rain);
-    float _MultiScattering = 0.5f;
 
     // Compute the Ray to the limits of the cloud volume in the direction of the light
     float totalLightDistance = 2000.0;
-    float3 luminance = float3(0.0, 0.0, 0.0);
+    float luminance = 0.0;
+    int o;
 
     if (GetCloudVolumeIntersection_Light(positionWS, sunDirection, totalLightDistance))
     {
@@ -239,82 +232,56 @@ float3 EvaluateSunLuminance(float3 positionWS, float3 sunDirection, float3 sunCo
         // Apply a small bias to compensate for the imprecision in the ray-sphere intersection at world scale.
         totalLightDistance += 5.0f;
 
-        // Initially the transmittance is one for all octaves
-        float3 sunLightTransmittance[NUM_MULTI_SCATTERING_OCTAVES];
-        int o;
-        for (o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
-            sunLightTransmittance[o] = 1.0;
+        float densitySum = 0.0f;
 
         // Compute the size of the current step
         float stepSize = totalLightDistance / (float)_NumLightSteps;
 
         // Collect total density along light ray.
-        //positionWS += sunDirection * stepSize * 0.25;
         for (int j = 0; j < _NumLightSteps; j++)
         {
-            // The samples are not linearly distributed along the point-light direction due to their low number. We sample they in a logarithmic way.
-            float dist = stepSize * (0.25 + j);
+            float dist = stepSize * (1 + j);
 
             // Evaluate the current sample point
             float3 currentSamplePointWS = positionWS + sunDirection * dist;
 
-            //// Evaluate the current sample point
-            //float pdf;
-            //float2 noiseValue = InitRandom(currentCoord * _ScreenSize.zw);
-            //SampleSphericalCone(positionWS, stepSize, sunDirection, PI*0.5f,noiseValue.x ,noiseValue.y, 0, 0, positionWS, pdf);
-            ////positionWs += dir * stepSize;
-            //float3 currentSamplePointWS = positionWS;
-
             // Get the cloud properties at the sample point
             float density = GetDensity(currentSamplePointWS);
 
-            // Compute the extinction
-            const float3 mediaExtinction = max(_ScatteringTint.xyz * density * sigmaT, float3(1e-6, 1e-6, 1e-6));
-
-            // Update the transmittance for every octave
-            for (o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
-                sunLightTransmittance[o] *= exp(-stepSize * mediaExtinction * PositivePow(_MultiScattering, o));
+            densitySum += density;
         }
 
         // Compute the luminance for each octave
         for (o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
-            luminance += sunLightTransmittance[o] * sunColor * powderEffect * phaseFunction[o] * PositivePow(_MultiScattering, o);
+            luminance += exp(-stepSize * densitySum * PositivePow(_MultiScattering, o))
+                         * phaseFunction[o]
+                         * PositivePow(_MultiScattering, o);
     }
 
     // return the combined luminance
     return luminance;
 }
 
-float4 EvaluateCloud(float3 currentPositionWS, float3 dir, float4 scattering_transmittance, float3 lightColor, float stepSize, float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES], float2 positionCS)
+float2 EvaluateCloud(float3 currentPositionWS, float3 dir, float2 scattering_transmittance, float3 lightColor, float stepSize, float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES], float2 positionCS)
 {
-    //float ambientOcclusion = 0.25f;
-    //float3 ambientTermBottom = _AmbientProbeBottom.xyz * GetCurrentExposureMultiplier();
     float _Altitude = _LowestCloudAltitude;
     float _PowderEffectIntensity = 0.25f;
-    float3 _ScatteringTint = _Tint(0);
-    float sigmaT = lerp(0.04, 0.12, _Rain);
     float cosAngle = dot(dir, _SunDirection);
 
     float density = GetDensity(currentPositionWS);
     if (density != 0.0f)
     {
         // Apply the extinction
-        const float3 mediaExtinction = _ScatteringTint.xyz * density * sigmaT;
-        const float currentStepExtinction = exp(-density * sigmaT * stepSize);
-
-        // Compute the powder effect
-        float powder_effect = PowderEffect(density, cosAngle, _PowderEffectIntensity);
+        const float currentStepExtinction = exp(-density * stepSize);
 
         // Evaluate the luminance at this sample
-        float3 luminance = EvaluateSunLuminance(currentPositionWS, _SunDirection, lightColor, density, powder_effect, phaseFunction, positionCS);
-        //luminance += ambientTermBottom * ambientOcclusion;
-        luminance *= mediaExtinction;
+        float luminance = EvaluateSunLuminance(currentPositionWS, _SunDirection, density, phaseFunction, positionCS);
 
         // Improved analytical scattering
-        const float3 integScatt = (luminance - luminance * currentStepExtinction) / mediaExtinction;
-        float3 inScattering = scattering_transmittance.xyz + integScatt * scattering_transmittance.w;
-        float transmittance = scattering_transmittance.w * currentStepExtinction;
-        scattering_transmittance = float4(inScattering, transmittance);
+        const float integScatt = (luminance - luminance * currentStepExtinction);
+        float inScattering = scattering_transmittance.x + integScatt * scattering_transmittance.y;
+        float transmittance = scattering_transmittance.y * currentStepExtinction;
+        scattering_transmittance = float2(inScattering, transmittance);
     }
 
     return scattering_transmittance;
@@ -358,11 +325,8 @@ float4 GetCloudLayerColor(float3 dir, int index, float2 positionCS)
     float3 lightColor = _SunLightColor.xyz;
     float _Altitude = _LowestCloudAltitude;
     float _PowderEffectIntensity = 0.25f;
-    float _MultiScattering = 0.5f;
-    float3 _ScatteringTint = 1 - 0.75f * float3(0, 0, 0);
-    float thickness = color.y;
     float cosAngle = dot(dir, _SunDirection);
-    float _NumPrimarySteps = 16;
+    float _NumPrimarySteps = 1;
 
     float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES];
     for (int o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
@@ -374,13 +338,14 @@ float4 GetCloudLayerColor(float3 dir, int index, float2 positionCS)
 
     float rangeStart, range;
     GetCloudVolumeIntersection(dir, rangeStart, range);
-    float3 currentPositionWS = dir * rangeStart;
+    float3 currentPositionWS = dir * (rangeStart + 0.5 * (1 - color.y) * range);
+    range *= color.y;
 
     EvaluateSunColorAttenuation(currentPositionWS, _SunDirection, lightColor);
 
     int currentIndex = 0;
     float stepS = range / (float)_NumPrimarySteps;
-    float4 scattering_transmittance = float4(0, 0, 0, 1);
+    float2 scattering_transmittance = float2(0, 1);
     while (currentIndex < _NumPrimarySteps)
     {
         scattering_transmittance = EvaluateCloud(currentPositionWS, dir,
@@ -389,13 +354,7 @@ float4 GetCloudLayerColor(float3 dir, int index, float2 positionCS)
         currentIndex++;
     }
 
-    //currentPositionWS = dir * rangeStart + (1 - thickness) * range * 0.5;
-    //float density = _Density(0);
-    //scattering_transmittance.xyz = EvaluateSunLuminance(currentPositionWS, _SunDirection, lightColor, density, 1.0, phaseFunction);
-    //scattering_transmittance *= thickness;
-
-    //scattering_transmittance.xyz = lightColor * color.y;
-    return float4(scattering_transmittance.xyz, color.y) * _Opacity;
+    return float4(scattering_transmittance.x * lightColor, color.y) * _Opacity;
 }
 
 float4 RenderClouds(float3 dir, float2 positionCS=0)

@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_CloudLayerMaterial.SetFloat("_LowestCloudAltitude", cloudLayer.layerA.altitude.value);
             m_CloudLayerMaterial.SetFloat("_MaxThickness", cloudLayer.layerA.thickness.value);
-            m_CloudLayerMaterial.SetFloat("_Rain", cloudLayer.layerA.rain.value);
+            m_CloudLayerMaterial.SetFloat("_MultiScattering", cloudLayer.layerA.multiScattering.value);
 
             var worley128RGBA = HDRenderPipeline.currentAsset.renderPipelineResources.textures.worleyNoise32RGB;
             m_CloudLayerMaterial.SetTexture(HDShaderIDs._Worley128RGBA, worley128RGBA);

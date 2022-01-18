@@ -149,9 +149,6 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Color multiplier of the clouds.</summary>
             [Tooltip("Specifies the color HDRP uses to tint the clouds.")]
             public ColorParameter tint = new ColorParameter(Color.white, false, false, true);
-            /// <summary>Relative exposure of the clouds.</summary>
-            [Tooltip("Sets the exposure of the clouds in EV relative to the sun light intensity.")]
-            public ClampedFloatParameter exposure = new ClampedFloatParameter(0.0f, 0, 1);
 
             /// <summary>Distortion mode.</summary>
             [Tooltip("Distortion mode used to simulate cloud movement.\nIn Scene View, requires Always Refresh to be enabled.")]
@@ -178,7 +175,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public MinFloatParameter thickness = new MinFloatParameter(8000.0f, 0);
             /// <summary>Thickness of the clouds.</summary>
             [Tooltip("Controls the thickness of the clouds.")]
-            public ClampedFloatParameter rain = new ClampedFloatParameter(0.5f, 0, 1);
+            public ClampedFloatParameter density = new ClampedFloatParameter(0.5f, 0, 1);
+            /// <summary>Thickness of the clouds.</summary>
+            [Tooltip("Controls the thickness of the clouds.")]
+            public ClampedFloatParameter multiScattering = new ClampedFloatParameter(0.5f, 0, 1);
 
             /// <summary>Enable to cast shadows.</summary>
             [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows. This will override the cookie of your directional light.")]
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float angle = Mathf.Deg2Rad * scrollOrientation.GetValue(camera);
                 Vector4 params1 = new Vector3(-Mathf.Cos(angle), -Mathf.Sin(angle), scrollFactor / 200.0f);
                 Vector4 params2 = Color.white - 0.75f * tint.value;
-                params2.w = exposure.value;
+                params2.w = density.value * 0.05f + 0.01f;
                 return (params1, params2);
             }
 
@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 unchecked
                 {
                     hash = hash * 23 + tint.GetHashCode();
-                    hash = hash * 23 + exposure.GetHashCode();
+                    hash = hash * 23 + density.GetHashCode();
 
                     hash = hash * 23 + distortionMode.GetHashCode();
                     hash = hash * 23 + scrollOrientation.GetHashCode();

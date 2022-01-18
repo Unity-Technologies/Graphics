@@ -20,7 +20,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public SerializedDataParameter rotation;
             public SerializedDataParameter tint;
-            public SerializedDataParameter exposure;
 
             public SerializedDataParameter distortion;
             public SerializedDataParameter scrollOrientation;
@@ -31,7 +30,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public SerializedDataParameter steps;
             public SerializedDataParameter altitude;
             public SerializedDataParameter thickness;
-            public SerializedDataParameter rain;
+            public SerializedDataParameter density;
+            public SerializedDataParameter multiScattering;
 
             public SerializedDataParameter castShadows;
         }
@@ -53,7 +53,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 rotation = Unpack(p.Find(x => x.rotation)),
                 tint = Unpack(p.Find(x => x.tint)),
-                exposure = Unpack(p.Find(x => x.exposure)),
                 distortion = Unpack(p.Find(x => x.distortionMode)),
                 scrollOrientation = Unpack(p.Find(x => x.scrollOrientation)),
                 scrollSpeed = Unpack(p.Find(x => x.scrollSpeed)),
@@ -63,7 +62,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 steps = Unpack(p.Find(x => x.steps)),
                 altitude = Unpack(p.Find(x => x.altitude)),
                 thickness = Unpack(p.Find(x => x.thickness)),
-                rain = Unpack(p.Find(x => x.rain)),
+                density = Unpack(p.Find(x => x.density)),
+                multiScattering = Unpack(p.Find(x => x.multiScattering)),
                 castShadows = Unpack(p.Find(x => x.castShadows)),
             };
         }
@@ -109,7 +109,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PropertyField(map.rotation);
             PropertyField(map.tint);
-            PropertyField(map.exposure);
 
             PropertyField(map.distortion);
             if (map.distortion.value.intValue != (int)CloudDistortionMode.None)
@@ -130,7 +129,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(map.steps);
                 PropertyField(map.altitude);
                 PropertyField(map.thickness);
-                PropertyField(map.rain);
+                PropertyField(map.density);
+                PropertyField(map.multiScattering);
             }
             PropertyField(map.castShadows);
         }
