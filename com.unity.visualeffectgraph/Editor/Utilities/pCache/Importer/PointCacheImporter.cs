@@ -129,7 +129,8 @@ namespace UnityEditor.Experimental.VFX.Utility
                                     outputType = VFXValueType.Float2;
                                     break;
                                 case 3:
-                                    surfaceFormat = GraphicsFormat.R8G8B8_SRGB;
+                                    //R8G8B8 not supported on most platform (with Texture.Sample)
+                                    surfaceFormat = GraphicsFormat.R8G8B8A8_SRGB;
                                     outputType = VFXValueType.Float3;
                                     break;
                                 default:
@@ -155,7 +156,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                                     outputType = VFXValueType.Float3;
                                     break;
                                 default:
-                                    surfaceFormat = GraphicsFormat.R8G8B8_SRGB;
+                                    surfaceFormat = GraphicsFormat.R16G16B16A16_SFloat;
                                     outputType = VFXValueType.Float4;
                                     break;
                             }
