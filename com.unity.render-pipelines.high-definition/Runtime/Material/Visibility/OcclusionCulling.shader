@@ -1,4 +1,4 @@
-Shader "HDRP/Visibility"
+Shader "HDRP/OcclusionCulling"
 {
     Properties
     {
@@ -51,6 +51,7 @@ Shader "HDRP/Visibility"
             HLSLPROGRAM
 
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #define SHADERPASS SHADERPASS_VISIBILITY_OCCLUSION_CULLING
 

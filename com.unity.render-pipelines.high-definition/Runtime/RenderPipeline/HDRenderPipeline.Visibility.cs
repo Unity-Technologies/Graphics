@@ -63,6 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public int instanceCount;
             public Material occlusionMaterial;
+            public GraphicsBuffer instanceVisibilityBitfield;
         }
 
         void RenderOcclusionCulling(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cull, ref PrepassOutput output)
@@ -82,10 +83,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.instanceCount = BRGBindingData.instanceCount;
                 passData.occlusionMaterial = currentAsset.OcclusionCullingMaterial;
 
+                passData.occlusionMaterial.SetBuffer("instanceData", BRGBindingData.instanceData);
+                passData.occlusionMaterial.SetInt("instancePositionMetadata", (int)BRGBindingData.instancePositionMetadata);
+                passData.instanceVisibilityBitfield = BRGBindingData.instanceVisibilityBitfield;
+
                 builder.SetRenderFunc(
                     (VBufferOcclusionPassData data, RenderGraphContext context) =>
                     {
                         int vertexCount = data.instanceCount * kVerticesPerInstance;
+                        context.cmd.SetRandomWriteTarget(1, data.instanceVisibilityBitfield);
                         context.cmd.DrawProcedural(Matrix4x4.identity, data.occlusionMaterial, 0,
                             MeshTopology.Triangles,
                             vertexCount, 1);

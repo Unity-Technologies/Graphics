@@ -164,6 +164,8 @@ namespace UnityEngine.Rendering
         internal static GraphicsBuffer s_InputVisibleInstanceData;
         internal static GraphicsBuffer s_OutputVisibleInstanceData;
         internal static GraphicsBuffer s_InstanceVisibilityBitfield;
+        internal static GraphicsBuffer s_InstanceData;
+        internal static uint s_InstancePositionMetadata;
         internal static int s_DrawCommandCount;
         internal static int s_InstanceCount;
         internal static uint s_DebugVisibleMask;
@@ -274,6 +276,7 @@ namespace UnityEngine.Rendering
             [ReadOnly] public GraphicsBufferHandle gpuCulledVisibleInstances;
             [ReadOnly] public NativeList<BatchDrawCommandProcedural> proceduralInfos;
             [WriteOnly] public NativeArray<GraphicsBuffer.IndirectDrawIndexedArgs> drawIndirectArgData;
+            [WriteOnly] public NativeArray<uint> visibleInstancesPositionMetadata;
 
 #if DEBUG
             [IgnoreWarning(1370)] //Ignore throwing exception warning.
@@ -777,6 +780,8 @@ namespace UnityEngine.Rendering
                     Allocator.TempJob,
                     NativeArrayOptions.ClearMemory);
 
+                var visibleInstancePositionMetadata = m_visibleInstancesBufferPool.StartBufferWrite();
+
                 var drawOutputJob = new DrawCommandOutputSingleSplitJob
                 {
                     viewID = cc.viewID.GetInstanceID(),
@@ -792,6 +797,7 @@ namespace UnityEngine.Rendering
                     drawCommands = cullingOutput.drawCommands,
                     visibleInstancesBufferHandle = visibleInstancesUploadBuffer.bufferHandle,
                     visibleInstancesGPU = visibleInstancesUploadBuffer.gpuData,
+                    visibleInstancesPositionMetadata = visibleInstancePositionMetadata.gpuData,
                     useIndirects = true,
                     proceduralInfos = m_proceduralInfos,
                     drawIndirectArgs = m_DrawIndirectArgs.bufferHandle,
@@ -804,10 +810,13 @@ namespace UnityEngine.Rendering
                 m_DrawIndirectArgs.SetData(debugIndirectData);
                 debugIndirectData.Dispose();
 
+                m_visibleInstancesBufferPool.EndBufferWrite(visibleInstancePositionMetadata);
+
                 s_DrawIndirectArgs = m_DrawIndirectArgs;
                 s_InputVisibleInstanceData = m_visibleInstancesBufferPool.m_buffers[visibleInstancesUploadBuffer.index];
                 s_OutputVisibleInstanceData = m_OcclusionVisibleInstanceData;
                 s_InstanceVisibilityBitfield = m_OcclusionVisibilityBitfield;
+                s_InstanceData = m_GPUPersistentInstanceData;
                 s_DrawCommandCount = cullingOutput.drawCommands[0].drawCommandCount;
                 s_InstanceCount = cullingOutput.drawCommands[0].visibleInstanceCount;
             }
@@ -963,7 +972,7 @@ namespace UnityEngine.Rendering
             m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
             m_BRGTransformUpdater.Initialize();
 
-            m_visibleInstancesBufferPool = new UploadBufferPool(10 * 3, 4096 * 1024);   // HACKS: Max 10 callbacks/frame, 3 frame hard coded reuse. 4MB maximum buffer size (1 million visible indices).
+            m_visibleInstancesBufferPool = new UploadBufferPool(10 * 3 * 2, 4096 * 1024);   // HACKS: Max 10 callbacks/frame, 3 frame hard coded reuse. 4MB maximum buffer size (1 million visible indices).
             m_frame = 0;
 
             // Create a batch...
@@ -1323,6 +1332,8 @@ namespace UnityEngine.Rendering
             batchMetadata[12] = CreateMetadataValue(SHCID, SHCOffset * UnsafeUtility.SizeOf<Vector4>(), true);
             batchMetadata[13] = CreateMetadataValue(deferredMaterialInstanceDataID, deferredMaterialDataOffset * UnsafeUtility.SizeOf<Vector4>(), true);
 
+            s_InstancePositionMetadata = batchMetadata[0].Value;
+
             // Register batch
             m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistentInstanceData.bufferHandle);
 
@@ -1445,6 +1456,8 @@ namespace UnityEngine.Rendering
         public GraphicsBuffer inputVisibleIndices;
         public GraphicsBuffer outputVisibleIndices;
         public GraphicsBuffer instanceVisibilityBitfield;
+        public GraphicsBuffer instanceData;
+        public uint instancePositionMetadata;
         public int drawCommandCount;
         public int instanceCount;
         public uint debugVisibleMask;
@@ -1510,6 +1523,8 @@ namespace UnityEngine.Rendering
                 inputVisibleIndices = SceneBRG.s_InputVisibleInstanceData,
                 outputVisibleIndices = SceneBRG.s_OutputVisibleInstanceData,
                 instanceVisibilityBitfield = SceneBRG.s_InstanceVisibilityBitfield,
+                instanceData = SceneBRG.s_InstanceData,
+                instancePositionMetadata = SceneBRG.s_InstancePositionMetadata,
                 drawCommandCount = SceneBRG.s_DrawCommandCount,
                 instanceCount = SceneBRG.s_InstanceCount,
                 debugVisibleMask = SceneBRG.s_DebugVisibleMask,

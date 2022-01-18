@@ -262,6 +262,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 s_OcclusionCullingMaterial = CoreUtils.CreateEngineMaterial(globalSettings.renderPipelineResources.shaders.occlusionCullingPS);
                 s_OcclusionCullingMaterial.renderQueue = (int)HDRenderQueue.Priority.OcclusionCulling;
+                s_OcclusionCullingMaterial.EnableKeyword("DOTS_INSTANCING_ON");
             }
 
             if (s_CreateMaterialDepthMaterial == null)
