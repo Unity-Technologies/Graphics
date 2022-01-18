@@ -149,7 +149,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 case DebugSceneOverrideMode.Overdraw:
                 {
-                    cmd.SetGlobalColor(k_DebugColorPropertyId, Color.white);
+                    // Target texture can contains only a value between 0 and 1
+                    // So we encode the number of overdraw in the range (0, max displayed overdaw count)
+                    // The value will be clamped by the GPU driver
+                    var value = 1 / (float)RenderingSettings.maxOverdrawCount;
+                    cmd.SetGlobalColor(k_DebugColorPropertyId, new Color(value, value, value, 1));
                     break;
                 }
 

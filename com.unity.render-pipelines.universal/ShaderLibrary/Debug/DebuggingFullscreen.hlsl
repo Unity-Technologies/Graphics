@@ -19,7 +19,8 @@ bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 de
 {
     if (_DebugSceneOverrideMode == DEBUGSCENEOVERRIDEMODE_OVERDRAW)
     {
-        debugColor.rgb = GetOverdrawColor(color.r, _DebugMaxPixelCost).rgb;
+        // color.r is (Number of overdraw / Max displayed overdraw count)
+        debugColor.rgb = GetOverdrawColor(color.r * _DebugMaxPixelCost, _DebugMaxPixelCost).rgb;
         DrawOverdrawLegend(uv, _DebugMaxPixelCost, _ScreenSize, debugColor.rgb);
         return true;
     }
