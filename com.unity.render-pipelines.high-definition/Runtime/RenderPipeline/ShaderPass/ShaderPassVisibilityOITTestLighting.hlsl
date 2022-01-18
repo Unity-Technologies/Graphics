@@ -45,5 +45,6 @@ float4 Frag(Varyings input) : SV_Target
         VisibilityOIT::GetVisibilitySample(i, listOffset, visData, unusedTexelCoords, unusedDepth);
         sumColor += Visibility::DebugVisIndexToRGB(visData.primitiveID);
     }
+
     return float4(sumColor,1);
 }

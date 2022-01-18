@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle sampleListCountBuffer;
             public ComputeBufferHandle sampleListOffsetBuffer;
             public ComputeBufferHandle sublistCounterBuffer;
+            public ComputeBufferHandle pixelHashBuffer;
             public ComputeBufferHandle oitVisibilityBuffer;
             public RenderBRGBindingData BRGBindingData;
 
@@ -43,6 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 readVBuffer.sampleListCountBuffer = builder.ReadComputeBuffer(sampleListCountBuffer);
                 readVBuffer.sampleListOffsetBuffer = builder.ReadComputeBuffer(sampleListOffsetBuffer);
                 readVBuffer.sublistCounterBuffer = builder.ReadComputeBuffer(sublistCounterBuffer);
+                readVBuffer.pixelHashBuffer = builder.ReadComputeBuffer(pixelHashBuffer);
                 readVBuffer.oitVisibilityBuffer = builder.ReadComputeBuffer(oitVisibilityBuffer);
                 readVBuffer.BRGBindingData = BRGBindingData;
                 return readVBuffer;
@@ -103,17 +105,18 @@ namespace UnityEngine.Rendering.HighDefinition
             int maxMaterialSampleCount = GetMaxMaterialOITSampleCount();
             ComputeOITAllocateSampleLists(
                 renderGraph, maxMaterialSampleCount, screenSize, output.vbufferOIT.stencilBuffer, prefixedHistogramBuffer,
-                out ComputeBufferHandle sampleListCountBuffer, out ComputeBufferHandle sampleListOffsetBuffer, out ComputeBufferHandle sublistCounterBuffer);
+                out ComputeBufferHandle sampleListCountBuffer, out ComputeBufferHandle sampleListOffsetBuffer, out ComputeBufferHandle sublistCounterBuffer, out ComputeBufferHandle pixelHashBuffer);
 
             ComputeBufferHandle oitVisibilityBuffer = RenderVBufferOITStoragePass(
                 renderGraph, maxMaterialSampleCount, hdCamera, cullResults, BRGBindingData,
-                sampleListCountBuffer, sampleListOffsetBuffer, ref sublistCounterBuffer);
+                sampleListCountBuffer, sampleListOffsetBuffer, ref sublistCounterBuffer, pixelHashBuffer);
 
             output.vbufferOIT.histogramBuffer = histogramBuffer;
             output.vbufferOIT.prefixedHistogramBuffer = prefixedHistogramBuffer;
             output.vbufferOIT.sampleListCountBuffer = sampleListCountBuffer;
             output.vbufferOIT.sampleListOffsetBuffer = sampleListOffsetBuffer;
             output.vbufferOIT.sublistCounterBuffer = sublistCounterBuffer;
+            output.vbufferOIT.pixelHashBuffer = pixelHashBuffer;
             output.vbufferOIT.oitVisibilityBuffer = oitVisibilityBuffer;
             output.vbufferOIT.BRGBindingData = BRGBindingData;
         }
@@ -249,12 +252,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle prefixedHistogramBuffer;
             public ComputeBufferHandle outCountBuffer;
             public ComputeBufferHandle outSublistCounterBuffer;
+            public ComputeBufferHandle outPixelHashBuffer;
             public GpuPrefixSumRenderGraphResources prefixResources;
         }
 
         void ComputeOITAllocateSampleLists(
             RenderGraph renderGraph, int maxMaterialSampleCount, Vector2Int screenSize, TextureHandle stencilBuffer, ComputeBufferHandle prefixedHistogramBuffer,
-            out ComputeBufferHandle outCountBuffer, out ComputeBufferHandle outOffsetBuffer, out ComputeBufferHandle outSublistCounterBuffer)
+            out ComputeBufferHandle outCountBuffer, out ComputeBufferHandle outOffsetBuffer, out ComputeBufferHandle outSublistCounterBuffer, out ComputeBufferHandle outPixelHashBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<OITAllocateSampleListsPassData>("OITAllocateSampleLists", out var passData, ProfilingSampler.Get(HDProfileId.OITAllocateSampleLists)))
             {
@@ -266,6 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.prefixedHistogramBuffer = builder.ReadComputeBuffer(prefixedHistogramBuffer);
                 passData.outCountBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(screenSize.x * screenSize.y, sizeof(uint), ComputeBufferType.Raw) { name = "OITMaterialCountBuffer" }));
                 passData.outSublistCounterBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(screenSize.x * screenSize.y, sizeof(uint), ComputeBufferType.Raw) { name = "OITMaterialSublistCounter" }));
+                passData.outPixelHashBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(screenSize.x * screenSize.y, sizeof(uint), ComputeBufferType.Raw) { name = "OITMaterialHashBuffer" }));
                 passData.prefixResources = GpuPrefixSumRenderGraphResources.Create(screenSize.x * screenSize.y, renderGraph, builder);
 
                 float maxMaterialSampleCountAsFloat; unsafe { maxMaterialSampleCountAsFloat = *((float*)&maxMaterialSampleCount); };
@@ -274,6 +279,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 outCountBuffer = passData.outCountBuffer;
                 outOffsetBuffer = passData.prefixResources.output;
                 outSublistCounterBuffer = passData.outSublistCounterBuffer;
+                outPixelHashBuffer = passData.outPixelHashBuffer;
 
                 builder.SetRenderFunc(
                     (OITAllocateSampleListsPassData data, RenderGraphContext context) =>
@@ -285,6 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeBufferParam(data.cs, flatCountKernel, HDShaderIDs._VisOITPrefixedHistogramBuffer, data.prefixedHistogramBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, flatCountKernel, HDShaderIDs._OITOutputActiveCounts, data.outCountBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, flatCountKernel, HDShaderIDs._OITOutputSublistCounter, data.outSublistCounterBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, flatCountKernel, HDShaderIDs._OITOutputPixelHash, data.outPixelHashBuffer);
                         context.cmd.DispatchCompute(data.cs, flatCountKernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), 1);
 
                         var prefixResources = GpuPrefixSumSupportResources.Load(data.prefixResources);
@@ -303,11 +310,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle offsetBuffer;
             public ComputeBufferHandle sublistCounterBuffer;
             public ComputeBufferHandle outVisibilityBuffer;
+            public ComputeBufferHandle pixelHashBuffer;
         }
 
         ComputeBufferHandle RenderVBufferOITStoragePass(
             RenderGraph renderGraph, int maxMaterialSampleCount, HDCamera hdCamera, CullingResults cullResults, in RenderBRGBindingData BRGBindingData,
-            ComputeBufferHandle countBuffer, ComputeBufferHandle offsetBuffer, ref ComputeBufferHandle sublistCounterBuffer)
+            ComputeBufferHandle countBuffer, ComputeBufferHandle offsetBuffer, ref ComputeBufferHandle sublistCounterBuffer, ComputeBufferHandle pixelHashBuffer)
         {
             ComputeBufferHandle outVisibilityBuffer;
             using (var builder = renderGraph.AddRenderPass<VBufferOITStoragePassData>("VBufferOITStorage", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITStorage)))
@@ -322,6 +330,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.offsetBuffer = builder.ReadComputeBuffer(offsetBuffer);
                 passData.sublistCounterBuffer = builder.WriteComputeBuffer(sublistCounterBuffer);
                 passData.outVisibilityBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(maxMaterialSampleCount, GetOITVisibilityBufferSize(), ComputeBufferType.Raw) { name = "OITVisibilityBuffer" }));
+                passData.pixelHashBuffer = builder.WriteComputeBuffer(pixelHashBuffer);
 
                 outVisibilityBuffer = passData.outVisibilityBuffer;
                 sublistCounterBuffer = passData.sublistCounterBuffer;
@@ -341,6 +350,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetGlobalBuffer(HDShaderIDs._VisOITListsOffsets, passData.offsetBuffer);
                         context.cmd.SetRandomWriteTarget(1, passData.sublistCounterBuffer);
                         context.cmd.SetRandomWriteTarget(2, passData.outVisibilityBuffer);
+                        context.cmd.SetRandomWriteTarget(3, passData.pixelHashBuffer);
                         data.BRGBindingData.globalGeometryPool.BindResourcesGlobal(context.cmd);
                         DrawTransparentRendererList(context, data.frameSettings, data.rendererList);
                     });
@@ -353,6 +363,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public RenderBRGBindingData BRGBindingData;
             public ComputeBufferHandle oitVisibilityBuffer;
+            public ComputeBufferHandle pixelHashBuffer;
             public Vector4 packedArgs;
             public Vector2Int offscreenDimensions;
         }
@@ -428,6 +439,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.BRGBindingData = BRGBindingData;
                 passData.oitVisibilityBuffer = builder.ReadComputeBuffer(vbufferOIT.oitVisibilityBuffer);
+                passData.pixelHashBuffer = builder.ReadComputeBuffer(vbufferOIT.pixelHashBuffer);
 
                 float packedWidth; unsafe { int offscreenDimsWidth = offscreenDimensions.x; packedWidth = *((float*)&offscreenDimsWidth); };
                 float packedMaxSamples; unsafe { packedMaxSamples = *((float*)&maxSampleCounts); };
@@ -445,6 +457,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         data.BRGBindingData.globalGeometryPool.BindResourcesGlobal(context.cmd);
                         Rect targetViewport = new Rect(0.0f, 0.0f, (float)data.offscreenDimensions.x, (float)data.offscreenDimensions.y);
+
+                        context.cmd.SetGlobalBuffer(HDShaderIDs._OITOutputPixelHash, data.pixelHashBuffer);
+
                         context.cmd.SetGlobalBuffer(HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetGlobalVector(HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
                         context.cmd.SetViewport(targetViewport);

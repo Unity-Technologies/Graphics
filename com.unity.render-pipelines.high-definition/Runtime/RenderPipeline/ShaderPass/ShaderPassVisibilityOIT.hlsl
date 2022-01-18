@@ -28,6 +28,7 @@ void FragEmpty(PackedVaryingsToPS packedInput)
 
 RWByteAddressBuffer _OITOutputSublistCounter : register(u1);
 RWByteAddressBuffer _OITOutputSamples : register(u2);
+RWByteAddressBuffer _OITOutputPixelHash : register(u3);
 
 void FragStoreVis(PackedVaryingsToPS packedInput)
 {
@@ -59,5 +60,11 @@ void FragStoreVis(PackedVaryingsToPS packedInput)
     uint3 outPackedData;
     VisibilityOIT::PackVisibilityData(visData, texelCoord, zValue, outPackedData);
     _OITOutputSamples.Store3(((globalOffset + outputSublistOffset) * 3) << 2, outPackedData);
+
+    // Todo: change the hashes to minimize collisions, such as a table generated on cpu
+    uint baseHashValue = GetDOTSInstanceIndex();
+
+    uint dstValue = (texelCoord.x / 8) % 2 == 0 ? 0xF0u : 0x80u;
+    _OITOutputPixelHash.Store(pixelOffset << 2, dstValue);
 #endif
 }

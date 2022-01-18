@@ -1122,6 +1122,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VisOITPrefixedHistogramBuffer = Shader.PropertyToID("_VisOITPrefixedHistogramBuffer");
         public static readonly int _OITOutputActiveCounts = Shader.PropertyToID("_OITOutputActiveCounts");
         public static readonly int _OITOutputSublistCounter = Shader.PropertyToID("_OITOutputSublistCounter");
+        public static readonly int _OITOutputPixelHash = Shader.PropertyToID("_OITOutputPixelHash");
         public static readonly int _VisOITListsCounts = Shader.PropertyToID("_VisOITListsCounts");
         public static readonly int _VisOITListsOffsets = Shader.PropertyToID("_VisOITListsOffsets");
         public static readonly int _VisOITSubListsCounts = Shader.PropertyToID("_VisOITSubListsCounts");

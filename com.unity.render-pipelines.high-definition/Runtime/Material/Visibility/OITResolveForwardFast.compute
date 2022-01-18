@@ -16,6 +16,9 @@ RW_TEXTURE2D_X(float4, _OutputTexture);
 
 float4 _VBufferLightingOffscreenParams;
 
+RWByteAddressBuffer _OITOutputPixelHash;
+
+
 uint GetOffscreenLightBufferWidth()
 {
     return asuint(_VBufferLightingOffscreenParams.x);
@@ -60,6 +63,19 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
     lighting /= (float)listCount;
     lighting += currentColor;
+
+    /*
+    bool jhableHack = true;
+    if (jhableHack)
+    {
+        uint hackVal = _OITOutputPixelHash.Load(pixelOffset << 2);
+        float temp = float(hackVal) / float(0xF0u);
+
+        lighting.y = lighting.x;
+        lighting *= temp;
+    }
+    */
+
 
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(lighting, 1.0);
 }
