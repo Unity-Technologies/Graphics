@@ -243,7 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public RenderBRGMaterialRenderInfo GetMaterialInfoForBRG(RenderBRGGetMaterialRenderInfoArgs arguments)
         {
-            if (HDRenderPipeline.IsTransparentMaterial(arguments.material) || HDRenderPipeline.IsAlphaTestedMaterial(arguments.material))
+            if (arguments.material == null || HDRenderPipeline.IsTransparentMaterial(arguments.material) || HDRenderPipeline.IsAlphaTestedMaterial(arguments.material))
                 return new RenderBRGMaterialRenderInfo() { supportsVisibility = false, supportsBRGRendering = false };
 
             if (!HasVlightingPass(arguments.material))

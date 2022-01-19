@@ -63,6 +63,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>DBuffer VFX Decal pass name</summary>
         public static readonly string s_DBufferVFXDecalStr = "DBufferVFX";
 
+        public static readonly string s_SurfaceCacheNameStr = "SurfaceCacheMaterial";
+
 
         // ShaderPass name
         /// <summary>Empty shader tag id.</summary>
@@ -99,6 +101,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_RayTracingPrepassName = new ShaderTagId(s_RayTracingPrepassStr);
         /// <summary>FullScreen Debug shader tag id.</summary>
         public static readonly ShaderTagId s_FullScreenDebugName = new ShaderTagId(s_FullScreenDebugStr);
+        /// <summary>
+        /// Surface cache shader tag id
+        /// </summary>
+        public static readonly ShaderTagId s_SurfaceCacheName = new ShaderTagId(s_SurfaceCacheNameStr);
+
 
         /// <summary>DBuffer Mesh shader tag id.</summary>
         public static readonly ShaderTagId s_DBufferMeshName = new ShaderTagId(s_DBufferMeshStr);

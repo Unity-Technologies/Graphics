@@ -60,6 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle motionVectorsBuffer;
 
             public VBufferOutput vbuffer;
+            public SurfaceCacheBufferOutput surfaceCacheBuffer;
 
             // GBuffer output. Will also contain a reference to the normal buffer (as it is shared between deferred and forward objects)
             public GBufferOutput gbuffer;
@@ -218,6 +219,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Note: An object with motion vector must not be render in the prepass otherwise we can have motion vector write that should have been rejected
                     RenderObjectsMotionVectors(renderGraph, cullingResults, hdCamera, decalBuffer, result);
                 }
+
+                RenderSurfaceCache(renderGraph, colorBuffer, hdCamera, cullingResults, ref result);
 
                 RenderVBuffer(renderGraph, colorBuffer, hdCamera, cullingResults, ref result);
 
