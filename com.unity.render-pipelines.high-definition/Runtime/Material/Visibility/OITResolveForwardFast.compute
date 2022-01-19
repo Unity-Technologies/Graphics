@@ -131,6 +131,11 @@ bool IsColorValid(float4 color)
     return color.a >= 0.0f;
 }
 
+float GaussianFunc(float x, float invRR)
+{
+    return exp(2.0);// (-x * x * 0.5f * invRR);
+}
+
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void MainResolveSparseOITLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -161,7 +166,11 @@ void MainResolveSparseOITLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
     float4 sumOitSame = 0.0f;
     float4 sumOitAll = 0.0f;
-    int numFoundSame = 0;
+    float weightSame = 0.0f;
+    float weightAll = 0.0f;
+
+    float rho = 1.5f;
+    float invRR = 1.0f / (rho * rho);
 
     int radius = 4;
     int offsetY = 0;
@@ -171,6 +180,10 @@ void MainResolveSparseOITLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     {
         for (offsetX = -radius; offsetX <= radius; offsetX++)
         {
+            float wx = GaussianFunc((float)offsetX, invRR);
+            float wy = GaussianFunc((float)offsetY, invRR);
+
+
             int startX = posInputs.positionSS.x + offsetX;
             int startY = posInputs.positionSS.y + offsetY;
             int currX = clamp(startX, (int)0, (int)(_ScreenSize.x - 1));
@@ -184,19 +197,23 @@ void MainResolveSparseOITLighting(int3 dispatchThreadId : SV_DispatchThreadID)
             float4 currOitColor = _VisOITSparseColorBuffer[COORD_TEXTURE2D_X(uint2(currX,currY))].rgba;
             bool currValid = IsColorValid(currOitColor) && isInBorder && (currPixelHash == centerHash);
 
-            sumOitAll += currOitColor;
+            float weight = wx * wy;
+
+            sumOitAll += currOitColor * weight;
+            weightAll += weight;
+
             if (currValid)
             {
-                numFoundSame++;
-                sumOitSame += currOitColor;
+                sumOitSame += currOitColor * weight;
+                weightSame += weight;
             }
         }
     }
 
-    float4 avgOitColor = sumOitAll / (float)totalArea;
-    if (numFoundSame >= 1)
+    float4 avgOitColor = sumOitAll / weightAll;
+    if (weightSame > 0.0f)
     {
-        avgOitColor = sumOitSame / (float)numFoundSame;
+        avgOitColor = sumOitSame / weightSame;
     }
 
     float3 dstColor = backgroundColor;
