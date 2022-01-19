@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor.VFX.Operator;
+using UnityEngine.Assertions.Must;
 
 namespace UnityEditor.VFX.Block
 {
@@ -29,6 +30,9 @@ namespace UnityEditor.VFX.Block
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the kind of geometry to sample from.")]
         private SampleMesh.SourceType sourceMesh = SampleMesh.SourceType.Mesh;
+
+        [VFXSetting, SerializeField, Tooltip("TODO.")]
+        private SampleMesh.Transform transform = SampleMesh.Transform.None;
 
         public override string name
         {
@@ -98,6 +102,16 @@ namespace UnityEditor.VFX.Block
             return r;
         }
 
+        private SampleMesh.Transform actualTransform
+        {
+            get
+            {
+                if (sourceMesh == SampleMesh.SourceType.SkinnedMeshRenderer)
+                    return transform;
+                return SampleMesh.Transform.None;
+            }
+        }
+
         public override IEnumerable<VFXNamedExpression> parameters
         {
             get
@@ -161,11 +175,23 @@ namespace UnityEditor.VFX.Block
                 var vertexAttributes = new[] { VertexAttribute.Position, VertexAttribute.Normal };
                 VFXExpression[] sampling = null;
                 if (placementMode == SampleMesh.PlacementMode.Vertex)
-                    sampling = SampleMesh.SampleVertexAttribute(source, index, vertexAttributes).ToArray();
+                    sampling = SampleMesh.SampleVertexAttribute(source, index, vertexAttributes, SampleMesh.Transform.None).ToArray();
                 else if (placementMode == SampleMesh.PlacementMode.Edge)
-                    sampling = SampleMesh.SampleEdgeAttribute(source, index, coordinate, vertexAttributes).ToArray();
+                    sampling = SampleMesh.SampleEdgeAttribute(source, index, coordinate, vertexAttributes, SampleMesh.Transform.None).ToArray();
                 else if (placementMode == SampleMesh.PlacementMode.Surface)
-                    sampling = SampleMesh.SampleTriangleAttribute(source, index, coordinate, surfaceCoordinates, vertexAttributes).ToArray();
+                    sampling = SampleMesh.SampleTriangleAttribute(source, index, coordinate, surfaceCoordinates, vertexAttributes, SampleMesh.Transform.None).ToArray();
+
+                if (actualTransform == SampleMesh.Transform.ApplyRootBoneTransform)
+                {
+                    VFXExpression matrix = new VFXExpressionRootBoneTransformFromSkinnedMeshRenderer(source);
+
+                    var systemSpace = ((VFXDataParticle)GetData()).space;
+                    if (systemSpace == VFXCoordinateSpace.Local)
+                        matrix = new VFXExpressionTransformMatrix(VFXBuiltInExpression.WorldToLocal, matrix);
+
+                    sampling[0] = new VFXExpressionTransformPosition(matrix, sampling[0]);
+                    sampling[1] = new VFXExpressionTransformDirection(matrix, sampling[1]);
+                }
 
                 yield return new VFXNamedExpression(sampling[0], "readPosition");
                 yield return new VFXNamedExpression(sampling[1], "readDirection");
@@ -184,6 +210,9 @@ namespace UnityEditor.VFX.Block
 
                 if (spawnMode != SpawnMode.Custom)
                     yield return nameof(mode);
+
+                if (sourceMesh != SampleMesh.SourceType.SkinnedMeshRenderer)
+                    yield return nameof(transform);
             }
         }
 

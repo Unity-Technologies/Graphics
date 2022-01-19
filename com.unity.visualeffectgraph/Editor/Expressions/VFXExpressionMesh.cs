@@ -493,4 +493,30 @@ namespace UnityEditor.VFX
             return VFXValue.Constant(VFXExpressionMesh.GetVertexStride(mesh, channelIndex));
         }
     }
+
+    class VFXExpressionRootBoneTransformFromSkinnedMeshRenderer : VFXExpression
+    {
+        public VFXExpressionRootBoneTransformFromSkinnedMeshRenderer() : this(VFXValue<SkinnedMeshRenderer>.Default)
+        {
+        }
+
+        public VFXExpressionRootBoneTransformFromSkinnedMeshRenderer(VFXExpression skinnedMeshRenderer) : base(Flags.InvalidOnGPU, skinnedMeshRenderer)
+        {
+        }
+
+        public sealed override VFXExpressionOperation operation { get { return VFXExpressionOperation.RootBoneTransformFromSkinnedMeshRenderer; } }
+
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var skinnedMeshReduce = constParents[0];
+            var skinnedMesh = skinnedMeshReduce.Get<SkinnedMeshRenderer>();
+
+            //N.B.: Should be actual rootBone and localToWorldMatrix without scale, but this code shouldn't be constant folded anyway
+            var transform = Matrix4x4.identity;
+            if (skinnedMesh != null && skinnedMesh.rootBone != null)
+                transform = skinnedMesh.rootBone.localToWorldMatrix;
+
+            return VFXValue.Constant(transform);
+        }
+    }
 }

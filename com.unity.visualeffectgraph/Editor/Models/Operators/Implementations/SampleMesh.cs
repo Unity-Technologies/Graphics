@@ -134,6 +134,15 @@ namespace UnityEditor.VFX.Operator
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies the kind of geometry to sample from.")]
         private SourceType source = SourceType.Mesh;
 
+        public enum Transform
+        {
+            None,
+            ApplyRootBoneTransform
+        }
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        private Transform transform = Transform.None;
+
         private bool HasOutput(VertexAttributeFlag flag)
         {
             return (output & flag) == flag;
@@ -147,13 +156,20 @@ namespace UnityEditor.VFX.Operator
                     yield return GetActualVertexAttribute(vertexAttribute);
         }
 
-        private static Type GetOutputType(VertexAttribute attribute)
+        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot outputSlot)
+        {
+            if (outputSlot.spaceable)
+                return VFXCoordinateSpace.World;
+            return (VFXCoordinateSpace)int.MaxValue;
+        }
+
+        private static Type GetOutputType(VertexAttribute attribute, Transform transform)
         {
             switch (attribute)
             {
-                case VertexAttribute.Position: return typeof(Vector3);
-                case VertexAttribute.Normal: return typeof(Vector3);
-                case VertexAttribute.Tangent: return typeof(Vector4);
+                case VertexAttribute.Position: return transform == Transform.None ? typeof(Vector3) : typeof(Position);
+                case VertexAttribute.Normal: return transform == Transform.None ? typeof(Vector3) : typeof(DirectionType);
+                case VertexAttribute.Tangent: return typeof(Vector4); //TODOPAUL: There isn't spaceable suitable with tangent type
                 case VertexAttribute.Color: return typeof(Vector4);
                 case VertexAttribute.TexCoord0:
                 case VertexAttribute.TexCoord1:
@@ -200,6 +216,9 @@ namespace UnityEditor.VFX.Operator
 
                 if (placementMode != PlacementMode.Surface)
                     yield return nameof(surfaceCoordinates);
+
+                if (source != SourceType.SkinnedMeshRenderer)
+                    yield return nameof(transform);
             }
         }
 
@@ -235,19 +254,56 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
+        private Transform actualTransform
+        {
+            get
+            {
+                if (source == SourceType.SkinnedMeshRenderer)
+                    return transform;
+                return Transform.None;
+            }
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get
             {
                 foreach (var vertexAttribute in GetOutputVertexAttributes())
                 {
-                    var outputType = GetOutputType(vertexAttribute);
+                    var outputType = GetOutputType(vertexAttribute, actualTransform);
                     yield return new VFXPropertyWithValue(new VFXProperty(outputType, vertexAttribute.ToString()));
                 }
             }
         }
 
-        public static IEnumerable<VFXExpression> SampleVertexAttribute(VFXExpression source, VFXExpression vertexIndex, IEnumerable<VertexAttribute> vertexAttributes)
+        public static VFXExpression ApplyTransform(VFXExpression source, VFXExpression input, VertexAttribute currentAttribute, Transform transform)
+        {
+            if (transform == Transform.ApplyRootBoneTransform)
+            {
+                if (source.valueType != UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer)
+                    throw new InvalidOperationException();
+
+                var matrix = new VFXExpressionRootBoneTransformFromSkinnedMeshRenderer(source);
+                if (currentAttribute == VertexAttribute.Position)
+                {
+                    input = new VFXExpressionTransformPosition(matrix, input);
+                }
+                else if (currentAttribute == VertexAttribute.Normal)
+                {
+                    input = new VFXExpressionTransformDirection(matrix, input);
+                }
+                else if (currentAttribute == VertexAttribute.Tangent)
+                {
+                    var tangent = input.xyz;
+                    tangent = new VFXExpressionTransformDirection(matrix, tangent);
+                    input = new VFXExpressionCombine(tangent.x, tangent.y, tangent.z, input.w);
+                }
+                //else, not transformable
+            }
+            return input;
+        }
+
+        public static IEnumerable<VFXExpression> SampleVertexAttribute(VFXExpression source, VFXExpression vertexIndex, IEnumerable<VertexAttribute> vertexAttributes, Transform transform)
         {
             bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
             var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
@@ -258,7 +314,7 @@ namespace UnityEditor.VFX.Operator
                 var meshVertexStride = new VFXExpressionMeshVertexStride(mesh, channelIndex);
                 var meshChannelOffset = new VFXExpressionMeshChannelOffset(mesh, channelIndex);
 
-                var outputType = GetOutputType(vertexAttribute);
+                var outputType = GetOutputType(vertexAttribute, Transform.None); //Only used to choose the correct expression here (TODOPAUL: Use VFXValueType ?)
                 VFXExpression sampled = null;
 
                 var meshChannelFormatAndDimension = new VFXExpressionMeshChannelInfos(mesh, channelIndex);
@@ -291,20 +347,20 @@ namespace UnityEditor.VFX.Operator
                         sampled = new VFXExpressionSampleSkinnedMeshRendererFloat4(source, vertexOffset, meshChannelFormatAndDimension);
                 }
 
-                yield return sampled;
+                yield return ApplyTransform(source, sampled, vertexAttribute, transform);
             }
         }
 
-        public static IEnumerable<VFXExpression> SampleVertexAttribute(VFXExpression source, VFXExpression vertexIndex, VFXOperatorUtility.SequentialAddressingMode mode, IEnumerable<VertexAttribute> vertexAttributes)
+        public static IEnumerable<VFXExpression> SampleVertexAttribute(VFXExpression source, VFXExpression vertexIndex, VFXOperatorUtility.SequentialAddressingMode mode, IEnumerable<VertexAttribute> vertexAttributes, Transform transform)
         {
             bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
             var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
             var meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
             vertexIndex = VFXOperatorUtility.ApplyAddressingMode(vertexIndex, meshVertexCount, mode);
-            return SampleVertexAttribute(source, vertexIndex, vertexAttributes);
+            return SampleVertexAttribute(source, vertexIndex, vertexAttributes, transform);
         }
 
-        public static IEnumerable<VFXExpression> SampleEdgeAttribute(VFXExpression source, VFXExpression index, VFXExpression lerp, IEnumerable<VertexAttribute> vertexAttributes)
+        public static IEnumerable<VFXExpression> SampleEdgeAttribute(VFXExpression source, VFXExpression index, VFXExpression lerp, IEnumerable<VertexAttribute> vertexAttributes, Transform transform)
         {
             bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
             var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
@@ -325,33 +381,33 @@ namespace UnityEditor.VFX.Operator
             var sampledIndex_A = new VFXExpressionSampleIndex(mesh, index, meshIndexFormat);
             var sampledIndex_B = new VFXExpressionSampleIndex(mesh, nextIndex, meshIndexFormat);
 
-            var sampling_A = SampleVertexAttribute(source, sampledIndex_A, vertexAttributes).ToArray();
-            var sampling_B = SampleVertexAttribute(source, sampledIndex_B, vertexAttributes).ToArray();
+            var sampling_A = SampleVertexAttribute(source, sampledIndex_A, vertexAttributes, Transform.None).ToArray();
+            var sampling_B = SampleVertexAttribute(source, sampledIndex_B, vertexAttributes, Transform.None).ToArray();
 
             for (int i = 0; i < vertexAttributes.Count(); ++i)
             {
                 var outputValueType = sampling_A[i].valueType;
                 var s = VFXOperatorUtility.CastFloat(lerp, outputValueType);
-                yield return VFXOperatorUtility.Lerp(sampling_A[i], sampling_B[i], s);
+                var r = VFXOperatorUtility.Lerp(sampling_A[i], sampling_B[i], s);
+                yield return ApplyTransform(source, r, vertexAttributes.ElementAt(i), transform);
             }
         }
 
-        public static IEnumerable<VFXExpression> SampleEdgeAttribute(VFXExpression source, VFXExpression index, VFXExpression x, VFXOperatorUtility.SequentialAddressingMode mode, IEnumerable<VertexAttribute> vertexAttributes)
+        public static IEnumerable<VFXExpression> SampleEdgeAttribute(VFXExpression source, VFXExpression index, VFXExpression x, VFXOperatorUtility.SequentialAddressingMode mode, IEnumerable<VertexAttribute> vertexAttributes, Transform transform)
         {
             bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
             var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
             var meshIndexCount = new VFXExpressionMeshIndexCount(mesh);
 
             index = VFXOperatorUtility.ApplyAddressingMode(index, meshIndexCount, mode);
-            return SampleEdgeAttribute(source, index, x, vertexAttributes);
+            return SampleEdgeAttribute(source, index, x, vertexAttributes, transform);
         }
 
-        public static IEnumerable<VFXExpression> SampleTriangleAttribute(VFXExpression source, VFXExpression triangleIndex, VFXExpression coord, SurfaceCoordinates coordMode, IEnumerable<VertexAttribute> vertexAttributes)
+        public static IEnumerable<VFXExpression> SampleTriangleAttribute(VFXExpression source, VFXExpression triangleIndex, VFXExpression coord, SurfaceCoordinates coordMode, IEnumerable<VertexAttribute> vertexAttributes, Transform transform)
         {
             bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
             var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
 
-            var meshIndexCount = new VFXExpressionMeshIndexCount(mesh);
             var meshIndexFormat = new VFXExpressionMeshIndexFormat(mesh);
 
             var threeUint = VFXOperatorUtility.ThreeExpression[UnityEngine.VFX.VFXValueType.Uint32];
@@ -362,9 +418,9 @@ namespace UnityEditor.VFX.Operator
             var sampledIndex_C = new VFXExpressionSampleIndex(mesh, baseIndex + VFXValue.Constant<uint>(2u), meshIndexFormat);
 
             var allInputValues = new List<VFXExpression>();
-            var sampling_A = SampleVertexAttribute(source, sampledIndex_A, vertexAttributes).ToArray();
-            var sampling_B = SampleVertexAttribute(source, sampledIndex_B, vertexAttributes).ToArray();
-            var sampling_C = SampleVertexAttribute(source, sampledIndex_C, vertexAttributes).ToArray();
+            var sampling_A = SampleVertexAttribute(source, sampledIndex_A, vertexAttributes, Transform.None).ToArray();
+            var sampling_B = SampleVertexAttribute(source, sampledIndex_B, vertexAttributes, Transform.None).ToArray();
+            var sampling_C = SampleVertexAttribute(source, sampledIndex_C, vertexAttributes, Transform.None).ToArray();
 
             VFXExpression barycentricCoordinates = null;
             var one = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Float];
@@ -412,11 +468,12 @@ namespace UnityEditor.VFX.Operator
                 var barycentricCoordinateZ = VFXOperatorUtility.CastFloat(barycentricCoordinates.z, outputValueType);
 
                 var r = sampling_A[i] * barycentricCoordinateX + sampling_B[i] * barycentricCoordinateY + sampling_C[i] * barycentricCoordinateZ;
+                r = ApplyTransform(source, r, vertexAttributes.ElementAt(i), transform);
                 yield return r;
             }
         }
 
-        public static IEnumerable<VFXExpression> SampleTriangleAttribute(VFXExpression source, VFXExpression triangleIndex, VFXExpression coord, VFXOperatorUtility.SequentialAddressingMode mode, SurfaceCoordinates coordMode, IEnumerable<VertexAttribute> vertexAttributes)
+        public static IEnumerable<VFXExpression> SampleTriangleAttribute(VFXExpression source, VFXExpression triangleIndex, VFXExpression coord, VFXOperatorUtility.SequentialAddressingMode mode, SurfaceCoordinates coordMode, IEnumerable<VertexAttribute> vertexAttributes, Transform transform)
         {
             bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
             var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
@@ -426,25 +483,25 @@ namespace UnityEditor.VFX.Operator
             var triangleCount = meshIndexCount / UintThree;
             triangleIndex = VFXOperatorUtility.ApplyAddressingMode(triangleIndex, triangleCount, mode);
 
-            return SampleTriangleAttribute(source, triangleIndex, coord, coordMode, vertexAttributes);
+            return SampleTriangleAttribute(source, triangleIndex, coord, coordMode, vertexAttributes, transform);
         }
 
-        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression[] outputExpressions = null;
             if (placementMode == PlacementMode.Vertex)
             {
-                var sampled = SampleVertexAttribute(inputExpression[0], inputExpression[1], mode, GetOutputVertexAttributes());
+                var sampled = SampleVertexAttribute(inputExpression[0], inputExpression[1], mode, GetOutputVertexAttributes(), actualTransform);
                 outputExpressions = sampled.ToArray();
             }
             else if (placementMode == PlacementMode.Edge)
             {
-                var sampled = SampleEdgeAttribute(inputExpression[0], inputExpression[1], inputExpression[2], mode, GetOutputVertexAttributes());
+                var sampled = SampleEdgeAttribute(inputExpression[0], inputExpression[1], inputExpression[2], mode, GetOutputVertexAttributes(), actualTransform);
                 outputExpressions = sampled.ToArray();
             }
             else if (placementMode == PlacementMode.Surface)
             {
-                var sampled = SampleTriangleAttribute(inputExpression[0], inputExpression[1], inputExpression[2], mode, surfaceCoordinates, GetOutputVertexAttributes());
+                var sampled = SampleTriangleAttribute(inputExpression[0], inputExpression[1], inputExpression[2], mode, surfaceCoordinates, GetOutputVertexAttributes(), actualTransform);
                 outputExpressions = sampled.ToArray();
             }
             else
