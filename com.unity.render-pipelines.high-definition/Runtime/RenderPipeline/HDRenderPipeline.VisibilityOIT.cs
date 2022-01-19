@@ -552,6 +552,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     prepassData.vbufferOIT,
                     offscreenDimensions,
                     sparseColorTexture,
+                    prepassData.vbufferOIT.pixelHashBuffer,
                     depthBuffer, ref colorBuffer);
             }
             else //if (m_Asset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode == OITLightingMode.DeferredSSTracing)
@@ -858,6 +859,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader cs;
             public Vector2Int screenSize;
             public TextureHandle sparseColorBuffer;
+            public ComputeBufferHandle pixelHashBuffer;
             public TextureHandle depthBuffer;
             public TextureHandle outputColor;
             public Vector4 packedArgs;
@@ -867,6 +869,7 @@ namespace UnityEngine.Rendering.HighDefinition
             in VBufferOITOutput vbufferOIT,
             Vector2Int offscreenLightingSize,
             TextureHandle sparseColorBuffer,
+            ComputeBufferHandle pixelHashBuffer,
             TextureHandle depthBuffer, ref TextureHandle colorBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<OITResolveSparseLighting>("VBufferOITLightingOffscreenResolveSparse", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITLightingOffscreenResolveSparse)))
@@ -875,6 +878,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.screenSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
 
                 passData.sparseColorBuffer = builder.ReadTexture(sparseColorBuffer);
+                passData.pixelHashBuffer = builder.ReadComputeBuffer(pixelHashBuffer);
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.outputColor = builder.WriteTexture(colorBuffer);
 
@@ -892,6 +896,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITSparseColorBuffer, data.sparseColorBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);
+                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITPixelHash, data.pixelHashBuffer);
                         context.cmd.DispatchCompute(data.cs, kernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), 1);
                     });
             }
