@@ -52,13 +52,14 @@ Varyings VertSingleTile(Attributes inputMesh)
     return output;
 }
 
-void Frag(Varyings packedInput, out uint4 outNormalRoughnessDiffuseAlbedoTexture : SV_Target0)
+void Frag(Varyings packedInput, out uint4 outGBufferTexture : SV_Target0, out float4 outOffscreenDirectLightingTexture : SV_Target1)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     uint visibilityIndex = (uint)packedInput.positionCS.y * GetDispatchWidth() + (uint)packedInput.positionCS.x;
     if (visibilityIndex >= GetMaximumSamplesCount())
     {
-        outNormalRoughnessDiffuseAlbedoTexture = uint4(0, 0, 0, 0);
+        outGBufferTexture = uint4(0, 0, 0, 0);
+        outOffscreenDirectLightingTexture = float4(0.0f, 0.0f, 0.0f, 0.0f);
         return;
     }
 
@@ -74,32 +75,48 @@ void Frag(Varyings packedInput, out uint4 outNormalRoughnessDiffuseAlbedoTexture
 
     if (!fragmentData.valid)
     {
-        outNormalRoughnessDiffuseAlbedoTexture = uint4(0, 0, 0, 0);
+        outGBufferTexture = uint4(0, 0, 0, 0);
+        outOffscreenDirectLightingTexture = float4(0.0f, 0.0f, 0.0f, 0.0f);
         return;
     }
 
-    float3 V = fragmentData.V;
     //Sampling of deferred material has been done.
+    //Now perform forward lighting.
     FragInputs input = fragmentData.fragInputs;
+    float3 V = fragmentData.V;
 
     int2 tileCoord = (float2)input.positionSS.xy / GetTileSize();
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
 
-#if 0
     SurfaceData surfaceData;
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
 
-    VisibilityOIT::PackOITGBufferData(bsdfData.normalWS.xyz, PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness), bsdfData.diffuseColor.rgb, outNormalRoughnessDiffuseAlbedoTexture);
-#else
-    SurfaceData surfaceData;
-    BuiltinData builtinData;
-    GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
+    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
+    float3 colorVariantColor = 0;
+    uint featureFlags = packedInput.lightAndMaterialFeatures;
+
+    LightLoopOutput lightLoopOutput;
+    LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
+
+    float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+    float3 specularLighting = lightLoopOutput.specularLighting;
+
+    diffuseLighting *= GetCurrentExposureMultiplier();
+    specularLighting *= GetCurrentExposureMultiplier();
+
+    outOffscreenDirectLightingTexture.rgb = diffuseLighting + specularLighting;
+    outOffscreenDirectLightingTexture.a = 1;
+
+    // Store the GBuffer
+#if 1
+    VisibilityOIT::PackOITGBufferData(bsdfData.normalWS.xyz, PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness), bsdfData.diffuseColor.rgb, outGBufferTexture);
+#else
     float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
     float perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-    VisibilityOIT::PackOITGBufferData(surfaceData.normalWS.xyz, roughness, ComputeDiffuseColor(surfaceData.baseColor, metallic), outNormalRoughnessDiffuseAlbedoTexture);
+    VisibilityOIT::PackOITGBufferData(surfaceData.normalWS.xyz, roughness, ComputeDiffuseColor(surfaceData.baseColor, metallic), outGBufferTexture);
 #endif
 }

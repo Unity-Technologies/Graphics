@@ -62,15 +62,37 @@ namespace UnityEngine.Rendering.HighDefinition
             return GraphicsFormat.R32G32B32A32_UInt;
         }
 
+        GraphicsFormat GetDeferredSSTracingHiZFormat()
+        {
+            return GraphicsFormat.R16G16B16_SFloat;
+        }
+
         int GetOITVisibilityBufferSize()
         {
             return sizeof(uint) * 3; //12 bytes
         }
 
-        int GetMaxMaterialOITSampleCount()
+        int GetMaxMaterialOITSampleCount(HDCamera hdCamera)
         {
             float budget = currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.memoryBudget;
             float availableBytes = budget * 1024.0f * 1024.0f;
+
+            int pixelCount = hdCamera.actualWidth * hdCamera.actualHeight;
+
+            int bufferSize;
+            if (currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode == OITLightingMode.ForwardFast)
+            {
+                bufferSize = pixelCount * HDUtils.GetFormatSizeInBytes(GetForwardFastFormat());
+            }
+            else
+            {
+                bufferSize = pixelCount * (
+                                            HDUtils.GetFormatSizeInBytes(GetForwardFastFormat()) + // Offscreen Direct Reflection Lighting
+                                            HDUtils.GetFormatSizeInBytes(GetDeferredSSTracingFormat()) // GBuffer
+                                            )
+                            + hdCamera.depthBufferMipChainInfo.textureSize.x * hdCamera.depthBufferMipChainInfo.textureSize.x * GetOITVisibilityBufferSize(); // HiZ for tracing
+            }
+            availableBytes -= bufferSize;
 
             //for now store visibility
             float visibilityCost = GetOITVisibilityBufferSize();
@@ -103,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var histogramBuffer = ComputeOITTiledHistogram(renderGraph, screenSize, hdCamera.viewCount, output.vbufferOIT.stencilBuffer, out histogramSize, out tileSize);
             var prefixedHistogramBuffer = ComputeOITTiledPrefixSumHistogramBuffer(renderGraph, histogramBuffer, histogramSize);
 
-            int maxMaterialSampleCount = GetMaxMaterialOITSampleCount();
+            int maxMaterialSampleCount = GetMaxMaterialOITSampleCount(hdCamera);
             ComputeOITAllocateSampleLists(
                 renderGraph, maxMaterialSampleCount, screenSize, output.vbufferOIT.stencilBuffer, prefixedHistogramBuffer,
                 out ComputeBufferHandle sampleListCountBuffer, out ComputeBufferHandle sampleListOffsetBuffer, out ComputeBufferHandle sublistCounterBuffer, out ComputeBufferHandle pixelHashBuffer);
@@ -524,11 +546,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else //if (m_Asset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode == OITLightingMode.DeferredSSTracing)
             {
-                TextureHandle normalRoughnessDiffuseAlbedoTexture;
+                TextureHandle gBufferTexture;
+                TextureHandle offscreenDirectReflectionLightingTexture;
                 RenderOITVBufferLightingOffscreenDeferredSSTracing(
-                    renderGraph, cull, hdCamera, shadowResult, prepassData.vbufferOIT, lightLists, prepassData, out normalRoughnessDiffuseAlbedoTexture, out var offscreenDimensions);
+                    renderGraph, cull, hdCamera, shadowResult, prepassData.vbufferOIT, lightLists, prepassData,
+                    //depthBuffer,
+                    out gBufferTexture,
+                    out offscreenDirectReflectionLightingTexture,
+                    out var offscreenDimensions);
 
-                int maxMaterialSampleCount = GetMaxMaterialOITSampleCount();
+                int maxMaterialSampleCount = GetMaxMaterialOITSampleCount(hdCamera);
                 TextureHandle oitTileHiZTexture;
                 RenderVBufferOITTileHiZPass(
                     renderGraph, hdCamera, maxMaterialSampleCount, new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight), prepassData.vbufferOIT,
@@ -537,7 +564,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     prepassData.vbufferOIT.sublistCounterBuffer,
                     prepassData.vbufferOIT.oitVisibilityBuffer, out oitTileHiZTexture);
 
-                OITResolveLightingDeferredSSTracing(renderGraph, hdCamera, prepassData.vbufferOIT, normalRoughnessDiffuseAlbedoTexture, oitTileHiZTexture, offscreenDimensions, depthBuffer, ref colorBuffer);
+                OITResolveLightingDeferredSSTracing(renderGraph, hdCamera, prepassData.vbufferOIT,
+                    gBufferTexture,
+                    offscreenDirectReflectionLightingTexture,
+                    oitTileHiZTexture, offscreenDimensions, depthBuffer, ref colorBuffer);
             }
         }
 
@@ -553,7 +583,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var BRGBindingData = RenderBRG.GetRenderBRGMaterialBindingData();
 
-            int maxSampleCounts = GetMaxMaterialOITSampleCount();
+            int maxSampleCounts = GetMaxMaterialOITSampleCount(hdCamera);
             offscreenDimensions = GetOITOffscreenLightingSize(hdCamera, maxSampleCounts);
 
             TextureHandle outputColor;
@@ -615,12 +645,14 @@ namespace UnityEngine.Rendering.HighDefinition
             in VBufferOITOutput vbufferOIT,
             in BuildGPULightListOutput lightLists,
             in PrepassOutput prepassData,
-            out TextureHandle normalRoughnessDiffuseAlbedoTexture,
+            //TextureHandle depthBufferInput,
+            out TextureHandle gBufferTexture,
+            out TextureHandle offscreenDirectReflectionLightingTexture,
             out Vector2Int offscreenDimensions)
         {
             var BRGBindingData = RenderBRG.GetRenderBRGMaterialBindingData();
 
-            int maxSampleCounts = GetMaxMaterialOITSampleCount();
+            int maxSampleCounts = GetMaxMaterialOITSampleCount(hdCamera);
             offscreenDimensions = GetOITOffscreenLightingSize(hdCamera, maxSampleCounts);
 
             using (var builder = renderGraph.AddRenderPass<VBufferOITLightingOffscreen>("VBufferOITLightingOffscreenDeferredSSTracing", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITLightingOffscreenDeferredSSTracing)))
@@ -633,12 +665,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderListDesc.renderingLayerMask = DeferredMaterialBRG.RenderLayerMask;
                 PrepareCommonForwardPassData(renderGraph, builder, passData, true, hdCamera.frameSettings, renderListDesc, lightLists, shadowResult);
 
-                normalRoughnessDiffuseAlbedoTexture = builder.UseColorBuffer(renderGraph.CreateTexture(
+                gBufferTexture = builder.UseColorBuffer(renderGraph.CreateTexture(
                     new TextureDesc(offscreenDimensions.x, offscreenDimensions.y, false, true)
                     {
                         colorFormat = GetDeferredSSTracingFormat(),
-                        name = "OITOffscreenLightingDeferredSSTracing_Normal_Roughness_DiffuseAlbedo"
+                        name = "OITOffscreenLightingDeferredSSTracing_GBuffer"
                     }), 0);
+                offscreenDirectReflectionLightingTexture = builder.UseColorBuffer(renderGraph.CreateTexture(
+                    new TextureDesc(offscreenDimensions.x, offscreenDimensions.y, false, true)
+                    {
+                        colorFormat = GetForwardFastFormat(),
+                        name = "OITOffscreenLightingDeferredSSTracing_OffscreenDirectReflectionLighting"
+                    }), 1);
+                // Setting a depth even if it's unused "Setting MRTs without a depth buffer is not supported."
+                TextureHandle depthBuffer = builder.UseDepthBuffer(renderGraph.CreateTexture(
+                    new TextureDesc(offscreenDimensions.x, offscreenDimensions.y, false, true)
+                    {
+                        colorFormat = GraphicsFormat.DepthAuto,
+                        name = "OITOffscreenLightingDeferredSSTracing_DepthBuffer"
+                    }), DepthAccess.ReadWrite);
 
                 passData.BRGBindingData = BRGBindingData;
                 passData.oitVisibilityBuffer = builder.ReadComputeBuffer(vbufferOIT.oitVisibilityBuffer);
@@ -723,7 +768,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public ComputeShader cs;
             public Vector2Int screenSize;
-            public TextureHandle normalRoughnessDiffuseAlbedo;
+            public TextureHandle gBufferTexture;
+            public TextureHandle offscreenDirectReflectionLightingTexture;
             public TextureHandle depthBuffer;
             public ComputeBufferHandle oitVisibilityBuffer;
             public ComputeBufferHandle offsetListBuffer;
@@ -737,7 +783,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OITResolveLightingDeferredSSTracing(RenderGraph renderGraph, HDCamera hdCamera,
             in VBufferOITOutput vbufferOIT,
-            TextureHandle normalRoughnessDiffuseAlbedoTexture,
+            TextureHandle gBufferTexture,
+            TextureHandle offscreenDirectReflectionLightingTexture,
             TextureHandle oitTileHiZTexture,
             Vector2Int offscreenLightingSize,
             TextureHandle depthBuffer, ref TextureHandle colorBuffer)
@@ -752,7 +799,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.oitTileHiZTexture = builder.ReadTexture(oitTileHiZTexture);
 
-                passData.normalRoughnessDiffuseAlbedo = builder.ReadTexture(normalRoughnessDiffuseAlbedoTexture);
+                passData.gBufferTexture = builder.ReadTexture(gBufferTexture);
+                passData.offscreenDirectReflectionLightingTexture = builder.ReadTexture(offscreenDirectReflectionLightingTexture);
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.outputColor = builder.WriteTexture(colorBuffer);
 
@@ -774,7 +822,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OITTileHiZ, data.oitTileHiZTexture);
 
-                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenGBuffer, data.normalRoughnessDiffuseAlbedo);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenGBuffer, data.gBufferTexture);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenDirectReflectionLighting, data.offscreenDirectReflectionLightingTexture);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);
                         context.cmd.DispatchCompute(data.cs, kernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), 1);

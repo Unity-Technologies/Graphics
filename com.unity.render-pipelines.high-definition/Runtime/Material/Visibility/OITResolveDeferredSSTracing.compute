@@ -64,6 +64,12 @@
 
 #define GROUP_SIZE 8
 
+#if UNITY_REVERSED_Z
+# define MIN_DEPTH(a, b) max(a, b)
+#else
+# define MIN_DEPTH(a, b) min(a, b)
+#endif
+
 TEXTURE2D_X(_DepthTexture);
 RW_TEXTURE2D_X(float4, _OutputTexture);
 
@@ -182,9 +188,86 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
     float currentDepth = _DepthTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)].x;
     float3 currentColor = _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)].rgb;
+
+    float3 lighting = float3(0.0f, 0.0f, 0.0f);
+
+#if 1
+    int minDepth = 1.0;
+    for (uint i = 0; i < listCount; ++i)
+    {
+        int globalOffset = i + listOffset;
+        uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
+
+        Visibility::VisibilityData unusedVisData;
+        uint2 unusedTexelCoord;
+        float depthValue;
+        VisibilityOIT::GetVisibilitySample(i, listOffset, unusedVisData, unusedTexelCoord, depthValue);
+
+        //if (depthValue < currentDepth)
+        //    continue;
+
+        minDepth = max(depthValue, minDepth);
+
+        int2 tileCoord = (float2)posInputRaw.positionSS.xy / GetTileSize();
+        PositionInputs posInput = GetPositionInput(posInputRaw.positionSS.xy, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
+
+        float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+
+        // .
+        uint4 packedOITGBuffer = _VisOITOffscreenGBuffer[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
+        float3 normal;
+        float roughness;
+        float3 diffuseAlbedo;
+        VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer, normal, roughness, diffuseAlbedo);
+
+        /*
+        BSDFData bsdfData = GetBSDFData(normal, roughness, diffuseAlbedo);
+        BuiltinData builtinData = GetBuiltinData(normal, roughness, diffuseAlbedo);
+
+        PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+        LightLoopOutput lightLoopOutput;
+        //LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS
+        // LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD | LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT
+        LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD | LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT, lightLoopOutput);
+
+        float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+        float3 specularLighting = lightLoopOutput.specularLighting;
+
+        diffuseLighting *= GetCurrentExposureMultiplier();
+        specularLighting *= GetCurrentExposureMultiplier();
+        */
+
+        //lighting += float3(1, 0, 0);// diffuseLighting + specularLighting;
+        lighting += _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
+    }
+
+    lighting /= (float)listCount;
+    lighting += currentColor;
+#endif
+
+#if 0
+    uint firstSample = -1;
+    for (uint k = 0; k < listCount; ++k)
+    {
+        int globalOffset = k + listOffset;
+        uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
+
+        Visibility::VisibilityData unusedVisData;
+        uint2 unusedTexelCoord;
+        float depthValue;
+        VisibilityOIT::GetVisibilitySample(k, listOffset, unusedVisData, unusedTexelCoord, depthValue);
+
+        if (depthValue < currentDepth)
+            continue;
+
+        //minDepth = max(depthValue, minDepth);
+        firstSample = k;
+    }
+
     float3 lighting = float3(0.0f, 0.0f, 0.0f);
     int minDepth = 1.0;
     for (uint i = 0; i < listCount; ++i)
+    //uint i = firstSample;
     {
         int globalOffset = i + listOffset;
         uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
@@ -211,26 +294,29 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         float3 diffuseAlbedo;
         VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer, normal, roughness, diffuseAlbedo);
 
-        BSDFData bsdfData = GetBSDFData(normal, roughness, diffuseAlbedo);
-        BuiltinData builtinData = GetBuiltinData(normal, roughness, diffuseAlbedo);
+        //BSDFData bsdfData = GetBSDFData(normal, roughness, diffuseAlbedo);
+        //BuiltinData builtinData = GetBuiltinData(normal, roughness, diffuseAlbedo);
 
-        PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
-        LightLoopOutput lightLoopOutput;
-        //LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS
-        // LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD | LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT
-        LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD | LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT, lightLoopOutput);
+        //PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+        //LightLoopOutput lightLoopOutput;
+        ////LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS
+        //// LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD | LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT
+        //LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD | LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT, lightLoopOutput);
 
-        float3 diffuseLighting = lightLoopOutput.diffuseLighting;
-        float3 specularLighting = lightLoopOutput.specularLighting;
+        //float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+        //float3 specularLighting = lightLoopOutput.specularLighting;
 
-        diffuseLighting *= GetCurrentExposureMultiplier();
-        specularLighting *= GetCurrentExposureMultiplier();
+        //diffuseLighting *= GetCurrentExposureMultiplier();
+        //specularLighting *= GetCurrentExposureMultiplier();
 
-        lighting += float3(1, 0, 0);// diffuseLighting + specularLighting;
+        //lighting += float3(1, 0, 0);
+        //lighting += diffuseLighting + specularLighting;
+        lighting += _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
     }
 
-    lighting /= (float)listCount;
+    //lighting /= (float)listCount;
     lighting += currentColor;
+#endif
 
     _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(lighting, 1.0);
 }

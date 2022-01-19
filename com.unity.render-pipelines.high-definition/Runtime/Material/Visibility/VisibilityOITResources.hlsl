@@ -23,6 +23,7 @@ Texture2D<float2> _OITTileHiZ;
 #endif
 
 TEXTURE2D_X_UINT4(_VisOITOffscreenGBuffer);
+TEXTURE2D_X(_VisOITOffscreenDirectReflectionLighting);
 TEXTURE2D_X(_VisOITOffscreenLighting);
 
 float4 DebugDrawOITHistogram(float2 sampleUV, float2 screenSize)
