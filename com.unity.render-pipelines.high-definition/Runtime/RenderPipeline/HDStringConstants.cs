@@ -1139,7 +1139,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _PackedOITTileHistogramArgs = Shader.PropertyToID("_PackedOITTileHistogramArgs");
         public static readonly int _VBufferLightingOffscreenParams = Shader.PropertyToID("_VBufferLightingOffscreenParams");
         public static readonly int _VisOITOffscreenLighting = Shader.PropertyToID("_VisOITOffscreenLighting");
-        public static readonly int _VisOITOffscreenGBuffer = Shader.PropertyToID("_VisOITOffscreenGBuffer");
+        public static readonly int _VisOITOffscreenGBuffer0 = Shader.PropertyToID("_VisOITOffscreenGBuffer0");
+        public static readonly int _VisOITOffscreenGBuffer1 = Shader.PropertyToID("_VisOITOffscreenGBuffer1");
         public static readonly int _VisOITOffscreenDirectReflectionLighting = Shader.PropertyToID("_VisOITOffscreenDirectReflectionLighting");
 
         //Visibility classification
