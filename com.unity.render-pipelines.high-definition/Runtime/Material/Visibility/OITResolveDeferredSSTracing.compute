@@ -203,42 +203,12 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         float depthValue;
         VisibilityOIT::GetVisibilitySample(i, listOffset, unusedVisData, unusedTexelCoord, depthValue);
 
-        //if (depthValue < currentDepth)
-        //    continue;
+        if (depthValue < currentDepth)
+            continue;
 
         minDepth = max(depthValue, minDepth);
-
-        int2 tileCoord = (float2)posInputRaw.positionSS.xy / GetTileSize();
-        PositionInputs posInput = GetPositionInput(posInputRaw.positionSS.xy, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
-
-        float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
-
         // .
-        uint4 packedOITGBuffer = _VisOITOffscreenGBuffer[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
-        float3 normal;
-        float roughness;
-        float3 diffuseAlbedo;
-        VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer, normal, roughness, diffuseAlbedo);
-
-        /*
-        BSDFData bsdfData = GetBSDFData(normal, roughness, diffuseAlbedo);
-        BuiltinData builtinData = GetBuiltinData(normal, roughness, diffuseAlbedo);
-
-        PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
-        LightLoopOutput lightLoopOutput;
-        //LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS
-        // LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD | LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT
-        LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD | LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT, lightLoopOutput);
-
-        float3 diffuseLighting = lightLoopOutput.diffuseLighting;
-        float3 specularLighting = lightLoopOutput.specularLighting;
-
-        diffuseLighting *= GetCurrentExposureMultiplier();
-        specularLighting *= GetCurrentExposureMultiplier();
-        */
-
-        //lighting += float3(1, 0, 0);// diffuseLighting + specularLighting;
-        lighting += _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
+        lighting += _VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
     }
 
     lighting /= (float)listCount;

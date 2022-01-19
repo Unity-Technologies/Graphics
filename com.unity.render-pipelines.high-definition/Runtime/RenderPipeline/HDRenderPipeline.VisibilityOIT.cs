@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         GraphicsFormat GetDeferredSSTracingHiZFormat()
         {
-            return GraphicsFormat.R16G16B16_SFloat;
+            return GraphicsFormat.R16G16_SFloat;
         }
 
         int GetOITVisibilityBufferSize()
@@ -426,9 +426,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         enableRandomWrite = true,
                         useMipMap = false,
-                        colorFormat = GraphicsFormat.R16G16_SFloat,
+                        colorFormat = GetDeferredSSTracingHiZFormat(),
                         bindTextureMS = false,
-                        clearBuffer = false,
+                        clearBuffer = true,
                         clearColor = Color.black,
                         name = "OITTileHiZ"
                     }));
@@ -687,6 +687,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.BRGBindingData = BRGBindingData;
                 passData.oitVisibilityBuffer = builder.ReadComputeBuffer(vbufferOIT.oitVisibilityBuffer);
+                passData.pixelHashBuffer = builder.ReadComputeBuffer(vbufferOIT.pixelHashBuffer);
 
                 float packedWidth; unsafe { int offscreenDimsWidth = offscreenDimensions.x; packedWidth = *((float*)&offscreenDimsWidth); };
                 float packedMaxSamples; unsafe { packedMaxSamples = *((float*)&maxSampleCounts); };
@@ -699,11 +700,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         BindGlobalLightListBuffers(data, context);
                         BindDBufferGlobalData(data.dbuffer, context);
 
-                        //CoreUtils.SetKeyword(context.cmd, "USE_FPTL_LIGHTLIST", false);
-                        //CoreUtils.SetKeyword(context.cmd, "USE_CLUSTERED_LIGHTLIST", true);
+                        CoreUtils.SetKeyword(context.cmd, "USE_FPTL_LIGHTLIST", false);
+                        CoreUtils.SetKeyword(context.cmd, "USE_CLUSTERED_LIGHTLIST", true);
 
                         data.BRGBindingData.globalGeometryPool.BindResourcesGlobal(context.cmd);
                         Rect targetViewport = new Rect(0.0f, 0.0f, (float)data.offscreenDimensions.x, (float)data.offscreenDimensions.y);
+
+                        context.cmd.SetGlobalBuffer(HDShaderIDs._OITOutputPixelHash, data.pixelHashBuffer);
                         context.cmd.SetGlobalBuffer(HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetGlobalVector(HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
                         context.cmd.SetViewport(targetViewport);
@@ -824,6 +827,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenGBuffer, data.gBufferTexture);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenDirectReflectionLighting, data.offscreenDirectReflectionLightingTexture);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenLighting, data.offscreenDirectReflectionLightingTexture);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);
                         context.cmd.DispatchCompute(data.cs, kernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), 1);
