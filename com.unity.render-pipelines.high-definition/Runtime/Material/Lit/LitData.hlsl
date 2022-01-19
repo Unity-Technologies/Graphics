@@ -158,6 +158,8 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_PLANAR;
 #elif defined(_MAPPING_TRIPLANAR)
     mappingType = UV_MAPPING_TRIPLANAR;
+#elif defined(_MAPPING_ANALYTICAL_GRADIENTS)
+    mappingType = UV_MAPPING_ANALYTICAL_GRADIENTS;
 #endif
 
 
@@ -213,6 +215,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
+        #ifndef LAYERED_LIT_SHADER
+        layerTexCoord.base.ddxUV = input.texCoord0ddx;
+        layerTexCoord.base.ddyUV = input.texCoord0ddy;
+        #endif
     GetLayerTexCoord(input, layerTexCoord);
 
 #if !defined(SHADER_STAGE_RAY_TRACING)

@@ -20,6 +20,10 @@ real4 ADD_FUNC_SUFFIX(SampleUVMapping)(TEXTURE2D_PARAM(textureName, samplerName)
 
         return val;
     }
+    else if (uvMapping.mappingType == UV_MAPPING_ANALYTICAL_GRADIENTS)
+    {
+        return SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, uvMapping.uv, uvMapping.ddxUV, uvMapping.ddyUV);
+    }
     else // UV_MAPPING_UVSET / UV_MAPPING_PLANAR
     {
         return SAMPLE_TEXTURE_FUNC(textureName, samplerName, uvMapping.uv, param);

@@ -240,6 +240,9 @@ FragInputs EvaluateFragInput(
     outFragInputs.positionRWS = posWS;
     outFragInputs.texCoord0 = float4(texCoord0, 0.0, 1.0);
     outFragInputs.texCoord1 = float4(texCoord1, 0.0, 1.0);
+
+    outFragInputs.texCoord0ddx = INTERPOLATE_ATTRIBUTE(UV0, UV1, UV2, baryResult.m_ddx);
+    outFragInputs.texCoord0ddy = INTERPOLATE_ATTRIBUTE(UV0, UV1, UV2, baryResult.m_ddy);
     //outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, 1.0);
     outFragInputs.tangentToWorld = CreateTangentToWorld(normalWS, tangentWS, sign(tangentOS.w));
     outFragInputs.isFrontFace = dot(V, normalWS) > 0.0f;
