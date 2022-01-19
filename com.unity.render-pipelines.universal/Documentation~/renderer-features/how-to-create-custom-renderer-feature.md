@@ -252,7 +252,8 @@ public class LensFlareRendererFeature : ScriptableRendererFeature
             _mesh = mesh;
         }
 
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderContext context,
+            ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(name: "LensFlarePass");
             cmd.DrawMesh(_mesh, Matrix4x4.identity, _material);
@@ -270,7 +271,8 @@ public class LensFlareRendererFeature : ScriptableRendererFeature
         _lensFlarePass = new LensFlarePass(material, mesh);
     }
 
-    public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
+    public override void AddRenderPasses(ScriptableRenderer renderer,
+        ref RenderingData renderingData)
     {
         if (material != null && mesh != null)
         {
@@ -290,8 +292,48 @@ This section shows how to create
 
     ![](../Images/customizing-urp/custom-renderer-feature/select-mesh-and-material.png)
 
-3. The Renderer Feature draws the quad in the Scene, but at this point it's just black. This is because the `Universal Render Pipeline/Unlit` shader has multiple passes, and one of them paints the quad black. To change this behavior, edit the `cmd.DrawMesh` method as follows:
+3. The Renderer Feature draws the quad in the Scene, but at this point it's just black. This is because the `Universal Render Pipeline/Unlit` shader has multiple passes, and one of them paints the quad black. To change this behavior, use the `cmd.DrawMesh` method overload that accepts the `shaderPass` argument, and specify shader pass 0:
 
     ```C#
     cmd.DrawMesh(_mesh, Matrix4x4.identity, _material, 0, 0);
     ```
+
+The following steps show the changes that are specific to the effect implementation in this example. They are for illustrative purposes.
+
+1. Add the following lines in the `Execute` method. Place them after the `cmd` object declaration. These lines ensure that Unity draws the quad with the flare in the following way:
+    
+    <ul>
+        <li>In the screen space.</li>
+        <li>With the correct aspect ratio.</li>
+        <li>For each Light, in the center of the Light.</li>
+    </ul>
+
+    ```C#
+    Camera camera = renderingData.cameraData.camera;
+    // Set the projection matrix so that Unity draws the quad in screen space
+    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+    // Add the scale variable, use the Camera aspect ration for the y coordinate
+    Vector3 scale = new Vector3(1, camera.aspect, 1);
+    // Draw a quad for each Light, at the screen space position of the Light.
+    foreach (VisibleLight visibleLight in renderingData.lightData.visibleLights)
+    {
+        Light light = visibleLight.light;
+        // Convert the position of each Light from world to viewport point.
+        Vector3 position =
+            camera.WorldToViewportPoint(light.transform.position) * 2 - Vector3.one;
+        // Set the z coordinate of the quads to 0 so that Uniy draws them on the same plane.
+        position.z = 0;
+        // Change the Matrix4x4 argument in the cmd.DrawMesh method to use the position and
+        // the scale variables.
+        cmd.DrawMesh(_mesh, Matrix4x4.TRS(position, Quaternion.identity, scale),
+            _material, 0, 0);
+    }
+    ```
+
+    Now Unity draws a quad in the center of each Light.
+
+    ![](../Images/customizing-urp/custom-renderer-feature/quad-in-screen-space-on-light.png)
+
+2. To visualize the lens flare, add the following texture to the `LensFlare` Material.
+
+    ![](../Images/customizing-urp/custom-renderer-feature/lens-flare-texture.png)
