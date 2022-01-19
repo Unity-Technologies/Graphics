@@ -16,11 +16,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             enabled = true,
             memoryBudget = 16.0f,
-            oitLightingMode = OITLightingMode.ForwardFast
+            oitLightingMode = OITLightingMode.ForwardFast,
+            maxHiZMip = 4
         };
 
         public bool enabled;
         public float memoryBudget;
         public OITLightingMode oitLightingMode;
+        public int maxHiZMip;
     }
 }

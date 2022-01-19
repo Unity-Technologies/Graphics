@@ -716,6 +716,10 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.orderIndependentTransparentSettings.enabled, Styles.orderIndepdendentTransparentEnabled);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.orderIndependentTransparentSettings.memoryBudget, Styles.orderIndepdendentTransparentMemBudget);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode, Styles.orderIndepdendentTransparentOITLightingMode);
+            if (serialized.renderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode.enumValueIndex == (int)OITLightingMode.DeferredSSTracing)
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.orderIndependentTransparentSettings.maxHiZMip, Styles.orderIndepdendentTransparentMaxHizZMip);
+            }
         }
 
         static void Drawer_SectionWaterSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)

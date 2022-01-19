@@ -443,6 +443,11 @@ Shader "Hidden/HDRP/DebugFullScreen"
                         return float4(1,0,0,0);
                     #endif
                 }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_OITHI_Z)
+                {
+                    float2 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).rg;
+                    return float4(color.rg, 0.0, 1.0);
+                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_PRE_REFRACTION_COLOR_PYRAMID
                     || _FullScreenDebugMode == FULLSCREENDEBUGMODE_FINAL_COLOR_PYRAMID)
                 {

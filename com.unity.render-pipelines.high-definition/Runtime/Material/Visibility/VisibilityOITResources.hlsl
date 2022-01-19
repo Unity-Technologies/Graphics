@@ -15,6 +15,12 @@ ByteAddressBuffer _VisOITListsCounts;
 ByteAddressBuffer _VisOITListsOffsets;
 ByteAddressBuffer _VisOITSubListsCounts;
 
+#if defined(USE_TEXTURE2D_X_AS_ARRAY)
+Texture2DArray<float2> _OITTileHiZ;
+#else
+Texture2D<float2> _OITTileHiZ;
+#endif
+
 TEXTURE2D_X_UINT4(_VisOITOffscreenGBuffer);
 TEXTURE2D_X(_VisOITOffscreenLighting);
 

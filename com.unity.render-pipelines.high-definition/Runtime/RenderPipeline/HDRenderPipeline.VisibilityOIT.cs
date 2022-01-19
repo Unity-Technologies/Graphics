@@ -46,6 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 readVBuffer.sublistCounterBuffer = builder.ReadComputeBuffer(sublistCounterBuffer);
                 readVBuffer.pixelHashBuffer = builder.ReadComputeBuffer(pixelHashBuffer);
                 readVBuffer.oitVisibilityBuffer = builder.ReadComputeBuffer(oitVisibilityBuffer);
+
                 readVBuffer.BRGBindingData = BRGBindingData;
                 return readVBuffer;
             }
@@ -120,7 +121,6 @@ namespace UnityEngine.Rendering.HighDefinition
             output.vbufferOIT.oitVisibilityBuffer = oitVisibilityBuffer;
             output.vbufferOIT.BRGBindingData = BRGBindingData;
         }
-
 
         class VBufferOITCountPassData
         {
@@ -359,6 +359,134 @@ namespace UnityEngine.Rendering.HighDefinition
             return outVisibilityBuffer;
         }
 
+        class VBufferOITComputeHiZPassData
+        {
+            public ComputeShader cs;
+            public RenderBRGBindingData BRGBindingData;
+            public ComputeBufferHandle countBuffer;
+            public ComputeBufferHandle offsetBuffer;
+            public ComputeBufferHandle sublistCounterBuffer;
+            public ComputeBufferHandle oitVisibilityBuffer;
+
+            public TextureHandle oitTileHiZOutput;
+
+            public int oitHiZMipIdxGenerated;
+            public Vector2Int[] oitHiZMipsOffsets;
+            public Vector2Int[] oitHiZMipsSizes;
+
+            public Vector2Int screenSize;
+            public Vector4 packedArgs;
+        }
+
+        void RenderVBufferOITTileHiZPass(
+            RenderGraph renderGraph, HDCamera hdCamera, int maxMaterialSampleCount, Vector2Int screenSize, VBufferOITOutput vbufferOIT,
+            ComputeBufferHandle countBuffer, ComputeBufferHandle offsetBuffer, ComputeBufferHandle sublistCounterBuffer, ComputeBufferHandle oitVisibilityBuffer,
+            out TextureHandle oitTileHiZTexture)
+        {
+            using (var builder = renderGraph.AddRenderPass<VBufferOITComputeHiZPassData>("VBufferOITComputeHiZ", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITComputeHiZ)))
+            {
+                passData.cs = defaultResources.shaders.oitTileComputeHiZCS;
+
+                passData.screenSize = screenSize;
+
+                float maxMaterialSampleCountAsFloat; unsafe { maxMaterialSampleCountAsFloat = *((float*)&maxMaterialSampleCount); };
+                passData.packedArgs = new Vector4(maxMaterialSampleCountAsFloat, 0.0f, 0.0f, 0.0f);
+                passData.countBuffer = builder.ReadComputeBuffer(countBuffer);
+                passData.oitVisibilityBuffer = builder.ReadComputeBuffer(oitVisibilityBuffer);
+                passData.sublistCounterBuffer = builder.ReadComputeBuffer(sublistCounterBuffer);
+                passData.offsetBuffer = builder.ReadComputeBuffer(offsetBuffer);
+
+                passData.oitHiZMipsOffsets = hdCamera.depthBufferMipChainInfo.mipLevelOffsets;
+                passData.oitHiZMipsSizes = hdCamera.depthBufferMipChainInfo.mipLevelSizes;
+
+                oitTileHiZTexture = builder.ReadWriteTexture(renderGraph.CreateTexture(
+                    new TextureDesc(hdCamera.depthBufferMipChainInfo.textureSize.x, hdCamera.depthBufferMipChainInfo.textureSize.y, false, true)
+                    {
+                        enableRandomWrite = true,
+                        useMipMap = false,
+                        colorFormat = GraphicsFormat.R16G16_SFloat,
+                        bindTextureMS = false,
+                        clearBuffer = false,
+                        clearColor = Color.black,
+                        name = "OITTileHiZ"
+                    }));
+                passData.oitTileHiZOutput = oitTileHiZTexture;
+
+                builder.SetRenderFunc(
+                    (VBufferOITComputeHiZPassData data, RenderGraphContext context) =>
+                    {
+                        int kernel = data.cs.FindKernel("MainInitialize");
+                        context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
+                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.countBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetBuffer);
+
+                        Vector2Int offsetInput = passData.oitHiZMipsOffsets[0];
+                        Vector2Int offsetOutput = passData.oitHiZMipsOffsets[0];
+                        Vector2Int sizeOutput = passData.oitHiZMipsSizes[0];
+
+                        context.cmd.SetComputeIntParams(data.cs, HDShaderIDs._OITHiZMipInfos, offsetInput.x, offsetInput.y, offsetOutput.x, offsetOutput.y);
+
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OITTileHiZOutput, data.oitTileHiZOutput, 0);
+
+                        context.cmd.DispatchCompute(data.cs, kernel, HDUtils.DivRoundUp(sizeOutput.x, 8), HDUtils.DivRoundUp(sizeOutput.y, 8), 1);
+                    });
+            }
+
+            int maxHiZMip = currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.maxHiZMip;
+            Vector2Int screenSizeCurrent = screenSize;
+            for (int i = 1; i < maxHiZMip; ++i)
+            {
+                using (var builder = renderGraph.AddRenderPass<VBufferOITComputeHiZPassData>($"VBufferOITComputeHiZ_{i}", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITComputeHiZ)))
+                {
+                    passData.cs = defaultResources.shaders.oitTileComputeHiZCS;
+
+                    float maxMaterialSampleCountAsFloat; unsafe { maxMaterialSampleCountAsFloat = *((float*)&maxMaterialSampleCount); };
+                    passData.packedArgs = new Vector4(maxMaterialSampleCountAsFloat, 0.0f, 0.0f, 0.0f);
+                    passData.countBuffer = builder.ReadComputeBuffer(countBuffer);
+                    passData.oitVisibilityBuffer = builder.ReadComputeBuffer(oitVisibilityBuffer);
+                    passData.sublistCounterBuffer = builder.ReadComputeBuffer(sublistCounterBuffer);
+                    passData.offsetBuffer = builder.ReadComputeBuffer(offsetBuffer);
+                    passData.oitTileHiZOutput = builder.ReadWriteTexture(oitTileHiZTexture);
+
+                    screenSizeCurrent = new Vector2Int(screenSizeCurrent.x / 2, screenSizeCurrent.y / 2);
+                    passData.screenSize = screenSizeCurrent;
+                    passData.oitHiZMipsOffsets = hdCamera.depthBufferMipChainInfo.mipLevelOffsets;
+                    passData.oitHiZMipsSizes = hdCamera.depthBufferMipChainInfo.mipLevelSizes;
+                    passData.oitHiZMipIdxGenerated = i;
+
+                    builder.SetRenderFunc(
+                        (VBufferOITComputeHiZPassData data, RenderGraphContext context) =>
+                        {
+                            int kernel = data.cs.FindKernel("MainTileComputeHiZ");
+                            context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
+                            context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
+                            context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.countBuffer);
+                            context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetBuffer);
+
+                            int idx = data.oitHiZMipIdxGenerated;
+
+                            Vector2Int srcSize = data.oitHiZMipsSizes[idx - 1];
+                            Vector2Int dstSize = data.oitHiZMipsSizes[idx];
+                            Vector2Int srcOffset = data.oitHiZMipsOffsets[idx - 1];
+                            Vector2Int dstOffset = data.oitHiZMipsOffsets[idx];
+                            Vector2Int srcLimit = srcOffset + srcSize - Vector2Int.one;
+
+                            int[] srcOffsetParams = { srcOffset.x, srcOffset.y, srcLimit.x, srcLimit.y };
+                            int[] dstOffsetParams = { dstOffset.x, dstOffset.y, 0, 0 };
+
+                            context.cmd.SetComputeIntParams(data.cs, HDShaderIDs._SrcOffsetAndLimit, srcOffsetParams);
+                            context.cmd.SetComputeIntParams(data.cs, HDShaderIDs._DstOffset, dstOffsetParams);
+                            context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OITTileHiZOutput, data.oitTileHiZOutput);
+
+                            context.cmd.DispatchCompute(data.cs, kernel, HDUtils.DivRoundUp(dstSize.x, 8), HDUtils.DivRoundUp(dstSize.y, 8), 1);
+                        });
+                }
+            }
+
+            PushFullScreenDebugTexture(renderGraph, oitTileHiZTexture, FullScreenDebugMode.VisibilityOITHiZ);
+        }
+
         class VBufferOITLightingOffscreen : ForwardOpaquePassData
         {
             public RenderBRGBindingData BRGBindingData;
@@ -400,7 +528,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderOITVBufferLightingOffscreenDeferredSSTracing(
                     renderGraph, cull, hdCamera, shadowResult, prepassData.vbufferOIT, lightLists, prepassData, out normalRoughnessDiffuseAlbedoTexture, out var offscreenDimensions);
 
-                OITResolveLightingDeferredSSTracing(renderGraph, hdCamera, prepassData.vbufferOIT, normalRoughnessDiffuseAlbedoTexture, offscreenDimensions, depthBuffer, ref colorBuffer);
+                int maxMaterialSampleCount = GetMaxMaterialOITSampleCount();
+                TextureHandle oitTileHiZTexture;
+                RenderVBufferOITTileHiZPass(
+                    renderGraph, hdCamera, maxMaterialSampleCount, new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight), prepassData.vbufferOIT,
+                    prepassData.vbufferOIT.sampleListCountBuffer,
+                    prepassData.vbufferOIT.sampleListOffsetBuffer,
+                    prepassData.vbufferOIT.sublistCounterBuffer,
+                    prepassData.vbufferOIT.oitVisibilityBuffer, out oitTileHiZTexture);
+
+                OITResolveLightingDeferredSSTracing(renderGraph, hdCamera, prepassData.vbufferOIT, normalRoughnessDiffuseAlbedoTexture, oitTileHiZTexture, offscreenDimensions, depthBuffer, ref colorBuffer);
             }
         }
 
@@ -591,6 +728,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle oitVisibilityBuffer;
             public ComputeBufferHandle offsetListBuffer;
             public ComputeBufferHandle sublistCounterBuffer;
+
+            public TextureHandle oitTileHiZTexture;
+
             public TextureHandle outputColor;
             public Vector4 packedArgs;
         }
@@ -598,6 +738,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void OITResolveLightingDeferredSSTracing(RenderGraph renderGraph, HDCamera hdCamera,
             in VBufferOITOutput vbufferOIT,
             TextureHandle normalRoughnessDiffuseAlbedoTexture,
+            TextureHandle oitTileHiZTexture,
             Vector2Int offscreenLightingSize,
             TextureHandle depthBuffer, ref TextureHandle colorBuffer)
         {
@@ -608,6 +749,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.oitVisibilityBuffer = builder.ReadComputeBuffer(vbufferOIT.oitVisibilityBuffer);
                 passData.sublistCounterBuffer = builder.ReadComputeBuffer(vbufferOIT.sublistCounterBuffer);
                 passData.offsetListBuffer = builder.ReadComputeBuffer(vbufferOIT.sampleListOffsetBuffer);
+
+                passData.oitTileHiZTexture = builder.ReadTexture(oitTileHiZTexture);
+
                 passData.normalRoughnessDiffuseAlbedo = builder.ReadTexture(normalRoughnessDiffuseAlbedoTexture);
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.outputColor = builder.WriteTexture(colorBuffer);
@@ -628,6 +772,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OITTileHiZ, data.oitTileHiZTexture);
+
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenGBuffer, data.normalRoughnessDiffuseAlbedo);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);

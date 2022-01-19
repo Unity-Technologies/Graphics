@@ -153,6 +153,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VisibilityOITStencilCount,
         /// <summary>Maximum count of visibility OIT stencil buffer.</summary>
         VisibilityOITPrimitives,
+        /// <summary>OIT HiZ buffer.</summary>
+        VisibilityOITHiZ,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 

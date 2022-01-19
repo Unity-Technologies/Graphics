@@ -85,7 +85,7 @@ void Frag(Varyings packedInput, out uint4 outNormalRoughnessDiffuseAlbedoTexture
     int2 tileCoord = (float2)input.positionSS.xy / GetTileSize();
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
 
-#if 1
+#if 0
     SurfaceData surfaceData;
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);

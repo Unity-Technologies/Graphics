@@ -218,7 +218,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         LightLoopOutput lightLoopOutput;
         //LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS
         // LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD | LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT
-        LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD, lightLoopOutput);
+        LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD | LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT, lightLoopOutput);
 
         float3 diffuseLighting = lightLoopOutput.diffuseLighting;
         float3 specularLighting = lightLoopOutput.specularLighting;
@@ -226,7 +226,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         diffuseLighting *= GetCurrentExposureMultiplier();
         specularLighting *= GetCurrentExposureMultiplier();
 
-        lighting += diffuseLighting + specularLighting;
+        lighting += float3(1, 0, 0);// diffuseLighting + specularLighting;
     }
 
     lighting /= (float)listCount;

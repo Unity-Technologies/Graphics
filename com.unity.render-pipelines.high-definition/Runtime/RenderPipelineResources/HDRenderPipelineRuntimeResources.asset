@@ -70,6 +70,7 @@ MonoBehaviour:
     oitTileHistogramCS: {fileID: 7200000, guid: 6868e66d816c0a346a08a9ea0f58ec59, type: 3}
     oitResolveForwardFastCS: {fileID: 7200000, guid: df166825db32f7c41b45e7a1b8709292, type: 3}
     oitResolveDeferredSSTracingCS: {fileID: 7200000, guid: 2c76c1540432e224dbc33802bd61d353, type: 3}
+    oitTileComputeHiZCS: {fileID: 7200000, guid: 696d90c019f9bfc429b07913cb9be8a8, type: 3}
     blitCubemapPS: {fileID: 4800000, guid: d05913e251bed7a4992c921c62e1b647, type: 3}
     buildProbabilityTablesCS: {fileID: 7200000, guid: b9f26cf340afe9145a699753531b2a4c, type: 3}
     computeGgxIblSampleDataCS: {fileID: 7200000, guid: 764a24bb47ef5ba4781d9ae82ca07445, type: 3}
