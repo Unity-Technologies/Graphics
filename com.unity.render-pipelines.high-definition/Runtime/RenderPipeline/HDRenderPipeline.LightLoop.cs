@@ -971,7 +971,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.splitLightingMat = GetDeferredLightingMaterial(true /*split lighting*/, passData.enableShadowMasks, debugDisplayOrSceneLightOff);
                 passData.regularLightingMat = GetDeferredLightingMaterial(false /*split lighting*/, passData.enableShadowMasks, debugDisplayOrSceneLightOff);
 
-                passData.pathtracedGI = builder.ReadWriteTexture(pathtracedGI);
+                passData.pathtracedGI = pathtracedGI.IsValid() ? builder.ReadTexture(pathtracedGI) : TextureHandle.nullHandle;
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);
                 if (passData.outputSplitLighting)
                 {
@@ -1027,10 +1027,24 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             context.cmd.SetGlobalTexture(HDShaderIDs._ShadowMaskTexture, TextureXR.GetWhiteTexture());
 
-                        /*context.cmd.SetRenderTarget(pathtracedGI);
-                        context.cmd.ClearRenderTarget(true, true, Color.blue);*/
+                        if (data.pathtracedGI.IsValid())
+                        {
+                            var size = RenderGraphResourceRegistry.current.GetTexture(data.pathtracedGI).referenceSize;
 
-                        context.cmd.SetGlobalTexture(HDShaderIDs._BakedGIPreviewTexture, pathtracedGI);
+                            if (m_BakedGIPreviewTexture == null || size.x != m_BakedGIPreviewTexture.height || size.y != m_BakedGIPreviewTexture.width)
+                            {
+                                m_BakedGIPreviewTexture = new Texture2D(size.x, size.y, TextureFormat.RGBAHalf, false);
+                            }
+
+                            context.cmd.CopyTexture(data.pathtracedGI, 0, 0, m_BakedGIPreviewTexture, 0, 0);
+                            context.cmd.SetGlobalTexture(HDShaderIDs._BakedGIPreviewTexture, m_BakedGIPreviewTexture);
+                        }
+                        else
+                        {
+                            context.cmd.SetGlobalTexture(HDShaderIDs._BakedGIPreviewTexture, TextureXR.GetWhiteTexture());
+                        }
+
+
 
                         BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
 
@@ -1051,10 +1065,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return output;
             }
         }
-
-
-        RTHandle m_MagentaTextureRTH;
-        Texture2D m_MagentaTexture;
 
         class RenderSSRPassData
         {

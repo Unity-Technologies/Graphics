@@ -21,7 +21,6 @@
 #define MAX_DISTANT_LIGHT_COUNT 4
 
 #define DELTA_PDF 1000000.0
-
 // Supports punctual, spot, rect area and directional lights, in addition to one sky (aka environment)
 struct LightList
 {

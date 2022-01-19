@@ -316,8 +316,15 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, layerTexCoord.base, builtinData);
-    //builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D(_BakedGIPreviewTexture, posInput.positionSS);
-    //builtinData.bakeDiffuseLighting = float3(0.0, 5.0, 0.0);
+
+    // overwrite
+    int texWidth, texHeight, levels;
+    _BakedGIPreviewTexture.GetDimensions(0, texWidth, texHeight, levels);
+    if (texWidth > 16)
+    {
+        builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_BakedGIPreviewTexture, posInput.positionSS) * GetInverseCurrentExposureMultiplier();
+    }
+
 #ifdef _ALPHATEST_ON
     // Used for sharpening by alpha to mask
     builtinData.alphaClipTreshold = alphaCutoff;

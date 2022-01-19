@@ -33,12 +33,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ScriptableRenderContext renderContext,
             CommandBuffer commandBuffer)
         {
-            /*if (m_BakedGIPreviewTexture == null)
-            {
-                m_BakedGIPreviewTexture = new RenderTexture(512, 512, 0);
-            }*/
-
-
             using (new ProfilingScope(commandBuffer, ProfilingSampler.Get(HDProfileId.RecordRenderGraph)))
             {
                 var hdCamera = renderRequest.hdCamera;
@@ -83,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 TextureHandle backBuffer = m_RenderGraph.ImportBackbuffer(target.id);
                 TextureHandle colorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, msaa);
-                TextureHandle pathTracingColorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, msaa);
+
 
                 m_NonMSAAColorBuffer = CreateColorBuffer(m_RenderGraph, hdCamera, false);
                 TextureHandle currentColorPyramid = m_RenderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
@@ -111,7 +105,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle uiBuffer = m_RenderGraph.defaultResources.blackTextureXR;
                 TextureHandle sunOcclusionTexture = m_RenderGraph.defaultResources.whiteTexture;
 
-                //colorBuffer = RenderPathTracing(m_RenderGraph, hdCamera, colorBuffer);
+                bool pathtracingEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && hdCamera.volumeStack.GetComponent<PathTracing>().enable.value && hdCamera.camera.cameraType != CameraType.Preview && GetRayTracingState() && GetRayTracingClusterState();
+
+                TextureHandle pathTracingColorBuffer = pathtracingEnabled  ? CreateColorBuffer(m_RenderGraph, hdCamera, msaa) : TextureHandle.nullHandle;
+                if (pathtracingEnabled)
+                {
+                    pathTracingColorBuffer = RenderPathTracing(m_RenderGraph, hdCamera, pathTracingColorBuffer);
+                }
 
                 if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.IsFullScreenDebugPassEnabled())
                 {
@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer, prepassOutput.gbuffer, prepassOutput.depthBuffer, vtFeedbackBuffer);
                     colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
                 }
-                else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && hdCamera.volumeStack.GetComponent<PathTracing>().enable.value && hdCamera.camera.cameraType != CameraType.Preview && GetRayTracingState() && GetRayTracingClusterState())
+                /*else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && hdCamera.volumeStack.GetComponent<PathTracing>().enable.value && hdCamera.camera.cameraType != CameraType.Preview && GetRayTracingState() && GetRayTracingClusterState())
                 {
                     //// We only request the light cluster if we are gonna use it for debug mode
                     //if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && GetRayTracingClusterState())
@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
                     resolveVirtualTextureFeedback = false;
 #endif
-                }
+                }*/
                 else
                 {
                     gpuLightListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_TileAndClusterData, m_TotalLightCount, ref m_ShaderVariablesLightListCB, prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.gbuffer);
@@ -289,6 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 #endif
                 //colorBuffer = pathTracingColorBuffer;
+
                 // At this point, the color buffer has been filled by either debug views are regular rendering so we can push it here.
                 var colorPickerTexture = PushColorPickerDebugTexture(m_RenderGraph, colorBuffer);
 

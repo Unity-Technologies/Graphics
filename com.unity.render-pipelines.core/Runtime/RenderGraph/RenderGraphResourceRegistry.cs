@@ -10,12 +10,12 @@ using CoreRendererListDesc = UnityEngine.Rendering.RendererUtils.RendererListDes
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
-    class RenderGraphResourceRegistry
+    public class RenderGraphResourceRegistry
     {
         const int kSharedResourceLifetime = 30;
 
         static RenderGraphResourceRegistry m_CurrentRegistry;
-        internal static RenderGraphResourceRegistry current
+        public static RenderGraphResourceRegistry current
         {
             get
             {
@@ -99,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         List<CoreRendererList> m_ActiveRendererLists = new List<CoreRendererList>(kInitialRendererListCount);
 
         #region Internal Interface
-        internal RTHandle GetTexture(in TextureHandle handle)
+        public RTHandle GetTexture(in TextureHandle handle)
         {
             if (!handle.IsValid())
                 return null;
