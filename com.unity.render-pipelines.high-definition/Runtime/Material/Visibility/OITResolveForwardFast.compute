@@ -64,16 +64,5 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     lighting /= (float)listCount;
     lighting += currentColor;
 
-    // will remove this once a debug view exists.
-    bool temporaryHashDebug = false;
-    if (temporaryHashDebug)
-    {
-        uint hackVal = _OITOutputPixelHash.Load(pixelOffset << 2);
-        float r = float((hackVal >> 0) & 0x7FF) / (2047.0f);
-        float g = float((hackVal >> 11) & 0x7FF) / (2047.0f);
-        float b = float((hackVal >> 22) & 0x3FF) / (1023.0f);
-        lighting = float3(r, g, b);
-    }
-
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(lighting, 1.0);
 }

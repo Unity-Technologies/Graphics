@@ -155,6 +155,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VisibilityOITPrimitives,
         /// <summary>OIT HiZ buffer.</summary>
         VisibilityOITHiZ,
+        /// <summary>OIT Hash buffer.</summary>
+        VisibilityOITPixelHash,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 

@@ -14,6 +14,7 @@ ByteAddressBuffer _VisOITPrefixedHistogramBuffer;
 ByteAddressBuffer _VisOITListsCounts;
 ByteAddressBuffer _VisOITListsOffsets;
 ByteAddressBuffer _VisOITSubListsCounts;
+ByteAddressBuffer _VisOITPixelHash;
 
 #if defined(USE_TEXTURE2D_X_AS_ARRAY)
 Texture2DArray<float2> _OITTileHiZ;

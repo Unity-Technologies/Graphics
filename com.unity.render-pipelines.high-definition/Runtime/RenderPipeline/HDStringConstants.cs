@@ -1126,6 +1126,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VisOITListsCounts = Shader.PropertyToID("_VisOITListsCounts");
         public static readonly int _VisOITListsOffsets = Shader.PropertyToID("_VisOITListsOffsets");
         public static readonly int _VisOITSubListsCounts = Shader.PropertyToID("_VisOITSubListsCounts");
+        public static readonly int _VisOITPixelHash = Shader.PropertyToID("_VisOITPixelHash");
 
         public static readonly int _MipSource = Shader.PropertyToID("_MipSource");
 

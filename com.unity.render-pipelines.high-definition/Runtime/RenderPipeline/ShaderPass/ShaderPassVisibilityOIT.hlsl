@@ -36,6 +36,16 @@ void FragStoreVis(PackedVaryingsToPS packedInput)
     uint2 texelCoord = (uint2)packedInput.vmesh.positionCS.xy;
     uint pixelOffset = texelCoord.y * (uint)_ScreenSize.x + texelCoord.x;
     uint listCount = _VisOITListsCounts.Load(pixelOffset << 2);
+
+    FragInputs input = UnpackVaryingsToFragInputs(packedInput);
+
+    // TODO: There is probably a better hash we can use, but this seems fine for now.
+    // Also note: We need to calculate input before calculating the layerHashValue, otherwise
+    // we get the same value everywhere. I'm not sure why.
+    uint layerHashValue = JenkinsHash(GetDOTSInstanceIndex() + 1);
+    uint ignoredHash = 0;
+    _OITOutputPixelHash.InterlockedAdd(pixelOffset << 2, layerHashValue, ignoredHash);
+
     if (listCount == 0)
         return;
 
@@ -43,8 +53,6 @@ void FragStoreVis(PackedVaryingsToPS packedInput)
 
     uint outputSublistOffset = 0;
     _OITOutputSublistCounter.InterlockedAdd(pixelOffset << 2, 1, outputSublistOffset);
-
-    FragInputs input = UnpackVaryingsToFragInputs(packedInput);
 
     Visibility::VisibilityData visData;
     visData.valid = true;
@@ -60,10 +68,5 @@ void FragStoreVis(PackedVaryingsToPS packedInput)
     uint3 outPackedData;
     VisibilityOIT::PackVisibilityData(visData, texelCoord, zValue, outPackedData);
     _OITOutputSamples.Store3(((globalOffset + outputSublistOffset) * 3) << 2, outPackedData);
-
-    // TODO: There is probably a better hash we can use, but this seems fine for now.
-    uint layerHashValue = JenkinsHash(GetDOTSInstanceIndex()+1);
-    uint ignoredHash = 0;
-    _OITOutputPixelHash.InterlockedAdd(pixelOffset << 2, layerHashValue, ignoredHash);
 #endif
 }

@@ -448,6 +448,23 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float2 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).rg;
                     return float4(color.rg, 0.0, 1.0);
                 }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_OITPIXEL_HASH)
+                {
+                    #ifdef DOTS_INSTANCING_ON
+                    float2 sampleUV = input.texcoord.xy / _RTHandleScale.xy;
+                    uint2 samplePosition = (uint2)(sampleUV * _DebugViewportSize.xy);
+                    uint pixelOffset = samplePosition.y * _DebugViewportSize.x + samplePosition.x;
+
+                    uint pixelHash = _VisOITPixelHash.Load(pixelOffset << 2);
+                    float r = float((pixelHash >> 0) & 0x7FF) / (2047.0f);
+                    float g = float((pixelHash >> 11) & 0x7FF) / (2047.0f);
+                    float b = float((pixelHash >> 22) & 0x3FF) / (1023.0f);
+
+                    return float4(r, g, b, 1.0);
+                    #else
+                    return float4(0.0, 1.0, 0.0, 1.0);
+                    #endif
+                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_PRE_REFRACTION_COLOR_PYRAMID
                     || _FullScreenDebugMode == FULLSCREENDEBUGMODE_FINAL_COLOR_PYRAMID)
                 {

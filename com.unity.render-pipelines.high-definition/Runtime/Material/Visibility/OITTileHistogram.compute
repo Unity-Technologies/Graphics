@@ -75,4 +75,3 @@ void MainFlatEnableActiveCounts(int3 dispatchThreadID : SV_DispatchThreadID)
     _OITOutputSublistCounter.Store(outputPixel << 2, 0); //initialize buffer to 0
     _OITOutputPixelHash.Store(outputPixel << 2, 0x0); // initialize hash value to zero
 }
-
