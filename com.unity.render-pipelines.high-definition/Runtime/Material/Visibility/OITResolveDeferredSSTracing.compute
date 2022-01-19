@@ -191,7 +191,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
     float3 lighting = float3(0.0f, 0.0f, 0.0f);
 
-    float minDepth = 1.0;
+    float minDepth = 0.0;
     uint firstSample = -1;
     for (uint k = 0; k < listCount; ++k)
     {
