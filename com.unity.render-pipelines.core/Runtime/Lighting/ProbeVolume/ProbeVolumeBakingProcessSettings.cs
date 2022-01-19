@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering
             squaredDistWeighting = true;
         }
 
-        internal void UpgradeFromTo(ProbeVolumeBakingProcessSettings.SettingsVersion from, ProbeVolumeBakingProcessSettings.SettingsVersion to) {}
+        internal void UpgradeFromTo(ProbeVolumeBakingProcessSettings.SettingsVersion from, ProbeVolumeBakingProcessSettings.SettingsVersion to) { }
     }
 
     [System.Serializable]

@@ -414,7 +414,7 @@ namespace UnityEngine.Experimental.Rendering
                         prop.SetFloatArray("_RelativeSize", relativeSize);
                         prop.SetVectorArray("_IndexInAtlas", texels);
 
-                        if(offsets != null)
+                        if (offsets != null)
                             prop.SetVectorArray("_Offset", offsets);
 
                         props.Add(prop);

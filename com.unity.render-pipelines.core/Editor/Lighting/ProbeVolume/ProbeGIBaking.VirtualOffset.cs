@@ -1,6 +1,6 @@
 #define USE_JOBS
 #if HAS_BURST
-    #define USE_BURST
+#define USE_BURST
 #endif
 //#define VERBOSE
 
@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering
             var queriesHitBackBefore = Physics.queriesHitBackfaces;
             try
             {
-                if(!queriesHitBackBefore)
+                if (!queriesHitBackBefore)
                     Physics.queriesHitBackfaces = true;
 
                 AddOccluders();
@@ -46,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering
             }
             finally
             {
-                if(!queriesHitBackBefore)
+                if (!queriesHitBackBefore)
                     Physics.queriesHitBackfaces = false;
 
                 CleanupOccluders();
@@ -83,15 +83,15 @@ namespace UnityEngine.Experimental.Rendering
             var autoSimState = Physics.autoSimulation;
             try
             {
-                if(autoSimState)
-	                Physics.autoSimulation = false;
+                if (autoSimState)
+                    Physics.autoSimulation = false;
 
                 Physics.Simulate(0.1f);
             }
             finally
             {
-                if(autoSimState)
-	                Physics.autoSimulation = true;
+                if (autoSimState)
+                    Physics.autoSimulation = true;
             }
         }
 
@@ -148,7 +148,8 @@ namespace UnityEngine.Experimental.Rendering
                 positionHasColliders = positionHasColliders,
                 searchDistanceForPosition = searchDistanceForPosition
             };
-            var pushOutGeometryJob = new PushOutGeometryJob {
+            var pushOutGeometryJob = new PushOutGeometryJob
+            {
                 voSettings = voSettings,
                 positions = positions,
                 offsets = offsets,
@@ -300,7 +301,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
 
                 // Zero out any remainder of the raycast array
-                for(; cmdIdx < raycastCommands.Length;)
+                for (; cmdIdx < raycastCommands.Length;)
                     raycastCommands[cmdIdx++] = new RaycastCommand(Vector3.zero, Vector3.zero, 0f, 0, voSettings.maxHitsPerRay);
             }
 
@@ -403,7 +404,7 @@ namespace UnityEngine.Experimental.Rendering
                 distance = float.MaxValue;
                 dotSurface = -1f;
 
-                for(var n = hitIdx + maxHitsPerRay; hitIdx < n; ++hitIdx)
+                for (var n = hitIdx + maxHitsPerRay; hitIdx < n; ++hitIdx)
                 {
                     var hit = raycastHits[hitIdx];
                     if (hit.colliderInstanceID == 0)
