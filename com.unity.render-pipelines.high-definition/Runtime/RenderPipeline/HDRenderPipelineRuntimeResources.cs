@@ -132,6 +132,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Material/Visibility/VBufferClassification.compute")]
             public ComputeShader vbufferTileClassificationCS;
 
+            [Reload("Runtime/Debug/BFProbeDebug.shader")]
+            public Shader debugBFProbePS;
+
             // Sky
             [Reload("Runtime/Sky/BlitCubemap.shader")]
             public Shader blitCubemapPS;

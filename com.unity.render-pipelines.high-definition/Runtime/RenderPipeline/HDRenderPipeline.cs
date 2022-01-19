@@ -464,6 +464,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeVolumetricClouds();
             InitializeSubsurfaceScattering();
             InitializeWaterSystem();
+            InitializeBFProbes();
 
             m_DebugDisplaySettings.RegisterDebug();
             m_DebugDisplaySettingsUI.RegisterDebug(HDDebugDisplaySettings.Instance);
@@ -769,6 +770,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseVolumetricClouds();
             CleanupSubsurfaceScattering();
             ReleaseWaterSystem();
+            ReleaseBFProbes();
 
             // For debugging
             MousePositionDebug.instance.Cleanup();
@@ -1242,6 +1244,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 
+            RenderBFProbes(renderContext);
+
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
@@ -1364,6 +1368,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 }
                             }
                         }
+
+                        RenderBFProbeDebug(hdCamera.camera);
 
                         if (needCulling)
                         {

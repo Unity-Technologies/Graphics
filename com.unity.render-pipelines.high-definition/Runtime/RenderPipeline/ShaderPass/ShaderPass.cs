@@ -34,5 +34,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Constant,
         Visibility,
         FullScreenDebug,
+        ReadSurfaceCache,
     }
 }

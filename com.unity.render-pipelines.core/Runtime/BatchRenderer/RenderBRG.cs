@@ -895,7 +895,7 @@ namespace UnityEngine.Rendering
             m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
             m_BRGTransformUpdater.Initialize();
 
-            m_visibleInstancesBufferPool = new UploadBufferPool(10 * 3, 4096 * 1024);   // HACKS: Max 10 callbacks/frame, 3 frame hard coded reuse. 4MB maximum buffer size (1 million visible indices).
+            m_visibleInstancesBufferPool = new UploadBufferPool(64 * 3, 4096 * 1024);   // HACKS: Max 10 callbacks/frame, 3 frame hard coded reuse. 4MB maximum buffer size (1 million visible indices).
             m_frame = 0;
 
             // Create a batch...

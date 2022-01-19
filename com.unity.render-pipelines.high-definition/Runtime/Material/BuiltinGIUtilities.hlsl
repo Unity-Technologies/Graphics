@@ -2,6 +2,8 @@
 #define __BUILTINGIUTILITIES_HLSL__
 
 // Include the IndirectDiffuseMode enum
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SphericalHarmonics.hlsl" 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
 
 // We need to define this before including ProbeVolume.hlsl as that file expects this function to be defined.

@@ -10,6 +10,16 @@
 #define RAY_TRACING_LIGHT_DATA_REGISTER                         t3
 #define RAY_TRACING_ENV_LIGHT_DATA_REGISTER                     t4
 
+#ifdef NO_SHADER_VARIABLES_GLOBAL
+// HACK!
+#define RENDERING_LIGHT_LAYERS_MASK (255)
+#define RENDERING_LIGHT_LAYERS_MASK_SHIFT (0)
+#define RENDERING_DECAL_LAYERS_MASK (65280)
+#define RENDERING_DECAL_LAYERS_MASK_SHIFT (8)
+#define DEFAULT_RENDERING_LAYER_MASK (257)
+#define MAX_ENV2DLIGHT (32)
+#else
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.cs.hlsl"
+#endif
 
 #endif // UNITY_SHADER_VARIABLES_GLOBAL_INCLUDED

@@ -3,6 +3,7 @@
 //-----------------------------------------------------------------------------
 
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.cs.hlsl"
 // Those define allow to include desired SSS/Transmission functions
 #define MATERIAL_INCLUDE_SUBSURFACESCATTERING

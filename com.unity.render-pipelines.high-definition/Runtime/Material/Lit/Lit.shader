@@ -346,28 +346,7 @@ Shader "HDRP/Lit"
     #define _CONSERVATIVE_DEPTH_OFFSET
     #endif
 
-    //-------------------------------------------------------------------------------------
-    // Include
-    //-------------------------------------------------------------------------------------
-
-    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
-
-    //-------------------------------------------------------------------------------------
-    // variable declaration
-    //-------------------------------------------------------------------------------------
-
-    // #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.cs.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitProperties.hlsl"
-
-    // TODO:
-    // Currently, Lit.hlsl and LitData.hlsl are included for every pass. Split Lit.hlsl in two:
-    // LitData.hlsl and LitShading.hlsl (merge into the existing LitData.hlsl).
-    // LitData.hlsl should be responsible for preparing shading parameters.
-    // LitShading.hlsl implements the light loop API.
-    // LitData.hlsl is included here, LitShading.hlsl is included below for shading passes only.
 
     ENDHLSL
 
@@ -398,6 +377,7 @@ Shader "HDRP/Lit"
 
             // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
             #define SCENEPICKINGPASS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -436,6 +416,7 @@ Shader "HDRP/Lit"
 
             // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
             #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -501,6 +482,7 @@ Shader "HDRP/Lit"
         #endif
 
             #define SHADERPASS SHADERPASS_GBUFFER
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
             #ifdef DEBUG_DISPLAY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
             #endif
@@ -542,6 +524,7 @@ Shader "HDRP/Lit"
             // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
@@ -578,6 +561,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #define SHADERPASS SHADERPASS_SHADOWS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
@@ -626,6 +610,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ WRITE_DECAL_BUFFER
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
@@ -637,6 +622,188 @@ Shader "HDRP/Lit"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "ReadSurfaceCache"
+            Tags{ "LightMode" = "ReadSurfaceCache" }
+
+            Cull[_CullMode]
+            AlphaToMask [_AlphaToMask]
+
+            ZTest LEqual
+            ZWrite On
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+            //enable GPU instancing support
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+            // enable dithering LOD crossfade
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+
+            // In deferred, depth only pass don't output anything.
+            // In forward it output the normal buffer
+            #pragma multi_compile _ WRITE_NORMAL_BUFFER
+            #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
+            #pragma multi_compile _ WRITE_DECAL_BUFFER
+
+            #define NO_SHADER_VARIABLES_GLOBAL
+            #define LIGHT_EVALUATION_NO_HEIGHT_FOG
+            #define LIGHT_EVALUATION_NO_COOKIE
+            #define LIGHT_EVALUATION_NO_CONTACT_SHADOWS
+            #define LIGHT_EVALUATION_NO_SHADOWS
+
+            // HACK: copy of GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
+            float4x4 _ViewMatrix;
+            float4x4 _CameraViewMatrix;
+            float4x4 _InvViewMatrix;
+            float4x4 _ProjMatrix;
+            float4x4 _InvProjMatrix;
+            float4x4 _ViewProjMatrix;
+            float4x4 _CameraViewProjMatrix;
+            float4x4 _InvViewProjMatrix;
+            float4x4 _NonJitteredViewProjMatrix;
+            float4x4 _PrevViewProjMatrix;
+            float4x4 _PrevInvViewProjMatrix;
+            float4 _WorldSpaceCameraPos_Internal;
+            static float4 _PrevCamPosRWS_Internal = 0;
+            static float4 _ScreenSize = 0;
+            static float4 _PostProcessScreenSize = 0;
+            static float4 _RTHandleScale = 0;
+            static float4 _RTHandleScaleHistory = 0;
+            static float4 _RTHandlePostProcessScale = 0;
+            static float4 _RTHandlePostProcessScaleHistory = 0;
+            static float4 _ZBufferParams = 0;
+            static float4 _ProjectionParams = 0;
+            static float4 unity_OrthoParams = 0;
+            static float4 _ScreenParams = 0;
+            static float4 _FrustumPlanes[6];
+            static float4 _ShadowFrustumPlanes[6];
+            static float4 _TaaFrameInfo = 0;
+            static float4 _TaaJitterStrength = 0;
+            static float4 _Time = 0;
+            static float4 _SinTime = 0;
+            static float4 _CosTime = 0;
+            static float4 unity_DeltaTime = 0;
+            static float4 _TimeParameters = 0;
+            static float4 _LastTimeParameters = 0;
+            static int _FogEnabled = 0;
+            static int _PBRFogEnabled = 0;
+            static int _EnableVolumetricFog = 0;
+            static float _MaxFogDistance = 0;
+            static float4 _FogColor = 0;
+            static float _FogColorMode = 0;
+            static float _GlobalMipBias = 0;
+            static float _GlobalMipBiasPow2 = 0;
+            static float _Pad0 = 0;
+            static float4 _MipFogParameters = 0;
+            static float4 _HeightFogBaseScattering = 0;
+            static float _HeightFogBaseExtinction = 0;
+            static float _HeightFogBaseHeight = 0;
+            static float _GlobalFogAnisotropy = 0;
+            static int _VolumetricFilteringEnabled = 0;
+            static float2 _HeightFogExponents = 0;
+            static int _FogDirectionalOnly = 0;
+            static float _Pad1 = 0;
+            static float4 _VBufferViewportSize = 0;
+            static float4 _VBufferLightingViewportScale = 0;
+            static float4 _VBufferLightingViewportLimit = 0;
+            static float4 _VBufferDistanceEncodingParams = 0;
+            static float4 _VBufferDistanceDecodingParams = 0;
+            static uint _VBufferSliceCount = 0;
+            static float _VBufferRcpSliceCount = 0;
+            static float _VBufferRcpInstancedViewCount = 0;
+            static float _VBufferLastSliceDist = 0;
+            static float4 _ShadowAtlasSize = 0;
+            static float4 _CascadeShadowAtlasSize = 0;
+            static float4 _AreaShadowAtlasSize = 0;
+            static float4 _CachedShadowAtlasSize = 0;
+            static float4 _CachedAreaShadowAtlasSize = 0;
+            static float4x4 _Env2DCaptureVP[32];
+            static float4 _Env2DCaptureForward[32];
+            static float4 _Env2DAtlasScaleOffset[32];
+            static uint _DirectionalLightCount = 0;
+            static uint _PunctualLightCount = 0;
+            static uint _AreaLightCount = 0;
+            static uint _EnvLightCount = 0;
+            static int _EnvLightSkyEnabled = 0;
+            static uint _CascadeShadowCount = 0;
+            static int _DirectionalShadowIndex = 0;
+            static uint _EnableLightLayers = 0;
+            static uint _EnableSkyReflection = 0;
+            static uint _EnableSSRefraction = 0;
+            static float _SSRefractionInvScreenWeightDistance = 0;
+            static float _ColorPyramidLodCount = 0;
+            static float _DirectionalTransmissionMultiplier = 0;
+            static float _ProbeExposureScale = 0;
+            static float _ContactShadowOpacity = 0;
+            static float _ReplaceDiffuseForIndirect = 0;
+            static float4 _AmbientOcclusionParam = 0;
+            static float _IndirectDiffuseLightingMultiplier = 0;
+            static uint _IndirectDiffuseLightingLayers = 0;
+            static float _ReflectionLightingMultiplier = 0;
+            static uint _ReflectionLightingLayers = 0;
+            static float _MicroShadowOpacity = 0;
+            static uint _EnableProbeVolumes = 0;
+            static uint _ProbeVolumeCount = 0;
+            static float _SlopeScaleDepthBias = 0;
+            static float4 _CookieAtlasSize = 0;
+            static float4 _CookieAtlasData = 0;
+            static float4 _PlanarAtlasData = 0;
+            static uint _NumTileFtplX = 0;
+            static uint _NumTileFtplY = 0;
+            static float g_fClustScale = 0;
+            static float g_fClustBase = 0;
+            static float g_fNearPlane = 0.1f;
+            static float g_fFarPlane = 1000.f;
+            static int g_iLog2NumClusters = 0;
+            static uint g_isLogBaseBufferEnabled = 0;
+            static uint _NumTileClusteredX = 0;
+            static uint _NumTileClusteredY = 0;
+            static int _EnvSliceSize = 0;
+            static uint _EnableDecalLayers = 0;
+            static float4 _ShapeParamsAndMaxScatterDists[16];
+            static float4 _TransmissionTintsAndFresnel0[16];
+            static float4 _WorldScalesAndFilterRadiiAndThicknessRemaps[16];
+            static uint4 _DiffusionProfileHashTable[16];
+            static uint _EnableSubsurfaceScattering = 0;
+            static uint _TexturingModeFlags = 0;
+            static uint _TransmissionFlags = 0;
+            static uint _DiffusionProfileCount = 0;
+            static float2 _DecalAtlasResolution = 0;
+            static uint _EnableDecals = 0;
+            static uint _DecalCount = 0;
+            static float _OffScreenDownsampleFactor = 0;
+            static uint _OffScreenRendering = 0;
+            static uint _XRViewCount = 1;
+            static int _FrameCount = 0;
+            static float4 _CoarseStencilBufferSize = 0;
+            static int _IndirectDiffuseMode = 0;
+            static int _EnableRayTracedReflections = 0;
+            static int _RaytracingFrameIndex = 0;
+            static uint _EnableRecursiveRayTracing = 0;
+            static int _TransparentCameraOnlyMotionVectors = 0;
+            static float _GlobalTessellationFactorMultiplier = 0;
+            static float _SpecularOcclusionBlend = 0;
+            static float _DeExposureMultiplier = 0;
+
+            #define SHADERPASS SHADERPASS_READ_SURFACE_CACHE
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.cs.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassReadSurfaceCache.hlsl"
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -678,6 +845,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ WRITE_DECAL_BUFFER
 
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
@@ -722,6 +890,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #define SHADERPASS SHADERPASS_TRANSPARENT_DEPTH_PREPASS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
 
             // If the transparent surface should have reflections, then we should output normal
             #if !defined(_DISABLE_SSR_TRANSPARENT)
@@ -788,6 +957,7 @@ Shader "HDRP/Lit"
             #define USE_CLUSTERED_LIGHTLIST // There is not FPTL lighting when using transparent
 
             #define SHADERPASS SHADERPASS_FORWARD
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
 
@@ -873,6 +1043,7 @@ Shader "HDRP/Lit"
             #endif
 
             #define SHADERPASS SHADERPASS_FORWARD
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
             // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
             // Don't do it with debug display mode as it is possible there is no depth prepass in this case
             #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(DEBUG_DISPLAY)
@@ -938,6 +1109,7 @@ Shader "HDRP/Lit"
             #define HAS_LIGHTLOOP
 
             #define SHADERPASS SHADERPASS_VBUFFER_LIGHTING
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
@@ -978,6 +1150,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #define SHADERPASS SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
@@ -1007,6 +1180,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #define SHADERPASS SHADERPASS_CONSTANT
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitConstantPass.hlsl"
@@ -1036,6 +1210,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
@@ -1069,6 +1244,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
 
             // multi compile that allows us to strip the recursive code
             #pragma multi_compile _ MULTI_BOUNCE_INDIRECT
@@ -1121,6 +1297,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
 
             // If you need to change this, be sure to read this comment.
             // For raytracing we decided to force the shadow quality to low.
@@ -1171,6 +1348,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ MINIMAL_GBUFFER
 
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
@@ -1202,6 +1380,7 @@ Shader "HDRP/Lit"
             #pragma raytracing surface_shader
 
             #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
             #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
@@ -1237,6 +1416,7 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_SUB_SURFACE
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
@@ -1272,6 +1452,7 @@ Shader "HDRP/Lit"
             #endif
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitCommon.hlsl"
 
             // This is just because it needs to be defined, shadow maps are not used.
             #define SHADOW_LOW

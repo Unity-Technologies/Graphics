@@ -26,6 +26,7 @@ static const float2 vertexPostion[4] = {float2(0, 0), float2(0, 1), float2(1, 1)
 static const uint triangleIndices[6] = {0, 1, 2, 0, 2, 3};
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 
 float4 GenerateRandomNumbers(uint3 currentThread)
 {

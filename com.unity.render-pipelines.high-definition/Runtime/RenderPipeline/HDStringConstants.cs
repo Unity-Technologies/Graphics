@@ -62,6 +62,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_DecalMeshForwardEmissiveStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive];
         /// <summary>DBuffer VFX Decal pass name</summary>
         public static readonly string s_DBufferVFXDecalStr = "DBufferVFX";
+        /// <summary>ReadSurfaceCache pass name.</summary>
+        public static readonly string s_ReadSurfaceCacheStr = "ReadSurfaceCache";
 
 
         // ShaderPass name
@@ -106,6 +108,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_DecalMeshForwardEmissiveName = new ShaderTagId(s_DecalMeshForwardEmissiveStr);
         /// <summary>DBuffer VFX Decal shader tag id.</summary>
         public static readonly ShaderTagId s_DBufferVFXDecalName = new ShaderTagId(s_DBufferVFXDecalStr);
+        /// <summary>ReadSurfaceCache shader tag id.</summary>
+        public static readonly ShaderTagId s_ReadSurfaceCacheName = new ShaderTagId(s_ReadSurfaceCacheStr);
 
         // Legacy name
         internal static readonly ShaderTagId s_AlwaysName = new ShaderTagId("Always");
