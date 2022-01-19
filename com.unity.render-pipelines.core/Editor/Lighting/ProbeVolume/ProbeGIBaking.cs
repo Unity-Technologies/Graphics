@@ -227,6 +227,7 @@ namespace UnityEngine.Experimental.Rendering
             if (hasFoundInvalidSetup) return;
 
             SetBakingContext(ProbeReferenceVolume.instance.perSceneDataList);
+
             RunPlacement();
         }
 
