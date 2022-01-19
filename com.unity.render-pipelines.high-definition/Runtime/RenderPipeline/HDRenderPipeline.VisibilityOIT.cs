@@ -549,8 +549,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 OITResolveLightingForwardFast(renderGraph, hdCamera, prepassData.vbufferOIT, offscreenLightingTexture, offscreenDimensions, depthBuffer, ref colorBuffer);
 
-                //OITResolveLightingForwardFast(renderGraph, hdCamera, prepassData.vbufferOIT, offscreenLightingTexture, offscreenDimensions, depthBuffer, ref sparseColorBuffer0);
-
                 ResolveSparseLighting(renderGraph, hdCamera,
                     prepassData.vbufferOIT,
                     offscreenDimensions,
