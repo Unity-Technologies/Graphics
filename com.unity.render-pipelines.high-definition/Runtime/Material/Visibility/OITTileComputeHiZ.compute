@@ -30,10 +30,10 @@ void MainInitialize(int3 dispatchThreadID : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadID.z);
 
-    //if (any((float2)dispatchThreadID.xy > _ScreenSize.xy))
-    //{
-    //    return;
-    //}
+    if (any((float2)dispatchThreadID.xy > _ScreenSize.xy))
+    {
+        return;
+    }
 
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadID.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
 
