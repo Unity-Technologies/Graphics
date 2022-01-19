@@ -521,6 +521,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderBRGBindingData BRGBindingData;
             public ComputeBufferHandle oitVisibilityBuffer;
             public ComputeBufferHandle pixelHashBuffer;
+            public TextureHandle outputColor;
             public Vector4 packedArgs;
             public Vector2Int offscreenDimensions;
         }
@@ -544,12 +545,21 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!prepassData.vbufferOIT.valid)
                 return;
 
+
             if (m_Asset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode == OITLightingMode.ForwardFast)
             {
                 TextureHandle offscreenLightingTexture = RenderOITVBufferLightingOffscreenForwardFast(
                     renderGraph, cull, hdCamera, shadowResult, prepassData.vbufferOIT, lightLists, prepassData, out var offscreenDimensions);
 
-                OITResolveLightingForwardFast(renderGraph, hdCamera, prepassData.vbufferOIT, offscreenLightingTexture, offscreenDimensions, depthBuffer, ref colorBuffer);
+                TextureHandle sparseColorTexture;
+                OITResolveLightingForwardFast(renderGraph, hdCamera, prepassData.vbufferOIT, offscreenLightingTexture, offscreenDimensions, depthBuffer, out sparseColorTexture);
+
+                ResolveSparseLighting(renderGraph, hdCamera,
+                    prepassData.vbufferOIT,
+                    offscreenDimensions,
+                    sparseColorTexture,
+                    prepassData.vbufferOIT.pixelHashBuffer,
+                    depthBuffer, ref colorBuffer);
             }
             else //if (m_Asset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode == OITLightingMode.DeferredSSTracing)
             {
@@ -579,6 +589,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     offscreenDirectReflectionLightingTexture,
                     oitTileHiZTexture, offscreenDimensions, depthBuffer, ref colorBuffer);
             }
+
         }
 
         TextureHandle RenderOITVBufferLightingOffscreenForwardFast(
@@ -732,6 +743,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+
         class OITResolveForwardFastRenderPass
         {
             public ComputeShader cs;
@@ -741,7 +753,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle oitVisibilityBuffer;
             public ComputeBufferHandle offsetListBuffer;
             public ComputeBufferHandle sublistCounterBuffer;
-            public TextureHandle outputColor;
+            public TextureHandle sparseColorTexture;
             public Vector4 packedArgs;
         }
 
@@ -749,8 +761,9 @@ namespace UnityEngine.Rendering.HighDefinition
             in VBufferOITOutput vbufferOIT,
             TextureHandle offscreenLighting,
             Vector2Int offscreenLightingSize,
-            TextureHandle depthBuffer, ref TextureHandle colorBuffer)
+            TextureHandle depthBuffer, out TextureHandle sparseColorTexture)
         {
+
             using (var builder = renderGraph.AddRenderPass<OITResolveForwardFastRenderPass>("OITResolveForwardFastRenderPass", out var passData, ProfilingSampler.Get(HDProfileId.OITResolveLightingForwardFast)))
             {
                 passData.cs = defaultResources.shaders.oitResolveForwardFastCS;
@@ -760,12 +773,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.offsetListBuffer = builder.ReadComputeBuffer(vbufferOIT.sampleListOffsetBuffer);
                 passData.offscreenLighting = builder.ReadTexture(offscreenLighting);
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
-                passData.outputColor = builder.WriteTexture(colorBuffer);
+
+                sparseColorTexture = builder.ReadWriteTexture(renderGraph.CreateTexture(
+                    new TextureDesc(hdCamera.actualWidth, hdCamera.actualHeight, false, true)
+                    {
+                        enableRandomWrite = true,
+                        useMipMap = false,
+                        colorFormat = GetForwardFastFormat(),
+                        bindTextureMS = false,
+                        clearBuffer = true,
+                        clearColor = Color.black,
+                        name = "OITSparseColorTexture"
+                    }));
+                passData.sparseColorTexture = builder.WriteTexture(sparseColorTexture);
+
 
                 float offscreenWidthAsFloat; unsafe { int offscreenWidthInt = offscreenLightingSize.x; offscreenWidthAsFloat = *((float*)&offscreenWidthInt); }
                 passData.packedArgs = new Vector4(offscreenWidthAsFloat, 0.0f, 0.0f, 0.0f);
-
-                colorBuffer = passData.outputColor;
 
                 builder.SetRenderFunc(
                     (OITResolveForwardFastRenderPass data, RenderGraphContext context) =>
@@ -777,7 +801,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenLighting, data.offscreenLighting);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
-                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOutputSparseColorBuffer, data.sparseColorTexture);
                         context.cmd.DispatchCompute(data.cs, kernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), 1);
                     });
             }
@@ -794,9 +818,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle oitVisibilityBuffer;
             public ComputeBufferHandle offsetListBuffer;
             public ComputeBufferHandle sublistCounterBuffer;
-
             public TextureHandle oitTileHiZTexture;
-
             public TextureHandle outputColor;
             public Vector4 packedArgs;
         }
@@ -851,6 +873,55 @@ namespace UnityEngine.Rendering.HighDefinition
                     });
             }
         }
+
+        class OITResolveSparseLighting
+        {
+            public ComputeShader cs;
+            public Vector2Int screenSize;
+            public TextureHandle sparseColorBuffer;
+            public ComputeBufferHandle pixelHashBuffer;
+            public TextureHandle depthBuffer;
+            public TextureHandle outputColor;
+            public Vector4 packedArgs;
+        }
+
+        void ResolveSparseLighting(RenderGraph renderGraph, HDCamera hdCamera,
+            in VBufferOITOutput vbufferOIT,
+            Vector2Int offscreenLightingSize,
+            TextureHandle sparseColorBuffer,
+            ComputeBufferHandle pixelHashBuffer,
+            TextureHandle depthBuffer, ref TextureHandle colorBuffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<OITResolveSparseLighting>("VBufferOITLightingOffscreenResolveSparse", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITLightingOffscreenResolveSparse)))
+            {
+                passData.cs = defaultResources.shaders.oitResolveForwardFastCS;
+                passData.screenSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
+
+                passData.sparseColorBuffer = builder.ReadTexture(sparseColorBuffer);
+                passData.pixelHashBuffer = builder.ReadComputeBuffer(pixelHashBuffer);
+                passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                passData.outputColor = builder.WriteTexture(colorBuffer);
+
+                float offscreenWidthAsFloat; unsafe { int offscreenWidthInt = offscreenLightingSize.x; offscreenWidthAsFloat = *((float*)&offscreenWidthInt); }
+                passData.packedArgs = new Vector4(offscreenWidthAsFloat, 0.0f, 0.0f, 0.0f);
+
+                colorBuffer = passData.outputColor;
+
+                builder.SetRenderFunc(
+                    (OITResolveSparseLighting data, RenderGraphContext context) =>
+                    {
+                        int kernel = data.cs.FindKernel("MainResolveSparseOITLighting");
+                        context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
+                        
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITSparseColorBuffer, data.sparseColorBuffer);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);
+                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITPixelHash, data.pixelHashBuffer);
+                        context.cmd.DispatchCompute(data.cs, kernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), 1);
+                    });
+            }
+        }
+
 
         class VBufferOITTestLighting
         {
@@ -917,5 +988,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return outputColor;
         }
+
+
+
     }
 }

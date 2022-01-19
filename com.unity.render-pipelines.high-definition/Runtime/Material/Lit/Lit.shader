@@ -988,6 +988,8 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define HAS_LIGHTLOOP
+            #define _MAPPING_ANALYTICAL_GRADIENTS
+            #define _EMISSIVE_MAPPING_ANALYTICAL_GRADIENTS
 
             #define SHADERPASS SHADERPASS_VBUFFER_LIGHTING_OFFSCREEN
 
@@ -1041,6 +1043,8 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
 
             #define HAS_LIGHTLOOP
+            #define _MAPPING_ANALYTICAL_GRADIENTS
+            #define _EMISSIVE_MAPPING_ANALYTICAL_GRADIENTS
 
             #define SHADERPASS SHADERPASS_VBUFFER_LIGHTING_OFFSCREEN
 
