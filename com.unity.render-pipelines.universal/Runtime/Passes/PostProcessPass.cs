@@ -479,8 +479,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Custom post processing resolution
             // needs for loop and iterate through the added custom PP volume components
-            // For now hardcoded single one
-            CustomPostProcessVolumeComponent customPP;// = customPPparentVolume as CustomPostProcessVolumeComponent;
+            CustomPostProcessVolumeComponent customPP;
 
             foreach (var componentInStack in VolumeManager.instance.stack.GetAllVolumeComponents())
             {
@@ -491,12 +490,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 if (customPP != null && customPP.IsActive())
                 {
-
                     customPP.Render(cameraData.camera, cmd, GetSource(), GetDestination());
+                    Swap(ref renderer);
                 }
             }
-
-            // TODO - this gets overriten by further FinalPass
 
 
             // Combined post-processing stack
