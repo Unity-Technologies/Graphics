@@ -12,6 +12,7 @@
 #pragma kernel BloomTest
 #pragma kernel Upsample
 #pragma kernel Scattering
+#pragma kernel BilateralBlur
 
 #define GROUP_SIZE 8
 
@@ -310,26 +311,62 @@ void Scattering(uint3 dispatchThreadId : SV_DispatchThreadID)
     _OutputColor[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(color, inputColor.a); // keep alpha
 }
 
+struct BilateralData
+{
+    float z01;
+};
+
 BilateralData TapBilateralData(uint2 coordSS)
 {
     BilateralData key;
-    PositionInputs posInput;
 
-    posInput.deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, coordSS).r;
-    key.z01 = Linear01Depth(posInput.deviceDepth, _ZBufferParams);
+    // float deviceDepth = LoadCameraDepth(coordSS);
+    // key.z01 = Linear01Depth(deviceDepth, _ZBufferParams);
+    // return key;
+
+    float rawDepth = LoadCameraDepth(coordSS).r;
+    PositionInputs posInput = GetPositionInput(coordSS, _ScreenSize.zw, rawDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+    float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+
+    float3 fogColor;
+    float3 fogOpacity;
+    EvaluateAtmosphericScattering2(posInput, V, fogColor, fogOpacity);
+    float density = saturate(fogOpacity.x - _Curve.x);
+
+    // float d2 = clamp(density - _Curve.x, 0, _Curve.y);
+    // d2 = _Curve.z * d2 * d2;
+    // density = d2;
+    density = pow(density, _DensityPower);
+
+    float t = density * _DensityScale;
+
+    // Should be in 01 range but hey
+    key.z01 = saturate(t);
 
     return key;
 }
 
 float ComputeBilateralWeight(BilateralData center, BilateralData tap)
 {
-    float depthWeight    = 1.0;
-    float normalWeight   = 1.0;
-    float planeWeight    = 1.0;
+    float depthWeight = 1.0;
 
     depthWeight = max(0.0, 1.0 - abs(tap.z01 - center.z01));
 
     return depthWeight;
+}
+
+float4 _BlurDirection;
+float _Radius;
+
+#define BILATERAL_FILTER_SIGMA 0.9
+
+float sqr(float value)
+{
+    return value * value;
+}
+float gaussian(float radius, float sigma)
+{
+    return exp(-sqr(radius / sigma));
 }
 
 [numthreads(8, 8, 1)]
@@ -338,33 +375,43 @@ void BilateralBlur(uint3 dispatchThreadId : SV_DispatchThreadID)
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     // Fetch the current pixel coordinate
-    uint2 centerCoord = groupId * REFLECTION_FILTER_TILE_SIZE + groupThreadId;
+    uint2 centerCoord = dispatchThreadId;
 
     // Based on which pass of the filter we are doing, adjust the sampling direction
-    #if FINAL_PASS
-    const uint2 passIncr = uint2(1, 0);
-    #else
-    const uint2 passIncr = uint2(0, 1);
-    #endif
+    const uint2 passIncr = uint2(_BlurDirection.xy);
 
     uint2 geometrCoords = centerCoord;
     // Tap the central pixel coordinates
     const BilateralData center = TapBilateralData(geometrCoords);
 
-    // Compute the effective radius we should be using for the filtering
-    const float3 viewWS = GetWorldSpaceNormalizeViewDir(center.position);
-    float2 mappingUV = float2(dot(viewWS, center.normal), center.roughness);
-    float2 radiusScale = lerp(1.0f, SAMPLE_TEXTURE2D_LOD(_ReflectionFilterMapping, s_linear_clamp_sampler, mappingUV, 0.0f).xy, _RoughnessBasedDenoising);
-    #if FINAL_PASS
-    const float radius = _DenoiserFilterRadius * radiusScale.x;
-    #else
-    const float radius = _DenoiserFilterRadius * radiusScale.y;
-    #endif
+    float radius = _Radius;
+
+    // Calculate radius based on density:
+    uint2 coordSS = dispatchThreadId.xy;
+    float rawDepth = LoadCameraDepth(coordSS).r;
+    PositionInputs posInput = GetPositionInput(coordSS, _ScreenSize.zw, rawDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+    float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+
+    float3 fogColor;
+    float3 fogOpacity;
+    EvaluateAtmosphericScattering2(posInput, V, fogColor, fogOpacity);
+    float density = saturate(fogOpacity.x - _Curve.x);
+
+    // float d2 = clamp(density - _Curve.x, 0, _Curve.y);
+    // d2 = _Curve.z * d2 * d2;
+    // density = d2;
+    density = pow(density, _DensityPower);
+
+    float t = density * _DensityScale;
+
+    radius *= t;
+
     const float sigma =  radius * BILATERAL_FILTER_SIGMA;
     const int effectiveRadius = min(sigma * 2.0, radius);
 
     // Store the intermediate result
-    float3 finalColor = LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).xyz;
+    float4 originalPixel = LOAD_TEXTURE2D_X(_Input, centerCoord);
+    float3 finalColor = originalPixel.rgb;
 
     // Initialize variables for accumulation
     float3 colorSum = float3(0.0, 0.0, 0.0);
@@ -380,11 +427,11 @@ void BilateralBlur(uint3 dispatchThreadId : SV_DispatchThreadID)
         // Compute the weight (skip computation for the center)
         const BilateralData tapData = TapBilateralData(tapCoord);
         float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, tapData) : 1.0;
-        colorSum += LOAD_TEXTURE2D_X(_DenoiseInputTexture, tapCoord).xyz * w;
+        colorSum += LOAD_TEXTURE2D_X(_Input, tapCoord).xyz * w;
         wSum += w;
     }
     // Normalize the result
     finalColor = colorSum / wSum;
 
-    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(finalColor, LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
+    _Output[COORD_TEXTURE2D_X(centerCoord)] = float4(finalColor, originalPixel.a);
 }

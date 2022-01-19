@@ -81,7 +81,7 @@ RW_TEXTURE3D(float4, _VBufferFeedback);
 TEXTURE3D(_VBufferHistory);
 TEXTURE3D(_VBufferDensity);                     // RGB = scattering, A = extinction
 TEXTURE2D_X(_MaxZMaskTexture);
-RW_TEXTURE2D_X(float4, _ScreenSpaceScatteringDensity);
+// RW_TEXTURE2D_X(float4, _ScreenSpaceScatteringDensity);
 StructuredBuffer<float4> _VolumetricAmbientProbeBuffer;
 
 //--------------------------------------------------------------------------------------------------
@@ -791,7 +791,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         t0 = tNext;
     }
 
-    _ScreenSpaceScatteringDensity[COORD_TEXTURE2D_X(posInput.positionSS)] = float4(totalScattering, totalExtinction);
+    // _ScreenSpaceScatteringDensity[COORD_TEXTURE2D_X(posInput.positionSS)] = float4(totalScattering, totalExtinction);
 
     for (; slice < _VBufferSliceCount; slice++)
     {
