@@ -59,7 +59,7 @@ void PackVisibilityData(Visibility::VisibilityData data, uint2 texelCoordinate, 
 {
     uint2 packedDataHalfs;
     Visibility::PackVisibilityData(data, packedData.x, packedDataHalfs);
-    packedData.y = (packedDataHalfs.x & 0xFF) | (packedDataHalfs.y << 8) | ((uint)(depth * 0xFFFF) << 16);
+    packedData.y = (packedDataHalfs.x & 0xFF) | (packedDataHalfs.y << 8) | PackFloatToUInt(depth, 16, 16);
     packedData.z = (texelCoordinate.x & 0xFFFF) | ((texelCoordinate.y & 0xFFFF) << 16);
 }
 
@@ -68,7 +68,7 @@ void UnpackVisibilityData(uint3 packedData, out Visibility::VisibilityData data,
     uint2 packedDataHalfs = uint2(packedData.y & 0xFF, (packedData.y >> 8) & 0xFF);
     Visibility::UnpackVisibilityData(packedData.x, packedDataHalfs, data);
     texelCoordinate = uint2(packedData.z & 0xFFFF, (packedData.z >> 16) & 0xFFFF);
-    depth = (packedData.y >> 16) * (1.0/(float)0xFFFF);
+    depth = UnpackUIntToFloat(packedData.y, 16, 16);
 }
 
 void PackOITGBufferData(float3 normal, float roughness, float3 diffuseAlbedo, out uint4 packedData)

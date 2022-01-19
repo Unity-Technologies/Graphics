@@ -62,7 +62,7 @@ void FragStoreVis(PackedVaryingsToPS packedInput)
 
     float zValue = 0.0f;
 #ifdef ENCODE_VIS_DEPTH
-    zValue = packedInput.vpass.depthValue.x/packedInput.vpass.depthValue.y;
+    zValue = (packedInput.vpass.depthValue.x/packedInput.vpass.depthValue.y);
 #endif
 
     uint3 outPackedData;
