@@ -876,6 +876,7 @@ namespace UnityEngine.Rendering.Universal
         LensFlareDataDriven,
         MotionVectors,
 
-        FinalBlit
+        FinalBlit,
+        CustomPostProcess
     }
 }

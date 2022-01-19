@@ -477,24 +477,27 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
-            // Custom post processing resolution
-            // needs for loop and iterate through the added custom PP volume components
-            CustomPostProcessVolumeComponent customPP;
-
-            foreach (var componentInStack in VolumeManager.instance.stack.GetAllVolumeComponents())
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CustomPostProcess)))
             {
-                customPP = componentInStack as CustomPostProcessVolumeComponent;
-                if (customPP != null)
+                // Custom post processing resolution
+                // needs for loop and iterate through the added custom PP volume components
+                CustomPostProcessVolumeComponent customPP;
+
+                foreach (var componentInStack in VolumeManager.instance.stack.GetAllVolumeComponents())
                 {
-                    customPP.Setup();
-                }
-                if (customPP != null && customPP.IsActive())
-                {
-                    customPP.Render(cameraData.camera, cmd, GetSource(), GetDestination());
-                    Swap(ref renderer);
+                    customPP = componentInStack as CustomPostProcessVolumeComponent;
+                    if (customPP != null)
+                    {
+                        customPP.Setup();
+                        if (customPP.IsActive())
+                        {
+                            customPP.Render(cameraData.camera, cmd, GetSource(), GetDestination());
+                            ++amountOfPassesRemaining;
+                            Swap(ref renderer);
+                        }
+                    }
                 }
             }
-
 
             // Combined post-processing stack
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.UberPostProcess)))
