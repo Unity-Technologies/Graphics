@@ -19,6 +19,7 @@ float4 _FlowmapParam[2];
 float4 _ColorFilter[2];
 float4 _SunDensity[2];
 float3 _SunDirection;
+float3 _AmbientProbe;
 
 #define _ScrollDirection(l) _FlowmapParam[l].xy
 #define _ScrollFactor(l)    _FlowmapParam[l].z
@@ -140,7 +141,7 @@ float4 GetCloudLayerColor(float3 dir, int index, float2 positionCS)
     float3 lightColor = _SunLightColor(index);
     EvaluateSunColorAttenuation(dir*_Altitude(index), _SunDirection, lightColor);
 
-    return float4(lightColor * color.x, color.y) * _Opacity;
+    return float4(lightColor * color.x + _AmbientProbe, color.y) * _Opacity;
 }
 
 float4 RenderClouds(float3 dir, float2 positionCS=0)

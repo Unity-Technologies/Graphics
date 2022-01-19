@@ -256,7 +256,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Function to evaluate if a camera should have volumetric clouds
-        static bool HasVolumetricClouds(HDCamera hdCamera, in VolumetricClouds settings)
+        static internal bool HasVolumetricClouds(HDCamera hdCamera, in VolumetricClouds settings)
         {
             // If the current volume does not enable the feature, quit right away.
             return hdCamera.frameSettings.IsEnabled(FrameSettingsField.VolumetricClouds) && settings.enable.value;

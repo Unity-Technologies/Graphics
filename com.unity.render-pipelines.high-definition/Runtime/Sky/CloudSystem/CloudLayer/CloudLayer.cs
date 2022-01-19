@@ -166,7 +166,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BoolParameter raymarching = new BoolParameter(false);
             /// <summary>Number of raymarching steps.</summary>
             [Tooltip("Number of raymarching steps.")]
-            public ClampedIntParameter steps = new ClampedIntParameter(4, 2, 10);
+            public ClampedIntParameter steps = new ClampedIntParameter(10, 2, 32);
             /// <summary>TODO.</summary>
             [Tooltip("Altitude of the cloud layer.")]
             public MinFloatParameter altitude = new MinFloatParameter(1000.0f, 0.0f);
@@ -286,6 +286,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int NumLayers => (layers == CloudMapMode.Single) ? 1 : 2;
         internal bool CastShadows => layerA.castShadows.value || (layers == CloudMapMode.Double && layerB.castShadows.value);
 
+        Vector3Int CastForAngleDiff(Vector3 vec, float factor) => new Vector3Int((int)(vec.x * factor), (int)(vec.y * factor), (int)(vec.z * factor));
+
         internal int GetBakingHashCode(Light sunLight)
         {
             int hash = 17;
@@ -306,7 +308,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (lighting && sunLight != null)
-                    hash = hash * 23 + sunLight.transform.rotation.GetHashCode();
+                    hash = hash * 23 + CastForAngleDiff(sunLight.transform.rotation.eulerAngles, 0.7f).GetHashCode();
                 if (shadows)
                     hash = hash * 23 + shadowResolution.GetHashCode();
             }

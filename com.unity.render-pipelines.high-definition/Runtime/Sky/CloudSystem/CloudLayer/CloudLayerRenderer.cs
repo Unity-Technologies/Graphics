@@ -127,6 +127,13 @@ namespace UnityEngine.Rendering.HighDefinition
             s_VectorArray[0].w = cloudLayer.layerA.altitude.value; s_VectorArray[1].w = cloudLayer.layerB.altitude.value;
             m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._ColorFilter, s_VectorArray);
 
+            Vector4 ambientProbeBottom = Vector4.zero;
+            var volumetricClouds = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
+            if (HDRenderPipeline.HasVolumetricClouds(hdCamera, volumetricClouds))
+                ambientProbeBottom = (RenderPipelineManager.currentPipeline as HDRenderPipeline).EvaluateAmbientProbeBottom(volumetricClouds);
+
+            m_CloudLayerMaterial.SetVector(HDShaderIDs._AmbientProbe, ambientProbeBottom);
+
             // Keywords
             CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_CLOUD_MOTION", cloudLayer.layerA.distortionMode.value != CloudDistortionMode.None);
             if (cloudLayer.layerA.distortionMode.value != CloudDistortionMode.None)

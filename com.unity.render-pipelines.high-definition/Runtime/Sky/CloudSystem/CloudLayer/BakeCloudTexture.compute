@@ -52,7 +52,7 @@ float4 _Params3[NUM_LAYERS];
 #define _Resolution         _Params2[0].w
 #define _LowestCloudAltitude _Params3[data.index].x
 #define _MultiScattering     _Params3[data.index].y
-#define _Density             _Params3[data.index].z
+#define _SigmaT              _Params3[data.index].z
 
 #define _EarthRadius 6378100.0f
 
@@ -112,12 +112,9 @@ float3 RotationUp(float3 p, float2 cos_sin)
     return float3(dot(rotDirX, p), p.y, dot(rotDirY, p));
 }
 
-float GetDensity(LayerSamplingData data, float3 positionWS)
+float GetDensity(LayerSamplingData data, float3 positionWS, float3 dir, float thickness)
 {
-    float3 dir = normalize(positionWS);
-    float thickness = SampleCloudMap(data, GetLatLongCoords(dir, _UpperHemisphere));
-
-    float highFrequencyNoise = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_linear_repeat_sampler, positionWS/2000, 0).x;
+    //float highFrequencyNoise = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_linear_repeat_sampler, positionWS/2000, 0).x;
     //thickness *= 1.0 - highFrequencyNoise*0.9;
     //thickness = saturate(remap(highFrequencyNoise, 0, 1, 0, thickness));
 
@@ -131,9 +128,14 @@ float GetDensity(LayerSamplingData data, float3 positionWS)
 
     float distToCenter = length(dir * (rangeStart + 0.5 * range) - positionWS);
     float density = 1 - saturate(distToCenter / (range * thickness));
-    //thickness *= 1.0 - highFrequencyNoise*0.1;
-    density *= _Density * thickness;
-    return density;
+    return density * thickness;
+}
+
+float GetDensity(LayerSamplingData data, float3 positionWS)
+{
+    float3 dir = normalize(positionWS);
+    float thickness = SampleCloudMap(data, GetLatLongCoords(dir, _UpperHemisphere));
+    return GetDensity(data, positionWS, dir, thickness);
 }
 
 float EvaluateSunLuminance(LayerSamplingData data, float3 positionWS, float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES])
@@ -156,32 +158,11 @@ float EvaluateSunLuminance(LayerSamplingData data, float3 positionWS, float phas
 
     // Combine the luminance for each octave
     for (int o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
-        luminance += exp(-stepSize * extinction * PositivePow(_MultiScattering, o))
+        luminance += exp(-stepSize * extinction * _SigmaT * PositivePow(_MultiScattering, o))
                      * phaseFunction[o]
                      * PositivePow(_MultiScattering, o);
 
     return luminance;
-}
-
-float2 EvaluateCloud(LayerSamplingData data, float3 currentPositionWS, float3 dir, float2 scattering_transmittance, float stepSize, float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES])
-{
-    float density = GetDensity(data, currentPositionWS);
-    if (density != 0.0f)
-    {
-        // Apply the extinction
-        const float currentStepExtinction = exp(-density * stepSize);
-
-        // Evaluate the luminance at this sample
-        float luminance = EvaluateSunLuminance(data, currentPositionWS, phaseFunction);
-
-        // Improved analytical scattering
-        const float integScatt = (luminance - luminance * currentStepExtinction);
-        float inScattering = scattering_transmittance.x + integScatt * scattering_transmittance.y;
-        float transmittance = scattering_transmittance.y * currentStepExtinction;
-        scattering_transmittance = float2(inScattering, transmittance);
-    }
-
-    return scattering_transmittance;
 }
 
 float2 ComputeCloudLighting(TEXTURE2D(cloudMap), SAMPLER(sampler_cloudMap), float2 uv, uint index)
@@ -193,7 +174,6 @@ float2 ComputeCloudLighting(TEXTURE2D(cloudMap), SAMPLER(sampler_cloudMap), floa
     data.sampler_cloudMap = sampler_cloudMap;
     data.weights = _Opacities / max(_Opacities.r + _Opacities.g + _Opacities.b + _Opacities.a, 1.0);
 
-    const int _NumPrimarySteps = 3;
     const float opacity = SampleCloudMap(data, uv);
     float2 finalColor = opacity;
 
@@ -216,19 +196,21 @@ float2 ComputeCloudLighting(TEXTURE2D(cloudMap), SAMPLER(sampler_cloudMap), floa
         float3 currentPositionWS = dir * (rangeStart + 0.5 * (1 - opacity) * range);
         range *= opacity;
 
-        int currentIndex = 0;
-        float stepSize = range / (float)_NumPrimarySteps;
-        float2 scattering_transmittance = float2(0, 1);
-        while (currentIndex < _NumPrimarySteps)
+        finalColor = 0;
+        float density = GetDensity(data, currentPositionWS, dir, opacity);
+        if (density != 0.0f)
         {
-            scattering_transmittance = EvaluateCloud(data, currentPositionWS, dir,
-                scattering_transmittance, stepSize, phaseFunction);
-            currentPositionWS += dir * stepSize;
-            currentIndex++;
-        }
+            float thickness = SampleCloudMap(data, GetLatLongCoords(dir, _UpperHemisphere));
+            // Apply the extinction
+            const float currentStepExtinction = exp(-density * _SigmaT * range);
 
-        finalColor.x = scattering_transmittance.x;
-        finalColor.y = (1 - scattering_transmittance.y);
+            // Evaluate the luminance at this sample
+            float luminance = EvaluateSunLuminance(data, currentPositionWS, phaseFunction);
+
+            // Improved analytical scattering
+            finalColor.x = (luminance - luminance * currentStepExtinction);
+            finalColor.y = 1 - currentStepExtinction;
+        }
     }
 
     return finalColor;

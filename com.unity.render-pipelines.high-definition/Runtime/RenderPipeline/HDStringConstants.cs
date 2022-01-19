@@ -546,6 +546,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Flowmap = Shader.PropertyToID("_Flowmap");
         public static readonly int _FlowmapParam = Shader.PropertyToID("_FlowmapParam");
         public static readonly int _SunDirection = Shader.PropertyToID("_SunDirection");
+        public static readonly int _AmbientProbe = Shader.PropertyToID("_AmbientProbe");
 
         public static readonly int _Size = Shader.PropertyToID("_Size");
         public static readonly int _Source = Shader.PropertyToID("_Source");
