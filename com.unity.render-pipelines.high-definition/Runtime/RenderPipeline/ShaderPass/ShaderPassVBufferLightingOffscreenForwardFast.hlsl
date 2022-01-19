@@ -74,7 +74,9 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
 
     if (!fragmentData.valid)
     {
+        //TODO: implement material depth key: this will solve this issue by first writting the corresponding material depth key value from visibility, then using depth comparison.
         outColor = float4(0,0,0,0);
+        clip(-1);
         return;
     }
 
@@ -94,7 +96,7 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
     float3 colorVariantColor = 0;
-    uint featureFlags = packedInput.lightAndMaterialFeatures;
+    uint featureFlags = packedInput.lightAndMaterialFeatures & LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
 
     LightLoopOutput lightLoopOutput;
     LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
@@ -105,9 +107,7 @@ void Frag(Varyings packedInput, out float4 outColor : SV_Target0)
     diffuseLighting *= GetCurrentExposureMultiplier();
     specularLighting *= GetCurrentExposureMultiplier();
 
-    //outColor.rgb = saturate(dot(V, fragmentData.debugData.vertexNormal.xyz));
-    //outColor.rgb = surfaceData.baseColor;
+    //outColor.rgb = diffuseLighting + specularLighting;
     outColor.rgb = diffuseLighting + specularLighting;
-    //outColor.rgb = fragmentData.debugData.barycentrics.m_lambda;
-    outColor.a = 1;
+    outColor.a = saturate(builtinData.opacity);
 }

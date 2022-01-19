@@ -57,12 +57,12 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
             continue;
 
         minDepth = max(depthValue, minDepth);
-        // .
-        lighting += _VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
+        float4 sample = _VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)];
+        sample.a = 1.0/(float)listCount; //TODO use actual alpha
+        lighting += sample.rgb * sample.a;
     }
 
-    lighting /= (float)listCount;
-    lighting += currentColor;
+    currentColor += lighting;
 
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(lighting, 1.0);
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(currentColor, 1.0);
 }

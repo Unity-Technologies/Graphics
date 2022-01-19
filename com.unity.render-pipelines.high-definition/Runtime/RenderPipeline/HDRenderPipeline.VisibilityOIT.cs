@@ -54,7 +54,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         GraphicsFormat GetForwardFastFormat()
         {
-            return GetColorBufferFormat();
+            //return GetColorBufferFormat(); For now just use 16 bit, so we can pack the alpha tightly.
+            return GraphicsFormat.R16G16B16A16_SFloat;
         }
 
         GraphicsFormat GetDeferredSSTracingFormat()

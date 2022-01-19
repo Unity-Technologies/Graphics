@@ -75,8 +75,10 @@ void Frag(Varyings packedInput, out uint4 outGBufferTexture : SV_Target0, out fl
 
     if (!fragmentData.valid)
     {
+        //TODO: implement material depth key: this will solve this issue by first writting the corresponding material depth key value from visibility, then using depth comparison.
         outGBufferTexture = uint4(0, 0, 0, 0);
         outOffscreenDirectLightingTexture = float4(0.0f, 0.0f, 0.0f, 0.0f);
+        clip(-1);
         return;
     }
 
