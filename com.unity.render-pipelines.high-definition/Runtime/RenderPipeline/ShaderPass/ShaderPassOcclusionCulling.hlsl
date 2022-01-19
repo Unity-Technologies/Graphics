@@ -93,11 +93,12 @@ void FragOcclusion(PSVaryings v)
     uint instanceDword =  instanceIndex >> 5;
     uint bitIndex =  instanceIndex & 0x1f;
     uint mask = 1 << bitIndex;
+    uint dwordAddress = instanceDword << 2;
 
-    uint value = instanceVisibilityBitfield.Load(instanceDword);
+    uint value = instanceVisibilityBitfield.Load(dwordAddress);
     if (!(value & mask))
     {
-        instanceVisibilityBitfield.InterlockedOr(instanceDword, mask);
+        instanceVisibilityBitfield.InterlockedOr(dwordAddress, mask);
     }
 
 #if defined(DEBUG_OUTPUT)

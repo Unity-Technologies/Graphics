@@ -52,6 +52,7 @@ Shader "HDRP/OcclusionCulling"
             Cull Off
             ZTest Less
             ZWrite Off
+            Offset -1, -1
 
             HLSLPROGRAM
 
@@ -74,9 +75,10 @@ Shader "HDRP/OcclusionCulling"
             Name "VBufferCubeMesh"
             Tags { "LightMode" = "VBufferOcclusionCulling" } // This will be only for opaque object based on the RenderQueue index
 
-            Cull Back
+            Cull Off
             ZTest Less
             ZWrite Off
+            Offset -1, -1
 
             HLSLPROGRAM
 

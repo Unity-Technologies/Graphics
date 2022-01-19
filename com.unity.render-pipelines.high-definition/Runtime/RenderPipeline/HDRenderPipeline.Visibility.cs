@@ -57,7 +57,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public FrameSettings frameSettings;
             public RendererListHandle rendererList;
             public RenderBRGBindingData BRGBindingData;
-            public ComputeShader updateVisibility;
         }
 
         class VBufferOcclusionPassData
@@ -68,6 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public GraphicsBuffer instanceVisibilityBitfield;
             public OcclusionCullingMode occlusionCullingMode;
             public GraphicsBuffer instanceCountBuffer;
+            public ComputeShader updateVisibility;
         }
 
         private static GraphicsBuffer.IndirectDrawIndexedArgs[] CubeDrawArgs =
@@ -117,6 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.occlusionMaterial = currentAsset.OcclusionCullingMaterial;
                 passData.occlusionMesh = currentAsset.OcclusionCullingMesh;
                 passData.occlusionCullingMode = BRGBindingData.occlusionCullingMode;
+                passData.updateVisibility = defaultResources.shaders.updateVisibilityCS;
                 passData.instanceCountBuffer = BRGBindingData.instanceCountBuffer;
 
                 passData.instanceVisibilityBitfield = BRGBindingData.instanceVisibilityBitfield;
@@ -142,12 +143,30 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.instanceCountBuffer.SetData(CubeDrawArgs);
                             context.cmd.DrawMeshInstancedIndirect(data.occlusionMesh, 0, data.occlusionMaterial, 1, data.instanceCountBuffer, 0);
                         }
-                        else
+                        else if (data.occlusionCullingMode == OcclusionCullingMode.ProceduralCube)
                         {
                             context.cmd.DrawProcedural(Matrix4x4.identity, data.occlusionMaterial, 0,
                                 MeshTopology.Triangles,
                                 vertexCount, 1);
                         }
+
+                        context.cmd.SetRandomWriteTarget(2, data.instanceCountBuffer);
+
+                        uint debugVisibleMask = data.occlusionCullingMode == OcclusionCullingMode.Disabled
+                            ? 0xffffffff
+                            : 0;
+
+                        var updateVisibility = data.updateVisibility;
+                        var bindings = BRGBindingData;
+                        updateVisibility.SetBuffer(0, HDShaderIDs._VisIndirectArgs, bindings.indirectArgs);
+                        updateVisibility.SetBuffer(0, HDShaderIDs._VisInputData, bindings.inputVisibleIndices);
+                        updateVisibility.SetBuffer(0, HDShaderIDs._VisOutputData, bindings.outputVisibleIndices);
+                        updateVisibility.SetBuffer(0, HDShaderIDs._VisInstanceVisibilityBitfield, bindings.instanceVisibilityBitfield);
+                        updateVisibility.SetInt(HDShaderIDs._VisDrawCommandCount, bindings.drawCommandCount);
+                        updateVisibility.SetInt(HDShaderIDs._VisDebugVisibilityMask, (int)debugVisibleMask);
+                        int threadGroups = bindings.drawCommandCount;
+                        context.cmd.DispatchCompute(updateVisibility, 0, threadGroups, 1, 1);
+
                     });
             }
         }
@@ -207,22 +226,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_CurrentRendererConfigurationBakedLighting,
                         new RenderQueueRange() { lowerBound = (int)HDRenderQueue.Priority.Visibility, upperBound = (int)(int)HDRenderQueue.Priority.Visibility })));
 
-                passData.updateVisibility = defaultResources.shaders.updateVisibilityCS;
-
                 builder.SetRenderFunc(
                     (VBufferPassData data, RenderGraphContext context) =>
                     {
-                        var updateVisibility = data.updateVisibility;
-                        var bindings = data.BRGBindingData;
-                        updateVisibility.SetBuffer(0, HDShaderIDs._VisIndirectArgs, bindings.indirectArgs);
-                        updateVisibility.SetBuffer(0, HDShaderIDs._VisInputData, bindings.inputVisibleIndices);
-                        updateVisibility.SetBuffer(0, HDShaderIDs._VisOutputData, bindings.outputVisibleIndices);
-                        updateVisibility.SetBuffer(0, HDShaderIDs._VisInstanceVisibilityBitfield, bindings.instanceVisibilityBitfield);
-                        updateVisibility.SetInt(HDShaderIDs._VisDrawCommandCount, bindings.drawCommandCount);
-                        updateVisibility.SetInt(HDShaderIDs._VisDebugVisibilityMask, (int)bindings.debugVisibleMask);
-                        int threadGroups = bindings.drawCommandCount;
-                        context.cmd.DispatchCompute(updateVisibility, 0, threadGroups, 1, 1);
-
                         data.BRGBindingData.globalGeometryPool.BindResourcesGlobal(context.cmd);
                         DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
 

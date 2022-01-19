@@ -1468,6 +1468,7 @@ namespace UnityEngine.Rendering
     {
         CubePrimitive,
         ProceduralCube,
+        Disabled,
     }
 
     public struct RenderBRGBindingData

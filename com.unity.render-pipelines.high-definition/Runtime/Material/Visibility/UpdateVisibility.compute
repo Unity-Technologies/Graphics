@@ -84,9 +84,8 @@ void CSMain(uint3 svGid : SV_GroupID, uint3 svTid : SV_GroupThreadID)
             if (dwIndex < instanceDwordCount)
             {
                 uint dwAddress = (instanceDwordBegin + dwIndex) << 2;
-                //uint dw = instanceVisibilityBitfield.Load(dwAddress);
-                uint dbg = debugVisibilityMask & 0xff;
-                uint dw = (dbg << 0) | (dbg << 8) | (dbg << 16) | (dbg << 24);
+                uint dw = instanceVisibilityBitfield.Load(dwAddress);
+                dw |= debugVisibilityMask;
                 ldsVisibleInstances[dwIndex] = dw;
             }
         }
