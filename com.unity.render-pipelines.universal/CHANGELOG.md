@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Display Stats panel to Rendering Debugger that displays CPU/GPU frame timings and bottlenecks.
 - Preserve Specular blend mode toggle for glass like materials where the specular reflection itself is not transparent.
 - Emulate alpha for multiply blend mode by whitening the base map colors using the alpha value. Keyword _ALPHAMODULATE_ON is set for multiply blend mode.
+- Shader Stripping is exported in a JSON file under `Temp/shader-strip.json` when the Variant Log Level is not disabled.
 
 ### Changed
 - Main light shadow, additional light shadow and additional light keywords are now enabled based on urp setting instead of existence in scene. This allows better variant stripping.

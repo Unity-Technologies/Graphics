@@ -179,7 +179,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             XRSystem.UpdateRenderScale(asset.renderScale);
 #endif
-            Shader.globalRenderPipeline = "UniversalPipeline";
+            Shader.globalRenderPipeline = k_ShaderTagName;
 
             Lightmapping.SetDelegate(lightsDelegate);
 
