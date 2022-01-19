@@ -16,80 +16,17 @@ TEXTURE2D(_FlowmapB);
 SAMPLER(sampler_FlowmapB);
 
 float4 _FlowmapParam[2];
-float4 _Tint[2];
+float4 _ColorFilter[2];
 float4 _SunDensity[2];
 float3 _SunDirection;
-float3 _SunLightColor;
-// TODO: remove both
-float _LowestCloudAltitude;
-float _MaxThickness;
 
 #define _ScrollDirection(l) _FlowmapParam[l].xy
 #define _ScrollFactor(l)    _FlowmapParam[l].z
 #define _UpperHemisphere    (_FlowmapParam[0].w != 0.0)
 #define _Opacity            _FlowmapParam[1].w
 
-#define _EarthRadius 6378100.0f
-
-int RaySphereIntersection(float3 startWS, float3 dir, float radius, out float2 result)
-{
-    float3 startPS = startWS + float3(0, _EarthRadius, 0);
-    float a = dot(dir, dir);
-    float b = 2.0 * dot(dir, startPS);
-    float c = dot(startPS, startPS) - (radius * radius);
-    float d = (b*b) - 4.0*a*c;
-    result = 0.0;
-    int numSolutions = 0;
-    if (d >= 0.0)
-    {
-        // Compute the values required for the solution eval
-        float sqrtD = sqrt(d);
-        float q = -0.5*(b + FastSign(b) * sqrtD);
-        result = float2(c/q, q/a);
-        // Remove the solutions we do not want
-        numSolutions = 2;
-        if (result.x < 0.0)
-        {
-            numSolutions--;
-            result.x = result.y;
-        }
-        if (result.y < 0.0)
-            numSolutions--;
-    }
-    // Return the number of solutions
-    return numSolutions;
-}
-bool RaySphereIntersection(float3 startWS, float3 dir, float radius)
-{
-    float3 startPS = startWS + float3(0, _EarthRadius, 0);
-    float a = dot(dir, dir);
-    float b = 2.0 * dot(dir, startPS);
-    float c = dot(startPS, startPS) - (radius * radius);
-    float d = (b * b) - 4.0 * a * c;
-    bool flag = false;
-    if (d >= 0.0)
-    {
-        // Compute the values required for the solution eval
-        float sqrtD = sqrt(d);
-        float q = -0.5 * (b + FastSign(b) * sqrtD);
-        float2 result = float2(c/q, q/a);
-        flag = result.x > 0.0 || result.y > 0.0;
-    }
-    return flag;
-}
-void GetCloudVolumeIntersection(float3 dir, out float rangeStart, out float range)
-{
-    float _HighestCloudAltitude = _LowestCloudAltitude + _MaxThickness;
-
-    // intersect with all three spheres
-    float2 intersectionInter, intersectionOuter;
-    int numInterInner = RaySphereIntersection(0, dir, _LowestCloudAltitude + _EarthRadius, intersectionInter);
-    int numInterOuter = RaySphereIntersection(0, dir, _HighestCloudAltitude + _EarthRadius, intersectionOuter);
-
-    // The ray starts at the first intersection with the lower bound and goes up to the first intersection with the outer bound
-    rangeStart = intersectionInter.x;
-    range = intersectionOuter.x - rangeStart;
-}
+#define _SunLightColor(l)   _ColorFilter[l].xyz
+#define _Altitude(l)        _ColorFilter[l].w
 
 
 struct CloudLayerData
@@ -200,15 +137,10 @@ float4 GetCloudLayerColor(float3 dir, int index, float2 positionCS)
     else
         color = SampleCloudMap(dir, index);
 
-    float rangeStart, range;
-    GetCloudVolumeIntersection(dir, rangeStart, range);
-    float3 currentPositionWS = dir * (rangeStart + 0.5 * (1 - color.y*0.7) * range);
+    float3 lightColor = _SunLightColor(index);
+    EvaluateSunColorAttenuation(dir*_Altitude(index), _SunDirection, lightColor);
 
-    float3 lightColor = _SunLightColor.xyz;
-    EvaluateSunColorAttenuation(dir*_LowestCloudAltitude, _SunDirection, lightColor);
-
-    float3 xxx = _Tint[index].xyz ;
-    return float4(xxx*lightColor* color.x, color.y) * _Opacity;
+    return float4(lightColor * color.x, color.y) * _Opacity;
 }
 
 float4 RenderClouds(float3 dir, float2 positionCS=0)

@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ClampedFloatParameter rotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
             /// <summary>Color multiplier of the clouds.</summary>
             [Tooltip("Specifies the color HDRP uses to tint the clouds.")]
-            public ColorParameter tint = new ColorParameter(Color.black, false, false, true);
+            public ColorParameter tint = new ColorParameter(Color.white, false, false, true);
 
             /// <summary>Distortion mode.</summary>
             [Tooltip("Distortion mode used to simulate cloud movement.\nIn Scene View, requires Always Refresh to be enabled.")]

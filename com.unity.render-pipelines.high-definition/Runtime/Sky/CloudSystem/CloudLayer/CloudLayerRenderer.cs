@@ -109,22 +109,23 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._FlowmapParam, s_VectorArray);
 
             s_VectorArray[0] = cloudLayer.layerA.tint.value; s_VectorArray[1] = cloudLayer.layerB.tint.value;
-            m_CloudLayerMaterial.SetVectorArray("_Tint", s_VectorArray);
 
             if (builtinParams.sunLight != null)
             {
+                m_CloudLayerMaterial.SetVector(HDShaderIDs._SunDirection, -builtinParams.sunLight.transform.forward);
+
                 var lightComponent = builtinParams.sunLight.GetComponent<Light>();
                 var additionalLightData = builtinParams.sunLight.GetComponent<HDAdditionalLightData>();
                 var lightColor = lightComponent.color.linear * lightComponent.intensity;
                 if (additionalLightData.useColorTemperature)
                     lightColor *= Mathf.CorrelatedColorTemperatureToRGB(lightComponent.colorTemperature);
 
-                m_CloudLayerMaterial.SetVector(HDShaderIDs._SunDirection, -builtinParams.sunLight.transform.forward);
-                m_CloudLayerMaterial.SetVector(HDShaderIDs._SunLightColor, lightColor);
+                s_VectorArray[0] *= lightColor;
+                s_VectorArray[1] *= lightColor;
             }
 
-            m_CloudLayerMaterial.SetFloat("_LowestCloudAltitude", cloudLayer.layerA.altitude.value);
-            m_CloudLayerMaterial.SetFloat("_MaxThickness", cloudLayer.layerA.thickness.value);
+            s_VectorArray[0].w = cloudLayer.layerA.altitude.value; s_VectorArray[1].w = cloudLayer.layerB.altitude.value;
+            m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._ColorFilter, s_VectorArray);
 
             // Keywords
             CoreUtils.SetKeyword(m_CloudLayerMaterial, "USE_CLOUD_MOTION", cloudLayer.layerA.distortionMode.value != CloudDistortionMode.None);

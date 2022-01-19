@@ -9,6 +9,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
 
 #ifndef USE_SECOND_CLOUD_LAYER
     #define NUM_LAYERS  1
@@ -64,76 +65,22 @@ struct LayerSamplingData
     SAMPLER(sampler_cloudMap);
 };
 
-int RaySphereIntersection(float3 startWS, float3 dir, float radius, out float2 result)
-{
-    float3 startPS = startWS + float3(0, _EarthRadius, 0);
-    float a = dot(dir, dir);
-    float b = 2.0 * dot(dir, startPS);
-    float c = dot(startPS, startPS) - (radius * radius);
-    float d = (b*b) - 4.0*a*c;
-    result = 0.0;
-    int numSolutions = 0;
-    if (d >= 0.0)
-    {
-        // Compute the values required for the solution eval
-        float sqrtD = sqrt(d);
-        float q = -0.5*(b + FastSign(b) * sqrtD);
-        result = float2(c/q, q/a);
-        // Remove the solutions we do not want
-        numSolutions = 2;
-        if (result.x < 0.0)
-        {
-            numSolutions--;
-            result.x = result.y;
-        }
-        if (result.y < 0.0)
-            numSolutions--;
-    }
-    // Return the number of solutions
-    return numSolutions;
-}
-bool RaySphereIntersection(float3 startWS, float3 dir, float radius)
-{
-    float3 startPS = startWS + float3(0, _EarthRadius, 0);
-    float a = dot(dir, dir);
-    float b = 2.0 * dot(dir, startPS);
-    float c = dot(startPS, startPS) - (radius * radius);
-    float d = (b * b) - 4.0 * a * c;
-    bool flag = false;
-    if (d >= 0.0)
-    {
-        // Compute the values required for the solution eval
-        float sqrtD = sqrt(d);
-        float q = -0.5 * (b + FastSign(b) * sqrtD);
-        float2 result = float2(c/q, q/a);
-        flag = result.x > 0.0 || result.y > 0.0;
-    }
-    return flag;
-}
 void GetCloudVolumeIntersection(LayerSamplingData data, float3 dir, out float rangeStart, out float range)
 {
-    float _HighestCloudAltitude = _LowestCloudAltitude + _Thickness;
+    float _HighestCloudAltitude = _LowestCloudAltitude + _Thickness, rangeEnd;
 
-    // intersect with all three spheres
-    float2 intersectionInter, intersectionOuter;
-    int numInterInner = RaySphereIntersection(0, dir, _LowestCloudAltitude + _EarthRadius, intersectionInter);
-    int numInterOuter = RaySphereIntersection(0, dir, _HighestCloudAltitude + _EarthRadius, intersectionOuter);
-
-    // The ray starts at the first intersection with the lower bound and goes up to the first intersection with the outer bound
-    rangeStart = intersectionInter.x;
-    range = intersectionOuter.x - rangeStart;
+    rangeStart = -IntersectSphere(_LowestCloudAltitude + _EarthRadius, -dir.y, _EarthRadius).x;
+    rangeEnd = -IntersectSphere(_HighestCloudAltitude + _EarthRadius, -dir.y, _EarthRadius).x;
+    range = rangeEnd - rangeStart;
 }
-bool GetCloudVolumeIntersection_Light(LayerSamplingData data, float3 originWS, float3 dir, out float totalDistance)
+float GetCloudVolumeIntersection_Light(LayerSamplingData data, float3 originWS, float3 dir)
 {
     float _HighestCloudAltitude = _LowestCloudAltitude + _Thickness;
 
-    // Given that this is a light ray, it will always start from inside the volume and is guaranteed to exit
-    float2 intersection, intersectionEarth;
-    RaySphereIntersection(originWS, dir, _HighestCloudAltitude + _EarthRadius, intersection);
-    bool intersectEarth = RaySphereIntersection(originWS, dir, _EarthRadius);
-    totalDistance = intersection.x;
-    // If the ray intersects the earth, then the sun is occlued by the earth
-    return !intersectEarth;
+    float3 startPS = originWS + float3(0, _EarthRadius, 0);
+    float lenStartPS = length(startPS), rcpLenStartPS = rcp(lenStartPS);
+    float cosChi = dot(-dir, startPS * rcpLenStartPS);
+   return -IntersectSphere(_HighestCloudAltitude + _EarthRadius, cosChi, lenStartPS, rcpLenStartPS).x;
 }
 
 float3 InverseLatLong(float2 uv, float upperHemisphereOnly)
@@ -193,41 +140,26 @@ float EvaluateSunLuminance(LayerSamplingData data, float3 positionWS, float phas
 {
     const int _NumLightSteps = (int)_LightingSteps;
 
-    // Compute the Ray to the limits of the cloud volume in the direction of the light
-    float totalLightDistance;
-    float luminance = 0.0;
+    float luminance = 0.0, extinction = 0.0;
+    float totalLightDistance = GetCloudVolumeIntersection_Light(data, positionWS, _SunDirection);
+    totalLightDistance = clamp(totalLightDistance, 0, 1000);
 
-    if (GetCloudVolumeIntersection_Light(data, positionWS, _SunDirection, totalLightDistance))
+    // Compute the size of the current step
+    float stepSize = totalLightDistance / (float)_NumLightSteps;
+
+    // Collect total density along light ray.
+    for (int j = 1; j <= _NumLightSteps; j++)
     {
-        totalLightDistance = clamp(totalLightDistance, 0, 1000);
-
-        float densitySum = 0.0f;
-
-        // Compute the size of the current step
-        float stepSize = totalLightDistance / (float)_NumLightSteps;
-
-        // Collect total density along light ray.
-        for (int j = 0; j < _NumLightSteps; j++)
-        {
-            float dist = stepSize * (1 + j);
-
-            // Evaluate the current sample point
-            float3 currentSamplePointWS = positionWS + _SunDirection * dist;
-
-            // Get the cloud properties at the sample point
-            float density = GetDensity(data, currentSamplePointWS);
-
-            densitySum += density;
-        }
-
-        // Compute the luminance for each octave
-        for (int o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
-            luminance += exp(-stepSize * densitySum * PositivePow(_MultiScattering, o))
-                         * phaseFunction[o]
-                         * PositivePow(_MultiScattering, o);
+        float3 currentSamplePointWS = positionWS + _SunDirection * stepSize * j;
+        extinction += GetDensity(data, currentSamplePointWS);
     }
 
-    // return the combined luminance
+    // Combine the luminance for each octave
+    for (int o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
+        luminance += exp(-stepSize * extinction * PositivePow(_MultiScattering, o))
+                     * phaseFunction[o]
+                     * PositivePow(_MultiScattering, o);
+
     return luminance;
 }
 
@@ -295,8 +227,8 @@ float2 ComputeCloudLighting(TEXTURE2D(cloudMap), SAMPLER(sampler_cloudMap), floa
             currentIndex++;
         }
 
-        finalColor = scattering_transmittance;
-        finalColor.y = 1 - finalColor.y;
+        finalColor.x = scattering_transmittance.x;
+        finalColor.y = (1 - scattering_transmittance.y);
     }
 
     return finalColor;
