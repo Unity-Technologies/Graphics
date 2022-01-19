@@ -7,12 +7,16 @@ public struct BoidIndividual {
     public Vector3 position;
     public Vector3 acceleration;
     public Vector3 velocity;
+    public int flock;
+    public bool alive;
 };
 
 public class Boids : MonoBehaviour
 {
     public int boidCount = 100;
-    public GameObject boidsPrefab;
+    public GameObject flockAPrefab;
+    public GameObject flockBPrefab;
+    public GameObject transmutePrefab;
     public float maxForce = 4.0f;
     public float maxSpeed = 8.0f;
 
@@ -44,9 +48,12 @@ public class Boids : MonoBehaviour
                   position = pos
                 , acceleration = Vector3.zero
                 , velocity = Vector3.zero
+                , flock = i < (boidCount / 2) ? 0 : 1
+                , alive = true
             };
             m_boidsBufferB[i] = m_boidsBufferA[i];
-            var go = Instantiate(boidsPrefab, pos, Quaternion.identity);
+            GameObject flockFab = m_boidsBufferA[i].flock == 0 ? flockAPrefab : flockBPrefab;
+            GameObject go = Instantiate(flockFab, pos, Quaternion.identity);
             go.transform.position = m_boidsBufferA[i].position;
             m_boidsGO.Add(go);
             rowCount += ((i+1) % 10 == 0) ? 1 : 0;
@@ -65,7 +72,20 @@ public class Boids : MonoBehaviour
 
                 for (int i = 0; i < boidCount; i++)
                 {
-                    m_boidsGO[i].transform.position = m_boidsBufferB[i].position;
+                    if (m_boidsGO[i].activeSelf) {
+                        m_boidsGO[i].transform.position = m_boidsBufferB[i].position;
+                        if ( ! m_boidsBufferB[i].alive)
+                        {
+                            m_boidsGO[i].SetActive(false);
+                            int otherBoid = i - (boidCount / 2);
+                            Vector3 avgPos = m_boidsGO[i].transform.position - m_boidsGO[otherBoid].transform.position;
+                            float dist = avgPos.magnitude;
+                            avgPos = Vector3.Normalize(avgPos) * (dist / 2.0f);
+                            avgPos = m_boidsGO[otherBoid].transform.position + avgPos;
+                            DestroyImmediate(m_boidsGO[otherBoid]);
+                            m_boidsGO[otherBoid] = Instantiate(transmutePrefab, avgPos, Quaternion.identity);
+                        }
+                    }
                 }
 
                 NativeArray<BoidIndividual> temp = m_boidsBufferA;
@@ -116,6 +136,10 @@ public struct BoidMoveJob : IJobParallelFor
 
     public Vector3 goalPosition;
 
+    public int flockStart;
+    public int flockEnd;
+    public int flockCount;
+
     [ReadOnly]
     public NativeArray<BoidIndividual> Input;
 
@@ -136,30 +160,53 @@ public struct BoidMoveJob : IJobParallelFor
 
     public Vector3 cohere(Vector3 cohesionForce, BoidIndividual individual)
     {
-        cohesionForce /= (boidCount - 1);
-        cohesionForce = cohesionForce - individual.position;
-
-        return limitForce(cohesionForce, individual);
+        if (cohesionForce != Vector3.zero)
+        {
+            cohesionForce /= (flockCount - 1);
+            cohesionForce = cohesionForce - individual.position;
+            cohesionForce = limitForce(cohesionForce, individual);
+        }
+        return cohesionForce;
     }
 
     public Vector3 repel(Vector3 repelForce, BoidIndividual individual)
     {
-        repelForce /= (boidCount - 1);
-
-        return limitForce(repelForce, individual);
+        if (repelForce != Vector3.zero)
+        {
+            repelForce /= (flockCount - 1);
+            repelForce = limitForce(repelForce, individual);
+        }
+        return repelForce;
     }
 
     public Vector3 align(Vector3 alignForce, BoidIndividual individual)
     {
-        alignForce /= (boidCount - 1);
-
-        return limitForce(alignForce, individual);
+        if (alignForce != Vector3.zero)
+        {
+            alignForce /= (flockCount - 1);
+            alignForce = limitForce(alignForce, individual);
+        }
+        return alignForce;
     }
 
     public Vector3 seekGoal(BoidIndividual individual)
     {
         Vector3 seekGoalForce = goalPosition - individual.position;
-        return limitForce(seekGoalForce, individual);
+        if (seekGoalForce != Vector3.zero)
+        {
+            seekGoalForce = limitForce(seekGoalForce, individual);
+        }
+        return seekGoalForce;
+    }
+
+    public Vector3 repelFlock(Vector3 repelFlockForce, BoidIndividual individual)
+    {
+        if (repelFlockForce != Vector3.zero)
+        {
+            repelFlockForce /= (flockCount);
+            repelFlockForce = limitForce(repelFlockForce, individual);
+        }
+        return repelFlockForce;
     }
 
     public Vector3 limitVelocity(Vector3 velocity)
@@ -175,13 +222,19 @@ public struct BoidMoveJob : IJobParallelFor
     public void Execute(int index)
     {
         BoidIndividual individual = Input[index];
+        flockCount = boidCount / 2;
+        flockStart = individual.flock * flockCount;
+        flockEnd = flockStart + flockCount;
+
+        goalPosition = (individual.flock == 0) ? goalPosition : new Vector3(10,5,0);
 
         Vector3 cohesionForce = Vector3.zero;
         Vector3 repelForce = Vector3.zero;
         Vector3 alignForce = Vector3.zero;
         Vector3 seekGoalForce = Vector3.zero;
+        Vector3 repelFlockForce = Vector3.zero;
 
-        for (int i = 0; i < boidCount; i++)
+        for (int i = flockStart; i < flockEnd; i++)
         {
             if (i == index) {continue;}
 
@@ -197,17 +250,62 @@ public struct BoidMoveJob : IJobParallelFor
             alignForce += Input[i].velocity;
         }
 
+        int otherFlockStart = individual.flock == 0 ? flockCount : 0;
+        int otherFlockEnd = individual.flock == 0 ? boidCount : flockCount;
+        int proximityCount = 0;
+        for (int i = otherFlockStart; i < otherFlockEnd; i++)
+        {
+            Vector3 otherPos = Input[i].position;
+            Vector3 r = otherPos - individual.position;
+            if (r.magnitude < 1.00f)
+            {
+                if (individual.flock == 1) {
+                    //flock b attempts evasion flock a
+                    repelFlockForce -= r;
+                    if (r.magnitude < 0.50f)
+                    {
+                        proximityCount++;
+                    }
+                } 
+                else
+                {
+                    //flock a attracted towards flock b
+                    repelFlockForce += r;
+                }
+            }
+        }
+        if (proximityCount >= 3) {
+
+            individual.alive = false;
+        }
+
         cohesionForce = cohere(cohesionForce, individual);
         repelForce = repel(repelForce, individual);
         alignForce = align(alignForce, individual);
         seekGoalForce = seekGoal(individual);
+        repelFlockForce = repelFlock(repelFlockForce, individual);
 
         cohesionForce *= cohesionAmount;
         repelForce *= repelAmount;
         alignForce *= alignAmount;
         seekGoalForce *= seekGoalAmount;
+        if (individual.flock == 1)
+        {
+            repelFlockForce *= 14.0f * repelAmount;
+        }
+        else
+        {
+            if ((goalPosition - individual.position).magnitude > 3)
+            {
+                repelFlockForce *= 0.0f * repelAmount;
+            }
+            else
+            {
+                repelFlockForce *= 28.0f * repelAmount;
+            }
+        }
 
-        individual.acceleration += cohesionForce + repelForce + alignForce + seekGoalForce;
+        individual.acceleration += cohesionForce + repelForce + alignForce + seekGoalForce + repelFlockForce;
 
         individual.velocity += individual.acceleration * deltaTime;
         individual.velocity = limitVelocity(individual.velocity);

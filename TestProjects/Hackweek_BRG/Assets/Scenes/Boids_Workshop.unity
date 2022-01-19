@@ -400,15 +400,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 010cf280ca758b648986dd90824dcd7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  boidCount: 500
-  boidsPrefab: {fileID: 6719365605357038126, guid: 295c06de7426b9a4397141c2768797b5,
+  boidCount: 1000
+  flockAPrefab: {fileID: 6719365605357038126, guid: 295c06de7426b9a4397141c2768797b5,
+    type: 3}
+  flockBPrefab: {fileID: 6719365605357038126, guid: c83e6905255c66f439fbc203e511d4e4,
+    type: 3}
+  transmutePrefab: {fileID: 6719365605357038126, guid: 03f4907884477e944b53f98596de3d66,
     type: 3}
   maxForce: 0.4
   maxSpeed: 6.5
-  cohesion: 1
-  repel: 2
-  align: 1
-  matchGoal: 2
+  cohesion: 10
+  repel: 7
+  align: 7
+  matchGoal: 30
 --- !u!1 &1160234425
 GameObject:
   m_ObjectHideFlags: 0
