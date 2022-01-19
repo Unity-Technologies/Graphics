@@ -72,6 +72,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static GraphicsBuffer.IndirectDrawIndexedArgs[] CubeDrawArgs =
             new GraphicsBuffer.IndirectDrawIndexedArgs[1];
+
+        private TextureHandle m_OcclusionPrevFrameDepth = TextureHandle.nullHandle;
+
+        void InitOcclusionCulling()
+        {
+            m_OcclusionPrevFrameDepth = m_RenderGraph.CreateSharedTexture(
+                new TextureDesc(Vector2.one, true, true)
+                {
+                    depthBufferBits = DepthBits.Depth32,
+                    bindTextureMS = false,
+                    clearBuffer = true,
+                    name = "OcclusionPrevFrameDepth"
+                });
+        }
+
         void RenderOcclusionCulling(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cull, ref PrepassOutput output)
         {
             const int kVerticesPerInstance = 3 * 2; // 3 front faces, 2 triangles per face to draw a box
@@ -87,11 +102,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.AllowPassCulling(false);
 
-                output.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.Read);
+                builder.UseDepthBuffer(m_OcclusionPrevFrameDepth, DepthAccess.Read);
+
                 builder.UseColorBuffer(renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one, true, true)
                     {
-                        colorFormat = GraphicsFormat.R8G8B8A8_SNorm,
+                        colorFormat = GraphicsFormat.R32_SFloat,
                         clearBuffer = true,//TODO: for now clear
                         clearColor = Color.clear,
                         name = "OcclusionDebugBuffer"
@@ -111,6 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         int vertexCount = data.instanceCount * kVerticesPerInstance;
                         context.cmd.SetRandomWriteTarget(2, data.instanceVisibilityBitfield);
 
+                        data.occlusionMaterial.SetBuffer(HDShaderIDs._VisInputData, BRGBindingData.inputVisibleIndices);
                         data.occlusionMaterial.SetBuffer("instanceData", BRGBindingData.instanceData);
                         data.occlusionMaterial.SetInt("instancePositionMetadata", (int)BRGBindingData.instancePositionMetadata);
 
@@ -163,6 +180,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.frameSettings = frameSettings;
 
                 output.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
+                var depthBufferHandle = output.depthBuffer;
+
                 vbuffer0 = builder.UseColorBuffer(renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one, true, true)
                     {
@@ -205,6 +224,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         data.BRGBindingData.globalGeometryPool.BindResourcesGlobal(context.cmd);
                         DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
+
+                        context.cmd.CopyTexture(depthBufferHandle, m_OcclusionPrevFrameDepth);
                     });
             }
 

@@ -501,6 +501,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 InitRayTracingAmbientOcclusion();
             }
 
+            InitOcclusionCulling();
+
             // Initialize the SSGI structures
             InitScreenSpaceGlobalIllumination();
 

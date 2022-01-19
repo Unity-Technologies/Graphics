@@ -2,6 +2,7 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
+ByteAddressBuffer inputVisibleInstanceData;
 RWByteAddressBuffer instanceVisibilityBitfield : register(u2);
 
 #if defined(PROCEDURAL_CUBE)
@@ -37,7 +38,7 @@ float3 BoundingBoxPositionOS(AttributesMesh input)
 
 struct OcclusionVaryings
 {
-    uint4 instanceIndex : COLOR0;
+    uint4 instanceID : COLOR0;
     SV_POSITION_QUALIFIERS float4 positionCS : SV_Position;
 };
 
@@ -48,13 +49,14 @@ OcclusionVaryings VertOcclusion(AttributesMesh input, uint svInstanceId : SV_Ins
     uint instanceIndex = vid / kVerticesPerInstance;
 #else
     uint instanceIndex = svInstanceId;
+    input.positionOS *= 2; // Unity Cube goes from 0 to 0.5, scale it from 0 to 1
 #endif
-    occlusion_instanceID = instanceIndex;
+    occlusion_instanceID = inputVisibleInstanceData.Load(instanceIndex << 2);
 
     VaryingsMeshToPS vmesh = VertMesh(input);
 
     OcclusionVaryings o;
-    o.instanceIndex = uint4(instanceIndex, 0, 0, 0);
+    o.instanceID = uint4(instanceIndex, occlusion_instanceID, 0, 0);
     o.positionCS = vmesh.positionCS;
 
     return o;
@@ -62,7 +64,7 @@ OcclusionVaryings VertOcclusion(AttributesMesh input, uint svInstanceId : SV_Ins
 
 struct PSVaryings
 {
-    uint4 instanceIndexVarying : COLOR0;
+    uint4 instanceIDVarying : COLOR0;
 #if defined(DEBUG_OUTPUT)
     float4 svPosition : SV_Position;
 #endif
@@ -75,10 +77,11 @@ float4 FragOcclusion(PSVaryings v) : SV_Target
 void FragOcclusion(PSVaryings v)
 #endif
 {
-    uint instanceIndex = v.instanceIndexVarying.x;
+    uint instanceIndex = v.instanceIDVarying.x;
+    uint instanceID = v.instanceIDVarying.y;
 
-    uint instanceDword = instanceIndex >> 5;
-    uint bitIndex = instanceIndex & 0x1f;
+    uint instanceDword =  instanceIndex >> 5;
+    uint bitIndex =  instanceIndex & 0x1f;
     uint mask = 1 << bitIndex;
 
     uint value = instanceVisibilityBitfield.Load(instanceDword);
