@@ -177,6 +177,8 @@ MonoBehaviour:
     combineProbeVolumesCS: {fileID: 7200000, guid: b46fbe1adc9d52a46bb8a5459e5750a5, type: 3}
     probeGIInjectionCS: {fileID: 7200000, guid: f9edf8f708695ca478b47529f5cd25d0, type: 3}
     extactProbeExtraDataCS: {fileID: 7200000, guid: ec60fc9478d72a94f9945f2ce5e1b72a, type: 3}
+    dynGIIndirectArgGen: {fileID: 7200000, guid: 9fcc0f79457e443438edbe118284af1f, type: 3}
+    countAndBucketCS: {fileID: 7200000, guid: 755a69c03d589304ca6635fd0b5a39bb, type: 3}
     furnaceTestCS: {fileID: 7200000, guid: 9c19385e40e70ea41811a942a46b04a3, type: 3}
   textures:
     debugFontTex: {fileID: 2800000, guid: a3ad2df0e49aaa341a3b3a80f93b3f66, type: 3}

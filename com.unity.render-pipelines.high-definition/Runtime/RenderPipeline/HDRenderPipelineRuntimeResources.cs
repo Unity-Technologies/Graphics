@@ -386,6 +386,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader probeGIInjectionCS;
             [Reload("Runtime/Lighting/ProbeVolume/Propagation/ExtractGIData.compute")]
             public ComputeShader extactProbeExtraDataCS;
+            [Reload("Runtime/Lighting/ProbeVolume/Propagation/CreateHitMissList.compute")]
+            public ComputeShader dynGIIndirectArgGen;
+            [Reload("Runtime/Lighting/ProbeVolume/Propagation/CountAndBucket.compute")]
+            public ComputeShader countAndBucketCS;
+
 
 #if UNITY_EDITOR
             // Furnace Testing (BSDF Energy Conservation)

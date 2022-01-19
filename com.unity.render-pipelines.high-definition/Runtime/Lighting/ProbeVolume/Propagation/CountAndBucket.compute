@@ -1,0 +1,85 @@
+#pragma enable_d3d11_debug_symbols
+
+#define SHADOW_MINIMAL
+#define LIGHT_EVALUATION_NO_HEIGHT_FOG
+
+#define DEBUGGING 0
+#define SUPPORTS_AREA_LIGHTS 1
+
+#pragma kernel KCountAndBucket COUNT
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+
+
+#define GROUP_SIZE 64
+
+// AXIS_COUNT uint3 per probe. Must then be accessed as probeIndex * AXIS_COUNT + [0...AXIS_COUNT-1]
+StructuredBuffer<uint3>  _PackedProbeExtraData;
+
+// TODO: This is now creating append buffers altogether with the full data set. Worth considering if it is better to append indices in the main buffer.
+// This will lead to less appends but then the main shader will have more cache miss as the data access will be all spreaded.
+
+// Outputs
+AppendStructuredBuffer<uint3> _Hits;
+AppendStructuredBuffer<uint3> _Misses;
+RWStructuredBuffer<uint> _IndirectBuffer; // First three hits, last three misses.
+
+RWBuffer<uint> _Counts; // First three hits, last three misses.
+
+int _Count;
+
+#define INDIRECT_HITS_OFFSET			0u
+#define INDIRECT_MISSES_OFFSET			3u
+
+#define COUNT_HIT 0u
+#define COUNT_MISS 1u
+
+#ifdef COUNT
+
+[numthreads(64, 1, 1)]
+void KCountAndBucket(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+	int probeIdx = dispatchThreadId.x;
+	if (probeIdx < _Count)
+	{
+		uint3 extraData = _PackedProbeExtraData[probeIdx];
+
+		float hitDistNorm = ((extraData.x >> 24) & 255) / 255.0f;
+
+		if (hitDistNorm > 0) // hit
+		{
+			_Hits.Append(extraData);
+			InterlockedAdd(_Counts[0], 1u);
+		}
+		else
+		{
+			_Misses.Append(extraData);
+			InterlockedAdd(_Counts[1], 1u);
+		}
+	}
+}
+#elif defined(CLEAR)
+
+
+[numthreads(2, 1, 1)]
+void KClear(uint dispatchThreadId : SV_DispatchThreadID)
+{
+	_IndirectBuffer[dispatchThreadId * 3] = 0; // ThreadGroupCountX
+	_IndirectBuffer[dispatchThreadId * 3 + 1] = 1; // ThreadGroupCountY
+	_IndirectBuffer[dispatchThreadId * 3 + 2] = 1; // ThreadGroupCountZ
+	_Counts[dispatchThreadId] = 0;
+}
+
+#else
+
+// This is dumb, we do on GPU to avoid going back and forth CPU/GPU
+[numthreads(1, 1, 1)]
+void DynGIIndirectArgs(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+	_IndirectBuffer[INDIRECT_HITS_OFFSET] = (_Counts[COUNT_HIT] + 63) / 64;
+	_IndirectBuffer[INDIRECT_MISSES_OFFSET] = (_Counts[COUNT_MISS] + 63) / 64;
+}
+#endif

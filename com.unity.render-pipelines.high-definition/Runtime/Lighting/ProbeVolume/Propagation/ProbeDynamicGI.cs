@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using System.Collections.Generic;
+using Unity.Jobs;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -167,6 +169,161 @@ namespace UnityEngine.Rendering.HighDefinition
         // ?
         // SHOULD DEFINITIVELY CULL CELLS. Though not here.
 
+         // We produce two lists
+         // BURSTIFYING the mega naive way.
+        //struct CullProbesJob : IJobParallelFor
+        //{
+        //    [ReadOnly] public NativeArray<Vector3> probeWorldPos;
+        //    public NativeArray<bool> survivingProbes;
+
+        //    public Vector3 cameraPos;
+        //    public Vector3 cameraForwardVec;
+        //    public float thresholdFront;
+        //    public float thresholdBack;
+
+        //    public void Execute(int index)
+        //    {
+        //        Vector3 pos = probeWorldPos[index];
+
+        //        Vector3 toCamera = pos - cameraPos;
+        //        float d = Vector3.Dot(toCamera, cameraForwardVec);
+        //        bool surving = (d > 0 && d < thresholdFront) || (d < 0 && -d < thresholdBack);
+        //        survivingProbes[index] = surving;
+        //    }
+        //}
+
+        //static internal List<uint> CullExtraData(HDCamera hdCamera, ProbeReferenceVolume.Cell cell)
+        //{
+        //    int probeCount = cell.probePositions.Length;
+        //    using (var probeLocations = new NativeArray<Vector3>(cell.probePositions, Allocator.TempJob))
+        //    using (var surviving = new NativeArray<bool>(cell.probePositions.Length, Allocator.TempJob))
+        //    {
+        //        var dynGI = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
+        //        Vector3 cameraLoc = hdCamera.camera.transform.position;
+        //        Vector3 cameraFwd = hdCamera.camera.transform.forward;
+        //        float threshFront = dynGI.updateDistanceInFrontOfCamera.value;
+        //        float threshBack = dynGI.updateDistanceBehindCamera.value;
+
+        //        const int kBatchSize = 512;
+
+        //        new CullProbesJob
+        //        {
+        //            probeWorldPos = probeLocations,
+        //            survivingProbes = surviving,
+        //            cameraPos = cameraLoc,
+        //            cameraForwardVec = cameraFwd,
+        //            thresholdFront = threshFront,
+        //            thresholdBack = threshBack
+
+        //        }.Schedule(probeCount, kBatchSize).Complete();
+
+        //        // We consolidate in one list the surviving one, the sorting is pointless if we go through the raytracing temp scale
+        //        bool rayTracingUpdate = true; // TODO_HW TODO_FCC: For HW sake I'll assume we always do the RT stuff.
+
+        //        List<uint> finalCulledData = new List<uint>(cell.probeExtraDataBuffers.hitProbesAxisCount + cell.probeExtraDataBuffers.missProbesAxisCount);
+
+        //        if (rayTracingUpdate)
+        //        {
+        //            for (int probe = 0; probe < surviving.Length; ++probe)
+        //            {
+        //                if (surviving[probe])
+        //                {
+        //                    for (int axis = 0; axis < ProbeDynamicGIManager.s_AxisCount; ++axis)
+        //                    {
+        //                        int entryIdx = probe * ProbeDynamicGIManager.s_AxisCount + axis;
+
+        //                        finalCulledData.Add(cell.packedExtraData[entryIdx].packedAlbedoAndDist);
+        //                        finalCulledData.Add(cell.packedExtraData[entryIdx].packedNormal);
+        //                        finalCulledData.Add(cell.packedExtraData[entryIdx].packedIndices);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        else
+        //        {
+        //            // Now we have the cull info, we put in the right list (NOTE, is this too slow?)
+
+        //            List<uint> hitIndices = new List<uint>(cell.probeExtraDataBuffers.hitProbesAxisCount * 3);
+        //            List<uint> missesIndices = new List<uint>(cell.probeExtraDataBuffers.missProbesAxisCount * 3);
+
+        //            for (int probe = 0; probe < surviving.Length; ++probe)
+        //            {
+        //                if (surviving[probe])
+        //                {
+        //                    // We add the extra data, but we need to check what is a hit and what a miss.
+        //                    for (int axis = 0; axis < ProbeDynamicGIManager.s_AxisCount; ++axis)
+        //                    {
+        //                        int entryIdx = probe * ProbeDynamicGIManager.s_AxisCount + axis;
+
+        //                        if (cell.packedExtraData[entryIdx].hit)
+        //                        {
+        //                            hitIndices.Add(cell.packedExtraData[entryIdx].packedAlbedoAndDist);
+        //                            hitIndices.Add(cell.packedExtraData[entryIdx].packedNormal);
+        //                            hitIndices.Add(cell.packedExtraData[entryIdx].packedIndices);
+        //                        }
+        //                        else
+        //                        {
+        //                            missesIndices.Add(cell.packedExtraData[entryIdx].packedAlbedoAndDist);
+        //                            missesIndices.Add(cell.packedExtraData[entryIdx].packedNormal);
+        //                            missesIndices.Add(cell.packedExtraData[entryIdx].packedIndices);
+        //                        }
+        //                    }
+        //                }
+        //            }
+
+        //            // Consolidate TODO: Can be made faster.
+        //            cell.probeExtraDataBuffers.hitProbesAxisCount = hitIndices.Count / 3;
+        //            cell.probeExtraDataBuffers.missProbesAxisCount = missesIndices.Count / 3;
+        //            // TODO: This I think GC Alloc, lol.
+        //            finalCulledData.AddRange(hitIndices);
+        //            finalCulledData.AddRange(missesIndices);
+        //        }
+
+        //        return finalCulledData;
+        //    }
+        //}
+
+
+        // Create the indirect arg lists and append buffers from the output buffer coming from GenerateExtraDataRealtime.
+        internal struct DynamicGIInputs
+        {
+            public ComputeBufferHandle hitsExtraData;
+            public ComputeBufferHandle missesExtraData;
+            public ComputeBufferHandle counts;
+            public ComputeBufferHandle indirectArgs;
+            public int culledCount;
+        }
+
+        DynamicGIInputs DynamicGIInputGen(CommandBuffer cmd, LightPropagationData propData)
+        {
+            var cs = propData.inputGenCS;
+            var kernel = propData.indirectArgsClearKernel;
+            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._IndirectBuffer, propData.inputs.indirectArgs);
+            cmd.SetComputeBufferParam(cs, kernel, "_Counts", propData.inputs.counts);
+            cmd.DispatchCompute(cs, kernel, 1, 1, 1);
+
+            cs = propData.bucketingCS;
+            kernel = propData.probeCountKernel;
+            ((ComputeBuffer)propData.inputs.hitsExtraData).SetCounterValue(0u);
+            ((ComputeBuffer)propData.inputs.missesExtraData).SetCounterValue(0u);
+
+            cmd.SetComputeBufferParam(cs, kernel, "_Counts", propData.inputs.counts);
+            cmd.SetComputeIntParam(cs, "_Count", propData.inputs.culledCount);
+            cmd.SetComputeBufferParam(cs, kernel, "_Hits", propData.inputs.hitsExtraData);
+            cmd.SetComputeBufferParam(cs, kernel, "_Misses", propData.inputs.missesExtraData);
+            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._PackedProbeExtraData, propData.probeFinalExtraDataBuffer);
+            var groupCount = HDUtils.DivRoundUp(propData.inputs.culledCount, 64);
+            cmd.DispatchCompute(cs, kernel, groupCount, 1, 1);
+
+            // Gen the indirect buffer
+            cs = propData.inputGenCS;
+            kernel = propData.inputGenKernel;
+            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._IndirectBuffer, propData.inputs.indirectArgs);
+            cmd.SetComputeBufferParam(cs, kernel, "_Counts", propData.inputs.counts);
+            cmd.DispatchCompute(cs, kernel, 1, 1, 1);
+
+            return propData.inputs;
+        }
 
         // ---------------------------------------------------------------------
         // --------------------------- Force Nuke ------------------------------
@@ -239,6 +396,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader propagationCS;
             public int hitKernel;
             public int missKernel;
+            public int indirectHitKernel;
+            public int inidrectMissKernel;
+
+            public ComputeShader inputGenCS;
+            public int inputGenKernel;
+            public ComputeShader bucketingCS;
+            public int probeCountKernel;
+            public int indirectArgsClearKernel;
+            public DynamicGIInputs inputs;
 
             public int probeCount;
             public Vector4 injectionParameters;
@@ -273,9 +439,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool clear;
 
             public int[] chunkIndices;
+
+            
         }
 
-        void PrepareLightPropagationData(RenderGraph renderGraph, ProbeExtraDataBuffers buffers, int[] chunkIndices, HDCamera hdCamera, ref LightPropagationData data)
+        void PrepareLightPropagationData(RenderGraph renderGraph, RenderGraphBuilder builder, ProbeExtraDataBuffers buffers, int[] chunkIndices, HDCamera hdCamera, ref LightPropagationData data)
         {
             data.propagationCS = m_Resources.shaders.probeGIInjectionCS;
             data.missKernel = data.propagationCS.FindKernel("GatherFirstBounceMiss");
@@ -325,20 +493,45 @@ namespace UnityEngine.Rendering.HighDefinition
             data.prevApvL2_1 = renderGraph.ImportTexture(m_PrevDynamicGI.L2_1);
             data.prevApvL2_2 = renderGraph.ImportTexture(m_PrevDynamicGI.L2_2);
             data.prevApvL2_3 = renderGraph.ImportTexture(m_PrevDynamicGI.L2_3);
+
+
+
+            // For input generation.
+            data.inputGenCS = m_Resources.shaders.dynGIIndirectArgGen;
+            data.inputGenKernel = data.inputGenCS.FindKernel("DynGIIndirectArgs");
+            data.indirectArgsClearKernel = data.inputGenCS.FindKernel("KClear");
+
+            data.bucketingCS = m_Resources.shaders.countAndBucketCS;
+            data.probeCountKernel = data.bucketingCS.FindKernel("KCountAndBucket");
+
+            data.inputs.culledCount = buffers.hitProbesAxisCount + buffers.missProbesAxisCount;
+            // data.inputs.hitsExtraData =
+            data.inputs.indirectArgs = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(3 * 2, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "Dyn GI Input gen Indirect Cmd" });
+            data.inputs.hitsExtraData = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(data.probeCount * ProbeDynamicGIManager.s_AxisCount, 3*sizeof(uint), ComputeBufferType.Append) { name = "Hit List" });
+            data.inputs.missesExtraData = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(data.probeCount * ProbeDynamicGIManager.s_AxisCount, 3 * sizeof(uint), ComputeBufferType.Append) { name = "Miss List" });
+            data.inputs.counts = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(2, sizeof(uint)) { name = "Counts" });
+
+            data.propagationCS.shaderKeywords = null;
+            data.propagationCS.EnableKeyword("INDIRECT");
         }
 
         void LightPropagation(RenderGraph renderGraph, ProbeExtraDataBuffers buffers, int[] chunkIndices, HDCamera hdCamera)
         {
             using (var builder = renderGraph.AddRenderPass<LightPropagationData>("Inject Direct Light in Dynamic GI APV", out var passData, ProfilingSampler.Get(HDProfileId.InjectInDynamicAPV)))
             {
-                PrepareLightPropagationData(renderGraph, buffers, chunkIndices, hdCamera, ref passData);
+                PrepareLightPropagationData(renderGraph, builder, buffers, chunkIndices, hdCamera, ref passData);
 
                 builder.SetRenderFunc(
                     (LightPropagationData data, RenderGraphContext ctx) =>
                     {
+                        var inputs = DynamicGIInputGen(ctx.cmd, data);
+
                         var cs = data.propagationCS;
                         var kernel = data.hitKernel;
                         var cmd = ctx.cmd;
+
+                        cmd.SetComputeBufferParam(cs, kernel, "_Counts", inputs.counts);
+                        cmd.SetComputeBufferParam(cs, kernel, "_Hits", inputs.hitsExtraData);
 
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL0_L1Rx, data.prevApvL0L1rx);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1G_L1Ry, data.prevApvL1Gry);
@@ -391,9 +584,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         const int probesPerGroup = 64;
                         int groupCount = HDUtils.DivRoundUp((int)data.injectionParameters4.x, probesPerGroup);
 
-                        cmd.DispatchCompute(cs, kernel, groupCount, 1, 1);
+                        cmd.DispatchCompute(cs, kernel, inputs.indirectArgs, 0);
+
+                        //cmd.DispatchCompute(cs, kernel, groupCount, 1, 1);
 
                         kernel = data.missKernel;
+
+                        cmd.SetComputeBufferParam(cs, kernel, "_Counts", inputs.counts);
+                        cmd.SetComputeBufferParam(cs, kernel, "_Misses", inputs.missesExtraData);
 
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL0_L1Rx, data.prevApvL0L1rx);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1G_L1Ry, data.prevApvL1Gry);
@@ -428,7 +626,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (data.injectionParameters4.y > 0)
                         {
                             groupCount = HDUtils.DivRoundUp((int)data.injectionParameters4.y, probesPerGroup);
-                            cmd.DispatchCompute(cs, kernel, groupCount, 1, 1);
+                            cmd.DispatchCompute(cs, kernel, inputs.indirectArgs, 3 * sizeof(uint));
+                            //cmd.DispatchCompute(cs, kernel, groupCount, 1, 1);
                         }
 
                         if (data.clear)

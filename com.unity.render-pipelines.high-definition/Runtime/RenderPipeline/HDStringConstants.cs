@@ -1091,6 +1091,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RWRequestsOutputData = Shader.PropertyToID("_RWRequestsOutputData");
 
         public static readonly int _PackedProbeExtraData = Shader.PropertyToID("_PackedProbeExtraData");
+        public static readonly int _PackedProbeExtraData_OUT = Shader.PropertyToID("_PackedProbeExtraData_OUT");
         public static readonly int _ProbeWorldLocations = Shader.PropertyToID("_ProbeWorldLocations");
         public static readonly int _ProbeValidity = Shader.PropertyToID("_ProbeValidity");
         public static readonly int _CellOrigin = Shader.PropertyToID("_CellOrigin");
