@@ -61,10 +61,9 @@ void FragStoreVis(PackedVaryingsToPS packedInput)
     VisibilityOIT::PackVisibilityData(visData, texelCoord, zValue, outPackedData);
     _OITOutputSamples.Store3(((globalOffset + outputSublistOffset) * 3) << 2, outPackedData);
 
-    // Todo: change the hashes to minimize collisions, such as a table generated on cpu
-    uint baseHashValue = GetDOTSInstanceIndex();
-
-    uint dstValue = (texelCoord.x / 8) % 2 == 0 ? 0xF0u : 0x80u;
-    _OITOutputPixelHash.Store(pixelOffset << 2, dstValue);
+    // TODO: There is probably a better hash we can use, but this seems fine for now.
+    uint layerHashValue = JenkinsHash(GetDOTSInstanceIndex()+1);
+    uint ignoredHash = 0;
+    _OITOutputPixelHash.InterlockedAdd(pixelOffset << 2, layerHashValue, ignoredHash);
 #endif
 }

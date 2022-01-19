@@ -43,10 +43,12 @@ void MainCreateStencilHistogram(int3 dispatchThreadID : SV_DispatchThreadID)
     uint countVal = GetStencilValue(_VisOITCount[COORD_TEXTURE2D_X(dispatchThreadID.xy)].xy);
     int dummy;
     _VisOITHistogramOutput.InterlockedAdd(pixelIndex << 2, countVal, dummy);
+
 }
 
 RWByteAddressBuffer _OITOutputActiveCounts;
 RWByteAddressBuffer _OITOutputSublistCounter;
+RWByteAddressBuffer _OITOutputPixelHash;
 
 [numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
 void MainFlatEnableActiveCounts(int3 dispatchThreadID : SV_DispatchThreadID)
@@ -71,4 +73,6 @@ void MainFlatEnableActiveCounts(int3 dispatchThreadID : SV_DispatchThreadID)
 
     _OITOutputActiveCounts.Store(outputPixel << 2, storageValue);
     _OITOutputSublistCounter.Store(outputPixel << 2, 0); //initialize buffer to 0
+    _OITOutputPixelHash.Store(outputPixel << 2, 0x0); // initialize hash value to zero
 }
+
