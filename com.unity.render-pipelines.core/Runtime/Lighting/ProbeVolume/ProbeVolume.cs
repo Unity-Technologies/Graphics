@@ -203,7 +203,7 @@ namespace UnityEngine.Experimental.Rendering
         internal bool ShouldCullCell(Vector3 cellPosition, Vector3 originWS = default(Vector3))
         {
             var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
-            var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
+            var debugDisplay = ProbeReferenceVolume.instance.probeVolumeDebug;
             if (debugDisplay.realtimeSubdivision)
             {
                 var profile = ProbeReferenceVolume.instance.sceneData.GetProfileForScene(gameObject.scene);
@@ -219,7 +219,7 @@ namespace UnityEngine.Experimental.Rendering
             // Round down to cell size distance
             float roundedDownDist = Mathf.Floor(Vector3.Distance(cameraTransform.position, cellCenterWS) / cellSizeInMeters) * cellSizeInMeters;
 
-            if (roundedDownDist > ProbeReferenceVolume.instance.debugDisplay.subdivisionViewCullingDistance)
+            if (roundedDownDist > ProbeReferenceVolume.instance.probeVolumeDebug.subdivisionViewCullingDistance)
                 return true;
 
             var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
@@ -234,7 +234,7 @@ namespace UnityEngine.Experimental.Rendering
             if (!ProbeReferenceVolume.instance.isInitialized || !IsResponsibleToDrawGizmo() || ProbeReferenceVolume.instance.sceneData == null)
                 return;
 
-            var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
+            var debugDisplay = ProbeReferenceVolume.instance.probeVolumeDebug;
 
             var cellSizeInMeters = ProbeReferenceVolume.instance.MaxBrickSize();
             if (debugDisplay.realtimeSubdivision)

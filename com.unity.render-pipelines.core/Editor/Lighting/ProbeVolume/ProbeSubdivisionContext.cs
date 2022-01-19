@@ -28,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering
 
             static void UpdateRealtimeSubdivisionDebug()
             {
-                var debugDisplay = ProbeReferenceVolume.instance.debugDisplay;
+                var debugDisplay = ProbeReferenceVolume.instance.probeVolumeDebug;
                 if (!debugDisplay.realtimeSubdivision)
                     return;
 

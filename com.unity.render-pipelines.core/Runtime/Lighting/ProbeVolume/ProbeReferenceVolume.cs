@@ -1298,7 +1298,7 @@ namespace UnityEngine.Experimental.Rendering
             while (chunkIndex < cellInfo.chunkList.Count)
             {
                 int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands, cell.shL0L1Data, cell.shL2Data, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
+                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands, cell.shL0L1Data, cell.shL2Data, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands, probeVolumeDebug.useBurstAddRemoveBricks);
 
                 // copy chunks into pool
                 m_TmpSrcChunks.Clear();

@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering
             if (!isInitialized) return;
 
             var cameraPosition = camera.transform.position;
-            if (!debugDisplay.freezeStreaming)
+            if (!probeVolumeDebug.freezeStreaming)
             {
                 m_FrozenCameraPosition = cameraPosition;
             }
