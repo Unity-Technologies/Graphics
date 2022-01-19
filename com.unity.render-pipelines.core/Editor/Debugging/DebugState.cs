@@ -135,9 +135,48 @@ namespace UnityEditor.Rendering
     public sealed class DebugStateBool : DebugState<bool> { }
 
     /// <summary>
+    /// Enums Debug State.
+    /// </summary>
+    [Serializable, DebugState(typeof(DebugUI.EnumField), typeof(DebugUI.HistoryEnumField))]
+    public sealed class DebugStateEnum : DebugState<int>, ISerializationCallbackReceiver
+    {
+        DebugUI.EnumField m_EnumField;
+
+        /// <summary>
+        /// Set the value of the Debug Item.
+        /// </summary>
+        /// <param name="value">Input value.</param>
+        /// <param name="field">Debug Item field.</param>
+        public override void SetValue(object value, DebugUI.IValueField field)
+        {
+            m_EnumField = field as DebugUI.EnumField;
+            this.value = (int)field.ValidateValue(value);
+        }
+
+        void UpdateValue()
+        {
+            if (m_EnumField != null)
+            {
+                m_EnumField.SetValue(value);
+                m_EnumField.setIndex?.Invoke(value);
+            }
+        }
+
+        /// <summary>
+        /// On Before Serialize Callback
+        /// </summary>
+        public void OnBeforeSerialize() => UpdateValue();
+
+        /// <summary>
+        /// On After Deserialize Callback
+        /// </summary>
+        public void OnAfterDeserialize() => UpdateValue();
+    }
+
+    /// <summary>
     /// Integer Debug State.
     /// </summary>
-    [Serializable, DebugState(typeof(DebugUI.IntField), typeof(DebugUI.EnumField), typeof(DebugUI.HistoryEnumField))]
+    [Serializable, DebugState(typeof(DebugUI.IntField))]
     public sealed class DebugStateInt : DebugState<int> { }
 
     /// <summary>
