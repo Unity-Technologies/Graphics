@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [14.0.0] - 2021-11-17
 
 ### Fixed
+ - Fixed issue where Duplicating/Copy-Pasting last keyword in the blackboard throws an exception [1394378]
+ - Fixed an issue where some graphs with incorrectly formatted data would not display their shader inputs in the blackboard [1384315]
  - Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
  - Fixed the behavior of checkerboard node with raytracing
  - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
