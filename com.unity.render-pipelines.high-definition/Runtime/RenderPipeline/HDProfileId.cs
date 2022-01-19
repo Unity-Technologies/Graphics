@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VBufferOITLightingOffscreenForwardFast,
         VBufferOITLightingOffscreenDeferredSSTracing,
         VBufferOITTestLighting,
+        VBufferOITLightingOffscreenResolveSparse,
         OITHistogram,
         OITHistogramPrefixSum,
         OITAllocateSampleLists,

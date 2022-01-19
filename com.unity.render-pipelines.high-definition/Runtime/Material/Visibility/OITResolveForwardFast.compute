@@ -8,11 +8,14 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel MainResolveOffscreenLighting
+#pragma kernel MainResolveSparseOITLighting
+#pragma kernel MainResolveDirectCopy
 
 #define GROUP_SIZE 8
 
 TEXTURE2D_X(_DepthTexture);
 RW_TEXTURE2D_X(float4, _OutputTexture);
+TEXTURE2D_X(_VisOITSparseColorBuffer);
 
 float4 _VBufferLightingOffscreenParams;
 
@@ -65,4 +68,44 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     currentColor += lighting;
 
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(currentColor, 1.0);
+}
+
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void MainResolveDirectCopy(int3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    if (any((float2)dispatchThreadId.xy > _ScreenSize.xy))
+        return;
+
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+
+
+    float3 srcColor = _VisOITSparseColorBuffer[COORD_TEXTURE2D_X(posInputs.positionSS.xy)].rgb;
+
+    uint pixelOffset = posInputs.positionSS.y * _ScreenSize.x + posInputs.positionSS.x;
+
+    //float r = (posInputs.positionSS.y / 8) % 2 == 0 ? 1.0 : 0.0;
+
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(srcColor, 1.0);
+}
+
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void MainResolveSparseOITLighting(int3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    if (any((float2)dispatchThreadId.xy > _ScreenSize.xy))
+        return;
+
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+
+
+    float3 srcColor = _VisOITSparseColorBuffer[COORD_TEXTURE2D_X(posInputs.positionSS.xy)].rgb;
+
+    uint pixelOffset = posInputs.positionSS.y * _ScreenSize.x + posInputs.positionSS.x;
+
+    //float r = (posInputs.positionSS.y / 8) % 2 == 0 ? 1.0 : 0.0;
+
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(srcColor, 1.0);
 }
