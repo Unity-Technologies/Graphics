@@ -191,31 +191,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
     float3 lighting = float3(0.0f, 0.0f, 0.0f);
 
-#if 1
-    int minDepth = 1.0;
-    for (uint i = 0; i < listCount; ++i)
-    {
-        int globalOffset = i + listOffset;
-        uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
-
-        Visibility::VisibilityData unusedVisData;
-        uint2 unusedTexelCoord;
-        float depthValue;
-        VisibilityOIT::GetVisibilitySample(i, listOffset, unusedVisData, unusedTexelCoord, depthValue);
-
-        if (depthValue < currentDepth)
-            continue;
-
-        minDepth = max(depthValue, minDepth);
-        // .
-        lighting += _VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
-    }
-
-    lighting /= (float)listCount;
-    lighting += currentColor;
-#endif
-
-#if 0
+    float minDepth = 0.0;
     uint firstSample = -1;
     for (uint k = 0; k < listCount; ++k)
     {
@@ -227,17 +203,15 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         float depthValue;
         VisibilityOIT::GetVisibilitySample(k, listOffset, unusedVisData, unusedTexelCoord, depthValue);
 
-        if (depthValue < currentDepth)
-            continue;
-
-        //minDepth = max(depthValue, minDepth);
-        firstSample = k;
+        if (depthValue > minDepth)
+        {
+            firstSample = k;
+            minDepth = depthValue;
+        }
     }
 
-    float3 lighting = float3(0.0f, 0.0f, 0.0f);
-    int minDepth = 1.0;
-    for (uint i = 0; i < listCount; ++i)
-    //uint i = firstSample;
+    //for (uint i = 0; i < listCount; ++i)
+    uint i = firstSample;
     {
         int globalOffset = i + listOffset;
         uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
@@ -247,9 +221,6 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         float depthValue;
         VisibilityOIT::GetVisibilitySample(i, listOffset, unusedVisData, unusedTexelCoord, depthValue);
 
-        if (depthValue < currentDepth)
-            continue;
-
         minDepth = max(depthValue, minDepth);
 
         int2 tileCoord = (float2)posInputRaw.positionSS.xy / GetTileSize();
@@ -257,36 +228,18 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
         float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
-        // .
+        // Sample GBuffer
         uint4 packedOITGBuffer = _VisOITOffscreenGBuffer[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
         float3 normal;
         float roughness;
         float3 diffuseAlbedo;
         VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer, normal, roughness, diffuseAlbedo);
 
-        //BSDFData bsdfData = GetBSDFData(normal, roughness, diffuseAlbedo);
-        //BuiltinData builtinData = GetBuiltinData(normal, roughness, diffuseAlbedo);
-
-        //PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
-        //LightLoopOutput lightLoopOutput;
-        ////LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS
-        //// LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD | LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT
-        //LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD | LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT, lightLoopOutput);
-
-        //float3 diffuseLighting = lightLoopOutput.diffuseLighting;
-        //float3 specularLighting = lightLoopOutput.specularLighting;
-
-        //diffuseLighting *= GetCurrentExposureMultiplier();
-        //specularLighting *= GetCurrentExposureMultiplier();
-
-        //lighting += float3(1, 0, 0);
-        //lighting += diffuseLighting + specularLighting;
         lighting += _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
     }
 
     //lighting /= (float)listCount;
     lighting += currentColor;
-#endif
 
     _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(lighting, 1.0);
 }

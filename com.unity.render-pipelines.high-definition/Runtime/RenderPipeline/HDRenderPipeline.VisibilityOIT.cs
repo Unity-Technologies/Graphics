@@ -773,7 +773,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     (OITResolveForwardFastRenderPass data, RenderGraphContext context) =>
                     {
                         int kernel = data.cs.FindKernel("MainResolveOffscreenLighting");
-                        context.cmd.SetKeyword(GlobalKeyword.Create("OIT_DEFERRED_SS_TRACING"), false);
                         context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
@@ -832,9 +831,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (OITResolveDeferredSSTracingRenderPass data, RenderGraphContext context) =>
                     {
-                        //CoreUtils.SetKeyword(context.cmd, "USE_FPTL_LIGHTLIST", false);
-                        //CoreUtils.SetKeyword(context.cmd, "USE_CLUSTERED_LIGHTLIST", true);
-
                         int kernel = data.cs.FindKernel("MainResolveOffscreenLighting");
                         context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
