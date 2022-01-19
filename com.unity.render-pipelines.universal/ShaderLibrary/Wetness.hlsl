@@ -19,6 +19,8 @@ float3 PerturbNormal(float3 surf_pos, float3 surf_norm, float height, float2 uv,
 {
     float3 vSigmaS = ddx_fine(surf_pos);
     float3 vSigmaT = ddy_fine(surf_pos);
+    if (!any(vSigmaS) || !any(vSigmaT))
+        return 0;
     float3 vN = surf_norm; // normalized
     float3 vR1 = cross(vSigmaT, vN);
     float3 vR2 = cross(vN, vSigmaS);

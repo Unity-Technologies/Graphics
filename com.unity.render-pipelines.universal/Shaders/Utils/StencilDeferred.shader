@@ -340,13 +340,13 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 float colorAtten = saturate(1.0 - Fresnel(brdfDataWetness.reflectivity, dot(unityLight.direction, wetnessData.normalWS)));
                 float giAtten = saturate(1.0 - Fresnel(brdfDataWetness.reflectivity, dot(inputData.viewDirectionWS, wetnessData.normalWS)));
 
-                color *= colorAtten; //@ << too weak attenuation
+                color *= lerp(1.0, colorAtten, wetnessData.waterSaturation); //@ << too weak attenuation
                 alpha = lerp(1.0, giAtten, wetnessData.waterSaturation);//@ << too weak attenuation
                 //@ Problems in shadows
                 //@ Occlusion disappears in the beginning
 
                 color += colorWetness + giWetness;
-#endif
+#endif  
             }
             else
             {
