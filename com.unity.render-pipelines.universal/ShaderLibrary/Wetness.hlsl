@@ -60,7 +60,7 @@ WetnessData GetWetnessData(float4 gbufferWetness, BRDFData brdfData, float3 posW
     wetnessData.wetness = gbufferWetness.r;
     wetnessData.waterLevel = kWaterLevelMin;
     wetnessData.waterSaturation = saturate(wetnessData.wetness / (wetnessData.waterLevel + 0.0001));// This should be using porosity
-    wetnessData.waterAmount = saturate(wetnessData.wetness - wetnessData.waterLevel);
+    wetnessData.waterAmount = saturate(wetnessData.wetness - wetnessData.waterLevel) * gbufferWetness.b;
 
     float puddleTransition = saturate(wetnessData.waterAmount * 10.0);
     wetnessData.normalWS = normalize(lerp(normalWS, float3(0.0, 1.0, 0.0), puddleTransition));

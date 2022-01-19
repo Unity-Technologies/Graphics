@@ -173,7 +173,7 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
 }
 
 // This will encode SurfaceData into GBuffer
-FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination, half occlusion = 1.0)
+FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination, half occlusion = 1.0, float3 geomNormalWS = 0.0)
 {
     half3 packedNormalWS = PackNormal(inputData.normalWS);
 
@@ -219,7 +219,7 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
     #ifdef _LIGHT_LAYERS
     uint renderingLayers = GetMeshRenderingLightLayer();
     // Note: we need to mask out only 8bits of the layer mask before encoding it as otherwise any value > 255 will map to all layers active
-    output.GBUFFER_LIGHT_LAYERS = 0;// float4(1.0, 0.75, 0.5, 0.25);// float4((renderingLayers & 0x000000FF) / 255.0, 0.0, 0.0, 0.0);
+    output.GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, pow(dot(geomNormalWS, float3(0.0, 1.0, 0.0)), 64.0), 0.0); // float4(1.0, 0.75, 0.5, 0.25);// float4((renderingLayers & 0x000000FF) / 255.0, 0.0, 0.0, 0.0);
     #endif
 
     return output;
