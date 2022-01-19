@@ -42,7 +42,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     float currentDepth = _DepthTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)].x;
     float3 currentColor = _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)].rgb;
     float3 lighting = float3(0.0f, 0.0f, 0.0f);
-    int minDepth = 1.0;
+    float minDepth = 1.0;
     for (uint i = 0; i < listCount; ++i)
     {
         int globalOffset = i + listOffset;
