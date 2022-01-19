@@ -17,6 +17,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed issue in DynamicResolutionHandler when camera request was turned off at runtime, the ScalableBufferManager would leak state and not unset DRS state (case 1383093).
 - Fixed the issue with the special Turkish i, when looking for the m_IsGlobal property in VolumeEditor. (case 1276892)
 - Fixed IES profile importer handling of overflow (outside 0-1 range) of attenutation splines values.
+- Fixed undo in for `DebugUI.EnumFields` on the rendering debugger. (case 1386964)
 
 ## [12.1.3] - 2021-11-17
 Version Updated
