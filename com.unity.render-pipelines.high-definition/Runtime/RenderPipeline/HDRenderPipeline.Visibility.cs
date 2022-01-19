@@ -129,7 +129,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         data.occlusionMaterial.SetBuffer(HDShaderIDs._VisInputData, BRGBindingData.inputVisibleIndices);
                         data.occlusionMaterial.SetBuffer("instanceData", BRGBindingData.instanceData);
-                        data.occlusionMaterial.SetInt("instancePositionMetadata", (int)BRGBindingData.instancePositionMetadata);
+                        data.occlusionMaterial.SetInteger("instancePositionMetadata", (int)BRGBindingData.instancePositionMetadata);
+                        data.occlusionMaterial.SetInteger("instanceBatchID", (int)BRGBindingData.batchID);
 
                         if (data.occlusionCullingMode == OcclusionCullingMode.CubePrimitive)
                         {

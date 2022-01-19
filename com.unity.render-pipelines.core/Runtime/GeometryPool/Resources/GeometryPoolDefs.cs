@@ -60,6 +60,9 @@ namespace UnityEngine.Rendering
         public int indexOffset;
         public int subMeshLookupOffset;
         public int subMeshEntryOffset_VertexFlags; //16 bits for submesh entry, 16 bits for vertex flags.
+        // TODO: Use OBB instead of AABB
+        public Vector3 boundsCenter;
+        public Vector3 boundsExtents;
     }
 
     [GenerateHLSL]

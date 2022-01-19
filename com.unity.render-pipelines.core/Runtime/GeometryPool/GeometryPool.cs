@@ -120,6 +120,8 @@ namespace UnityEngine.Rendering
             public static readonly int _GeoIndexOffset = Shader.PropertyToID("_GeoIndexOffset");
             public static readonly int _GeoSubMeshLookupOffset = Shader.PropertyToID("_GeoSubMeshLookupOffset");
             public static readonly int _GeoSubMeshEntryOffset_VertexFlags = Shader.PropertyToID("_GeoSubMeshEntryOffset_VertexFlags");
+            public static readonly int _GeoBoundsCenter = Shader.PropertyToID("_GeoBoundsCenter");
+            public static readonly int _GeoBoundsExtents = Shader.PropertyToID("_GeoBoundsExtents");
             public static readonly int _InputSubMeshMaterialKey = Shader.PropertyToID("_InputSubMeshMaterialKey");
             public static readonly int _InputVBCount = Shader.PropertyToID("_InputVBCount");
             public static readonly int _OutputVBSize = Shader.PropertyToID("_OutputVBSize");
@@ -611,17 +613,20 @@ namespace UnityEngine.Rendering
             //Update metadata buffer
             AddMetadataUpdateCommand(
                 cmdBuffer, handle.index,
-                PackGpuGeoPoolMetadataEntry(geoSlot, vertexFlags), m_GlobalGeoMetadataBuffer);
+                PackGpuGeoPoolMetadataEntry(geoSlot, vertexFlags, mesh.bounds), m_GlobalGeoMetadataBuffer);
         }
 
-        private GeoPoolMetadataEntry PackGpuGeoPoolMetadataEntry(in GeometrySlot geoSlot, GeoPoolInputFlags vertexFlags)
+        private GeoPoolMetadataEntry PackGpuGeoPoolMetadataEntry(in GeometrySlot geoSlot, GeoPoolInputFlags vertexFlags,
+            Bounds meshBounds)
         {
             return new GeoPoolMetadataEntry()
             {
                 vertexOffset = geoSlot.vertexAlloc.block.offset,
                 indexOffset = geoSlot.indexAlloc.block.offset,
                 subMeshLookupOffset = geoSlot.subMeshLookupAlloc.block.offset,
-                subMeshEntryOffset_VertexFlags = (int)((geoSlot.subMeshEntryAlloc.block.offset << 16) | ((int)vertexFlags & 0xFFFF))
+                subMeshEntryOffset_VertexFlags = (int)((geoSlot.subMeshEntryAlloc.block.offset << 16) | ((int)vertexFlags & 0xFFFF)),
+                boundsCenter = meshBounds.center,
+                boundsExtents = meshBounds.extents,
             };
         }
 
@@ -1009,6 +1014,8 @@ namespace UnityEngine.Rendering
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._GeoIndexOffset, metadataEntry.indexOffset);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._GeoSubMeshLookupOffset, metadataEntry.subMeshLookupOffset);
             cmdBuffer.SetComputeIntParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._GeoSubMeshEntryOffset_VertexFlags, metadataEntry.subMeshEntryOffset_VertexFlags);
+            cmdBuffer.SetComputeVectorParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._GeoBoundsCenter, metadataEntry.boundsCenter);
+            cmdBuffer.SetComputeVectorParam(m_GeometryPoolKernelsCS, GeoPoolShaderIDs._GeoBoundsExtents, metadataEntry.boundsExtents);
 
             int kernel = m_KernelMainUpdateMeshMetadata;
             cmdBuffer.SetComputeBufferParam(m_GeometryPoolKernelsCS, kernel, GeoPoolShaderIDs._OutputGeoMetadataBuffer, outputMetadataBuffer);

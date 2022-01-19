@@ -30,7 +30,7 @@ float3 BoundingBoxPositionOS(AttributesMesh input)
     uint vid = input.vertexIndex;
     uint instanceIndex = vid / kVerticesPerInstance;
     uint vertexIndex = vid % kVerticesPerInstance;
-    return BoxVerts[vertexIndex].xyz;
+    return TransformBoundsVertex(BoxVerts[vertexIndex].xyz);
 }
 #endif
 
@@ -42,6 +42,15 @@ struct OcclusionVaryings
     SV_POSITION_QUALIFIERS float4 positionCS : SV_Position;
 };
 
+MeshBounds GetMeshBounds(uint instanceID, uint batchID)
+{
+    GeoPoolMetadataEntry metadata = GeometryPool::GetMetadataEntry(instanceID, batchID);
+    MeshBounds bounds;
+    bounds.center = metadata.boundsCenter;
+    bounds.extents = metadata.boundsExtents;
+    return bounds;
+}
+
 OcclusionVaryings VertOcclusion(AttributesMesh input, uint svInstanceId : SV_InstanceID)
 {
 #if defined(PROCEDURAL_CUBE)
@@ -52,6 +61,7 @@ OcclusionVaryings VertOcclusion(AttributesMesh input, uint svInstanceId : SV_Ins
     input.positionOS *= 2; // Unity Cube goes from 0 to 0.5, scale it from 0 to 1
 #endif
     occlusion_instanceID = inputVisibleInstanceData.Load(instanceIndex << 2);
+    occlusion_meshBounds = GetMeshBounds(occlusion_instanceID, instanceBatchID);
 
     VaryingsMeshToPS vmesh = VertMesh(input);
 

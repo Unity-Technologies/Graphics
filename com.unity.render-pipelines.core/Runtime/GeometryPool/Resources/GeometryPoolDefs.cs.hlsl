@@ -58,6 +58,8 @@ struct GeoPoolMetadataEntry
     int indexOffset;
     int subMeshLookupOffset;
     int subMeshEntryOffset_VertexFlags;
+    float3 boundsCenter;
+    float3 boundsExtents;
 };
 
 // Generated from UnityEngine.Rendering.GeoPoolBatchTableEntry
@@ -105,6 +107,14 @@ int GetSubMeshLookupOffset(GeoPoolMetadataEntry value)
 int GetSubMeshEntryOffset_VertexFlags(GeoPoolMetadataEntry value)
 {
     return value.subMeshEntryOffset_VertexFlags;
+}
+float3 GetBoundsCenter(GeoPoolMetadataEntry value)
+{
+    return value.boundsCenter;
+}
+float3 GetBoundsExtents(GeoPoolMetadataEntry value)
+{
+    return value.boundsExtents;
 }
 //
 // Accessors for UnityEngine.Rendering.GeoPoolBatchTableEntry

@@ -51,4 +51,16 @@ float3 LoadPositionFromGeometryPool(AttributesMesh input)
 //required by VertMesh
 #if SHADERPASS != SHADERPASS_VISIBILITY_OCCLUSION_CULLING
 #define CreateProceduralPositionOS LoadPositionFromGeometryPool
+#else
+
+#if !defined(PROCEDURAL_CUBE)
+#define HAVE_MESH_MODIFICATION
+AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters)
+{
+    input.positionOS = TransformBoundsVertex(input.positionOS);
+    return input;
+}
 #endif
+
+#endif
+

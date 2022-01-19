@@ -170,6 +170,7 @@ namespace UnityEngine.Rendering
         internal static uint s_InstancePositionMetadata;
         internal static int s_DrawCommandCount;
         internal static int s_InstanceCount;
+        internal static uint s_BatchID;
         internal static uint s_DebugVisibleMask;
         internal static OcclusionCullingMode s_OcclusionCullingMode;
 
@@ -822,6 +823,7 @@ namespace UnityEngine.Rendering
                 s_InstanceData = m_GPUPersistentInstanceData;
                 s_DrawCommandCount = cullingOutput.drawCommands[0].drawCommandCount;
                 s_InstanceCount = cullingOutput.drawCommands[0].visibleInstanceCount;
+                s_BatchID = m_batchID.value;
                 s_InstanceCountBuffer = m_OcclusionVisibleInstanceCountBuffer;
             }
             else
@@ -1343,9 +1345,11 @@ namespace UnityEngine.Rendering
             batchMetadata[13] = CreateMetadataValue(deferredMaterialInstanceDataID, deferredMaterialDataOffset * UnsafeUtility.SizeOf<Vector4>(), true);
 
             s_InstancePositionMetadata = batchMetadata[0].Value;
+            Debug.Log($"positionMetadata {s_InstancePositionMetadata} {s_InstancePositionMetadata:x8}");
 
             // Register batch
             m_batchID = m_BatchRendererGroup.AddBatch(batchMetadata, m_GPUPersistentInstanceData.bufferHandle);
+            Debug.Log($"batchID {m_batchID.value} {m_batchID.value:x8}");
 
             if (m_DeferredMaterialBatch.valid)
                 m_DeferredMaterialBRG.SubmitBatch(m_DeferredMaterialBatch, batchMetadata, m_GPUPersistentInstanceData.bufferHandle);
@@ -1477,6 +1481,7 @@ namespace UnityEngine.Rendering
         public uint instancePositionMetadata;
         public int drawCommandCount;
         public int instanceCount;
+        public uint batchID;
         public uint debugVisibleMask;
         public OcclusionCullingMode occlusionCullingMode;
         public GraphicsBuffer instanceCountBuffer;
@@ -1548,6 +1553,7 @@ namespace UnityEngine.Rendering
                 instancePositionMetadata = SceneBRG.s_InstancePositionMetadata,
                 drawCommandCount = SceneBRG.s_DrawCommandCount,
                 instanceCount = SceneBRG.s_InstanceCount,
+                batchID = SceneBRG.s_BatchID,
                 debugVisibleMask = SceneBRG.s_DebugVisibleMask,
                 occlusionCullingMode = SceneBRG.s_OcclusionCullingMode,
                 instanceCountBuffer = SceneBRG.s_InstanceCountBuffer,
