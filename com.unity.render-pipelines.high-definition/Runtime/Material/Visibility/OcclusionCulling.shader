@@ -21,7 +21,12 @@ Shader "HDRP/OcclusionCulling"
     // Include
     //-------------------------------------------------------------------------------------
 
+    #define DOTS_INSTANCING_ON
+    #define UNITY_DONT_INSTANCE_OBJECT_MATRICES
+    #define SHADERPASS SHADERPASS_VISIBILITY_OCCLUSION_CULLING
+
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/OcclusionCommon.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
@@ -51,9 +56,33 @@ Shader "HDRP/OcclusionCulling"
             HLSLPROGRAM
 
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-            #pragma multi_compile _ DOTS_INSTANCING_ON
 
-            #define SHADERPASS SHADERPASS_VISIBILITY_OCCLUSION_CULLING
+            #define PROCEDURAL_CUBE 1
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassOcclusionCulling.hlsl"
+
+            #pragma vertex VertOcclusion
+            #pragma fragment FragOcclusion
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "VBufferCubeMesh"
+            Tags { "LightMode" = "VBufferOcclusionCulling" } // This will be only for opaque object based on the RenderQueue index
+
+            Cull Back
+            ZTest Less
+            ZWrite Off
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+            #define DEBUG_OUTPUT
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityPass.hlsl"

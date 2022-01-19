@@ -369,7 +369,7 @@
     #endif
 
     // TODO: What about UNITY_DONT_INSTANCE_OBJECT_MATRICES for DOTS?
-    #if defined(UNITY_DOTS_INSTANCING_ENABLED)
+    #if defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(UNITY_DONT_INSTANCE_OBJECT_MATRICES)
         #undef UNITY_MATRIX_M
         #undef UNITY_MATRIX_I_M
         #undef UNITY_PREV_MATRIX_M

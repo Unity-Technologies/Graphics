@@ -233,6 +233,9 @@ namespace UnityEngine.Rendering.HighDefinition
         private static Material s_OcclusionCullingMaterial = null;
         public Material OcclusionCullingMaterial { get { return s_OcclusionCullingMaterial; } }
 
+        private static Mesh s_OcclusionCullingMesh = null;
+        public Mesh OcclusionCullingMesh { get { return s_OcclusionCullingMesh; } }
+
         internal bool HasVlightingPass(Material m)
         {
             for (int i = 0; i < m.passCount; ++i)
@@ -262,7 +265,14 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 s_OcclusionCullingMaterial = CoreUtils.CreateEngineMaterial(globalSettings.renderPipelineResources.shaders.occlusionCullingPS);
                 s_OcclusionCullingMaterial.renderQueue = (int)HDRenderQueue.Priority.OcclusionCulling;
-                s_OcclusionCullingMaterial.EnableKeyword("DOTS_INSTANCING_ON");
+                //s_OcclusionCullingMaterial.EnableKeyword("DOTS_INSTANCING_ON");
+            }
+
+            if (s_OcclusionCullingMesh == null)
+            {
+                var primitive = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                s_OcclusionCullingMesh = primitive.GetComponent<MeshFilter>().mesh;
+                Destroy(primitive);
             }
 
             if (s_CreateMaterialDepthMaterial == null)

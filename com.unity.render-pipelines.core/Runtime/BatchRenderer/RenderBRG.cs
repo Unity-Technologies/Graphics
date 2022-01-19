@@ -159,16 +159,19 @@ namespace UnityEngine.Rendering
         private GraphicsBuffer m_DrawIndirectArgs;
         private GraphicsBuffer m_OcclusionVisibilityBitfield;
         private GraphicsBuffer m_OcclusionVisibleInstanceData;
+        private GraphicsBuffer m_OcclusionVisibleInstanceCountBuffer;
 
         internal static GraphicsBuffer s_DrawIndirectArgs;
         internal static GraphicsBuffer s_InputVisibleInstanceData;
         internal static GraphicsBuffer s_OutputVisibleInstanceData;
         internal static GraphicsBuffer s_InstanceVisibilityBitfield;
         internal static GraphicsBuffer s_InstanceData;
+        internal static GraphicsBuffer s_InstanceCountBuffer;
         internal static uint s_InstancePositionMetadata;
         internal static int s_DrawCommandCount;
         internal static int s_InstanceCount;
         internal static uint s_DebugVisibleMask;
+        internal static OcclusionCullingMode s_OcclusionCullingMode;
 
         private NativeList<DrawInstance> m_instances;
         private NativeArray<int> m_instanceIndices;
@@ -819,6 +822,7 @@ namespace UnityEngine.Rendering
                 s_InstanceData = m_GPUPersistentInstanceData;
                 s_DrawCommandCount = cullingOutput.drawCommands[0].drawCommandCount;
                 s_InstanceCount = cullingOutput.drawCommands[0].visibleInstanceCount;
+                s_InstanceCountBuffer = m_OcclusionVisibleInstanceCountBuffer;
             }
             else
             {
@@ -1229,6 +1233,12 @@ namespace UnityEngine.Rendering
                     kMaxOcclusionInstances,
                     sizeof(int));
             m_OcclusionVisibleInstanceData.name = "Occlusion culling visible INSTANCEDATA";
+            m_OcclusionVisibleInstanceCountBuffer =
+                new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments,
+                    GraphicsBuffer.UsageFlags.None,
+                    5,
+                    sizeof(int));
+            m_OcclusionVisibleInstanceCountBuffer.name = "Occlusion culling visible instance count buffer";
 
 #if DEBUG_LOG_SCENE
             Debug.Log("DrawRanges: " + m_drawRanges.Length + ", DrawBatches: " + m_drawBatches.Length + ", Instances: " + m_instances.Length);
@@ -1403,6 +1413,7 @@ namespace UnityEngine.Rendering
                 m_DrawIndirectArgs.Dispose();
                 m_OcclusionVisibilityBitfield.Dispose();
                 m_OcclusionVisibleInstanceData.Dispose();
+                m_OcclusionVisibleInstanceCountBuffer.Dispose();
 
                 m_visibleInstancesBufferPool.Dispose();
 
@@ -1449,6 +1460,12 @@ namespace UnityEngine.Rendering
 
     public delegate RenderBRGMaterialRenderInfo RenderBRGGetMaterialRenderInfoCallback(RenderBRGGetMaterialRenderInfoArgs arguments);
 
+    public enum OcclusionCullingMode
+    {
+        CubePrimitive,
+        ProceduralCube,
+    }
+
     public struct RenderBRGBindingData
     {
         public GeometryPool globalGeometryPool;
@@ -1461,6 +1478,8 @@ namespace UnityEngine.Rendering
         public int drawCommandCount;
         public int instanceCount;
         public uint debugVisibleMask;
+        public OcclusionCullingMode occlusionCullingMode;
+        public GraphicsBuffer instanceCountBuffer;
 
         public bool valid => globalGeometryPool != null;
 
@@ -1505,6 +1524,8 @@ namespace UnityEngine.Rendering
         private static uint s_DeferredMaterialBRGRef = 0;
         private static DeferredMaterialBRG s_DeferredMaterialBRG;
 
+        public OcclusionCullingMode OcclusionCullingMode;
+
         public bool DebugVisibility0 = true;
         public bool DebugVisibility1 = true;
         public bool DebugVisibility2 = true;
@@ -1528,6 +1549,8 @@ namespace UnityEngine.Rendering
                 drawCommandCount = SceneBRG.s_DrawCommandCount,
                 instanceCount = SceneBRG.s_InstanceCount,
                 debugVisibleMask = SceneBRG.s_DebugVisibleMask,
+                occlusionCullingMode = SceneBRG.s_OcclusionCullingMode,
+                instanceCountBuffer = SceneBRG.s_InstanceCountBuffer,
             };
         }
 
@@ -1701,6 +1724,7 @@ namespace UnityEngine.Rendering
                                      (DebugVisibility6 ? 0 : (1u << 6)) |
                                      (DebugVisibility7 ? 0 : (1u << 7)));
             SceneBRG.s_DebugVisibleMask = debugVisibleMask;
+            SceneBRG.s_OcclusionCullingMode = OcclusionCullingMode;
         }
 
         private void OnDestroy()

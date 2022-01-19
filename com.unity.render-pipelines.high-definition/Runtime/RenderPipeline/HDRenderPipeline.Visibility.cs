@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using Unity.Collections;
+using UnityEditor.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -63,9 +64,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public int instanceCount;
             public Material occlusionMaterial;
+            public Mesh occlusionMesh;
             public GraphicsBuffer instanceVisibilityBitfield;
+            public OcclusionCullingMode occlusionCullingMode;
+            public GraphicsBuffer instanceCountBuffer;
         }
 
+        private static GraphicsBuffer.IndirectDrawIndexedArgs[] CubeDrawArgs =
+            new GraphicsBuffer.IndirectDrawIndexedArgs[1];
         void RenderOcclusionCulling(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cull, ref PrepassOutput output)
         {
             const int kVerticesPerInstance = 3 * 2; // 3 front faces, 2 triangles per face to draw a box
@@ -79,22 +85,51 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<VBufferOcclusionPassData>("VBufferOcclusionCulling",
                        out var passData, ProfilingSampler.Get(HDProfileId.VBufferOcclusionCulling)))
             {
+                builder.AllowPassCulling(false);
+
                 output.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.Read);
+                builder.UseColorBuffer(renderGraph.CreateTexture(
+                    new TextureDesc(Vector2.one, true, true)
+                    {
+                        colorFormat = GraphicsFormat.R8G8B8A8_SNorm,
+                        clearBuffer = true,//TODO: for now clear
+                        clearColor = Color.clear,
+                        name = "OcclusionDebugBuffer"
+                    }), 0);
+
                 passData.instanceCount = BRGBindingData.instanceCount;
                 passData.occlusionMaterial = currentAsset.OcclusionCullingMaterial;
+                passData.occlusionMesh = currentAsset.OcclusionCullingMesh;
+                passData.occlusionCullingMode = BRGBindingData.occlusionCullingMode;
+                passData.instanceCountBuffer = BRGBindingData.instanceCountBuffer;
 
-                passData.occlusionMaterial.SetBuffer("instanceData", BRGBindingData.instanceData);
-                passData.occlusionMaterial.SetInt("instancePositionMetadata", (int)BRGBindingData.instancePositionMetadata);
                 passData.instanceVisibilityBitfield = BRGBindingData.instanceVisibilityBitfield;
 
                 builder.SetRenderFunc(
                     (VBufferOcclusionPassData data, RenderGraphContext context) =>
                     {
                         int vertexCount = data.instanceCount * kVerticesPerInstance;
-                        context.cmd.SetRandomWriteTarget(1, data.instanceVisibilityBitfield);
-                        context.cmd.DrawProcedural(Matrix4x4.identity, data.occlusionMaterial, 0,
-                            MeshTopology.Triangles,
-                            vertexCount, 1);
+                        context.cmd.SetRandomWriteTarget(2, data.instanceVisibilityBitfield);
+
+                        data.occlusionMaterial.SetBuffer("instanceData", BRGBindingData.instanceData);
+                        data.occlusionMaterial.SetInt("instancePositionMetadata", (int)BRGBindingData.instancePositionMetadata);
+
+                        if (data.occlusionCullingMode == OcclusionCullingMode.CubePrimitive)
+                        {
+                            CubeDrawArgs[0].instanceCount = (uint)data.instanceCount;
+                            CubeDrawArgs[0].startIndex = data.occlusionMesh.GetIndexStart(0);
+                            CubeDrawArgs[0].startInstance = 0;
+                            CubeDrawArgs[0].baseVertexIndex = data.occlusionMesh.GetBaseVertex(0);
+                            CubeDrawArgs[0].indexCountPerInstance = data.occlusionMesh.GetIndexCount(0);
+                            data.instanceCountBuffer.SetData(CubeDrawArgs);
+                            context.cmd.DrawMeshInstancedIndirect(data.occlusionMesh, 0, data.occlusionMaterial, 1, data.instanceCountBuffer, 0);
+                        }
+                        else
+                        {
+                            context.cmd.DrawProcedural(Matrix4x4.identity, data.occlusionMaterial, 0,
+                                MeshTopology.Triangles,
+                                vertexCount, 1);
+                        }
                     });
             }
         }
