@@ -30,7 +30,6 @@ namespace UnityEngine.Experimental.Rendering
         [Range(-0.05f, 0f)] public float rayOriginBias;
         [Range(4, 24)] public int maxHitsPerRay;
         public LayerMask collisionMask;
-        public bool useMultiThreadedOffset;
 
         internal void SetDefaults()
         {
@@ -47,7 +46,6 @@ namespace UnityEngine.Experimental.Rendering
                 rayOriginBias = -0.001f;
                 maxHitsPerRay = 10;
                 collisionMask = Physics.DefaultRaycastLayers;
-                useMultiThreadedOffset = true;
             }
         }
     }
