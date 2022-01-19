@@ -16,7 +16,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed XR support in CoreUtils.DrawFullscreen function.
 - The Volume Panel on the Rendering Debugger was not corretly showing cameras when they were added or deleted.
-- Add probe volume influence weight parameter.
 - Fixed issue in DynamicResolutionHandler when camera request was turned off at runtime, the ScalableBufferManager would leak state and not unset DRS state (case 1383093).
 - Fixed IES profile importer handling of overflow (outside 0-1 range) of attenutation splines values.
 - Fixed issue with Probe Volume Baking window incorrectly displaying the icon for probe volumes in scenes that don't contain probe volumes.
