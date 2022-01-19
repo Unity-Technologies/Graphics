@@ -130,16 +130,12 @@ namespace UnityEditor.Rendering.Universal
 
         Shader StencilDeferred = Shader.Find("Hidden/Universal Render Pipeline/StencilDeferred");
 
-        // Multiple callback may be implemented.
-        // The first one executed is the one where callbackOrder is returning the smallest number.
-        public int callbackOrder { get { return 0; } }
-
         LocalKeyword TryGetLocalKeyword(Shader shader, string name)
         {
             return shader.keywordSpace.FindKeyword(name);
         }
 
-        internal void InitializeLocalShaderKeywords(Shader shader)
+        void InitializeLocalShaderKeywords(Shader shader)
         {
             m_MainLightShadows = TryGetLocalKeyword(shader, ShaderKeywordStrings.MainLightShadows);
             m_MainLightShadowsCascades = TryGetLocalKeyword(shader, ShaderKeywordStrings.MainLightShadowCascades);
@@ -496,7 +492,7 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        internal bool StripVolumeFeatures(VolumeFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
+        bool StripVolumeFeatures(VolumeFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             var stripUnusedVariants = UniversalRenderPipelineGlobalSettings.instance?.stripUnusedVariants == true;
             var stripTool = new StripTool<VolumeFeatures>(features, shader, snippetData, compilerData.shaderKeywordSet, stripUnusedVariants);
@@ -608,7 +604,7 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        internal bool StripUnused(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
+        bool StripUnused(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             if (StripUnusedFeatures(features, shader, snippetData, compilerData))
                 return true;
@@ -637,6 +633,31 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             return false;
+        }
+
+        public bool StripShader(Shader shader, ShaderSnippetData snippetData, ShaderCompilerData inputData)
+        {
+            InitializeLocalShaderKeywords(shader);
+            bool removeInput = true;
+
+            foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesList)
+            {
+                if (!StripUnused(supportedFeatures, shader, snippetData, inputData))
+                {
+                    removeInput = false;
+                    break;
+                }
+            }
+
+            if (UniversalRenderPipelineGlobalSettings.instance?.stripUnusedPostProcessingVariants == true)
+            {
+                if (!removeInput && StripVolumeFeatures(ShaderBuildPreprocessor.volumeFeatures, shader, snippetData, inputData))
+                {
+                    removeInput = true;
+                }
+            }
+
+            return removeInput;
         }
     }
     class ShaderBuildPreprocessor : IPreprocessBuildWithReport

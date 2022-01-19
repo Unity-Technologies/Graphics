@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         Disabled,
         /// <summary>
-        /// Only log the processed shaders of the current pipeline
+        /// Only log shader variants of when they have a RenderPipeline tag
         /// </summary>
         OnlySRPShaders,
         /// <summary>

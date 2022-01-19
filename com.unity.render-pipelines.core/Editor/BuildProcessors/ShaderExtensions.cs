@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -9,7 +10,7 @@ namespace UnityEditor.Rendering
         private static readonly ShaderTagId s_RenderPipelineShaderTagId = new ShaderTagId("RenderPipeline");
 
         /// <summary>
-        /// If the tag "RenderPipeline" it is returned
+        /// Obtains the tag "RenderPipeline" from a <see cref="Shader"/> and a <see cref="ShaderSnippetData"/>
         /// </summary>
         /// <param name="shader"><see cref="Shader"/> The shader to look for the tag</param>
         /// <param name="snippetData"><see cref="ShaderSnippetData"/></param>
@@ -19,14 +20,22 @@ namespace UnityEditor.Rendering
         {
             renderPipeline = string.Empty;
 
-            var shaderTag = shader.FindPassTagValue((int)snippetData.pass.SubshaderIndex, (int)snippetData.pass.PassIndex, s_RenderPipelineShaderTagId);
-            if (string.IsNullOrEmpty(shaderTag.name))
+            try
             {
+                var shaderTag = shader.FindPassTagValue((int)snippetData.pass.SubshaderIndex, (int)snippetData.pass.PassIndex, s_RenderPipelineShaderTagId);
+                if (string.IsNullOrEmpty(shaderTag.name))
+                {
+                    return false;
+                }
+
+                renderPipeline = shaderTag.name;
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.Log($"Exception {e.Message} on {shader.name} with pass {snippetData.passName}({snippetData.pass.PassIndex}) and subshaderindex {snippetData.pass.SubshaderIndex}");
                 return false;
             }
-
-            renderPipeline = shaderTag.name;
-            return true;
         }
     }
 }

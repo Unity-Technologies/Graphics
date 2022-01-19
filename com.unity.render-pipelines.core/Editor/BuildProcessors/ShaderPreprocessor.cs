@@ -94,6 +94,7 @@ namespace UnityEditor.Rendering
                 for (var i = 0; i < afterStrippingShaderVariantCount;)
                 {
                     // By default, all variants are stripped if there are not strippers using it
+                	// Note that all strippers cumulate each other, so be aware of any conflict here
                     var canRemoveVariant = strippers
                         .Where(stripper => stripper.CanProcessVariant(shader, shaderVariant))
                         .All(stripper => stripper.CanRemoveVariant(shader, shaderVariant, compilerDataList[i]));

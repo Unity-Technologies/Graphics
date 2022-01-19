@@ -196,6 +196,79 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 
+    class HDRPPreprocessComputeShaders
+    {
+        protected ShadowKeywords m_ShadowKeywords = new ShadowKeywords();
+        protected ShaderKeyword m_EnableAlpha = new ShaderKeyword("ENABLE_ALPHA");
+        protected ShaderKeyword m_MSAA = new ShaderKeyword("ENABLE_MSAA");
+        protected ShaderKeyword m_ScreenSpaceShadowOFFKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_OFF");
+        protected ShaderKeyword m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
+        protected ShaderKeyword m_ProbeVolumesL1 = new ShaderKeyword("PROBE_VOLUMES_L1");
+        protected ShaderKeyword m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
+
+        // Modify this function to add more stripping clauses
+        public bool StripShader(HDRenderPipelineAsset hdAsset, ComputeShader shader, string kernelName, ShaderCompilerData inputData)
+        {
+            // Strip every useless shadow configs
+            var shadowInitParams = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
+
+            foreach (var shadowVariant in m_ShadowKeywords.ShadowVariants)
+            {
+                if (shadowVariant.Key != shadowInitParams.shadowFilteringQuality)
+                {
+                    if (inputData.shaderKeywordSet.IsEnabled(shadowVariant.Value))
+                        return true;
+                }
+            }
+
+            // Screen space shadow variant is exclusive, either we have a variant with dynamic if that support screen space shadow or not
+            // either we have a variant that don't support at all. We can't have both at the same time.
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowOFFKeywords) && shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_MSAA) && (hdAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly))
+            {
+                return true;
+            }
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowONKeywords) && !shadowInitParams.supportScreenSpaceShadows)
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !hdAsset.currentPlatformRenderPipelineSettings.SupportsAlpha())
+            {
+                return true;
+            }
+
+            // Global Illumination
+            if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL1) &&
+                (!hdAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL1))
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_ProbeVolumesL2) &&
+                (!hdAsset.currentPlatformRenderPipelineSettings.supportProbeVolume || hdAsset.currentPlatformRenderPipelineSettings.probeVolumeSHBands != ProbeVolumeSHBands.SphericalHarmonicsL2))
+                return true;
+
+            return false;
+        }
+    }
+
+    class HDRPPreprocessShaders
+    {
+        // Track list of materials asking for specific preprocessor step
+        private readonly List<BaseShaderPreprocessor> m_ShaderProcessorsList;
+
+        public HDRPPreprocessShaders()
+        {
+            m_ShaderProcessorsList = HDShaderUtils.GetBaseShaderPreprocessorList();
+        }
+
+        public bool StripShader(HDRenderPipelineAsset hdAsset, Shader shader, ShaderSnippetData snippet,
+            ShaderCompilerData inputData)
+        {
+            return m_ShaderProcessorsList.All(p => p.ShadersStripper(hdAsset, shader, snippet, inputData));
+        }
+    }
+
     // Build preprocessor to find all potentially used HDRP assets.
     class ShaderBuildPreprocessor : IPreprocessBuildWithReport
     {

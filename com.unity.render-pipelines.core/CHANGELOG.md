@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Linear version of function that sets FSR RCAS shader constants
 - Add probe volume influence weight parameter
 - Added support for multiple Baking States to Prove Volumes.
+- New framework for stripping `Shader` and `ComputeShader` variants.
+- Improved the logging and the exporting of stripped shader variants.
 
 ### Fixed
 - Fixed XR support in CoreUtils.DrawFullscreen function.

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -34,7 +35,7 @@ namespace UnityEditor.Rendering
             public List<Pass> passes = new List<Pass>();
         }
 
-        private List<SubShader> subShadersList { get; } = new List<SubShader>();
+        private Dictionary<uint, SubShader> subShadersDictionary { get; } = new ();
 
         [SerializeField]
         private string shaderName;
@@ -48,10 +49,13 @@ namespace UnityEditor.Rendering
         public void Add(ShaderSnippetData shaderVariant, int variantsIn, int variantsOut, double stripTimeMs)
         {
             RecordVariants(variantsIn, variantsOut);
-            if (shaderVariant.pass.SubshaderIndex >= subShadersList.Count)
-                subShadersList.Add(new SubShader());
 
-            var subShader = subShadersList[(int)shaderVariant.pass.SubshaderIndex];
+            if (!subShadersDictionary.TryGetValue(shaderVariant.pass.SubshaderIndex, out var subShader))
+            {
+                subShader = new SubShader();
+                subShadersDictionary.Add(shaderVariant.pass.SubshaderIndex, subShader);
+            }
+
             subShader.RecordVariants(variantsIn, variantsOut);
             m_Shader.TryToGetRenderPipelineTag(shaderVariant, out string renderPipelineTag);
             subShader.passes.Add(new Pass(shaderVariant, variantsIn, variantsOut, stripTimeMs, renderPipelineTag));
@@ -60,10 +64,9 @@ namespace UnityEditor.Rendering
         public void AppendLog(StringBuilder sb, bool onlySrp)
         {
             sb.AppendLine($"{shaderName} - {strippedVariantsInfo}");
-            for (int i = 0; i < subShadersList.Count; ++i)
+            foreach(var (index, subShader) in subShadersDictionary)
             {
-                var subShader = subShadersList[i];
-                sb.AppendLine($"- SubShader {i} - {subShader.strippedVariantsInfo}");
+                sb.AppendLine($"- SubShader {index} - {subShader.strippedVariantsInfo}");
 
                 foreach (var pass in subShader.passes)
                 {
@@ -81,7 +84,7 @@ namespace UnityEditor.Rendering
 
         public void OnBeforeSerialize()
         {
-            subShaders = subShadersList.ToArray();
+            subShaders = subShadersDictionary.Values.ToArray();
         }
 
         public void OnAfterDeserialize()
