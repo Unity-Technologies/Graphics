@@ -2,11 +2,25 @@
 #define __GGX_BTDF_IMPORTANCE_SAMPLING_UTILS__
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
 
 // reference:
 // Importance Sampling Microfacet-Based BSDFs using the Distribution of Visible Normals: E. Heitz and E.d'Eon
 namespace BTDF
 {
+    void RefractIntensity(out float3 Refracted, out float3 Intensity, float3 Incident, float3 Normal, float IORSource, float IORMedium)
+    {
+        float internalIORSource = max(IORSource, 1.0);
+        float internalIORMedium = max(IORMedium, 1.0);
+        float eta = internalIORSource/internalIORMedium;
+        float cos0 = dot(Incident, Normal);
+        float k = 1.0 - eta*eta*(1.0 - cos0*cos0);
+        Refracted = k >= 0.0 ? eta*Incident - (eta*cos0 + sqrt(k))*Normal : reflect(Incident, Normal);
+        Intensity = internalIORSource <= internalIORMedium ?
+            saturate(F_Transm_Schlick(IorToFresnel0(internalIORMedium, internalIORSource), -cos0)) :
+            (k >= 0.0 ? F_FresnelDielectric(internalIORMedium/internalIORSource, -cos0) : 1.0);
+    }
+
     void SampleGGXBTDFSlopes(
         // input
         float theta_i, // incident direction
