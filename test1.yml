@@ -1,0 +1,6 @@
+Temp_Virtual_Job:
+    name: Temp Virtual Job
+    dependencies:
+    - .yamato/unwrapped.yml#Test_Universal_Windows_Standalone_trunk
+    - .yamato/unwrapped.yml#Test_Universal_OSX_Standalone_trunk
+    - .yamato/unwrapped.yml#Test_Universal_Linux_Standalone_trunk
