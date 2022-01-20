@@ -52,13 +52,14 @@ Varyings VertSingleTile(Attributes inputMesh)
     return output;
 }
 
-void Frag(Varyings packedInput, out uint4 outGBufferTexture : SV_Target0, out float4 outOffscreenDirectLightingTexture : SV_Target1)
+void Frag(Varyings packedInput, out uint4 outGBuffer0Texture : SV_Target0, out uint outGBuffer1Texture : SV_Target1, out float4 outOffscreenDirectLightingTexture : SV_Target2)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     uint visibilityIndex = (uint)packedInput.positionCS.y * GetDispatchWidth() + (uint)packedInput.positionCS.x;
     if (visibilityIndex >= GetMaximumSamplesCount())
     {
-        outGBufferTexture = uint4(0, 0, 0, 0);
+        outGBuffer0Texture = uint4(0, 0, 0, 0);
+        outGBuffer1Texture = 0;
         outOffscreenDirectLightingTexture = float4(0.0f, 0.0f, 0.0f, 0.0f);
         return;
     }
@@ -76,7 +77,8 @@ void Frag(Varyings packedInput, out uint4 outGBufferTexture : SV_Target0, out fl
     if (!fragmentData.valid)
     {
         //TODO: implement material depth key: this will solve this issue by first writting the corresponding material depth key value from visibility, then using depth comparison.
-        outGBufferTexture = uint4(0, 0, 0, 0);
+        outGBuffer0Texture = uint4(0, 0, 0, 0);
+        outGBuffer1Texture = 0;
         outOffscreenDirectLightingTexture = float4(0.0f, 0.0f, 0.0f, 0.0f);
         clip(-1);
         return;
@@ -112,13 +114,15 @@ void Frag(Varyings packedInput, out uint4 outGBufferTexture : SV_Target0, out fl
     outOffscreenDirectLightingTexture.rgb = diffuseLighting + specularLighting;
     outOffscreenDirectLightingTexture.a = 1;
 
+    //float metalness = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
+    float metalness = surfaceData.metallic;
+
     // Store the GBuffer
 #if 1
-    VisibilityOIT::PackOITGBufferData(bsdfData.normalWS.xyz, PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness), bsdfData.diffuseColor.rgb, outGBufferTexture);
+    VisibilityOIT::PackOITGBufferData(bsdfData.normalWS.xyz, PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness), surfaceData.baseColor.rgb, metalness, outGBuffer0Texture, outGBuffer1Texture);
 #else
-    float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
     float perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-    VisibilityOIT::PackOITGBufferData(surfaceData.normalWS.xyz, roughness, ComputeDiffuseColor(surfaceData.baseColor, metallic), outGBufferTexture);
+    VisibilityOIT::PackOITGBufferData(surfaceData.normalWS.xyz, roughness, surfaceData.baseColor, metalness, outGBuffer0Texture, outGBuffer1Texture);
 #endif
 }

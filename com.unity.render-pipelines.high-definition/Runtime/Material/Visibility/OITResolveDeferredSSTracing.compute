@@ -171,6 +171,11 @@ BSDFData GetBSDFData(float3 normal, float roughness, float3 diffuseAlbedo)
     return outBSDF;
 }
 
+//uint2 TraceTransparent(uint2 pos, )
+//{
+//
+//}
+
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -190,6 +195,8 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     float3 currentColor = _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)].rgb;
 
     float3 lighting = float3(0.0f, 0.0f, 0.0f);
+
+    //float2 minMax = _OITTileHiZ[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)];
 
     float minDepth = 0.0;
     uint firstSample = -1;
@@ -212,31 +219,40 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
     //for (uint i = 0; i < listCount; ++i)
     uint i = firstSample;
-    {
-        int globalOffset = i + listOffset;
-        uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
 
-        Visibility::VisibilityData unusedVisData;
-        uint2 unusedTexelCoord;
-        float depthValue;
-        VisibilityOIT::GetVisibilitySample(i, listOffset, unusedVisData, unusedTexelCoord, depthValue);
+    int globalOffset = i + listOffset;
+    uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
 
-        minDepth = max(depthValue, minDepth);
+    Visibility::VisibilityData unusedVisData;
+    uint2 unusedTexelCoord;
+    float depthValue;
+    VisibilityOIT::GetVisibilitySample(i, listOffset, unusedVisData, unusedTexelCoord, depthValue);
 
-        int2 tileCoord = (float2)posInputRaw.positionSS.xy / GetTileSize();
-        PositionInputs posInput = GetPositionInput(posInputRaw.positionSS.xy, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
+    minDepth = max(depthValue, minDepth);
 
-        float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+    int2 tileCoord = (float2)posInputRaw.positionSS.xy / GetTileSize();
+    PositionInputs posInput = GetPositionInput(posInputRaw.positionSS.xy, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
 
-        // Sample GBuffer
-        uint4 packedOITGBuffer = _VisOITOffscreenGBuffer[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
-        float3 normal;
-        float roughness;
-        float3 diffuseAlbedo;
-        VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer, normal, roughness, diffuseAlbedo);
+    float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
-        lighting += _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
-    }
+    // Sample GBuffer
+    uint4 packedOITGBuffer0 = _VisOITOffscreenGBuffer0[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
+    uint packedOITGBuffer1 = _VisOITOffscreenGBuffer1[COORD_TEXTURE2D_X(offscreenCoord)].r;
+    float3 normal;
+    float roughness;
+    float3 baseColor;
+    float metalness;
+    VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, normal, roughness, baseColor, metalness);
+
+    //lighting += _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
+    //lighting += roughness.xxx;
+    //lighting += normal.rgb;
+
+    //bool hit = Trace();
+
+    float3 wi = refract(-V, normal.rgb, 0.5);
+    //lighting += wi.rgb * 0.5f + 0.5f;
+    lighting += metalness.xxx;
 
     //lighting /= (float)listCount;
     lighting += currentColor;

@@ -22,7 +22,8 @@ Texture2DArray<float2> _OITTileHiZ;
 Texture2D<float2> _OITTileHiZ;
 #endif
 
-TEXTURE2D_X_UINT4(_VisOITOffscreenGBuffer);
+TEXTURE2D_X_UINT4(_VisOITOffscreenGBuffer0);
+TEXTURE2D_X_UINT(_VisOITOffscreenGBuffer1);
 TEXTURE2D_X(_VisOITOffscreenDirectReflectionLighting);
 TEXTURE2D_X(_VisOITOffscreenLighting);
 
@@ -71,29 +72,31 @@ void UnpackVisibilityData(uint3 packedData, out Visibility::VisibilityData data,
     depth = UnpackUIntToFloat(packedData.y, 16, 16);
 }
 
-void PackOITGBufferData(float3 normal, float roughness, float3 diffuseAlbedo, out uint4 packedData)
+void PackOITGBufferData(float3 normal, float roughness, float3 baseColor, float metalness, out uint4 packedData0, out uint packedData1)
 {
     float2 oct = saturate(PackNormalOctRectEncode(normal) * 0.5f + 0.5f);
 
-    packedData.r = PackFloatToUInt(oct.x, 0, 16);
-    packedData.g = PackFloatToUInt(oct.y, 0, 16);
-    packedData.b = PackFloatToUInt(diffuseAlbedo.r, 0, 8) | PackFloatToUInt(diffuseAlbedo.g, 8, 8);
-    packedData.a = PackFloatToUInt(diffuseAlbedo.b, 0, 8) | PackFloatToUInt(roughness, 8, 8);
+    packedData0.r = PackFloatToUInt(oct.x, 0, 16);
+    packedData0.g = PackFloatToUInt(oct.y, 0, 16);
+    packedData0.b = PackFloatToUInt(baseColor.r, 0, 8) | PackFloatToUInt(baseColor.g, 8, 8);
+    packedData0.a = PackFloatToUInt(baseColor.b, 0, 8) | PackFloatToUInt(roughness, 8, 8);
+    packedData1 = PackFloatToUInt(metalness, 0, 8);
 }
 
-void UnpackOITGBufferData(uint4 packedData, out float3 normal, out float roughness, out float3 diffuseAlbedo)
+void UnpackOITGBufferData(uint4 packedData0, uint packedData1, out float3 normal, out float roughness, out float3 baseColor, out float metalness)
 {
     float2 oct;
-    oct.x = UnpackUIntToFloat(packedData.x, 0, 16);
-    oct.y = UnpackUIntToFloat(packedData.y, 0, 16);
+    oct.x = UnpackUIntToFloat(packedData0.x, 0, 16);
+    oct.y = UnpackUIntToFloat(packedData0.y, 0, 16);
 
     normal = normalize(UnpackNormalOctRectEncode(oct * 2.0f - 1.0f));
 
-    diffuseAlbedo.r = UnpackUIntToFloat(packedData.b, 0, 8);
-    diffuseAlbedo.g = UnpackUIntToFloat(packedData.b, 8, 8);
-    diffuseAlbedo.b = UnpackUIntToFloat(packedData.a, 0, 8);
+    baseColor.r = UnpackUIntToFloat(packedData0.b, 0, 8);
+    baseColor.g = UnpackUIntToFloat(packedData0.b, 8, 8);
+    baseColor.b = UnpackUIntToFloat(packedData0.a, 0, 8);
 
-    roughness = UnpackUIntToFloat(packedData.a, 8, 8);
+    roughness = UnpackUIntToFloat(packedData0.a, 8, 8);
+    metalness = UnpackUIntToFloat(packedData1, 0, 8);
 }
 
 void GetPixelList(uint pixelOffset, out uint listCount, out uint listOffset)

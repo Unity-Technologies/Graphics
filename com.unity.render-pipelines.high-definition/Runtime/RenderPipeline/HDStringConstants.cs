@@ -1141,7 +1141,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VisOITBlockJitterOffsetX = Shader.PropertyToID("_VisOITBlockJitterOffsetX");
         public static readonly int _VisOITBlockJitterOffsetY = Shader.PropertyToID("_VisOITBlockJitterOffsetY");
         public static readonly int _VisOITOffscreenLighting = Shader.PropertyToID("_VisOITOffscreenLighting");
-        public static readonly int _VisOITOffscreenGBuffer = Shader.PropertyToID("_VisOITOffscreenGBuffer");
+        public static readonly int _VisOITOffscreenGBuffer0 = Shader.PropertyToID("_VisOITOffscreenGBuffer0");
+        public static readonly int _VisOITOffscreenGBuffer1 = Shader.PropertyToID("_VisOITOffscreenGBuffer1");
         public static readonly int _VisOITOffscreenDirectReflectionLighting = Shader.PropertyToID("_VisOITOffscreenDirectReflectionLighting");
         public static readonly int _VisOITOutputSparseColorBuffer = Shader.PropertyToID("_VisOITOutputSparseColorBuffer");
         public static readonly int _VisOITSparseColorBuffer = Shader.PropertyToID("_VisOITSparseColorBuffer");
