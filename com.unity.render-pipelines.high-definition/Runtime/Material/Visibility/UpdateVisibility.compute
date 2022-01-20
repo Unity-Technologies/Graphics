@@ -1,6 +1,7 @@
 // Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel CSMain
-#pragma enable_d3d11_debug_symbols
+#pragma kernel UpdateVisibility
+#pragma kernel ZeroVisibility
+// #pragma enable_d3d11_debug_symbols
 
 static const uint kIndexCountPerInstance = 0;
 static const uint kInstanceCount = 1;
@@ -16,6 +17,9 @@ ByteAddressBuffer instanceVisibilityBitfield;
 
 uint drawCommandCount;
 uint debugVisibilityMask;
+
+uint dwordsToZeroCount;
+RWByteAddressBuffer instanceVisibilityBitfieldToZero;
 
 static const uint kGroupSize = 64;
 static const uint kMaxInstancesPerDraw = 4096;
@@ -51,7 +55,7 @@ uint PortableWaveBroadcast(uint tid, uint value)
 }
 
 [numthreads(kGroupSize, 1, 1)]
-void CSMain(uint3 svGid : SV_GroupID, uint3 svTid : SV_GroupThreadID)
+void UpdateVisibility(uint3 svGid : SV_GroupID, uint3 svTid : SV_GroupThreadID)
 {
     uint gid = svGid.x;
     uint tid = svTid.x;
@@ -122,4 +126,16 @@ void CSMain(uint3 svGid : SV_GroupID, uint3 svTid : SV_GroupThreadID)
         uint newInstanceCount = GetVisibleCount();
         indirectArgs[drawCommandBase + kInstanceCount] = newInstanceCount;
     }
+}
+
+[numthreads(kGroupSize, 1, 1)]
+void ZeroVisibility(uint3 tid : SV_DispatchThreadID)
+{
+    uint id = tid.x;
+
+    if (id >= dwordsToZeroCount)
+        return;
+
+    uint address = id << 2;
+    instanceVisibilityBitfieldToZero.Store(address, 0);
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEditor.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -104,14 +105,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 builder.UseDepthBuffer(m_OcclusionPrevFrameDepth, DepthAccess.Read);
 
-                builder.UseColorBuffer(renderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one, true, true)
-                    {
-                        colorFormat = GraphicsFormat.R32_SFloat,
-                        clearBuffer = true,//TODO: for now clear
-                        clearColor = Color.clear,
-                        name = "OcclusionDebugBuffer"
-                    }), 0);
+                if (BRGBindingData.occlusionDebugOutput)
+                {
+                    builder.UseColorBuffer(renderGraph.CreateTexture(
+                        new TextureDesc(Vector2.one, true, true)
+                        {
+                            colorFormat = GraphicsFormat.R32_SFloat,
+                            clearBuffer = true, //TODO: for now clear
+                            clearColor = Color.clear,
+                            name = "OcclusionDebugBuffer"
+                        }), 0);
+                }
 
                 passData.instanceCount = BRGBindingData.instanceCount;
                 passData.occlusionMaterial = currentAsset.OcclusionCullingMaterial;
@@ -125,13 +129,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (VBufferOcclusionPassData data, RenderGraphContext context) =>
                     {
+                        // TODO: Replace all strings with more HDShaderIDs
+
+                        var updateVisibility = data.updateVisibility;
+                        var bindings = BRGBindingData;
+
+                        int dwordsToZero = math.min(
+                            bindings.instanceCount / 32 + 1,
+                            bindings.instanceVisibilityBitfield.count);
+                        int threadGroups = dwordsToZero / 64 + 1;
+
+                        updateVisibility.SetBuffer(1, "instanceVisibilityBitfieldToZero", bindings.instanceVisibilityBitfield);
+                        updateVisibility.SetInt("dwordsToZeroCount", dwordsToZero);
+                        context.cmd.DispatchCompute(updateVisibility, 1, threadGroups, 1, 1);
+
                         int vertexCount = data.instanceCount * kVerticesPerInstance;
                         context.cmd.SetRandomWriteTarget(2, data.instanceVisibilityBitfield);
 
-                        data.occlusionMaterial.SetBuffer(HDShaderIDs._VisInputData, BRGBindingData.inputVisibleIndices);
-                        data.occlusionMaterial.SetBuffer("instanceData", BRGBindingData.instanceData);
-                        data.occlusionMaterial.SetInteger("instancePositionMetadata", (int)BRGBindingData.instancePositionMetadata);
-                        data.occlusionMaterial.SetInteger("instanceBatchID", (int)BRGBindingData.batchID);
+                        if (bindings.occlusionDebugOutput)
+                            data.occlusionMaterial.EnableKeyword("DEBUG_OUTPUT");
+
+                        data.occlusionMaterial.SetBuffer(HDShaderIDs._VisInputData, bindings.inputVisibleIndices);
+                        data.occlusionMaterial.SetBuffer("instanceData", bindings.instanceData);
+                        data.occlusionMaterial.SetInteger("instancePositionMetadata", (int)bindings.instancePositionMetadata);
+                        data.occlusionMaterial.SetInteger("instanceBatchID", (int)bindings.batchID);
 
                         if (data.occlusionCullingMode == OcclusionCullingMode.CubePrimitive)
                         {
@@ -150,21 +171,22 @@ namespace UnityEngine.Rendering.HighDefinition
                                 vertexCount, 1);
                         }
 
+                        if (bindings.occlusionDebugOutput)
+                            data.occlusionMaterial.DisableKeyword("DEBUG_OUTPUT");
+
                         context.cmd.SetRandomWriteTarget(2, data.instanceCountBuffer);
 
                         uint debugVisibleMask = data.occlusionCullingMode == OcclusionCullingMode.Disabled
                             ? 0xffffffff
                             : 0;
 
-                        var updateVisibility = data.updateVisibility;
-                        var bindings = BRGBindingData;
                         updateVisibility.SetBuffer(0, HDShaderIDs._VisIndirectArgs, bindings.indirectArgs);
                         updateVisibility.SetBuffer(0, HDShaderIDs._VisInputData, bindings.inputVisibleIndices);
                         updateVisibility.SetBuffer(0, HDShaderIDs._VisOutputData, bindings.outputVisibleIndices);
                         updateVisibility.SetBuffer(0, HDShaderIDs._VisInstanceVisibilityBitfield, bindings.instanceVisibilityBitfield);
                         updateVisibility.SetInt(HDShaderIDs._VisDrawCommandCount, bindings.drawCommandCount);
                         updateVisibility.SetInt(HDShaderIDs._VisDebugVisibilityMask, (int)debugVisibleMask);
-                        int threadGroups = bindings.drawCommandCount;
+                        threadGroups = bindings.drawCommandCount;
                         context.cmd.DispatchCompute(updateVisibility, 0, threadGroups, 1, 1);
 
                     });

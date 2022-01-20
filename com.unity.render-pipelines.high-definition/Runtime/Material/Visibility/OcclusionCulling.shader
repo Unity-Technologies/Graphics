@@ -10,7 +10,7 @@ Shader "HDRP/OcclusionCulling"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma enable_d3d11_debug_symbols
+    // #pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -24,6 +24,8 @@ Shader "HDRP/OcclusionCulling"
     #define DOTS_INSTANCING_ON
     #define UNITY_DONT_INSTANCE_OBJECT_MATRICES
     #define SHADERPASS SHADERPASS_VISIBILITY_OCCLUSION_CULLING
+
+    #pragma multi_compile _ DEBUG_OUTPUT
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/OcclusionCommon.hlsl"
@@ -83,8 +85,6 @@ Shader "HDRP/OcclusionCulling"
             HLSLPROGRAM
 
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-
-            #define DEBUG_OUTPUT
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityCommon.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityPass.hlsl"

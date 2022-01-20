@@ -11,6 +11,8 @@ namespace UnityEngine.Rendering
             var state = brg.enabled ? "enabled" : "disabled";
             if (GUILayout.Button($"Toggle BRG (F). Current State: {state}"))
                 brg.enabled = !brg.enabled;
+
+            GUILayout.Label($"Toggle Occlusion (1 = {OcclusionCullingMode.Disabled}, 2 = {OcclusionCullingMode.CubePrimitive}, 3 = {OcclusionCullingMode.ProceduralCube}). Current state: {brg.OcclusionCullingMode}");
         }
 
         private void Update()
@@ -21,6 +23,13 @@ namespace UnityEngine.Rendering
 
             if (Input.GetKeyDown(KeyCode.F))
                 brg.enabled = !brg.enabled;
+
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+                brg.OcclusionCullingMode = OcclusionCullingMode.Disabled;
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+                brg.OcclusionCullingMode = OcclusionCullingMode.CubePrimitive;
+            if (Input.GetKeyDown(KeyCode.Alpha3))
+                brg.OcclusionCullingMode = OcclusionCullingMode.ProceduralCube;
         }
     }
 }

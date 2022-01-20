@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering
         internal static int s_DrawCommandCount;
         internal static int s_InstanceCount;
         internal static uint s_BatchID;
-        internal static uint s_DebugVisibleMask;
+        internal static bool s_OcclusionDebugOutput;
         internal static OcclusionCullingMode s_OcclusionCullingMode;
 
         private NativeList<DrawInstance> m_instances;
@@ -1483,7 +1483,7 @@ namespace UnityEngine.Rendering
         public int drawCommandCount;
         public int instanceCount;
         public uint batchID;
-        public uint debugVisibleMask;
+        public bool occlusionDebugOutput;
         public OcclusionCullingMode occlusionCullingMode;
         public GraphicsBuffer instanceCountBuffer;
 
@@ -1531,15 +1531,7 @@ namespace UnityEngine.Rendering
         private static DeferredMaterialBRG s_DeferredMaterialBRG;
 
         public OcclusionCullingMode OcclusionCullingMode;
-
-        public bool DebugVisibility0 = true;
-        public bool DebugVisibility1 = true;
-        public bool DebugVisibility2 = true;
-        public bool DebugVisibility3 = true;
-        public bool DebugVisibility4 = true;
-        public bool DebugVisibility5 = true;
-        public bool DebugVisibility6 = true;
-        public bool DebugVisibility7 = true;
+        public bool OcclusionDebugOutput = false;
 
         public static RenderBRGBindingData GetRenderBRGMaterialBindingData()
         {
@@ -1555,7 +1547,7 @@ namespace UnityEngine.Rendering
                 drawCommandCount = SceneBRG.s_DrawCommandCount,
                 instanceCount = SceneBRG.s_InstanceCount,
                 batchID = SceneBRG.s_BatchID,
-                debugVisibleMask = SceneBRG.s_DebugVisibleMask,
+                occlusionDebugOutput = SceneBRG.s_OcclusionDebugOutput,
                 occlusionCullingMode = SceneBRG.s_OcclusionCullingMode,
                 instanceCountBuffer = SceneBRG.s_InstanceCountBuffer,
             };
@@ -1721,16 +1713,7 @@ namespace UnityEngine.Rendering
                     Graphics.ExecuteCommandBuffer(m_gpuCmdBuffer);
             }
 
-            uint debugVisibleMask = 0xffffffff ^
-                                    ((DebugVisibility0 ? 0 : (1u << 0)) |
-                                     (DebugVisibility1 ? 0 : (1u << 1)) |
-                                     (DebugVisibility2 ? 0 : (1u << 2)) |
-                                     (DebugVisibility3 ? 0 : (1u << 3)) |
-                                     (DebugVisibility4 ? 0 : (1u << 4)) |
-                                     (DebugVisibility5 ? 0 : (1u << 5)) |
-                                     (DebugVisibility6 ? 0 : (1u << 6)) |
-                                     (DebugVisibility7 ? 0 : (1u << 7)));
-            SceneBRG.s_DebugVisibleMask = debugVisibleMask;
+            SceneBRG.s_OcclusionDebugOutput = OcclusionDebugOutput;
             SceneBRG.s_OcclusionCullingMode = OcclusionCullingMode;
         }
 
