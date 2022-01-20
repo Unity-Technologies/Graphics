@@ -45,7 +45,7 @@ float3 LoadPositionFromGeometryPool(AttributesMesh input)
     GeoPoolMetadataEntry metadata = _GeoPoolGlobalMetadataBuffer[(int)_DeferredMaterialInstanceData.x];
     GeoPoolVertex vertexData = GeometryPool::LoadVertex(input.vertexIndex, metadata);
 
-#if 1
+#if ENABLE_HACK_VERTEX_ANIMATION
     AlixVertAnimHack::ApplyLocalAnim(vertexData);
 #endif
 

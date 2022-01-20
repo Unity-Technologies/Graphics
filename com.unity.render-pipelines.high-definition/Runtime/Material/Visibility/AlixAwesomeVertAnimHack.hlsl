@@ -1,6 +1,8 @@
 #ifndef _ALIX_VERT_HACK_H_
 #define _ALIX_VERT_HACK_H_
 
+#define ENABLE_HACK_VERTEX_ANIMATION 0
+
 namespace AlixVertAnimHack
 {
 

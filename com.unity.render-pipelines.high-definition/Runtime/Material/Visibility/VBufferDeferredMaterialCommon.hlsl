@@ -188,7 +188,7 @@ FragInputs EvaluateFragInput(
     GeoPoolVertex v1 = GeometryPool::LoadVertex(i1, geoMetadata);
     GeoPoolVertex v2 = GeometryPool::LoadVertex(i2, geoMetadata);
 
-#if 1
+#if ENABLE_HACK_VERTEX_ANIMATION
     AlixVertAnimHack::ApplyLocalAnim(v0);
     AlixVertAnimHack::ApplyLocalAnim(v1);
     AlixVertAnimHack::ApplyLocalAnim(v2);
