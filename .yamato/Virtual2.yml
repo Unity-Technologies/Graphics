@@ -1,0 +1,5 @@
+Virtual_job:
+    name: Virtual job
+    dependencies:
+    - .yamato/all-urp.yml#All_URP_on_Win_DX11_playmode_CUSTOM-REVISION
+    - .yamato/all-urp.yml#All_URP_on_Win_DX11_playmode_trunk
