@@ -64,5 +64,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DecalAPI.SetupCommonDecalMaterialKeywordsAndPass(material);
         }
+
+        public static void ValidateTerrain(Material material)
+        {
+            // TODO :
+            BaseLitAPI.SetupBaseLitKeywords(material);
+        }
     }
 }
