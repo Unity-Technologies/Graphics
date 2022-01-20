@@ -76,8 +76,8 @@ namespace UnityEditor.ShaderGraph
         $precision colorPos = saturate((Time - Gradient.colors[c - 1].w) / (Gradient.colors[c].w - Gradient.colors[c - 1].w)) * step(c, Gradient.colorsLength - 1);
         color = lerp(color, Gradient.colors[c].rgb, lerp(colorPos, step(0.01, colorPos), Gradient.type));
     }
-#ifdef UNITY_COLORSPACE_GAMMA
-    color = LinearToSRGB(color);
+#ifndef UNITY_COLORSPACE_GAMMA
+    color = SRGBToLinear(color);
 #endif
     $precision alpha = Gradient.alphas[0].x;
     [unroll]
