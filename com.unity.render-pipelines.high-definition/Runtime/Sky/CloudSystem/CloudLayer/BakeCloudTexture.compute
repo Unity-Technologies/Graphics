@@ -34,8 +34,6 @@ TEXTURE2D(_CloudMapB);
 SAMPLER(sampler_CloudMapB);
 #endif
 
-Texture3D<float> _Worley128RGBA;
-
 RW_TEXTURE2D_ARRAY(float2, _CloudTexture);
 
 float4 _Params;
@@ -114,15 +112,6 @@ float3 RotationUp(float3 p, float2 cos_sin)
 
 float GetDensity(LayerSamplingData data, float3 positionWS, float3 dir, float thickness)
 {
-    //float highFrequencyNoise = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_linear_repeat_sampler, positionWS/2000, 0).x;
-    //thickness *= 1.0 - highFrequencyNoise*0.9;
-    //thickness = saturate(remap(highFrequencyNoise, 0, 1, 0, thickness));
-
-    //thickness = max(0, thickness + (highFrequencyNoise - 1) * 0.2);
-
-    //float cosAngle = dot(dir, _SunDirection);
-    //thickness *= cosAngle * 0.4 + 0.6;
-
     float rangeStart = _LowestCloudAltitude, range = _Thickness;
     GetCloudVolumeIntersection(data, dir, rangeStart, range);
 
@@ -200,16 +189,11 @@ float2 ComputeCloudLighting(TEXTURE2D(cloudMap), SAMPLER(sampler_cloudMap), floa
         float density = GetDensity(data, currentPositionWS, dir, opacity);
         if (density != 0.0f)
         {
-            float thickness = SampleCloudMap(data, GetLatLongCoords(dir, _UpperHemisphere));
-            // Apply the extinction
             const float currentStepExtinction = exp(-density * _SigmaT * range);
+            const float luminance = EvaluateSunLuminance(data, currentPositionWS, phaseFunction);
 
-            // Evaluate the luminance at this sample
-            float luminance = EvaluateSunLuminance(data, currentPositionWS, phaseFunction);
-
-            // Improved analytical scattering
             finalColor.x = (luminance - luminance * currentStepExtinction);
-            finalColor.y = 1 - currentStepExtinction;
+            finalColor.y = opacity;
         }
     }
 

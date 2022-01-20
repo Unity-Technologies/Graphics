@@ -16,18 +16,20 @@ TEXTURE2D(_FlowmapB);
 SAMPLER(sampler_FlowmapB);
 
 float4 _FlowmapParam[2];
-float4 _ColorFilter[2];
-float4 _SunDensity[2];
-float3 _SunDirection;
-float3 _AmbientProbe;
+float4 _Params1[2];
+float4 _Params2[2];
+float _SigmaT[2];
 
 #define _ScrollDirection(l) _FlowmapParam[l].xy
 #define _ScrollFactor(l)    _FlowmapParam[l].z
 #define _UpperHemisphere    (_FlowmapParam[0].w != 0.0)
-#define _Opacity            _FlowmapParam[1].w
+#define _Coverage           _FlowmapParam[1].w
 
-#define _SunLightColor(l)   _ColorFilter[l].xyz
-#define _Altitude(l)        _ColorFilter[l].w
+#define _SunDirection       _Params1[0].xyz
+#define _AmbientProbe       _Params1[1].xyz
+#define _Thickness(l)       _Params1[l].w
+#define _SunLightColor(l)   _Params2[l].xyz
+#define _Altitude(l)        _Params2[l].w
 
 
 struct CloudLayerData
@@ -39,11 +41,40 @@ struct CloudLayerData
     SAMPLER(flowmapSampler);
 };
 
+void GetCloudVolumeIntersection(int index, float3 dir, out float rangeStart, out float range)
+{
+    const float _EarthRadius = 6378100.0f;
+    float _HighestCloudAltitude = _Altitude(index) + _Thickness(index), rangeEnd;
 
-float2 SampleCloudMap(float3 dir, int layer)
+    rangeStart = -IntersectSphere(_Altitude(index) + _EarthRadius, -dir.y, _EarthRadius).x;
+    rangeEnd = -IntersectSphere(_HighestCloudAltitude + _EarthRadius, -dir.y, _EarthRadius).x;
+    range = rangeEnd - rangeStart;
+}
+float GetDensity(float lenPositionWS, float rangeStart, float range, float thickness)
+{
+    float distToCenter = (rangeStart + 0.5 * range) - lenPositionWS;
+    float density = 1 - saturate(distToCenter / (range * thickness));
+    return density * thickness;
+}
+
+float2 SampleCloudMap(float3 dir, int layer, float coverage)
 {
     float2 coords = GetLatLongCoords(dir, _UpperHemisphere);
-    return SAMPLE_TEXTURE2D_ARRAY_LOD(_CloudTexture, sampler_CloudTexture, coords, layer, 0).rg;
+    float2 cloud = SAMPLE_TEXTURE2D_ARRAY_LOD(_CloudTexture, sampler_CloudTexture, coords, layer, 0).rg;
+    float thickness = cloud.y;
+
+    float rangeStart, range;
+    GetCloudVolumeIntersection(layer, dir, rangeStart, range);
+    float dist = (rangeStart + 0.5 * (1 - thickness) * range);
+
+    if (_SigmaT[layer] != 0)
+        cloud.y = 1 - exp(-GetDensity(dist, rangeStart, range, thickness) * _SigmaT[layer] * range * thickness);
+
+    const float delta = 0.1;
+    float rangeM = delta*coverage;
+    float cutout = saturate((thickness - (1-coverage-rangeM)) / delta);
+
+    return cloud * cutout;
 }
 
 float3 RotationUp(float3 p, float2 cos_sin)
@@ -103,14 +134,22 @@ void EvaluateSunColorAttenuation(float3 evaluationPointWS, float3 sunDirection, 
 #endif
 }
 
-float4 GetCloudLayerColor(float3 dir, int index, float2 positionCS)
+float4 GetCloudLayerColor(float3 dir, int index)
 {
-    float2 color;
+    float2 cloud;
+
+    float3 lightColor = _SunLightColor(index);
+    EvaluateSunColorAttenuation(dir * _Altitude(index), _SunDirection, lightColor);
 
     CloudLayerData layer = GetCloudLayer(index);
     if (layer.distort)
     {
-        float2 alpha = frac(_ScrollFactor(index) + float2(0.0, 0.5)) - 0.5;
+        float rangeStart, range;
+        GetCloudVolumeIntersection(index, dir, rangeStart, range);
+        float dist = 10 * _Altitude(index); // arbitrary but looks good
+        float3 position = dir * (rangeStart + 0.5*range);
+
+        float2 alpha = frac(_ScrollFactor(index)/dist + float2(0.0, 0.5)) - 0.5;
         float3 delta;
 
         if (layer.use_flowmap)
@@ -123,41 +162,33 @@ float4 GetCloudLayerColor(float3 dir, int index, float2 positionCS)
             delta = flow.x * tangent + flow.y * bitangent;
         }
         else
-        {
-            float3 windDir = float3(_ScrollDirection(index).x, 0.0f, _ScrollDirection(index).y);
-            delta = windDir * sin(dir.y*PI*0.5);
-        }
+            delta = float3(_ScrollDirection(index).x, 0.0f, _ScrollDirection(index).y);
 
-        // Sample twice
-        float2 color1 = SampleCloudMap(normalize(dir + alpha.x * delta), index);
-        float2 color2 = SampleCloudMap(normalize(dir + alpha.y * delta), index);
+        float coverage1 = abs(2.0 * alpha.x), coverage2 = 1 - coverage1;
+        float2 cloud1 = SampleCloudMap(normalize(position + alpha.x * delta * dist), index, (1-coverage1*coverage1) * _Coverage);
+        float2 cloud2 = SampleCloudMap(normalize(position + alpha.y * delta * dist), index, (1-coverage2*coverage2) * _Coverage);
 
-        // Blend color samples
-        color = lerp(color1, color2, abs(2.0 * alpha.x));
+        cloud = cloud1 + cloud2 * (1-cloud1.y); // blend the two samples as if the second is behind the first one
     }
     else
-        color = SampleCloudMap(dir, index);
+        cloud = SampleCloudMap(dir, index, _Coverage);
 
-    float3 lightColor = _SunLightColor(index);
-    EvaluateSunColorAttenuation(dir*_Altitude(index), _SunDirection, lightColor);
-
-    return float4(lightColor * color.x + _AmbientProbe, color.y) * _Opacity;
+    return float4(lightColor * cloud.x + _AmbientProbe * cloud.y, cloud.y);
 }
 
-float4 RenderClouds(float3 dir, float2 positionCS=0)
+float4 RenderClouds(float3 dir)
 {
     float4 clouds = 0;
 
     if (dir.y >= 0 || !_UpperHemisphere)
     {
 #ifndef DISABLE_MAIN_LAYER
-        clouds = GetCloudLayerColor(dir, 0, positionCS);
+        clouds = GetCloudLayerColor(dir, 0);
 #endif
 
 #ifdef USE_SECOND_CLOUD_LAYER
-        float4 cloudsB = GetCloudLayerColor(dir, 1, positionCS);
-        // Premultiplied alpha
-        clouds = float4(clouds.rgb + (1 - clouds.a) * cloudsB.rgb, clouds.a + cloudsB.a - clouds.a * cloudsB.a);
+        float4 cloudsB = GetCloudLayerColor(dir, 1);
+        clouds += cloudsB * (1-clouds.a);
 #endif
     }
     return clouds;
@@ -166,7 +197,7 @@ float4 RenderClouds(float3 dir, float2 positionCS=0)
 // For shadows
 float4 RenderClouds(float2 positionCS)
 {
-    return RenderClouds(-GetSkyViewDirWS(positionCS), positionCS);
+    return RenderClouds(-GetSkyViewDirWS(positionCS));
 }
 
 #endif // __CLOUDLAYER_COMMON_H__

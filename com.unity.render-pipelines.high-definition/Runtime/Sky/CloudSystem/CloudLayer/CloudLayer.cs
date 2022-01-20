@@ -88,8 +88,8 @@ namespace UnityEngine.Rendering.HighDefinition
     public class CloudLayer : CloudSettings
     {
         /// <summary>Controls the global opacity of the cloud layer.</summary>
-        [Tooltip("Controls the global opacity of the cloud layer.")]
-        public ClampedFloatParameter opacity = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        [Tooltip("Controls the global coverage of the cloud layer.")]
+        public ClampedFloatParameter coverage = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         /// <summary>Enable to cover only the upper part of the sky.</summary>
         [AdditionalProperty]
         [Tooltip("Check this box if the cloud layer covers only the upper part of the sky.")]
@@ -186,13 +186,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
             internal float scrollFactor = 0.0f;
+            internal float sigmaT => raymarching.value ? density.value * 0.05f + 0.001f : 0.0f;
             internal int NumSteps => raymarching.value ? steps.value : 0;
             internal Vector4 Opacities => new Vector4(opacityR.value, opacityG.value, opacityB.value, opacityA.value);
 
             internal Vector4 GetRenderingParameters(HDCamera camera)
             {
                 float angle = Mathf.Deg2Rad * scrollOrientation.GetValue(camera);
-                return new Vector3(-Mathf.Cos(angle), -Mathf.Sin(angle), scrollFactor / 200.0f);
+                return new Vector3(-Mathf.Cos(angle), -Mathf.Sin(angle), scrollFactor);
             }
 
             internal (Vector4, Vector4, Vector4) GetBakingParameters()
@@ -206,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector4 params3 = new Vector4(
                     altitude.value,
                     multiScattering.value,
-                    density.value * 0.05f + 0.001f,
+                    sigmaT,
                     0
                 );
                 return (Opacities, params2, params3);
@@ -308,7 +309,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (lighting && sunLight != null)
-                    hash = hash * 23 + CastForAngleDiff(sunLight.transform.rotation.eulerAngles, 0.7f).GetHashCode();
+                    hash = hash * 23 + CastForAngleDiff(sunLight.transform.rotation.eulerAngles, 1.0f).GetHashCode();
                 if (shadows)
                     hash = hash * 23 + shadowResolution.GetHashCode();
             }
@@ -326,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
-                hash = hash * 23 + opacity.GetHashCode();
+                hash = hash * 23 + coverage.GetHashCode();
                 hash = hash * 23 + upperHemisphereOnly.GetHashCode();
                 hash = hash * 23 + layers.GetHashCode();
                 hash = hash * 23 + resolution.GetHashCode();

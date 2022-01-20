@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
     class CloudLayerEditor : VolumeComponentEditor
     {
         readonly GUIContent scrollOrientationLabel = new GUIContent("Orientation", "Controls the orientation of the distortion relative to the X world vector (in degrees).\nThis value can be relative to the Global Wind Orientation defined in the Visual Environment.");
-        readonly GUIContent scrollSpeedLabel = new GUIContent("Speed", "Sets the cloud scrolling speed. The higher the value, the faster the clouds will move.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
+        readonly GUIContent scrollSpeedLabel = new GUIContent("Speed", "Sets the cloud scrolling speed in kilometers per hour.\nThis value can be relative to the Global Wind Speed defined in the Visual Environment.");
 
         struct CloudMapParameter
         {
@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
-        SerializedDataParameter m_Opacity, m_UpperHemisphereOnly, m_LayerCount;
+        SerializedDataParameter m_Coverage, m_UpperHemisphereOnly, m_LayerCount;
         SerializedDataParameter m_Resolution, m_ShadowResolution;
         SerializedDataParameter m_ShadowMultiplier, m_ShadowTint, m_ShadowSize;
         CloudMapParameter[] m_Layers;
@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var o = new PropertyFetcher<CloudLayer>(serializedObject);
 
-            m_Opacity = Unpack(o.Find(x => x.opacity));
+            m_Coverage = Unpack(o.Find(x => x.coverage));
             m_UpperHemisphereOnly = Unpack(o.Find(x => x.upperHemisphereOnly));
             m_LayerCount = Unpack(o.Find(x => x.layers));
             m_Resolution = Unpack(o.Find(x => x.resolution));
@@ -139,7 +139,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_Opacity);
+            PropertyField(m_Coverage);
             if (showAdditionalProperties)
                 PropertyField(m_UpperHemisphereOnly);
             PropertyField(m_LayerCount);
