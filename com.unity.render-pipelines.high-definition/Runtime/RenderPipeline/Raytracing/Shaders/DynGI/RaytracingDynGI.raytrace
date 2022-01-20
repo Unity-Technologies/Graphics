@@ -66,28 +66,6 @@ void MissShaderGBuffer(inout RayIntersectionDynGI rayIntersection : SV_RayPayloa
 static float s_Diagonal = 0.57735026919;
 static float s_DiagonalDist = 1.73205080757;
 
-float4 NeighbourAxis[14] =
-{
-    // primary axis
-    float4(1, 0, 0, 1),
-    float4(-1, 0, 0, 1),
-    float4(0, 1, 0, 1),
-    float4(0, -1, 0, 1),
-    float4(0, 0, 1, 1),
-    float4(0, 0, -1, 1),
-
-    // 3D diagonals
-    float4(s_Diagonal,  s_Diagonal,  s_Diagonal, s_DiagonalDist),
-    float4(s_Diagonal,  s_Diagonal, -s_Diagonal, s_DiagonalDist),
-    float4(s_Diagonal, -s_Diagonal,  s_Diagonal, s_DiagonalDist),
-    float4(s_Diagonal, -s_Diagonal, -s_Diagonal, s_DiagonalDist),
-
-    float4(-s_Diagonal,  s_Diagonal,  s_Diagonal, s_DiagonalDist),
-    float4(-s_Diagonal,  s_Diagonal, -s_Diagonal, s_DiagonalDist),
-    float4(-s_Diagonal, -s_Diagonal,  s_Diagonal, s_DiagonalDist),
-    float4(-s_Diagonal, -s_Diagonal, -s_Diagonal, s_DiagonalDist),
-};
-
 
 uint PackAlbedo(float3 color, float distance)
 {

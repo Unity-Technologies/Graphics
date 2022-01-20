@@ -691,10 +691,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var indices = chunkIndices[i];
 
-                var unsortedData = new uint[buffer.probeCount * 14 * 3];
-                buffer.finalExtraDataBuffer.GetData(unsortedData);
-
-
                 if (buffer.finalExtraDataBuffer != null && buffer.probeCount > 0)
                     LightPropagation(renderGraph, buffer, indices, hdCamera);
             }
