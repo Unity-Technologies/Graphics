@@ -136,6 +136,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     #endif
 
     float4x4 _ScreenToWorld[2];
+    float4x4 _WorldToClip[2];
+
     SamplerState my_point_clamp_sampler;
     SamplerState my_linear_clamp_sampler;
 
@@ -244,19 +246,19 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
         float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
-        #if _RENDER_PASS_ENABLED
-        float d        = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy).x;
-        half4 gbuffer0 = LOAD_FRAMEBUFFER_INPUT(GBUFFER0, input.positionCS.xy);
-        half4 gbuffer1 = LOAD_FRAMEBUFFER_INPUT(GBUFFER1, input.positionCS.xy);
-        half4 gbuffer2 = LOAD_FRAMEBUFFER_INPUT(GBUFFER2, input.positionCS.xy);
-        #else
+        //#if _RENDER_PASS_ENABLED
+        //float d        = LOAD_FRAMEBUFFER_INPUT(GBUFFER3, input.positionCS.xy).x;
+        //half4 gbuffer0 = LOAD_FRAMEBUFFER_INPUT(GBUFFER0, input.positionCS.xy);
+        //half4 gbuffer1 = LOAD_FRAMEBUFFER_INPUT(GBUFFER1, input.positionCS.xy);
+        //half4 gbuffer2 = LOAD_FRAMEBUFFER_INPUT(GBUFFER2, input.positionCS.xy);
+        //#else
         // Using SAMPLE_TEXTURE2D is faster than using LOAD_TEXTURE2D on iOS platforms (5% faster shader).
         // Possible reason: HLSLcc upcasts Load() operation to float, which doesn't happen for Sample()?
         float d        = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthTexture, my_point_clamp_sampler, screen_uv, 0).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
         half4 gbuffer0 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, my_point_clamp_sampler, screen_uv, 0);
         half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
         half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, screen_uv, 0);
-        #endif
+        //#endif
         #if defined(_DEFERRED_MIXED_LIGHTING)
         half4 shadowMask = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_SHADOWMASK), my_point_clamp_sampler, screen_uv, 0);
         #else
@@ -270,23 +272,17 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         uint meshRenderingLayers = DEFAULT_LIGHT_LAYERS;
         //#endif
 
-#ifdef _LIGHT_LAYERS
-        float4 gbufferWetness = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_point_clamp_sampler, screen_uv, 0);
-#else
-        float4 gbufferWetness = 0.0;
-#endif
-
         half surfaceDataOcclusion = gbuffer1.a;
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
 
         half3 color = 0.0.xxx;
         half alpha = 1.0;
 
-        #if defined(_DEFERRED_MIXED_LIGHTING)
-        // If both lights and geometry are static, then no realtime lighting to perform for this combination.
-        [branch] if ((_LightFlags & materialFlags) == kMaterialFlagSubtractiveMixedLighting)
-            return half4(color, alpha); // Cannot discard because stencil must be updated.
-        #endif
+        //#if defined(_DEFERRED_MIXED_LIGHTING)
+        //// If both lights and geometry are static, then no realtime lighting to perform for this combination.
+        //[branch] if ((_LightFlags & materialFlags) == kMaterialFlagSubtractiveMixedLighting)
+        //    return half4(color, alpha); // Cannot discard because stencil must be updated.
+        //#endif
 
         #if defined(USING_STEREO_MATRICES)
         int eyeIndex = unity_StereoEyeIndex;
@@ -301,18 +297,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         //[branch] if (!IsMatchingLightLayer(unityLight.layerMask, meshRenderingLayers))
         //    return half4(color, alpha); // Cannot discard because stencil must be updated.
 
-        #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
-            AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
-            unityLight.color *= aoFactor.directAmbientOcclusion;
-            #if defined(_DIRECTIONAL) && defined(_DEFERRED_FIRST_LIGHT)
-            // What we want is really to apply the mininum occlusion value between the baked occlusion from surfaceDataOcclusion and real-time occlusion from SSAO.
-            // But we already applied the baked occlusion during gbuffer pass, so we have to cancel it out here.
-            // We must also avoid divide-by-0 that the reciprocal can generate.
-            half occlusion = aoFactor.indirectAmbientOcclusion < surfaceDataOcclusion ? aoFactor.indirectAmbientOcclusion * rcp(surfaceDataOcclusion) : 1.0;
-            alpha = occlusion;
-            #endif
-        #endif
-
         InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
 
         #if defined(_LIT)
@@ -323,13 +307,48 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             bool materialSpecularHighlightsOff = (materialFlags & kMaterialFlagSpecularHighlightsOff);
             #endif
 
-            BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+#ifdef _LIGHT_LAYERS
+            float4 gbufferWetness = SAMPLE_TEXTURE2D_X_LOD(MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_point_clamp_sampler, screen_uv, 0);
+#else
+            float4 gbufferWetness = 0.0;
+#endif
 
             if (IsSurfaceWet(gbufferWetness))
             {
 #ifdef _LIGHT_LAYERS
                 float depth = LinearEyeDepth(d, _ZBufferParams);
-                WetnessData wetnessData = GetWetnessData(gbufferWetness, brdfData, posWS, inputData.normalWS, screen_uv, MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_linear_clamp_sampler, depth);
+                WetnessData wetnessData = GetWetnessData(gbufferWetness, posWS, inputData.normalWS, screen_uv, MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_linear_clamp_sampler, depth);
+
+                float aberOffset = 0.02 * max(1.0 - saturate(depth * 0.5), 0) * wetnessData.waterAmount;
+
+                float2 uvRefr;
+                float3 posRefrWS;
+
+                ComputeRefractedUV(wetnessData, posWS, inputData.normalWS, inputData.viewDirectionWS, _WorldToClip[eyeIndex], posRefrWS, uvRefr);
+
+                float4 gbuffer01 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, my_point_clamp_sampler, uvRefr - aberOffset, 0);
+                float4 gbuffer02 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, my_point_clamp_sampler, uvRefr + aberOffset, 0);
+
+                gbuffer0 = float4((gbuffer01.r + gbuffer02.r) * 0.5, gbuffer01.g, gbuffer02.b, (gbuffer01.a + gbuffer02.a) * 0.5);
+                gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, uvRefr, 0);
+                gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, uvRefr, 0);
+
+                BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+                inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
+
+                unityLight = GetStencilLight(posRefrWS.xyz, uvRefr, shadowMask, materialFlags);
+
+#if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+                AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(uvRefr);
+                unityLight.color *= aoFactor.directAmbientOcclusion;
+#if defined(_DIRECTIONAL) && defined(_DEFERRED_FIRST_LIGHT)
+                // What we want is really to apply the mininum occlusion value between the baked occlusion from surfaceDataOcclusion and real-time occlusion from SSAO.
+                // But we already applied the baked occlusion during gbuffer pass, so we have to cancel it out here.
+                // We must also avoid divide-by-0 that the reciprocal can generate.
+                half occlusion = aoFactor.indirectAmbientOcclusion < surfaceDataOcclusion ? aoFactor.indirectAmbientOcclusion * rcp(surfaceDataOcclusion) : 1.0;
+                alpha = occlusion;
+#endif
+#endif
 
                 BRDFData brdfDataWetness = BRDFDataFromGbufferWetnessData(wetnessData);
 
@@ -355,14 +374,15 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
                 // GI
 #ifdef _DEFERRED_FIRST_LIGHT
-                float3 giColor = SAMPLE_TEXTURE2D_X_LOD(_CameraOpaqueTexture, my_point_clamp_sampler, screen_uv, 0);
+                float3 giColor0 = SAMPLE_TEXTURE2D_X_LOD(_CameraOpaqueTexture, my_point_clamp_sampler, uvRefr - aberOffset, 0);
+                float3 giColor1 = SAMPLE_TEXTURE2D_X_LOD(_CameraOpaqueTexture, my_point_clamp_sampler, uvRefr + aberOffset, 0);
+                float3 giColor = float3((giColor0.r + giColor1.r) * 0.5, giColor0.g, giColor1.b);
 
                 // Occlusion
                 giColor *= alpha;
                 alpha = 0.0;
 
-                //@ !!
-                float3 giReflAtten = 1;
+                float3 giReflAtten = 1.0 - 0.18; // 0.18 - bihemispherical albedo or frenel preintegrated
 
                 giColor *= lerp(1.0, giReflAtten * viewRefrAtten * giAbsorbAtten, wetnessData.waterSaturation);
 
@@ -370,15 +390,27 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 giColor += giWetness;
 
                 color += giColor;
-
+#endif
                 //@ Problems in shadows
                 //@ Occlusion disappears in the beginning
-#endif
-
 #endif  
             }
             else
             {
+#if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
+                AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
+                unityLight.color *= aoFactor.directAmbientOcclusion;
+#if defined(_DIRECTIONAL) && defined(_DEFERRED_FIRST_LIGHT)
+                // What we want is really to apply the mininum occlusion value between the baked occlusion from surfaceDataOcclusion and real-time occlusion from SSAO.
+                // But we already applied the baked occlusion during gbuffer pass, so we have to cancel it out here.
+                // We must also avoid divide-by-0 that the reciprocal can generate.
+                half occlusion = aoFactor.indirectAmbientOcclusion < surfaceDataOcclusion ? aoFactor.indirectAmbientOcclusion * rcp(surfaceDataOcclusion) : 1.0;
+                alpha = occlusion;
+#endif
+#endif
+
+                BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+
                 color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
             }
         #elif defined(_SIMPLELIT)

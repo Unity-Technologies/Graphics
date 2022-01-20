@@ -6,10 +6,14 @@ static const float kWaterLevelMin = 0.5;
 static const float kWaterNormalGradientMult = 25.0;
 static const float3 kWaterAbsorbtionColor = float3(150.0, 500.0, 500.0) * 0.5;
 static const float kWaterAmountDepthRange = 0.01; // 1 sm is maximum thickness
+static const float kNormalScale = 0.5;
+static const float kWaveLeveScale = 0.15;
+static const float kRefractionMult = 15.0;
 
 struct WetnessData
 {
     float wetness; // pure wetness amount.
+    float waveLevel;
     float waterLevel; // Where water starts from wetness level.
     float waterSaturation; // How much surface is satureted with water: 0 (low porosity materials no saturation at all) to 1 (puddle formation starts).
     float waterAmount; // How much watness is actual water on the surface.
@@ -56,19 +60,20 @@ bool IsSurfaceWet(float4 gbufferWetness)
     return gbufferWetness.r > 0.0;
 }
 
-WetnessData GetWetnessData(float4 gbufferWetness, BRDFData brdfData, float3 posWS, float3 normalWS, float2 uv, Texture2D<float4> wetnessBuffer, SamplerState wetnessBufferSampler, float depth)
+WetnessData GetWetnessData(float4 gbufferWetness, float3 posWS, float3 normalWS, float2 uv, Texture2D<float4> wetnessBuffer, SamplerState wetnessBufferSampler, float depth)
 {
     WetnessData wetnessData;
 
     wetnessData.wetness = gbufferWetness.r;
+    wetnessData.waveLevel = (gbufferWetness.g * 2.0 - 1.0) * kWaveLeveScale * wetnessData.wetness;
     wetnessData.waterLevel = kWaterLevelMin;
     wetnessData.waterSaturation = saturate(wetnessData.wetness / (wetnessData.waterLevel + 0.0001));// This should be using porosity
-    wetnessData.waterAmount = saturate(wetnessData.wetness - wetnessData.waterLevel) * gbufferWetness.b;
+    wetnessData.waterAmount = saturate(wetnessData.wetness - wetnessData.waterLevel + wetnessData.waveLevel) * gbufferWetness.b;
 
-    float puddleTransition = saturate(wetnessData.waterAmount * 10.0);
+    float puddleTransition = saturate(wetnessData.waterAmount * 7.5);
     wetnessData.normalWS = normalize(lerp(normalWS, float3(0.0, 1.0, 0.0), puddleTransition));
     float3 waterNormal = PerturbNormal(posWS, wetnessData.normalWS, gbufferWetness.g, uv, wetnessBuffer, wetnessBufferSampler, depth);
-    wetnessData.normalWS = normalize(lerp(wetnessData.normalWS, waterNormal, puddleTransition * wetnessData.waterAmount * 2.0));
+    wetnessData.normalWS = normalize(lerp(wetnessData.normalWS, waterNormal, puddleTransition * wetnessData.waterAmount * kNormalScale));
 
     wetnessData.occlusion = 1.0;
     wetnessData.color = kWaterAbsorbtionColor * gbufferWetness.a;
@@ -91,7 +96,7 @@ void ComputeWetnessAbsorbtionAttenuation(WetnessData wetnessData, float3 viewDir
     float lDotN = max(saturate(dot(lightDirWS, normal)), 0.0001);
     float vDotN = max(saturate(dot(viewDirectionWS, normal)), 0.0001);
 
-    float waterDepth = wetnessData.wetness * kWaterAmountDepthRange;
+    float waterDepth = (wetnessData.waterAmount + wetnessData.waterSaturation) * kWaterAmountDepthRange;
 
     float totalLightDistance = (waterDepth / lDotN) + (waterDepth / vDotN);
     float totalGiDistance = waterDepth + (waterDepth / vDotN);
@@ -130,6 +135,24 @@ float3 Refract(float3 i, float3 n, float inv_eta)
     float cost2 = 1.0f - inv_eta * inv_eta * (1.0f - cosi * cosi);
     float3 t = inv_eta * i + ((inv_eta * cosi - sqrt(abs(cost2))) * n);
     return t * (float3)(cost2 > 0);
+}
+
+void ComputeRefractedUV(WetnessData wetnessData, float3 posWS, float3 normalWS, float3 viewDirectionWS, float4x4 worldToClip, out float3 posRefrWS, out float2 uvRefr)
+{
+    float waterDepth = wetnessData.waterAmount * kWaterAmountDepthRange * kRefractionMult;
+
+    float3 posWater = posWS + viewDirectionWS * (waterDepth / max(dot(float3(0.0, 1.0, 0.0), viewDirectionWS), 0.0001));
+    float3 viewRefr = normalize(Refract(-viewDirectionWS, wetnessData.normalWS, 1.0 / 1.33));
+    posRefrWS = posWater + viewRefr * (waterDepth / max(dot(float3(0.0, -1.0, 0.0), viewRefr), 0.0001));
+
+    float3 screenUV = mul(worldToClip, float4(posRefrWS, 1.0)).xyw;
+//#if UNITY_UV_STARTS_AT_TOP
+//    screenUV.xy = screenUV.xy * float2(0.5, -0.5) + 0.5 * screenUV.z;
+//#else
+    screenUV.xy = screenUV.xy * 0.5 + 0.5 * screenUV.z;
+//#endif
+
+    uvRefr = screenUV.xy / screenUV.z;
 }
 
 #endif

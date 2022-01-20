@@ -110,5 +110,5 @@ FragmentOutput frag(PackedVaryings packedInput)
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceDescription.Occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
 
-    return BRDFDataToGbuffer(brdfData, inputData, surfaceDescription.Smoothness, surfaceDescription.Emission + color, surfaceDescription.Occlusion, unpacked.normalWS.xyz);
+    return BRDFDataToGbuffer(brdfData, inputData, surfaceDescription.Smoothness, /*surfaceDescription.Emission + */color, surfaceDescription.Occlusion, unpacked.normalWS.xyz, 1.0 - surfaceDescription.Emission.r);
 }

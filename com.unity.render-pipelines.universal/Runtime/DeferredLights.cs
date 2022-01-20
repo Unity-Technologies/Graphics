@@ -221,6 +221,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // Avoid memory allocations.
         Matrix4x4[] m_ScreenToWorld = new Matrix4x4[2];
+        Matrix4x4[] m_WorldToScreen = new Matrix4x4[2];
 
         ProfilingSampler m_ProfilingSamplerDeferredStencilPass = new ProfilingSampler(k_DeferredStencilPass);
         ProfilingSampler m_ProfilingSamplerDeferredFogPass = new ProfilingSampler(k_DeferredFogPass);
@@ -595,6 +596,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             int eyeCount = 1;
 #endif
             Matrix4x4[] screenToWorld = m_ScreenToWorld; // deferred shaders expects 2 elements
+            Matrix4x4[] worldToScreen = m_WorldToScreen; // deferred shaders expects 2 elements
 
             for (int eyeIndex = 0; eyeIndex < eyeCount; eyeIndex++)
             {
@@ -622,10 +624,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                     );
                 }
 
+                worldToScreen[eyeIndex] = zScaleBias * gpuProj * view;
                 screenToWorld[eyeIndex] = Matrix4x4.Inverse(toScreen * zScaleBias * gpuProj * view);
             }
 
             cmd.SetGlobalMatrixArray(ShaderConstants._ScreenToWorld, screenToWorld);
+            cmd.SetGlobalMatrixArray("_WorldToClip", worldToScreen);
         }
 
         void PrecomputeLights(
