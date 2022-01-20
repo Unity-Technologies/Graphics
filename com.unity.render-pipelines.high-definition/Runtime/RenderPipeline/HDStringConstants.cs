@@ -1135,6 +1135,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _MipSource = Shader.PropertyToID("_MipSource");
 
         public static readonly int _OITTileHiZ = Shader.PropertyToID("_OITTileHiZ");
+        public static readonly int _OITHiZMaxMip = Shader.PropertyToID("_OITHiZMaxMip");
         public static readonly int _OITTileHiZInput = Shader.PropertyToID("_OITTileHiZInput");
         public static readonly int _OITTileHiZOutput = Shader.PropertyToID("_OITTileHiZOutput");
         public static readonly int _OITHiZMipInfos = Shader.PropertyToID("_OITHiZMipInfos");
