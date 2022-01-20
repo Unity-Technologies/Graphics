@@ -130,7 +130,7 @@ void MainFlatEnableActiveCounts(int3 dispatchThreadID : SV_DispatchThreadID)
         if (storageValue >= 2)
         {
             uint sortVariantOffset;
-            if (storageValue <= 4)
+            if (storageValue <= 8)
             {
                 sortVariantOffset = 0;
             }

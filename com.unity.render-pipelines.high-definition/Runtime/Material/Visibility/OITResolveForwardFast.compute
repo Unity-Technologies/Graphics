@@ -73,6 +73,13 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     float3 lighting = float3(0.0f, 0.0f, 0.0f);
     float4 dstAccumulation = 0.0f;
 
+    //
+    // Sorting Verification Logic
+    //
+    //bool isSorted = true;
+    //bool isSortingPrecisionLimited = false;
+    //float lastDepthValue;
+
     //int peelLimit = 2;
     float minDepth = 1.0;
     for (uint i = 0; i < listCount; ++i)
@@ -90,6 +97,30 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         uint2 unusedTexelCoord;
         float depthValue;
         VisibilityOIT::GetVisibilitySample(i, listOffset, unusedVisData, unusedTexelCoord, depthValue);
+
+        //
+        // Sorting Verification Logic
+        //
+        //if (i == 0)
+        //{
+        //    lastDepthValue = depthValue;
+        //}
+        //else
+        //{
+        //    if (isSorted && (depthValue <= lastDepthValue))
+        //    {
+        //        if (lastDepthValue == depthValue)
+        //        {
+        //            isSortingPrecisionLimited = true;
+        //        }
+
+        //        lastDepthValue = depthValue;
+        //    }
+        //    else
+        //    {
+        //        isSorted = false;
+        //    }
+        //}
 
         if (depthValue < currentDepth)
             continue;
@@ -112,6 +143,11 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     lighting /= (float)listCount;
+
+    //
+    // Sorting Verification Logic
+    //
+    //dstAccumulation = isSorted ? float4(isSortingPrecisionLimited ? 1.0 : 0.0, 1.0, 0.0, 1.0) : float4(1.0, 0.0, 0.0, 1.0);
 
     //_OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(lighting + currentColor, 1.0);
     _VisOITOutputSparseColorBuffer[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = dstAccumulation;
