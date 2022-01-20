@@ -55,10 +55,6 @@ Varyings BuildVaryings(Attributes input)
     output.vertexID = input.vertexID;
 #endif
 
-#ifdef VARYINGS_NEED_VIEWDIRECTION_WS
-    output.viewDirectionWS = _WorldSpaceCameraPos.xyz - positionWS;
-#endif
-
 #ifdef VARYINGS_NEED_BITANGENT_WS
     output.bitangentWS = cross(normalWS, tangentWS.xyz) * tangentWS.w;
 #endif

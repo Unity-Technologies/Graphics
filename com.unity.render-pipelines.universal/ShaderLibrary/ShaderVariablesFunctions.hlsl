@@ -162,6 +162,31 @@ half OutputAlpha(half outputAlpha, half surfaceType = half(0.0))
     return surfaceType == 1 ? outputAlpha : half(1.0);
 }
 
+half3 AlphaModulate(half3 albedo, half alpha)
+{
+    // Fake alpha for multiply blend by lerping albedo towards 1 (white) using alpha.
+    // Manual adjustment for "lighter" multiply effect (similar to "premultiplied alpha")
+    // would be painting whiter pixels in the texture.
+    // This emulates that procedure in shader, so it should be applied to the base/source color.
+#if defined(_ALPHAMODULATE_ON)
+    return lerp(half3(1.0, 1.0, 1.0), albedo, alpha);
+#else
+    return albedo;
+#endif
+}
+
+half3 AlphaPremultiply(half3 albedo, half alpha)
+{
+    // Multiply alpha into albedo only for Preserve Specular material diffuse part.
+    // Preserve Specular material (glass like) has different alpha for diffuse and specular lighting.
+    // Logically this is "variable" Alpha blending.
+    // (HW blend mode is premultiply, but with alpha multiply in shader.)
+#if defined(_ALPHAPREMULTIPLY_ON)
+    return albedo * alpha;
+#endif
+    return albedo;
+}
+
 // A word on normalization of normals:
 // For better quality normals should be normalized before and after
 // interpolation.
