@@ -1,0 +1,6 @@
+Virtual_job:
+    name: Virtual job
+    dependencies:
+    - .yamato/_abv.yml#all_project_ci_CUSTOM-REVISION
+    - .yamato/all-urp.yml#All_URP_on_Win_DX11_playmode_trunk
+    - .yamato/all-batchrenderergroup.yml#BatchRendererGroup_CUSTOM-REVISION
