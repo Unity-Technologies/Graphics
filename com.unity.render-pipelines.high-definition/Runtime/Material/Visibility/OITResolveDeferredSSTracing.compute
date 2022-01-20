@@ -193,18 +193,8 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     if (listCount == 0)
         return;
 
-    //float currentDepth = _DepthTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)].x;
-    //float3 currentColor = _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)].rgb;
-
-    float3 lighting = float3(0.0f, 0.0f, 0.0f);
-
-    //float2 minMax = _OITTileHiZ[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)];
-
     float foundDepth = 0.0;
-    uint firstSample = -1;
-    //for (uint a = 0; a < listCount; ++a)
-    //for (int a = listCount - 1; a >= 0; --a)
-    //uint a = listCount - 1;
+    uint foundSampleIdx = -1;
     uint a = 0;
     {
         int globalOffset = a + listOffset;
@@ -217,79 +207,42 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
         if (depthValue > foundDepth)
         {
-            firstSample = a;
+            foundSampleIdx = a;
             foundDepth = depthValue;
             //break;
         }
     }
-    float startDeviceDepth = foundDepth;
 
+    float startDeviceDepth = foundDepth;
     float deviceDepth = foundDepth;
 
     ////for (uint i = 0; i < listCount; ++i)
-    uint i = firstSample;
+    //uint i = foundSampleIdx;
     //
-    int globalOffset = i + listOffset;
-    uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
+    //int globalOffset = foundSampleIdx + listOffset;
+    //uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
     //
-    //Visibility::VisibilityData unusedVisData;
-    //uint2 unusedTexelCoord;
-    //float depthValue;
-    //VisibilityOIT::GetVisibilitySample(i, listOffset, unusedVisData, unusedTexelCoord, depthValue);
-
-    //minDepth = max(depthValue, minDepth);
-
-    float3 lightingSource = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
-    ////outRes = _VisOITOffscreenPhotonRadianceLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
-    //outRes = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
-    //float3 outRes;
-    ////outRes = _VisOITOffscreenPhotonRadianceLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
-    //outRes = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
-    //
-  //  _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(lightingSource, 1.0);
-  //  return;
-    ////_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(currentColor*100, 1.0);
-    //return;
+    //float3 lightingSource = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
 
     int2 tileCoord = (float2)posInputRaw.positionSS.xy / GetTileSize();
     PositionInputs posInput = GetPositionInput(posInputRaw.positionSS.xy, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
 
-    float3 wo = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+    //float3 wo = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+    //float3 wo = GetWorldSpaceNormalizeViewDir(positionWS);
 
     float2 positionNDC = posInputRaw.positionSS.xy * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
-    //float3 positionWS = GetAbsolutePositionWS(ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP)); // Jittered
     float3 positionWS = ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP); // Jittered
-
-    //float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
-    //positionWS = ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP);
 
     float3 camPosWS = GetCurrentViewPosition();
 
-    //float3 wo = GetWorldSpaceNormalizeViewDir(positionWS);
-
-    // Sample GBuffer
-    uint4 packedOITGBuffer0 = _VisOITOffscreenGBuffer0[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
-    uint packedOITGBuffer1 = _VisOITOffscreenGBuffer1[COORD_TEXTURE2D_X(offscreenCoord)].r;
-    float3 n;
-    float roughness;
-    float3 baseColor;
-    float metalness;
-    VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, n, roughness, baseColor, metalness);
-
-    float3 f0 = lerp(DEFAULT_SPECULAR_VALUE, baseColor, metalness);
-
-    //_VisOITOffscreenDirectReflectionLighting[]
-    //float3 closestLighting = _VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
-    //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(closestLighting, 1.0);
-
     //float3 wi = -wo;
-    float internalIORSource = 1.0f;
+    //float internalIORSource = 1.0f;
     //float internalIORMedium = Fresnel0ToIor(f0);
-    float internalIORMedium = 1.5f;
+    //float internalIORMedium = 1.5f;
     //float3 wi = refract(-wo, n.xyz, internalIORSource / internalIORMedium);
     //float3 wi = refract(-wo, n.xyz, internalIORMedium / internalIORSource);
     //float3 wi = -wo;
-    float3 wi = refract(-wo, n.xyz, 0.95);
+    //float3 wi = refract(-wo, n.xyz, 0.95);
     //float3 wi = refract(-wo, n.xyz, 1.25);
     //float3 Incident = -wo;
     //float eta = internalIORSource / internalIORMedium;
@@ -298,7 +251,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     ////float3 wi = k >= 0.0 ? eta * Incident - (eta * cos0 + sqrt(k)) * n : reflect(Incident, n);
     //float3 wi = kc >= 0.0 ? eta * Incident - (eta * cos0 + sqrt(kc)) * n : -n;
     ////float3 wi;
-    float3 rIntensity = 1.0f;
+    //float3 rIntensity = 1.0f;
     //float3 rIntensity = F_Transm_Schlick(IorToFresnel0(internalIORMedium, internalIORSource), -cos0);
     //float3 rIntensity = F_FresnelDielectric(internalIORMedium / internalIORSource, -cos0);
     //float3 wi;
@@ -309,53 +262,117 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     //positionWS += wi * 0.001f;
     //positionWS -= wi * (1.0f - 0.001 * rcp(max(dot(n, wo), FLT_EPS)));
     //positionWS -= wi * rcp(max(dot(n, wo), FLT_EPS));
-    positionWS -= wi * 0.01f;
-    deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, UNITY_MATRIX_VP).z;
+    //positionWS -= wi * 0.01f;
+    //deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, UNITY_MATRIX_VP).z;
 
-    //bool killRay = minDepth == UNITY_RAW_FAR_CLIP_VALUE;
+    ////bool killRay = minDepth == UNITY_RAW_FAR_CLIP_VALUE;
 
-    float3 rayOrigin = float3(posInputRaw.positionSS + 0.5, deviceDepth);
+    //float3 rayOrigin = float3(posInputRaw.positionSS + 0.5, deviceDepth);
 
-    float3 reflPosWS = positionWS + wi;
-    float3 reflPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(reflPosWS, UNITY_MATRIX_VP); // Jittered
-    float3 reflPosSS = float3(reflPosNDC.xy * _ScreenSize.xy, reflPosNDC.z);
-    float3 rayDir = reflPosSS - rayOrigin;
-    float3 rcpRayDir = rcp(rayDir);
-    int2   rayStep = int2(rcpRayDir.x >= 0 ? 1 : 0,
-        rcpRayDir.y >= 0 ? 1 : 0);
-    float3 raySign = float3(rcpRayDir.x >= 0 ? 1 : -1,
-        rcpRayDir.y >= 0 ? 1 : -1,
-        rcpRayDir.z >= 0 ? 1 : -1);
+    //float3 reflPosWS = positionWS + wi;
+    //float3 reflPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(reflPosWS, UNITY_MATRIX_VP); // Jittered
+    //float3 reflPosSS = float3(reflPosNDC.xy * _ScreenSize.xy, reflPosNDC.z);
+    //float3 rayDir = reflPosSS - rayOrigin;
+    //float3 rcpRayDir = rcp(rayDir);
+    //int2   rayStep = int2(rcpRayDir.x >= 0 ? 1 : 0,
+    //    rcpRayDir.y >= 0 ? 1 : 0);
+    //float3 raySign = float3(rcpRayDir.x >= 0 ? 1 : -1,
+    //    rcpRayDir.y >= 0 ? 1 : -1,
+    //    rcpRayDir.z >= 0 ? 1 : -1);
     ////bool   rayTowardsEye  =  rcpRayDir.z >= 0;
 
     int mipLevel = 0;
-    float3 rayPos;
+    //float3 rayPos;
 
-    // Start ray marching from the next texel to avoid self-intersections.
-    float t;
-    float deltaT;
-    {
-        // 'rayOrigin' is the exact texel center.
-        float2 dist = abs(0.5 * rcpRayDir.xy);
-        deltaT = min(dist.x, dist.y);
-        t = deltaT;
-    }
+    //// Start ray marching from the next texel to avoid self-intersections.
+    //float t;
+    //float deltaT;
+    //{
+    //    // 'rayOrigin' is the exact texel center.
+    //    float2 dist = abs(0.5 * rcpRayDir.xy);
+    //    deltaT = min(dist.x, dist.y);
+    //    t = deltaT;
+    //}
 
     bool hit = false;
     int hitOffset = 0;
     float3 hitNDC = 0;
     int iterFull = 0;
+
+    float3 output = 0.0f;
+
+    //float3 wo_0 = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+    float3 wo_0 = GetWorldSpaceNormalizeViewDir(positionWS);
+
+    float transport = 1.0f;
+
+    float3 wi = -wo_0;
     // Bounce loop
-    for (int b = 0; b < 3; ++b)
+    for (int b = 0; b < 5; ++b)
     {
-        for (int k = 0; k < 512; ++k)
+        //
+        int globalOffset_b = foundSampleIdx + listOffset;
+        uint2 offscreenCoord_b = uint2(globalOffset_b % GetOffscreenLightBufferWidth(), globalOffset_b / GetOffscreenLightBufferWidth());
+
+        float3 lightingSource = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord_b)].rgb;
+
+        // Sample GBuffer
+        uint4 packedOITGBuffer0 = _VisOITOffscreenGBuffer0[COORD_TEXTURE2D_X(offscreenCoord_b)].rgba;
+        uint packedOITGBuffer1 = _VisOITOffscreenGBuffer1[COORD_TEXTURE2D_X(offscreenCoord_b)].r;
+        float3 n;
+        float roughness;
+        float3 baseColor;
+        float metalness;
+        VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, n, roughness, baseColor, metalness);
+
+        float3 f0 = lerp(DEFAULT_SPECULAR_VALUE, baseColor, metalness);
+
+        float internalIORSource = 1.0f;
+        float internalIORMedium = Fresnel0ToIor(f0).x;
+
+        deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, UNITY_MATRIX_VP).z;
+
+        float3 rayOrigin = float3(posInputRaw.positionSS + 0.5, deviceDepth);
+
+        float3 wo = -wi;
+        wi = refract(-wo, n.xyz, 0.95);
+
+        float cos0 = dot(wo, n);
+        transport *= max(1.0f - F_FresnelDielectric(internalIORMedium / internalIORSource, cos0), 0.0f);
+
+        float3 reflPosWS = positionWS + wi;
+        float3 reflPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(reflPosWS, UNITY_MATRIX_VP); // Jittered
+        float3 reflPosSS = float3(reflPosNDC.xy * _ScreenSize.xy, reflPosNDC.z);
+        float3 rayDir = reflPosSS - rayOrigin;
+        float3 rcpRayDir = rcp(rayDir);
+        int2   rayStep = int2(rcpRayDir.x >= 0 ? 1 : 0,
+            rcpRayDir.y >= 0 ? 1 : 0);
+        float3 raySign = float3(rcpRayDir.x >= 0 ? 1 : -1,
+            rcpRayDir.y >= 0 ? 1 : -1,
+            rcpRayDir.z >= 0 ? 1 : -1);
+
+        positionWS = camPosWS - (positionWS - camPosWS) * (1.0f - 0.001 * rcp(max(dot(n, wo), FLT_EPS)));
+        positionWS += wi * 0.001f;
+
+        float t;
+        float deltaT;
+        {
+            // 'rayOrigin' is the exact texel center.
+            float2 dist = abs(0.5 * rcpRayDir.xy);
+            deltaT = min(dist.x, dist.y);
+            t = deltaT;
+        }
+
+        float3 rayPos;
+        for (int k = 0; k < 128; ++k)
         {
             //rayPos = rayOrigin + (0.0125f * ((float)k)) * rayDir;
             //rayPos = rayOrigin + (0.01f * ((float)k)) * rayDir;
             //rayPos = rayOrigin + (1003.1f * ((float)k)) * rayDir;
             //rayPos = rayOrigin + (0.001f * ((float)k)) * rayDir;
             rayPos = rayOrigin + (t)*rayDir;
-            t += deltaT * 0.5f;
+            //t += deltaT * 0.5f;
+            t += deltaT * 2.0f;
 
             // Ray position often ends up on the edge. To determine (and look up) the right cell,
             // we need to bias the position by a small epsilon in the direction of the ray.
@@ -435,13 +452,9 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
             if (hit)
                 break;
         }
-    }
 
-    if (hit)
-    {
-        //uint pixelOffset_k = rayPos.y * _ScreenSize.x + rayPos.x;
         float2 remap = round(hitNDC.xy * _ScreenSize.xy);
-        uint pixelOffset_k = remap.y  * _ScreenSize.x + remap.x;
+        uint pixelOffset_k = remap.y * _ScreenSize.x + remap.x;
         uint listCount_k, listOffset_k;
         VisibilityOIT::GetPixelList(pixelOffset_k, listCount_k, listOffset_k);
 
@@ -450,8 +463,27 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
         float3 outRes = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord_k)].rgb;
 
+        output += lightingSource + outRes;
+
+        if (transport < 0.1f)
+            break;
+    }
+
+    if (hit)
+    {
+        //uint pixelOffset_k = rayPos.y * _ScreenSize.x + rayPos.x;
+        //float2 remap = round(hitNDC.xy * _ScreenSize.xy);
+        //uint pixelOffset_k = remap.y  * _ScreenSize.x + remap.x;
+        //uint listCount_k, listOffset_k;
+        //VisibilityOIT::GetPixelList(pixelOffset_k, listCount_k, listOffset_k);
+        //
+        //int globalOffset_k = hitOffset + listOffset_k;
+        //uint2 offscreenCoord_k = uint2(globalOffset_k % GetOffscreenLightBufferWidth(), globalOffset_k / GetOffscreenLightBufferWidth());
+        //
+        //float3 outRes = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord_k)].rgb;
+
         //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4((1.0f - rIntensity) * lightingSource + (rIntensity) * outRes, 1.0);
-        _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(outRes, 1.0);
+        _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(output, 1.0);
         //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(0.0f, ((float)iterFull)/512.0f, 0.0, 1.0);
     }
     else
