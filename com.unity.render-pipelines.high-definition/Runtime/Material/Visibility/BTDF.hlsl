@@ -1,6 +1,8 @@
 #ifndef __GGX_BTDF_IMPORTANCE_SAMPLING_UTILS__
 #define __GGX_BTDF_IMPORTANCE_SAMPLING_UTILS__
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+
 // reference:
 // Importance Sampling Microfacet-Based BSDFs using the Distribution of Visible Normals: E. Heitz and E.d'Eon
 namespace BTDF
@@ -51,13 +53,13 @@ namespace BTDF
     }
     
     // Algo 3.
-    void GGXSampleWm(
+    void GGXSampleOmega_m(
         // input
         const float3 omega_i, // incident direction
         const float alpha_x, const float alpha_y, // anisotropic roughness
         const float U1, const float U2, // random numbers
         // output
-        float3 omega_m) // micronormal
+        out float3 omega_m) // micronormal
     {
         // 1. stretch omega_i
         float3 omega_i_;
@@ -98,6 +100,22 @@ namespace BTDF
         omega_m.x = -slope_x/inv_omega_m;
         omega_m.y = -slope_y/inv_omega_m;
         omega_m.z = 1.0/inv_omega_m;
+    }
+
+    void GGXSampleWSOmega_w(
+        float3 omegaWS_i, float3 normalWS, float2 u, float roughness, out float3 omega_m)
+    {
+        float3x3 localToWorld = GetLocalFrame(normalWS);
+
+        //local space
+        float3 omega_i = mul(omegaWS_i, transpose(localToWorld));
+
+        GGXSampleOmega_m(
+            omega_i,
+            roughness, roughness,
+            u.x, u.y, // random numbers
+            // output
+            omega_m); // micronormal
     }
 }
 
