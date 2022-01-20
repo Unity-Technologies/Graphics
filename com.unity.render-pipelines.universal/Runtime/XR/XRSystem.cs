@@ -228,10 +228,9 @@ namespace UnityEngine.Rendering.Universal
                 display = displayList[0];
                 display.disableLegacyRenderer = true;
 
-                // FR
-                display.foveatedRenderingLevel = 1.0f;
+                // Foveated Rendering debug
+                //display.foveatedRenderingLevel = 1.0f;
                 //display.foveatedRenderingFlags = XRDisplaySubsystem.FoveatedRenderingFlags.GazeAllowed;
-                // FR
 
                 // Refresh max views
                 TextureXR.maxViews = Math.Max(TextureXR.slices, GetMaxViews());
