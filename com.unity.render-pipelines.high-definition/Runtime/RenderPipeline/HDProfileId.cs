@@ -256,6 +256,9 @@ namespace UnityEngine.Rendering.HighDefinition
         PrepareProbeVolumeList,
         ProbeVolumeDebug,
 
+        // BFRTGI
+        BFRTGIAdaptative,
+
         AOVExecute,
         AOVOutput,
 #if ENABLE_VIRTUALTEXTURES

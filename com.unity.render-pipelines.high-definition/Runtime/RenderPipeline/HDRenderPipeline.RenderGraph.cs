@@ -94,6 +94,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var prepassOutput = RenderPrepass(m_RenderGraph, colorBuffer, lightingBuffers.sssBuffer, vtFeedbackBuffer, cullingResults, customPassCullingResults, hdCamera, aovRequest, aovBuffers);
 
+                BFRTGISetupProbePlacement(m_RenderGraph, hdCamera, ref prepassOutput);
+
                 // Need this during debug render at the end outside of the main loop scope.
                 // Once render graph move is implemented, we can probably remove the branch and this.
                 ShadowResult shadowResult = new ShadowResult();

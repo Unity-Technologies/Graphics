@@ -1,0 +1,70 @@
+//--------------------------------------------------------------------------------------------------
+// Definitions
+//--------------------------------------------------------------------------------------------------
+
+#pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#pragma kernel BFRTGIUniformPlacement
+#pragma kernel BFRTGIAdaptativePlacement
+
+#define TILE_SIZE_PROBE_PLACEMENT 16
+#define GROUP_SIZE (TILE_SIZE_PROBE_PLACEMENT / 2) // 4x 8x8 groups per a 16x16 tile
+
+//--------------------------------------------------------------------------------------------------
+// Included headers
+//--------------------------------------------------------------------------------------------------
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+
+//--------------------------------------------------------------------------------------------------
+// Inputs & outputs
+//--------------------------------------------------------------------------------------------------
+
+RW_TEXTURE2D(float, _ScreenProbeDepth);
+RW_TEXTURE2D(float3, _ScreenProbeNormalWS);
+RW_TEXTURE2D(float3, _ScreenProbePositionRWS);
+
+//--------------------------------------------------------------------------------------------------
+// Implementation
+//--------------------------------------------------------------------------------------------------
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void BFRTGIUniformPlacement( uint3 dispatchThreadId : SV_DispatchThreadID,
+                             uint2 groupId          : SV_GroupID,
+                             uint2 groupThreadId    : SV_GroupThreadID)
+{
+    uint2 pixelCoord = dispatchThreadId.xy * TILE_SIZE_PROBE_PLACEMENT;
+
+    uint2 probeIndex = dispatchThreadId.xy;
+
+    float depth = LoadCameraDepth(pixelCoord.xy);
+
+    // For indirect case: we can still overlap inside a tile with the sky/background, reject it
+    // Can't rely on stencil as we are in compute shader
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE)
+    {
+        _ScreenProbeDepth[probeIndex] = UNITY_RAW_FAR_CLIP_VALUE;
+
+        return;
+    }
+
+    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+    NormalData normalData;
+    DecodeFromNormalBuffer(posInput.positionSS, normalData);
+
+    _ScreenProbeDepth[probeIndex] = depth;
+    _ScreenProbeNormalWS[probeIndex] = normalData.normalWS;
+    _ScreenProbePositionRWS[probeIndex] = posInput.positionWS;
+}
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void BFRTGIAdaptativePlacement( uint3 dispatchThreadId : SV_DispatchThreadID,
+                                uint2 groupId          : SV_GroupID,
+                                uint2 groupThreadId    : SV_GroupThreadID)
+{
+
+}
