@@ -81,21 +81,21 @@ RW_TEXTURE2D_X(float4, _VisOITOutputPhotonBuffer);
 
 float halton(int index, float base)
 {
-	float result = 0.0;
-	float f = 1.0 / base;
-	float i = float(index);
+    float result = 0.0;
+    float f = 1.0 / base;
+    float i = float(index);
 
-	for (int x = 0; x < 8; x++)
-	{
-		if (i <= 0.0)
-			break;
+    for (int x = 0; x < 8; x++)
+    {
+        if (i <= 0.0)
+            break;
 
-		result += f*fmod(i, base);
-		i = floor(i / base);
-		f = f / base;
-	}
+        result += f*fmod(i, base);
+        i = floor(i / base);
+        f = f / base;
+    }
 
-	return result;
+    return result;
 }
 
 float2 halton2D(int index)
@@ -109,17 +109,17 @@ bool ClosestSample(float2 texelCoord, float srcDepth, out int2 offscreenSampleCo
     globalSampleIndex = -1;
     if (any(texelCoord < float2(0,0)) || any(texelCoord >= _ScreenSize.xy))
         return false;
-    
+
     int pixelOffset = texelCoord.y * _ScreenSize.x + texelCoord.x;
     uint listCount, listOffset;
     VisibilityOIT::GetPixelList(pixelOffset, listCount, listOffset);
     float minDist = 1e5;
-    
+
     for (uint i = 0; i < listCount; ++i)
     {
         uint2 sampleCoord;
         float sampleDepth;
-        Visibility::VisibilityData visSample; 
+        Visibility::VisibilityData visSample;
         VisibilityOIT::GetVisibilitySample(i, listOffset, visSample, sampleCoord, sampleDepth);
         float sampleDist = abs(srcDepth - sampleDepth);
 
@@ -139,24 +139,24 @@ bool ClosestSample(float2 texelCoord, float srcDepth, out int2 offscreenSampleCo
 
 uint bobJenkinsHash(uint seed)
 {
-	seed += (seed << 10u);
-	seed ^= (seed >> 6u);
-	seed += (seed << 3u);
-	seed ^= (seed >> 11u);
-	seed += (seed << 15u);    
-	return seed;
+    seed += (seed << 10u);
+    seed ^= (seed >> 6u);
+    seed += (seed << 3u);
+    seed ^= (seed >> 11u);
+    seed += (seed << 15u);
+    return seed;
 }
 
 float floatConstruct(uint m)
 {
-	const uint ieeeMantissa = 0x007FFFFFu; 
-	const uint ieeeOne = 0x3F800000u;	
+    const uint ieeeMantissa = 0x007FFFFFu;
+    const uint ieeeOne = 0x3F800000u;
 
-	m &= ieeeMantissa;                 
-	m |= ieeeOne;                     
+    m &= ieeeMantissa;
+    m |= ieeeOne;
 
-	float  f = asfloat(m);
-	return f - 1.0;
+    float  f = asfloat(m);
+    return f - 1.0;
 }
 
 float randomFloat(uint seed)
@@ -220,7 +220,7 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
         float3 refractedDir = refract(V, microNormal, eta);
         float randFloat = randomFloat(srcSampleId + b);
         float3 sampleDir = randFloat < max(f0.x, max(f0.y, f0.z)) ? reflectedDir : refractedDir;
-        
+
         float3 sampledWS = posWS + lerp(0.004, 0.001, randFloat) * sampleDir;// - 0.001*reflectedDir;//small world increment. TODO make this adaptive
         float3 sampleNDC = ComputeNormalizedDeviceCoordinatesWithZ(sampledWS, UNITY_MATRIX_VP);
         float2 samplePixelPos = (sampleNDC.xy * _ScreenSize.xy) + 0.5;

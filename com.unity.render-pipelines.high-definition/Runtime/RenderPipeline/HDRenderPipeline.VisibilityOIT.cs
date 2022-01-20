@@ -445,7 +445,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.screenSize = screenSize;
                 passData.prefixSumSystem = m_PrefixSumSystem;
                 passData.inputCountBuffer = builder.ReadComputeBuffer(inputCountBuffer);
-                passData.prefixResources = GpuPrefixSumRenderGraphResources.Create(screenSize.x * screenSize.y, renderGraph, builder, outputIsTemp : true);
+                passData.prefixResources = GpuPrefixSumRenderGraphResources.Create(screenSize.x * screenSize.y, renderGraph, builder, outputIsTemp: true);
                 passData.outputDispatchArgsBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(1, sizeof(uint) * 4, ComputeBufferType.Structured | ComputeBufferType.IndirectArguments) { name = "OITSamplesDispatchArgs" }));
                 passData.outputGpuCountBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(1, sizeof(uint), ComputeBufferType.Raw) { name = "OITSamplesCountBuffer" }));
 
@@ -1103,7 +1103,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle gBuffer0Texture,
             TextureHandle gBuffer1Texture,
             TextureHandle offscreenDirectReflectionLightingTexture,
-            Vector2Int    offscreenLightingSize)
+            Vector2Int offscreenLightingSize)
         {
             TextureHandle output;
             using (var builder = renderGraph.AddRenderPass<OITComputePhotonRefractionBufferPassData>("OITComputePhotonRefractionBuffer", out var passData, ProfilingSampler.Get(HDProfileId.OITComputePhotonRefractionBuffer)))
@@ -1193,7 +1193,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         int kernel = data.cs.FindKernel("MainResolveSparseOITLighting");
                         context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
-                        
+
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITSparseColorBuffer, data.sparseColorBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);

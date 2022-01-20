@@ -315,4 +315,3 @@ void OITSort_GroupShared(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: 
         StorePackedVisibilitySample((listCount - 1) - dstKeyIndex, listOffset, packedSample);
     }
 }
-

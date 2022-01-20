@@ -10,6 +10,7 @@
 
 // This include will define the various Attributes/Varyings structure
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VaryingMesh.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/AlixAwesomeVertAnimHack.hlsl"
 
 //Declarations required by the attributes above
 
@@ -43,6 +44,11 @@ float3 LoadPositionFromGeometryPool(AttributesMesh input)
 {
     GeoPoolMetadataEntry metadata = _GeoPoolGlobalMetadataBuffer[(int)_DeferredMaterialInstanceData.x];
     GeoPoolVertex vertexData = GeometryPool::LoadVertex(input.vertexIndex, metadata);
+
+#if 1
+    AlixVertAnimHack::ApplyLocalAnim(vertexData);
+#endif
+
     return vertexData.pos;
 }
 

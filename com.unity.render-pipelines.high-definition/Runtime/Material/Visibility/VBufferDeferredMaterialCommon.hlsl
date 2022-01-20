@@ -2,6 +2,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/AlixAwesomeVertAnimHack.hlsl"
 
 struct Attributes
 {
@@ -186,6 +187,12 @@ FragInputs EvaluateFragInput(
     GeoPoolVertex v0 = GeometryPool::LoadVertex(i0, geoMetadata);
     GeoPoolVertex v1 = GeometryPool::LoadVertex(i1, geoMetadata);
     GeoPoolVertex v2 = GeometryPool::LoadVertex(i2, geoMetadata);
+
+#if 1
+    AlixVertAnimHack::ApplyLocalAnim(v0);
+    AlixVertAnimHack::ApplyLocalAnim(v1);
+    AlixVertAnimHack::ApplyLocalAnim(v2);
+#endif
 
     // Convert the positions to world space
     float3 pos0WS = TransformObjectToWorld(v0.pos);
