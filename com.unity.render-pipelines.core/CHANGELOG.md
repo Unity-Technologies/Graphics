@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Linear version of function that sets FSR RCAS shader constants
 - Add probe volume influence weight parameter
 - Added support for multiple Baking States to Prove Volumes.
-- Method to obtain the `RenderPipeline` tag from a shader given a `ShaderSnippetData`.
+- Add method to obtain the `RenderPipeline` tag from a shader given a `ShaderSnippetData`.
 
 ### Fixed
 - Fixed XR support in CoreUtils.DrawFullscreen function.
