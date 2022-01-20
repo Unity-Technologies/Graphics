@@ -671,9 +671,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_OffsetBufferWillNeedUpdate = true;
             }
 
-            public ComputeBuffer GetOffsetBufferData(ComputeBuffer mipLevelOffsetsBuffer)
+            public ComputeBuffer GetOffsetBufferData(ComputeBuffer mipLevelOffsetsBuffer, bool forceUpdate = false)
             {
-                if (m_OffsetBufferWillNeedUpdate)
+                if (m_OffsetBufferWillNeedUpdate || forceUpdate)
                 {
                     mipLevelOffsetsBuffer.SetData(mipLevelOffsets);
                     m_OffsetBufferWillNeedUpdate = false;

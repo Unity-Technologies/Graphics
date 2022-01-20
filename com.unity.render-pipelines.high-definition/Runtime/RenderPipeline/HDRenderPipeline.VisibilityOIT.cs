@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     valid = false,
                     stencilBuffer = TextureHandle.nullHandle,
                     BRGBindingData = RenderBRGBindingData.NewDefault(),
-                    depthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2)
+                    depthPyramidMipLevelOffsetsBuffer = null
                 };
             }
 
@@ -117,6 +117,19 @@ namespace UnityEngine.Rendering.HighDefinition
             return currentAsset != null && currentAsset.VisibilityOITMaterial != null && currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.enabled && RenderBRG.GetRenderBRGMaterialBindingData().valid; ;
         }
 
+        ComputeBuffer m_OITDepthPyramidMipLevelOffsetsBuffer = null;
+        internal void AllocateOITResources()
+        {
+            if (m_OITDepthPyramidMipLevelOffsetsBuffer == null)
+                m_OITDepthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2);
+        }
+
+        internal void DisposeOITResources()
+        {
+            m_OITDepthPyramidMipLevelOffsetsBuffer.Release();
+            m_OITDepthPyramidMipLevelOffsetsBuffer = null;
+        }
+
         void RenderVBufferOIT(RenderGraph renderGraph, TextureHandle colorBuffer, HDCamera hdCamera, CullingResults cullResults, ref PrepassOutput output)
         {
             output.vbufferOIT = VBufferOITOutput.NewDefault();
@@ -159,6 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
             output.vbufferOIT.samplesGpuCountBuffer = samplesGpuCountBuffer;
             output.vbufferOIT.oitVisibilityBuffer = oitVisibilityBuffer;
             output.vbufferOIT.BRGBindingData = BRGBindingData;
+            output.vbufferOIT.depthPyramidMipLevelOffsetsBuffer = m_OITDepthPyramidMipLevelOffsetsBuffer;
         }
 
         class VBufferOITCountPassData
@@ -921,7 +935,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.packedArgs = new Vector4(offscreenWidthAsFloat, 0.0f, 0.0f, 0.0f);
 
                 passData.maxMipHiZ = currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.maxHiZMip;
-                passData.depthPyramidMipLevelOffsetsBuffer = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(vbufferOIT.depthPyramidMipLevelOffsetsBuffer);
+                passData.depthPyramidMipLevelOffsetsBuffer = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(vbufferOIT.depthPyramidMipLevelOffsetsBuffer, true);
 
                 colorBuffer = passData.outputColor;
 
