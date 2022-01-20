@@ -1013,6 +1013,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputColor;
             public int maxMipHiZ;
             public ComputeBuffer depthPyramidMipLevelOffsetsBuffer;
+            public BlueNoise blueNoise;
             public Vector4 packedArgs;
         }
 
@@ -1049,6 +1050,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.maxMipHiZ = currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.maxHiZMip;
                 passData.depthPyramidMipLevelOffsetsBuffer = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(vbufferOIT.depthPyramidMipLevelOffsetsBuffer, true);
 
+                passData.blueNoise = GetBlueNoiseManager();
+
                 colorBuffer = passData.outputColor;
 
                 builder.SetRenderFunc(
@@ -1068,6 +1071,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenLighting, data.offscreenDirectReflectionLightingTexture);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);
+
+                        data.blueNoise.BindDitheredRNGData1SPP(context.cmd);
 
                         context.cmd.SetComputeIntParam(data.cs, HDShaderIDs._OITHiZMaxMip, data.maxMipHiZ);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.depthPyramidMipLevelOffsetsBuffer);
