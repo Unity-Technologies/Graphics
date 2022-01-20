@@ -1,6 +1,5 @@
 // We need only need one bounce given that we want to see the objects and then direct lighting is not done using raytracing
 #pragma max_recursion_depth 1
-#pragma enable_d3d11_debug_symbols
 
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
 #define HAS_LIGHTLOOP

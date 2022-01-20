@@ -1,4 +1,3 @@
-#pragma enable_d3d11_debug_symbols
 
 #define SHADOW_MINIMAL
 #define LIGHT_EVALUATION_NO_HEIGHT_FOG
