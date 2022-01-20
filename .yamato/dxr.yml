@@ -1,0 +1,7 @@
+Virtual_job:
+    name: Virtual job
+    dependencies:
+    - .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk
+    - .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_mono_Linear_trunk
+    - .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_trunk
+    - .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk
