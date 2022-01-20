@@ -270,6 +270,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent orderIndepdendentTransparentMemBudget = EditorGUIUtility.TrTextContent("Memory Budget (MB)", "Memory budget of OIT");
             public static readonly GUIContent orderIndepdendentTransparentOITLightingMode = EditorGUIUtility.TrTextContent("Lighting Mode", "Choose the way, the lighting is computed");
             public static readonly GUIContent orderIndepdendentTransparentMaxHizZMip = EditorGUIUtility.TrTextContent("Max HiZ Mip", "Maximum Mips Depth used for Screen Space Tracing");
+            public static readonly GUIContent orderIndepdendentTransparentSortingEnabled = EditorGUIUtility.TrTextContent("Sorting Enabled", "Enable depth sorting for transparent samples within a pixel");
 
             public static readonly GUIContent XRSinglePass = EditorGUIUtility.TrTextContent("Single Pass", "When enabled, XR views are rendered simultaneously and the render loop is processed only once. This setting will improve CPU and GPU performance but will use more GPU memory.");
             public static readonly GUIContent XROcclusionMesh = EditorGUIUtility.TrTextContent("Occlusion Mesh", "When enabled, the occlusion mesh will be rendered for each view during the depth prepass to reduce shaded fragments.");

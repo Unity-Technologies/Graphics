@@ -90,11 +90,11 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         float4 currColor = float4(_VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb, currAlpha);
 
         // use this function once are sorted
-        //dstAccumulation = ApplyOitAlphaToAccumulation(dstAccumulation, currColor);
+        dstAccumulation = ApplyOitAlphaToAccumulation(dstAccumulation, currColor);
 
         // since sorting isn't ready yet, do something hacky that is order independent
-        dstAccumulation.rgb += currColor.rgb * currColor.a;
-        dstAccumulation.a = dstAccumulation.a * (1.0f - currColor.a) + currColor.a;
+        //dstAccumulation.rgb += currColor.rgb * currColor.a;
+        //dstAccumulation.a = dstAccumulation.a * (1.0f - currColor.a) + currColor.a;
 
         // .
         lighting += _VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
