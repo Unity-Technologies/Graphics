@@ -1,0 +1,9 @@
+Virtual_job:
+    name: Virtual job
+    dependencies:
+    - .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
+    - .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
+    - .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
+    - .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk
+    - .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
+    - .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
