@@ -13,6 +13,19 @@
 
 #define GROUP_SIZE 8
 
+//
+// Sorting Debug Logic
+//
+// Uncomment the following define to enable the sorting debug visualization
+// The logic causes pixels on screen to be displayed in different colors based on their sorting state
+//
+// Red    = Incorrect sorting order
+// Green  = Correct sorting order (Front to back)
+// Yellow = Two contiguous samples have the same depth value so they cannot be sorted in a stable manner
+//
+
+//#define ENABLE_SORTING_DEBUG 1
+
 TEXTURE2D_X(_DepthTexture);
 RW_TEXTURE2D_X(float4, _OutputTexture);
 TEXTURE2D_X(_VisOITSparseColorBuffer);
@@ -73,12 +86,11 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     float3 lighting = float3(0.0f, 0.0f, 0.0f);
     float4 dstAccumulation = 0.0f;
 
-    //
-    // Sorting Verification Logic
-    //
-    //bool isSorted = true;
-    //bool isSortingPrecisionLimited = false;
-    //float lastDepthValue;
+#if ENABLE_SORTING_DEBUG
+    bool isSorted = true;
+    bool isSortingPrecisionLimited = false;
+    float lastDepthValue;
+#endif
 
     //int peelLimit = 2;
     float minDepth = 1.0;
@@ -98,29 +110,28 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         float depthValue;
         VisibilityOIT::GetVisibilitySample(i, listOffset, unusedVisData, unusedTexelCoord, depthValue);
 
-        //
-        // Sorting Verification Logic
-        //
-        //if (i == 0)
-        //{
-        //    lastDepthValue = depthValue;
-        //}
-        //else
-        //{
-        //    if (isSorted && (depthValue <= lastDepthValue))
-        //    {
-        //        if (lastDepthValue == depthValue)
-        //        {
-        //            isSortingPrecisionLimited = true;
-        //        }
+#if ENABLE_SORTING_DEBUG
+        if (i == 0)
+        {
+            lastDepthValue = depthValue;
+        }
+        else
+        {
+            if (isSorted && (depthValue <= lastDepthValue))
+            {
+                if (lastDepthValue == depthValue)
+                {
+                    isSortingPrecisionLimited = true;
+                }
 
-        //        lastDepthValue = depthValue;
-        //    }
-        //    else
-        //    {
-        //        isSorted = false;
-        //    }
-        //}
+                lastDepthValue = depthValue;
+            }
+            else
+            {
+                isSorted = false;
+            }
+        }
+#endif
 
         if (depthValue < currentDepth)
             continue;
@@ -144,10 +155,9 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
     lighting /= (float)listCount;
 
-    //
-    // Sorting Verification Logic
-    //
-    //dstAccumulation = isSorted ? float4(isSortingPrecisionLimited ? 1.0 : 0.0, 1.0, 0.0, 1.0) : float4(1.0, 0.0, 0.0, 1.0);
+#if ENABLE_SORTING_DEBUG
+    dstAccumulation = isSorted ? float4(isSortingPrecisionLimited ? 1.0 : 0.0, 1.0, 0.0, 1.0) : float4(1.0, 0.0, 0.0, 1.0);
+#endif
 
     //_OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(lighting + currentColor, 1.0);
     _VisOITOutputSparseColorBuffer[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = dstAccumulation;
