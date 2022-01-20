@@ -70,6 +70,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     ctx.cmd.SetRayTracingBufferParam(data.extraDataGenRT, "_DBGRAY", data.debugRay);
                     ctx.cmd.SetRayTracingBufferParam(data.extraDataGenRT, "_DBGOUT", data.debugOut);
 
+                    ctx.cmd.SetRayTracingVectorArrayParam(data.extraDataGenRT, HDShaderIDs._RayAxis, ProbeDynamicGIManager.NeighbourAxis);
+
                     ctx.cmd.SetRayTracingVectorParam(data.extraDataGenRT, "_RTExtraDataGenParam", data.parameters);
 
                     uint numberOfRays = (uint)data.parameters.w;
