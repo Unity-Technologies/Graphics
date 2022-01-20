@@ -148,19 +148,33 @@ namespace UnityEngine.Rendering.HighDefinition
             var screenSize = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
             int histogramSize, tileSize;
 
-            var histogramBuffer = ComputeOITTiledHistogram(renderGraph, screenSize, hdCamera.viewCount, output.vbufferOIT.stencilBuffer, out histogramSize, out tileSize);
+            ComputeBufferHandle histogramBuffer;
+            ComputeBufferHandle sortMemoryBuffer;
+            ComputeOITTiledHistogram(renderGraph, screenSize, hdCamera.viewCount, output.vbufferOIT.stencilBuffer, out histogramSize, out tileSize, out histogramBuffer, out sortMemoryBuffer);
             var prefixedHistogramBuffer = ComputeOITTiledPrefixSumHistogramBuffer(renderGraph, histogramBuffer, histogramSize);
 
             int maxMaterialSampleCount = GetMaxMaterialOITSampleCount(hdCamera);
             ComputeOITAllocateSampleLists(
-                renderGraph, maxMaterialSampleCount, screenSize, output.vbufferOIT.stencilBuffer, prefixedHistogramBuffer,
+                renderGraph, maxMaterialSampleCount, screenSize, output.vbufferOIT.stencilBuffer, prefixedHistogramBuffer, ref sortMemoryBuffer,
                 out ComputeBufferHandle sampleListCountBuffer, out ComputeBufferHandle sampleListOffsetBuffer, out ComputeBufferHandle sublistCounterBuffer, out ComputeBufferHandle pixelHashBuffer);
+
+            bool isSortingEnabled = m_Asset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.sortingEnabled;
+
+            if (isSortingEnabled)
+            {
+                OITSortPrePass(renderGraph, screenSize, ref sortMemoryBuffer, sampleListCountBuffer);
+            }
 
             ComputeOITSampleDispatchArgs(renderGraph, sampleListCountBuffer, screenSize, out ComputeBufferHandle samplesDispatchArgsBuffer, out ComputeBufferHandle samplesGpuCountBuffer);
 
             ComputeBufferHandle oitVisibilityBuffer = RenderVBufferOITStoragePass(
                 renderGraph, maxMaterialSampleCount, hdCamera, cullResults, BRGBindingData,
                 sampleListCountBuffer, sampleListOffsetBuffer, ref sublistCounterBuffer, pixelHashBuffer);
+
+            if (isSortingEnabled)
+            {
+                OITSortSamples(renderGraph, ref oitVisibilityBuffer, sampleListCountBuffer, sampleListOffsetBuffer, sortMemoryBuffer);
+            }
 
             output.vbufferOIT.histogramBuffer = histogramBuffer;
             output.vbufferOIT.prefixedHistogramBuffer = prefixedHistogramBuffer;
@@ -229,11 +243,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture2D ditherTexture;
             public TextureHandle stencilBuffer;
             public ComputeBufferHandle histogramBuffer;
+            public ComputeBufferHandle sortMemoryBuffer;
         }
 
-        ComputeBufferHandle ComputeOITTiledHistogram(RenderGraph renderGraph, Vector2Int screenSize, int viewCount, TextureHandle stencilBuffer, out int histogramSize, out int tileSize)
+        void ComputeOITTiledHistogram(RenderGraph renderGraph, Vector2Int screenSize, int viewCount, TextureHandle stencilBuffer, out int histogramSize, out int tileSize, out ComputeBufferHandle outHistogramBuffer, out ComputeBufferHandle outSortMemoryBuffer)
         {
-            ComputeBufferHandle histogramBuffer = ComputeBufferHandle.nullHandle;
             tileSize = 128;
             histogramSize = tileSize * tileSize;
             using (var builder = renderGraph.AddRenderPass<OITTileHistogramPassData>("OITTileHistogramPassData", out var passData, ProfilingSampler.Get(HDProfileId.OITHistogram)))
@@ -247,26 +261,38 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
                 passData.histogramSize = histogramSize;
                 passData.histogramBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(histogramSize, sizeof(uint), ComputeBufferType.Raw) { name = "OITHistogram" }));
-                histogramBuffer = passData.histogramBuffer;
+
+                // Allocate a single large buffer for all of the data required by the sorting shaders
+                uint numSortingVariants = 3;
+                uint numSumDwords = numSortingVariants;
+                uint numCounterDwords = numSortingVariants;
+                uint numOffsetDwords = numSortingVariants;
+                uint numDispatchArgDwords = (numSortingVariants * 3);
+                uint numIndexDwords = (uint)(screenSize.x * screenSize.y);
+                uint totalSortDataDwords = numSumDwords + numCounterDwords + numOffsetDwords + numDispatchArgDwords + numIndexDwords;
+                passData.sortMemoryBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)totalSortDataDwords, sizeof(uint), ComputeBufferType.Structured | ComputeBufferType.IndirectArguments) { name = "OITSortMemory" }));
+
+                outHistogramBuffer = passData.histogramBuffer;
+                outSortMemoryBuffer = passData.sortMemoryBuffer;
 
                 builder.SetRenderFunc(
                     (OITTileHistogramPassData data, RenderGraphContext context) =>
                     {
                         int clearKernel = data.cs.FindKernel("MainClearHistogram");
                         context.cmd.SetComputeBufferParam(data.cs, clearKernel, HDShaderIDs._VisOITHistogramOutput, data.histogramBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, clearKernel, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
                         context.cmd.DispatchCompute(data.cs, clearKernel, HDUtils.DivRoundUp(passData.histogramSize, 64), 1, 1);
 
                         int histogramKernel = data.cs.FindKernel("MainCreateStencilHistogram");
                         context.cmd.SetComputeTextureParam(data.cs, histogramKernel, HDShaderIDs._OITDitherTexture, data.ditherTexture);
                         context.cmd.SetComputeTextureParam(data.cs, histogramKernel, HDShaderIDs._VisOITCount, (RenderTexture)data.stencilBuffer, 0, RenderTextureSubElement.Stencil);
                         context.cmd.SetComputeBufferParam(data.cs, histogramKernel, HDShaderIDs._VisOITHistogramOutput, data.histogramBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, histogramKernel, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
                         context.cmd.SetComputeIntParam(data.cs, HDShaderIDs._VisOITBlockJitterOffsetX, data.blockJitterOffsetX);
                         context.cmd.SetComputeIntParam(data.cs, HDShaderIDs._VisOITBlockJitterOffsetY, data.blockJitterOffsetY);
                         context.cmd.DispatchCompute(data.cs, histogramKernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), viewCount);
                     });
             }
-
-            return histogramBuffer;
         }
 
         class OITHistogramPrefixSumPassData
@@ -311,12 +337,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle prefixedHistogramBuffer;
             public ComputeBufferHandle outCountBuffer;
             public ComputeBufferHandle outSublistCounterBuffer;
+            public ComputeBufferHandle sortMemoryBuffer;
             public ComputeBufferHandle outPixelHashBuffer;
             public GpuPrefixSumRenderGraphResources prefixResources;
         }
 
         void ComputeOITAllocateSampleLists(
-            RenderGraph renderGraph, int maxMaterialSampleCount, Vector2Int screenSize, TextureHandle stencilBuffer, ComputeBufferHandle prefixedHistogramBuffer,
+            RenderGraph renderGraph, int maxMaterialSampleCount, Vector2Int screenSize, TextureHandle stencilBuffer, ComputeBufferHandle prefixedHistogramBuffer, ref ComputeBufferHandle sortMemoryBuffer,
             out ComputeBufferHandle outCountBuffer, out ComputeBufferHandle outOffsetBuffer, out ComputeBufferHandle outSublistCounterBuffer, out ComputeBufferHandle outPixelHashBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<OITAllocateSampleListsPassData>("OITAllocateSampleLists", out var passData, ProfilingSampler.Get(HDProfileId.OITAllocateSampleLists)))
@@ -329,8 +356,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.prefixedHistogramBuffer = builder.ReadComputeBuffer(prefixedHistogramBuffer);
                 passData.outCountBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(screenSize.x * screenSize.y, sizeof(uint), ComputeBufferType.Raw) { name = "OITMaterialCountBuffer" }));
                 passData.outSublistCounterBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(screenSize.x * screenSize.y, sizeof(uint), ComputeBufferType.Raw) { name = "OITMaterialSublistCounter" }));
+                passData.sortMemoryBuffer = builder.WriteComputeBuffer(builder.ReadComputeBuffer(sortMemoryBuffer));
                 passData.outPixelHashBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(screenSize.x * screenSize.y, sizeof(uint), ComputeBufferType.Raw) { name = "OITMaterialHashBuffer" }));
                 passData.prefixResources = GpuPrefixSumRenderGraphResources.Create(screenSize.x * screenSize.y, renderGraph, builder);
+
+                sortMemoryBuffer = passData.sortMemoryBuffer;
 
                 float maxMaterialSampleCountAsFloat; unsafe { maxMaterialSampleCountAsFloat = *((float*)&maxMaterialSampleCount); };
                 passData.packedArgs = new Vector4(maxMaterialSampleCountAsFloat, 0.0f, 0.0f, 0.0f);
@@ -350,12 +380,48 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeBufferParam(data.cs, flatCountKernel, HDShaderIDs._VisOITPrefixedHistogramBuffer, data.prefixedHistogramBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, flatCountKernel, HDShaderIDs._OITOutputActiveCounts, data.outCountBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, flatCountKernel, HDShaderIDs._OITOutputSublistCounter, data.outSublistCounterBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, flatCountKernel, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, flatCountKernel, HDShaderIDs._OITOutputPixelHash, data.outPixelHashBuffer);
                         context.cmd.DispatchCompute(data.cs, flatCountKernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), 1);
 
                         var prefixResources = GpuPrefixSumSupportResources.Load(data.prefixResources);
                         data.prefixSumSystem.DispatchDirect(context.cmd, new GpuPrefixSumDirectArgs()
                         { exclusive = true, inputCount = data.screenSize.x * data.screenSize.y, input = data.outCountBuffer, supportResources = prefixResources });
+                    });
+            }
+        }
+
+        class OITSortPrePassData
+        {
+            public ComputeShader cs;
+            public Vector2Int screenSize;
+            public ComputeBufferHandle sortMemoryBuffer;
+            public ComputeBufferHandle countBuffer;
+        }
+
+        void OITSortPrePass(
+            RenderGraph renderGraph, Vector2Int screenSize, ref ComputeBufferHandle sortMemoryBuffer, ComputeBufferHandle countBuffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<OITSortPrePassData>("OITSortPrePass", out var passData, ProfilingSampler.Get(HDProfileId.OITSortSamplesPrePass)))
+            {
+                passData.cs = defaultResources.shaders.oitSortCS;
+                passData.screenSize = screenSize;
+                passData.sortMemoryBuffer = builder.WriteComputeBuffer(builder.ReadComputeBuffer(sortMemoryBuffer));
+                passData.countBuffer = builder.ReadComputeBuffer(countBuffer);
+
+                sortMemoryBuffer = passData.sortMemoryBuffer;
+
+                builder.SetRenderFunc(
+                    (OITSortPrePassData data, RenderGraphContext context) =>
+                    {
+                        int initKernel = data.cs.FindKernel("OITSort_Init");
+                        context.cmd.SetComputeBufferParam(data.cs, initKernel, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
+                        context.cmd.DispatchCompute(data.cs, initKernel, 1, 1, 1);
+
+                        int binPixelsKernel = data.cs.FindKernel("OITSort_BinPixels");
+                        context.cmd.SetComputeBufferParam(data.cs, binPixelsKernel, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, binPixelsKernel, HDShaderIDs._VisOITListsCounts, data.countBuffer);
+                        context.cmd.DispatchCompute(data.cs, binPixelsKernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), 1);
                     });
             }
         }
@@ -458,6 +524,52 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return outVisibilityBuffer;
+        }
+
+        class OITSortSamplesPassData
+        {
+            public ComputeShader cs;
+            public ComputeBufferHandle oitVisibilityBuffer;
+            public ComputeBufferHandle countBuffer;
+            public ComputeBufferHandle offsetListBuffer;
+            public ComputeBufferHandle sortMemoryBuffer;
+        }
+
+        void OITSortSamples(
+            RenderGraph renderGraph, ref ComputeBufferHandle oitVisibilityBuffer, ComputeBufferHandle countBuffer, ComputeBufferHandle offsetListBuffer, ComputeBufferHandle sortMemoryBuffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<OITSortSamplesPassData>("OITSortSamples", out var passData, ProfilingSampler.Get(HDProfileId.OITSortSamples)))
+            {
+                passData.cs = defaultResources.shaders.oitSortCS;
+                passData.oitVisibilityBuffer = builder.WriteComputeBuffer(builder.ReadComputeBuffer(oitVisibilityBuffer));
+                passData.countBuffer = builder.ReadComputeBuffer(countBuffer);
+                passData.offsetListBuffer = builder.ReadComputeBuffer(offsetListBuffer);
+                passData.sortMemoryBuffer = builder.WriteComputeBuffer(builder.ReadComputeBuffer(sortMemoryBuffer));
+
+                oitVisibilityBuffer = passData.oitVisibilityBuffer;
+
+                builder.SetRenderFunc(
+                    (OITSortSamplesPassData data, RenderGraphContext context) =>
+                    {
+                        int networkSort = data.cs.FindKernel("OITSort_Network");
+                        int groupSharedSort = data.cs.FindKernel("OITSort_GroupShared");
+
+                        uint indirectArgOffset = 36;
+
+                        context.cmd.SetComputeBufferParam(data.cs, networkSort, HDShaderIDs._RWVisOITBuffer, data.oitVisibilityBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, networkSort, HDShaderIDs._VisOITListsCounts, data.countBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, networkSort, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, networkSort, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
+                        context.cmd.DispatchCompute(data.cs, networkSort, data.sortMemoryBuffer, indirectArgOffset);
+
+                        // Note: The big sort mode currently also handles the medium one
+                        context.cmd.SetComputeBufferParam(data.cs, groupSharedSort, HDShaderIDs._RWVisOITBuffer, data.oitVisibilityBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, groupSharedSort, HDShaderIDs._VisOITListsCounts, data.countBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, groupSharedSort, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, groupSharedSort, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
+                        context.cmd.DispatchCompute(data.cs, groupSharedSort, data.sortMemoryBuffer, indirectArgOffset + 24);
+                    });
+            }
         }
 
         class VBufferOITComputeHiZPassData

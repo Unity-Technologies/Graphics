@@ -135,6 +135,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader vbufferTileClassificationCS;
             [Reload("Runtime/Material/Visibility/OITTileHistogram.compute")]
             public ComputeShader oitTileHistogramCS;
+            [Reload("Runtime/Material/Visibility/OITSort.compute")]
+            public ComputeShader oitSortCS;
             [Reload("Runtime/Material/Visibility/OITResolveForwardFast.compute")]
             public ComputeShader oitResolveForwardFastCS;
             [Reload("Runtime/Material/Visibility/OITResolveDeferredSSTracing.compute")]

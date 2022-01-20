@@ -68,6 +68,7 @@ MonoBehaviour:
     createMaterialDepthPS: {fileID: 4800000, guid: dbc5c19310f2c544c91d4bf81b05ddc6, type: 3}
     vbufferTileClassificationCS: {fileID: 7200000, guid: 8097d48cf7ce091419dc8bf4ffc35e1a, type: 3}
     oitTileHistogramCS: {fileID: 7200000, guid: 6868e66d816c0a346a08a9ea0f58ec59, type: 3}
+    oitSortCS: {fileID: 7200000, guid: 79d1a47657dbe3945b77121d0d4067c9, type: 3}
     oitResolveForwardFastCS: {fileID: 7200000, guid: df166825db32f7c41b45e7a1b8709292, type: 3}
     oitResolveDeferredSSTracingCS: {fileID: 7200000, guid: 2c76c1540432e224dbc33802bd61d353, type: 3}
     oitTileComputeHiZCS: {fileID: 7200000, guid: 696d90c019f9bfc429b07913cb9be8a8, type: 3}

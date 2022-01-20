@@ -31,6 +31,8 @@ namespace UnityEngine.Rendering.HighDefinition
         OITHistogram,
         OITHistogramPrefixSum,
         OITAllocateSampleLists,
+        OITSortSamplesPrePass,
+        OITSortSamples,
         OITComputeSamplesDispatchArgs,
         OITResolveLightingForwardFast,
         OITResolveLightingDeferredSSTracing,

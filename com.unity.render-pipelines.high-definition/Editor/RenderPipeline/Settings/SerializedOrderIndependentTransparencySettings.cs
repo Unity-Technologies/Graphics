@@ -11,6 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty memoryBudget;
         public SerializedProperty oitLightingMode;
         public SerializedProperty maxHiZMip;
+        public SerializedProperty sortingEnabled;
 
         public SerializedOrderIndependentTransparencySettings(SerializedProperty root)
         {
@@ -20,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             memoryBudget = root.Find((GlobalOrderIndependentTransparencySettings s) => s.memoryBudget);
             oitLightingMode = root.Find((GlobalOrderIndependentTransparencySettings s) => s.oitLightingMode);
             maxHiZMip = root.Find((GlobalOrderIndependentTransparencySettings s) => s.maxHiZMip);
+            sortingEnabled = root.Find((GlobalOrderIndependentTransparencySettings s) => s.sortingEnabled);
         }
     }
 }

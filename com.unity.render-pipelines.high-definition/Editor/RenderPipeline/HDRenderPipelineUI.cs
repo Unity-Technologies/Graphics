@@ -720,6 +720,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.orderIndependentTransparentSettings.maxHiZMip, Styles.orderIndepdendentTransparentMaxHizZMip);
             }
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.orderIndependentTransparentSettings.sortingEnabled, Styles.orderIndepdendentTransparentSortingEnabled);
         }
 
         static void Drawer_SectionWaterSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
