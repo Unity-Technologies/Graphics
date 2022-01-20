@@ -1104,7 +1104,6 @@ namespace UnityEditor.VFX.Test
 
             //Check the actual status, should have now two slots
             {
-                AssetDatabase.ImportAsset(testAssetMainSubgraph);
                 var mainAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetMainSubgraph);
                 var mainGraph = mainAsset.GetOrCreateResource().GetOrCreateGraph();
 
@@ -1118,9 +1117,10 @@ namespace UnityEditor.VFX.Test
             //Removing old slots, shouldn't get unexpected removed 
             {
                 File.WriteAllText(testSubgraphSubOperatorAssetName, oneOutputState);
+                yield return null;
                 AssetDatabase.Refresh();
+                yield return null;
 
-                AssetDatabase.ImportAsset(testAssetMainSubgraph);
                 var mainAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetMainSubgraph);
                 var mainGraph = mainAsset.GetOrCreateResource().GetOrCreateGraph();
 
@@ -1131,12 +1131,14 @@ namespace UnityEditor.VFX.Test
             }
             yield return null;
 
+            
             //Here, restore to the previous state, if one outputSlot is null, then we did a resync slot during compilation
             {
                 File.WriteAllText(testSubgraphSubOperatorAssetName, twoOutputState);
+                yield return null;
                 AssetDatabase.Refresh();
+                yield return null;
 
-                AssetDatabase.ImportAsset(testAssetMainSubgraph);
                 var mainAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetMainSubgraph);
                 var mainGraph = mainAsset.GetOrCreateResource().GetOrCreateGraph();
 
@@ -1146,7 +1148,7 @@ namespace UnityEditor.VFX.Test
                 Assert.IsFalse(subGraph.outputSlots.Any(o => o == null));
             }
             yield return null;
-
+            
             //Finally, open the source asset it will crash if the vfxasset is wrongly formed
             resource = VisualEffectResource.GetResourceAtPath(testAssetMainSubgraph);
             window = VFXViewWindow.GetWindow<VFXViewWindow>();
