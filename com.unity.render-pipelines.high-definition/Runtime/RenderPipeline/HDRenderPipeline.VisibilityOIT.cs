@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle pixelHashBuffer;
             public ComputeBufferHandle oitVisibilityBuffer;
             public RenderBRGBindingData BRGBindingData;
+            public ComputeBuffer depthPyramidMipLevelOffsetsBuffer;
 
             public static VBufferOITOutput NewDefault()
             {
@@ -27,7 +28,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     valid = false,
                     stencilBuffer = TextureHandle.nullHandle,
-                    BRGBindingData = RenderBRGBindingData.NewDefault()
+                    BRGBindingData = RenderBRGBindingData.NewDefault(),
+                    depthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2)
                 };
             }
 
@@ -410,7 +412,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void RenderVBufferOITTileHiZPass(
             RenderGraph renderGraph, HDCamera hdCamera, int maxMaterialSampleCount, Vector2Int screenSize, VBufferOITOutput vbufferOIT,
             ComputeBufferHandle countBuffer, ComputeBufferHandle offsetBuffer, ComputeBufferHandle sublistCounterBuffer, ComputeBufferHandle oitVisibilityBuffer,
-            out TextureHandle oitTileHiZTexture)
+            out TextureHandle oitTileHiZTexture/*, out ComputeBufferHandle depthPyramidMipLevelOffsetsBuffer*/)
         {
             using (var builder = renderGraph.AddRenderPass<VBufferOITComputeHiZPassData>("VBufferOITComputeHiZ", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITComputeHiZ)))
             {
@@ -424,6 +426,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.oitVisibilityBuffer = builder.ReadComputeBuffer(oitVisibilityBuffer);
                 passData.sublistCounterBuffer = builder.ReadComputeBuffer(sublistCounterBuffer);
                 passData.offsetBuffer = builder.ReadComputeBuffer(offsetBuffer);
+
+                //depthPyramidMipLevelOffsetsBuffer = renderGraph.CreateComputeBuffer(new ComputeBufferDesc(15, 2*sizeof(int), ComputeBufferType.Structured));
 
                 passData.oitHiZMipsOffsets = hdCamera.depthBufferMipChainInfo.mipLevelOffsets;
                 passData.oitHiZMipsSizes = hdCamera.depthBufferMipChainInfo.mipLevelSizes;
@@ -576,6 +580,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int maxMaterialSampleCount = GetMaxMaterialOITSampleCount(hdCamera);
                 TextureHandle oitTileHiZTexture;
+                //ComputeBufferHandle depthPyramidMipLevelOffsetsBuffer;
                 RenderVBufferOITTileHiZPass(
                     renderGraph, hdCamera, maxMaterialSampleCount, new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight), prepassData.vbufferOIT,
                     prepassData.vbufferOIT.sampleListCountBuffer,
@@ -587,9 +592,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     gBuffer0Texture,
                     gBuffer1Texture,
                     offscreenDirectReflectionLightingTexture,
+                    //depthPyramidMipLevelOffsetsBuffer,
                     oitTileHiZTexture, offscreenDimensions, depthBuffer, ref colorBuffer);
             }
-
         }
 
         TextureHandle RenderOITVBufferLightingOffscreenForwardFast(
@@ -820,6 +825,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle sublistCounterBuffer;
             public TextureHandle oitTileHiZTexture;
             public TextureHandle outputColor;
+            public int maxMipHiZ;
+            public ComputeBuffer depthPyramidMipLevelOffsetsBuffer;
             public Vector4 packedArgs;
         }
 
@@ -828,6 +835,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle gBuffer0Texture,
             TextureHandle gBuffer1Texture,
             TextureHandle offscreenDirectReflectionLightingTexture,
+            //ComputeBuffer depthPyramidMipLevelOffsetsBuffer,
             TextureHandle oitTileHiZTexture,
             Vector2Int offscreenLightingSize,
             TextureHandle depthBuffer, ref TextureHandle colorBuffer)
@@ -851,6 +859,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 float offscreenWidthAsFloat; unsafe { int offscreenWidthInt = offscreenLightingSize.x; offscreenWidthAsFloat = *((float*)&offscreenWidthInt); }
                 passData.packedArgs = new Vector4(offscreenWidthAsFloat, 0.0f, 0.0f, 0.0f);
 
+                passData.maxMipHiZ = currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.maxHiZMip;
+                passData.depthPyramidMipLevelOffsetsBuffer = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(vbufferOIT.depthPyramidMipLevelOffsetsBuffer);
+
                 colorBuffer = passData.outputColor;
 
                 builder.SetRenderFunc(
@@ -869,6 +880,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenLighting, data.offscreenDirectReflectionLightingTexture);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);
+
+                        context.cmd.SetComputeIntParam(data.cs, HDShaderIDs._OITHiZMaxMip, data.maxMipHiZ);
+                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.depthPyramidMipLevelOffsetsBuffer);
+
                         context.cmd.DispatchCompute(data.cs, kernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), 1);
                     });
             }

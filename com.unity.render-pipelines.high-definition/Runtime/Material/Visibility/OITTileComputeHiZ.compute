@@ -42,6 +42,8 @@ void MainInitialize(int3 dispatchThreadID : SV_DispatchThreadID)
     VisibilityOIT::GetPixelList(pixelOffset, listCount, listOffset);
     if (listCount == 0)
     {
+        _OITTileHiZOutput[COORD_TEXTURE2D_X(dispatchThreadID.xy)] = float2(UNITY_RAW_FAR_CLIP_VALUE, UNITY_RAW_FAR_CLIP_VALUE);
+
         return;
     }
 

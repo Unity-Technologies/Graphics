@@ -74,6 +74,8 @@ TEXTURE2D_X(_DepthTexture);
 RW_TEXTURE2D_X(float4, _OutputTexture);
 
 float4 _VBufferLightingOffscreenParams;
+int _OITHiZMaxMip;
+StructuredBuffer<int2> _DepthPyramidMipLevelOffsets;
 
 uint GetOffscreenLightBufferWidth()
 {
@@ -171,11 +173,6 @@ BSDFData GetBSDFData(float3 normal, float roughness, float3 diffuseAlbedo)
     return outBSDF;
 }
 
-//uint2 TraceTransparent(uint2 pos, )
-//{
-//
-//}
-
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -200,62 +197,324 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
     float minDepth = 0.0;
     uint firstSample = -1;
-    for (uint k = 0; k < listCount; ++k)
+    for (uint a = 0; a < listCount; ++a)
     {
-        int globalOffset = k + listOffset;
+        int globalOffset = a + listOffset;
         uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
 
         Visibility::VisibilityData unusedVisData;
         uint2 unusedTexelCoord;
         float depthValue;
-        VisibilityOIT::GetVisibilitySample(k, listOffset, unusedVisData, unusedTexelCoord, depthValue);
+        VisibilityOIT::GetVisibilitySample(a, listOffset, unusedVisData, unusedTexelCoord, depthValue);
 
         if (depthValue > minDepth)
         {
-            firstSample = k;
+            firstSample = a;
             minDepth = depthValue;
         }
     }
 
-    //for (uint i = 0; i < listCount; ++i)
-    uint i = firstSample;
+    float deviceDepth = minDepth;
 
+    ////for (uint i = 0; i < listCount; ++i)
+    uint i = firstSample;
+    //
     int globalOffset = i + listOffset;
     uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
+    //
+    //Visibility::VisibilityData unusedVisData;
+    //uint2 unusedTexelCoord;
+    //float depthValue;
+    //VisibilityOIT::GetVisibilitySample(i, listOffset, unusedVisData, unusedTexelCoord, depthValue);
 
-    Visibility::VisibilityData unusedVisData;
-    uint2 unusedTexelCoord;
-    float depthValue;
-    VisibilityOIT::GetVisibilitySample(i, listOffset, unusedVisData, unusedTexelCoord, depthValue);
-
-    minDepth = max(depthValue, minDepth);
+    //minDepth = max(depthValue, minDepth);
 
     int2 tileCoord = (float2)posInputRaw.positionSS.xy / GetTileSize();
-    PositionInputs posInput = GetPositionInput(posInputRaw.positionSS.xy, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
+    PositionInputs posInput = GetPositionInput(posInputRaw.positionSS.xy, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileCoord);
 
-    float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+    float3 wo = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+
+    float2 positionNDC = posInputRaw.positionSS.xy * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
+    //float3 positionWS = GetAbsolutePositionWS(ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP)); // Jittered
+    float3 positionWS = ComputeWorldSpacePosition(positionNDC, deviceDepth, UNITY_MATRIX_I_VP); // Jittered
+
+    float3 camPosWS = GetCurrentViewPosition();
+
+    //float3 wo = GetWorldSpaceNormalizeViewDir(positionWS);
 
     // Sample GBuffer
     uint4 packedOITGBuffer0 = _VisOITOffscreenGBuffer0[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
     uint packedOITGBuffer1 = _VisOITOffscreenGBuffer1[COORD_TEXTURE2D_X(offscreenCoord)].r;
-    float3 normal;
+    float3 n;
     float roughness;
     float3 baseColor;
     float metalness;
-    VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, normal, roughness, baseColor, metalness);
+    VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, n, roughness, baseColor, metalness);
 
-    //lighting += _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
-    //lighting += roughness.xxx;
-    //lighting += normal.rgb;
+    //_VisOITOffscreenDirectReflectionLighting[]
+    //float3 closestLighting = _VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
+    //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(closestLighting, 1.0);
 
-    //bool hit = Trace();
+#define SSR_TRACE_EPS               0.000488281f // 2^-11, should be good up to 4K
+#define MIN_GGX_ROUGHNESS           0.00001f
+#define MAX_GGX_ROUGHNESS           0.99999f
 
-    float3 wi = refract(-V, normal.rgb, 0.5);
-    //lighting += wi.rgb * 0.5f + 0.5f;
-    lighting += metalness.xxx;
+    float3 wi = refract(-wo, n.xyz, 0.5);
 
-    //lighting /= (float)listCount;
-    lighting += currentColor;
+    positionWS = camPosWS - (positionWS - camPosWS) * (1 - 0.001 * rcp(max(dot(n, wo), FLT_EPS)));
 
-    _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(lighting, 1.0);
+    bool killRay = minDepth == UNITY_RAW_FAR_CLIP_VALUE;
+
+    float3 rayOrigin = float3(posInputRaw.positionSS + 0.5, deviceDepth);
+
+    float3 reflPosWS  = positionWS + wi;
+    float3 reflPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(reflPosWS, UNITY_MATRIX_VP); // Jittered
+    float3 reflPosSS  = float3(reflPosNDC.xy * _ScreenSize.xy, reflPosNDC.z);
+    float3 rayDir     = reflPosSS - rayOrigin;
+    float3 rcpRayDir  = rcp(rayDir);
+    int2   rayStep    = int2(rcpRayDir.x >= 0 ? 1 : 0,
+                             rcpRayDir.y >= 0 ? 1 : 0);
+    float3 raySign  = float3(rcpRayDir.x >= 0 ? 1 : -1,
+                             rcpRayDir.y >= 0 ? 1 : -1,
+                             rcpRayDir.z >= 0 ? 1 : -1);
+    bool   rayTowardsEye  =  rcpRayDir.z >= 0;
+
+    int mipLevel = 0;
+    float3 rayPos;
+
+    // Start ray marching from the next texel to avoid self-intersections.
+    float t;
+    {
+        // 'rayOrigin' is the exact texel center.
+        float2 dist = abs(0.5 * rcpRayDir.xy);
+        t = min(dist.x, dist.y);
+    }
+
+    for (int k = 0; k < 128; ++k)
+    {
+        rayPos = rayOrigin + t * rayDir;
+
+        // Ray position often ends up on the edge. To determine (and look up) the right cell,
+        // we need to bias the position by a small epsilon in the direction of the ray.
+        float2 sgnEdgeDist = round(rayPos.xy) - rayPos.xy;
+        float2 satEdgeDist = clamp(raySign.xy * sgnEdgeDist + SSR_TRACE_EPS, 0, SSR_TRACE_EPS);
+        rayPos.xy += raySign.xy * satEdgeDist;
+
+        int2 mipCoord = (int2)rayPos.xy >> mipLevel;
+        int2 mipOffset = _DepthPyramidMipLevelOffsets[mipLevel];
+        // Bounds define 4 faces of a cube:
+        // 2 walls in front of the ray, and a floor and a base below it.
+        float4 bounds;
+
+        bounds.xy = (mipCoord + rayStep) << mipLevel;
+        float2 depthBound = LOAD_TEXTURE2D_X(_OITTileHiZ, mipOffset + mipCoord).rg;
+        float currentDepth = LOAD_TEXTURE2D_X(_OITTileHiZ, mipOffset + mipCoord).r;
+        //bounds.z = LOAD_TEXTURE2D_X(_OITTileHiZ, mipOffset + mipCoord).r;
+
+        for (uint k = 0; k < listCount; ++k)
+        {
+            uint pixelOffset_k = posInputRaw.positionSS.y * _ScreenSize.x + posInputRaw.positionSS.x;
+            uint listCount_k, listOffset_k;
+            VisibilityOIT::GetPixelList(pixelOffset_k, listCount_k, listOffset_k);
+
+            int globalOffset_k = k + listOffset_k;
+            uint2 offscreenCoord_k = uint2(globalOffset_k % GetOffscreenLightBufferWidth(), globalOffset_k / GetOffscreenLightBufferWidth());
+
+            Visibility::VisibilityData unusedVisData_k;
+            uint2 unusedTexelCoord_k;
+            float depthValue_k;
+            VisibilityOIT::GetVisibilitySample(k, listOffset_k, unusedVisData_k, unusedTexelCoord_k, depthValue_k);
+
+            //if (depthValue > minDepth)
+            //{
+            //    firstSample = k;
+            //    minDepth = depthValue;
+            //}
+        }
+
+        
+    }
+
+#if 0
+    //minDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, UNITY_MATRIX_VP).z;
+    bool killRay = minDepth == UNITY_RAW_FAR_CLIP_VALUE;
+
+    float3 rayOrigin = float3(posInputRaw.positionSS + 0.5, deviceDepth);
+
+    float3 reflPosWS  = positionWS + wi;
+    float3 reflPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(reflPosWS, UNITY_MATRIX_VP); // Jittered
+    float3 reflPosSS  = float3(reflPosNDC.xy * _ScreenSize.xy, reflPosNDC.z);
+    float3 rayDir     = reflPosSS - rayOrigin;
+    float3 rcpRayDir  = rcp(rayDir);
+    int2   rayStep    = int2(rcpRayDir.x >= 0 ? 1 : 0,
+                             rcpRayDir.y >= 0 ? 1 : 0);
+    float3 raySign  = float3(rcpRayDir.x >= 0 ? 1 : -1,
+                             rcpRayDir.y >= 0 ? 1 : -1,
+                             rcpRayDir.z >= 0 ? 1 : -1);
+    bool   rayTowardsEye  =  rcpRayDir.z >= 0;
+
+    killRay = killRay || (reflPosSS.z <= 0);
+    killRay = killRay || (dot(n, wo) <= 0);
+    //killRay = killRay || (dot(n, wo) >= 0);
+    //killRay = killRay || (perceptualRoughness > _SsrRoughnessFadeEnd);
+//#ifndef SSR_TRACE_TOWARDS_EYE
+//    killRay = killRay || rayTowardsEye;
+//#endif
+
+    //lighting = killRay ? float3(1, 0, 0) : float3(0, 1, 0);
+    //lighting = float3(rayStep, 0);
+    //lighting = rayDir;
+
+    // Extend and clip the end point to the frustum.
+    float tMax;
+    {
+        // Shrink the frustum by half a texel for efficiency reasons.
+        const float halfTexel = 0.5;
+
+        float3 bounds;
+        bounds.x = (rcpRayDir.x >= 0) ? _ScreenSize.x - halfTexel : halfTexel;
+        bounds.y = (rcpRayDir.y >= 0) ? _ScreenSize.y - halfTexel : halfTexel;
+        // If we do not want to intersect the skybox, it is more efficient to not trace too far.
+        //float maxDepth = (_SsrReflectsSky != 0) ? -0.00000024 : 0.00000024; // 2^-22
+        float maxDepth = 0.00000024; // 2^-22
+        bounds.z = (rcpRayDir.z >= 0) ? 1 : maxDepth;
+
+        float3 dist = bounds * rcpRayDir - (rayOrigin * rcpRayDir);
+        tMax = Min3(dist.x, dist.y, dist.z);
+    }
+
+    const int maxMipLevel = min(_OITHiZMaxMip, 14);
+
+    // Start ray marching from the next texel to avoid self-intersections.
+    float t;
+    {
+        // 'rayOrigin' is the exact texel center.
+        float2 dist = abs(0.5 * rcpRayDir.xy);
+        t = min(dist.x, dist.y);
+    }
+
+    float3 rayPos;
+
+    int  mipLevel = 0;
+    int  iterCount = 0;
+    bool hit = false;
+    bool miss = false;
+    bool belowMip0 = false; // This value is set prior to entering the cell
+
+    const int maxTraceLimit = 256;
+
+#define SSR_TRACE_EPS               0.000488281f // 2^-11, should be good up to 4K
+#define MIN_GGX_ROUGHNESS           0.00001f
+#define MAX_GGX_ROUGHNESS           0.99999f
+
+    const float thickness = 0.01f;
+    const float _SsrThicknessScale = 1.0f / (1.0f + thickness);
+    const float _SsrThicknessBias = -g_fNearPlane / (g_fFarPlane - g_fNearPlane) * (thickness * _SsrThicknessScale);
+
+    while (!(hit || miss) && (t <= tMax) && (iterCount < maxTraceLimit))
+    {
+        rayPos = rayOrigin + t * rayDir;
+
+        // Ray position often ends up on the edge. To determine (and look up) the right cell,
+        // we need to bias the position by a small epsilon in the direction of the ray.
+        float2 sgnEdgeDist = round(rayPos.xy) - rayPos.xy;
+        float2 satEdgeDist = clamp(raySign.xy * sgnEdgeDist + SSR_TRACE_EPS, 0, SSR_TRACE_EPS);
+        rayPos.xy += raySign.xy * satEdgeDist;
+
+        int2 mipCoord = (int2)rayPos.xy >> mipLevel;
+        int2 mipOffset = _DepthPyramidMipLevelOffsets[mipLevel];
+        // Bounds define 4 faces of a cube:
+        // 2 walls in front of the ray, and a floor and a base below it.
+        float4 bounds;
+
+        bounds.xy = (mipCoord + rayStep) << mipLevel;
+        float2 depthBound = LOAD_TEXTURE2D_X(_OITTileHiZ, mipOffset + mipCoord).rg;
+        bounds.z = LOAD_TEXTURE2D_X(_OITTileHiZ, mipOffset + mipCoord).r;
+
+        // We define the depth of the base as the depth value as:
+        // b = DeviceDepth((1 + thickness) * LinearDepth(d))
+        // b = ((f - n) * d + n * (1 - (1 + thickness))) / ((f - n) * (1 + thickness))
+        // b = ((f - n) * d - n * thickness) / ((f - n) * (1 + thickness))
+        // b = d / (1 + thickness) - n / (f - n) * (thickness / (1 + thickness))
+        // b = d * k_s + k_b
+        bounds.w = bounds.z * _SsrThicknessScale + _SsrThicknessBias;
+
+        float4 dist = bounds * rcpRayDir.xyzz - (rayOrigin.xyzz * rcpRayDir.xyzz);
+        float  distWall = min(dist.x, dist.y);
+        float  distFloor = dist.z;
+        float  distBase = dist.w;
+
+        // Note: 'rayPos' given by 't' can correspond to one of several depth values:
+        // - above or exactly on the floor
+        // - inside the floor (between the floor and the base)
+        // - below the base
+#if 0
+        bool belowFloor = (raySign.z * (t - distFloor)) < 0;
+        bool aboveBase = (raySign.z * (t - distBase)) >= 0;
+#else
+        bool belowFloor = rayPos.z < bounds.z;
+        bool aboveBase = rayPos.z >= bounds.w;
+#endif
+        bool insideFloor = belowFloor && aboveBase;
+        bool hitFloor = (t <= distFloor) && (distFloor <= distWall);
+
+        // Game rules:
+        // * if the closest intersection is with the wall of the cell, switch to the coarser MIP, and advance the ray.
+        // * if the closest intersection is with the heightmap below,  switch to the finer   MIP, and advance the ray.
+        // * if the closest intersection is with the heightmap above,  switch to the finer   MIP, and do NOT advance the ray.
+        // Victory conditions:
+        // * See below. Do NOT reorder the statements!
+
+#ifdef SSR_TRACE_BEHIND_OBJECTS
+        miss = belowMip0 && insideFloor;
+#else
+        miss = belowMip0;
+#endif
+
+        hit = (mipLevel == 0) && (hitFloor || insideFloor);
+        belowMip0 = (mipLevel == 0) && belowFloor;
+
+        // 'distFloor' can be smaller than the current distance 't'.
+        // We can also safely ignore 'distBase'.
+        // If we hit the floor, it's always safe to jump there.
+        // If we are at (mipLevel != 0) and we are below the floor, we should not move.
+        t = hitFloor ? distFloor : (((mipLevel != 0) && belowFloor) ? t : distWall);
+        rayPos.z = bounds.z; // Retain the depth of the potential intersection
+
+        // Warning: both rays towards the eye, and tracing behind objects has linear
+        // rather than logarithmic complexity! This is due to the fact that we only store
+        // the maximum value of depth, and not the min-max.
+        mipLevel += (hitFloor || belowFloor || rayTowardsEye) ? -1 : 1;
+        mipLevel = clamp(mipLevel, 0, maxMipLevel);
+
+        // mipLevel = 0;
+
+        iterCount++;
+    }
+
+    // Treat intersections with the sky as misses.
+    //miss = miss || ((_SsrReflectsSky == 0) && (rayPos.z == 0));
+    miss = miss || ((rayPos.z == 0));
+    hit = hit && !miss;
+
+    //if (hit)
+    //{
+    //    // Note that we are using 'rayPos' from the penultimate iteration, rather than
+    //    // recompute it using the last value of 't', which would result in an overshoot.
+    //    // It also needs to be precisely at the center of the pixel to avoid artifacts.
+    //    float2 hitPositionNDC = floor(rayPos.xy) * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
+    //    _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)] = hitPositionNDC.xy;
+    //}
+
+    if (hit)
+    {
+        float2 hitPositionNDC = floor(rayPos.xy) * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
+        _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(hitPositionNDC.xy, 0.0, 1.0);
+        //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4((iterCount / 10.0).xxx, 1.0);
+    }
+    else
+    {
+        _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(1.0, 0.0, 0.0, 1.0);
+    }
+#endif
 }
