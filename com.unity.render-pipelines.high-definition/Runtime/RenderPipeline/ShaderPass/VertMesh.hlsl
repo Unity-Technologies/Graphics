@@ -4,6 +4,9 @@ struct VaryingsToPS
 #ifdef VARYINGS_NEED_PASS
     VaryingsPassToPS vpass;
 #endif
+#ifdef VARYINGS_NEED_RT_ARRAY_INDEX
+    uint rtArrayIndex : SV_RenderTargetArrayIndex;
+#endif
 };
 
 struct PackedVaryingsToPS
@@ -17,6 +20,9 @@ struct PackedVaryingsToPS
     // SGVs must be packed after all non-SGVs have been packed.
     // If there are several SGVs, they are packed in the order of HLSL declaration.
 
+#ifdef VARYINGS_NEED_RT_ARRAY_INDEX
+    uint rtArrayIndex : SV_RenderTargetArrayIndex;
+#endif
     UNITY_VERTEX_OUTPUT_STEREO
 
 #if defined(PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER) && SHADER_STAGE_FRAGMENT
@@ -38,6 +44,9 @@ PackedVaryingsToPS PackVaryingsToPS(VaryingsToPS input)
     output.vpass = PackVaryingsPassToPS(input.vpass);
 #endif
 
+#ifdef VARYINGS_NEED_RT_ARRAY_INDEX
+    output.rtArrayIndex = input.rtArrayIndex;
+#endif
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
     return output;
 }

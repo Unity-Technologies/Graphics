@@ -29,8 +29,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private Mesh m_DebugMesh;
         private Material m_SurfaceCacheMaterial;
 
-        static readonly int _ViewProjMatrix = Shader.PropertyToID("_ViewProjMatrix");
-        static readonly int _WorldSpaceCameraPos_Internal = Shader.PropertyToID("_WorldSpaceCameraPos_Internal");
+        static readonly int _ViewProjMatrixArray = Shader.PropertyToID("_ViewProjMatrixArray");
+        static readonly int _WorldSpaceCameraPosArray = Shader.PropertyToID("_WorldSpaceCameraPosArray");
 
         private CameraCache<int> m_BFProbeCameraCache = new CameraCache<int>();
 
@@ -60,20 +60,41 @@ namespace UnityEngine.Rendering.HighDefinition
                 var cmd = new CommandBuffer();
                 cmd.name = "BFProbes";
 
+                CoreUtils.SetRenderTarget(cmd, m_BFProbeTest, ClearFlag.All);
+                cmd.SetViewport(new Rect(0, 0, k_CubeSize, k_CubeSize));
+
                 int probeCount = Mathf.Min(probes.Length, k_MaxProbeCount);
+
+                Matrix4x4[] viewProjArray = new Matrix4x4[6*probeCount];
+                Vector4[] cameraPosArray = new Vector4[6*probeCount];
+
                 for (int probeIndex = 0; probeIndex < probeCount; ++probeIndex)
                 for (int faceIndex = 0; faceIndex < 6; ++faceIndex)
                 {
-                    Camera camera = m_BFProbeCameraCache.GetOrCreate(faceIndex, m_FrameCount, CameraType.Game);
+                    Vector3 cameraPos = probes[probeIndex].transform.position;
+                    Quaternion cameraRotation = Quaternion.Euler(s_BFProbeFaceRotations[faceIndex]);
+
+                    Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(Matrix4x4.Perspective(90.0f, 1.0f, 0.01f, 1000.0f), false);
+
+                    Matrix4x4 gpuView = GeometryUtils.CalculateWorldToCameraMatrixRHS(cameraPos, cameraRotation);
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                        gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
+
+                    int arrayIndex = 6*probeIndex + faceIndex;
+                    viewProjArray[arrayIndex] = gpuProj * gpuView;
+                    cameraPosArray[arrayIndex] = new Vector4(cameraPos.x, cameraPos.y, cameraPos.z, 0.0f);
+                }
+
+                cmd.SetGlobalMatrixArray(_ViewProjMatrixArray, viewProjArray);
+                cmd.SetGlobalVectorArray(_WorldSpaceCameraPosArray, cameraPosArray);
+
+                {
+                    Camera camera = m_BFProbeCameraCache.GetOrCreate(0, m_FrameCount, CameraType.Game);
                     camera.gameObject.hideFlags = HideFlags.HideAndDontSave;
                     camera.gameObject.SetActive(false);
+                    camera.orthographic = true;
+                    camera.orthographicSize = 1000.0f;
                     camera.targetTexture = m_BFProbeTest;
-                    camera.nearClipPlane = 0.01f;
-                    camera.farClipPlane = 1000.0f;
-                    camera.fieldOfView = 90.0f;
-
-                    camera.transform.position = probes[probeIndex].transform.position;
-                    camera.transform.rotation = Quaternion.Euler(s_BFProbeFaceRotations[faceIndex]);
 
                     camera.TryGetCullingParameters(out var cullingParameters);
                     cullingParameters.cullingOptions = CullingOptions.DisablePerObjectCulling;
@@ -83,24 +104,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         renderingLayerMask = ~DeferredMaterialBRG.RenderLayerMask,
                         renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque,
-                        sortingCriteria = SortingCriteria.CommonOpaque,
                     };
                     var rendererList = context.CreateRendererList(rendererListDesc);
 
-                    Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
-
-                    Matrix4x4 gpuView = GeometryUtils.CalculateWorldToCameraMatrixRHS(camera.transform.position, camera.transform.rotation);
-                    if (ShaderConfig.s_CameraRelativeRendering != 0)
-                        gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
-                    Vector3 cameraPos = camera.transform.position;
-
-                    CoreUtils.SetRenderTarget(cmd, m_BFProbeTest, ClearFlag.All, depthSlice: 6*probeIndex + faceIndex);
-                    cmd.SetViewport(new Rect(0, 0, k_CubeSize, k_CubeSize));
-                    cmd.SetGlobalMatrix(_ViewProjMatrix, gpuProj * gpuView);
-                    cmd.SetGlobalVector(_WorldSpaceCameraPos_Internal, new Vector4(cameraPos.x, cameraPos.y, cameraPos.z, 0.0f));
                     cmd.SetInvertCulling(true);
+                    cmd.SetInstanceMultiplier((uint)(6*probeCount));
                     cmd.DrawRendererList(rendererList);
                     cmd.SetInvertCulling(false);
+                    cmd.SetInstanceMultiplier(0);
                 }
 
                 context.ExecuteCommandBuffer(cmd);

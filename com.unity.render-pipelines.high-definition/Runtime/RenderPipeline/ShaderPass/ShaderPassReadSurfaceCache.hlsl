@@ -2,10 +2,36 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
+
+struct VaryingsPassToPS
+{
+    uint arrayIndex;
+};
+struct PackedVaryingsPassToPS
+{
+    uint arrayIndex : CUSTOM_ARRAY_INDEX;
+};
+PackedVaryingsPassToPS PackVaryingsPassToPS(VaryingsPassToPS input)
+{
+    PackedVaryingsPassToPS output;
+    output.arrayIndex = input.arrayIndex;
+    return output;
+}
+VaryingsPassToPS UnpackVaryingsPassToPS(PackedVaryingsPassToPS input)
+{
+    VaryingsPassToPS output;
+    output.arrayIndex = input.arrayIndex;
+    return input;
+}
+
+#define VARYINGS_NEED_PASS
+#define VARYINGS_NEED_RT_ARRAY_INDEX
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 
-PackedVaryingsType Vert(AttributesMesh inputMesh)
+PackedVaryingsType Vert(AttributesMesh inputMesh, uint instanceID : SV_InstanceID)
 {
+    g_activeArrayIndex = instanceID;
+
     VaryingsType varyingsType;
 
 #if (SHADERPASS == SHADERPASS_DEPTH_ONLY) && defined(HAVE_RECURSIVE_RENDERING) && !defined(SCENESELECTIONPASS) && !defined(SCENEPICKINGPASS)
@@ -23,6 +49,9 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
         varyingsType.vmesh = VertMesh(inputMesh);
     }
 
+    varyingsType.vpass.arrayIndex = g_activeArrayIndex;
+    varyingsType.rtArrayIndex = g_activeArrayIndex;
+
     return PackVaryingsType(varyingsType);
 }
 
@@ -30,8 +59,12 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 
 PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 {
+    g_activeArrayIndex = instanceID;
+
     VaryingsToPS output;
     output.vmesh = VertMeshTesselation(input.vmesh);
+    varyingsType.vpass.arrayIndex = g_activeArrayIndex;
+    output.rtArrayIndex = g_activeArrayIndex;
     return PackVaryingsToPS(output);
 }
 
@@ -46,6 +79,7 @@ float4 Frag(  PackedVaryingsToPS packedInput
             ) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
+    g_activeArrayIndex = packedInput.vpass.arrayIndex;
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
 
     // input.positionSS is SV_Position

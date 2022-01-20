@@ -662,19 +662,31 @@ Shader "HDRP/Lit"
             #define LIGHT_EVALUATION_NO_CONTACT_SHADOWS
             #define LIGHT_EVALUATION_NO_SHADOWS
 
+            #pragma require setrtarrayindexfromanyshader
+
+            static uint g_activeArrayIndex = 0;
+
+            #define MAX_PROBE_COUNT         32
+            #define MAX_RT_ARRAY_COUNT      (MAX_PROBE_COUNT * 6)
+            float4x4 _ViewProjMatrixArray[MAX_RT_ARRAY_COUNT];
+            float4 _WorldSpaceCameraPosArray[MAX_RT_ARRAY_COUNT];
+
+            #define _ViewProjMatrix _ViewProjMatrixArray[g_activeArrayIndex]
+            #define _WorldSpaceCameraPos_Internal _WorldSpaceCameraPosArray[g_activeArrayIndex]
+
             // HACK: copy of GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
             float4x4 _ViewMatrix;
             float4x4 _CameraViewMatrix;
             float4x4 _InvViewMatrix;
             float4x4 _ProjMatrix;
             float4x4 _InvProjMatrix;
-            float4x4 _ViewProjMatrix;
+            //float4x4 _ViewProjMatrix;
             float4x4 _CameraViewProjMatrix;
             float4x4 _InvViewProjMatrix;
             float4x4 _NonJitteredViewProjMatrix;
             float4x4 _PrevViewProjMatrix;
             float4x4 _PrevInvViewProjMatrix;
-            float4 _WorldSpaceCameraPos_Internal;
+            //float4 _WorldSpaceCameraPos_Internal;
             static float4 _PrevCamPosRWS_Internal = 0;
             static float4 _ScreenSize = 0;
             static float4 _PostProcessScreenSize = 0;
