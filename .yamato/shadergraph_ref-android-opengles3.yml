@@ -122,7 +122,7 @@ ShaderGraph_ref_Android_OpenGLES3_playmode_ref_images_il2cpp_Linear_trunk:
                 del revdate.tmp
                 utr %CACHE_ARGS% --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
     after:
-      -  pip install -U unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+      -  pip install -U unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     artifacts:
         logs:
             paths:
@@ -164,7 +164,7 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linear_trun
     after:
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
-      -  pip install -U unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+      -  pip install -U unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     artifacts:
         logs:
             paths:
@@ -326,7 +326,7 @@ ShaderGraph_ref_Android_OpenGLES3_playmode_ref_images_il2cpp_Linear_CUSTOM-REVIS
                 del revdate.tmp
                 utr %CACHE_ARGS% --artifacts_path=TestProjects/ShaderGraph/test-results --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraph --zero-tests-are-ok=1
     after:
-      -  pip install -U unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+      -  pip install -U unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     artifacts:
         logs:
             paths:
@@ -368,7 +368,7 @@ ShaderGraph_ref_Android_OpenGLES3_Standalone_cache_ref_images_il2cpp_Linear_CUST
     after:
       -  command: start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
          retries: 2
-      -  pip install -U unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/
+      -  pip install -U unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     artifacts:
         logs:
             paths:
