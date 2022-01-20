@@ -70,8 +70,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     {
         output = GetColorSample(posInputs.positionSS, 0);
     }
-    
-    }
 
     // Helper function to visualize tile types in case it is needed for debugging
     //DebugTiles(posInputs.positionSS, output.xyz);
