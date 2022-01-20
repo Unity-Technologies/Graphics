@@ -58,6 +58,9 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VBufferDeferredMaterialCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/BTDF.hlsl"
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl" // TODO: replace with blue noise helper and scramble textures
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/BTDF.hlsl"
+
 //#pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
@@ -174,13 +177,59 @@ BSDFData GetBSDFData(float3 normal, float roughness, float3 diffuseAlbedo)
     return outBSDF;
 }
 
-[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
+// Weight for SSR where Fresnel == 1 (returns value/pdf)
+float GetSSRSampleWeight(float3 V, float3 L, float roughness)
 {
+    // Simplification:
+    // value = D_GGX / (lambdaVPlusOne + lambdaL);
+    // pdf = D_GGX / lambdaVPlusOne;
+
+    const float lambdaVPlusOne = Lambda_GGX(roughness, V) + 1.0;
+    const float lambdaL = Lambda_GGX(roughness, L);
+
+    return lambdaVPlusOne / (lambdaVPlusOne + lambdaL);
+}
+
 #define SSR_TRACE_EPS               0.000488281f // 2^-11, should be good up to 4K
 #define MIN_GGX_ROUGHNESS           0.00001f
 #define MAX_GGX_ROUGHNESS           0.99999f
 
+// Specialization without Fresnel (see PathTracingBSDF.hlsl for the reference implementation)
+bool SampleGGX_VNDF(float roughness_,
+    float3x3 localToWorld,
+    float3 V,
+    float2 inputSample,
+    out float3 outgoingDir,
+    out float weight)
+{
+    weight = 0.0f;
+
+    float roughness = clamp(roughness_, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
+
+    float VdotH;
+    float3 localV, localH;
+    SampleGGXVisibleNormal(inputSample.xy, V, localToWorld, roughness, localV, localH, VdotH);
+
+    // Compute the reflection direction
+    float3 localL = 2.0 * VdotH * localH - localV;
+    outgoingDir = mul(localL, localToWorld);
+
+    if (localL.z < 0.001)
+    {
+        return false;
+    }
+
+    weight = GetSSRSampleWeight(localV, localL, roughness);
+
+    if (weight < 0.001)
+        return false;
+
+    return true;
+}
+
+[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
+{
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     if (any((float2)dispatchThreadId.xy > _ScreenSize.xy))
         return;
@@ -327,18 +376,67 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
         float3 f0 = lerp(DEFAULT_SPECULAR_VALUE, baseColor, metalness);
 
-        float internalIORSource = 1.0f;
-        float internalIORMedium = Fresnel0ToIor(f0).x;
+        float iorEstimated = Fresnel0ToIor(f0).x;
+
+        float internalIORSource = b % 2 == 0 ? 1.0f : iorEstimated; // modulo are slow TODO: replace
+        float internalIORMedium = b % 2 == 0 ? iorEstimated : 1.0f; // modulo are slow TODO: replace
+
+        float eta = internalIORMedium / internalIORSource;
+
+        float Fresnel = F_FresnelDielectric(eta, dot(-n, wi));
 
         deviceDepth = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, UNITY_MATRIX_VP).z;
 
         float3 rayOrigin = float3(posInputRaw.positionSS + 0.5, deviceDepth);
 
         float3 wo = -wi;
-        wi = refract(-wo, n.xyz, 0.95);
+
+        float3 Xi;
+        //Xi.x = InterleavedGradientNoise(offscreenCoord_b, 3 * b + 0 + /*_FrameCount*/ _Time * 16);
+        //Xi.y = InterleavedGradientNoise(offscreenCoord_b, 3 * b + 1 + /*_FrameCount*/ _Time * 16);
+        //Xi.z = InterleavedGradientNoise(offscreenCoord_b, 3 * b + 2 + /*_FrameCount*/ _Time * 16);
+        //Xi.x = GenerateHashedRandomFloat(3 * b + 0 + posInputRaw.positionSS.x * _SinTime);
+        //Xi.y = GenerateHashedRandomFloat(3 * b + 1 + posInputRaw.positionSS.y * _SinTime);
+        //Xi.z = GenerateHashedRandomFloat(3 * b + 2 + posInputRaw.positionSS.x * _CosTime);
+        Xi.x = InterleavedGradientNoise(offscreenCoord_b, 3 * b + 0 + _FrameCount);
+        Xi.y = InterleavedGradientNoise(offscreenCoord_b, 3 * b + 1 + _FrameCount);
+        Xi.z = InterleavedGradientNoise(offscreenCoord_b, 3 * b + 2 + _FrameCount);
+        UNITY_BRANCH
+        if (Xi.z < Fresnel)
+        {
+            //wi = reflect(-wo, n);
+            float3x3 localToWorld = GetLocalFrame(n);
+            float3 dir = wo;
+            float3 wi;// = dir;
+            float weight;
+            SampleGGX_VNDF(roughness,
+                           localToWorld,
+                           dir,
+                           Xi,
+                           wi,
+                           weight);
+        }
+        else
+        {
+            float3x3 localToWorld = GetLocalFrame(-n);
+            float3 dir = lerp(refract(-wo, n.xyz, eta), -wo, roughness);
+            float3 wi;// = dir;
+            float weight;
+            SampleGGX_VNDF(roughness,
+                           localToWorld,
+                           dir,
+                           Xi,
+                           wi,
+                           weight);
+        }
+        //BTDF::GGXSampleWSOmega_w(wo, n, Xi, roughness, wi);
+        //wi *= -1;
+
+        //wi = refract(-wo, n.xyz, 0.95);
+        //wi = lerp(refract(-wo, n.xyz, 0.95), -wo, roughness);
 
         float cos0 = dot(wo, n);
-        transport *= max(1.0f - F_FresnelDielectric(internalIORMedium / internalIORSource, cos0), 0.0f);
+        transport *= max(1.0f - Fresnel, 0.0f);
 
         float3 reflPosWS = positionWS + wi;
         float3 reflPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(reflPosWS, UNITY_MATRIX_VP); // Jittered
@@ -352,7 +450,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
             rcpRayDir.z >= 0 ? 1 : -1);
 
         positionWS = camPosWS - (positionWS - camPosWS) * (1.0f - 0.001 * rcp(max(dot(n, wo), FLT_EPS)));
-        positionWS += wi * 0.001f;
+        //positionWS += wi * 0.01f;
 
         float t;
         float deltaT;
@@ -364,15 +462,18 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         }
 
         float3 rayPos;
-        for (int k = 0; k < 128; ++k)
+        for (int k = 0; k < 512; ++k)
         {
             //rayPos = rayOrigin + (0.0125f * ((float)k)) * rayDir;
             //rayPos = rayOrigin + (0.01f * ((float)k)) * rayDir;
             //rayPos = rayOrigin + (1003.1f * ((float)k)) * rayDir;
             //rayPos = rayOrigin + (0.001f * ((float)k)) * rayDir;
+            //rayPos = rayOrigin + (0.015f * ((float)k)) * rayDir;
             rayPos = rayOrigin + (t)*rayDir;
             //t += deltaT * 0.5f;
-            t += deltaT * 2.0f;
+            t += deltaT;
+            //t += 1.0f * min(rayDir.x, rayDir.y);
+            //t += deltaT * 10.5;
 
             // Ray position often ends up on the edge. To determine (and look up) the right cell,
             // we need to bias the position by a small epsilon in the direction of the ray.
@@ -398,14 +499,14 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
             float3 currentNDC = ComputeNormalizedDeviceCoordinatesWithZ(positionWS, UNITY_MATRIX_VP);
             float currentDepth = currentNDC.z;
 
-            //if (currentDepth > depthBound.g && currentDepth < depthBound.r)
-            //{
-            //    t += deltaT;
-            //    ++iterFull;
-            //    continue;
-            //}
+            if (currentDepth > depthBound.g && currentDepth < depthBound.r)
+            {
+                t += deltaT;
+                ++iterFull;
+                continue;
+            }
 
-            float measureMax = 0.5f;
+            float measureMax = 0.25f;
             //for (int k = listCount - 1; k >= 0; --k)
             for (uint k = 0; k < listCount; ++k)
             {
@@ -440,13 +541,13 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
                         //break;
                     }
                 }
-                //else
-                //{
-                //    break;
-                //}
+                else
+                {
+                    break;
+                }
             }
 
-            hit = measureMax > 0.90f;
+            hit = measureMax > 0.5f;
 
             ++iterFull;
             if (hit)
@@ -463,10 +564,10 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
         float3 outRes = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord_k)].rgb;
 
-        output += lightingSource + outRes;
+        output += Fresnel*lightingSource + (1.0f - Fresnel)*outRes;
 
-        if (transport < 0.1f)
-            break;
+        //if (transport < 0.1f)
+        //    break;
     }
 
     if (hit)
@@ -489,7 +590,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     else
     {
         //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(((float)iterFull) / 512.0f, 0.0, 0.0, 1.0);
-        _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(1.0f, 0.0, 0.0, 1.0);
-        //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(lightingSource, 1.0);
+        //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(1.0f, 0.0, 0.0, 1.0);
+        _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(output, 1.0);
     }
 }
