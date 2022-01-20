@@ -520,6 +520,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CustomPassUtils.Initialize();
 
             LensFlareCommonSRP.Initialize();
+        
+            AllocateOITResources();
         }
 
 #if UNITY_EDITOR
@@ -738,6 +740,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="disposing">Is disposing.</param>
         protected override void Dispose(bool disposing)
         {
+            DisposeOITResources();
             Graphics.ClearRandomWriteTargets();
             Graphics.SetRenderTarget(null);
             DisposeProbeCameraPool();
