@@ -1115,6 +1115,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VisBufferBucketTiles = Shader.PropertyToID("_VisBufferBucketTiles");
         public static readonly int _VisBufferDepthTexture = Shader.PropertyToID("_VisBufferDepthTexture");
         public static readonly int _VisOITBuffer = Shader.PropertyToID("_VisOITBuffer");
+        public static readonly int _RWVisOITBuffer = Shader.PropertyToID("_RWVisOITBuffer");
         public static readonly int _VisOITCount = Shader.PropertyToID("_VisOITCount");
         public static readonly int _OITDitherTexture = Shader.PropertyToID("_OITDitherTexture");
         public static readonly int _VisOITHistogramOutput = Shader.PropertyToID("_VisOITHistogramOutput");
@@ -1123,6 +1124,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VisOITInputInclusivePrefixSumActiveCount = Shader.PropertyToID("_VisOITInputInclusivePrefixSumActiveCount");
         public static readonly int _OITOutputActiveCounts = Shader.PropertyToID("_OITOutputActiveCounts");
         public static readonly int _OITOutputSublistCounter = Shader.PropertyToID("_OITOutputSublistCounter");
+        public static readonly int _OITSortMemoryBuffer = Shader.PropertyToID("_OITSortMemoryBuffer");
         public static readonly int _OITOutputPixelHash = Shader.PropertyToID("_OITOutputPixelHash");
         public static readonly int _OITOutputDispatchSampleArgs = Shader.PropertyToID("_OITOutputDispatchSampleArgs");
         public static readonly int _OITOutputSamplesCount = Shader.PropertyToID("_OITOutputSamplesCount");
