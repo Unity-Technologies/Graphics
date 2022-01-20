@@ -139,7 +139,7 @@ void MainResolveDirectCopy(int3 dispatchThreadId : SV_DispatchThreadID)
 
 bool IsColorValid(float4 color)
 {
-    return color.a >= 0.0f;
+    return color.a > 0.0f;
 }
 
 float GaussianFunc(float x, float invRR)
@@ -245,6 +245,7 @@ void MainResolveSparseOITLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     {
         dstColor = backgroundColor;
     }
+
 
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(dstColor, 1.0);
 }
