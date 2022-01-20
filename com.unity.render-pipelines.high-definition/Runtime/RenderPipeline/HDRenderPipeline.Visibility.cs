@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cull, hdCamera.camera,
                         HDShaderPassNames.s_VBufferName,
                         m_CurrentRendererConfigurationBakedLighting,
-                        new RenderQueueRange() { lowerBound = (int)HDRenderQueue.Priority.Visibility, upperBound = (int)(int)HDRenderQueue.Priority.Visibility })));
+                        new RenderQueueRange() { lowerBound = (int)HDRenderQueue.Priority.Visibility, upperBound = (int)HDRenderQueue.Priority.Visibility })));
 
                 builder.SetRenderFunc(
                     (VBufferPassData data, RenderGraphContext context) =>

@@ -536,6 +536,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader buildDispatchIndirectShader { get { return defaultResources.shaders.buildDispatchIndirectCS; } }
         ComputeShader clearDispatchIndirectShader { get { return defaultResources.shaders.clearDispatchIndirectCS; } }
         ComputeShader deferredComputeShader { get { return defaultResources.shaders.deferredCS; } }
+        ComputeShader deferredSurfaceCacheComputeShader { get { return defaultResources.shaders.deferredSurfaceCacheCS; } }
+
         ComputeShader contactShadowComputeShader { get { return defaultResources.shaders.contactShadowCS; } }
         Shader screenSpaceShadowsShader { get { return defaultResources.shaders.screenSpaceShadowPS; } }
 

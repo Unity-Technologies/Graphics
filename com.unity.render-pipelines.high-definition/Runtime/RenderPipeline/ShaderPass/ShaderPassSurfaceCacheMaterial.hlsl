@@ -26,7 +26,10 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 
 void Frag(PackedVaryingsToPS packedInput
     , out float4 outColor : SV_Target0
-    , out float4 outNormal : SV_Target1)
+    , out float4 outNormal : SV_Target1
+    , out float4 outEmissive : SV_Target2
+    , out float4 outPosWS : SV_Target3
+    , out float outDepth : SV_Depth)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
@@ -38,34 +41,16 @@ void Frag(PackedVaryingsToPS packedInput
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, tileIndex);
 
-    #ifdef VARYINGS_NEED_POSITION_WS
-    float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
-    #else
-    // Unused
     float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
-    #endif
 
     SurfaceData surfaceData;
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
 
-    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
-
-    outColor = float4(0.0, 0.0, 0.0, 0.0);
-
-
-    #ifdef _SURFACE_TYPE_TRANSPARENT
-    uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
-    #else
-    uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
-    #endif
-    LightLoopOutput lightLoopOutput;
-    LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
-
-    // Alias
-    //float3 diffuseLighting = lightLoopOutput.diffuseLighting;
     outColor = float4(surfaceData.baseColor, 1.0f);
     outNormal = float4(surfaceData.normalWS, 1.0f);
+    outEmissive = float4(GetEmissiveColor(surfaceData), 1.0f);
+    outPosWS = float4(input.positionRWS, 1.0f);
+    outDepth = input.positionSS.z / input.positionSS.w;
 }

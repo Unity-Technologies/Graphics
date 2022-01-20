@@ -191,6 +191,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
 
+                    RenderDeferredSurfaceCacheLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, prepassOutput.surfaceCacheBuffer, shadowResult, gpuLightListOutput);
+
                     ApplyCameraMipBias(hdCamera);
 
                     RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, gpuLightListOutput, prepassOutput.depthBuffer, vtFeedbackBuffer, shadowResult, prepassOutput.dbuffer, cullingResults);
