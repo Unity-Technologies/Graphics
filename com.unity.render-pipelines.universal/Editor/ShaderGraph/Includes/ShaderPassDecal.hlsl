@@ -325,7 +325,7 @@ void Frag(PackedVaryings packedInput,
 #endif
 
 #ifdef _MATERIAL_AFFECTS_EMISSION
-    fragmentOutput.GBUFFER_LIGHT_LAYERS = half4(surfaceData.emissive, 0.0);
+    fragmentOutput.GBUFFER_LIGHT_LAYERS = surfaceData.emissive;
 #endif
 
 #elif defined(DECAL_FORWARD_EMISSIVE)

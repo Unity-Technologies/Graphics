@@ -107,6 +107,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     TEXTURE2D_X_HALF(_GBuffer1);
     TEXTURE2D_X_HALF(_GBuffer2);
 
+    TEXTURE2D_X(_CameraOpaqueTexture);
+
 #if _RENDER_PASS_ENABLED
 
     #define GBUFFER0 0
@@ -328,24 +330,51 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 #ifdef _LIGHT_LAYERS
                 float depth = LinearEyeDepth(d, _ZBufferParams);
                 WetnessData wetnessData = GetWetnessData(gbufferWetness, brdfData, posWS, inputData.normalWS, screen_uv, MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_linear_clamp_sampler, depth);
+
                 BRDFData brdfDataWetness = BRDFDataFromGbufferWetnessData(wetnessData);
 
-                float3 colorWetness = LightingPhysicallyBased(brdfDataWetness, unityLight, wetnessData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
-                half3 giWetness = GlobalIllumination(brdfDataWetness, inputData.bakedGI, wetnessData.occlusion, posWS, wetnessData.normalWS, inputData.viewDirectionWS);
+                ApplyWetnessToBRDF(wetnessData, brdfData);
 
-                AllpyWetnessToBRDF(wetnessData, brdfData);
+                float3 colorAbsorbAtten;
+                float3 giAbsorbAtten;
+
+                ComputeWetnessAbsorbtionAttenuation(wetnessData, inputData.viewDirectionWS, unityLight.direction, colorAbsorbAtten, giAbsorbAtten);
 
                 color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
 
-                float colorAtten = saturate(1.0 - Fresnel(brdfDataWetness.reflectivity, dot(unityLight.direction, wetnessData.normalWS)));
-                float giAtten = saturate(1.0 - Fresnel(brdfDataWetness.reflectivity, dot(inputData.viewDirectionWS, wetnessData.normalWS)));
+                float lightReflAtten = saturate(1.0 - Fresnel(brdfDataWetness.reflectivity, dot(unityLight.direction, wetnessData.normalWS)));
+                float viewAtten = saturate(1.0 - Fresnel(brdfDataWetness.reflectivity, dot(inputData.viewDirectionWS, wetnessData.normalWS)));
 
-                color *= lerp(1.0, colorAtten, wetnessData.waterSaturation); //@ << too weak attenuation
-                alpha = lerp(1.0, giAtten, wetnessData.waterSaturation);//@ << too weak attenuation
+                //float3 viewRefrWS = Refract(-inputData.viewDirectionWS, wetnessData.normalWS, 1.0 / 1.33);
+                float viewRefrAtten = pow(viewAtten, 4);// saturate(1.0 - FresnelSchlickTIR(1.0, 1.33, wetnessData.normalWS, -viewRefrWS));
+
+                color *= lerp(1.0, lightReflAtten * viewRefrAtten * colorAbsorbAtten, wetnessData.waterSaturation);
+
+                float3 colorWetness = LightingPhysicallyBased(brdfDataWetness, unityLight, wetnessData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
+                color += colorWetness;
+
+                // GI
+#ifdef _DEFERRED_FIRST_LIGHT
+                float3 giColor = SAMPLE_TEXTURE2D_X_LOD(_CameraOpaqueTexture, my_point_clamp_sampler, screen_uv, 0);
+
+                // Occlusion
+                giColor *= alpha;
+                alpha = 0.0;
+
+                //@ !!
+                float3 giReflAtten = 1;
+
+                giColor *= lerp(1.0, giReflAtten * viewRefrAtten * giAbsorbAtten, wetnessData.waterSaturation);
+
+                half3 giWetness = GlobalIllumination(brdfDataWetness, inputData.bakedGI, wetnessData.occlusion, posWS, wetnessData.normalWS, inputData.viewDirectionWS);
+                giColor += giWetness;
+
+                color += giColor;
+
                 //@ Problems in shadows
                 //@ Occlusion disappears in the beginning
+#endif
 
-                color += colorWetness + giWetness;
 #endif  
             }
             else

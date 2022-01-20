@@ -9,7 +9,10 @@ Pass
     // Render State
     $splice(RenderState)
 
-    $SurfaceDescription.Emission: ColorMask R 4
+    $SurfaceDescription.Emission: ColorMask 0 1
+    $SurfaceDescription.Emission: ColorMask 0 2
+    $SurfaceDescription.Emission: ColorMask 0 3
+    $SurfaceDescription.Emission: ColorMask RA 4
     $SurfaceDescription.MAOSAlpha: ColorMask G 4
 
     $SurfaceDescription.Emission: Blend 4 One One
@@ -156,7 +159,7 @@ Pass
             surfaceData.normalWS.w = half(0.0);
         #endif
 
-        $SurfaceDescription.Emission:       surfaceData.emissive = half3(surfaceDescription.Emission * fadeFactor);
+        $SurfaceDescription.Emission:       surfaceData.emissive = half4(surfaceDescription.Emission * fadeFactor, surfaceDescription.Alpha * fadeFactor);
 
         // copy across graph values, if defined
         $SurfaceDescription.BaseColor:      surfaceData.baseColor.xyz = half3(surfaceDescription.BaseColor);

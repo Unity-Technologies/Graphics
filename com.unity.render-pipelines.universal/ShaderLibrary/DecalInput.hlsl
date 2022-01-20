@@ -5,7 +5,7 @@ struct DecalSurfaceData
 {
     half4 baseColor;
     half4 normalWS;
-    half3 emissive;
+    half4 emissive;
     half metallic;
     half occlusion;
     half smoothness;
