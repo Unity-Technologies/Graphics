@@ -671,7 +671,7 @@ namespace UnityEditor.Rendering.Universal
             Debug.Log(result);
         }
 
-        public unsafe void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
+        public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
 #if PROFILE_BUILD
             Profiler.BeginSample(k_ProcessShaderTag);
@@ -684,9 +684,8 @@ namespace UnityEditor.Rendering.Universal
             int prevVariantCount = compilerDataList.Count;
 
             double stripTimeMs = 0;
-            using (TimedScope.FromPtr(&stripTimeMs))
+            using (TimedScope.FromRef(ref stripTimeMs))
             {
-
                 InitializeLocalShaderKeywords(shader);
 
                 var inputShaderVariantCount = compilerDataList.Count;

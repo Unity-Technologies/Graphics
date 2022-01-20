@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEditor.Rendering
 {
@@ -36,13 +37,23 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
-        /// Obtains a <see cref="TimedScope"/>
+        /// Obtains a <see cref="TimedScope"/>, the pointer must points to a valid memory location for a double, not being null is not enough
         /// </summary>
-        /// <param name="durationMsPtr">The reference to the <see cref="double"/> to fill with the duration</param>
+        /// <param name="durationMsPtr">The pointer to the <see cref="double"/> to fill with the duration</param>
         /// <returns>A <see cref="TimedScope"/></returns>
         public static unsafe TimedScope FromPtr([DisallowNull] double* durationMsPtr)
         {
             return new TimedScope(durationMsPtr);
+        }
+
+        /// <summary>
+        /// Obtains a <see cref="TimedScope"/>
+        /// </summary>
+        /// <param name="durationMs">The reference to the <see cref="double"/> to fill with the duration</param>
+        /// <returns>A <see cref="TimedScope"/></returns>
+        public static TimedScope FromRef(ref double durationMs)
+        {
+            return new TimedScope((double*)UnsafeUtility.AddressOf(ref durationMs));
         }
     }
 }

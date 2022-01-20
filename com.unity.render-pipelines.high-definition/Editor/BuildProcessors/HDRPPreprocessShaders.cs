@@ -329,7 +329,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return false;
         }
 
-        public unsafe void OnProcessComputeShader(ComputeShader shader, string kernelName, IList<ShaderCompilerData> inputData)
+        public void OnProcessComputeShader(ComputeShader shader, string kernelName, IList<ShaderCompilerData> inputData)
         {
             if (HDRenderPipeline.currentAsset == null)
                 return;
@@ -353,7 +353,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 uint preStrippingCount = (uint)inputData.Count;
 
                 double stripTimeMs = 0;
-                using (TimedScope.FromPtr(&stripTimeMs))
+                using (TimedScope.FromRef(ref stripTimeMs))
                 {
                     for (int i = 0; i < inputShaderVariantCount;)
                     {
@@ -486,7 +486,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         public int callbackOrder { get { return 0; } }
-        public unsafe void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> inputData)
+        public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> inputData)
         {
             if (HDRenderPipeline.currentAsset == null)
                 return;
@@ -504,8 +504,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
 
                 uint preStrippingCount = (uint)inputData.Count;
-
-                using (TimedScope.FromPtr(&stripTimeMs))
+                using (TimedScope.FromRef(ref stripTimeMs))
                 {
                     // Test if striping is enabled in any of the found HDRP assets.
                     if (hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping))
