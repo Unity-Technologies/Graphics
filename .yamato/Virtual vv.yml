@@ -1,0 +1,4 @@
+Virtual_job:
+    name: Virtual job
+    dependencies:
+    - .yamato/vikingvillage_urp-win-vulkan.yml#VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
