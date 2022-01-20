@@ -144,8 +144,10 @@ bool IsColorValid(float4 color)
 
 float GaussianFunc(float x, float invRR)
 {
-    return exp(2.0);// (-x * x * 0.5f * invRR);
+    return exp(-x * x * 0.5f * invRR);
 }
+
+#define KERNEL_RADIUS 4
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void MainResolveSparseOITLighting(int3 dispatchThreadId : SV_DispatchThreadID)
@@ -162,15 +164,6 @@ void MainResolveSparseOITLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
     uint pixelOffset = posInputs.positionSS.y * _ScreenSize.x + posInputs.positionSS.x;
 
-    //float r = (posInputs.positionSS.y / 8) % 2 == 0 ? 1.0 : 0.0;
-
-    /*
-    uint pixelHash = _VisOITPixelHash.Load(pixelOffset << 2);
-    float r = float((pixelHash >> 0) & 0x7FF) / (2047.0f);
-    float g = float((pixelHash >> 11) & 0x7FF) / (2047.0f);
-    float b = float((pixelHash >> 22) & 0x3FF) / (1023.0f);
-    */
-
     float3 centerColor = backgroundColor;
 
     uint centerHash = _VisOITPixelHash.Load(pixelOffset << 2);
@@ -180,16 +173,16 @@ void MainResolveSparseOITLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     float weightSame = 0.0f;
     float weightAll = 0.0f;
 
-    float rho = 1.5f;
+    float rho = 2.5f;
     float invRR = 1.0f / (rho * rho);
 
-    int radius = 4;
     int offsetY = 0;
     int offsetX = 0;
-    int totalArea = (2 * radius + 1) * (2 * radius + 1);
-    for (offsetY = -radius; offsetY <= radius; offsetY++)
+    int totalArea = (2 * KERNEL_RADIUS + 1) * (2 * KERNEL_RADIUS + 1);
+
+    for (offsetY = -KERNEL_RADIUS; offsetY <= KERNEL_RADIUS; offsetY++)
     {
-        for (offsetX = -radius; offsetX <= radius; offsetX++)
+        for (offsetX = -KERNEL_RADIUS; offsetX <= KERNEL_RADIUS; offsetX++)
         {
             float wx = GaussianFunc((float)offsetX, invRR);
             float wy = GaussianFunc((float)offsetY, invRR);
@@ -207,13 +200,12 @@ void MainResolveSparseOITLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
             float4 currOitColor = _VisOITSparseColorBuffer[COORD_TEXTURE2D_X(uint2(currX,currY))].rgba;
             bool currValid = IsColorValid(currOitColor) && isInBorder && (currPixelHash == centerHash);
-            bool currCoarse = IsColorValid(currOitColor) && isInBorder;
+            bool currCoarse = isInBorder && IsColorValid(currOitColor);
 
             float weight = wx * wy;
 
             [flatten]
-            // uncommenting this causes the screen to go completely blank, except from certain angles. compiler/driver bug?
-            //if (currCoarse)
+            if (currCoarse)
             {
                 sumOitAll += currOitColor * weight;
                 weightAll += weight;
@@ -228,7 +220,12 @@ void MainResolveSparseOITLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         }
     }
 
-    float4 avgOitColor = sumOitAll / weightAll;
+
+    float4 avgOitColor = 0.0f;
+    if (weightAll > 0)
+    {
+        avgOitColor = sumOitAll / weightAll;
+    }
     if (weightSame > 0.0f)
     {
         avgOitColor = sumOitSame / weightSame;
@@ -244,6 +241,10 @@ void MainResolveSparseOITLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         dstColor = ApplyOitAlphaToBackground(backgroundColor,avgOitColor);
     }
 
+    if (centerHash == 0)
+    {
+        dstColor = backgroundColor;
+    }
 
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(dstColor, 1.0);
 }
