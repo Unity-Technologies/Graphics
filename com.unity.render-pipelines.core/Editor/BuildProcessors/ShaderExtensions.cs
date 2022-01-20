@@ -1,10 +1,14 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    static class ShaderExtensions
+    /// <summary>
+    /// Collection of extensions for <see cref="Shader"/>
+    /// </summary>
+    public static class ShaderExtensions
     {
         private static readonly ShaderTagId s_RenderPipelineShaderTagId = new ShaderTagId("RenderPipeline");
 
@@ -13,19 +17,25 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="shader"><see cref="Shader"/> The shader to look for the tag</param>
         /// <param name="snippetData"><see cref="ShaderSnippetData"/></param>
-        /// <param name="renderPipeline"><see cref="string"/> containing the value of the tag "RenderPipeline"</param>
+        /// <param name="renderPipelineTag"><see cref="string"/> containing the value of the tag "RenderPipeline"</param>
         /// <returns>true if the tag is found and has a value</returns>
-        public static bool TryToGetRenderPipelineTag([NotNull] this Shader shader, ShaderSnippetData snippetData,  out string renderPipeline)
+        public static bool TryGetRenderPipelineTag([NotNull] this Shader shader, ShaderSnippetData snippetData,  out string renderPipelineTag)
         {
-            renderPipeline = string.Empty;
+            renderPipelineTag = string.Empty;
 
-            var shaderTag = shader.FindPassTagValue((int)snippetData.pass.SubshaderIndex, (int)snippetData.pass.PassIndex, s_RenderPipelineShaderTagId);
-            if (string.IsNullOrEmpty(shaderTag.name))
-            {
+            int subshaderIndex = (int)snippetData.pass.SubshaderIndex;
+            if (subshaderIndex < 0 || subshaderIndex >= shader.subshaderCount)
                 return false;
-            }
 
-            renderPipeline = shaderTag.name;
+            int passIndex = (int)snippetData.pass.PassIndex;
+            if (passIndex < 0 || passIndex >= shader.GetPassCountInSubshader(subshaderIndex))
+                return false;
+
+            var shaderTag = shader.FindPassTagValue(subshaderIndex, passIndex, s_RenderPipelineShaderTagId);
+            if (string.IsNullOrEmpty(shaderTag.name))
+                return false;
+
+            renderPipelineTag = shaderTag.name;
             return true;
         }
     }

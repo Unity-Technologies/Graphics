@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Build;
@@ -439,6 +440,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShaderSnippetData m_Snippet;
             IList<ShaderCompilerData> m_InputData;
             HDRPreprocessShaders m_PreProcess;
+            string m_RenderPipeline;
 
             public ExportShaderStrip(
                 string outFile,
@@ -454,12 +456,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_Snippet = snippet;
                 m_InputData = inputData;
                 m_PreProcess = preProcess;
+                m_RenderPipeline = shader.TryGetRenderPipelineTag(snippet, out string renderPipelineTag)
+                    ? renderPipelineTag
+                    : string.Empty;
 
                 if (m_ExportLog)
                 {
                     System.IO.File.AppendAllText(
                         m_OutFile,
-                        $"{{ \"shader\": \"{m_Shader.name}\", \"pass\": \"{m_Snippet.passName}\", \"passType\": \"{m_Snippet.passType}\", \"shaderType\": \"{m_Snippet.shaderType}\", \"variantIn\": {m_InputData.Count} }}\r\n"
+                        $"{{ \"shader\": \"{m_Shader.name}\", \"pipeline\": \"{m_RenderPipeline}\", \"pass\": \"{m_Snippet.passName}\", \"passType\": \"{m_Snippet.passType}\", \"shaderType\": \"{m_Snippet.shaderType}\", \"variantIn\": {m_InputData.Count} }}\r\n"
                     );
                 }
             }
@@ -472,7 +477,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         System.IO.File.AppendAllText(
                             m_OutFile,
-                            $"{{ \"shader\": \"{m_Shader?.name}\", \"pass\": \"{m_Snippet.passName ?? string.Empty}\", \"passType\": \"{m_Snippet.passType}\", \"shaderType\": \"{m_Snippet.shaderType}\", \"variantOut\": \"{m_InputData.Count}\", \"totalVariantIn\": \"{m_PreProcess?.m_TotalVariantsInputCount}\", \"totalVariantOut\": \"{m_PreProcess?.m_TotalVariantsOutputCount}\" }}\r\n"
+                            $"{{ \"shader\": \"{m_Shader.name}\", \"pipeline\": \"{m_RenderPipeline}\" \"pass\": \"{m_Snippet.passName ?? string.Empty}\", \"passType\": \"{m_Snippet.passType}\", \"shaderType\": \"{m_Snippet.shaderType}\", \"variantOut\": \"{m_InputData.Count}\", \"totalVariantIn\": \"{m_PreProcess?.m_TotalVariantsInputCount}\", \"totalVariantOut\": \"{m_PreProcess?.m_TotalVariantsOutputCount}\" }}\r\n"
                         );
                     }
                     catch (System.Exception e)
@@ -510,6 +515,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
 
                 var inputShaderVariantCount = inputData.Count;
+
+                // Check the Render Pipeline tag
+                if (shader.TryGetRenderPipelineTag(snippet, out string renderPipelineTag))
+                {
+                    // If it is a shader from a pipeline and it doesn't belong to HDRP, strip completely the variants
+                    if (!renderPipelineTag.Equals(HDRenderPipeline.k_ShaderTagName))
+                    {
+                        inputShaderVariantCount = 0;
+                    }
+                }
+
                 for (int i = 0; i < inputShaderVariantCount;)
                 {
                     ShaderCompilerData input = inputData[i];

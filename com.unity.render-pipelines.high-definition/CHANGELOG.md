@@ -100,6 +100,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with automatic RendererList culling option getting ignored (case 1388854).
 - Fixed an issue where APV cells were not populated properly when probe volumes have rotations
 - Fixed issue where changes to APV baking set lists were not saved.
+- In a cross pipeline scenario, shaders from another pipeline are stripped if the current pipeline is HDRP.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.

@@ -688,6 +688,17 @@ namespace UnityEditor.Rendering.Universal
 
             int prevVariantCount = compilerDataList.Count;
             var inputShaderVariantCount = compilerDataList.Count;
+
+            // Check the Render Pipeline tag
+            if (shader.TryGetRenderPipelineTag(snippetData, out string renderPipelineTag))
+            {
+                // If it is a shader from a pipeline and it doesn't belong to URP, strip completely the variants
+                if (!renderPipelineTag.Equals(UniversalRenderPipeline.k_ShaderTagName))
+                {
+                    inputShaderVariantCount = 0;
+                }
+            }
+
             for (int i = 0; i < inputShaderVariantCount;)
             {
                 bool removeInput = true;

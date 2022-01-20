@@ -3,6 +3,11 @@ Shader "Hidden/Universal Render Pipeline/FallbackError"
 {
     SubShader
     {
+        Tags
+        {
+            "RenderPipeline" = "UniversalPipeline"
+        }
+
         Pass
         {
             CGPROGRAM
