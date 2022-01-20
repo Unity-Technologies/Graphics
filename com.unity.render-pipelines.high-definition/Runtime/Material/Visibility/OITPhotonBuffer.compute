@@ -1,0 +1,65 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityOITResources.hlsl"
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#pragma kernel MainComputePhotonBuffer
+
+
+float4 _VBufferLightingOffscreenParams;
+
+uint GetMaxSamplesCount()
+{
+    return (int)asuint(_VBufferLightingOffscreenParams.y);
+}
+
+uint GetOffscreenLightBufferWidth()
+{
+    return asuint(_VBufferLightingOffscreenParams.x);
+}
+
+ByteAddressBuffer _VisOITSamplesCountBuffer;
+RW_TEXTURE2D_X(float4, _VisOITOutputPhotonTexture);
+
+#define BOUNCE_COUNT 16
+
+[numthreads(SAMPLES_DISPATCH_THREAD_COUNT,1,1)]
+void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    uint maxSamplesCount = min(GetMaxSamplesCount(), _VisOITSamplesCountBuffer.Load(0));
+    uint srcSampleId = dispatchThreadId.x;
+    if (srcSampleId >= maxSamplesCount)
+        return;
+
+    uint2 offscreenCoord = uint2(srcSampleId % GetOffscreenLightBufferWidth(), srcSampleId / GetOffscreenLightBufferWidth());
+
+    Visibility::VisibilityData visData;
+    uint2 texCoord;
+    float depthValue;
+    VisibilityOIT::GetVisibilitySample(srcSampleId, 0, visData, texCoord, depthValue);
+    if (!visData.valid)
+        return;
+
+    float2 screenUV = (float2)(texCoord + 0.5) * _ScreenSize.zw;
+    float3 posWS = ComputeWorldSpacePosition(screenUV, depthValue, UNITY_MATRIX_I_VP);
+    float3 V = GetWorldSpaceNormalizeViewDir(posWS);
+
+    // Sample GBuffer
+    uint4 packedOITGBuffer0 = _VisOITOffscreenGBuffer0[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
+    uint packedOITGBuffer1 = _VisOITOffscreenGBuffer1[COORD_TEXTURE2D_X(offscreenCoord)].r;
+    float3 normal;
+    float roughness;
+    float3 baseColor;
+    float metalness;
+    VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, normal, roughness, baseColor, metalness);
+
+    for (int b = 0; b < BOUNCE_COUNT; ++b)
+    {
+        //TODO do multi bounce here
+    }
+
+    _VisOITOutputPhotonTexture[COORD_TEXTURE2D_X(offscreenCoord)] = float4(dot(V, normal).xxx, 1.0);
+}

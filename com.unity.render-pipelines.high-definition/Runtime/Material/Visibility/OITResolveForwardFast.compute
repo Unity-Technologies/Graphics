@@ -196,12 +196,19 @@ void MainResolveSparseOITLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
             float4 currOitColor = _VisOITSparseColorBuffer[COORD_TEXTURE2D_X(uint2(currX,currY))].rgba;
             bool currValid = IsColorValid(currOitColor) && isInBorder && (currPixelHash == centerHash);
+            bool currCoarse = IsColorValid(currOitColor) && isInBorder;
 
             float weight = wx * wy;
 
-            sumOitAll += currOitColor * weight;
-            weightAll += weight;
+            [flatten]
+            // uncommenting this causes the screen to go completely blank, except from certain angles. compiler/driver bug?
+            //if (currCoarse)
+            {
+                sumOitAll += currOitColor * weight;
+                weightAll += weight;
+            }
 
+            [flatten]
             if (currValid)
             {
                 sumOitSame += currOitColor * weight;
@@ -225,6 +232,7 @@ void MainResolveSparseOITLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     {
         dstColor = ApplyOitAlphaToBackground(backgroundColor,avgOitColor);
     }
+
 
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)] = float4(dstColor, 1.0);
 }

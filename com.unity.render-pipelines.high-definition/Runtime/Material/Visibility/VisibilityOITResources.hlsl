@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityCommon.hlsl"
 
+#define SAMPLES_DISPATCH_THREAD_COUNT 64
 #define DITHER_TILE_SIZE 128
 #define DITHER_TILE_TOTAL_PIXELS (DITHER_TILE_SIZE * DITHER_TILE_SIZE)
 
@@ -26,6 +27,7 @@ TEXTURE2D_X_UINT4(_VisOITOffscreenGBuffer0);
 TEXTURE2D_X_UINT(_VisOITOffscreenGBuffer1);
 TEXTURE2D_X(_VisOITOffscreenDirectReflectionLighting);
 TEXTURE2D_X(_VisOITOffscreenLighting);
+TEXTURE2D_X(_VisOITOffscreenPhotonRadianceLighting);
 
 float4 DebugDrawOITHistogram(float2 sampleUV, float2 screenSize)
 {
@@ -74,7 +76,7 @@ void UnpackVisibilityData(uint3 packedData, out Visibility::VisibilityData data,
 
 void PackOITGBufferData(float3 normal, float roughness, float3 baseColor, float metalness, out uint4 packedData0, out uint packedData1)
 {
-    float2 oct = saturate(PackNormalOctRectEncode(normal) * 0.5f + 0.5f);
+    float2 oct = saturate(PackNormalOctQuadEncode(normal) * 0.5f + 0.5f);
 
     packedData0.r = PackFloatToUInt(oct.x, 0, 16);
     packedData0.g = PackFloatToUInt(oct.y, 0, 16);
@@ -89,7 +91,7 @@ void UnpackOITGBufferData(uint4 packedData0, uint packedData1, out float3 normal
     oct.x = UnpackUIntToFloat(packedData0.x, 0, 16);
     oct.y = UnpackUIntToFloat(packedData0.y, 0, 16);
 
-    normal = normalize(UnpackNormalOctRectEncode(oct * 2.0f - 1.0f));
+    normal = normalize(UnpackNormalOctQuadEncode(oct * 2.0f - 1.0f));
 
     baseColor.r = UnpackUIntToFloat(packedData0.b, 0, 8);
     baseColor.g = UnpackUIntToFloat(packedData0.b, 8, 8);

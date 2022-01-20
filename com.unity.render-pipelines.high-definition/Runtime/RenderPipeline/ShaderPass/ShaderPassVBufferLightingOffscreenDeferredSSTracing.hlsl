@@ -100,7 +100,7 @@ void Frag(Varyings packedInput, out uint4 outGBuffer0Texture : SV_Target0, out u
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
     float3 colorVariantColor = 0;
-    uint featureFlags = packedInput.lightAndMaterialFeatures;
+    uint featureFlags = packedInput.lightAndMaterialFeatures & LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
 
     LightLoopOutput lightLoopOutput;
     LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
