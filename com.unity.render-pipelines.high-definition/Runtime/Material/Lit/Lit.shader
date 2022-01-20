@@ -662,13 +662,13 @@ Shader "HDRP/Lit"
 
             #pragma require setrtarrayindexfromanyshader
 
-            static uint g_activeArrayIndex = 0;
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/BFProbe.cs.hlsl"
 
-            #define MAX_PROBE_COUNT         128
-            #define MAX_RT_ARRAY_COUNT      (MAX_PROBE_COUNT * 6)
+            #define MAX_RT_ARRAY_COUNT      (6 * BFPROBECONFIG_TEMP_MAX_PROBE_COUNT)
             float4x4 _ViewProjMatrixArray[MAX_RT_ARRAY_COUNT];
             float4 _WorldSpaceCameraPosArray[MAX_RT_ARRAY_COUNT];
 
+            static uint g_activeArrayIndex = 0;
             #define _ViewProjMatrix _ViewProjMatrixArray[g_activeArrayIndex]
             #define _WorldSpaceCameraPos_Internal _WorldSpaceCameraPosArray[g_activeArrayIndex]
 

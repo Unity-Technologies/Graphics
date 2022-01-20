@@ -134,6 +134,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/Debug/BFProbeDebug.shader")]
             public Shader debugBFProbePS;
+            [Reload("Runtime/Lighting/BFProbePack.compute")]
+            public ComputeShader packBFProbeCS;
 
             // Sky
             [Reload("Runtime/Sky/BlitCubemap.shader")]

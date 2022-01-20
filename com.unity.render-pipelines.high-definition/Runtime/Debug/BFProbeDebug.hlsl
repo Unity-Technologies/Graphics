@@ -1,10 +1,11 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/BFProbe.cs.hlsl"
 
-TEXTURECUBE_ARRAY(_InputCubemap);
-SAMPLER(sampler_InputCubemap);
+TEXTURE2D(_BFProbeStorage);
 
 struct Attributes
 {
@@ -46,13 +47,20 @@ float4 Frag(Varyings IN) : SV_Target
     UNITY_SETUP_INSTANCE_ID(IN);
 
 #if UNITY_ANY_INSTANCING_ENABLED
-    uint sliceIndex = unity_InstanceID;
+    uint probeIndex = unity_InstanceID;
 #else
-    uint sliceIndex = 0;
+    uint probeIndex = 0;
 #endif
 
     float3 reflectedVecOS = reflect(IN.cameraToSurfaceVecOS, normalize(IN.normalOS));
-    float4 col = SAMPLE_TEXTURECUBE_ARRAY(_InputCubemap, sampler_InputCubemap, reflectedVecOS, sliceIndex);
+
+    float2 uvInProbe = saturate(0.5f*PackNormalOctQuadEncode(reflectedVecOS) + 0.5f);
+
+    float2 probeXY = uint2(probeIndex % BFPROBECONFIG_STORAGE_WIDTH_IN_PROBES, probeIndex / BFPROBECONFIG_STORAGE_WIDTH_IN_PROBES);
+    float2 uvInStorage = (probeXY*(float)BFPROBECONFIG_STORAGE_OCT_SIZE + 0.5f + uvInProbe*(float)(BFPROBECONFIG_STORAGE_OCT_SIZE - 1))
+           /(float2(BFPROBECONFIG_STORAGE_WIDTH_IN_PROBES, BFPROBECONFIG_STORAGE_HEIGHT_IN_PROBES)*BFPROBECONFIG_STORAGE_OCT_SIZE);
+
+    float4 col = SAMPLE_TEXTURE2D(_BFProbeStorage, s_linear_clamp_sampler, uvInStorage);
 
     return float4(col.xyz, 1.0f);
 }

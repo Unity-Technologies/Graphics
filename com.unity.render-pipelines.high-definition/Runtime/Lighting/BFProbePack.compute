@@ -1,0 +1,41 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/BFProbe.cs.hlsl"
+
+#pragma kernel Main
+
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+RW_TEXTURE2D(float4, _BFProbeStorage);
+
+TEXTURECUBE_ARRAY(_BFProbeTempCol);
+SAMPLER(s_linear_clamp_sampler);
+
+uint _BFProbeDestOffset;
+uint _BFProbeCopyCount;
+
+[numthreads(BFPROBECONFIG_COPY_THREAD_GROUP_SIZE, 1, 1)]
+void Main(uint dtid : SV_DispatchThreadID)
+{
+	// map threads to destination pixels
+	uint tmp = dtid;
+	uint pixelX = tmp % BFPROBECONFIG_STORAGE_OCT_SIZE;
+	tmp /= BFPROBECONFIG_STORAGE_OCT_SIZE;
+	uint pixelY = tmp % BFPROBECONFIG_STORAGE_OCT_SIZE;
+	tmp /= BFPROBECONFIG_STORAGE_OCT_SIZE;
+	uint copyIndex = tmp;
+	if (copyIndex >= _BFProbeCopyCount)
+		return;
+
+	// get direction for pixel
+	float2 uvInProbe = float2(pixelX, pixelY)/(float)(BFPROBECONFIG_STORAGE_OCT_SIZE - 1);
+	float3 dir = UnpackNormalOctQuadEncode(2.f*uvInProbe - 1.f);
+
+	// read source colour (TODO: depth)
+	float4 col = SAMPLE_TEXTURECUBE_ARRAY_LOD(_BFProbeTempCol, s_linear_clamp_sampler, dir, copyIndex, 0);
+
+	// write out
+	uint probeIndex = _BFProbeDestOffset + copyIndex;
+	uint2 probeXY = uint2(probeIndex % BFPROBECONFIG_STORAGE_WIDTH_IN_PROBES, probeIndex / BFPROBECONFIG_STORAGE_WIDTH_IN_PROBES);
+	_BFProbeStorage[probeXY*BFPROBECONFIG_STORAGE_OCT_SIZE + uint2(pixelX, pixelY)] = col;
+}
