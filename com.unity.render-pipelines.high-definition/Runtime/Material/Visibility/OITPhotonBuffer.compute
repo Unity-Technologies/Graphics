@@ -3,13 +3,68 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityOITResources.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/BTDF.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel MainComputePhotonBuffer
-#pragma kernel MainComputeClearPhotonBuffer
 
+#define MIN_GGX_ROUGHNESS           0.00001f
+#define MAX_GGX_ROUGHNESS           0.99999f
 float4 _VBufferLightingOffscreenParams;
+
+// Weight for SSR where Fresnel == 1 (returns value/pdf)
+float GetSSRSampleWeight(float3 V, float3 L, float roughness)
+{
+    // Simplification:
+    // value = D_GGX / (lambdaVPlusOne + lambdaL);
+    // pdf = D_GGX / lambdaVPlusOne;
+
+    const float lambdaVPlusOne = Lambda_GGX(roughness, V) + 1.0;
+    const float lambdaL = Lambda_GGX(roughness, L);
+
+    return lambdaVPlusOne / (lambdaVPlusOne + lambdaL);
+}
+
+float Normalize01(float value, float minValue, float maxValue)
+{
+    return (value - minValue) / (maxValue - minValue);
+}
+
+// Specialization without Fresnel (see PathTracingBSDF.hlsl for the reference implementation)
+bool SampleGGX_VNDF(float roughness_,
+                    float3 normalWS,
+                    float3 V,
+                    float2 inputSample,
+                out float3 outgoingDir,
+                out float weight)
+{
+    weight = 0.0f;
+
+    float3x3 localToWorld = GetLocalFrame(normalWS);
+    float roughness = clamp(roughness_, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
+
+    float VdotH;
+    float3 localV, localH;
+    SampleGGXVisibleNormal(inputSample.xy, V, localToWorld, roughness, localV, localH, VdotH);
+
+    // Compute the reflection direction
+    float3 localL = 2.0 * VdotH * localH - localV;
+    outgoingDir = mul(localL, localToWorld);
+
+    if (localL.z < 0.001)
+    {
+        return false;
+    }
+
+    weight = GetSSRSampleWeight(localV, localL, roughness);
+
+    if (weight < 0.001)
+        return false;
+
+    return true;
+}
 
 uint GetMaxSamplesCount()
 {
@@ -22,7 +77,7 @@ uint GetOffscreenLightBufferWidth()
 }
 
 ByteAddressBuffer _VisOITSamplesCountBuffer;
-RWByteAddressBuffer _VisOITOutputPhotonBuffer;
+RW_TEXTURE2D_X(float4, _VisOITOutputPhotonBuffer);
 
 float halton(int index, float base)
 {
@@ -48,7 +103,7 @@ float2 halton2D(int index)
     return float2(halton(index, 2.0), halton(index, 3.0));
 }
 
-bool ClosestSample(float2 texelCoord, float3 posWS, out int2 offscreenSampleCoord, out int globalSampleIndex)
+bool ClosestSample(float2 texelCoord, float srcDepth, out int2 offscreenSampleCoord, out int globalSampleIndex)
 {
     offscreenSampleCoord = int2(-1,-1);
     globalSampleIndex = -1;
@@ -66,9 +121,7 @@ bool ClosestSample(float2 texelCoord, float3 posWS, out int2 offscreenSampleCoor
         float sampleDepth;
         Visibility::VisibilityData visSample; 
         VisibilityOIT::GetVisibilitySample(i, listOffset, visSample, sampleCoord, sampleDepth);
-        float2 sampleScreenUV = (float2)(sampleCoord + 0.5) * _ScreenSize.zw;
-        float3 sampleWS = ComputeWorldSpacePosition(sampleScreenUV, sampleDepth, UNITY_MATRIX_I_VP);
-        float sampleDist = distance(posWS, sampleWS);
+        float sampleDist = abs(srcDepth - sampleDepth);
 
         if (sampleDist > minDist)
             continue;
@@ -84,18 +137,34 @@ bool ClosestSample(float2 texelCoord, float3 posWS, out int2 offscreenSampleCoor
     return true;
 }
 
-#define BOUNCE_COUNT 16
-[numthreads(SAMPLES_DISPATCH_THREAD_COUNT,1,1)]
-void MainComputeClearPhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
+uint bobJenkinsHash(uint seed)
 {
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-    uint maxSamplesCount = min(GetMaxSamplesCount(), _VisOITSamplesCountBuffer.Load(0));
-    uint srcSampleId = dispatchThreadId.x;
-    if (srcSampleId >= maxSamplesCount)
-        return;
-
-    _VisOITOutputPhotonBuffer.Store4((srcSampleId * 4) << 2, uint4(0,0,0,0));
+	seed += (seed << 10u);
+	seed ^= (seed >> 6u);
+	seed += (seed << 3u);
+	seed ^= (seed >> 11u);
+	seed += (seed << 15u);    
+	return seed;
 }
+
+float floatConstruct(uint m)
+{
+	const uint ieeeMantissa = 0x007FFFFFu; 
+	const uint ieeeOne = 0x3F800000u;	
+
+	m &= ieeeMantissa;                 
+	m |= ieeeOne;                     
+
+	float  f = asfloat(m);
+	return f - 1.0;
+}
+
+float randomFloat(uint seed)
+{
+    return floatConstruct(bobJenkinsHash(seed));
+}
+
+#define BOUNCE_COUNT 16
 
 [numthreads(SAMPLES_DISPATCH_THREAD_COUNT,1,1)]
 void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -127,44 +196,47 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 baseColor;
     float metalness;
     VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, normalWS, roughness, baseColor, metalness);
+    float3 f0 = lerp(DEFAULT_SPECULAR_VALUE, baseColor, metalness);
+    float NdotV = dot(V, normalWS);
+    bool isBackface = NdotV < 0.0;
+    float iorEstimated = Fresnel0ToIor(f0).x;
+    float internalIORSource =  isBackface ? 1.0f : iorEstimated;
+    float internalIORMedium =  isBackface ? iorEstimated : 1.0f;
+    float eta = internalIORMedium / internalIORSource;
 
     //Importance sample the first direction, along the nromal of the current sample.
 
+#if 1
+    float4 accumulatedRadiance = float4(0,0,0,0);
     for (int b = 0; b < BOUNCE_COUNT; ++b)
     {
-        float2 rand = halton2D((int)srcSampleId + b);
-        float3 sourceDir;
-        BTDF::GGXSampleWSOmega_w(normalWS, normalWS, rand, roughness, sourceDir);
+        float2 rand = halton2D((int)bobJenkinsHash(srcSampleId) + b);
+        float3 microNormal;
+        float sampleWeight = 1.0;
+        //BTDF::GGXSampleWSOmega_w(V, normalWS, rand, roughness, microNormal);
+        SampleGGX_VNDF(roughness, normalWS, V, rand, microNormal, sampleWeight);
 
-        float2 currentPixel = texCoord;
-        float4 viewSpaceSrc = float4(mul(UNITY_MATRIX_V, float4(sourceDir, 0.0)).xyz, 1.0);
-        float4 camSpaceSrc = mul(UNITY_MATRIX_P, viewSpaceSrc);
-        float3 clipCoordsSrc = normalize(camSpaceSrc.xyz * rcp(camSpaceSrc.w));
-#if UNITY_UV_STARTS_AT_TOP
-        clipCoordsSrc.y *= 1;
-#endif
-        //just go 1 texel
-        clipCoordsSrc.xy *= 24.0*_ScreenSize.zw;
-        currentPixel.xy += clipCoordsSrc.xy;
+        float3 reflectedDir = reflect(V, microNormal);
+        float3 refractedDir = refract(V, microNormal, eta);
+        float randFloat = randomFloat(srcSampleId + b);
+        float3 sampleDir = randFloat < max(f0.x, max(f0.y, f0.z)) ? reflectedDir : refractedDir;
+        
+        float3 sampledWS = posWS + lerp(0.004, 0.001, randFloat) * sampleDir;// - 0.001*reflectedDir;//small world increment. TODO make this adaptive
+        float3 sampleNDC = ComputeNormalizedDeviceCoordinatesWithZ(sampledWS, UNITY_MATRIX_VP);
+        float2 samplePixelPos = (sampleNDC.xy * _ScreenSize.xy) + 0.5;
 
         int2 bestSampleCoord;
         int bestSampleIndex;
-        if (!ClosestSample(currentPixel, posWS, bestSampleCoord, bestSampleIndex))
-            continue;
-
-        float3 radiance = 0.1*_VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(bestSampleCoord)].rgb;
-        uint4 unusedPrevRadiance;
-        uint4 intRadiance = uint4((uint3)(radiance * (float)(0xFFFFFF)), 1);
-        _VisOITOutputPhotonBuffer.InterlockedAdd((bestSampleIndex * 4    ) << 2, intRadiance.x, unusedPrevRadiance.x);
-        _VisOITOutputPhotonBuffer.InterlockedAdd((bestSampleIndex * 4 + 1) << 2, intRadiance.y, unusedPrevRadiance.y);
-        _VisOITOutputPhotonBuffer.InterlockedAdd((bestSampleIndex * 4 + 2) << 2, intRadiance.z, unusedPrevRadiance.z);
-        _VisOITOutputPhotonBuffer.InterlockedAdd((bestSampleIndex * 4 + 3) << 2, 1.0, unusedPrevRadiance.z);
+        if (ClosestSample(samplePixelPos, sampleNDC.z, bestSampleCoord, bestSampleIndex))
+        {
+            float3 radiance = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(bestSampleCoord)].rgb;
+            accumulatedRadiance += float4(radiance * sampleWeight, sampleWeight);
+        }
     }
 
-    //uint4 unusedDebugRad;
-    //uint4 debugVal = (uint4)float4(dot(V, normalWS).xxx * (float)(0xFFFFFF), 1.0);
-    //_VisOITOutputPhotonBuffer.InterlockedAdd((srcSampleId * 4 + 0) << 2, debugVal.x, unusedDebugRad.x);
-    //_VisOITOutputPhotonBuffer.InterlockedAdd((srcSampleId * 4 + 1) << 2, debugVal.y, unusedDebugRad.y);
-    //_VisOITOutputPhotonBuffer.InterlockedAdd((srcSampleId * 4 + 2) << 2, debugVal.z, unusedDebugRad.z);
+    _VisOITOutputPhotonBuffer[COORD_TEXTURE2D_X(offscreenCoord)] += accumulatedRadiance;
+#else
+    _VisOITOutputPhotonBuffer[COORD_TEXTURE2D_X(offscreenCoord)] += float4(eta.xxx, 1.0);
+#endif
 
 }

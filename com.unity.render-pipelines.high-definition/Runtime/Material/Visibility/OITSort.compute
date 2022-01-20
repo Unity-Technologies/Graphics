@@ -45,7 +45,7 @@ void OITSort_Init()
     // Count > 32
     _OITSortMemoryBuffer[8] = sumSmall + sumMed;
 
-    uint3 numGroupsSmall = uint3((sumSmall + 255) / 256, 1, 1);
+    uint3 numGroupsSmall = uint3((sumSmall + 63) / 64, 1, 1);
     uint3 numGroupsMed = uint3((sumMed + 255) / 256, 1, 1);
     uint3 numGroupsBig = uint3(sumBig, 1, 1);
 
@@ -78,7 +78,7 @@ void OITSort_BinPixels(int3 dispatchThreadID : SV_DispatchThreadID)
         return;
 
     uint sortVariantOffset;
-    if (listCount <= 4)
+    if (listCount <= 8)
     {
         sortVariantOffset = 0;
     }
@@ -127,23 +127,20 @@ uint GenerateSortKey(uint keyIndex, uint listCount, uint listOffset)
 uint3 LoadKeyValue(uint sortKey, uint listOffset)
 {
     uint3 value = uint3(0, 0, 0);
-    if (sortKey != 0xFFFFFFFF)
-    {
-        uint srcIndex = (sortKey & 0xFFFF);
-        value = LoadPackedVisibilitySample(srcIndex, listOffset);
-    }
+    uint srcIndex = (sortKey & 0xFFFF);
+    value = LoadPackedVisibilitySample(srcIndex, listOffset);
     return value;
 }
 
-void StoreKeyValue(uint keyIndex, uint sortKey, uint listOffset, uint3 value)
+void StoreKeyValue(uint keyIndex, uint listOffset, uint3 value)
 {
-    if (sortKey != 0xFFFFFFFF)
-    {
-        StorePackedVisibilitySample(keyIndex, listOffset, value);
-    }
+    StorePackedVisibilitySample(keyIndex, listOffset, value);
 }
 
-[numthreads(256, 1, 1)]
+#define CSWAP(a, b) if (a < b) SwapUint(a, b)
+#define MAX_NETWORK_INPUTS 8
+
+[numthreads(64, 1, 1)]
 void OITSort_Network(int3 dispatchThreadId : SV_DispatchThreadID)
 {
     uint threadIndex = dispatchThreadId.x;
@@ -168,57 +165,43 @@ void OITSort_Network(int3 dispatchThreadId : SV_DispatchThreadID)
         uint listOffset = _VisOITListsOffsets.Load(pixelIndex << 2);
 
         // Generate sort keys from depth
-        uint sortKey0 = GenerateSortKey(0, listCount, listOffset);
-        uint sortKey1 = GenerateSortKey(1, listCount, listOffset);
-        uint sortKey2 = GenerateSortKey(2, listCount, listOffset);
-        uint sortKey3 = GenerateSortKey(3, listCount, listOffset);
+        uint sortKeys[MAX_NETWORK_INPUTS];
+        for (uint sortKeyIndex = 0; sortKeyIndex < MAX_NETWORK_INPUTS; ++sortKeyIndex)
+        {
+            sortKeys[sortKeyIndex] = GenerateSortKey(sortKeyIndex, listCount, listOffset);
+        }
 
         // Sort the keys
-        if (sortKey0 > sortKey1)
-        {
-            SwapUint(sortKey0, sortKey1);
-        }
-        if (sortKey2 > sortKey3)
-        {
-            SwapUint(sortKey2, sortKey3);
-        }
-        if (sortKey0 > sortKey2)
-        {
-            SwapUint(sortKey0, sortKey2);
-        }
-        if (sortKey1 > sortKey3)
-        {
-            SwapUint(sortKey1, sortKey3);
-        }
-        if (sortKey1 > sortKey2)
-        {
-            SwapUint(sortKey1, sortKey2);
-        }
+        CSWAP(sortKeys[0], sortKeys[1]);
+        CSWAP(sortKeys[2], sortKeys[3]);
+        CSWAP(sortKeys[4], sortKeys[5]);
+        CSWAP(sortKeys[6], sortKeys[7]);
+        CSWAP(sortKeys[0], sortKeys[2]);
+        CSWAP(sortKeys[1], sortKeys[3]);
+        CSWAP(sortKeys[4], sortKeys[6]);
+        CSWAP(sortKeys[5], sortKeys[7]);
+        CSWAP(sortKeys[1], sortKeys[2]);
+        CSWAP(sortKeys[5], sortKeys[6]);
+        CSWAP(sortKeys[0], sortKeys[4]);
+        CSWAP(sortKeys[3], sortKeys[7]);
+        CSWAP(sortKeys[1], sortKeys[5]);
+        CSWAP(sortKeys[2], sortKeys[6]);
+        CSWAP(sortKeys[1], sortKeys[4]);
+        CSWAP(sortKeys[3], sortKeys[6]);
+        CSWAP(sortKeys[2], sortKeys[4]);
+        CSWAP(sortKeys[3], sortKeys[5]);
+        CSWAP(sortKeys[3], sortKeys[4]);
 
         // Shuffle the samples based on the sort results
-        uint3 packedSample0 = LoadKeyValue(sortKey0, listOffset);
-        uint3 packedSample1 = LoadKeyValue(sortKey1, listOffset);
-        uint3 packedSample2 = LoadKeyValue(sortKey2, listOffset);
-        uint3 packedSample3 = LoadKeyValue(sortKey3, listOffset);
+        uint3 packedSamples[MAX_NETWORK_INPUTS];
+        for (uint packedSampleIndex = 0; packedSampleIndex < listCount; ++packedSampleIndex)
+        {
+            packedSamples[packedSampleIndex] = LoadKeyValue(sortKeys[packedSampleIndex + (MAX_NETWORK_INPUTS - listCount)], listOffset);
+        }
 
-        // TODO: There must be a better way to do this...
-        if (listCount == 2)
+        for (uint storeIndex = 0; storeIndex < listCount; ++storeIndex)
         {
-            StoreKeyValue(0, sortKey1, listOffset, packedSample1);
-            StoreKeyValue(1, sortKey0, listOffset, packedSample0);
-        }
-        else if (listCount == 3)
-        {
-            StoreKeyValue(0, sortKey2, listOffset, packedSample2);
-            StoreKeyValue(1, sortKey1, listOffset, packedSample1);
-            StoreKeyValue(2, sortKey0, listOffset, packedSample0);
-        }
-        else if (listCount == 4)
-        {
-            StoreKeyValue(0, sortKey3, listOffset, packedSample3);
-            StoreKeyValue(1, sortKey2, listOffset, packedSample2);
-            StoreKeyValue(2, sortKey1, listOffset, packedSample1);
-            StoreKeyValue(3, sortKey0, listOffset, packedSample0);
+            StoreKeyValue(storeIndex, listOffset, packedSamples[storeIndex]);
         }
     }
 }

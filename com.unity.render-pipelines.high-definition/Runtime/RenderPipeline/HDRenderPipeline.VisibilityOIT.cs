@@ -770,7 +770,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     prepassData.vbufferOIT.sublistCounterBuffer,
                     prepassData.vbufferOIT.oitVisibilityBuffer, out oitTileHiZTexture);
 
-                ComputeBufferHandle photonBuffer = OITComputePhotonRefractionBuffer(
+                TextureHandle photonBuffer = OITComputePhotonRefractionBuffer(
                     renderGraph, maxMaterialSampleCount, prepassData.vbufferOIT, gBuffer0Texture, gBuffer1Texture, offscreenDirectReflectionLightingTexture, offscreenDimensions);
 
                 OITResolveLightingDeferredSSTracing(renderGraph, hdCamera, prepassData.vbufferOIT,
@@ -1004,7 +1004,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle gBuffer0Texture;
             public TextureHandle gBuffer1Texture;
             public TextureHandle offscreenDirectReflectionLightingTexture;
-            public ComputeBufferHandle photonBuffer;
+            public TextureHandle photonBuffer;
             public TextureHandle depthBuffer;
             public ComputeBufferHandle oitVisibilityBuffer;
             public ComputeBufferHandle offsetListBuffer;
@@ -1022,7 +1022,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle gBuffer0Texture,
             TextureHandle gBuffer1Texture,
             TextureHandle offscreenDirectReflectionLightingTexture,
-            ComputeBufferHandle photonBuffer,
+            TextureHandle photonBuffer,
             TextureHandle oitTileHiZTexture,
             Vector2Int offscreenLightingSize,
             TextureHandle depthBuffer, ref TextureHandle colorBuffer)
@@ -1039,7 +1039,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.gBuffer0Texture = builder.ReadTexture(gBuffer0Texture);
                 passData.gBuffer1Texture = builder.ReadTexture(gBuffer1Texture);
-                passData.photonBuffer = builder.ReadComputeBuffer(photonBuffer);
+                passData.photonBuffer = builder.ReadTexture(photonBuffer);
                 passData.offscreenDirectReflectionLightingTexture = builder.ReadTexture(offscreenDirectReflectionLightingTexture);
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.outputColor = builder.WriteTexture(colorBuffer);
@@ -1063,7 +1063,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OITTileHiZ, data.oitTileHiZTexture);
-                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenPhotonRadianceLighting, data.photonBuffer);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenPhotonRadianceLighting, data.photonBuffer);
 
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenGBuffer0, data.gBuffer0Texture);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenGBuffer1, data.gBuffer1Texture);
@@ -1094,10 +1094,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle gBuffer1Texture;
             public TextureHandle offscreenDirectReflectionLightingTexture;
             public Vector4 packedArgs;
-            public ComputeBufferHandle outputPhotonBuffer;
+            public TextureHandle outputPhotonBuffer;
         }
 
-        ComputeBufferHandle OITComputePhotonRefractionBuffer(
+        TextureHandle OITComputePhotonRefractionBuffer(
             RenderGraph renderGraph, int maxSampleCounts,
             in VBufferOITOutput vbufferOIT,
             TextureHandle gBuffer0Texture,
@@ -1105,7 +1105,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle offscreenDirectReflectionLightingTexture,
             Vector2Int    offscreenLightingSize)
         {
-            ComputeBufferHandle output;
+            TextureHandle output;
             using (var builder = renderGraph.AddRenderPass<OITComputePhotonRefractionBufferPassData>("OITComputePhotonRefractionBuffer", out var passData, ProfilingSampler.Get(HDProfileId.OITComputePhotonRefractionBuffer)))
             {
                 passData.cs = defaultResources.shaders.oitPhotonBuffer;
@@ -1118,7 +1118,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.gBuffer0Texture = builder.ReadTexture(gBuffer0Texture);
                 passData.gBuffer1Texture = builder.ReadTexture(gBuffer1Texture);
                 passData.offscreenDirectReflectionLightingTexture = builder.ReadTexture(offscreenDirectReflectionLightingTexture);
-                passData.outputPhotonBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(maxSampleCounts, sizeof(uint) * 4, ComputeBufferType.Raw) { name = "OITOffscreenLightingDeferredSSTracing_PhotonBuffer" }));
+                passData.outputPhotonBuffer = builder.WriteTexture(renderGraph.CreateTexture(
+                    new TextureDesc(offscreenLightingSize.x, offscreenLightingSize.y, false, true)
+                    {
+                        colorFormat = GetForwardFastFormat(),
+                        name = "OITPhotonBufferTexture",
+                        enableRandomWrite = true,
+                        clearBuffer = true,
+                        clearColor = Color.black
+                    }));
 
                 float offscreenWidthAsFloat; unsafe { int offscreenWidthInt = offscreenLightingSize.x; offscreenWidthAsFloat = *((float*)&offscreenWidthInt); }
                 float maxSampleCountAsFloat; unsafe { maxSampleCountAsFloat = *((float*)&maxSampleCounts); }
@@ -1129,19 +1137,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (OITComputePhotonRefractionBufferPassData data, RenderGraphContext context) =>
                     {
-                        int clearKernel = data.cs.FindKernel("MainComputeClearPhotonBuffer");
-                        context.cmd.SetComputeBufferParam(data.cs, clearKernel, HDShaderIDs._VisOITOutputPhotonBuffer, data.outputPhotonBuffer);
-                        context.cmd.SetComputeBufferParam(data.cs, clearKernel, HDShaderIDs._VisOITSamplesCountBuffer, data.samplesGpuCountBuffer);
-                        context.cmd.DispatchCompute(data.cs, clearKernel, data.samplesDispatchArgsBuffer, 0);
-
                         int kernel = data.cs.FindKernel("MainComputePhotonBuffer");
                         context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSamplesCountBuffer, data.samplesGpuCountBuffer);
-                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITOutputPhotonBuffer, data.outputPhotonBuffer);
 
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOutputPhotonBuffer, data.outputPhotonBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenGBuffer0, data.gBuffer0Texture);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenGBuffer1, data.gBuffer1Texture);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenDirectReflectionLighting, data.offscreenDirectReflectionLightingTexture);
