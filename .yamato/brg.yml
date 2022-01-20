@@ -1,6 +1,0 @@
-Virtual_job:
-    name: Virtual job
-    dependencies:
-    - .yamato/universal_batchrenderergroup-win-dx11.yml#Build_Universal_BatchRendererGroup_Win_DX11_Standalone_mono_Linear_trunk
-    - .yamato/universal_batchrenderergroup-win-dx11.yml#Universal_BatchRendererGroup_Win_DX11_playmode_mono_Linear_trunk
-    - .yamato/universal_batchrenderergroup-win-dx11.yml#Universal_BatchRendererGroup_Win_DX11_Standalone_mono_Linear_trunk

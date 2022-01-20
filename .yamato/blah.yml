@@ -1,9 +1,0 @@
-Virtual_job:
-    name: Virtual job
-    dependencies:
-    - .yamato/shadergraph-linux-vulkan.yml#Build_ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_trunk
-    - .yamato/shadergraph_builtin_foundation-linux-vulkan.yml#ShaderGraph_BuiltIn_Foundation_Linux_Vulkan_playmode_mono_Linear_trunk
-    - .yamato/shadergraph_builtin_lighting-linux-vulkan.yml#ShaderGraph_BuiltIn_Lighting_Linux_Vulkan_playmode_mono_Linear_trunk
-    - .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_editmode_mono_Linear_trunk
-    - .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_playmode_mono_Linear_trunk
-    - .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_trunk

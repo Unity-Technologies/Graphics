@@ -1,6 +1,0 @@
-Virtual_job:
-    name: Virtual job
-    dependencies:
-    - .yamato/shadergraph-linux-vulkan.yml#Build_ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_trunk
-    - .yamato/all-shadergraph_builtin_foundation.yml#Extra_ShaderGraph_BuiltIn_Foundation_trunk
-    - .yamato/all-shadergraph.yml#Extra_ShaderGraph_trunk
