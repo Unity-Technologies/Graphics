@@ -400,6 +400,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 010cf280ca758b648986dd90824dcd7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  spell: 1
   boidCount: 1000
   flockAPrefab: {fileID: 6719365605357038126, guid: 295c06de7426b9a4397141c2768797b5,
     type: 3}
