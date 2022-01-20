@@ -16,6 +16,7 @@ ByteAddressBuffer _VisOITListsCounts;
 ByteAddressBuffer _VisOITListsOffsets;
 ByteAddressBuffer _VisOITSubListsCounts;
 ByteAddressBuffer _VisOITPixelHash;
+ByteAddressBuffer _VisOITOffscreenPhotonRadianceLighting;
 
 #if defined(USE_TEXTURE2D_X_AS_ARRAY)
 Texture2DArray<float2> _OITTileHiZ;
@@ -27,7 +28,6 @@ TEXTURE2D_X_UINT4(_VisOITOffscreenGBuffer0);
 TEXTURE2D_X_UINT(_VisOITOffscreenGBuffer1);
 TEXTURE2D_X(_VisOITOffscreenDirectReflectionLighting);
 TEXTURE2D_X(_VisOITOffscreenLighting);
-TEXTURE2D_X(_VisOITOffscreenPhotonRadianceLighting);
 
 float4 DebugDrawOITHistogram(float2 sampleUV, float2 screenSize)
 {

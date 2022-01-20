@@ -7,7 +7,7 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel MainComputePhotonBuffer
-
+#pragma kernel MainComputeClearPhotonBuffer
 
 float4 _VBufferLightingOffscreenParams;
 
@@ -22,9 +22,80 @@ uint GetOffscreenLightBufferWidth()
 }
 
 ByteAddressBuffer _VisOITSamplesCountBuffer;
-RW_TEXTURE2D_X(float4, _VisOITOutputPhotonTexture);
+RWByteAddressBuffer _VisOITOutputPhotonBuffer;
+
+float halton(int index, float base)
+{
+	float result = 0.0;
+	float f = 1.0 / base;
+	float i = float(index);
+
+	for (int x = 0; x < 8; x++)
+	{
+		if (i <= 0.0)
+			break;
+
+		result += f*fmod(i, base);
+		i = floor(i / base);
+		f = f / base;
+	}
+
+	return result;
+}
+
+float2 halton2D(int index)
+{
+    return float2(halton(index, 2.0), halton(index, 3.0));
+}
+
+bool ClosestSample(float2 texelCoord, float3 posWS, out int2 offscreenSampleCoord, out int globalSampleIndex)
+{
+    offscreenSampleCoord = int2(-1,-1);
+    globalSampleIndex = -1;
+    if (any(texelCoord < float2(0,0)) || any(texelCoord >= _ScreenSize.xy))
+        return false;
+    
+    int pixelOffset = texelCoord.y * _ScreenSize.x + texelCoord.x;
+    uint listCount, listOffset;
+    VisibilityOIT::GetPixelList(pixelOffset, listCount, listOffset);
+    float minDist = 1e5;
+    
+    for (uint i = 0; i < listCount; ++i)
+    {
+        uint2 sampleCoord;
+        float sampleDepth;
+        Visibility::VisibilityData visSample; 
+        VisibilityOIT::GetVisibilitySample(i, listOffset, visSample, sampleCoord, sampleDepth);
+        float2 sampleScreenUV = (float2)(sampleCoord + 0.5) * _ScreenSize.zw;
+        float3 sampleWS = ComputeWorldSpacePosition(sampleScreenUV, sampleDepth, UNITY_MATRIX_I_VP);
+        float sampleDist = distance(posWS, sampleWS);
+
+        if (sampleDist > minDist)
+            continue;
+
+        minDist = sampleDist;
+        globalSampleIndex = i + listOffset;
+        offscreenSampleCoord = (int2)uint2(globalSampleIndex % GetOffscreenLightBufferWidth(), globalSampleIndex / GetOffscreenLightBufferWidth());
+    }
+
+    if (offscreenSampleCoord.x < 0.0)
+        return false;
+
+    return true;
+}
 
 #define BOUNCE_COUNT 16
+[numthreads(SAMPLES_DISPATCH_THREAD_COUNT,1,1)]
+void MainComputeClearPhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    uint maxSamplesCount = min(GetMaxSamplesCount(), _VisOITSamplesCountBuffer.Load(0));
+    uint srcSampleId = dispatchThreadId.x;
+    if (srcSampleId >= maxSamplesCount)
+        return;
+
+    _VisOITOutputPhotonBuffer.Store4((srcSampleId * 4) << 2, uint4(0,0,0,0));
+}
 
 [numthreads(SAMPLES_DISPATCH_THREAD_COUNT,1,1)]
 void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -51,16 +122,49 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Sample GBuffer
     uint4 packedOITGBuffer0 = _VisOITOffscreenGBuffer0[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
     uint packedOITGBuffer1 = _VisOITOffscreenGBuffer1[COORD_TEXTURE2D_X(offscreenCoord)].r;
-    float3 normal;
+    float3 normalWS;
     float roughness;
     float3 baseColor;
     float metalness;
-    VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, normal, roughness, baseColor, metalness);
+    VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, normalWS, roughness, baseColor, metalness);
+
+    //Importance sample the first direction, along the nromal of the current sample.
 
     for (int b = 0; b < BOUNCE_COUNT; ++b)
     {
-        //TODO do multi bounce here
+        float2 rand = halton2D((int)srcSampleId + b);
+        float3 sourceDir;
+        BTDF::GGXSampleWSOmega_w(normalWS, normalWS, rand, roughness, sourceDir);
+
+        float2 currentPixel = texCoord;
+        float4 viewSpaceSrc = float4(mul(UNITY_MATRIX_V, float4(sourceDir, 0.0)).xyz, 1.0);
+        float4 camSpaceSrc = mul(UNITY_MATRIX_P, viewSpaceSrc);
+        float3 clipCoordsSrc = normalize(camSpaceSrc.xyz * rcp(camSpaceSrc.w));
+#if UNITY_UV_STARTS_AT_TOP
+        clipCoordsSrc.y *= 1;
+#endif
+        //just go 1 texel
+        clipCoordsSrc.xy *= 24.0*_ScreenSize.zw;
+        currentPixel.xy += clipCoordsSrc.xy;
+
+        int2 bestSampleCoord;
+        int bestSampleIndex;
+        if (!ClosestSample(currentPixel, posWS, bestSampleCoord, bestSampleIndex))
+            continue;
+
+        float3 radiance = 0.1*_VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(bestSampleCoord)].rgb;
+        uint4 unusedPrevRadiance;
+        uint4 intRadiance = uint4((uint3)(radiance * (float)(0xFFFFFF)), 1);
+        _VisOITOutputPhotonBuffer.InterlockedAdd((bestSampleIndex * 4    ) << 2, intRadiance.x, unusedPrevRadiance.x);
+        _VisOITOutputPhotonBuffer.InterlockedAdd((bestSampleIndex * 4 + 1) << 2, intRadiance.y, unusedPrevRadiance.y);
+        _VisOITOutputPhotonBuffer.InterlockedAdd((bestSampleIndex * 4 + 2) << 2, intRadiance.z, unusedPrevRadiance.z);
+        _VisOITOutputPhotonBuffer.InterlockedAdd((bestSampleIndex * 4 + 3) << 2, 1.0, unusedPrevRadiance.z);
     }
 
-    _VisOITOutputPhotonTexture[COORD_TEXTURE2D_X(offscreenCoord)] = float4(dot(V, normal).xxx, 1.0);
+    //uint4 unusedDebugRad;
+    //uint4 debugVal = (uint4)float4(dot(V, normalWS).xxx * (float)(0xFFFFFF), 1.0);
+    //_VisOITOutputPhotonBuffer.InterlockedAdd((srcSampleId * 4 + 0) << 2, debugVal.x, unusedDebugRad.x);
+    //_VisOITOutputPhotonBuffer.InterlockedAdd((srcSampleId * 4 + 1) << 2, debugVal.y, unusedDebugRad.y);
+    //_VisOITOutputPhotonBuffer.InterlockedAdd((srcSampleId * 4 + 2) << 2, debugVal.z, unusedDebugRad.z);
+
 }
