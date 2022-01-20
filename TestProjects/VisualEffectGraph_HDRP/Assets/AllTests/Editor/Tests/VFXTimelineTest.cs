@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.Test
     class VFXTimelineTest
     {
         [UnityTest]
-        public IEnumerator Verify_Migration()
+        public IEnumerator Verify_Playable_Migration()
         {
             //This asset contains old activation tracks & clip
             var kSourceAsset = "Assets/AllTests/Editor/Tests/VFXOldTimelineActivation.playable_";
