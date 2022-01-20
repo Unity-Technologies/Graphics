@@ -55,14 +55,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RenderBFProbes(ScriptableRenderContext context)
         {
-            using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.BFProbeRender)))
+            var cmd = new CommandBuffer();
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BFProbeRender)))
             {
+                cmd.name = "BFProbes";
+
                 var probes = Object.FindObjectsOfType<BFProbe>();
                 if (probes.Length == 0)
                     return;
-
-                var cmd = new CommandBuffer();
-                cmd.name = "BFProbes";
 
                 CoreUtils.SetRenderTarget(cmd, m_BFProbeTest, ClearFlag.All);
                 cmd.SetViewport(new Rect(0, 0, k_CubeSize, k_CubeSize));
@@ -114,10 +114,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetInvertCulling(false);
                     cmd.SetInstanceMultiplier(0);
                 }
-
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Release();
             }
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Release();
         }
 
         internal void RenderBFProbeDebug(Camera camera)
