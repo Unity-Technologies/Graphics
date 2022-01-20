@@ -1876,7 +1876,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             var existingDefaultCategory = categories.FirstOrDefault();
-            if (existingDefaultCategory.childCount == 0 && categories.Count() == 1 && (properties.Count() != 0 || keywords.Count() != 0 || dropdowns.Count() != 0))
+            if (existingDefaultCategory?.childCount == 0 && categories.Count() == 1 && (properties.Count() != 0 || keywords.Count() != 0 || dropdowns.Count() != 0))
             {
                 // Have a graph with category data in invalid state
                 // there is only one category, the default category, and all shader inputs should belong to it
