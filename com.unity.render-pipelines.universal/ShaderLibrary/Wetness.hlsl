@@ -9,10 +9,13 @@ static const float kWaterAmountDepthRange = 0.01; // 1 sm is maximum thickness
 static const float kNormalScale = 0.5;
 static const float kWaveLeveScale = 0.15;
 static const float kRefractionMult = 15.0;
+static const float kNormalGradScale = 0.5;
+static const float kSurfWaterGradScale = 0.1;
 
 struct WetnessData
 {
     float wetness; // pure wetness amount.
+    float porosity;
     float waveLevel;
     float waterLevel; // Where water starts from wetness level.
     float waterSaturation; // How much surface is satureted with water: 0 (low porosity materials no saturation at all) to 1 (puddle formation starts).
@@ -22,9 +25,9 @@ struct WetnessData
     float occlusion;
 };
 
-float3 PerturbNormal(float3 surf_pos, float3 surf_norm, float height, float2 uv, Texture2D<float4> wetnessBuffer, SamplerState wetnessBufferSampler, float depth)
+float3 PerturbNormal(float3 surf_pos, float3 surf_norm, float porosity, float2 uv, Texture2D<float4> wetnessBuffer, SamplerState wetnessBufferSampler, float depth)
 {
-    float3 vSigmaS = ddx_fine(surf_pos);
+    float3 vSigmaS = ddx_fine(surf_pos); 
     float3 vSigmaT = ddy_fine(surf_pos);
     if (!any(vSigmaS) || !any(vSigmaT))
         return 0;
@@ -43,16 +46,23 @@ float3 PerturbNormal(float3 surf_pos, float3 surf_norm, float height, float2 uv,
     float2 STu = uv - TexDy;
     float2 STb = uv + TexDy;
 
-    float Hl = wetnessBuffer.Sample(wetnessBufferSampler, STl).g;
-    float Hr = wetnessBuffer.Sample(wetnessBufferSampler, STr).g;
-    float Hu = wetnessBuffer.Sample(wetnessBufferSampler, STu).g;
-    float Hb = wetnessBuffer.Sample(wetnessBufferSampler, STb).g;
+    float2 Hl = wetnessBuffer.Sample(wetnessBufferSampler, STl).rg;
+    float2 Hr = wetnessBuffer.Sample(wetnessBufferSampler, STr).rg;
+    float2 Hu = wetnessBuffer.Sample(wetnessBufferSampler, STu).rg;
+    float2 Hb = wetnessBuffer.Sample(wetnessBufferSampler, STb).rg;
 
-    float dBs = (Hr - Hl) / (gradScale * 2.0);
-    float dBt = (Hu - Hb) / (gradScale * 2.0);
+    Hl.r = pow(Hl.r, 2.0);
+    Hr.r = pow(Hr.r, 2.0);
+    Hu.r = pow(Hu.r, 2.0);
+    Hb.r = pow(Hb.r, 2.0);
 
-    float3 vSurfGrad = sign(fDet) * (dBs * vR1 + dBt * vR2);
-    return normalize(abs(fDet) * vN - vSurfGrad);
+    float2 dBs = (Hr - Hl) / (gradScale * 2.0);
+    float2 dBt = (Hu - Hb) / (gradScale * 2.0);
+
+    float3 vSurfGradWaves = sign(fDet) * (dBs.g * vR1 + dBt.g * vR2) * kNormalGradScale;
+    float3 vSurfGradWater = sign(fDet) * (dBs.r * vR1 + dBt.r * vR2) * kSurfWaterGradScale;
+
+    return normalize(abs(fDet) * vN + vSurfGradWaves + vSurfGradWater * saturate(pow((1.0 - porosity), 5.0)));
 }
 
 bool IsSurfaceWet(float4 gbufferWetness)
@@ -60,19 +70,21 @@ bool IsSurfaceWet(float4 gbufferWetness)
     return gbufferWetness.r > 0.0;
 }
 
-WetnessData GetWetnessData(float4 gbufferWetness, float3 posWS, float3 normalWS, float2 uv, Texture2D<float4> wetnessBuffer, SamplerState wetnessBufferSampler, float depth)
+WetnessData GetWetnessData(float4 gbufferWetness, float smoothness, float3 posWS, float3 normalWS, float2 uv, Texture2D<float4> wetnessBuffer, SamplerState wetnessBufferSampler, float depth)
 {
     WetnessData wetnessData;
-
-    wetnessData.wetness = gbufferWetness.r;
+    wetnessData.wetness = pow(gbufferWetness.r, 2.0);
+    wetnessData.porosity = 1.0 - smoothness;
     wetnessData.waveLevel = (gbufferWetness.g * 2.0 - 1.0) * kWaveLeveScale * wetnessData.wetness;
-    wetnessData.waterLevel = kWaterLevelMin;
-    wetnessData.waterSaturation = saturate(wetnessData.wetness / (wetnessData.waterLevel + 0.0001));// This should be using porosity
+    wetnessData.waterLevel = max(kWaterLevelMin - (1.0 - wetnessData.porosity) * kWaterLevelMin, 0.0);
+    wetnessData.waterSaturation = saturate(wetnessData.wetness / (wetnessData.waterLevel + 0.0001));
+    //wetnessData.waterSaturation = pow(saturate(wetnessData.wetness / (wetnessData.waterLevel + 0.0001)), lerp(1.0, 32.0, pow(1.0 - wetnessData.porosity, 16)));
+
     wetnessData.waterAmount = saturate(wetnessData.wetness - wetnessData.waterLevel + wetnessData.waveLevel) * gbufferWetness.b;
 
     float puddleTransition = saturate(wetnessData.waterAmount * 7.5);
     wetnessData.normalWS = normalize(lerp(normalWS, float3(0.0, 1.0, 0.0), puddleTransition));
-    float3 waterNormal = PerturbNormal(posWS, wetnessData.normalWS, gbufferWetness.g, uv, wetnessBuffer, wetnessBufferSampler, depth);
+    float3 waterNormal = PerturbNormal(posWS, wetnessData.normalWS, wetnessData.porosity, uv, wetnessBuffer, wetnessBufferSampler, depth);
     wetnessData.normalWS = normalize(lerp(wetnessData.normalWS, waterNormal, puddleTransition * wetnessData.waterAmount * kNormalScale));
 
     wetnessData.occlusion = 1.0;
@@ -85,9 +97,9 @@ void ApplyWetnessToBRDF(WetnessData wetnessData, inout BRDFData brdfData)
 {
     float3 lum = (brdfData.diffuse.r + brdfData.diffuse.g + brdfData.diffuse.b) / 3.0;
     // Saturation
-    brdfData.diffuse = brdfData.diffuse + normalize(brdfData.diffuse - lum) * wetnessData.waterSaturation * 0.2;
+    brdfData.diffuse = lerp(brdfData.diffuse, brdfData.diffuse + normalize(brdfData.diffuse - lum) * wetnessData.waterSaturation * 0.15, sqrt(wetnessData.porosity));
     // Darkening
-    brdfData.diffuse = lerp(brdfData.diffuse, pow(brdfData.diffuse, 3), sqrt(wetnessData.waterSaturation));
+    brdfData.diffuse = lerp(brdfData.diffuse, lerp(brdfData.diffuse, pow(brdfData.diffuse, 3), sqrt(wetnessData.waterSaturation)), sqrt(wetnessData.porosity));
 }
 
 void ComputeWetnessAbsorbtionAttenuation(WetnessData wetnessData, float3 viewDirectionWS, float3 lightDirWS, out float3 lightAtten, out float3 giAtten)

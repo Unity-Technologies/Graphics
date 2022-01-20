@@ -317,7 +317,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             {
 #ifdef _LIGHT_LAYERS
                 float depth = LinearEyeDepth(d, _ZBufferParams);
-                WetnessData wetnessData = GetWetnessData(gbufferWetness, posWS, inputData.normalWS, screen_uv, MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_linear_clamp_sampler, depth);
+                WetnessData wetnessData = GetWetnessData(gbufferWetness, gbuffer2.a, posWS, inputData.normalWS, screen_uv, MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_linear_clamp_sampler, depth);
 
                 float aberOffset = 0.02 * max(1.0 - saturate(depth * 0.5), 0) * wetnessData.waterAmount;
 
@@ -390,8 +390,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 giColor += giWetness;
 
                 color += giColor;
+
+                //color = wetnessData.waterSaturation;
 #endif
                 //@ Problems in shadows
+                //@ To dark attenuation under angle when not so much wetness
                 //@ Occlusion disappears in the beginning
 #endif  
             }

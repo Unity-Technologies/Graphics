@@ -266,8 +266,8 @@ BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
 BRDFData BRDFDataFromGbufferWetnessData(WetnessData wetnessData)
 {
     half3 albedo = 0.0;
-    half3 specular = kWaterSpec * wetnessData.waterSaturation;
-    half smoothness = lerp(0.0, 1.0, wetnessData.waterSaturation);
+    half3 specular = kWaterSpec * saturate(wetnessData.waterSaturation);
+    half smoothness = saturate(lerp(0.0, 1.0, wetnessData.waterSaturation));
     half alpha = half(1.0); // NOTE: alpha can get modfied, forward writes it out (_ALPHAPREMULTIPLY_ON).
     half3 brdfDiffuse = 0;
     half3 brdfSpecular = specular;
