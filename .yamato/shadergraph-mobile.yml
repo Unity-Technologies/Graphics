@@ -1,0 +1,6 @@
+Virtual_job:
+    name: Virtual job
+    dependencies:
+    - .yamato/shadergraph-android-opengles3.yml#ShaderGraph_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk
+    - .yamato/shadergraph-android-vulkan.yml#ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_trunk
+    - .yamato/shadergraph-iphone-metal.yml#ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_trunk
