@@ -193,6 +193,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public int tileSize;
             public int histogramSize;
             public Vector2Int screenSize;
+            public int blockJitterOffsetX;
+            public int blockJitterOffsetY;
             public ComputeShader cs;
             public Texture2D ditherTexture;
             public TextureHandle stencilBuffer;
@@ -208,6 +210,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.cs = defaultResources.shaders.oitTileHistogramCS;
                 passData.screenSize = screenSize;
+                passData.blockJitterOffsetX = 0;
+                passData.blockJitterOffsetY = 0;
                 passData.tileSize = tileSize;
                 passData.ditherTexture = defaultResources.textures.blueNoise128RTex;
                 passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
@@ -226,6 +230,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeTextureParam(data.cs, histogramKernel, HDShaderIDs._OITDitherTexture, data.ditherTexture);
                         context.cmd.SetComputeTextureParam(data.cs, histogramKernel, HDShaderIDs._VisOITCount, (RenderTexture)data.stencilBuffer, 0, RenderTextureSubElement.Stencil);
                         context.cmd.SetComputeBufferParam(data.cs, histogramKernel, HDShaderIDs._VisOITHistogramOutput, data.histogramBuffer);
+                        context.cmd.SetComputeIntParam(data.cs, HDShaderIDs._VisOITBlockJitterOffsetX, data.blockJitterOffsetX);
+                        context.cmd.SetComputeIntParam(data.cs, HDShaderIDs._VisOITBlockJitterOffsetY, data.blockJitterOffsetY);
                         context.cmd.DispatchCompute(data.cs, histogramKernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), viewCount);
                     });
             }

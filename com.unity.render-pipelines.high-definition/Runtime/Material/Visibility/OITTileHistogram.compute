@@ -12,14 +12,40 @@
 #define GROUP_SIZE_X 8
 #define GROUP_SIZE 64
 
+#define APPLY_JITTER_BIAS 0
+
 float4 _PackedOITTileHistogramArgs;
+
+int _VisOITBlockJitterOffsetX;
+int _VisOITBlockJitterOffsetY;
 
 Texture2D<float> _OITDitherTexture;
 RWByteAddressBuffer _VisOITHistogramOutput;
 
 uint GetPixelIndex(int2 pixelCoordinates)
 {
-    return (uint)((DITHER_TILE_TOTAL_PIXELS) * _OITDitherTexture[(uint2)pixelCoordinates % uint2(DITHER_TILE_SIZE, DITHER_TILE_SIZE)]);
+    float ditherRatio = _OITDitherTexture[(uint2)pixelCoordinates % uint2(DITHER_TILE_SIZE, DITHER_TILE_SIZE)];
+
+#if APPLY_JITTER_BIAS
+    int isMod4X = ((pixelCoordinates.x-_VisOITBlockJitterOffsetX) % 4 == 0) ? 1 : 0;
+    int isMod8X = ((pixelCoordinates.x-_VisOITBlockJitterOffsetX) % 8 == 0) ? 1 : 0;
+    int isMod4Y = ((pixelCoordinates.y-_VisOITBlockJitterOffsetY) % 4 == 0) ? 1 : 0;
+    int isMod8Y = ((pixelCoordinates.y-_VisOITBlockJitterOffsetY) % 8 == 0) ? 1 : 0;
+
+    int totalSum = isMod4X + isMod8X + isMod4Y + isMod8Y;
+
+    [flatten]
+    if (totalSum >= 1)
+    {
+        ditherRatio = 0.5f + float(totalSum-1) / 8.0f + ditherRatio / 8.0f;
+    }
+    else
+    {
+        ditherRatio = 0.5f * ditherRatio;
+    }
+#endif
+
+    return (uint)((DITHER_TILE_TOTAL_PIXELS) * ditherRatio);
 }
 
 [numthreads(GROUP_SIZE, 1, 1)]
