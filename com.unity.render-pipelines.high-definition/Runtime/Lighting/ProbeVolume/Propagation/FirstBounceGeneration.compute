@@ -422,6 +422,7 @@ void GatherFirstBounceMiss(uint3 id : SV_DispatchThreadID)
         if (!(distAlongV < _UpdateDistInFrontOfCamera && distAlongV > -_UpdateDistBehindCamera)) return;
 
         float4 axisDirection = UnpackAxis(data.y);
+		axisDirection = _RayAxis[axisIndex];
 
         float4 lightingAndWeight = 0;
         float3 prevValue = GetPreviousIrradianceCacheValue(probeIndex, axisIndex);

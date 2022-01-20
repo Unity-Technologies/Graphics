@@ -152,6 +152,7 @@ void TraceExtraData(int probeAxisPair)
     // If we have a miss, no need to check against previous data. We just store.  
 
     float4 axisDirection = UnpackAxis(data.y);
+	axisDirection = _RayAxis[axisIndex];
 
     // Create the ray descriptor for this pixel
     RayDesc rayDescriptor;
