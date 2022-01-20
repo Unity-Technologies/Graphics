@@ -27,8 +27,18 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="pageName"></param>
         /// <param name="packageName"></param>
+        public CoreRPHelpURLAttribute(string pageName, string packageName = "com.unity.render-pipelines.core")
+            : base(DocumentationInfo.GetPageLink(packageName, pageName, ""))
+        {
+        }
+
+        /// <summary>
+        /// The constructor of the attribute
+        /// </summary>
+        /// <param name="pageName"></param>
+        /// <param name="packageName"></param>
         /// <param name="pageHash"></param>
-        public CoreRPHelpURLAttribute(string pageName, string packageName = "com.unity.render-pipelines.core", string pageHash = "")
+        public CoreRPHelpURLAttribute(string pageName, string pageHash, string packageName = "com.unity.render-pipelines.core")
             : base(DocumentationInfo.GetPageLink(packageName, pageName, pageHash))
         {
         }
@@ -64,9 +74,17 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="packageName">The package name</param>
         /// <param name="pageName">The page name</param>
+        /// <returns>The full url page</returns>
+        public static string GetPageLink(string packageName, string pageName) => string.Format(url, packageName, version, pageName, "");
+
+        /// <summary>
+        /// Generates a help url for the given package and page name
+        /// </summary>
+        /// <param name="packageName">The package name</param>
+        /// <param name="pageName">The page name</param>
         /// <param name="pageHash">The page hash</param>
         /// <returns>The full url page</returns>
-        public static string GetPageLink(string packageName, string pageName, string pageHash = "") => string.Format(url, packageName, version, pageName, pageHash);
+        public static string GetPageLink(string packageName, string pageName, string pageHash) => string.Format(url, packageName, version, pageName, pageHash);
     }
 
     /// <summary>

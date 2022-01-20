@@ -27,6 +27,10 @@ PR_ShaderGraph_trunk:
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_trunk
          rerun: on_new_revision
+      -  path: .yamato/all-shadergraph_builtin_foundation.yml#ShaderGraph_BuiltIn_Foundation_trunk
+         rerun: on_new_revision
+      -  path: .yamato/all-shadergraph_builtin_lighting.yml#ShaderGraph_BuiltIn_Lighting_trunk
+         rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_trunk
          rerun: on_new_revision
 Extra_ShaderGraph_trunk:
@@ -94,6 +98,10 @@ PR_ShaderGraph_CUSTOM-REVISION:
       -  path: .yamato/shadergraph-iphone-metal.yml#ShaderGraph_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-shadergraph_stereo.yml#PR_ShaderGraph_Stereo_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-shadergraph_builtin_foundation.yml#ShaderGraph_BuiltIn_Foundation_CUSTOM-REVISION
+         rerun: on_new_revision
+      -  path: .yamato/all-shadergraph_builtin_lighting.yml#ShaderGraph_BuiltIn_Lighting_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/_abv.yml#General_Checks_CUSTOM-REVISION
          rerun: on_new_revision

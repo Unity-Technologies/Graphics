@@ -45,6 +45,7 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("The rotation of aperture blades in degrees.")]
         public ClampedFloatParameter bladeRotation = new ClampedFloatParameter(0f, -180f, 180f);
 
+        /// <inheritdoc/>
         public bool IsActive()
         {
             if (mode.value == DepthOfFieldMode.Off || SystemInfo.graphicsShaderLevel < 35)
@@ -53,6 +54,7 @@ namespace UnityEngine.Rendering.Universal
             return mode.value != DepthOfFieldMode.Gaussian || SystemInfo.supportedRenderTargetCount > 1;
         }
 
+        /// <inheritdoc/>
         public bool IsTileCompatible() => false;
     }
 
