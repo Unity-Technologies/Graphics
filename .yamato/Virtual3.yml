@@ -1,0 +1,4 @@
+Virtual_job:
+    name: Virtual job
+    dependencies:
+    - .yamato/hdrp_batchrenderergroup-linux-vulkan.yml#Build_HDRP_BatchRendererGroup_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
