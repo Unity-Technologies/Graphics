@@ -232,6 +232,11 @@ void GetPBRValidatorDebug(SurfaceData surfaceData, inout float3 result)
     result = surfaceData.diffuseColor;
 }
 
+float4 GetHeightMapDebug(SurfaceData surfaceData)
+{
+    return float4(surfaceData.diffuseColor, 1);
+}
+
 //-----------------------------------------------------------------------------
 // PreLightData
 //
