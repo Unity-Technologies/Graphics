@@ -55,14 +55,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RenderBFProbes(ScriptableRenderContext context)
         {
+            var probes = Object.FindObjectsOfType<BFProbe>();
+            if (probes.Length == 0)
+                return;
+
             var cmd = new CommandBuffer();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BFProbeRender)))
             {
                 cmd.name = "BFProbes";
-
-                var probes = Object.FindObjectsOfType<BFProbe>();
-                if (probes.Length == 0)
-                    return;
 
                 CoreUtils.SetRenderTarget(cmd, m_BFProbeTest, ClearFlag.All);
                 cmd.SetViewport(new Rect(0, 0, k_CubeSize, k_CubeSize));
