@@ -244,6 +244,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     float metalness;
     VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, normal, roughness, baseColor, metalness);
 
+    //lighting += _VisOITOffscreenPhotonRadianceLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
     //lighting += _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
     //lighting += roughness.xxx;
     //lighting += normal.rgb;

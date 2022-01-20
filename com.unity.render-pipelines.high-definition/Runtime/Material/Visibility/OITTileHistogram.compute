@@ -7,6 +7,7 @@
 #pragma kernel MainClearHistogram
 #pragma kernel MainCreateStencilHistogram
 #pragma kernel MainFlatEnableActiveCounts
+#pragma kernel MainCreateSampleDispatchArgs
 
 #define GROUP_SIZE_Y 8
 #define GROUP_SIZE_X 8
@@ -100,4 +101,17 @@ void MainFlatEnableActiveCounts(int3 dispatchThreadID : SV_DispatchThreadID)
     _OITOutputActiveCounts.Store(outputPixel << 2, storageValue);
     _OITOutputSublistCounter.Store(outputPixel << 2, 0); //initialize buffer to 0
     _OITOutputPixelHash.Store(outputPixel << 2, 0x0); // initialize hash value to zero
+}
+
+ByteAddressBuffer _VisOITInputInclusivePrefixSumActiveCount;
+RWStructuredBuffer<uint4> _OITOutputDispatchSampleArgs;
+RWByteAddressBuffer _OITOutputSamplesCount;
+
+[numthreads(1, 1, 1)]
+void MainCreateSampleDispatchArgs()
+{
+    int lastPixelValue = _ScreenSize.x *_ScreenSize.y - 1;
+    uint totalPixelCount = _VisOITInputInclusivePrefixSumActiveCount.Load(lastPixelValue << 2);
+    _OITOutputDispatchSampleArgs[0] = uint4((totalPixelCount + (SAMPLES_DISPATCH_THREAD_COUNT - 1))/SAMPLES_DISPATCH_THREAD_COUNT,1,1,totalPixelCount);
+    _OITOutputSamplesCount.Store(0, totalPixelCount);
 }

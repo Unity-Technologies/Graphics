@@ -1120,13 +1120,17 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VisOITHistogramOutput = Shader.PropertyToID("_VisOITHistogramOutput");
         public static readonly int _VisOITHistogramBuffer = Shader.PropertyToID("_VisOITHistogramBuffer");
         public static readonly int _VisOITPrefixedHistogramBuffer = Shader.PropertyToID("_VisOITPrefixedHistogramBuffer");
+        public static readonly int _VisOITInputInclusivePrefixSumActiveCount = Shader.PropertyToID("_VisOITInputInclusivePrefixSumActiveCount");
         public static readonly int _OITOutputActiveCounts = Shader.PropertyToID("_OITOutputActiveCounts");
         public static readonly int _OITOutputSublistCounter = Shader.PropertyToID("_OITOutputSublistCounter");
         public static readonly int _OITOutputPixelHash = Shader.PropertyToID("_OITOutputPixelHash");
+        public static readonly int _OITOutputDispatchSampleArgs = Shader.PropertyToID("_OITOutputDispatchSampleArgs");
+        public static readonly int _OITOutputSamplesCount = Shader.PropertyToID("_OITOutputSamplesCount");
         public static readonly int _VisOITListsCounts = Shader.PropertyToID("_VisOITListsCounts");
         public static readonly int _VisOITListsOffsets = Shader.PropertyToID("_VisOITListsOffsets");
         public static readonly int _VisOITSubListsCounts = Shader.PropertyToID("_VisOITSubListsCounts");
         public static readonly int _VisOITPixelHash = Shader.PropertyToID("_VisOITPixelHash");
+        public static readonly int _VisOITSamplesCountBuffer = Shader.PropertyToID("_VisOITSamplesCountBuffer");
 
         public static readonly int _MipSource = Shader.PropertyToID("_MipSource");
 
@@ -1144,6 +1148,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VisOITOffscreenGBuffer0 = Shader.PropertyToID("_VisOITOffscreenGBuffer0");
         public static readonly int _VisOITOffscreenGBuffer1 = Shader.PropertyToID("_VisOITOffscreenGBuffer1");
         public static readonly int _VisOITOffscreenDirectReflectionLighting = Shader.PropertyToID("_VisOITOffscreenDirectReflectionLighting");
+        public static readonly int _VisOITOffscreenPhotonRadianceLighting = Shader.PropertyToID("_VisOITOffscreenPhotonRadianceLighting");
+        public static readonly int _VisOITOutputPhotonTexture = Shader.PropertyToID("_VisOITOutputPhotonTexture");
         public static readonly int _VisOITOutputSparseColorBuffer = Shader.PropertyToID("_VisOITOutputSparseColorBuffer");
         public static readonly int _VisOITSparseColorBuffer = Shader.PropertyToID("_VisOITSparseColorBuffer");
 

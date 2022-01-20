@@ -141,6 +141,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader oitResolveDeferredSSTracingCS;
             [Reload("Runtime/Material/Visibility/OITTileComputeHiZ.compute")]
             public ComputeShader oitTileComputeHiZCS;
+            [Reload("Runtime/Material/Visibility/OITPhotonBuffer.compute")]
+            public ComputeShader oitPhotonBuffer;
 
             // Sky
             [Reload("Runtime/Sky/BlitCubemap.shader")]

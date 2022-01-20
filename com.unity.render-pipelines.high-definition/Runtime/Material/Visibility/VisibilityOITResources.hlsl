@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/VisibilityCommon.hlsl"
 
+#define SAMPLES_DISPATCH_THREAD_COUNT 64
 #define DITHER_TILE_SIZE 128
 #define DITHER_TILE_TOTAL_PIXELS (DITHER_TILE_SIZE * DITHER_TILE_SIZE)
 
@@ -26,6 +27,7 @@ TEXTURE2D_X_UINT4(_VisOITOffscreenGBuffer0);
 TEXTURE2D_X_UINT(_VisOITOffscreenGBuffer1);
 TEXTURE2D_X(_VisOITOffscreenDirectReflectionLighting);
 TEXTURE2D_X(_VisOITOffscreenLighting);
+TEXTURE2D_X(_VisOITOffscreenPhotonRadianceLighting);
 
 float4 DebugDrawOITHistogram(float2 sampleUV, float2 screenSize)
 {

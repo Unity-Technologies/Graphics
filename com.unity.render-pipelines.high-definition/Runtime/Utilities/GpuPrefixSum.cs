@@ -55,18 +55,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public ComputeBufferHandle output => prefixBuffer0;
 
-        public static GpuPrefixSumRenderGraphResources Create(int newMaxElementCount, RenderGraph renderGraph, RenderGraphBuilder builder)
+        public static GpuPrefixSumRenderGraphResources Create(int newMaxElementCount, RenderGraph renderGraph, RenderGraphBuilder builder, bool outputIsTemp = false)
         {
             var resources = new GpuPrefixSumRenderGraphResources();
-            resources.Initialize(newMaxElementCount, renderGraph, builder);
+            resources.Initialize(newMaxElementCount, renderGraph, builder, outputIsTemp);
             return resources;
         }
 
-        void Initialize(int newMaxElementCount, RenderGraph renderGraph, RenderGraphBuilder builder)
+        void Initialize(int newMaxElementCount, RenderGraph renderGraph, RenderGraphBuilder builder, bool outputIsTemp = false)
         {
             newMaxElementCount = Math.Max(newMaxElementCount, 1);
             GpuPrefixSumDefs.CalculateTotalBufferSize(newMaxElementCount, out int totalSize, out int levelCounts);
-            prefixBuffer0 = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(totalSize, 4, ComputeBufferType.Raw) { name = "prefixBuffer0" }));
+
+            var prefixBuffer0Desc = new ComputeBufferDesc(totalSize, 4, ComputeBufferType.Raw) { name = "prefixBuffer0" };
+            prefixBuffer0 = outputIsTemp ? builder.CreateTransientComputeBuffer(prefixBuffer0Desc) : builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(prefixBuffer0Desc));
             prefixBuffer1 = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(newMaxElementCount, 4, ComputeBufferType.Raw) { name = "prefixBuffer1" });
             totalLevelCountBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(1, 4, ComputeBufferType.Raw) { name = "totalLevelCountBuffer" });
             levelOffsetBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(levelCounts, System.Runtime.InteropServices.Marshal.SizeOf<GpuPrefixSumLevelOffsets>(), ComputeBufferType.Structured) { name = "levelOffsetBuffer" });
