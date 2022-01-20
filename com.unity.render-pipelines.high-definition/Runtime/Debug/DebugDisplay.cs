@@ -889,6 +889,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(m_RecordedSamplers.Count == 0);
 
             m_RecordedSamplers.Add(HDProfileId.HDRenderPipelineAllRenderRequest);
+            m_RecordedSamplers.Add(HDProfileId.BFProbeRender);
             m_RecordedSamplers.Add(HDProfileId.VolumeUpdate);
             m_RecordedSamplers.Add(HDProfileId.RenderShadowMaps);
             m_RecordedSamplers.Add(HDProfileId.GBuffer);

@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
         };
 
         private const int k_CubeSize = 64;
-        private const int k_MaxProbeCount = 128;
+        private const int k_MaxProbeCount = 32;
 
         private RenderTexture m_BFProbeTest;
 
@@ -51,59 +51,61 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void RenderBFProbes(ScriptableRenderContext context)
         {
-            var probes = Object.FindObjectsOfType<BFProbe>();
-            if (probes.Length == 0)
-                return;
-
-            var cmd = new CommandBuffer();
-            cmd.name = "BFProbes";
-
-            int probeCount = Mathf.Min(probes.Length, k_MaxProbeCount);
-            for (int probeIndex = 0; probeIndex < probeCount; ++probeIndex)
-            for (int faceIndex = 0; faceIndex < 6; ++faceIndex)
+            using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.BFProbeRender)))
             {
-                Camera camera = m_BFProbeCameraCache.GetOrCreate(faceIndex, m_FrameCount, CameraType.Game);
-                camera.gameObject.hideFlags = HideFlags.HideAndDontSave;
-                camera.gameObject.SetActive(false);
-                camera.targetTexture = m_BFProbeTest;
-                camera.nearClipPlane = 0.01f;
-                camera.farClipPlane = 1000.0f;
-                camera.fieldOfView = 90.0f;
+                var probes = Object.FindObjectsOfType<BFProbe>();
+                if (probes.Length == 0)
+                    return;
 
-                camera.transform.position = probes[probeIndex].transform.position;
-                camera.transform.rotation = Quaternion.Euler(s_BFProbeFaceRotations[faceIndex]);
+                var cmd = new CommandBuffer();
+                cmd.name = "BFProbes";
 
-                camera.TryGetCullingParameters(out var cullingParameters);
-                cullingParameters.cullingOptions = CullingOptions.DisablePerObjectCulling;
-                var cullingResults = context.Cull(ref cullingParameters);
-
-                var rendererListDesc = new RendererListDesc(HDShaderPassNames.s_ReadSurfaceCacheName, cullingResults, camera)
+                int probeCount = Mathf.Min(probes.Length, k_MaxProbeCount);
+                for (int probeIndex = 0; probeIndex < probeCount; ++probeIndex)
+                for (int faceIndex = 0; faceIndex < 6; ++faceIndex)
                 {
-                    renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque,
-                    sortingCriteria = SortingCriteria.CommonOpaque,
-                };
-                var rendererList = context.CreateRendererList(rendererListDesc);
-                if (!rendererList.isValid)
-                    Debug.Log("RendererList not valid!");
+                    Camera camera = m_BFProbeCameraCache.GetOrCreate(faceIndex, m_FrameCount, CameraType.Game);
+                    camera.gameObject.hideFlags = HideFlags.HideAndDontSave;
+                    camera.gameObject.SetActive(false);
+                    camera.targetTexture = m_BFProbeTest;
+                    camera.nearClipPlane = 0.01f;
+                    camera.farClipPlane = 1000.0f;
+                    camera.fieldOfView = 90.0f;
 
-                Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+                    camera.transform.position = probes[probeIndex].transform.position;
+                    camera.transform.rotation = Quaternion.Euler(s_BFProbeFaceRotations[faceIndex]);
 
-                Matrix4x4 gpuView = GeometryUtils.CalculateWorldToCameraMatrixRHS(camera.transform.position, camera.transform.rotation);
-                if (ShaderConfig.s_CameraRelativeRendering != 0)
-                    gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
-                Vector3 cameraPos = camera.transform.position;
+                    camera.TryGetCullingParameters(out var cullingParameters);
+                    cullingParameters.cullingOptions = CullingOptions.DisablePerObjectCulling;
+                    var cullingResults = context.Cull(ref cullingParameters);
 
-                CoreUtils.SetRenderTarget(cmd, m_BFProbeTest, ClearFlag.All, depthSlice: 6*probeIndex + faceIndex);
-                cmd.SetViewport(new Rect(0, 0, k_CubeSize, k_CubeSize));
-                cmd.SetGlobalMatrix(_ViewProjMatrix, gpuProj * gpuView);
-                cmd.SetGlobalVector(_WorldSpaceCameraPos_Internal, new Vector4(cameraPos.x, cameraPos.y, cameraPos.z, 0.0f));
-                cmd.SetInvertCulling(true);
-                cmd.DrawRendererList(rendererList);
-                cmd.SetInvertCulling(false);
+                    var rendererListDesc = new RendererListDesc(HDShaderPassNames.s_ReadSurfaceCacheName, cullingResults, camera)
+                    {
+                        renderingLayerMask = ~DeferredMaterialBRG.RenderLayerMask,
+                        renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque,
+                        sortingCriteria = SortingCriteria.CommonOpaque,
+                    };
+                    var rendererList = context.CreateRendererList(rendererListDesc);
+
+                    Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+
+                    Matrix4x4 gpuView = GeometryUtils.CalculateWorldToCameraMatrixRHS(camera.transform.position, camera.transform.rotation);
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                        gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
+                    Vector3 cameraPos = camera.transform.position;
+
+                    CoreUtils.SetRenderTarget(cmd, m_BFProbeTest, ClearFlag.All, depthSlice: 6*probeIndex + faceIndex);
+                    cmd.SetViewport(new Rect(0, 0, k_CubeSize, k_CubeSize));
+                    cmd.SetGlobalMatrix(_ViewProjMatrix, gpuProj * gpuView);
+                    cmd.SetGlobalVector(_WorldSpaceCameraPos_Internal, new Vector4(cameraPos.x, cameraPos.y, cameraPos.z, 0.0f));
+                    cmd.SetInvertCulling(true);
+                    cmd.DrawRendererList(rendererList);
+                    cmd.SetInvertCulling(false);
+                }
+
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Release();
             }
-
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Release();
         }
 
         internal void RenderBFProbeDebug(Camera camera)
