@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering
         private static readonly ShaderTagId s_RenderPipelineShaderTagId = new ShaderTagId("RenderPipeline");
 
         /// <summary>
-        /// If the tag "RenderPipeline" it is returned
+        /// Tries to find the "RenderPipeline" on the shader by the given <see cref="ShaderSnippetData"/>
         /// </summary>
         /// <param name="shader"><see cref="Shader"/> The shader to look for the tag</param>
         /// <param name="snippetData"><see cref="ShaderSnippetData"/></param>
