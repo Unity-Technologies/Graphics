@@ -416,23 +416,12 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
         float3 rayOrigin = float3(posInputRaw.positionSS + 0.5, deviceDepth);
 
-        //float3 Xi;
-        //Xi.x = InterleavedGradientNoise(offscreenCoord_b, 3 * b + 0 + /*_FrameCount*/ _Time * 16);
-        //Xi.y = InterleavedGradientNoise(offscreenCoord_b, 3 * b + 1 + /*_FrameCount*/ _Time * 16);
-        //Xi.z = InterleavedGradientNoise(offscreenCoord_b, 3 * b + 2 + /*_FrameCount*/ _Time * 16);
-        //Xi.x = GenerateHashedRandomFloat(3 * b + 0 + posInputRaw.positionSS.x * _SinTime);
-        //Xi.y = GenerateHashedRandomFloat(3 * b + 1 + posInputRaw.positionSS.y * _SinTime);
-        //Xi.z = GenerateHashedRandomFloat(3 * b + 2 + posInputRaw.positionSS.x * _CosTime);
-
-        //Xi.x = InterleavedGradientNoise(offscreenCoord_b, 3 * b + 0 + _FrameCount);
-        //Xi.y = InterleavedGradientNoise(offscreenCoord_b, 3 * b + 1 + _FrameCount);
-        //Xi.z = InterleavedGradientNoise(offscreenCoord_b, 3 * b + 2 + _FrameCount);
-
         float3 Xi;
-        Xi.x = GetBNDSequenceSample(offscreenCoord_b, _FrameCount, 0);
-        Xi.y = GetBNDSequenceSample(offscreenCoord_b, _FrameCount, 1);
-        Xi.z = GetBNDSequenceSample(offscreenCoord_b, _FrameCount, 2);
+        Xi.x = GetBNDSequenceSample(offscreenCoord_b, _FrameCount, 3 * b + 0);
+        Xi.y = GetBNDSequenceSample(offscreenCoord_b, _FrameCount, 3 * b + 1);
+        Xi.z = GetBNDSequenceSample(offscreenCoord_b, _FrameCount, 3 * b + 2);
 
+        float weight;
         //float coefBias = 0.1 / roughness;
         //Xi.x = lerp(Xi.x, 0.0f, roughness * coefBias);
         UNITY_BRANCH
@@ -442,7 +431,6 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
             float3x3 localToWorld = GetLocalFrame(n);
             float3 dir = wo;
             //float3 wi;// = dir;
-            float weight;
             SampleGGX_VNDF(roughness,
                            localToWorld,
                            dir,
@@ -452,16 +440,26 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         }
         else
         {
-            float3x3 localToWorld = GetLocalFrame(-n);
-            float3 dir = lerp(refract(-wo, n.xyz, eta), -wo, roughness);
-            //float3 wi;// = dir;
-            float weight;
-            SampleGGX_VNDF(roughness,
-                           localToWorld,
-                           dir,
-                           Xi.xy,
-                           wi,
-                           weight);
+            UNITY_BRANCH
+            if (Xi.z > roughness)
+            {
+                wi = refract(-wo, -n.xyz, 1.0f / eta);
+                weight = 1.0f - roughness;
+            }
+            else
+            {
+                float3x3 localToWorld = GetLocalFrame(-n);
+                //float3 dir = lerp(refract(-wo, n.xyz, eta), -wo, roughness);
+                float3 dir = refract(-wo, -n.xyz, 1.0f / eta);
+                //float3 dir = -wo;
+                //float3 wi;// = dir;
+                SampleGGX_VNDF(roughness,
+                    localToWorld,
+                    dir,
+                    Xi.xy,
+                    wi,
+                    weight);
+            }
         }
         //BTDF::GGXSampleWSOmega_w(wo, n, Xi, roughness, wi);
         //wi *= -1;
@@ -591,6 +589,12 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
                 break;
         }
 
+        if (!hit)
+        {
+            transport *= 0.0f;
+            break;
+        }
+
         float2 currentNDC_xy = floor(rayPos.xy) * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
         float3 endWS = ComputeWorldSpacePosition(currentNDC_xy.xy, rayPos.z, UNITY_MATRIX_I_VP);
 
@@ -650,7 +654,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         int gOffset = a + listOffset;
         radianceInt += _VisOITOffscreenPhotonRadianceLighting.Load4((gOffset * 4) << 2);
     }
-    
+
     //uint4 radianceInt = _VisOITOffscreenPhotonRadianceLighting.Load4((globalOffset * 4) << 2);
     float3 radiance = ((float3)radianceInt.xyz / (float)0xFFFFFF);
     _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(radiance, 1.0);
