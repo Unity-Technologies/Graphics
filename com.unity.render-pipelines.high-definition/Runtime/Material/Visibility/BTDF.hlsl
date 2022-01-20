@@ -130,6 +130,8 @@ namespace BTDF
             u.x, u.y, // random numbers
             // output
             omega_m); // micronormal
+
+        omega_m = mul(omega_m, localToWorld);
     }
 }
 

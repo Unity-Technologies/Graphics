@@ -644,15 +644,19 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(output, 1.0);
     }
 #else
-    uint4 radianceInt = uint4(0,0,0,0);
-    for (uint a = 0; a < listCount; ++a)
+    //float4 radianceVal = float4(0,0,0,0);
+    //for (uint a = 0; a < listCount; ++a)
+    //{
+    //    int gOffset = a + listOffset;
+    //    uint2 offscreenCoord = uint2(gOffset % GetOffscreenLightBufferWidth(), gOffset / GetOffscreenLightBufferWidth());
+    //    radianceVal += _VisOITOffscreenPhotonRadianceLighting[COORD_TEXTURE2D_X(offscreenCoord)];
+    //}
+
+    float4 radianceVal = float4(0,0,0,0);
     {
-        int gOffset = a + listOffset;
-        radianceInt += _VisOITOffscreenPhotonRadianceLighting.Load4((gOffset * 4) << 2);
+        uint2 offscreenCoord = uint2(listOffset % GetOffscreenLightBufferWidth(), listOffset / GetOffscreenLightBufferWidth());
+        radianceVal = _VisOITOffscreenPhotonRadianceLighting[COORD_TEXTURE2D_X(offscreenCoord)];
     }
-    
-    //uint4 radianceInt = _VisOITOffscreenPhotonRadianceLighting.Load4((globalOffset * 4) << 2);
-    float3 radiance = ((float3)radianceInt.xyz / (float)0xFFFFFF);
-    _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(radiance, 1.0);
+    _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(radianceVal.xyz / radianceVal.a, 1.0);
 #endif
 }
