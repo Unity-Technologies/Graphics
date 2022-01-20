@@ -36,7 +36,7 @@ float4 ApplyOitAlphaToAccumulation(float4 accumulation, float4 currColor)
     //ret.a = currColor.a + accumulation.a * (1.0f - currColor.a);
 
     // front to back
-    ret.xyz = accumulation.rgb * accumulation.a + currColor.rgb * (1.0f - accumulation.a);
+    ret.xyz = accumulation.rgb + currColor.rgb * (1.0f - accumulation.a);
     ret.a = accumulation.a + currColor.a * (1.0f - accumulation.a);
     return ret;
 }
@@ -73,11 +73,18 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     float3 lighting = float3(0.0f, 0.0f, 0.0f);
     float4 dstAccumulation = 0.0f;
 
+    //int peelLimit = 2;
     float minDepth = 1.0;
     for (uint i = 0; i < listCount; ++i)
     {
         int globalOffset = i + listOffset;
         uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
+
+
+        //if (i >= peelLimit)
+        //{
+        //    continue;
+        //}
 
         Visibility::VisibilityData unusedVisData;
         uint2 unusedTexelCoord;
@@ -87,12 +94,11 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         if (depthValue < currentDepth)
             continue;
 
-
         minDepth = max(depthValue, minDepth);
 
-        float currAlpha = 0.5; // fetch this from somewhere
+        float4 currColor = _VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
+        //dstAccumulation = currColor;
 
-        float4 currColor = float4(_VisOITOffscreenLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb, currAlpha);
 
         // use this function once are sorted
         dstAccumulation = ApplyOitAlphaToAccumulation(dstAccumulation, currColor);
