@@ -645,8 +645,6 @@ Shader "HDRP/Lit"
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer
-            #pragma multi_compile _ DOTS_INSTANCING_ON
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -666,7 +664,7 @@ Shader "HDRP/Lit"
 
             static uint g_activeArrayIndex = 0;
 
-            #define MAX_PROBE_COUNT         32
+            #define MAX_PROBE_COUNT         128
             #define MAX_RT_ARRAY_COUNT      (MAX_PROBE_COUNT * 6)
             float4x4 _ViewProjMatrixArray[MAX_RT_ARRAY_COUNT];
             float4 _WorldSpaceCameraPosArray[MAX_RT_ARRAY_COUNT];

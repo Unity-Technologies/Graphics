@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
         };
 
         private const int k_CubeSize = 64;
-        private const int k_MaxProbeCount = 32;
+        private const int k_MaxProbeCount = 128;
 
         private RenderTexture m_BFProbeTest;
 
@@ -31,6 +31,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static readonly int _ViewProjMatrixArray = Shader.PropertyToID("_ViewProjMatrixArray");
         static readonly int _WorldSpaceCameraPosArray = Shader.PropertyToID("_WorldSpaceCameraPosArray");
+
+        private Matrix4x4[] m_ViewProjArray = new Matrix4x4[6*k_MaxProbeCount];
+        private Vector4[] m_CameraPosArray = new Vector4[6*k_MaxProbeCount];
+
 
         private CameraCache<int> m_BFProbeCameraCache = new CameraCache<int>();
 
@@ -65,9 +69,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int probeCount = Mathf.Min(probes.Length, k_MaxProbeCount);
 
-                Matrix4x4[] viewProjArray = new Matrix4x4[6*probeCount];
-                Vector4[] cameraPosArray = new Vector4[6*probeCount];
-
                 for (int probeIndex = 0; probeIndex < probeCount; ++probeIndex)
                 for (int faceIndex = 0; faceIndex < 6; ++faceIndex)
                 {
@@ -81,12 +82,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         gpuView.SetColumn(3, new Vector4(0, 0, 0, 1));
 
                     int arrayIndex = 6*probeIndex + faceIndex;
-                    viewProjArray[arrayIndex] = gpuProj * gpuView;
-                    cameraPosArray[arrayIndex] = new Vector4(cameraPos.x, cameraPos.y, cameraPos.z, 0.0f);
+                    m_ViewProjArray[arrayIndex] = gpuProj * gpuView;
+                    m_CameraPosArray[arrayIndex] = new Vector4(cameraPos.x, cameraPos.y, cameraPos.z, 0.0f);
                 }
 
-                cmd.SetGlobalMatrixArray(_ViewProjMatrixArray, viewProjArray);
-                cmd.SetGlobalVectorArray(_WorldSpaceCameraPosArray, cameraPosArray);
+                cmd.SetGlobalMatrixArray(_ViewProjMatrixArray, m_ViewProjArray);
+                cmd.SetGlobalVectorArray(_WorldSpaceCameraPosArray, m_CameraPosArray);
 
                 {
                     Camera camera = m_BFProbeCameraCache.GetOrCreate(0, m_FrameCount, CameraType.Game);
