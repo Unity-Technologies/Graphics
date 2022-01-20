@@ -943,6 +943,10 @@ void GetPBRValidatorDebug(SurfaceData surfaceData, inout float3 result)
     result = surfaceData.baseColor;
 }
 
+float4 GetHeightMapDebug(SurfaceData surfaceData)
+{
+    return float4(surfaceData.baseColor, 1);
+}
 
 //-----------------------------------------------------------------------------
 // PreLightData
