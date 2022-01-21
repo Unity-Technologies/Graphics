@@ -154,10 +154,7 @@ void MainFlatEnableActiveCounts(int3 dispatchThreadID : SV_DispatchThreadID)
             }
             else if (storageValue <= 32)
             {
-                //sortVariantOffset = 1;
-
-                // Override med to big
-                sortVariantOffset = 2;
+                sortVariantOffset = 1;
             }
             else
             {
