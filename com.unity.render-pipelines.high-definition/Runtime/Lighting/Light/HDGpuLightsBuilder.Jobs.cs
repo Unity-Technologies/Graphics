@@ -299,6 +299,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.specularDimmer = processedEntity.lightDistanceFade * (lightRenderData.affectSpecular ? lightDimmerVal * globalConfig.specularGlobalDimmer : 0);
                 lightData.volumetricLightDimmer = Mathf.Min(processedEntity.lightVolumetricDistanceFade, processedEntity.lightDistanceFade) * (lightRenderData.affectVolumetric ? lightRenderData.volumetricDimmer : 0.0f);
 
+                lightData.lightmapBakeType = processedEntity.lightmapBakeType;
+
                 lightData.cookieMode = CookieMode.None;
                 lightData.shadowIndex = -1;
                 lightData.screenSpaceShadowIndex = globalConfig.invalidScreenSpaceShadowIndex;
@@ -691,7 +693,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 lightData.flareTint = (Vector3)(Vector4)lightRenderData.flareTint;
                 lightData.surfaceTint = (Vector3)(Vector4)lightRenderData.surfaceTint;
-
+                lightData.lightmapBakeType = processedEntity.lightmapBakeType;
                 if (useCameraRelativePosition)
                     lightData.positionRWS -= cameraPos;
 

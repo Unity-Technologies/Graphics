@@ -32,6 +32,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public NativeArray<LightBakingOutput> visibleLightBakingOutput;
             [ReadOnly]
             public NativeArray<LightShadows> visibleLightShadows;
+            [ReadOnly]
+            public NativeArray<int> visibleLightLightmapBakeType;
             #endregion
 
             #region Parameters
@@ -306,7 +308,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightVolumetricDistanceFade = volumetricDistanceFade,
                     distanceToCamera = distanceToCamera,
                     shadowMapFlags = shadowMapFlags,
-                    isBakedShadowMask = isBakedShadowMaskLight
+                    isBakedShadowMask = isBakedShadowMaskLight,
+                    lightmapBakeType = visibleLightLightmapBakeType[index]
                 };
 
                 if (isBakedShadowMaskLight)
@@ -357,6 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 visibleLightEntityDataIndices = m_VisibleLightEntityDataIndices,
                 visibleLightBakingOutput = m_VisibleLightBakingOutput,
                 visibleLightShadows = m_VisibleLightShadows,
+                visibleLightLightmapBakeType = m_VisibleLightLightmapBakeType,
 
                 //Output processed lights.
                 processedVisibleLightCountsPtr = m_ProcessVisibleLightCounts,

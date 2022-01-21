@@ -6,8 +6,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        public Texture2D m_BakedGIPreviewTexture;
-
         struct LightingBuffers
         {
             public TextureHandle sssBuffer;
@@ -930,6 +928,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public Texture2D m_BakedGIPreviewTexture;
+
         LightingOutput RenderDeferredLighting(
             RenderGraph renderGraph,
             HDCamera hdCamera,
@@ -1031,7 +1031,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             var size = RenderGraphResourceRegistry.current.GetTexture(data.pathtracedGI).referenceSize;
 
-                            if (m_BakedGIPreviewTexture == null || size.x != m_BakedGIPreviewTexture.height || size.y != m_BakedGIPreviewTexture.width)
+                            if (m_BakedGIPreviewTexture == null || size.x != m_BakedGIPreviewTexture.width || size.y != m_BakedGIPreviewTexture.height)
                             {
                                 m_BakedGIPreviewTexture = new Texture2D(size.x, size.y, TextureFormat.RGBAHalf, false);
                             }
@@ -1043,7 +1043,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             context.cmd.SetGlobalTexture(HDShaderIDs._BakedGIPreviewTexture, TextureXR.GetWhiteTexture());
                         }
-
 
 
                         BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);

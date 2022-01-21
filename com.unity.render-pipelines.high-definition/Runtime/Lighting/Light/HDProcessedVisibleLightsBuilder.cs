@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float distanceToCamera;
         public HDProcessedVisibleLightsBuilder.ShadowMapFlags shadowMapFlags;
         public bool isBakedShadowMask;
+        public int lightmapBakeType;
     }
 
     //Class representing lights in the context of a view.
@@ -40,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
         //Indexed by VisibleLights
         public NativeArray<LightBakingOutput> visibleLightBakingOutput => m_VisibleLightBakingOutput;
         public NativeArray<LightShadowCasterMode> visibleLightShadowCasterMode => m_VisibleLightShadowCasterMode;
+
+        public NativeArray<int> visibleLightLightmapBakeType => m_VisibleLightLightmapBakeType;
         public NativeArray<int> visibleLightEntityDataIndices => m_VisibleLightEntityDataIndices;
         public NativeArray<LightVolumeType> processedLightVolumeType => m_ProcessedLightVolumeType;
         public NativeArray<HDProcessedVisibleLight> processedEntities => m_ProcessedEntities;
@@ -99,6 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private NativeArray<LightBakingOutput> m_VisibleLightBakingOutput;
         private NativeArray<LightShadowCasterMode> m_VisibleLightShadowCasterMode;
         private NativeArray<LightShadows> m_VisibleLightShadows;
+        private NativeArray<int> m_VisibleLightLightmapBakeType;
         private NativeArray<LightVolumeType> m_ProcessedLightVolumeType;
         private NativeArray<HDProcessedVisibleLight> m_ProcessedEntities;
 
@@ -115,6 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleLightEntityDataIndices.ResizeArray(m_Capacity);
             m_VisibleLightBakingOutput.ResizeArray(m_Capacity);
             m_VisibleLightShadowCasterMode.ResizeArray(m_Capacity);
+            m_VisibleLightLightmapBakeType.ResizeArray(m_Capacity);
             m_VisibleLightShadows.ResizeArray(m_Capacity);
 
             m_ProcessedLightVolumeType.ResizeArray(m_Capacity);
@@ -136,6 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleLightEntityDataIndices.Dispose();
             m_VisibleLightBakingOutput.Dispose();
             m_VisibleLightShadowCasterMode.Dispose();
+            m_VisibleLightLightmapBakeType.Dispose();
             m_VisibleLightShadows.Dispose();
 
             m_ProcessedLightVolumeType.Dispose();

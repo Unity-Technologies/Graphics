@@ -12,6 +12,8 @@ bool SampleVolumeScatteringPosition(uint2 pixelCoord, inout float inputSample, i
 {
     sampleLocalLights = false;
 
+    return false;
+
     if (!_FogEnabled || !_EnableVolumetricFog)
         return false;
 
@@ -97,7 +99,7 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
     float3 scatteringPosition = WorldRayOrigin() + pathIntersection.t * WorldRayDirection();
 
     // Create the list of active lights (a local light can be forced by providing its position)
-    LightList lightList = CreateLightList(scatteringPosition, sampleLocalLights, lightPosition);
+    LightList lightList = CreateLightList(pathIntersection, scatteringPosition, sampleLocalLights, lightPosition);
 
     float pdf, shadowOpacity;
     float3 value;

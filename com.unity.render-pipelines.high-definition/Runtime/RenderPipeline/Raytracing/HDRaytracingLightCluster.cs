@@ -275,7 +275,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;*/
 
 
-                    if (light.lightmapBakeType != LightmapBakeType.Baked)
+                    if (light.lightmapBakeType == LightmapBakeType.Realtime)
                         continue;
 
                     // If this light should not be included when ray tracing is active on the camera, skip it
@@ -539,6 +539,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 processedLightEntity.lightDistanceFade = HDUtils.ComputeLinearDistanceFade(processedLightEntity.distanceToCamera, lightRenderData.fadeDistance);
                 processedLightEntity.lightVolumetricDistanceFade = HDUtils.ComputeLinearDistanceFade(processedLightEntity.distanceToCamera, lightRenderData.volumetricFadeDistance);
                 processedLightEntity.isBakedShadowMask = HDRenderPipeline.IsBakedShadowMaskLight(lightComponent);
+                processedLightEntity.lightmapBakeType = (int)lightComponent.lightmapBakeType;
 
                 // Build a visible light
                 Color finalColor = lightComponent.color.linear * lightComponent.intensity;

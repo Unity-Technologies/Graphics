@@ -113,10 +113,12 @@ bool IsDistantLightActive(DirectionalLightData lightData, float3 normal)
     return dot(normal, lightData.forward) <= sin(lightData.angularDiameter * 0.5);
 }
 
-LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEFAULT_LIGHT_LAYERS,
+LightList CreateLightList(PathIntersection pathIntersection, float3 position, float3 normal, uint lightLayers = DEFAULT_LIGHT_LAYERS,
                           bool withPoint = true, bool withArea = true, bool withDistant = true,
                           float3 lightPosition = FLT_MAX)
 {
+    int currentRayDepth = GetCurrentDepth(pathIntersection);
+
     LightList list;
     uint i;
 
@@ -162,7 +164,7 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEF
                 if (forceLightPosition && any(lightPosition - lightData.positionRWS))
                     continue;
 
-                if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsPointLightActive(lightData, position, normal))
+                if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsPointLightActive(lightData, position, normal) && lightData.lightmapBakeType != 4 && !(lightData.lightmapBakeType == 1 && currentRayDepth < 1) )
                     list.localIndex[list.localPointCount++] = i;
             }
 
@@ -183,7 +185,7 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEF
                 if (forceLightPosition && any(lightPosition - lightData.positionRWS))
                     continue;
 
-                if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsRectAreaLightActive(lightData, position, normal))
+                if (IsMatchingLightLayer(lightData.lightLayers, lightLayers) && IsRectAreaLightActive(lightData, position, normal) && lightData.lightmapBakeType != 4 && !(lightData.lightmapBakeType == 1 && currentRayDepth < 1))
                     list.localIndex[list.localCount++] = i;
             }
         }
@@ -196,7 +198,7 @@ LightList CreateLightList(float3 position, float3 normal, uint lightLayers = DEF
     {
         for (i = 0; i < _DirectionalLightCount && list.distantCount < MAX_DISTANT_LIGHT_COUNT; i++)
         {
-            if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers) && IsDistantLightActive(_DirectionalLightDatas[i], normal))
+            if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, lightLayers) && IsDistantLightActive(_DirectionalLightDatas[i], normal) && _DirectionalLightDatas[i].lightmapBakeType != 4 && !(_DirectionalLightDatas[i].lightmapBakeType == 1 && currentRayDepth < 1))
                 list.distantIndex[list.distantCount++] = i;
         }
     }
@@ -884,9 +886,9 @@ float PickLocalLightInterval(float3 rayOrigin, float3 rayDirection, inout float 
     return lightCount ? float(localCount) / lightCount : -1.0;
 }
 
-LightList CreateLightList(float3 position, bool sampleLocalLights, float3 lightPosition = FLT_MAX)
+LightList CreateLightList(PathIntersection pathIntersection, float3 position, bool sampleLocalLights, float3 lightPosition = FLT_MAX)
 {
-    return CreateLightList(position, 0.0, DEFAULT_LIGHT_LAYERS, sampleLocalLights, sampleLocalLights, !sampleLocalLights, lightPosition);
+    return CreateLightList(pathIntersection, position, 0.0, DEFAULT_LIGHT_LAYERS, sampleLocalLights, sampleLocalLights, !sampleLocalLights, lightPosition);
 }
 
 #endif // UNITY_PATH_TRACING_LIGHT_INCLUDED

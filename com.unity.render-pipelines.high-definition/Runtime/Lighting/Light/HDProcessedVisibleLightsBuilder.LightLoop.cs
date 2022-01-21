@@ -76,6 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_VisibleLightEntityDataIndices[i] = dataIndex;
                     m_VisibleLightBakingOutput[i] = light.bakingOutput;
                     m_VisibleLightShadowCasterMode[i] = light.lightShadowCasterMode;
+                    m_VisibleLightLightmapBakeType[i] = (int)light.lightmapBakeType;
                     m_VisibleLightShadows[i] = light.shadows;
                 }
             }

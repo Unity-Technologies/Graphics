@@ -276,7 +276,15 @@ namespace UnityEngine.Rendering.HighDefinition
             if (rtas != null)
                 rtas.ClearInstances();
             else
+            {
+                /*RayTracingAccelerationStructure.RASSettings settings = new RayTracingAccelerationStructure.RASSettings();
+                settings.rayTracingModeMask = RayTracingAccelerationStructure.RayTracingModeMask.Static;
+                settings.managementMode = RayTracingAccelerationStructure.ManagementMode.Manual;
+                settings.layerMask = 255;
+                rtas = new RayTracingAccelerationStructure(settings);*/
                 rtas = new RayTracingAccelerationStructure();
+            }
+
         }
 
         public void ReleaseResources()

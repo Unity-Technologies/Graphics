@@ -29,14 +29,14 @@ float3 GetPositionBias(float3 geomNormal, float bias, bool below)
 #ifdef _ENABLE_SHADOW_MATTE
 
 // Compute scalar visibility for shadow mattes, between 0 and 1
-float ComputeVisibility(float3 position, float3 normal, float3 inputSample)
+float ComputeVisibility(PathIntersection pathIntersection, float3 position, float3 normal, float3 inputSample)
 {
     // Select active types of lights
     bool withPoint = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_PUNCTUAL;
     bool withArea = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_AREA;
     bool withDistant = asuint(_ShadowMatteFilter) & LIGHTFEATUREFLAGS_DIRECTIONAL;
 
-    LightList lightList = CreateLightList(position, normal, DEFAULT_LIGHT_LAYERS, withPoint, withArea, withDistant);
+    LightList lightList = CreateLightList(pathIntersection, position, normal, DEFAULT_LIGHT_LAYERS, withPoint, withArea, withDistant);
 
     RayDesc rayDescriptor;
     rayDescriptor.Origin = position + normal * _RaytracingRayBias;
@@ -158,7 +158,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     #else
         float3 lightNormal = GetLightNormal(mtlData);
     #endif
-        LightList lightList = CreateLightList(shadingPosition, lightNormal, builtinData.renderingLayers);
+        LightList lightList = CreateLightList(pathIntersection, shadingPosition, lightNormal, builtinData.renderingLayers);
 
         float pdf, shadowOpacity;
         float3 value;
@@ -260,7 +260,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     // Apply shadow matte if requested
     #ifdef _ENABLE_SHADOW_MATTE
     float3 shadowColor = lerp(pathIntersection.value, surfaceData.shadowTint.rgb * GetInverseCurrentExposureMultiplier(), surfaceData.shadowTint.a);
-    float visibility = ComputeVisibility(fragInput.positionRWS, surfaceData.normalWS, inputSample.xyz);
+    float visibility = ComputeVisibility(pathIntersection, fragInput.positionRWS, surfaceData.normalWS, inputSample.xyz);
     pathIntersection.value = lerp(shadowColor, pathIntersection.value, visibility);
     #endif
 

@@ -325,6 +325,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
         builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_BakedGIPreviewTexture, posInput.positionSS) * GetInverseCurrentExposureMultiplier();
     }
 
+    //builtinData.bakeDiffuseLighting = float3(0.0, 1.0, 0.0);
+
 #ifdef _ALPHATEST_ON
     // Used for sharpening by alpha to mask
     builtinData.alphaClipTreshold = alphaCutoff;
