@@ -10,6 +10,7 @@
 #pragma kernel OITSort_Init
 #pragma kernel OITSort_BinPixels
 #pragma kernel OITSort_Network
+#pragma kernel OITSort_GroupShared_Wave
 #pragma kernel OITSort_GroupShared
 
 RWStructuredBuffer<uint> _OITSortMemoryBuffer;
@@ -46,7 +47,7 @@ void OITSort_Init()
     _OITSortMemoryBuffer[8] = sumSmall + sumMed;
 
     uint3 numGroupsSmall = uint3((sumSmall + 63) / 64, 1, 1);
-    uint3 numGroupsMed = uint3((sumMed + 255) / 256, 1, 1);
+    uint3 numGroupsMed = uint3(sumMed, 1, 1);
     uint3 numGroupsBig = uint3(sumBig, 1, 1);
 
     _OITSortMemoryBuffer[9 + 0] = numGroupsSmall.x;
@@ -84,10 +85,7 @@ void OITSort_BinPixels(int3 dispatchThreadID : SV_DispatchThreadID)
     }
     else if (listCount <= 32)
     {
-        //sortVariantOffset = 1;
-
-        // Override med to big
-        sortVariantOffset = 2;
+        sortVariantOffset = 1;
     }
     else
     {
@@ -209,6 +207,93 @@ void OITSort_Network(int3 dispatchThreadId : SV_DispatchThreadID)
 groupshared uint sSums[16];
 groupshared uint sKeys[256];
 
+[numthreads(32, 1, 1)]
+void OITSort_GroupShared_Wave(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: SV_GroupID)
+{
+    uint threadIndex = groupThreadId.x;
+
+    // Load pixel index
+
+    // Note: This is always 1 since it's the medium variant
+    uint sortVariantOffset = 1;
+    uint sortIndexOffsetAddr = 6 + sortVariantOffset;
+    uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
+
+    uint pixelIndexAddr = 18 + globalSortIndexOffset + groupId.x;
+    uint pixelIndex = _OITSortMemoryBuffer[pixelIndexAddr];
+
+    uint listCount = _VisOITListsCounts.Load(pixelIndex << 2);
+    uint listOffset = _VisOITListsOffsets.Load(pixelIndex << 2);
+
+    uint sortKey = GenerateSortKey(threadIndex, listCount, listOffset);
+
+    // Flip the key so the depth is in the LSBs
+    sortKey = (sortKey << 16) | (sortKey >> 16);
+
+    sKeys[threadIndex] = sortKey;
+
+    // 16-bit radix sort (we don't bother sorting the top half since they contain indices)
+    for (uint radixPassIndex = 0; radixPassIndex < 4; ++radixPassIndex)
+    {
+        sortKey = sKeys[threadIndex];
+
+        // Initialize the sum bins to 0
+        if (threadIndex < 16)
+        {
+            sSums[threadIndex] = 0;
+        }
+
+        uint binIndex = ((sortKey >> (radixPassIndex * 4)) & 0xF);
+
+        GroupMemoryBarrierWithGroupSync();
+
+        // Increment the bin associated with the current value to sort
+        uint localOffset;
+        InterlockedAdd(sSums[binIndex], 1, localOffset);
+
+        GroupMemoryBarrierWithGroupSync();
+
+        // Do a dumb exclusive prefix sum (replace this with a parallel version)
+        if (threadIndex == 0)
+        {
+            uint previousSum = 0;
+
+            for (uint binIndex = 0; binIndex < 16; ++binIndex)
+            {
+                uint currentSum = sSums[binIndex];
+                sSums[binIndex] = previousSum;
+                previousSum += currentSum;
+            }
+        }
+
+        GroupMemoryBarrierWithGroupSync();
+
+        uint newKeyIndex = sSums[binIndex] + localOffset;
+        sKeys[newKeyIndex] = sortKey;
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    // Load the final sort key for the current thread
+    sortKey = sKeys[threadIndex];
+
+    uint srcKeyIndex = ((sortKey >> 16) & 0xFFFF);
+    uint dstKeyIndex = threadIndex;
+
+    uint3 packedSample;
+    if (dstKeyIndex < listCount)
+    {
+        packedSample = LoadPackedVisibilitySample(srcKeyIndex, listOffset);
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    if (dstKeyIndex < listCount)
+    {
+        StorePackedVisibilitySample((listCount - 1) - dstKeyIndex, listOffset, packedSample);
+    }
+}
+
 // TODO: Remove this once the serialized reorder step of radix sort is removed
 groupshared uint sOutputKeys[256];
 
@@ -253,11 +338,12 @@ void OITSort_GroupShared(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: 
         GroupMemoryBarrierWithGroupSync();
 
         // Increment the bin associated with the current value to sort
-        InterlockedAdd(sSums[binIndex], 1);
+        uint localOffset;
+        InterlockedAdd(sSums[binIndex], 1, localOffset);
 
         GroupMemoryBarrierWithGroupSync();
 
-        // Do a dumb prefix sum (replace this with a parallel version)
+        // Do a dumb inclusive prefix sum (replace this with a parallel version)
         if (threadIndex == 0)
         {
             uint previousSum = sSums[0];
