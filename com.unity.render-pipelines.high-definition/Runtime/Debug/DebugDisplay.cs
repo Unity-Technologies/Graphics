@@ -1345,6 +1345,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public static readonly NameAndTooltip VolumetricFogSlice = new() { name = "Slice", tooltip = "Select which slice of the texture 3D to view." };
             public static readonly NameAndTooltip VolumetricFogUseSelection = new() { name = "Use Selection", tooltip = "Display the mask of the selected local volumetric fog instead of the full atlas." };
 
+            public static readonly NameAndTooltip DisplayBFProbeSpheres = new() { name = "Display Brute Force Probe Spheres", tooltip = "Enable to display the brute force probe spheres." };
+            public static readonly NameAndTooltip DisplayBFProbeAtlas = new() { name = "Display Brute Force Probe Atlas", tooltip = "Enable to display the brute force probe atlas." };
+
             public static readonly NameAndTooltip DebugOverlayScreenRatio = new() { name = "Debug Overlay Screen Ratio", tooltip = "Set the size of the debug overlay textures with a ratio of the screen size." };
         }
 
@@ -1788,6 +1791,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 return (uint)LocalVolumetricFogManager.manager.volumeAtlas.GetAtlas().volumeDepth - 1;
             }
+
+            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplayBFProbeSpheres, getter = () => data.lightingDebugSettings.displayBFProbeSpheres, setter = value => data.lightingDebugSettings.displayBFProbeSpheres = value });
+            list.Add(new DebugUI.BoolField { nameAndTooltip = LightingStrings.DisplayBFProbeAtlas, getter = () => data.lightingDebugSettings.displayBFProbeAtlas, setter = value => data.lightingDebugSettings.displayBFProbeAtlas = value, onValueChanged = RefreshLightingDebug });
 
             list.Add(new DebugUI.FloatField { nameAndTooltip = LightingStrings.DebugOverlayScreenRatio, getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f });
 

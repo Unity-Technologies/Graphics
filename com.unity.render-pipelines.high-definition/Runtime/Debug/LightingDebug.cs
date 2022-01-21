@@ -358,6 +358,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Clear cookie atlas each frame.</summary>
         public bool clearCookieAtlas = false;
 
+        /// <summary>Display the brute force probe spheres.</summary>
+        public bool displayBFProbeSpheres = false;
+        /// <summary>Display the brute force probe atlas.</summary>
+        public bool displayBFProbeAtlas = false;
+
         /// <summary>Display the planar reflection atlas.</summary>
         public bool displayPlanarReflectionProbeAtlas = false;
         /// <summary>Mip level of the planar reflection atlas display.</summary>

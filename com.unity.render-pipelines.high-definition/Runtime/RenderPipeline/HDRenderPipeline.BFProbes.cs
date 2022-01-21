@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var rendererList = context.CreateRendererList(rendererListDesc);
 
                     // rasterize this batch of probes
-                    CoreUtils.SetRenderTarget(cmd, m_BFProbeTemp, ClearFlag.All);
+                    CoreUtils.SetRenderTarget(cmd, m_BFProbeTemp, ClearFlag.All, new Color(0.1f, 0.2f, 0.3f));
                     cmd.SetViewport(new Rect(0, 0, k_CubeSize, k_CubeSize));
 
                     cmd.SetGlobalMatrixArray(_ViewProjMatrixArray, m_ViewProjArray);

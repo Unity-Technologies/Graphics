@@ -1369,7 +1369,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                         }
 
-                        RenderBFProbeDebug(hdCamera.camera);
+                        if (m_CurrentDebugDisplaySettings != null && m_CurrentDebugDisplaySettings.data.lightingDebugSettings.displayBFProbeSpheres)
+                            RenderBFProbeDebug(hdCamera.camera);
 
                         if (needCulling)
                         {

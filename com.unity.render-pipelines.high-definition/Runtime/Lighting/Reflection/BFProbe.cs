@@ -12,8 +12,8 @@ namespace UnityEngine.Rendering.HighDefinition
     public enum BFProbeConfig
     {
         StorageOctSize = 64,
-        StorageWidthInProbes = 64,
-        StorageHeightInProbes = 64,
+        StorageWidthInProbes = 32,
+        StorageHeightInProbes = 32,
         StorageMaxProbeCount = StorageWidthInProbes * StorageHeightInProbes,
 
         TempCubeSize = 32,
