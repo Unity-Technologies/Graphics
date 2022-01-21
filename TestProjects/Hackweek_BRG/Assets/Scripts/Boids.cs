@@ -91,6 +91,7 @@ public class Boids : MonoBehaviour
                 {
                     if (m_boidsGO[i].activeSelf) {
                         m_boidsGO[i].transform.position = m_boidsBufferB[i].position;
+                        m_boidsGO[i].transform.rotation = Quaternion.LookRotation(math.normalize(m_boidsBufferB[i].velocity), Vector3.up);
                         switch (spell) {
                             case Spell.Transmute:
                             {
@@ -374,7 +375,7 @@ public struct BoidMoveJob : IJobParallelFor
         repelFlockForce = repelFlock(repelFlockForce, individual);
 
         cohesionForce *= cohesionAmount;
-        repelForce *= repelAmount;
+        repelForce *= repelAmount * 4.0f;
         alignForce *= alignAmount;
         seekGoalForce *= seekGoalAmount;
 
