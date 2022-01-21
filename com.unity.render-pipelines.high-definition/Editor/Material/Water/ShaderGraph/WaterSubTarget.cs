@@ -234,6 +234,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.Shadow);
             pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
             pass.keywords.Add(CoreKeywordDescriptors.ProceduralInstancing);
+            pass.keywords.Add(CoreKeywordDescriptors.StereoInstancing);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)

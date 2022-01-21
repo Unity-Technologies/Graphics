@@ -258,6 +258,8 @@ void EvaluateInstanceData(uint3 currentThread : SV_DispatchThreadID)
         }
 
         // Output the actual instance count
-        _WaterInstanceDataRW[1] = totalInstanceCount;
+        // NOTE: Here we have to multiply by the XR view count as it redispatches the geometry
+        // for each view
+        _WaterInstanceDataRW[1] = totalInstanceCount * _XRViewCount;
     }
 }

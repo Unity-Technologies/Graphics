@@ -17,8 +17,12 @@ VaryingsMeshToDS VertMeshWater(AttributesMesh input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     // Scale the position by the size of the grid to get the position that will be used for sampling the simulation
-#if UNITY_ANY_INSTANCING_ENABLED
-    input.positionOS = WaterSimulationPositionInstanced(input.positionOS, UNITY_GET_INSTANCE_ID(input));
+#ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+    // WARNING: Here we can only use unity_InstanceID and not GET_UNITY_INSTANCE_ID because the later function
+    // does not return the expect value when we have both procedural and stereo instancing.
+    // This variables is guaranted to be defined and set to the right value as soon as we have at least
+    // one instancing technique.
+    input.positionOS = WaterSimulationPositionInstanced(input.positionOS, unity_InstanceID);
 #else
     input.positionOS = WaterSimulationPosition(input.positionOS);
 #endif

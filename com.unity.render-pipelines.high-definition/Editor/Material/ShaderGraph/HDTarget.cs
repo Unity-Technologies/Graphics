@@ -1137,6 +1137,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Global,
         };
 
+        public static KeywordDescriptor StereoInstancing = new KeywordDescriptor()
+        {
+            displayName = "Stereo Instancing",
+            referenceName = "STEREO_INSTANCING_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
         public static KeywordDescriptor Lightmap = new KeywordDescriptor()
         {
             displayName = "Lightmap",
