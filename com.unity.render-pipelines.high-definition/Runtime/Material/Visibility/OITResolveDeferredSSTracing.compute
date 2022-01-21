@@ -619,7 +619,8 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
             break;
     }
 
-#if 1 //FLIP This to visualize the photon buffer
+
+    float3 fineRefraction = float3(0, 0, 0);
     if (hit)
     {
         //uint pixelOffset_k = rayPos.y * _ScreenSize.x + rayPos.x;
@@ -634,29 +635,36 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         //float3 outRes = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord_k)].rgb;
 
         //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4((1.0f - rIntensity) * lightingSource + (rIntensity) * outRes, 1.0);
-        _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(output, 1.0);
+        //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(output, 1.0);
         //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(0.0f, ((float)iterFull)/512.0f, 0.0, 1.0);
+        fineRefraction = output;
     }
     else
     {
         //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(((float)iterFull) / 512.0f, 0.0, 0.0, 1.0);
         //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(1.0f, 0.0, 0.0, 1.0);
-        _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(output, 1.0);
+        //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(output, 1.0);
+        fineRefraction = output;
     }
-#else
-    //float4 radianceVal = float4(0,0,0,0);
-    //for (uint a = 0; a < listCount; ++a)
-    //{
-    //    int gOffset = a + listOffset;
-    //    uint2 offscreenCoord = uint2(gOffset % GetOffscreenLightBufferWidth(), gOffset / GetOffscreenLightBufferWidth());
-    //    radianceVal += _VisOITOffscreenPhotonRadianceLighting[COORD_TEXTURE2D_X(offscreenCoord)];
-    //}
 
-    float4 radianceVal = float4(0,0,0,0);
+    float3 coarseRefraction = float3(0,0,0);
     {
-        uint2 offscreenCoord = uint2(listOffset % GetOffscreenLightBufferWidth(), listOffset / GetOffscreenLightBufferWidth());
-        radianceVal = _VisOITOffscreenPhotonRadianceLighting[COORD_TEXTURE2D_X(offscreenCoord)];
+        float4 radianceVal = float4(0,0,0,0);
+        for (uint a = 0; a < listCount; ++a)
+        {
+            int gOffset = a + listOffset;
+            uint2 offscreenCoord = uint2(gOffset % GetOffscreenLightBufferWidth(), gOffset / GetOffscreenLightBufferWidth());
+            float4 radSample = _VisOITOffscreenPhotonRadianceLighting[COORD_TEXTURE2D_X(offscreenCoord)];
+            radianceVal += float4(radSample.xyz, radSample.a);
+        }
+
+        //float4 radianceVal = float4(0,0,0,0);
+        //{
+        //    uint2 offscreenCoord = uint2(listOffset % GetOffscreenLightBufferWidth(), listOffset / GetOffscreenLightBufferWidth());
+        //    radianceVal = _VisOITOffscreenPhotonRadianceLighting[COORD_TEXTURE2D_X(offscreenCoord)];
+        //}
+
+        coarseRefraction = radianceVal.xyz / radianceVal.a;
     }
-    _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(radianceVal.xyz / radianceVal.a, 1.0);
-#endif
+    _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(lerp(coarseRefraction, fineRefraction, 0.4), 1.0);
 }
