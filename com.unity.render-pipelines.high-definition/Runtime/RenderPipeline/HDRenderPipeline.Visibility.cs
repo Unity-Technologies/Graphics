@@ -169,7 +169,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.instanceCountBuffer.SetData(CubeDrawArgs);
                             context.cmd.DrawMeshInstancedIndirect(data.occlusionMesh, 0, data.occlusionMaterial, 1, data.instanceCountBuffer, 0);
                         }
-                        else if (data.occlusionCullingMode == OcclusionCullingMode.ProceduralCube || data.occlusionCullingMode == OcclusionCullingMode.ProceduralCubeWithVSCulling)
+                        else if (data.occlusionCullingMode == OcclusionCullingMode.ProceduralCube
+                                 || data.occlusionCullingMode == OcclusionCullingMode.ProceduralCubeWithVSCulling
+                                 || data.occlusionCullingMode == OcclusionCullingMode.ProceduralCubeWithProbeTriangle)
                         {
                             int vertexCount = 0;
                             int instanceCount = 0;
@@ -177,12 +179,21 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (data.occlusionCullingMode == OcclusionCullingMode.ProceduralCubeWithVSCulling)
                             {
                                 data.occlusionMaterial.EnableKeyword("VS_TRIANGLE_CULLING");
+                                data.occlusionMaterial.DisableKeyword("PROBE_TRIANGLE");
                                 vertexCount = data.instanceCount * kVerticesPerTriangle;
                                 instanceCount = kFacesPerInstance * kTrianglesPerFace;
+                            }
+                            else if (data.occlusionCullingMode == OcclusionCullingMode.ProceduralCubeWithProbeTriangle)
+                            {
+                                data.occlusionMaterial.EnableKeyword("VS_TRIANGLE_CULLING");
+                                data.occlusionMaterial.EnableKeyword("PROBE_TRIANGLE");
+                                vertexCount = data.instanceCount * kVerticesPerTriangle;
+                                instanceCount = kFacesPerInstance * kTrianglesPerFace + 1;
                             }
                             else
                             {
                                 data.occlusionMaterial.DisableKeyword("VS_TRIANGLE_CULLING");
+                                data.occlusionMaterial.DisableKeyword("PROBE_TRIANGLE");
                                 vertexCount = data.instanceCount * kVerticesPerInstance;
                                 instanceCount = 1;
                             }

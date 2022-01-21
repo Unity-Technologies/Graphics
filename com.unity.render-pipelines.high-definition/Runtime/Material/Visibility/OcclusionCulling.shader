@@ -27,6 +27,7 @@ Shader "HDRP/OcclusionCulling"
 
     #pragma multi_compile _ DEBUG_OUTPUT
     #pragma multi_compile _ VS_TRIANGLE_CULLING
+    #pragma multi_compile _ PROBE_TRIANGLE
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Visibility/OcclusionCommon.hlsl"

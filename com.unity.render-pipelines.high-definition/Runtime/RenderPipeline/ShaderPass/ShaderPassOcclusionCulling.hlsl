@@ -11,6 +11,12 @@ RWByteAddressBuffer instanceVisibilityBitfield : register(u2);
     #error Attributes_requires_vertex_id
 #endif
 
+#if defined(PROBE_TRIANGLE)
+    #if !defined(PROCEDURAL_CUBE) || !defined(VS_TRIANGLE_CULLING)
+        #error Must have procedural VS culling to use probe
+    #endif
+#endif
+
 #define CreateProceduralPositionOS BoundingBoxPositionOS
 
 static const uint kFacesPerInstance = 3;
@@ -49,29 +55,62 @@ static const BoxVert BoxVerts[kVerticesPerInstance] =
 static uint occlusion_ProceduralInstanceIndex;
 static uint occlusion_ProceduralVertexIndex;
 
+float4 ProbeVertexCS(uint vertexIndex)
+{
+    float3 cameraPosWS = _WorldSpaceCameraPos;
+    float3 boxCenterWS = TransformObjectToWorld(occlusion_meshBounds.center);
+    float3 cameraDirWS = cameraPosWS - boxCenterWS;
+
+    float3 extents = occlusion_meshBounds.extents;
+    float3 axisX = TransformObjectToWorldDir(float3(extents.x, 0,         0        ), false);
+    float3 axisY = TransformObjectToWorldDir(float3(0,         extents.y, 0        ), false);
+    float3 axisZ = TransformObjectToWorldDir(float3(0,         0,         extents.z), false);
+
+    bool isXFront = dot(axisX, cameraDirWS) > 0;
+    bool isYFront = dot(axisY, cameraDirWS) > 0;
+    bool isZFront = dot(axisZ, cameraDirWS) > 0;
+
+    if (!isXFront) axisX = -axisX;
+    if (!isYFront) axisY = -axisY;
+    if (!isZFront) axisZ = -axisZ;
+
+    float3 closestVertexWS = boxCenterWS + axisX + axisY + axisZ;
+    float4 closestVertexCS = TransformWorldToHClip(closestVertexWS);
+    float2 pixelSize = _ScreenSize.zw * closestVertexCS.w;
+
+    if (vertexIndex == 0)
+        closestVertexCS.xy -= pixelSize;
+    else if (vertexIndex == 1)
+        closestVertexCS.x += pixelSize.x;
+    else
+        closestVertexCS.y += pixelSize.y;
+
+    return closestVertexCS;
+}
+
 float3 BoundingBoxPositionOS(AttributesMesh input)
 {
     BoxVert V = BoxVerts[occlusion_ProceduralVertexIndex];
 
     float3 cameraPosWS = _WorldSpaceCameraPos;
-    float3 objectPosWS = mul(occlusion_ObjectToWorld, float4(0, 0, 0, 1)).xyz;
-    float3 cameraDirWS = cameraPosWS - objectPosWS;
+    float3 boxCenterWS = TransformObjectToWorld(occlusion_meshBounds.center);
+    float3 cameraDirWS = cameraPosWS - boxCenterWS;
 
     float3 axisWS = 0;
     if (V.face == 0)
     {
         float3 axisOS = float3(1, 0, 0);
-        axisWS = mul(occlusion_ObjectToWorld, float4(axisOS, 0)).xyz;
+        axisWS = TransformObjectToWorldDir(axisOS, false);
     }
     else if (V.face == 1)
     {
         float3 axisOS = float3(0, 1, 0);
-        axisWS = mul(occlusion_ObjectToWorld, float4(axisOS, 0)).xyz;
+        axisWS = TransformObjectToWorldDir(axisOS, false);
     }
     else
     {
         float3 axisOS = float3(0, 0, 1);
-        axisWS = mul(occlusion_ObjectToWorld, float4(axisOS, 0)).xyz;
+        axisWS = TransformObjectToWorldDir(axisOS, false);
     }
     bool isFrontFacing = dot(axisWS, cameraDirWS) > 0;
 
@@ -147,6 +186,18 @@ OcclusionVaryings VertOcclusion(AttributesMesh input, uint svInstanceId : SV_Ins
     occlusion_instanceID = inputVisibleInstanceData.Load(instanceIndex << 2);
     occlusion_meshBounds = GetMeshBounds(occlusion_instanceID, instanceBatchID);
     InitObjectToWorld();
+
+#if defined(PROBE_TRIANGLE) && defined(PROCEDURAL_CUBE)
+    if (svInstanceId == 0)
+    {
+        OcclusionVaryings o;
+        o.instanceID = uint4(instanceIndex, occlusion_instanceID, 0, 0);
+        o.positionCS = ProbeVertexCS(occlusion_ProceduralVertexIndex);
+        return o;
+    }
+    else
+        occlusion_ProceduralVertexIndex -= kVerticesPerTriangle;
+#endif
 
     VaryingsMeshToPS vmesh = VertMesh(input);
 

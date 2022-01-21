@@ -45,7 +45,7 @@ BilateralData TapBilateralData(uint2 coordSS)
 
     if (PLANE_WEIGHT > 0.0)
     {
-        posInput = GetPositionInput(coordSS, _ScreenSize.zw, posInput.deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+        posInput = GetPositionInput(coordSS, boxCenterWS.zw, posInput.deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
         key.position = posInput.positionWS;
     }
 
