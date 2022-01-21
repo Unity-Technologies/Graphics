@@ -368,6 +368,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 float viewRefrAtten = pow(viewAtten, 3);// saturate(1.0 - FresnelSchlickTIR(1.0, 1.33, wetnessData.normalWS, -viewRefrWS));
 
                 float lightCausticsAtten = lerp(1.0, pow(dot(wetnessData.normalWS, unityLight.direction) + 1.0, 3.0) * (1.0 - dot(float3(0.0, 1.0, 0.0), unityLight.direction)), wetnessData.puddleTransition);
+                //float lightCausticsAtten = lerp(1.0, pow(dot(wetnessData.normalWS, unityLight.direction) * 2.0 + 1.0, 3), saturate(pow(1.0 - saturate(dot(float3(0.0, 1.0, 0.0), wetnessData.normalWS)), 0.1)));
 
                 color *= lerp(1.0, lightReflAtten * viewRefrAtten * colorAbsorbAtten * lightCausticsAtten, wetnessData.waterSaturation);
 

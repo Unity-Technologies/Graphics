@@ -57,7 +57,7 @@ float3 PerturbNormal(float3 surf_pos, float3 surf_norm, float porosity, float2 u
     Hu.r = pow(Hu.r, 2.0);
     Hb.r = pow(Hb.r, 2.0);
 
-    float2 dBs = (Hr - Hl) / (gradScale * 2.0);
+    float2 dBs = (Hl - Hr) / (gradScale * 2.0);
     float2 dBt = (Hu - Hb) / (gradScale * 2.0);
 
     float3 vSurfGradWaves = sign(fDet) * (dBs.g * vR1 + dBt.g * vR2) * kNormalGradScale;
