@@ -749,7 +749,8 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     bricksCount = bakingCell.bricks.Length,
                     probesCount = bakingCell.probePositions.Length,
-                    offsetsCount = bakingCell.offsetVectors.Length
+                    offsetsCount = bakingCell.offsetVectors.Length,
+                    chunksCount = bakingCell.shChunkCount
                 };
                 asset.cellCounts[i] = cellCounts;
                 asset.totalCellCounts.Add(cellCounts);
@@ -810,10 +811,8 @@ namespace UnityEngine.Experimental.Rendering
                     probesTargetL2 = probesL2.GetSubArray(startCounts.probesCount * ProbeVolumeAsset.kL2ScalarCoefficientsCount, cellCounts.probesCount * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
                 int oldDataOffsetL2 = 0;
 
-                // Each brick is mapped to one dataloc of the size of a chunk.
-                for (int brickIndex = 0; brickIndex < cellCounts.chunksCount; brickIndex++)
+                for (int chunkIndex = 0; chunkIndex < cellCounts.chunksCount; ++chunkIndex)
                 {
-
                     var probesTargetL0L1Rx = probesL0L1Rx.GetSubArray(chunkOffset, chunkSize);
                     var probesTargetL1GL1Ry = probesL1GL1Ry.GetSubArray(chunkOffset, chunkSize);
                     var probesTargetL1BL1Rz = probesL1BL1Rz.GetSubArray(chunkOffset, chunkSize);
@@ -833,60 +832,62 @@ namespace UnityEngine.Experimental.Rendering
 
                     int bx = 0, by = 0, bz = 0;
 
-                    for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
+                    for (int brickIndex = 0; brickIndex < asset.chunkSizeInBricks; brickIndex++)
                     {
-                        for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; y++)
+                        for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
                         {
-                            for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
+                            for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; y++)
                             {
-                                int ix = bx + x;
-                                int iy = by + y;
-                                int iz = bz + z;
-
-                                int index = ix + locSize.x * (iy + locSize.y * iz);
-
-                                ref var sh = ref bakingCell.sh[shidx];
-
-                                // We are processing chunks at a time.
-                                // So in practice we can go over the number of SH we have in the input list.
-                                // We fill with encoded black to avoid copying garbage in the final atlas.
-                                if (shidx >= inputProbesCount)
+                                for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
                                 {
-                                    WriteToShaderCoeffsL0L1(blackSH, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index);
+                                    int ix = bx + x;
+                                    int iy = by + y;
+                                    int iz = bz + z;
 
-                                    if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                                        WriteToShaderCoeffsL2(blackSH, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index);
-                                }
-                                else
-                                {
-                                    WriteToShaderCoeffsL0L1(sh, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index);
-                                    WriteToShaderCoeffsL0L1(sh, probesTargetL0L1, oldDataOffsetL0L1);
+                                    int index = ix + locSize.x * (iy + locSize.y * iz);
 
-                                    if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                                    // We are processing chunks at a time.
+                                    // So in practice we can go over the number of SH we have in the input list.
+                                    // We fill with encoded black to avoid copying garbage in the final atlas.
+                                    if (shidx >= inputProbesCount)
                                     {
-                                        WriteToShaderCoeffsL2(sh, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index);
-                                        WriteToShaderCoeffsL2(sh, probesTargetL2, oldDataOffsetL2);
+                                        WriteToShaderCoeffsL0L1(blackSH, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index);
+
+                                        if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                                            WriteToShaderCoeffsL2(blackSH, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index);
                                     }
+                                    else
+                                    {
+                                        ref var sh = ref bakingCell.sh[shidx];
+
+                                        WriteToShaderCoeffsL0L1(sh, probesTargetL0L1Rx, probesTargetL1GL1Ry, probesTargetL1BL1Rz, index);
+                                        WriteToShaderCoeffsL0L1(sh, probesTargetL0L1, oldDataOffsetL0L1);
+
+                                        if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
+                                        {
+                                            WriteToShaderCoeffsL2(sh, probesTargetL2_0, probesTargetL2_1, probesTargetL2_2, probesTargetL2_3, index);
+                                            WriteToShaderCoeffsL2(sh, probesTargetL2, oldDataOffsetL2);
+                                        }
+                                    }
+                                    shidx++;
+                                    oldDataOffsetL0L1 += ProbeVolumeAsset.kL0L1ScalarCoefficientsCount;
+                                    oldDataOffsetL2 += ProbeVolumeAsset.kL2ScalarCoefficientsCount;
                                 }
-                                shidx++;
-                                oldDataOffsetL0L1 += ProbeVolumeAsset.kL0L1ScalarCoefficientsCount;
-                                oldDataOffsetL2 += ProbeVolumeAsset.kL2ScalarCoefficientsCount;
+                            }
+                        }
+                        // update the pool index
+                        bx += ProbeBrickPool.kBrickProbeCountPerDim;
+                        if (bx >= locSize.x)
+                        {
+                            bx = 0;
+                            by += ProbeBrickPool.kBrickProbeCountPerDim;
+                            if (by >= locSize.y)
+                            {
+                                by = 0;
+                                bz += ProbeBrickPool.kBrickProbeCountPerDim;
                             }
                         }
                     }
-                    // update the pool index
-                    bx += ProbeBrickPool.kBrickProbeCountPerDim;
-                    if (bx >= locSize.x)
-                    {
-                        bx = 0;
-                        by += ProbeBrickPool.kBrickProbeCountPerDim;
-                        if (by >= locSize.y)
-                        {
-                            by = 0;
-                            bz += ProbeBrickPool.kBrickProbeCountPerDim;
-                        }
-                    }
-
                     chunkOffset += (ProbeBrickPool.GetChunkSizeInProbeCount() * 4);
                 }
 
