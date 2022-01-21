@@ -482,7 +482,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 vertices[i] = new LightMeshVertex
                 {
-                    position = new Vector3(srcVertices[i].x, srcVertices[i].y, 0) - center,
+                    position = new Vector3(srcVertices[i].x, srcVertices[i].y, 0),
                     color = color,
                     uv = srcUVs[i]
                 };
