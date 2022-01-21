@@ -28,4 +28,20 @@ namespace UnityEngine.Rendering.HighDefinition
     public class VolumeDebugSettings : HDVolumeDebugSettings
     {
     }
+
+    /// <summary>
+    /// Class managing debug display in HDRP.
+    /// </summary>
+    public partial class DebugDisplaySettings
+    {
+        /// <summary>
+        /// Debug data.
+        /// </summary>
+        public partial class DebugData
+        {
+            /// <summary>Current volume debug settings.</summary>
+            [Obsolete("Moved to HDDebugDisplaySettings.Instance. Will be removed soon.")]
+            public IVolumeDebugSettings volumeDebugSettings = new HDVolumeDebugSettings();
+        }
+    }
 }
