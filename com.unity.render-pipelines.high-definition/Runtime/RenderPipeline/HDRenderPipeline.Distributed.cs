@@ -19,6 +19,13 @@ namespace UnityEngine.Rendering.HighDefinition
             Merger
         }
 
+        private static DistributedMode s_distributedMode = DistributedMode.None;
+
+        public static void SetDistributedMode(DistributedMode mode)
+        {
+            s_distributedMode = Application.isEditor ? DistributedMode.None : mode;
+        }
+
         public static DistributedMode GetDistributedMode()
         {
             //Camera camera = hdCamera.camera;
@@ -28,20 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return DistributedMode.None;
             }
 
-#if CLUSTER_RENDERER
-#if CLUSTER_MERGER
-            Debug.LogError("Can't be merger and renderer at the same time!");
-            Application.Quit(-1);
-#endif
-#endif
-
-#if CLUSTER_RENDERER
-            return DistributedMode.Renderer;
-#elif CLUSTER_MERGER
-            return DistributedMode.Merger;
-#else
-            return DistributedMode.None;
-#endif
+            return s_distributedMode;
         }
 
         private static int FrameID = -1;
