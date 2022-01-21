@@ -108,25 +108,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.Predefined,
             scope = KeywordScope.Global,
         };
-
-        public static KeywordDescriptor ClusteredLightList = new KeywordDescriptor()
-        {
-            displayName = "ClusteredLightList",
-            referenceName = "USE_CLUSTERED_LIGHTLIST",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.Predefined,
-            scope = KeywordScope.Global,
-        };
         #endregion
 
         #region Definess
         public static DefineCollection WaterGBufferDefines = new DefineCollection
         {
             { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
-            { CoreKeywordDescriptors.HasLightloop, 1 },
             { HasRefraction, 1 },
-            { WaterSurfaceGBuffer, 1 },
-            { ClusteredLightList, 1 },
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
         #endregion
@@ -179,7 +167,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kLightLoop, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
                 includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
