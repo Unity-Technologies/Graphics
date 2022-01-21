@@ -1464,6 +1464,7 @@ namespace UnityEngine.Rendering
     {
         CubePrimitive,
         ProceduralCube,
+        ProceduralCubeWithVSCulling,
         Disabled,
     }
 

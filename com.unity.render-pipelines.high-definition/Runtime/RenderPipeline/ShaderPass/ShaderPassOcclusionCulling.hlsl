@@ -46,12 +46,12 @@ static const BoxVert BoxVerts[kVerticesPerInstance] =
     { 2, -1, 1, },
 };
 
+static uint occlusion_ProceduralInstanceIndex;
+static uint occlusion_ProceduralVertexIndex;
+
 float3 BoundingBoxPositionOS(AttributesMesh input)
 {
-    uint vid = input.vertexIndex;
-    uint instanceIndex = vid / kVerticesPerInstance;
-    uint vertexIndex = vid % kVerticesPerInstance;
-    BoxVert V = BoxVerts[vertexIndex];
+    BoxVert V = BoxVerts[occlusion_ProceduralVertexIndex];
 
     float3 cameraPosWS = _WorldSpaceCameraPos;
     float3 objectPosWS = mul(occlusion_ObjectToWorld, float4(0, 0, 0, 1)).xyz;
@@ -109,10 +109,40 @@ OcclusionVaryings VertOcclusion(AttributesMesh input, uint svInstanceId : SV_Ins
 {
 #if defined(PROCEDURAL_CUBE)
     uint vid = input.vertexIndex;
-    uint instanceIndex = vid / kVerticesPerInstance;
+
+#if defined(VS_TRIANGLE_CULLING)
+    occlusion_ProceduralInstanceIndex = vid / kVerticesPerTriangle;
+    occlusion_ProceduralVertexIndex =
+        (svInstanceId * kVerticesPerTriangle) +
+        (vid % kVerticesPerTriangle);
+    {
+        uint instanceIndex = occlusion_ProceduralInstanceIndex;
+        uint instanceDword = instanceIndex >> 5;
+        uint bitIndex =  instanceIndex & 0x1f;
+        uint mask = 1 << bitIndex;
+        uint dwordAddress = instanceDword << 2;
+        uint value = instanceVisibilityBitfield.Load(dwordAddress);
+        if (value & mask)
+        {
+            // Instance is already marked as visible, no need to rasterize
+            // any more triangles for it.
+            OcclusionVaryings o;
+            o.instanceID = 0;
+            o.positionCS = qnan;
+            return o;
+        }
+    }
+#else
+    occlusion_ProceduralInstanceIndex = vid / kVerticesPerInstance;
+    occlusion_ProceduralVertexIndex = vid % kVerticesPerInstance;
+#endif
+
+    uint instanceIndex = occlusion_ProceduralInstanceIndex;
+
 #else
     uint instanceIndex = svInstanceId;
     input.positionOS *= 2; // Unity Cube goes from 0 to 0.5, scale it from 0 to 1
+
 #endif
     occlusion_instanceID = inputVisibleInstanceData.Load(instanceIndex << 2);
     occlusion_meshBounds = GetMeshBounds(occlusion_instanceID, instanceBatchID);

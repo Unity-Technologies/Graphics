@@ -169,12 +169,27 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.instanceCountBuffer.SetData(CubeDrawArgs);
                             context.cmd.DrawMeshInstancedIndirect(data.occlusionMesh, 0, data.occlusionMaterial, 1, data.instanceCountBuffer, 0);
                         }
-                        else if (data.occlusionCullingMode == OcclusionCullingMode.ProceduralCube)
+                        else if (data.occlusionCullingMode == OcclusionCullingMode.ProceduralCube || data.occlusionCullingMode == OcclusionCullingMode.ProceduralCubeWithVSCulling)
                         {
-                            int vertexCount = data.instanceCount * kVerticesPerInstance;
+                            int vertexCount = 0;
+                            int instanceCount = 0;
+
+                            if (data.occlusionCullingMode == OcclusionCullingMode.ProceduralCubeWithVSCulling)
+                            {
+                                data.occlusionMaterial.EnableKeyword("VS_TRIANGLE_CULLING");
+                                vertexCount = data.instanceCount * kVerticesPerTriangle;
+                                instanceCount = kFacesPerInstance * kTrianglesPerFace;
+                            }
+                            else
+                            {
+                                data.occlusionMaterial.DisableKeyword("VS_TRIANGLE_CULLING");
+                                vertexCount = data.instanceCount * kVerticesPerInstance;
+                                instanceCount = 1;
+                            }
+
                             context.cmd.DrawProcedural(Matrix4x4.identity, data.occlusionMaterial, 0,
                                 MeshTopology.Triangles,
-                                vertexCount, 1);
+                                vertexCount, instanceCount);
                         }
 
                         if (bindings.occlusionDebugOutput)
