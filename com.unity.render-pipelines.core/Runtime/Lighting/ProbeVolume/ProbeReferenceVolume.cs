@@ -389,9 +389,9 @@ namespace UnityEngine.Experimental.Rendering
 
             public NativeArray<float> shL0L1Data { get; internal set; } // pre-swizzled for runtime upload (12 coeffs)
             public NativeArray<float> shL2Data { get; internal set; } // pre-swizzled for runtime upload (15 coeffs)
+            public NativeArray<float> validity { get; internal set; }
 
             public NativeArray<Vector3> probePositions { get; internal set; }
-            public NativeArray<float> validity { get; internal set; }
             public NativeArray<Vector3> offsetVectors { get; internal set; }
         }
 
