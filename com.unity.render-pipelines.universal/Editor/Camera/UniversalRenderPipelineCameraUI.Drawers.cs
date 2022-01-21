@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.Universal
         {
             int selectedRenderer = p.renderer.intValue;
             ScriptableRenderer scriptableRenderer = UniversalRenderPipeline.asset.GetRenderer(selectedRenderer);
-            bool isDeferred = scriptableRenderer is UniversalRenderer { renderingMode: RenderingMode.Deferred };
+            bool isDeferred = scriptableRenderer is UniversalRenderer { renderingModeRequested: RenderingMode.Deferred };
 
             EditorGUI.BeginChangeCheck();
 

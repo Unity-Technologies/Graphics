@@ -95,9 +95,9 @@ namespace UnityEngine.Rendering.HighDefinition
         private void UpdateShaderVariablesProbeVolumes(ref ShaderVariablesGlobal cb, HDCamera hdCamera, CommandBuffer cmd)
         {
             bool loadedData = ProbeReferenceVolume.instance.DataHasBeenLoaded();
-            cb._EnableProbeVolumes = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && loadedData) ? 1u : 0u;
-
+            var weight = ProbeReferenceVolume.instance.probeVolumesWeight;
             var probeVolumeOptions = hdCamera.volumeStack.GetComponent<ProbeVolumesOptions>();
+            cb._EnableProbeVolumes = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && loadedData && weight > 0f) ? 1u : 0u;
 
             if (cb._EnableProbeVolumes > 0)
             {
@@ -106,6 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.viewBias = probeVolumeOptions.viewBias.value;
                 parameters.scaleBiasByMinDistanceBetweenProbes = probeVolumeOptions.scaleBiasWithMinProbeDistance.value;
                 parameters.samplingNoise = probeVolumeOptions.samplingNoise.value;
+                parameters.weight = weight;
                 parameters.leakReductionMode = hdCamera.camera.cameraType == CameraType.Reflection ? APVLeakReductionMode.None : probeVolumeOptions.leakReductionMode.value;
                 parameters.occlusionWeightContribution = 1.0f;
 

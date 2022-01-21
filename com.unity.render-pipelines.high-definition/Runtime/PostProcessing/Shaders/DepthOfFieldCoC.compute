@@ -5,6 +5,7 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma multi_compile _ USE_MIN_DEPTH   // Active when using MSAA
+#pragma multi_compile _ FIX_NEAR_BLEND
 
 #pragma kernel KMainPhysical
 #pragma kernel KMainManual
@@ -25,7 +26,6 @@ CBUFFER_END
 #define FarStart        _Params.z
 #define FarEnd          _Params.w
 
-#define FIX_NEAR_BLEND 0
 #define GROUP_SIZE 8
 
 float GetFixedNearBlend(float linearEyeDepth)

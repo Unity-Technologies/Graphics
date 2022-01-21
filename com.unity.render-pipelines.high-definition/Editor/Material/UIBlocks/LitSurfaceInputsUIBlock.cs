@@ -51,6 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent aoRemappingText = new GUIContent("Ambient Occlusion Remapping", "Controls a remap for the ambient occlusion channel in the Mask Map.");
             public static GUIContent maskMapSText = new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Metallic (R), Ambient occlusion (G), Detail mask (B), Smoothness (A).");
             public static GUIContent maskMapSpecularText = new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Ambient occlusion (G), Detail mask (B), Smoothness (A).");
+            public static GUIContent alphaRemappingText = new GUIContent("Alpha Remapping", "Controls a remap for the alpha channel in the Base Color.");
 
             public static GUIContent normalMapSpaceText = new GUIContent("Normal Map Space", "");
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Specifies the Normal Map for this Material (BC7/BC5/DXT5(nm)) and controls its strength.");
@@ -129,10 +130,15 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kSmoothnessRemapMin = "_SmoothnessRemapMin";
         MaterialProperty[] smoothnessRemapMax = new MaterialProperty[kMaxLayerCount];
         const string kSmoothnessRemapMax = "_SmoothnessRemapMax";
+        MaterialProperty[] alphaRemapMin = new MaterialProperty[kMaxLayerCount];
+        const string kAlphaRemapMin = "_AlphaRemapMin";
+        MaterialProperty[] alphaRemapMax = new MaterialProperty[kMaxLayerCount];
+        const string kAlphaRemapMax = "_AlphaRemapMax";
         MaterialProperty[] aoRemapMin = new MaterialProperty[kMaxLayerCount];
         const string kAORemapMin = "_AORemapMin";
         MaterialProperty[] aoRemapMax = new MaterialProperty[kMaxLayerCount];
         const string kAORemapMax = "_AORemapMax";
+
         MaterialProperty[] maskMap = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] normalScale = new MaterialProperty[kMaxLayerCount];
         const string kNormalScale = "_NormalScale";
@@ -234,6 +240,7 @@ namespace UnityEditor.Rendering.HighDefinition
         Features m_Features;
         int m_LayerCount;
         int m_LayerIndex;
+        bool m_UseHeightBasedBlend;
 
         bool isLayeredLit => m_LayerCount > 1;
 
@@ -266,14 +273,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             baseColor = FindPropertyLayered(kBaseColor, m_LayerCount);
             baseColorMap = FindPropertyLayered(kBaseColorMap, m_LayerCount);
+
             metallic = FindPropertyLayered(kMetallic, m_LayerCount);
             metallicRemapMin = FindPropertyLayered(kMetallicRemapMin, m_LayerCount);
             metallicRemapMax = FindPropertyLayered(kMetallicRemapMax, m_LayerCount);
             smoothness = FindPropertyLayered(kSmoothness, m_LayerCount);
             smoothnessRemapMin = FindPropertyLayered(kSmoothnessRemapMin, m_LayerCount);
             smoothnessRemapMax = FindPropertyLayered(kSmoothnessRemapMax, m_LayerCount);
+            alphaRemapMin = FindPropertyLayered(kAlphaRemapMin, m_LayerCount);
+            alphaRemapMax = FindPropertyLayered(kAlphaRemapMax, m_LayerCount);
             aoRemapMin = FindPropertyLayered(kAORemapMin, m_LayerCount);
             aoRemapMax = FindPropertyLayered(kAORemapMax, m_LayerCount);
+
             maskMap = FindPropertyLayered(kMaskMap, m_LayerCount);
             normalMap = FindPropertyLayered(kNormalMap, m_LayerCount);
             normalMapOS = FindPropertyLayered(kNormalMapOS, m_LayerCount);
@@ -369,6 +380,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             materialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap[m_LayerIndex], baseColor[m_LayerIndex]);
 
+            if (baseColorMap[m_LayerIndex].textureValue != null && materials.All(m => m.GetSurfaceType() == SurfaceType.Transparent))
+            {
+                materialEditor.MinMaxShaderProperty(alphaRemapMin[m_LayerIndex], alphaRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.alphaRemappingText);
+            }
+
+            materialEditor.TexturePropertySingleLine((materials.All(m => m.GetMaterialId() == MaterialId.LitSpecular)) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[m_LayerIndex]);
+
             bool hasMetallic = materials.All(m =>
                 m.GetMaterialId() == MaterialId.LitStandard ||
                 m.GetMaterialId() == MaterialId.LitAniso ||
@@ -388,8 +406,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.MinMaxShaderProperty(smoothnessRemapMin[m_LayerIndex], smoothnessRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.smoothnessRemappingText);
                 materialEditor.MinMaxShaderProperty(aoRemapMin[m_LayerIndex], aoRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.aoRemappingText);
             }
-
-            materialEditor.TexturePropertySingleLine((materials.All(m => m.GetMaterialId() == MaterialId.LitSpecular)) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[m_LayerIndex]);
 
             materialEditor.ShaderProperty(normalMapSpace[m_LayerIndex], Styles.normalMapSpaceText);
 
@@ -630,7 +646,7 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.ShaderProperty(useMainLayerInfluence, Styles.useMainLayerInfluenceModeText);
             materialEditor.ShaderProperty(useHeightBasedBlend, Styles.useHeightBasedBlendText);
 
-            if (useHeightBasedBlend.floatValue > 0.0f)
+            if (m_UseHeightBasedBlend)
             {
                 EditorGUI.indentLevel++;
                 materialEditor.ShaderProperty(heightTransition, Styles.heightTransition);

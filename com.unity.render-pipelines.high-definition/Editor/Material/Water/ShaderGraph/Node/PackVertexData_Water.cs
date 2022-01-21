@@ -37,20 +37,17 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kSSSMaskInputSlotId = 4;
         const string kSSSMaskInputSlotName = "SSSMask";
 
-        const int kCustomFoamInputSlotId = 5;
-        const string kCustomFoamInputSlotName = "CustomFoam";
-
         // Outputs
-        const int kPositionOSOutputSlotId = 6;
+        const int kPositionOSOutputSlotId = 5;
         const string kPositionOSOutputSlotName = "PositionOS";
 
-        const int kNormalOSOutputSlotId = 7;
+        const int kNormalOSOutputSlotId = 6;
         const string kNormalOSOutputSlotName = "NormalOS";
 
-        const int kUV0OutputSlotId = 8;
+        const int kUV0OutputSlotId = 7;
         const string kUV0OutputSlotName = "uv0";
 
-        const int kUV1OutputSlotId = 9;
+        const int kUV1OutputSlotId = 8;
         const string kUV1OutputSlotName = "uv1";
 
         public override bool hasPreview { get { return false; } }
@@ -63,7 +60,6 @@ namespace UnityEditor.Rendering.HighDefinition
             AddSlot(new Vector3MaterialSlot(kDisplacementNoChopinessInputSlotId, kDisplacementNoChopinessInputSlotName, kDisplacementNoChopinessInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Vertex));
             AddSlot(new Vector1MaterialSlot(kLowFrequencyHeightInputSlotId, kLowFrequencyHeightInputSlotName, kLowFrequencyHeightInputSlotName, SlotType.Input, 0, ShaderStageCapability.Vertex));
             AddSlot(new Vector1MaterialSlot(kSSSMaskInputSlotId, kSSSMaskInputSlotName, kSSSMaskInputSlotName, SlotType.Input, 0, ShaderStageCapability.Vertex));
-            AddSlot(new Vector1MaterialSlot(kCustomFoamInputSlotId, kCustomFoamInputSlotName, kCustomFoamInputSlotName, SlotType.Input, 0, ShaderStageCapability.Vertex));
 
             // Outputs
             AddSlot(new Vector3MaterialSlot(kPositionOSOutputSlotId, kPositionOSOutputSlotName, kPositionOSOutputSlotName, SlotType.Output, Vector3.zero));
@@ -78,7 +74,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 kDisplacementNoChopinessInputSlotId,
                 kLowFrequencyHeightInputSlotId,
                 kSSSMaskInputSlotId,
-                kCustomFoamInputSlotId,
 
                 kPositionOSOutputSlotId,
                 kNormalOSOutputSlotId,
@@ -98,15 +93,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 string displacement = GetSlotValue(kDisplacementInputSlotId, generationMode);
                 string displacementNoChopiness = GetSlotValue(kDisplacementNoChopinessInputSlotId, generationMode);
                 string lowFrequencyHeight = GetSlotValue(kLowFrequencyHeightInputSlotId, generationMode);
-                string customFoam = GetSlotValue(kCustomFoamInputSlotId, generationMode);
                 string sssMask = GetSlotValue(kSSSMaskInputSlotId, generationMode);
 
-                sb.AppendLine("PackWaterVertexData({0}, {1}, {2}, {3}, {4}, {5}, packedWaterData);",
+                sb.AppendLine("PackWaterVertexData({0}, {1}, {2}, {3}, {4}, packedWaterData);",
                     positionWS,
                     displacement,
                     displacementNoChopiness,
                     lowFrequencyHeight,
-                    customFoam,
                     sssMask
                 );
 
