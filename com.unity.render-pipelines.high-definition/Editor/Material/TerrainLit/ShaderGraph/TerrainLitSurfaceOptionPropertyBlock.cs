@@ -22,7 +22,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CreatePropertyGUI()
         {
-            AddProperty(rayTracingText, () => terrainLitData.rayTracing, (newValue) => terrainLitData.rayTracing = newValue);
+            // TODO : support for raytracing later
+            //AddProperty(rayTracingText, () => terrainLitData.rayTracing, (newValue) => terrainLitData.rayTracing = newValue);
 
             // Surface type
             AddProperty(surfaceTypeText, () => terrainLitData.terrainSurfaceType, (newValue) =>
@@ -45,17 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             AddProperty(opaqueCullModeText, () => systemData.opaqueCullMode, (newValue) => systemData.opaqueCullMode = newValue);
             context.globalIndentLevel--;
 
-            // Alpha Test
-            AddProperty(alphaCutoffEnableText, () => systemData.alphaTest, (newValue) => systemData.alphaTest = newValue);
-            if (systemData.alphaTest)
-            {
-                context.globalIndentLevel++;
-                AddProperty(useShadowThresholdText, () => builtinData.alphaTestShadow, (newValue) => builtinData.alphaTestShadow = newValue);
-                context.globalIndentLevel--;
-            }
-
             // Misc
-            AddProperty(doubleSidedEnableText, () => systemData.doubleSidedMode != DoubleSidedMode.Disabled, (newValue) => systemData.doubleSidedMode = newValue ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled);
             AddProperty(Styles.fragmentNormalSpace, () => terrainLitData.normalDropOffSpace, (newValue) => terrainLitData.normalDropOffSpace = newValue);
 
             // Misc Cont.

@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
         protected override ShaderID shaderID => ShaderID.SG_Terrain;
-        protected override string customInspector { get; } // TODO :
+        protected override string customInspector => "Rendering.HighDefinition.TerrainLitGUI";
         protected override string renderType => HDRenderTypeTags.Opaque.ToString();
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         internal override MaterialResetter setupMaterialKeywordsAndPassFunc => ShaderGraphAPI.ValidateTerrain;
@@ -70,8 +70,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     HDShaderPasses.GenerateMETA(supportLighting, allowsVFX),
                     HDShaderPasses.GenerateScenePicking(allowsVFX, systemData.tessellation),
                     HDShaderPasses.GenerateSceneSelection(supportLighting, allowsVFX, systemData.tessellation),
-                    // TODO : need it?
-                    //HDShaderPasses.GenerateMotionVectors(supportLighting, supportForward, allowsVFX, systemData.tessellation),
                 };
 
                 if (supportForward)
@@ -79,12 +77,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting, allowsVFX, systemData.tessellation));
                     passes.Add(HDShaderPasses.GenerateForwardOnlyPass(supportLighting, allowsVFX, systemData.tessellation));
                 }
-
-                // TODO : need it?
-                //if (supportDistortion)
-                    //passes.Add(HDShaderPasses.GenerateDistortionPass(supportLighting, allowsVFX, systemData.tessellation), new FieldCondition(HDFields.TransparentDistortion, true));
-
-                //passes.Add(HDShaderPasses.GenerateFullScreenDebug(allowsVFX, systemData.tessellation));
 
                 passes.Add(HDShaderPasses.GenerateLitDepthOnly(TargetsVFX(), systemData.tessellation));
                 passes.Add(HDShaderPasses.GenerateGBuffer(TargetsVFX(), systemData.tessellation));
@@ -161,14 +153,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Lit specific properties
             context.AddField(DotsProperties, context.hasDotsProperties);
 
-            // Material
-            //context.AddField(Standard);
-
             // Misc
             context.AddField(LightingGI, descs.Contains(HDBlockFields.SurfaceDescription.BakedGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedGI));
             context.AddField(BackLightingGI, descs.Contains(HDBlockFields.SurfaceDescription.BakedBackGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
             context.AddField(HDFields.AmbientOcclusion, context.blocks.Contains((BlockFields.SurfaceDescription.Occlusion, false)) && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.Occlusion));
-            context.AddField(RayTracing, terrainLitData.rayTracing);
+            //context.AddField(RayTracing, terrainLitData.rayTracing); // TODO : raytracing later
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
