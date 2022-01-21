@@ -47,6 +47,26 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     return output;
 }
 
+VertexDescription ExecuteVertexDescription(VertexDescriptionInputs vertexDescriptionInputs
+#ifdef HAVE_VFX_MODIFICATION
+    , AttributesElement element
+#endif
+)
+{
+    // evaluate vertex graph
+#ifdef HAVE_VFX_MODIFICATION
+    GraphProperties properties;
+    ZERO_INITIALIZE(GraphProperties, properties);
+
+    // Fetch the vertex graph properties for the particle instance.
+    GetElementVertexProperties(element, properties);
+    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs, properties);
+#else
+    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+#endif
+    return vertexDescription;
+}
+
 AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
 #ifdef USE_CUSTOMINTERP_SUBSTRUCT
     #ifdef TESSELLATION_ON
@@ -65,18 +85,11 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     // Override time parameters with used one (This is required to correctly handle motion vector for vertex animation based on time)
     $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
-    // evaluate vertex graph
+    VertexDescription vertexDescription = ExecuteVertexDescription(vertexDescriptionInputs
 #ifdef HAVE_VFX_MODIFICATION
-    GraphProperties properties;
-    ZERO_INITIALIZE(GraphProperties, properties);
-
-    // Fetch the vertex graph properties for the particle instance.
-    GetElementVertexProperties(element, properties);
-
-    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs, properties);
-#else
-    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+        , element
 #endif
+    );
 
     // copy graph output to the results
     $VertexDescription.Position: input.positionOS = vertexDescription.Position;
@@ -94,11 +107,19 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
 
 #if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity
 // Return precomputed Velocity in object space
-float3 GetCustomVelocity(AttributesMesh input)
+float3 GetCustomVelocity(AttributesMesh input
+#ifdef HAVE_VFX_MODIFICATION
+    , AttributesElement element
+#endif
+)
 {
     // build graph inputs
     VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
-    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+    VertexDescription vertexDescription = ExecuteVertexDescription(vertexDescriptionInputs,
+#ifdef HAVE_VFX_MODIFICATION
+        element
+#endif
+    );
     return vertexDescription.CustomVelocity;
 }
 #endif

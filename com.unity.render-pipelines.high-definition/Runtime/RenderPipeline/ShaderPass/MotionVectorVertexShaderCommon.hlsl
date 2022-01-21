@@ -169,7 +169,11 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
         // otherwise it will apply two times the modifications.
         // However the vertex animation will still be perform correctly as we used previousMesh position
         // where we could ahve trouble is if time is used to drive custom velocity, this will not work
-        previousMesh.positionOS -= GetCustomVelocity(inputMesh);
+        previousMesh.positionOS -= GetCustomVelocity(inputMesh
+#ifdef HAVE_VFX_MODIFICATION
+            , inputElement
+#endif
+        );
 #endif
 
 #if defined(_ADD_PRECOMPUTED_VELOCITY)
@@ -180,7 +184,11 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
 #else
 
 #if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity
-        effectivePositionOS -= GetCustomVelocity(inputMesh);
+        effectivePositionOS -= GetCustomVelocity(inputMesh
+#ifdef HAVE_VFX_MODIFICATION
+            , inputElement
+#endif
+        );
 #endif
 
 #if defined(_ADD_PRECOMPUTED_VELOCITY)
