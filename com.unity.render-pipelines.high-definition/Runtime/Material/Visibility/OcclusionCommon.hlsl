@@ -9,6 +9,7 @@ ByteAddressBuffer instanceData;
 uint instancePositionMetadata;
 uint instanceBatchID;
 static uint occlusion_instanceID;
+static float4x4 occlusion_ObjectToWorld;
 
 uint ComputeDOTSInstanceDataAddressCustom(uint metadata, uint instanceIndex, uint stride)
 {
@@ -32,9 +33,14 @@ float4x4 LoadDOTSInstancedData_float4x4_from_float3x4_customBuffer(uint metadata
     );
 }
 
+void InitObjectToWorld()
+{
+    occlusion_ObjectToWorld = LoadDOTSInstancedData_float4x4_from_float3x4_customBuffer(instancePositionMetadata, occlusion_instanceID);
+}
+
 float4x4 LoadObjectToWorld()
 {
-    return LoadDOTSInstancedData_float4x4_from_float3x4_customBuffer(instancePositionMetadata, occlusion_instanceID);
+    return occlusion_ObjectToWorld;
 }
 
 #undef UNITY_MATRIX_M

@@ -90,11 +90,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderOcclusionCulling(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cull, ref PrepassOutput output)
         {
-            const int kVerticesPerInstance = 3 * 2; // 3 front faces, 2 triangles per face to draw a box
+            const int kFacesPerInstance = 3;
+            const int kTrianglesPerFace = 2;
+            const int kVerticesPerTriangle = 3;
+            const int kVerticesPerInstance = kVerticesPerTriangle * kTrianglesPerFace * kFacesPerInstance;
 
             var BRGBindingData = RenderBRG.GetRenderBRGMaterialBindingData();
             if (!IsVisibilityPassEnabled() || !BRGBindingData.valid)
+                return;
+            else if (!BRGBindingData.occlusionValid)
             {
+                Debug.Log("Occlusion data invalid!");
                 return;
             }
 
@@ -143,7 +149,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         updateVisibility.SetInt("dwordsToZeroCount", dwordsToZero);
                         context.cmd.DispatchCompute(updateVisibility, 1, threadGroups, 1, 1);
 
-                        int vertexCount = data.instanceCount * kVerticesPerInstance;
                         context.cmd.SetRandomWriteTarget(2, data.instanceVisibilityBitfield);
 
                         if (bindings.occlusionDebugOutput)
@@ -166,6 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                         else if (data.occlusionCullingMode == OcclusionCullingMode.ProceduralCube)
                         {
+                            int vertexCount = data.instanceCount * kVerticesPerInstance;
                             context.cmd.DrawProcedural(Matrix4x4.identity, data.occlusionMaterial, 0,
                                 MeshTopology.Triangles,
                                 vertexCount, 1);

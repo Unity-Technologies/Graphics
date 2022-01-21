@@ -13,16 +13,37 @@ RWByteAddressBuffer instanceVisibilityBitfield : register(u2);
 
 #define CreateProceduralPositionOS BoundingBoxPositionOS
 
-static const uint kVerticesPerInstance = 6;
+static const uint kFacesPerInstance = 3;
+static const uint kTrianglesPerFace = 2;
+static const uint kVerticesPerTriangle = 3;
+static const uint kVerticesPerInstance = kVerticesPerTriangle * kTrianglesPerFace * kFacesPerInstance;
 
-static const float4 BoxVerts[kVerticesPerInstance] =
+struct BoxVert
 {
-    float4(1, 0, 0, 1),
-    float4(1, 1, 0, 1),
-    float4(0, 0, 0, 1),
-    float4(0, 1, 0, 1),
-    float4(0, 1, 1, 1),
-    float4(0, 0, 0, 1),
+    uint face;
+    float2 coords;
+};
+
+static const BoxVert BoxVerts[kVerticesPerInstance] =
+{
+    { 0, -1, -1, },
+    { 0, 1, -1, },
+    { 0, -1, 1, },
+    { 0, 1, 1, },
+    { 0, 1, -1, },
+    { 0, -1, 1, },
+    { 1, -1, -1, },
+    { 1, 1, -1, },
+    { 1, -1, 1, },
+    { 1, 1, 1, },
+    { 1, 1, -1, },
+    { 1, -1, 1, },
+    { 2, -1, -1, },
+    { 2, 1, -1, },
+    { 2, -1, 1, },
+    { 2, 1, 1, },
+    { 2, 1, -1, },
+    { 2, -1, 1, },
 };
 
 float3 BoundingBoxPositionOS(AttributesMesh input)
@@ -30,7 +51,40 @@ float3 BoundingBoxPositionOS(AttributesMesh input)
     uint vid = input.vertexIndex;
     uint instanceIndex = vid / kVerticesPerInstance;
     uint vertexIndex = vid % kVerticesPerInstance;
-    return TransformBoundsVertex(BoxVerts[vertexIndex].xyz);
+    BoxVert V = BoxVerts[vertexIndex];
+
+    float3 cameraPosWS = _WorldSpaceCameraPos;
+    float3 objectPosWS = mul(occlusion_ObjectToWorld, float4(0, 0, 0, 1)).xyz;
+    float3 cameraDirWS = cameraPosWS - objectPosWS;
+
+    float3 axisWS = 0;
+    if (V.face == 0)
+    {
+        float3 axisOS = float3(1, 0, 0);
+        axisWS = mul(occlusion_ObjectToWorld, float4(axisOS, 0)).xyz;
+    }
+    else if (V.face == 1)
+    {
+        float3 axisOS = float3(0, 1, 0);
+        axisWS = mul(occlusion_ObjectToWorld, float4(axisOS, 0)).xyz;
+    }
+    else
+    {
+        float3 axisOS = float3(0, 0, 1);
+        axisWS = mul(occlusion_ObjectToWorld, float4(axisOS, 0)).xyz;
+    }
+    bool isFrontFacing = dot(axisWS, cameraDirWS) > 0;
+
+    float w = isFrontFacing ? 1 : -1;
+    float3 vertexPosOS = 0;
+    if (V.face == 0)
+        vertexPosOS = float3(w, V.coords.x, V.coords.y);
+    else if (V.face == 1)
+        vertexPosOS = float3(V.coords.x, w, V.coords.y);
+    else
+        vertexPosOS = float3(V.coords.x, V.coords.y, w);
+
+    return TransformBoundsVertex(vertexPosOS);
 }
 #endif
 
@@ -62,6 +116,7 @@ OcclusionVaryings VertOcclusion(AttributesMesh input, uint svInstanceId : SV_Ins
 #endif
     occlusion_instanceID = inputVisibleInstanceData.Load(instanceIndex << 2);
     occlusion_meshBounds = GetMeshBounds(occlusion_instanceID, instanceBatchID);
+    InitObjectToWorld();
 
     VaryingsMeshToPS vmesh = VertMesh(input);
 

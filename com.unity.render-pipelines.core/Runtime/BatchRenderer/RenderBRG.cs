@@ -172,6 +172,7 @@ namespace UnityEngine.Rendering
         internal static int s_InstanceCount;
         internal static uint s_BatchID;
         internal static bool s_OcclusionDebugOutput;
+        internal static bool s_OcclusionValid = false;
         internal static OcclusionCullingMode s_OcclusionCullingMode;
 
         private NativeList<DrawInstance> m_instances;
@@ -280,7 +281,6 @@ namespace UnityEngine.Rendering
             [ReadOnly] public GraphicsBufferHandle gpuCulledVisibleInstances;
             [ReadOnly] public NativeList<BatchDrawCommandProcedural> proceduralInfos;
             [WriteOnly] public NativeArray<GraphicsBuffer.IndirectDrawIndexedArgs> drawIndirectArgData;
-            [WriteOnly] public NativeArray<uint> visibleInstancesPositionMetadata;
 
 #if DEBUG
             [IgnoreWarning(1370)] //Ignore throwing exception warning.
@@ -784,8 +784,6 @@ namespace UnityEngine.Rendering
                     Allocator.TempJob,
                     NativeArrayOptions.ClearMemory);
 
-                var visibleInstancePositionMetadata = m_visibleInstancesBufferPool.StartBufferWrite();
-
                 var drawOutputJob = new DrawCommandOutputSingleSplitJob
                 {
                     viewID = cc.viewID.GetInstanceID(),
@@ -801,7 +799,6 @@ namespace UnityEngine.Rendering
                     drawCommands = cullingOutput.drawCommands,
                     visibleInstancesBufferHandle = visibleInstancesUploadBuffer.bufferHandle,
                     visibleInstancesGPU = visibleInstancesUploadBuffer.gpuData,
-                    visibleInstancesPositionMetadata = visibleInstancePositionMetadata.gpuData,
                     useIndirects = true,
                     proceduralInfos = m_proceduralInfos,
                     drawIndirectArgs = m_DrawIndirectArgs.bufferHandle,
@@ -814,8 +811,6 @@ namespace UnityEngine.Rendering
                 m_DrawIndirectArgs.SetData(debugIndirectData);
                 debugIndirectData.Dispose();
 
-                m_visibleInstancesBufferPool.EndBufferWrite(visibleInstancePositionMetadata);
-
                 s_DrawIndirectArgs = m_DrawIndirectArgs;
                 s_InputVisibleInstanceData = m_visibleInstancesBufferPool.m_buffers[visibleInstancesUploadBuffer.index];
                 s_OutputVisibleInstanceData = m_OcclusionVisibleInstanceData;
@@ -823,6 +818,7 @@ namespace UnityEngine.Rendering
                 s_InstanceData = m_GPUPersistentInstanceData;
                 s_DrawCommandCount = cullingOutput.drawCommands[0].drawCommandCount;
                 s_InstanceCount = cullingOutput.drawCommands[0].visibleInstanceCount;
+                s_OcclusionValid = true;
                 s_BatchID = m_batchID.value;
                 s_InstanceCountBuffer = m_OcclusionVisibleInstanceCountBuffer;
             }
@@ -978,7 +974,7 @@ namespace UnityEngine.Rendering
             m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
             m_BRGTransformUpdater.Initialize();
 
-            m_visibleInstancesBufferPool = new UploadBufferPool(10 * 3 * 2, 4096 * 1024);   // HACKS: Max 10 callbacks/frame, 3 frame hard coded reuse. 4MB maximum buffer size (1 million visible indices).
+            m_visibleInstancesBufferPool = new UploadBufferPool(10 * 3, 4096 * 1024);   // HACKS: Max 10 callbacks/frame, 3 frame hard coded reuse. 4MB maximum buffer size (1 million visible indices).
             m_frame = 0;
 
             // Create a batch...
@@ -1484,6 +1480,7 @@ namespace UnityEngine.Rendering
         public int instanceCount;
         public uint batchID;
         public bool occlusionDebugOutput;
+        public bool occlusionValid;
         public OcclusionCullingMode occlusionCullingMode;
         public GraphicsBuffer instanceCountBuffer;
 
@@ -1548,6 +1545,7 @@ namespace UnityEngine.Rendering
                 instanceCount = SceneBRG.s_InstanceCount,
                 batchID = SceneBRG.s_BatchID,
                 occlusionDebugOutput = SceneBRG.s_OcclusionDebugOutput,
+                occlusionValid = SceneBRG.s_OcclusionValid,
                 occlusionCullingMode = SceneBRG.s_OcclusionCullingMode,
                 instanceCountBuffer = SceneBRG.s_InstanceCountBuffer,
             };
@@ -1713,6 +1711,7 @@ namespace UnityEngine.Rendering
                     Graphics.ExecuteCommandBuffer(m_gpuCmdBuffer);
             }
 
+            SceneBRG.s_OcclusionValid = false;
             SceneBRG.s_OcclusionDebugOutput = OcclusionDebugOutput;
             SceneBRG.s_OcclusionCullingMode = OcclusionCullingMode;
         }
