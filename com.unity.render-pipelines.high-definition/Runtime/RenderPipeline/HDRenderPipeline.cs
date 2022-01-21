@@ -520,7 +520,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CustomPassUtils.Initialize();
 
             LensFlareCommonSRP.Initialize();
-        
+
             AllocateOITResources();
         }
 

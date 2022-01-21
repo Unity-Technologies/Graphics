@@ -65,7 +65,7 @@ namespace BTDF
         const float z = (U2*(U2*(U2*0.27385-0.73369)+0.46341)) / (U2*(U2*(U2*0.093073+0.309420)-1.000000)+0.597999);
         slope_y = S * z * sqrt(1.0+slope_x*slope_x);
     }
-    
+
     // Algo 3.
     void GGXSampleOmega_m(
         // input
@@ -93,22 +93,22 @@ namespace BTDF
             theta_ = acos(omega_i_.z);
             phi_ = atan2(omega_i_.y, omega_i_.x);
         }
-    
+
         // 2. sample P22_{omega_i}(x_slope, y_slope, 1, 1)
         float slope_x, slope_y;
         SampleGGXBTDFSlopes(theta_,
             U1, U2,
             slope_x, slope_y);
-    
+
         // 3. rotate
         float tmp = cos(phi_)*slope_x - sin(phi_)*slope_y;
         slope_y = sin(phi_)*slope_x + cos(phi_)*slope_y;
         slope_x = tmp;
-    
+
         // 4. unstretch
         slope_x = alpha_x * slope_x;
         slope_y = alpha_y * slope_y;
-    
+
         // 5. compute normal
         float inv_omega_m = sqrt(slope_x*slope_x + slope_y*slope_y + 1.0);
         omega_m.x = -slope_x/inv_omega_m;

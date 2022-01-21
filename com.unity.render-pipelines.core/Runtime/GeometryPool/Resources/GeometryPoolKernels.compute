@@ -85,6 +85,9 @@ int _InputUv0BufferOffset;
 int _InputUv1BufferStride;
 int _InputUv1BufferOffset;
 
+int _InputColorBufferStride;
+int _InputColorBufferOffset;
+
 int _InputNormalBufferStride;
 int _InputNormalBufferOffset;
 
@@ -96,6 +99,7 @@ int _InputFlags;
 ByteAddressBuffer _PosBuffer;
 ByteAddressBuffer _Uv0Buffer;
 ByteAddressBuffer _Uv1Buffer;
+ByteAddressBuffer _ColorBuffer;
 ByteAddressBuffer _NormalBuffer;
 ByteAddressBuffer _TangentBuffer;
 
@@ -116,6 +120,12 @@ void MainUpdateVertexBuffer(uint3 dispatchThreadID : SV_DispatchThreadID)
         vtx.uv1 = asfloat(_Uv1Buffer.Load2(_InputUv1BufferOffset + (vertexOffset * _InputUv1BufferStride)));
     else
         vtx.uv1 = float2(0, 0);
+
+    if ((_InputFlags & GEOPOOLINPUTFLAGS_HAS_COLOR) != 0)
+        vtx.C = asfloat(_ColorBuffer.Load3(_InputColorBufferOffset + (vertexOffset * _InputColorBufferStride)));
+    else
+        vtx.C = float3(0, 0, 0);
+
 
     vtx.N = asfloat(_NormalBuffer.Load3(_InputNormalBufferOffset + (vertexOffset * _InputNormalBufferStride)));
 

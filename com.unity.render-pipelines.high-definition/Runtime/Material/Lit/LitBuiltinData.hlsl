@@ -50,7 +50,7 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
     mappingType = UV_MAPPING_PLANAR;
     #elif defined(_EMISSIVE_MAPPING_TRIPLANAR)
     mappingType = UV_MAPPING_TRIPLANAR;
-    #elif defined(_EMISSIVE_MAPPING_ANALYTICAL_GRADIENTS) 
+    #elif defined(_EMISSIVE_MAPPING_ANALYTICAL_GRADIENTS)
     mappingType = UV_MAPPING_ANALYTICAL_GRADIENTS;
         #ifndef LAYERED_LIT_SHADER
         layerTexCoord.base.ddxUV = input.texCoord0ddx;

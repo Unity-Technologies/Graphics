@@ -15,6 +15,8 @@
 
 #define APPLY_JITTER_BIAS 0
 
+#define APPLY_BORDER_BIAS 1
+
 float4 _PackedOITTileHistogramArgs;
 
 RWStructuredBuffer<uint> _OITSortMemoryBuffer;
@@ -28,6 +30,22 @@ RWByteAddressBuffer _VisOITHistogramOutput;
 uint GetPixelIndex(int2 pixelCoordinates)
 {
     float ditherRatio = _OITDitherTexture[(uint2)pixelCoordinates % uint2(DITHER_TILE_SIZE, DITHER_TILE_SIZE)];
+
+#if APPLY_BORDER_BIAS
+    uint countVal_c = GetStencilValue(_VisOITCount[COORD_TEXTURE2D_X(pixelCoordinates.xy+int2(0,0))].xy);
+    uint countVal_l = GetStencilValue(_VisOITCount[COORD_TEXTURE2D_X(pixelCoordinates.xy+int2(-1,0))].xy);
+    uint countVal_r = GetStencilValue(_VisOITCount[COORD_TEXTURE2D_X(pixelCoordinates.xy+int2(1,0))].xy);
+    uint countVal_u = GetStencilValue(_VisOITCount[COORD_TEXTURE2D_X(pixelCoordinates.xy+int2(0,-1))].xy);
+    uint countVal_d = GetStencilValue(_VisOITCount[COORD_TEXTURE2D_X(pixelCoordinates.xy+int2(0,1))].xy);
+
+    if (countVal_c != countVal_l ||
+        countVal_c != countVal_r ||
+        countVal_c != countVal_u ||
+        countVal_c != countVal_d)
+    {
+        ditherRatio = 0.5f * ditherRatio;
+    }
+#endif
 
 #if APPLY_JITTER_BIAS
     int isMod4X = ((pixelCoordinates.x-_VisOITBlockJitterOffsetX) % 4 == 0) ? 1 : 0;
@@ -136,10 +154,7 @@ void MainFlatEnableActiveCounts(int3 dispatchThreadID : SV_DispatchThreadID)
             }
             else if (storageValue <= 32)
             {
-                //sortVariantOffset = 1;
-
-                // Override med to big
-                sortVariantOffset = 2;
+                sortVariantOffset = 1;
             }
             else
             {

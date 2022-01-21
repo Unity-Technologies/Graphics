@@ -10,6 +10,7 @@
 #define GEO_POOL_POS_BYTE_SIZE (12)
 #define GEO_POOL_UV0BYTE_SIZE (8)
 #define GEO_POOL_UV1BYTE_SIZE (8)
+#define GEO_POOL_COL_BYTE_SIZE (12)
 #define GEO_POOL_NORMAL_BYTE_SIZE (12)
 #define GEO_POOL_TANGENT_BYTE_SIZE (12)
 #define GEO_POOL_BATCH_INSTANCE_DATA_BYTE_SIZE (2)
@@ -17,8 +18,9 @@
 #define GEO_POOL_POS_BYTE_OFFSET (0)
 #define GEO_POOL_UV0BYTE_OFFSET (12)
 #define GEO_POOL_UV1BYTE_OFFSET (20)
-#define GEO_POOL_NORMAL_BYTE_OFFSET (28)
-#define GEO_POOL_TANGENT_BYTE_OFFSET (40)
+#define GEO_POOL_COL_BYTE_OFFSET (28)
+#define GEO_POOL_NORMAL_BYTE_OFFSET (40)
+#define GEO_POOL_TANGENT_BYTE_OFFSET (52)
 #define GEO_POOL_INDEX_BYTE_SIZE (4)
 #define GEO_POOL_VERTEX_BYTE_SIZE (64)
 
@@ -28,6 +30,7 @@
 #define GEOPOOLINPUTFLAGS_NONE (0)
 #define GEOPOOLINPUTFLAGS_HAS_UV1 (1)
 #define GEOPOOLINPUTFLAGS_HAS_TANGENT (2)
+#define GEOPOOLINPUTFLAGS_HAS_COLOR (2)
 
 // Generated from UnityEngine.Rendering.GeoPoolVertex
 // PackingRules = Exact
@@ -36,6 +39,7 @@ struct GeoPoolVertex
     float3 pos;
     float2 uv;
     float2 uv1;
+    float3 C;
     float3 N;
     float3 T;
 };

@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering
         public static int GeoPoolPosByteSize = 3 * 4;
         public static int GeoPoolUV0ByteSize = 2 * 4;
         public static int GeoPoolUV1ByteSize = 2 * 4;
+        public static int GeoPoolColByteSize = 3 * 4;
         public static int GeoPoolNormalByteSize = 3 * 4;
         public static int GeoPoolTangentByteSize = 3 * 4;
         public static int GeoPoolBatchInstanceDataByteSize = 2;
@@ -17,7 +18,8 @@ namespace UnityEngine.Rendering
         public static int GeoPoolPosByteOffset = 0;
         public static int GeoPoolUV0ByteOffset = GeoPoolPosByteOffset + GeoPoolPosByteSize;
         public static int GeoPoolUV1ByteOffset = GeoPoolUV0ByteOffset + GeoPoolUV0ByteSize;
-        public static int GeoPoolNormalByteOffset = GeoPoolUV1ByteOffset + GeoPoolUV1ByteSize;
+        public static int GeoPoolColByteOffset = GeoPoolUV1ByteOffset + GeoPoolUV1ByteSize;
+        public static int GeoPoolNormalByteOffset = GeoPoolColByteOffset + GeoPoolColByteSize;
         public static int GeoPoolTangentByteOffset = GeoPoolNormalByteOffset + GeoPoolNormalByteSize;
 
         public static int GeoPoolIndexByteSize = 4;
@@ -31,6 +33,7 @@ namespace UnityEngine.Rendering
         public Vector3 pos;
         public Vector2 uv;
         public Vector2 uv1;
+        public Vector3 C;
         public Vector3 N;
         public Vector3 T;
     }
@@ -41,7 +44,8 @@ namespace UnityEngine.Rendering
     {
         None = 0,
         HasUV1 = 1 << 0,
-        HasTangent = 1 << 1
+        HasTangent = 1 << 1,
+        HasColor = 1 << 1
     }
 
     [GenerateHLSL]

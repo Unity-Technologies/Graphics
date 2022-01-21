@@ -448,7 +448,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.screenSize = screenSize;
                 passData.prefixSumSystem = m_PrefixSumSystem;
                 passData.inputCountBuffer = builder.ReadComputeBuffer(inputCountBuffer);
-                passData.prefixResources = GpuPrefixSumRenderGraphResources.Create(screenSize.x * screenSize.y, renderGraph, builder, outputIsTemp : true);
+                passData.prefixResources = GpuPrefixSumRenderGraphResources.Create(screenSize.x * screenSize.y, renderGraph, builder, outputIsTemp: true);
                 passData.outputDispatchArgsBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(1, sizeof(uint) * 4, ComputeBufferType.Structured | ComputeBufferType.IndirectArguments) { name = "OITSamplesDispatchArgs" }));
                 passData.outputGpuCountBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(1, sizeof(uint), ComputeBufferType.Raw) { name = "OITSamplesCountBuffer" }));
 
@@ -555,6 +555,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (OITSortSamplesPassData data, RenderGraphContext context) =>
                     {
                         int networkSort = data.cs.FindKernel("OITSort_Network");
+                        int groupSharedWaveSort = data.cs.FindKernel("OITSort_GroupShared_Wave");
                         int groupSharedSort = data.cs.FindKernel("OITSort_GroupShared");
 
                         uint indirectArgOffset = 36;
@@ -565,7 +566,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeBufferParam(data.cs, networkSort, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
                         context.cmd.DispatchCompute(data.cs, networkSort, data.sortMemoryBuffer, indirectArgOffset);
 
-                        // Note: The big sort mode currently also handles the medium one
+                        context.cmd.SetComputeBufferParam(data.cs, groupSharedWaveSort, HDShaderIDs._RWVisOITBuffer, data.oitVisibilityBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, groupSharedWaveSort, HDShaderIDs._VisOITListsCounts, data.countBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, groupSharedWaveSort, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, groupSharedWaveSort, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
+                        context.cmd.DispatchCompute(data.cs, groupSharedWaveSort, data.sortMemoryBuffer, indirectArgOffset + 12);
+
                         context.cmd.SetComputeBufferParam(data.cs, groupSharedSort, HDShaderIDs._RWVisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, groupSharedSort, HDShaderIDs._VisOITListsCounts, data.countBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, groupSharedSort, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
@@ -1109,7 +1115,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle gBuffer0Texture,
             TextureHandle gBuffer1Texture,
             TextureHandle offscreenDirectReflectionLightingTexture,
-            Vector2Int    offscreenLightingSize)
+            Vector2Int offscreenLightingSize)
         {
             TextureHandle output;
             using (var builder = renderGraph.AddRenderPass<OITComputePhotonRefractionBufferPassData>("OITComputePhotonRefractionBuffer", out var passData, ProfilingSampler.Get(HDProfileId.OITComputePhotonRefractionBuffer)))
@@ -1199,7 +1205,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         int kernel = data.cs.FindKernel("MainResolveSparseOITLighting");
                         context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
-                        
+
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITSparseColorBuffer, data.sparseColorBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);
