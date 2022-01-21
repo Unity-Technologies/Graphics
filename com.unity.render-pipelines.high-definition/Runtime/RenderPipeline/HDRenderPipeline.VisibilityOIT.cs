@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         struct VBufferOITOutput
         {
             public bool valid;
+            public Vector4 depthEncodeParams;
             public TextureHandle stencilBuffer;
             public ComputeBufferHandle histogramBuffer;
             public ComputeBufferHandle prefixedHistogramBuffer;
@@ -43,6 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 VBufferOITOutput readVBuffer = VBufferOITOutput.NewDefault();
                 readVBuffer.valid = valid;
+                readVBuffer.depthEncodeParams = depthEncodeParams;
                 readVBuffer.stencilBuffer = builder.ReadTexture(stencilBuffer);
                 if (!valid)
                     return readVBuffer;
@@ -183,6 +185,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             output.vbufferOIT.valid = true;
 
+            float cameraNear = hdCamera.camera.nearClipPlane;
+            float cameraFar = hdCamera.camera.farClipPlane;
+            output.vbufferOIT.depthEncodeParams = new Vector4(cameraNear, Mathf.Log(cameraFar / cameraNear, 2.0f), 1.0f / cameraNear, 1.0f / Mathf.Log(cameraFar / cameraNear, 2.0f));
+
             output.vbufferOIT.stencilBuffer = RenderVBufferOITCountPass(renderGraph, colorBuffer, hdCamera, cullResults, BRGBindingData);
 
             var screenSize = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
@@ -205,7 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ComputeBufferHandle oitVisibilityBuffer = RenderVBufferOITStoragePass(
                 renderGraph, maxMaterialSampleCount, hdCamera, cullResults, BRGBindingData,
-                sampleListCountBuffer, sampleListOffsetBuffer, ref sublistCounterBuffer, pixelHashBuffer);
+                sampleListCountBuffer, sampleListOffsetBuffer, ref sublistCounterBuffer, pixelHashBuffer, output.vbufferOIT.depthEncodeParams);
 
             OITSortSamples(renderGraph, oitVisibilityBuffer, sampleListCountBuffer, sampleListOffsetBuffer, ref sortMemoryBuffer);
 
@@ -504,11 +510,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle sublistCounterBuffer;
             public ComputeBufferHandle outVisibilityBuffer;
             public ComputeBufferHandle pixelHashBuffer;
+            public Vector4 depthEncodeParams;
         }
 
         ComputeBufferHandle RenderVBufferOITStoragePass(
             RenderGraph renderGraph, int maxMaterialSampleCount, HDCamera hdCamera, CullingResults cullResults, in RenderBRGBindingData BRGBindingData,
-            ComputeBufferHandle countBuffer, ComputeBufferHandle offsetBuffer, ref ComputeBufferHandle sublistCounterBuffer, ComputeBufferHandle pixelHashBuffer)
+            ComputeBufferHandle countBuffer, ComputeBufferHandle offsetBuffer, ref ComputeBufferHandle sublistCounterBuffer, ComputeBufferHandle pixelHashBuffer, Vector4 depthEncodeParams)
         {
             ComputeBufferHandle outVisibilityBuffer;
             using (var builder = renderGraph.AddRenderPass<VBufferOITStoragePassData>("VBufferOITStorage", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITStorage)))
@@ -524,6 +531,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.sublistCounterBuffer = builder.WriteComputeBuffer(sublistCounterBuffer);
                 passData.outVisibilityBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(maxMaterialSampleCount, GetOITVisibilityBufferSize(), ComputeBufferType.Raw) { name = "OITVisibilityBuffer" }));
                 passData.pixelHashBuffer = builder.WriteComputeBuffer(pixelHashBuffer);
+                passData.depthEncodeParams = depthEncodeParams;
 
                 outVisibilityBuffer = passData.outVisibilityBuffer;
                 sublistCounterBuffer = passData.sublistCounterBuffer;
@@ -539,6 +547,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (VBufferOITStoragePassData data, RenderGraphContext context) =>
                     {
+                        context.cmd.SetGlobalVector(HDShaderIDs._VisOITDepthEncodeParams, data.depthEncodeParams);
                         context.cmd.SetGlobalBuffer(HDShaderIDs._VisOITListsCounts, passData.countBuffer);
                         context.cmd.SetGlobalBuffer(HDShaderIDs._VisOITListsOffsets, passData.offsetBuffer);
                         context.cmd.SetRandomWriteTarget(1, passData.sublistCounterBuffer);
@@ -614,6 +623,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public Vector2Int screenSize;
             public Vector4 packedArgs;
+            public Vector4 depthEncodeParams;
         }
 
         void RenderVBufferOITTileHiZPass(
@@ -630,6 +640,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 float maxMaterialSampleCountAsFloat; unsafe { maxMaterialSampleCountAsFloat = *((float*)&maxMaterialSampleCount); };
                 passData.packedArgs = new Vector4(maxMaterialSampleCountAsFloat, 0.0f, 0.0f, 0.0f);
+                passData.depthEncodeParams = vbufferOIT.depthEncodeParams;
                 passData.countBuffer = builder.ReadComputeBuffer(countBuffer);
                 passData.oitVisibilityBuffer = builder.ReadComputeBuffer(oitVisibilityBuffer);
                 passData.sortMemoryBuffer = builder.ReadComputeBuffer(vbufferOIT.sortMemoryBuffer);
@@ -661,6 +672,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         int kernel = data.cs.FindKernel("MainInitialize");
                         context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
+                        context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VisOITDepthEncodeParams, data.depthEncodeParams);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.countBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetBuffer);
@@ -689,6 +701,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     float maxMaterialSampleCountAsFloat; unsafe { maxMaterialSampleCountAsFloat = *((float*)&maxMaterialSampleCount); };
                     passData.packedArgs = new Vector4(maxMaterialSampleCountAsFloat, 0.0f, 0.0f, 0.0f);
+                    passData.depthEncodeParams = vbufferOIT.depthEncodeParams;
                     passData.countBuffer = builder.ReadComputeBuffer(countBuffer);
                     passData.oitVisibilityBuffer = builder.ReadComputeBuffer(oitVisibilityBuffer);
                     passData.sublistCounterBuffer = builder.ReadComputeBuffer(sublistCounterBuffer);
@@ -706,6 +719,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             int kernel = data.cs.FindKernel("MainTileComputeHiZ");
                             context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
+                            context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VisOITDepthEncodeParams, data.depthEncodeParams);
                             context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                             context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.countBuffer);
                             context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetBuffer);
@@ -741,6 +755,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputColor;
             public Vector4 packedArgs;
             public Vector2Int offscreenDimensions;
+            public Vector4 depthEncodeParams;
         }
 
         Vector2Int GetOITOffscreenLightingSize(HDCamera hdCamera, int maxSampleCounts)
@@ -856,7 +871,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 float packedWidth; unsafe { int offscreenDimsWidth = offscreenDimensions.x; packedWidth = *((float*)&offscreenDimsWidth); };
                 float packedMaxSamples; unsafe { packedMaxSamples = *((float*)&maxSampleCounts); };
                 passData.packedArgs = new Vector4(packedWidth, packedMaxSamples, 0.0f, 0.0f);
+                passData.depthEncodeParams = vbufferOIT.depthEncodeParams;
                 passData.offscreenDimensions = offscreenDimensions;
+                passData.depthEncodeParams = vbufferOIT.depthEncodeParams;
 
                 builder.SetRenderFunc(
                     (VBufferOITLightingOffscreen data, RenderGraphContext context) =>
@@ -874,6 +891,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         context.cmd.SetGlobalBuffer(HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetGlobalVector(HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
+                        context.cmd.SetGlobalVector(HDShaderIDs._VisOITDepthEncodeParams, data.depthEncodeParams);
                         context.cmd.SetViewport(targetViewport);
                         DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
                     });
@@ -943,6 +961,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float packedWidth; unsafe { int offscreenDimsWidth = offscreenDimensions.x; packedWidth = *((float*)&offscreenDimsWidth); };
                 float packedMaxSamples; unsafe { packedMaxSamples = *((float*)&maxSampleCounts); };
                 passData.packedArgs = new Vector4(packedWidth, packedMaxSamples, 0.0f, 0.0f);
+                passData.depthEncodeParams = vbufferOIT.depthEncodeParams;
                 passData.offscreenDimensions = offscreenDimensions;
 
                 builder.SetRenderFunc(
@@ -960,6 +979,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetGlobalBuffer(HDShaderIDs._OITOutputPixelHash, data.pixelHashBuffer);
                         context.cmd.SetGlobalBuffer(HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetGlobalVector(HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
+                        context.cmd.SetGlobalVector(HDShaderIDs._VisOITDepthEncodeParams, data.depthEncodeParams);
                         context.cmd.SetViewport(targetViewport);
                         DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
                     });
@@ -979,6 +999,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle sortMemoryBuffer;
             public TextureHandle sparseColorTexture;
             public Vector4 packedArgs;
+            public Vector4 depthEncodeParams;
         }
 
         void OITResolveLightingForwardFast(RenderGraph renderGraph, HDCamera hdCamera,
@@ -1015,12 +1036,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 float offscreenWidthAsFloat; unsafe { int offscreenWidthInt = offscreenLightingSize.x; offscreenWidthAsFloat = *((float*)&offscreenWidthInt); }
                 passData.packedArgs = new Vector4(offscreenWidthAsFloat, 0.0f, 0.0f, 0.0f);
+                passData.depthEncodeParams = vbufferOIT.depthEncodeParams;
 
                 builder.SetRenderFunc(
                     (OITResolveForwardFastRenderPass data, RenderGraphContext context) =>
                     {
                         int kernel = data.cs.FindKernel("MainResolveOffscreenLighting");
                         context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
+                        context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VisOITDepthEncodeParams, data.depthEncodeParams);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
@@ -1053,6 +1076,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer depthPyramidMipLevelOffsetsBuffer;
             public BlueNoise blueNoise;
             public Vector4 packedArgs;
+            public Vector4 depthEncodeParams;
         }
 
         void OITResolveLightingDeferredSSTracing(RenderGraph renderGraph, HDCamera hdCamera,
@@ -1091,6 +1115,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 float offscreenWidthAsFloat; unsafe { int offscreenWidthInt = offscreenLightingSize.x; offscreenWidthAsFloat = *((float*)&offscreenWidthInt); }
                 passData.packedArgs = new Vector4(offscreenWidthAsFloat, 0.0f, 0.0f, 0.0f);
+                passData.depthEncodeParams = vbufferOIT.depthEncodeParams;
 
                 passData.maxMipHiZ = currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.maxHiZMip;
                 passData.depthPyramidMipLevelOffsetsBuffer = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(vbufferOIT.depthPyramidMipLevelOffsetsBuffer, true);
@@ -1104,6 +1129,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         int kernel = data.cs.FindKernel("MainResolveOffscreenLighting");
                         context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
+                        context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VisOITDepthEncodeParams, data.depthEncodeParams);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
@@ -1143,6 +1169,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle opaqueColorPyramid;
             public TextureHandle depthBuffer;
             public Vector4 packedArgs;
+            public Vector4 depthEncodeParams;
             public TextureHandle outputPhotonBuffer;
         }
 
@@ -1190,6 +1217,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float offscreenWidthAsFloat; unsafe { int offscreenWidthInt = offscreenLightingSize.x; offscreenWidthAsFloat = *((float*)&offscreenWidthInt); }
                 float maxSampleCountAsFloat; unsafe { maxSampleCountAsFloat = *((float*)&maxSampleCounts); }
                 passData.packedArgs = new Vector4(offscreenWidthAsFloat, maxSampleCountAsFloat, 0.0f, 0.0f);
+                passData.depthEncodeParams = vbufferOIT.depthEncodeParams;
 
                 output = passData.outputPhotonBuffer;
 
@@ -1198,6 +1226,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         int kernel = data.cs.FindKernel("MainComputePhotonBuffer");
                         context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VBufferLightingOffscreenParams, data.packedArgs);
+                        context.cmd.SetComputeVectorParam(data.cs, HDShaderIDs._VisOITDepthEncodeParams, data.depthEncodeParams);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);

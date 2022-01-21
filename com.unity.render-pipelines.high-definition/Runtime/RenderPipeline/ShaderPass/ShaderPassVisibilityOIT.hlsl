@@ -60,13 +60,13 @@ void FragStoreVis(PackedVaryingsToPS packedInput)
     visData.primitiveID = input.primitiveID;
     visData.batchID = packedInput.vpass.batchID;
 
-    float zValue = 0.0f;
+    float depthValue = 0.0f;
 #ifdef ENCODE_VIS_DEPTH
-    zValue = (packedInput.vpass.depthValue.x/packedInput.vpass.depthValue.y);
+    depthValue = packedInput.vpass.depthValue.x/packedInput.vpass.depthValue.y;
 #endif
 
     uint3 outPackedData;
-    VisibilityOIT::PackVisibilityData(visData, texelCoord, zValue, outPackedData);
+    VisibilityOIT::PackVisibilityData(visData, texelCoord, depthValue, outPackedData);
     _OITOutputSamples.Store3(((globalOffset + outputSublistOffset) * 3) << 2, outPackedData);
 #endif
 }

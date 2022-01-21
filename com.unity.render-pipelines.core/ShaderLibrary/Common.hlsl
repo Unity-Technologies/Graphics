@@ -995,6 +995,13 @@ float LinearEyeDepth(float depth, float4 zBufferParam)
     return 1.0 / (zBufferParam.z * depth + zBufferParam.w);
 }
 
+// Linear depth to Z buffer
+// zBufferParam = { (f-n)/n, 1, (f-n)/n*f, 1/f }
+float DeviceDepthFromLinearEye(float depth, float4 zBufferParam)
+{
+    return (1.0 - depth * zBufferParam.w) / (depth * zBufferParam.z);
+}
+
 // Z buffer to linear depth.
 // Correctly handles oblique view frustums.
 // Does NOT work with orthographic projection.

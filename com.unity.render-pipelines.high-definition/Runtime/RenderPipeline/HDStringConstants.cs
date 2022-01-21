@@ -1133,6 +1133,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VisOITSubListsCounts = Shader.PropertyToID("_VisOITSubListsCounts");
         public static readonly int _VisOITPixelHash = Shader.PropertyToID("_VisOITPixelHash");
         public static readonly int _VisOITSamplesCountBuffer = Shader.PropertyToID("_VisOITSamplesCountBuffer");
+        public static readonly int _VisOITDepthEncodeParams = Shader.PropertyToID("_VisOITDepthEncodeParams");
         public static readonly int _VisOITGBufferLayerIdx = Shader.PropertyToID("_VisOITGBufferLayerIdx");
         public static readonly int _VisOITGBufferLayer = Shader.PropertyToID("_VisOITGBufferLayer");
         public static readonly int _VBufferOITLightingOffscreenWidth = Shader.PropertyToID("_VBufferOITLightingOffscreenWidth");

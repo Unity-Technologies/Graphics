@@ -39,6 +39,8 @@ TEXTURE2D_X(_VisOITOffscreenDirectReflectionLighting);
 TEXTURE2D_X(_VisOITOffscreenPhotonRadianceLighting);
 TEXTURE2D_X(_VisOITOffscreenLighting);
 
+float4 _VisOITDepthEncodeParams;
+
 float4 DebugDrawOITHistogram(float2 sampleUV, float2 screenSize)
 {
     float2 workOffset = float2(0.02,0.02);
@@ -68,8 +70,21 @@ float4 DebugDrawOITHistogram(float2 sampleUV, float2 screenSize)
 namespace VisibilityOIT
 {
 
+float EncodeDepth(float deviceDepth)
+{
+    return 1.0 - EncodeLogarithmicDepth(LinearEyeDepth(deviceDepth, _ZBufferParams), _VisOITDepthEncodeParams);
+}
+
+float DecodeDepth(float encodedDepth)
+{
+    return DeviceDepthFromLinearEye(DecodeLogarithmicDepth(1.0 - encodedDepth, _VisOITDepthEncodeParams), _ZBufferParams);
+}
+
 void PackVisibilityData(Visibility::VisibilityData data, uint2 texelCoordinate, float depth, out uint3 packedData)
 {
+    // Encode the incoming depth to logarithmic for better precision
+    depth = VisibilityOIT::EncodeDepth(depth);
+
     uint2 packedDataHalfs;
     Visibility::PackVisibilityData(data, packedData.x, packedDataHalfs);
     packedData.y = (packedDataHalfs.x & 0xFF) | (packedDataHalfs.y << 8) | PackFloatToUInt(depth, 16, 16);
@@ -82,6 +97,9 @@ void UnpackVisibilityData(uint3 packedData, out Visibility::VisibilityData data,
     Visibility::UnpackVisibilityData(packedData.x, packedDataHalfs, data);
     texelCoordinate = uint2(packedData.z & 0xFFFF, (packedData.z >> 16) & 0xFFFF);
     depth = UnpackUIntToFloat(packedData.y, 16, 16);
+
+    // Decode the outgoing depth back to Z buffer
+    depth = VisibilityOIT::DecodeDepth(depth);
 }
 
 void GetPixelList(uint pixelOffset, out uint listCount, out uint listOffset)

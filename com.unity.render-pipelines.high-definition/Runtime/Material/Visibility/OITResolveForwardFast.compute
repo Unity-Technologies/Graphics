@@ -82,6 +82,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     //float dstAlpha = 0.0f;
 
     float currentDepth = _DepthTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)].x;
+
     //float3 currentColor = 0.0f;// _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS.xy)].rgb;
     float3 lighting = float3(0.0f, 0.0f, 0.0f);
     float4 dstAccumulation = 0.0f;
