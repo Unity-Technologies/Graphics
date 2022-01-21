@@ -349,6 +349,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer depthPyramidOffsets;
             public TextureHandle output;
             public TextureHandle input;
+            public TextureHandle oitGBuffer0;
+            public TextureHandle oitGBuffer1;
             public VBufferInformation vBufferInfo;
             public VBufferOITOutput vBufferOIT;
             public TextureHandle depthPyramid;
@@ -377,6 +379,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.fullscreenBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(4, sizeof(uint)));
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, false /* we dont want DRS on this output target*/, true /*We want XR support on this output target*/)
                 { colorFormat = rtFormat, name = "ResolveFullScreenDebug" }));
+
+                if (vBufferOIT.gBuffer0Texture.IsValid() && vBufferOIT.gBuffer1Texture.IsValid())
+                {
+                    passData.oitGBuffer0 = builder.ReadTexture(vBufferOIT.gBuffer0Texture);
+                    passData.oitGBuffer1 = builder.ReadTexture(vBufferOIT.gBuffer1Texture);
+                }
 
                 passData.BRGBindData = new RenderBRGBindingData();
                 if (IsVisibilityPassEnabled())
@@ -430,11 +438,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             mpb.SetFloat(HDShaderIDs._VisOITGBufferLayer, packedOITGBufferLayer);
                             mpb.SetFloat(HDShaderIDs._VBufferOITLightingOffscreenWidth, packedOffscreenLightingWidth);
 
-                            if (data.vBufferOIT.gBuffer0Texture.IsValid() && data.vBufferOIT.gBuffer1Texture.IsValid())
+                            if (passData.oitGBuffer0.IsValid() && passData.oitGBuffer1.IsValid())
                             {
                                 // ? Why?
-                                mpb.SetTexture(HDShaderIDs._VisOITOffscreenGBuffer0, data.vBufferOIT.gBuffer0Texture);
-                                mpb.SetTexture(HDShaderIDs._VisOITOffscreenGBuffer1, data.vBufferOIT.gBuffer1Texture);
+                                mpb.SetTexture(HDShaderIDs._VisOITOffscreenGBuffer0, passData.oitGBuffer0);
+                                mpb.SetTexture(HDShaderIDs._VisOITOffscreenGBuffer1, passData.oitGBuffer1);
                                 //ctx.cmd.SetGlobalTexture(HDShaderIDs._VisOITOffscreenGBuffer0, data.vBufferOIT.gBuffer0Texture);
                                 //ctx.cmd.SetGlobalTexture(HDShaderIDs._VisOITOffscreenGBuffer1, data.vBufferOIT.gBuffer1Texture);
                             }

@@ -483,7 +483,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     if (visOITGBufferLayerIdx < listCount)
                     {
                         int globalOffset = visOITGBufferLayerIdx + listOffset;
-                        uint offscreenLightBufferWidth = (uint)_VBufferOITLightingOffscreenWidth;
+                        uint offscreenLightBufferWidth = _DebugViewportSize.xy.x;// (uint)_VBufferOITLightingOffscreenWidth;
                         uint2 offscreenCoord = uint2(globalOffset % offscreenLightBufferWidth, globalOffset / offscreenLightBufferWidth);
 
                         uint4 packedOITGBuffer0 = _VisOITOffscreenGBuffer0[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
