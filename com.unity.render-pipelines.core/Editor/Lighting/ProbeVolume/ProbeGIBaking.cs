@@ -795,9 +795,9 @@ namespace UnityEngine.Experimental.Rendering
 
                 // Each
                 var inputProbesCount = cellCounts.probesCount;
+                // Size of the DataLocation used to do the copy texture at runtime. Used to generate the right layout for the 3D texture.
                 Vector3Int locSize = ProbeBrickPool.ProbeCountToDataLocSize(ProbeBrickPool.GetChunkSizeInProbeCount());
 
-                // Coefficient constants that end up as black after shader probe data decoding
                 var blackSH = new SphericalHarmonicsL2();
 
                 int shidx = 0;
@@ -811,6 +811,8 @@ namespace UnityEngine.Experimental.Rendering
                     probesTargetL2 = probesL2.GetSubArray(startCounts.probesCount * ProbeVolumeAsset.kL2ScalarCoefficientsCount, cellCounts.probesCount * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
                 int oldDataOffsetL2 = 0;
 
+                // Here we directly map each chunk to the layout of the 3D textures in order to be able to copy the data directly to the GPU.
+                // The granularity at runtime is one chunk at a time currently so the temporary data loc used is sized accordingly.
                 for (int chunkIndex = 0; chunkIndex < cellCounts.chunksCount; ++chunkIndex)
                 {
                     var probesTargetL0L1Rx = probesL0L1Rx.GetSubArray(chunkOffset, chunkSize);

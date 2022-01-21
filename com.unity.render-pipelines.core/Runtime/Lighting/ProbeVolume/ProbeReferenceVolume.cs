@@ -592,8 +592,10 @@ namespace UnityEngine.Experimental.Rendering
 
         internal Dictionary<int, CellInfo> cells = new Dictionary<int, CellInfo>();
         ObjectPool<CellInfo> m_CellInfoPool = new ObjectPool<CellInfo>(x => x.Clear(), null, false);
+        ProbeBrickPool.DataLocation m_TemporaryDataLocationOld;
         ProbeBrickPool.DataLocation m_TemporaryDataLocation;
         int m_TemporaryDataLocationMemCost;
+        int m_CurrentProbeVolumeChunkSize = 0;
 
         internal ProbeVolumeSceneData sceneData;
 
@@ -1074,6 +1076,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // Load info coming originally from profile
             SetMinBrickAndMaxSubdiv(asset.minBrickSize, asset.maxSubdivision);
+            m_CurrentProbeVolumeChunkSize = asset.chunkSizeInBricks;
 
             ClearDebugData();
 
@@ -1203,7 +1206,8 @@ namespace UnityEngine.Experimental.Rendering
                 m_Index = new ProbeBrickIndex(memoryBudget);
                 m_CellIndices = new ProbeCellIndices(minCellPosition, maxCellPosition, (int)Mathf.Pow(3, m_MaxSubdivision - 1));
 
-                m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(kTemporaryDataLocChunkCount * ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, shBands, "APV_Intermediate", out m_TemporaryDataLocationMemCost);
+                m_TemporaryDataLocationOld = ProbeBrickPool.CreateDataLocation(kTemporaryDataLocChunkCount * ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, shBands, "APV_Intermediate_Old", out m_TemporaryDataLocationMemCost);
+                m_TemporaryDataLocation = ProbeBrickPool.CreateDataLocation(ProbeBrickPool.GetChunkSizeInProbeCount(), compressed: false, shBands, "APV_Intermediate", out m_TemporaryDataLocationMemCost);
 
                 // initialize offsets
                 m_PositionOffsets[0] = 0.0f;
@@ -1304,39 +1308,78 @@ namespace UnityEngine.Experimental.Rendering
 
             // In order not to pre-allocate for the worse case, we update the texture by smaller chunks with a preallocated DataLoc
             int chunkIndex = 0;
+            int chunkOffset = 0;
+            int nativeArraySize = m_CurrentProbeVolumeChunkSize * ProbeBrickPool.kBrickProbeCountTotal * 4;
             while (chunkIndex < cellInfo.chunkList.Count)
             {
-                int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
-                ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocation, cell.shBands, cell.shL0L1Data, cell.shL2Data, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands, probeVolumeDebug.useBurstAddRemoveBricks);
-
-                // copy chunks into pool
-                m_TmpSrcChunks.Clear();
-                Chunk c;
-                c.x = 0;
-                c.y = 0;
-                c.z = 0;
-
-                // currently this code assumes that the texture width is a multiple of the allocation chunk size
-                for (int j = 0; j < chunkToProcess; j++)
+                if (probeVolumeDebug.bricksUseGpuMapping)
                 {
-                    m_TmpSrcChunks.Add(c);
-                    c.x += chunkSize * ProbeBrickPool.kBrickProbeCountPerDim;
-                    if (c.x >= m_TemporaryDataLocation.width)
+                    m_TemporaryDataLocation.TexL0_L1rx.SetPixelData(cell.shL0L1RxData.GetSubArray(chunkOffset, nativeArraySize), 0);
+                    m_TemporaryDataLocation.TexL0_L1rx.Apply(false);
+                    m_TemporaryDataLocation.TexL1_G_ry.SetPixelData(cell.shL1GL1RyData.GetSubArray(chunkOffset, nativeArraySize), 0);
+                    m_TemporaryDataLocation.TexL1_G_ry.Apply(false);
+                    m_TemporaryDataLocation.TexL1_B_rz.SetPixelData(cell.shL1BL1RzData.GetSubArray(chunkOffset, nativeArraySize), 0);
+                    m_TemporaryDataLocation.TexL1_B_rz.Apply(false);
+
+                    if (m_SHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {
-                        c.x = 0;
-                        c.y += ProbeBrickPool.kBrickProbeCountPerDim;
-                        if (c.y >= m_TemporaryDataLocation.height)
+                        m_TemporaryDataLocation.TexL2_0.SetPixelData(cell.shL2Data_0.GetSubArray(chunkOffset, nativeArraySize), 0);
+                        m_TemporaryDataLocation.TexL2_0.Apply(false);
+                        m_TemporaryDataLocation.TexL2_1.SetPixelData(cell.shL2Data_1.GetSubArray(chunkOffset, nativeArraySize), 0);
+                        m_TemporaryDataLocation.TexL2_1.Apply(false);
+                        m_TemporaryDataLocation.TexL2_2.SetPixelData(cell.shL2Data_2.GetSubArray(chunkOffset, nativeArraySize), 0);
+                        m_TemporaryDataLocation.TexL2_2.Apply(false);
+                        m_TemporaryDataLocation.TexL2_3.SetPixelData(cell.shL2Data_3.GetSubArray(chunkOffset, nativeArraySize), 0);
+                        m_TemporaryDataLocation.TexL2_3.Apply(false);
+                    }
+
+                    m_TmpSrcChunks.Clear();
+                    Chunk c;
+                    c.x = 0;
+                    c.y = 0;
+                    c.z = 0;
+                    m_TmpSrcChunks.Add(c);
+
+                    // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
+                    m_Pool.Update(m_TemporaryDataLocation, m_TmpSrcChunks, cellInfo.chunkList, chunkIndex, m_SHBands);
+
+                    chunkIndex++;
+                    chunkOffset += nativeArraySize;
+                }
+                else
+                {
+                    int chunkToProcess = Math.Min(kTemporaryDataLocChunkCount, cellInfo.chunkList.Count - chunkIndex);
+                    ProbeBrickPool.FillDataLocation(ref m_TemporaryDataLocationOld, cell.shBands, cell.shL0L1Data, cell.shL2Data, chunkIndex * ProbeBrickPool.GetChunkSizeInProbeCount(), chunkToProcess * ProbeBrickPool.GetChunkSizeInProbeCount(), m_SHBands);
+
+                    // copy chunks into pool
+                    m_TmpSrcChunks.Clear();
+                    Chunk c;
+                    c.x = 0;
+                    c.y = 0;
+                    c.z = 0;
+
+                    // currently this code assumes that the texture width is a multiple of the allocation chunk size
+                    for (int j = 0; j < chunkToProcess; j++)
+                    {
+                        m_TmpSrcChunks.Add(c);
+                        c.x += chunkSize * ProbeBrickPool.kBrickProbeCountPerDim;
+                        if (c.x >= m_TemporaryDataLocationOld.width)
                         {
-                            c.y = 0;
-                            c.z += ProbeBrickPool.kBrickProbeCountPerDim;
+                            c.x = 0;
+                            c.y += ProbeBrickPool.kBrickProbeCountPerDim;
+                            if (c.y >= m_TemporaryDataLocationOld.height)
+                            {
+                                c.y = 0;
+                                c.z += ProbeBrickPool.kBrickProbeCountPerDim;
+                            }
                         }
                     }
+
+                    // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
+                    m_Pool.Update(m_TemporaryDataLocationOld, m_TmpSrcChunks, cellInfo.chunkList, chunkIndex, m_SHBands);
+
+                    chunkIndex += kTemporaryDataLocChunkCount;
                 }
-
-                // Update pool textures with incoming SH data and ignore any potential frame latency related issues for now.
-                m_Pool.Update(m_TemporaryDataLocation, m_TmpSrcChunks, cellInfo.chunkList, chunkIndex, m_SHBands);
-
-                chunkIndex += kTemporaryDataLocChunkCount;
             }
 
             m_BricksLoaded = true;
@@ -1420,6 +1463,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_CellIndices.Cleanup();
                 m_Pool.Cleanup();
                 m_TemporaryDataLocation.Cleanup();
+                m_TemporaryDataLocationOld.Cleanup();
             }
 
             m_ProbeReferenceVolumeInit = false;

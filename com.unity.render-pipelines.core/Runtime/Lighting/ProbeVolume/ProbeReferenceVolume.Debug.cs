@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering
         public bool drawVirtualOffsetPush;
         public float offsetSize = 0.025f;
         public bool freezeStreaming;
-        public bool useBurstAddRemoveBricks;
+        public bool bricksUseGpuMapping;
     }
 
     public partial class ProbeReferenceVolume
@@ -230,7 +230,7 @@ namespace UnityEngine.Experimental.Rendering
 
             var streamingContainer = new DebugUI.Container() { displayName = "Streaming" };
             streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Freeze Streaming", getter = () => probeVolumeDebug.freezeStreaming, setter = value => probeVolumeDebug.freezeStreaming = value });
-            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Use Burst", getter = () => probeVolumeDebug.useBurstAddRemoveBricks, setter = value => probeVolumeDebug.useBurstAddRemoveBricks = value });
+            streamingContainer.children.Add(new DebugUI.BoolField { displayName = "Bricks Use GPU Mapping", getter = () => probeVolumeDebug.bricksUseGpuMapping, setter = value => probeVolumeDebug.bricksUseGpuMapping = value });
 
             if (parameters.supportsRuntimeDebug)
             {

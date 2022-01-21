@@ -361,7 +361,7 @@ namespace UnityEngine.Experimental.Rendering
             data[index] = value;
         }
 
-        internal static unsafe void FillDataLocation(ref DataLocation loc, ProbeVolumeSHBands srcBands, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, int startIndex, int count, ProbeVolumeSHBands dstBands, bool useBurst)
+        internal static unsafe void FillDataLocation(ref DataLocation loc, ProbeVolumeSHBands srcBands, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, int startIndex, int count, ProbeVolumeSHBands dstBands)
         {
             // NOTE: The SH data arrays passed to this method should be pre-swizzled to the format expected by shader code.
             // TODO: The next step here would be to store de-interleaved, pre-quantized brick data that can be memcopied directly into texture pixeldata
