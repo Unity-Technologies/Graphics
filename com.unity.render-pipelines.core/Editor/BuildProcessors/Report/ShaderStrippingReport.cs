@@ -1,26 +1,30 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using JetBrains.Annotations;
+using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 using UnityEngine.Rendering;
-using Object = System.Object;
 
 namespace UnityEditor.Rendering
 {
-    [Serializable]
-    internal class StrippingReport<TShader, TShaderVariant, TVariantStrippingInfo> : VariantCounter,
-        IStrippingReport<TShader, TShaderVariant>, ISerializationCallbackReceiver
-        where TShader : UnityEngine.Object
-        where TVariantStrippingInfo : IVariantStrippingInfo<TShader, TShaderVariant>, new()
+public class ShaderStrippingReport
     {
-        readonly Dictionary<string, TVariantStrippingInfo> m_StrippingInfos = new();
+        public static ShaderStrippingReport instance { get; private set; }
+
+        internal static void InitializeReport()
+        {
+            instance = new ShaderStrippingReport();
+        }
+
+        internal static void DumpReport()
+        {
+            instance.Log();
+            instance.Export();
+            instance = null;
+        }
+
         ShaderVariantLogLevel logStrippedVariants { get; }
         bool exportStrippedVariants { get; }
 
-        public StrippingReport()
+        private ShaderStrippingReport()
         {
             // Obtain logging and export information if the Global settings are configured as IShaderVariantSettings
             if (RenderPipelineManager.currentPipeline != null &&
@@ -31,28 +35,80 @@ namespace UnityEditor.Rendering
             }
         }
 
-        public void OnShaderProcessed([NotNull] TShader shader, TShaderVariant shaderVariant, int variantsIn,
-            int variantsOut, double stripTimeMs)
-        {
-            RecordVariants(variantsIn, variantsOut);
+        private readonly ShaderStrippingInfo<StrippedShader> shaderStrippingInfo = new ShaderStrippingInfo<StrippedShader>();
+        private readonly ShaderStrippingInfo<StrippedComputeShader> computeShaderStrippingInfo = new ();
 
-            if (!m_StrippingInfos.TryGetValue(shader.name, out var shaderVariantInfo))
+        private IStrippedShader GetStrippedShader<TShader>([DisallowNull] TShader shader, uint variantsIn, uint variantsOut)
+            where TShader : UnityEngine.Object
+        {
+            if (typeof(TShader) == typeof(Shader))
             {
-                shaderVariantInfo = new TVariantStrippingInfo();
-                shaderVariantInfo.SetShader(shader);
-                m_StrippingInfos.Add(shader.name, shaderVariantInfo);
+                if (!shaderStrippingInfo.TryGetStrippedShader(shader.name, out IStrippedShader strippedShader))
+                {
+                    strippedShader = new StrippedShader((Shader)Convert.ChangeType(shader, typeof(Shader)));
+                    shaderStrippingInfo.Add(shader.name, strippedShader);
+                }
+
+                shaderStrippingInfo.totalVariantsIn += variantsIn;
+                shaderStrippingInfo.totalVariantsOut += variantsOut;
+
+                return strippedShader;
             }
 
-            shaderVariantInfo.Add(shaderVariant, variantsIn, variantsOut, stripTimeMs);
+            if (typeof(TShader) == typeof(ComputeShader))
+            {
+                if (!computeShaderStrippingInfo.TryGetStrippedShader(shader.name, out IStrippedShader strippedShader))
+                {
+                    strippedShader = new StrippedComputeShader((ComputeShader)Convert.ChangeType(shader, typeof(ComputeShader)));
+                    computeShaderStrippingInfo.Add(shader.name, strippedShader);
+                }
+
+                computeShaderStrippingInfo.totalVariantsIn += variantsIn;
+                computeShaderStrippingInfo.totalVariantsOut += variantsOut;
+
+                return strippedShader;
+            }
+
+            throw new NotImplementedException(typeof(TShader).FullName);
         }
 
-        public void DumpReport(string path)
+        private IStrippedVariant CreateStrippedVariant<TShader, TShaderVariant>([DisallowNull]TShader shader, TShaderVariant shaderVariant, uint variantsIn, uint variantsOut, double stripTimeMs)
         {
-            Log();
-            Export(path);
+            IStrippedVariant strippedVariant = null;
+            if (typeof(TShaderVariant) == typeof(ShaderSnippetData))
+            {
+                var snippetData = (ShaderSnippetData)Convert.ChangeType(shaderVariant, typeof(ShaderSnippetData));
+                strippedVariant = new ShaderSnippetDataVariant(
+                    snippetData,
+                    variantsIn,
+                    variantsOut,
+                    ((Shader)Convert.ChangeType(shader, typeof(Shader))).GetRenderPipelineTag(snippetData),
+                    stripTimeMs);
+            }
+            else if (typeof(TShaderVariant) == typeof(string))
+            {
+                strippedVariant = new KernelVariant(
+                    (string)Convert.ChangeType(shaderVariant, typeof(string)),
+                    variantsIn,
+                    variantsOut,
+                    stripTimeMs);
+            }
+
+            return strippedVariant;
         }
 
-        #region Logging
+        public void OnShaderProcessed<TShader, TShaderVariant>(
+            [DisallowNull] TShader shader,
+            TShaderVariant shaderVariant,
+            uint variantsIn,
+            uint variantsOut,
+            double stripTimeMs)
+        where TShader : UnityEngine.Object
+        {
+            IStrippedShader strippedShader = GetStrippedShader(shader, variantsIn, variantsOut);
+            IStrippedVariant strippedVariant = CreateStrippedVariant(shader, shaderVariant, variantsIn, variantsOut, stripTimeMs);
+            strippedShader.AddVariant(strippedVariant);
+        }
 
         void Log()
         {
@@ -61,53 +117,20 @@ namespace UnityEditor.Rendering
 
             bool onlySrp = logStrippedVariants == ShaderVariantLogLevel.OnlySRPShaders;
 
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("---------------------------STRIPPING---------------------------");
-            sb.AppendLine($"{typeof(TShader)} - {strippedVariantsInfo})");
+            if (shaderStrippingInfo.totalVariantsIn > 0)
+                shaderStrippingInfo.Log("SHADERS", onlySrp);
 
-            foreach (var shaderStrippingInfo in m_StrippingInfos)
-            {
-                var shaderStrippingIterations = shaderStrippingInfo.Value;
-                shaderStrippingInfo.Value.AppendLog(sb, onlySrp);
-            }
-
-            Debug.Log(sb.ToString());
+            if (computeShaderStrippingInfo.totalVariantsIn > 0)
+                computeShaderStrippingInfo.Log("COMPUTE SHADERS", onlySrp);
         }
 
-        #endregion
-
-        #region Export
-
-        private void Export(string path)
+        private void Export()
         {
             if (!exportStrippedVariants)
                 return;
 
-            try
-            {
-                File.WriteAllText(path, JsonUtility.ToJson(this, true));
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
+            shaderStrippingInfo.Export("Temp/shader-stripping.json");
+            computeShaderStrippingInfo.Export("Temp/compute-shader-stripping.json");
         }
-
-        #region ISerializationCallbackReceiver
-
-        [SerializeField] private TVariantStrippingInfo[] shaders;
-
-        public void OnBeforeSerialize()
-        {
-            shaders = m_StrippingInfos.Values.ToArray();
-        }
-
-        public void OnAfterDeserialize()
-        {
-        }
-
-        #endregion
-
-        #endregion
     }
 }

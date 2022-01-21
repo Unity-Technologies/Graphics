@@ -199,61 +199,6 @@ namespace UnityEditor.Rendering.HighDefinition
 #if UNITY_2020_2_OR_NEWER
     class HDRPPreprocessComputeShaders : IPreprocessComputeShaders
     {
-        struct ExportComputeShaderStrip : System.IDisposable
-        {
-            bool m_ExportLog;
-            string m_OutFile;
-            ComputeShader m_Shader;
-            string m_KernelName;
-            IList<ShaderCompilerData> m_InputData;
-            HDRPPreprocessComputeShaders m_PreProcess;
-
-            public ExportComputeShaderStrip(
-                string outFile,
-                ComputeShader shader,
-                string kernelName,
-                IList<ShaderCompilerData> inputData,
-                HDRPPreprocessComputeShaders preProcess
-            )
-            {
-                m_ExportLog = HDRenderPipelineGlobalSettings.instance.exportShaderVariants;
-                m_OutFile = outFile;
-                m_Shader = shader;
-                m_KernelName = kernelName;
-                m_InputData = inputData;
-                m_PreProcess = preProcess;
-
-                if (m_ExportLog)
-                {
-                    System.IO.File.AppendAllText(
-                        m_OutFile,
-                        $"{{ \"Compute shader\": \"{m_Shader.name}\", \"kernel\": \"{m_KernelName}\", \"variantIn\": {m_InputData.Count} }}\r\n"
-                    );
-                }
-            }
-
-            public void Dispose()
-            {
-                if (m_ExportLog)
-                {
-                    try
-                    {
-                        System.IO.File.AppendAllText(
-                            m_OutFile,
-                            $"{{ \"shader\": \"{m_Shader?.name}\",  \"kernel\": \"{m_KernelName}\", \"variantOut\": \"{m_InputData.Count}\", \"totalVariantIn\": \"{m_PreProcess?.m_TotalVariantsInputCount}\", \"totalVariantOut\": \"{m_PreProcess?.m_TotalVariantsOutputCount}\" }}\r\n"
-                        );
-                    }
-                    catch (System.Exception e)
-                    {
-                        Debug.LogException(e);
-                    }
-                }
-            }
-        }
-
-        uint m_TotalVariantsInputCount;
-        uint m_TotalVariantsOutputCount;
-
         protected ShadowKeywords m_ShadowKeywords = new ShadowKeywords();
         protected ShaderKeyword m_EnableAlpha = new ShaderKeyword("ENABLE_ALPHA");
         protected ShaderKeyword m_MSAA = new ShaderKeyword("ENABLE_MSAA");
@@ -263,25 +208,6 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
 
         public int callbackOrder { get { return 0; } }
-
-        void LogShaderVariants(ComputeShader shader, string kernelName, uint prevVariantsCount, uint currVariantsCount)
-        {
-            if (HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel == ShaderVariantLogLevel.Disabled)
-                return;
-
-            m_TotalVariantsInputCount += prevVariantsCount;
-            m_TotalVariantsOutputCount += currVariantsCount;
-
-            float percentageCurrent = ((float)currVariantsCount / prevVariantsCount) * 100.0f;
-            float percentageTotal = ((float)m_TotalVariantsOutputCount / m_TotalVariantsInputCount) * 100.0f;
-
-            string result = string.Format("STRIPPING: {0} (kernel: {1}) -" +
-                " Remaining shader variants = {2}/{3} = {4}% - Total = {5}/{6} = {7}%",
-                shader.name, kernelName, currVariantsCount,
-                prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
-                percentageTotal);
-            Debug.Log(result);
-        }
 
         // Modify this function to add more stripping clauses
         internal bool StripShader(HDRenderPipelineAsset hdAsset, ComputeShader shader, string kernelName, ShaderCompilerData inputData)
@@ -344,48 +270,47 @@ namespace UnityEditor.Rendering.HighDefinition
             Stopwatch shaderStripingWatch = new Stopwatch();
             shaderStripingWatch.Start();
 
-            using (new ExportComputeShaderStrip("Temp/compute-shader-strip.json", shader, kernelName, inputData, this))
+            var inputShaderVariantCount = inputData.Count;
+            var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
+
+            if (hdPipelineAssets.Count == 0)
+                return;
+
+            uint preStrippingCount = (uint)inputData.Count;
+
+            for (int i = 0; i < inputShaderVariantCount;)
             {
-                var inputShaderVariantCount = inputData.Count;
-                var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
+                ShaderCompilerData input = inputData[i];
 
-                if (hdPipelineAssets.Count == 0)
-                    return;
-
-                uint preStrippingCount = (uint)inputData.Count;
-
-                for (int i = 0; i < inputShaderVariantCount;)
+                bool removeInput = true;
+                foreach (var hdAsset in hdPipelineAssets)
                 {
-                    ShaderCompilerData input = inputData[i];
-
-                    bool removeInput = true;
-                    foreach (var hdAsset in hdPipelineAssets)
+                    if (!StripShader(hdAsset, shader, kernelName, input))
                     {
-                        if (!StripShader(hdAsset, shader, kernelName, input))
-                        {
-                            removeInput = false;
-                            break;
-                        }
+                        removeInput = false;
+                        break;
                     }
-
-                    if (removeInput)
-                        inputData[i] = inputData[--inputShaderVariantCount];
-                    else
-                        ++i;
                 }
 
-                if (inputData is List<ShaderCompilerData> inputDataList)
-                {
-                    inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
-                }
+                if (removeInput)
+                    inputData[i] = inputData[--inputShaderVariantCount];
                 else
-                {
-                    for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
-                        inputData.RemoveAt(i);
-                }
-
-                LogShaderVariants(shader, kernelName, preStrippingCount, (uint)inputData.Count);
+                    ++i;
             }
+
+            if (inputData is List<ShaderCompilerData> inputDataList)
+            {
+                inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
+            }
+            else
+            {
+                for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
+                    inputData.RemoveAt(i);
+            }
+
+            shaderStripingWatch.Stop();
+
+            ShaderStrippingReport.instance.OnShaderProcessed(shader, kernelName, (uint)inputShaderVariantCount, (uint)inputData.Count, shaderStripingWatch.Elapsed.TotalMilliseconds);
         }
     }
 #endif // #if UNITY_2020_2_OR_NEWER
@@ -397,9 +322,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static event System.Action<Shader, ShaderSnippetData, int, double> shaderPreprocessed;
 
-        uint m_TotalVariantsInputCount;
-        uint m_TotalVariantsOutputCount;
-
         public HDRPreprocessShaders()
         {
             // TODO: Grab correct configuration/quality asset.
@@ -409,81 +331,8 @@ namespace UnityEditor.Rendering.HighDefinition
             shaderProcessorsList = HDShaderUtils.GetBaseShaderPreprocessorList();
         }
 
-        void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, uint prevVariantsCount, uint currVariantsCount)
-        {
-            if (HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel == ShaderVariantLogLevel.Disabled)
-                return;
-
-            m_TotalVariantsInputCount += prevVariantsCount;
-            m_TotalVariantsOutputCount += currVariantsCount;
-
-            if (HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel == ShaderVariantLogLevel.OnlySRPShaders && !HDShaderUtils.IsHDRPShader(shader))
-                return;
-
-            float percentageCurrent = ((float)currVariantsCount / prevVariantsCount) * 100.0f;
-            float percentageTotal = ((float)m_TotalVariantsOutputCount / m_TotalVariantsInputCount) * 100.0f;
-
-            string result = string.Format("STRIPPING: {0} ({1} pass) ({2}) -" +
-                " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}%",
-                shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
-                prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
-                percentageTotal);
-            Debug.Log(result);
-        }
-
-        struct ExportShaderStrip : System.IDisposable
-        {
-            bool m_ExportLog;
-            string m_OutFile;
-            Shader m_Shader;
-            ShaderSnippetData m_Snippet;
-            IList<ShaderCompilerData> m_InputData;
-            HDRPreprocessShaders m_PreProcess;
-
-            public ExportShaderStrip(
-                string outFile,
-                Shader shader,
-                ShaderSnippetData snippet,
-                IList<ShaderCompilerData> inputData,
-                HDRPreprocessShaders preProcess
-            )
-            {
-                m_ExportLog = HDRenderPipelineGlobalSettings.instance.exportShaderVariants;
-                m_OutFile = outFile;
-                m_Shader = shader;
-                m_Snippet = snippet;
-                m_InputData = inputData;
-                m_PreProcess = preProcess;
-
-                if (m_ExportLog)
-                {
-                    System.IO.File.AppendAllText(
-                        m_OutFile,
-                        $"{{ \"shader\": \"{m_Shader.name}\", \"pass\": \"{m_Snippet.passName}\", \"passType\": \"{m_Snippet.passType}\", \"shaderType\": \"{m_Snippet.shaderType}\", \"variantIn\": {m_InputData.Count} }}\r\n"
-                    );
-                }
-            }
-
-            public void Dispose()
-            {
-                if (m_ExportLog)
-                {
-                    try
-                    {
-                        System.IO.File.AppendAllText(
-                            m_OutFile,
-                            $"{{ \"shader\": \"{m_Shader?.name}\", \"pass\": \"{m_Snippet.passName ?? string.Empty}\", \"passType\": \"{m_Snippet.passType}\", \"shaderType\": \"{m_Snippet.shaderType}\", \"variantOut\": \"{m_InputData.Count}\", \"totalVariantIn\": \"{m_PreProcess?.m_TotalVariantsInputCount}\", \"totalVariantOut\": \"{m_PreProcess?.m_TotalVariantsOutputCount}\" }}\r\n"
-                        );
-                    }
-                    catch (System.Exception e)
-                    {
-                        Debug.LogException(e);
-                    }
-                }
-            }
-        }
-
         public int callbackOrder { get { return 0; } }
+
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> inputData)
         {
             if (HDRenderPipeline.currentAsset == null)
@@ -495,66 +344,61 @@ namespace UnityEditor.Rendering.HighDefinition
             Stopwatch shaderStripingWatch = new Stopwatch();
             shaderStripingWatch.Start();
 
-            using (new ExportShaderStrip("Temp/shader-strip.json", shader, snippet, inputData, this))
+            uint preStrippingCount = (uint)inputData.Count;
+
+            // TODO: Grab correct configuration/quality asset.
+            var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
+
+            if (hdPipelineAssets.Count == 0) return;
+
+            // Test if striping is enabled in any of the found HDRP assets.
+            if (hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping))
+                return;
+
+            var inputShaderVariantCount = inputData.Count;
+            for (int i = 0; i < inputShaderVariantCount;)
             {
-                // TODO: Grab correct configuration/quality asset.
-                var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
+                ShaderCompilerData input = inputData[i];
 
-                if (hdPipelineAssets.Count == 0)
-                    return;
+                // Remove the input by default, until we find a HDRP Asset in the list that needs it.
+                bool removeInput = true;
 
-                uint preStrippingCount = (uint)inputData.Count;
-
-                // Test if striping is enabled in any of the found HDRP assets.
-                if (hdPipelineAssets.Count == 0 || !hdPipelineAssets.Any(a => a.allowShaderVariantStripping))
-                    return;
-
-                var inputShaderVariantCount = inputData.Count;
-                for (int i = 0; i < inputShaderVariantCount;)
+                foreach (var hdAsset in hdPipelineAssets)
                 {
-                    ShaderCompilerData input = inputData[i];
+                    var strippedByPreprocessor = false;
 
-                    // Remove the input by default, until we find a HDRP Asset in the list that needs it.
-                    bool removeInput = true;
-
-                    foreach (var hdAsset in hdPipelineAssets)
+                    // Call list of strippers
+                    // Note that all strippers cumulate each other, so be aware of any conflict here
+                    foreach (BaseShaderPreprocessor shaderPreprocessor in shaderProcessorsList)
                     {
-                        var strippedByPreprocessor = false;
-
-                        // Call list of strippers
-                        // Note that all strippers cumulate each other, so be aware of any conflict here
-                        foreach (BaseShaderPreprocessor shaderPreprocessor in shaderProcessorsList)
+                        if (shaderPreprocessor.ShadersStripper(hdAsset, shader, snippet, input))
                         {
-                            if (shaderPreprocessor.ShadersStripper(hdAsset, shader, snippet, input))
-                            {
-                                strippedByPreprocessor = true;
-                                break;
-                            }
-                        }
-
-                        if (!strippedByPreprocessor)
-                        {
-                            removeInput = false;
+                            strippedByPreprocessor = true;
                             break;
                         }
                     }
 
-                    if (removeInput)
-                        inputData[i] = inputData[--inputShaderVariantCount];
-                    else
-                        ++i;
+                    if (!strippedByPreprocessor)
+                    {
+                        removeInput = false;
+                        break;
+                    }
                 }
 
-                if (inputData is List<ShaderCompilerData> inputDataList)
-                    inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
+                if (removeInput)
+                    inputData[i] = inputData[--inputShaderVariantCount];
                 else
-                    for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
-                        inputData.RemoveAt(i);
-
-                LogShaderVariants(shader, snippet, preStrippingCount, (uint)inputData.Count);
+                    ++i;
             }
 
+            if (inputData is List<ShaderCompilerData> inputDataList)
+                inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
+            else
+                for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
+                    inputData.RemoveAt(i);
+
             shaderStripingWatch.Stop();
+            ShaderStrippingReport.instance.OnShaderProcessed(shader, snippet, preStrippingCount, (uint)inputData.Count, shaderStripingWatch.Elapsed.TotalMilliseconds);
             shaderPreprocessed?.Invoke(shader, snippet, inputData.Count, shaderStripingWatch.Elapsed.TotalMilliseconds);
         }
     }

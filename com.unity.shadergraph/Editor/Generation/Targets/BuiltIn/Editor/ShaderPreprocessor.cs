@@ -89,9 +89,6 @@ namespace UnityEditor.Rendering.BuiltIn
         ShaderKeyword m_ScreenSpaceOcclusion = new ShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
         ShaderKeyword m_EditorVisualization = new ShaderKeyword(ShaderKeywordStrings.EDITOR_VISUALIZATION);
 
-        int m_TotalVariantsInputCount;
-        int m_TotalVariantsOutputCount;
-
         // Multiple callback may be implemented.
         // The first one executed is the one where callbackOrder is returning the smallest number.
         public int callbackOrder { get { return 0; } }
@@ -301,21 +298,6 @@ namespace UnityEditor.Rendering.BuiltIn
             return false;
         }
 
-        void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, int prevVariantsCount, int currVariantsCount)
-        {
-            float percentageCurrent = (float)currVariantsCount / (float)prevVariantsCount * 100f;
-            float percentageTotal = (float)m_TotalVariantsOutputCount / (float)m_TotalVariantsInputCount * 100f;
-
-            string result = string.Format("STRIPPING: {0} ({1} pass) ({2}) -" +
-                " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}%",
-                shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
-                prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
-                percentageTotal);
-
-            if (ShouldLogShaderVariant(shader, snippetData))
-                Debug.Log(result);
-        }
-
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
 #if PROFILE_BUILD
@@ -363,9 +345,8 @@ namespace UnityEditor.Rendering.BuiltIn
             double stripTimeMs = m_stripTimer.Elapsed.TotalMilliseconds;
             m_stripTimer.Reset();
 
-            m_TotalVariantsInputCount += prevVariantCount;
-            m_TotalVariantsOutputCount += compilerDataList.Count;
-            LogShaderVariants(shader, snippetData, prevVariantCount, compilerDataList.Count);
+            if (ShouldLogShaderVariant(shader, snippetData))
+                ShaderStrippingReport.instance.OnShaderProcessed(shader, snippetData, (uint)prevVariantCount, (uint)compilerDataList.Count, stripTimeMs);
 
 #if PROFILE_BUILD
             Profiler.EndSample();

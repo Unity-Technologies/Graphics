@@ -137,9 +137,6 @@ namespace UnityEditor.Rendering.Universal
 
         Shader StencilDeferred = Shader.Find("Hidden/Universal Render Pipeline/StencilDeferred");
 
-        int m_TotalVariantsInputCount;
-        int m_TotalVariantsOutputCount;
-
         // Multiple callback may be implemented.
         // The first one executed is the one where callbackOrder is returning the smallest number.
         public int callbackOrder { get { return 0; } }
@@ -649,29 +646,6 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        void LogShaderVariants(Shader shader, ShaderSnippetData snippetData, int prevVariantsCount, int currVariantsCount, double stripTimeMs)
-        {
-            if (UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel == UnityEngine.Rendering.ShaderVariantLogLevel.Disabled)
-                return;
-
-            m_TotalVariantsInputCount += prevVariantsCount;
-            m_TotalVariantsOutputCount += currVariantsCount;
-
-            if (UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel == UnityEngine.Rendering.ShaderVariantLogLevel.OnlySRPShaders &&
-                !shader.name.Contains("Universal Render Pipeline"))
-                return;
-
-            float percentageCurrent = (float)currVariantsCount / (float)prevVariantsCount * 100f;
-            float percentageTotal = (float)m_TotalVariantsOutputCount / (float)m_TotalVariantsInputCount * 100f;
-
-            string result = string.Format("STRIPPING: {0} ({1} pass) ({2}) -" +
-                " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}% TimeMs={9}",
-                shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
-                prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
-                percentageTotal, stripTimeMs);
-            Debug.Log(result);
-        }
-
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
 #if PROFILE_BUILD
@@ -728,7 +702,7 @@ namespace UnityEditor.Rendering.Universal
             double stripTimeMs = m_stripTimer.Elapsed.TotalMilliseconds;
             m_stripTimer.Reset();
 
-            LogShaderVariants(shader, snippetData, prevVariantCount, compilerDataList.Count, stripTimeMs);
+            ShaderStrippingReport.instance.OnShaderProcessed(shader, snippetData, (uint)prevVariantCount, (uint)compilerDataList.Count, stripTimeMs);
 
 #if PROFILE_BUILD
             Profiler.EndSample();
