@@ -476,7 +476,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     VisibilityOIT::GetPixelList(pixelOffset, listCount, listOffset);
 
                     if (listCount == 0)
-                        return float4(1, 1, 1, 1);
+                        return float4(0, 0, 0, 1);
 
                     float3 value = float3(0, 0, 0);
                     uint visOITGBufferLayerIdx = asint(_VisOITGBufferLayerIdx);
