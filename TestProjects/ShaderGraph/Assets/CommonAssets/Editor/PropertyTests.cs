@@ -239,6 +239,54 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         [Test]
+        public IEnumerator DuplicateInputTest()
+        {
+            Assert.IsNotNull(m_BlackboardTestController.addBlackboardItemsMenu, "Blackboard Add Items menu reference owned by BlackboardTestController is null.");
+
+            var menuItems = m_BlackboardTestController.addBlackboardItemsMenu.GetPrivateProperty<IList>("menuItems");
+            Assert.IsNotNull(menuItems, "Could not retrieve reference to the menu items of the Blackboard Add Items menu");
+
+            // invoke all menu items on the "add Blackboard Items Menu" to add all property types
+            foreach (var item in menuItems)
+            {
+                var menuFunction = item.GetNonPrivateField<GenericMenu.MenuFunction>("func");
+                menuFunction?.Invoke();
+                yield return null;
+            }
+
+            var cachedPropertyList = m_Window.graphObject.graph.properties.ToList();
+            foreach (var property in cachedPropertyList)
+            {
+                var blackboardRow = m_BlackboardTestController.GetBlackboardRow(property);
+                Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard property.");
+                var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
+                Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
+                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
+                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
+                yield return null;
+
+                ShaderGraphUITestHelpers.SendDuplicateCommand(m_Window);
+                yield return null;
+            }
+
+            var cachedKeywordList = m_Window.graphObject.graph.keywords.ToList();
+            foreach (var keyword in cachedKeywordList)
+            {
+                var blackboardRow = m_BlackboardTestController.GetBlackboardRow(keyword);
+                Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard keyword.");
+                var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
+                Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
+                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
+                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
+                yield return null;
+
+                ShaderGraphUITestHelpers.SendDuplicateCommand(m_Window);
+                yield return null;
+            }
+
+        }
+
+        [Test]
         public void DuplicatePropertyTest()
         {
             // public void AddGraphInput(ShaderInput input, int index = -1)
