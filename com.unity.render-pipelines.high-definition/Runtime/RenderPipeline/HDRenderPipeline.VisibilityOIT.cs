@@ -24,6 +24,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public RenderBRGBindingData BRGBindingData;
             public ComputeBuffer depthPyramidMipLevelOffsetsBuffer;
 
+            public TextureHandle gBuffer0Texture;
+            public TextureHandle gBuffer1Texture;
+
             public static VBufferOITOutput NewDefault()
             {
                 return new VBufferOITOutput()
@@ -726,7 +729,9 @@ namespace UnityEngine.Rendering.HighDefinition
             in BuildGPULightListOutput lightLists,
             in PrepassOutput prepassData,
             in TextureHandle depthBuffer,
-            ref TextureHandle colorBuffer)
+            ref TextureHandle colorBuffer,
+            ref TextureHandle gBuffer0Texture,
+            ref TextureHandle gBuffer1Texture)
         {
             if (!prepassData.vbufferOIT.valid)
                 return;
@@ -746,11 +751,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     sparseColorTexture,
                     prepassData.vbufferOIT.pixelHashBuffer,
                     depthBuffer, ref colorBuffer);
+
+                gBuffer0Texture = TextureHandle.nullHandle;
+                gBuffer1Texture = TextureHandle.nullHandle;
             }
             else //if (m_Asset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.oitLightingMode == OITLightingMode.DeferredSSTracing)
             {
-                TextureHandle gBuffer0Texture;
-                TextureHandle gBuffer1Texture;
                 TextureHandle offscreenDirectReflectionLightingTexture;
                 RenderOITVBufferLightingOffscreenDeferredSSTracing(
                     renderGraph, cull, hdCamera, shadowResult, prepassData.vbufferOIT, lightLists, prepassData,

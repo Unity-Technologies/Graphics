@@ -17,6 +17,12 @@ ByteAddressBuffer _VisOITListsOffsets;
 ByteAddressBuffer _VisOITSubListsCounts;
 ByteAddressBuffer _VisOITPixelHash;
 
+#ifdef DEBUG_DISPLAY
+float _VisOITGBufferLayerIdx;
+float _VisOITGBufferLayer;
+float _VBufferOITLightingOffscreenWidth;
+#endif
+
 #if defined(USE_TEXTURE2D_X_AS_ARRAY)
 Texture2DArray<float2> _OITTileHiZ;
 #else

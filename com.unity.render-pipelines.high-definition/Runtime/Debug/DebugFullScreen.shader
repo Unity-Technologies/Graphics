@@ -23,6 +23,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.cs.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #define DEBUG_DISPLAY
@@ -399,7 +400,6 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     uint2 samplePosition = (uint2)(sampleUV * _DebugViewportSize.xy);
                     uint pixelOffset = samplePosition.y * _DebugViewportSize.x + samplePosition.x;
 
-
                     uint stencilSample = GetStencilValue(LOAD_TEXTURE2D_X(_VisOITCount, samplePosition));
 
                     float3 bgColor = (sampleUV.yyy * sampleUV.yyy * float3(0,0,0.08));
@@ -440,7 +440,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                     return float4(sumColor / (float)listCount, 1.0);
                     #else
-                        return float4(1,0,0,0);
+                    return float4(1,0,0,0);
                     #endif
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_OITHI_Z)
@@ -463,6 +463,55 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     return float4(r, g, b, 1.0);
                     #else
                     return float4(0.0, 1.0, 0.0, 1.0);
+                    #endif
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VISIBILITY_OITGBUFFER)
+                {
+                    #ifdef DOTS_INSTANCING_ON
+                    float2 sampleUV = input.texcoord.xy / _RTHandleScale.xy;
+                    uint2 samplePosition = (uint2)(sampleUV * _DebugViewportSize.xy);
+                    uint pixelOffset = samplePosition.y * _DebugViewportSize.x + samplePosition.x;
+
+                    uint listCount, listOffset;
+                    VisibilityOIT::GetPixelList(pixelOffset, listCount, listOffset);
+
+                    if (listCount == 0)
+                        return float4(1, 1, 1, 1);
+
+                    float3 value = float3(0, 0, 0);
+                    uint visOITGBufferLayerIdx = asint(_VisOITGBufferLayerIdx);
+                    if (visOITGBufferLayerIdx < listCount)
+                    {
+                        int globalOffset = visOITGBufferLayerIdx + listOffset;
+                        uint offscreenLightBufferWidth = (uint)_VBufferOITLightingOffscreenWidth;
+                        uint2 offscreenCoord = uint2(globalOffset % offscreenLightBufferWidth, globalOffset / offscreenLightBufferWidth);
+
+                        uint4 packedOITGBuffer0 = _VisOITOffscreenGBuffer0[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
+                        uint packedOITGBuffer1 = _VisOITOffscreenGBuffer1[COORD_TEXTURE2D_X(offscreenCoord)].r;
+                        float3 n;
+                        float roughness;
+                        float3 baseColor;
+                        float metalness;
+                        VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, n, roughness, baseColor, metalness);
+
+                        int visOITGBufferLayer = asint(_VisOITGBufferLayer);
+                        if (visOITGBufferLayer == OITGBUFFERLAYER_NORMAL)
+                            value = n * 0.5f + 0.5f;
+                        else if (visOITGBufferLayer == OITGBUFFERLAYER_BASE_COLOR)
+                            value = baseColor;
+                        else if (visOITGBufferLayer == OITGBUFFERLAYER_DIFFUSE_ALBEDO)
+                            value = baseColor * (1.0f - metalness);
+                        else if (visOITGBufferLayer == OITGBUFFERLAYER_SPECULAR_ALBEDO)
+                            value = lerp(DEFAULT_SPECULAR_VALUE.xxx, baseColor, metalness);
+                        else if (visOITGBufferLayer == OITGBUFFERLAYER_ROUGHNESS)
+                            value = roughness.xxx;
+                        else if(visOITGBufferLayer == OITGBUFFERLAYER_METALNESS)
+                            value = metalness.xxx;
+                    }
+
+                    return float4(value, 1.0);
+                    #else
+                    return float4(1,0,0,0);
                     #endif
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_PRE_REFRACTION_COLOR_PYRAMID

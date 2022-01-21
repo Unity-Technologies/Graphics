@@ -1395,11 +1395,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             //***** OIT Transparency resolve ****/
             ////OIT Transparency pass. Feel free to comment
+            TextureHandle gBuffer0Texture = TextureHandle.nullHandle;
+            TextureHandle gBuffer1Texture = TextureHandle.nullHandle;
             RenderOITLighting(
                 renderGraph, cullingResults, hdCamera, shadowResult,
                 lightLists, prepassOutput, prepassOutput.resolvedDepthBuffer,
-                ref colorBuffer);
-
+                ref colorBuffer,
+                ref gBuffer0Texture,
+                ref gBuffer1Texture);
+            prepassOutput.vbufferOIT.gBuffer0Texture = gBuffer0Texture;
+            prepassOutput.vbufferOIT.gBuffer1Texture = gBuffer1Texture;
             //TODO: uncomment the code below to do a simple test to see / debug results of OIT visibility buffer.
             //colorBuffer = TestOITLighting(renderGraph, ref prepassOutput, colorBuffer, hdCamera);
             //**********************************/

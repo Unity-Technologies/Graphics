@@ -444,6 +444,20 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable display of materials using a true metallic value.</summary>
         public bool materialValidateTrueMetal = false;
 
+        // OITGBuffer
+        public uint oitGBufferLayerIdx = 0;
+        [GenerateHLSL]
+        public enum OITGBufferLayer
+        {
+            Normal,
+            BaseColor,
+            DiffuseAlbedo,
+            SpecularAlbedo,
+            Roughness,
+            Metalness
+        }
+        public OITGBufferLayer oitGBufferLayer = OITGBufferLayer.BaseColor;
+
         /// <summary>
         /// Current Debug View Material.
         /// </summary>

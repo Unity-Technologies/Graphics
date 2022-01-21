@@ -418,6 +418,26 @@ namespace UnityEngine.Rendering.HighDefinition
                             mpb.SetBuffer(HDShaderIDs._VisOITSubListsCounts, data.vBufferOIT.sublistCounterBuffer);
                             mpb.SetBuffer(HDShaderIDs._VisOITBuffer, data.vBufferOIT.oitVisibilityBuffer);
                             mpb.SetBuffer(HDShaderIDs._VisOITPixelHash, data.vBufferOIT.pixelHashBuffer);
+
+                            uint oitGBufferLayerIdx = data.debugDisplaySettings.data.materialDebugSettings.oitGBufferLayerIdx;
+                            int oitGBufferLayer = (int)data.debugDisplaySettings.data.materialDebugSettings.oitGBufferLayer;
+                            int offScreenLightingWidth = GetOITOffscreenLightingSize(hdCamera, 16).x;
+
+                            float packedOITGBufferLayerIdx; unsafe { packedOITGBufferLayerIdx = *((float*)&oitGBufferLayerIdx); };
+                            float packedOITGBufferLayer; unsafe { packedOITGBufferLayer = *((float*)&oitGBufferLayer); };
+                            float packedOffscreenLightingWidth; unsafe { packedOffscreenLightingWidth = *((float*)&offScreenLightingWidth); };
+                            mpb.SetFloat(HDShaderIDs._VisOITGBufferLayerIdx, packedOITGBufferLayerIdx);
+                            mpb.SetFloat(HDShaderIDs._VisOITGBufferLayer, packedOITGBufferLayer);
+                            mpb.SetFloat(HDShaderIDs._VBufferOITLightingOffscreenWidth, packedOffscreenLightingWidth);
+
+                            if (data.vBufferOIT.gBuffer0Texture.IsValid() && data.vBufferOIT.gBuffer1Texture.IsValid())
+                            {
+                                // ? Why?
+                                mpb.SetTexture(HDShaderIDs._VisOITOffscreenGBuffer0, data.vBufferOIT.gBuffer0Texture);
+                                mpb.SetTexture(HDShaderIDs._VisOITOffscreenGBuffer1, data.vBufferOIT.gBuffer1Texture);
+                                //ctx.cmd.SetGlobalTexture(HDShaderIDs._VisOITOffscreenGBuffer0, data.vBufferOIT.gBuffer0Texture);
+                                //ctx.cmd.SetGlobalTexture(HDShaderIDs._VisOITOffscreenGBuffer1, data.vBufferOIT.gBuffer1Texture);
+                            }
                         }
 
                         if (fullscreenBuffer != null)
