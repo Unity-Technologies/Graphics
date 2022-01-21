@@ -12,8 +12,8 @@
 
 #ifdef SENSORSDK_OVERRIDE_REFLECTANCE
 
-TEXTURE2D(_SensorCustomReflectance);
-float 		Wavelength;
+Texture2D<float>(_SensorCustomReflectance);
+float 		_WavelengthCoordU;
 #endif
 
 #if defined(SENSORSDK_SHADERGRAPH) || defined(SENSORSDK_OVERRIDE_REFLECTANCE)
@@ -92,15 +92,8 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
     //We override the diffuce color when we are using standard lit shader.  Don't need to when using shader graph.
 #ifdef SENSORSDK_OVERRIDE_REFLECTANCE
-    //bsdfData.diffuseColor = float3(_SensorCustomReflectance, _SensorCustomReflectance, _SensorCustomReflectance); //Override diffuse with material reflectance
-    const float _minWaveLengthValue = 0.35f; // 350 nm
-    const float _maxWaveLengthValue = 2.5f; // 2500 nm
-
-    float wlIdx = clamp(Wavelength * 0.001f, _minWaveLengthValue, _maxWaveLengthValue);
-    float wavelengthSpan = _maxWaveLengthValue - _minWaveLengthValue + 1;
-    float2 coordCurve = float2(wlIdx / wavelengthSpan, 0);
-
-    bsdfData.diffuseColor = SAMPLE_TEXTURE2D(_SensorCustomReflectance, s_linear_clamp_sampler, coordCurve);
+    float2 coordCurve = float2(_WavelengthCoordU, 0);
+    bsdfData.diffuseColor = SAMPLE_TEXTURE2D(_SensorCustomReflectance, s_linear_clamp_sampler, coordCurve).rrr;
 #endif
 
     // Override the geometric normal (otherwise, it is merely the non-mapped smooth normal)
