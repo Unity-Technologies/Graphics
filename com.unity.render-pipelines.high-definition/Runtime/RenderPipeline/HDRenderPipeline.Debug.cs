@@ -440,11 +440,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             if (passData.oitGBuffer0.IsValid() && passData.oitGBuffer1.IsValid())
                             {
-                                // ? Why?
                                 mpb.SetTexture(HDShaderIDs._VisOITOffscreenGBuffer0, passData.oitGBuffer0);
                                 mpb.SetTexture(HDShaderIDs._VisOITOffscreenGBuffer1, passData.oitGBuffer1);
-                                //ctx.cmd.SetGlobalTexture(HDShaderIDs._VisOITOffscreenGBuffer0, data.vBufferOIT.gBuffer0Texture);
-                                //ctx.cmd.SetGlobalTexture(HDShaderIDs._VisOITOffscreenGBuffer1, data.vBufferOIT.gBuffer1Texture);
                             }
                         }
 
