@@ -16,6 +16,7 @@ namespace UnityEngine.Experimental.Rendering
             PV2,
             ChunkBasedIndex,
             BinaryRuntimeDebugSplit,
+            BinaryTextureData,
             Max,
             Current = Max - 1
         }
@@ -34,6 +35,8 @@ namespace UnityEngine.Experimental.Rendering
 
         [SerializeField] internal ProbeVolumeSHBands bands;
 
+        [SerializeField] internal int chunkSizeInBricks;
+
         [SerializeField] string m_AssetFullPath = "UNINITIALIZED!";
 
         // Profile info
@@ -47,12 +50,14 @@ namespace UnityEngine.Experimental.Rendering
             public int bricksCount;
             public int probesCount;
             public int offsetsCount;
+            public int chunksCount;
 
             public void Add(CellCounts o)
             {
                 bricksCount += o.bricksCount;
                 probesCount += o.probesCount;
                 offsetsCount += o.offsetsCount;
+                chunksCount += o.chunksCount;
             }
         }
 
@@ -64,7 +69,8 @@ namespace UnityEngine.Experimental.Rendering
 
         internal bool CompatibleWith(ProbeVolumeAsset otherAsset)
         {
-            return (maxSubdivision == otherAsset.maxSubdivision) && (minBrickSize == otherAsset.minBrickSize) && (cellSizeInBricks == otherAsset.cellSizeInBricks);
+            return (maxSubdivision == otherAsset.maxSubdivision) && (minBrickSize == otherAsset.minBrickSize) && (cellSizeInBricks == otherAsset.cellSizeInBricks)
+                && (chunkSizeInBricks == otherAsset.chunkSizeInBricks);
         }
 
         public string GetSerializedFullPath()
@@ -86,25 +92,54 @@ namespace UnityEngine.Experimental.Rendering
                 return count + (remainder == 0 ? 0 : alignment - remainder);
             }
 
-            var cellData = cellDataAsset.GetData<byte>();
-            var shL0L1DataByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL0L1ScalarCoefficientsCount;
-            if (shL0L1DataByteCount != cellData.Length)
-                return false;
-            var shL0L1Data = cellData.GetSubArray(0, shL0L1DataByteCount).Reinterpret<float>(1);
+            var chunkSizeInProbeCount = chunkSizeInBricks * ProbeBrickPool.kBrickProbeCountTotal;
 
+            // L0L1 data
+            var cellData = cellDataAsset.GetData<byte>();
+            var shL0L1DataByteCountOld = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL0L1ScalarCoefficientsCount;
+            /// 3 4 component textures, 1 float and 2 bytes. Aligned on the size of a chunk.
+            var shL0R1xDataByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * 4 * UnsafeUtility.SizeOf<float>();
+            var shL1GR1yDataByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * 4 * UnsafeUtility.SizeOf<byte>();
+            var shL1B1zDataByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * 4 * UnsafeUtility.SizeOf<byte>();
+            if ((shL0L1DataByteCountOld + shL0R1xDataByteCount + shL1GR1yDataByteCount + shL1B1zDataByteCount) != cellData.Length)
+                return false;
+
+            var offset = 0;
+            var shL0L1DataOld = cellData.GetSubArray(0, shL0L1DataByteCountOld).Reinterpret<float>(1);
+            offset += shL0L1DataByteCountOld;
+            var shL0L1RxData = cellData.GetSubArray(offset, shL0R1xDataByteCount).Reinterpret<float>(1);
+            offset += shL0R1xDataByteCount;
+            var shL1GL1RyData = cellData.GetSubArray(offset, shL1GR1yDataByteCount).Reinterpret<byte>(1);
+            offset += shL1GR1yDataByteCount;
+            var shL1BL1RzData = cellData.GetSubArray(offset, shL1B1zDataByteCount).Reinterpret<byte>(1);
+
+            // Optional L2 data
             var cellOptionalData = cellOptionalDataAsset ? cellOptionalDataAsset.GetData<byte>() : default;
             var hasOptionalData = cellOptionalData.IsCreated;
-            var shL2DataByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL2ScalarCoefficientsCount;
-            if (hasOptionalData && (shL2DataByteCount + 3 * UnsafeUtility.SizeOf<float>()) != cellOptionalData.Length)
+            var shL2DataByteCountOld = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL2ScalarCoefficientsCount;
+            var shL2DataByteCount = totalCellCounts.chunksCount * chunkSizeInProbeCount * 4 * UnsafeUtility.SizeOf<byte>();
+            if (hasOptionalData && (4 * shL2DataByteCount + shL2DataByteCountOld + 3 * UnsafeUtility.SizeOf<float>()) != cellOptionalData.Length)
                 return false;
-            var shL2Data = hasOptionalData ? cellOptionalData.GetSubArray(0, shL2DataByteCount).Reinterpret<float>(1) : default;
 
+            offset = 0;
+            var shL2DataOld = hasOptionalData ? cellOptionalData.GetSubArray(offset, shL2DataByteCountOld).Reinterpret<float>(1) : default;
+            offset += shL2DataByteCountOld;
+            var shL2Data_0 = hasOptionalData ? cellOptionalData.GetSubArray(offset, shL2DataByteCount).Reinterpret<byte>(1) : default;
+            offset += shL2DataByteCount;
+            var shL2Data_1 = hasOptionalData ? cellOptionalData.GetSubArray(offset, shL2DataByteCount).Reinterpret<byte>(1) : default;
+            offset += shL2DataByteCount;
+            var shL2Data_2 = hasOptionalData ? cellOptionalData.GetSubArray(offset, shL2DataByteCount).Reinterpret<byte>(1) : default;
+            offset += shL2DataByteCount;
+            var shL2Data_3 = hasOptionalData ? cellOptionalData.GetSubArray(offset, shL2DataByteCount).Reinterpret<byte>(1) : default;
+
+            // Shared Data
             var cellSharedData = cellSharedDataAsset.GetData<byte>();
             var bricksByteCount = totalCellCounts.bricksCount * UnsafeUtility.SizeOf<ProbeBrickIndex.Brick>();
             if (bricksByteCount != cellSharedData.Length)
                 return false;
             var bricksData = cellSharedData.GetSubArray(0, bricksByteCount).Reinterpret<ProbeBrickIndex.Brick>(1);
 
+            // Support Data
             var cellSupportData = cellSupportDataAsset ? cellSupportDataAsset.GetData<byte>() : default;
             var hasSupportData = cellSupportData.IsCreated;
             var positionsByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<Vector3>();
@@ -125,11 +160,20 @@ namespace UnityEngine.Experimental.Rendering
                 var counts = cellCounts[i];
 
                 cell.bricks = bricksData.GetSubArray(startCounts.bricksCount, counts.bricksCount);
-                cell.shL0L1Data = shL0L1Data.GetSubArray(startCounts.probesCount * kL0L1ScalarCoefficientsCount, counts.probesCount * kL0L1ScalarCoefficientsCount);
+                cell.shL0L1Data = shL0L1DataOld.GetSubArray(startCounts.probesCount * kL0L1ScalarCoefficientsCount, counts.probesCount * kL0L1ScalarCoefficientsCount);
+
+                cell.shL0L1RxData = shL0L1RxData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
+                cell.shL1GL1RyData = shL1GL1RyData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
+                cell.shL1BL1RzData = shL1BL1RzData.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
 
                 if (hasOptionalData)
                 {
-                    cell.shL2Data = shL2Data.GetSubArray(startCounts.probesCount * kL2ScalarCoefficientsCount, counts.probesCount * kL2ScalarCoefficientsCount);
+                    cell.shL2Data = shL2DataOld.GetSubArray(startCounts.probesCount * kL2ScalarCoefficientsCount, counts.probesCount * kL2ScalarCoefficientsCount);
+
+                    cell.shL2Data_0 = shL2Data_0.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
+                    cell.shL2Data_1 = shL2Data_1.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
+                    cell.shL2Data_2 = shL2Data_2.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
+                    cell.shL2Data_3 = shL2Data_3.GetSubArray(startCounts.chunksCount * chunkSizeInProbeCount * 4, counts.chunksCount * chunkSizeInProbeCount * 4);
                 }
 
                 if (hasSupportData)

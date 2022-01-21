@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering
 {
     internal class ProbeBrickPool
     {
-        const int kProbePoolChunkSize = 128;
+        const int kProbePoolChunkSizeInBrick = 128;
 
         [DebuggerDisplay("Chunk ({x}, {y}, {z})")]
         public struct BrickChunkAlloc
@@ -111,7 +111,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Pool = CreateDataLocation(width * height * depth, false, shBands, "APV", out estimatedCost);
             estimatedVMemCost = estimatedCost;
 
-            m_AvailableChunkCount = (width / (kProbePoolChunkSize * kBrickProbeCountPerDim)) * (height / kBrickProbeCountPerDim) * (depth / kBrickProbeCountPerDim);
+            m_AvailableChunkCount = (width / (kProbePoolChunkSizeInBrick * kBrickProbeCountPerDim)) * (height / kBrickProbeCountPerDim) * (depth / kBrickProbeCountPerDim);
 
             Profiler.EndSample();
         }
@@ -134,8 +134,8 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        internal static int GetChunkSize() { return kProbePoolChunkSize; }
-        internal static int GetChunkSizeInProbeCount() { return kProbePoolChunkSize * kBrickProbeCountTotal; }
+        internal static int GetChunkSizeInBrickCount() { return kProbePoolChunkSizeInBrick; }
+        internal static int GetChunkSizeInProbeCount() { return kProbePoolChunkSizeInBrick * kBrickProbeCountTotal; }
 
         internal int GetPoolWidth() { return m_Pool.width; }
         internal int GetPoolHeight() { return m_Pool.height; }
@@ -161,7 +161,7 @@ namespace UnityEngine.Experimental.Rendering
 
         internal static int GetChunkCount(int brickCount)
         {
-            int chunkSize = GetChunkSize();
+            int chunkSize = GetChunkSizeInBrickCount();
             return (brickCount + chunkSize - 1) / chunkSize;
         }
 
@@ -189,7 +189,7 @@ namespace UnityEngine.Experimental.Rendering
                 outAllocations.Add(m_NextFreeChunk);
                 m_AvailableChunkCount--;
 
-                m_NextFreeChunk.x += kProbePoolChunkSize * kBrickProbeCountPerDim;
+                m_NextFreeChunk.x += kProbePoolChunkSizeInBrick * kBrickProbeCountPerDim;
                 if (m_NextFreeChunk.x >= m_Pool.width)
                 {
                     m_NextFreeChunk.x = 0;
@@ -222,7 +222,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 for (int j = 0; j < kBrickProbeCountPerDim; j++)
                 {
-                    int width = Mathf.Min(kProbePoolChunkSize * kBrickProbeCountPerDim, source.width - src.x);
+                    int width = Mathf.Min(kProbePoolChunkSizeInBrick * kBrickProbeCountPerDim, source.width - src.x);
                     Graphics.CopyTexture(source.TexL0_L1rx, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL0_L1rx, dst.z + j, 0, dst.x, dst.y);
 
                     Graphics.CopyTexture(source.TexL1_G_ry, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_G_ry, dst.z + j, 0, dst.x, dst.y);
@@ -239,7 +239,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        static Vector3Int ProbeCountToDataLocSize(int numProbes)
+        internal static Vector3Int ProbeCountToDataLocSize(int numProbes)
         {
             Debug.Assert(numProbes != 0);
             Debug.Assert(numProbes % kBrickProbeCountTotal == 0);

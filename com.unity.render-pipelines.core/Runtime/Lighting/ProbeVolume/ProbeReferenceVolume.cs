@@ -375,6 +375,15 @@ namespace UnityEngine.Experimental.Rendering
 
             public NativeArray<Brick> bricks { get; internal set; }
 
+            public NativeArray<float> shL0L1RxData { get; internal set; }
+            public NativeArray<byte> shL1GL1RyData { get; internal set; }
+            public NativeArray<byte> shL1BL1RzData { get; internal set; }
+
+            public NativeArray<byte> shL2Data_0 { get; internal set; }
+            public NativeArray<byte> shL2Data_1 { get; internal set; }
+            public NativeArray<byte> shL2Data_2 { get; internal set; }
+            public NativeArray<byte> shL2Data_3 { get; internal set; }
+
             public NativeArray<float> shL0L1Data { get; internal set; } // pre-swizzled for runtime upload (12 coeffs)
             public NativeArray<float> shL2Data { get; internal set; } // pre-swizzled for runtime upload (15 coeffs)
 
@@ -1285,7 +1294,7 @@ namespace UnityEngine.Experimental.Rendering
             var bricks = cell.bricks;
 
             // calculate the number of chunks necessary
-            int chunkSize = ProbeBrickPool.GetChunkSize();
+            int chunkSize = ProbeBrickPool.GetChunkSizeInBrickCount();
             int brickChunksCount = (bricks.Length + chunkSize - 1) / chunkSize;
             cellInfo.chunkList.Clear();
 
@@ -1333,7 +1342,7 @@ namespace UnityEngine.Experimental.Rendering
             m_BricksLoaded = true;
 
             // Build index
-            m_Index.AddBricks(cellInfo.cell, bricks, cellInfo.chunkList, ProbeBrickPool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), cellUpdateInfo);
+            m_Index.AddBricks(cellInfo.cell, bricks, cellInfo.chunkList, ProbeBrickPool.GetChunkSizeInBrickCount(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight(), cellUpdateInfo);
 
             // Update CellInfo
             cellInfo.updateInfo = cellUpdateInfo;

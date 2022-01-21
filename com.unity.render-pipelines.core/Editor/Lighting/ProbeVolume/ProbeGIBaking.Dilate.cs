@@ -78,10 +78,10 @@ namespace UnityEngine.Experimental.Rendering
                 var sh = new SphericalHarmonicsL2();
                 ToSphericalHarmonicsL2(ref sh);
 
-                WriteToShaderCoeffsL0L1(ref sh, shL0L1Data, probeIdx * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
+                WriteToShaderCoeffsL0L1(sh, shL0L1Data, probeIdx * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
 
                 if (srcBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
-                    WriteToShaderCoeffsL2(ref sh, shL2Data, probeIdx * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
+                    WriteToShaderCoeffsL2(sh, shL2Data, probeIdx * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
             }
         }
 
