@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12d85c31f23ce0b42a222b83c367ac9b, type: 3}
+  m_Name: Platforms And API
+  m_EditorClassIdentifier: 
+  allPlatformsAndAPIForTesting:
+  - Platform: 1
+    APIS: 080000001500000016000000
+  - Platform: 0
+    APIS: 
+  - Platform: 33
+    APIS: 
+  - Platform: 40
+    APIS: 0800000008000000
+  - Platform: 34
+    APIS: 
+  - Platform: 18
+    APIS: 
