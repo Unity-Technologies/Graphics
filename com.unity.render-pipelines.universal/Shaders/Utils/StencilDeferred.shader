@@ -319,7 +319,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 float depth = LinearEyeDepth(d, _ZBufferParams);
                 WetnessData wetnessData = GetWetnessData(gbufferWetness, gbuffer2.a, posWS, inputData.normalWS, screen_uv, MERGE_NAME(_, GBUFFER_LIGHT_LAYERS), my_linear_clamp_sampler, depth);
 
-                float aberOffset = 0.02 * max(1.0 - saturate(depth * 0.5), 0) * wetnessData.waterAmount;
+                float aberOffset = 0.02 * clamp(1.0 - saturate(depth * 0.5), 0, 0.3) * wetnessData.waterAmount;
 
                 float2 uvRefr;
                 float3 posRefrWS;
@@ -365,9 +365,11 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 float viewAtten = saturate(1.0 - Fresnel(brdfDataWetness.reflectivity, dot(inputData.viewDirectionWS, wetnessData.normalWS)));
 
                 //float3 viewRefrWS = Refract(-inputData.viewDirectionWS, wetnessData.normalWS, 1.0 / 1.33);
-                float viewRefrAtten = pow(viewAtten, 4);// saturate(1.0 - FresnelSchlickTIR(1.0, 1.33, wetnessData.normalWS, -viewRefrWS));
+                float viewRefrAtten = pow(viewAtten, 3);// saturate(1.0 - FresnelSchlickTIR(1.0, 1.33, wetnessData.normalWS, -viewRefrWS));
 
-                color *= lerp(1.0, lightReflAtten * viewRefrAtten * colorAbsorbAtten, wetnessData.waterSaturation);
+                float lightCausticsAtten = lerp(1.0, pow(dot(wetnessData.normalWS, unityLight.direction) + 1.0, 3.0) * (1.0 - dot(float3(0.0, 1.0, 0.0), unityLight.direction)), wetnessData.puddleTransition);
+
+                color *= lerp(1.0, lightReflAtten * viewRefrAtten * colorAbsorbAtten * lightCausticsAtten, wetnessData.waterSaturation);
 
                 float3 colorWetness = LightingPhysicallyBased(brdfDataWetness, unityLight, wetnessData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
                 color += colorWetness;
@@ -384,14 +386,16 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
                 float3 giReflAtten = 1.0 - 0.18; // 0.18 - bihemispherical albedo or frenel preintegrated
 
-                giColor *= lerp(1.0, giReflAtten * viewRefrAtten * giAbsorbAtten, wetnessData.waterSaturation);
+                float giCausticsAtten = lerp(1.0, pow(dot(wetnessData.normalWS, float3(0.0, 1.0, 0.0)), 5.0), wetnessData.puddleTransition);
+
+                giColor *= lerp(1.0, giReflAtten * viewRefrAtten * giAbsorbAtten * giCausticsAtten, wetnessData.waterSaturation);
 
                 half3 giWetness = GlobalIllumination(brdfDataWetness, inputData.bakedGI, wetnessData.occlusion, posWS, wetnessData.normalWS, inputData.viewDirectionWS);
                 giColor += giWetness;
 
                 color += giColor;
 
-                //color = wetnessData.waterSaturation;
+                //color = lightCausticsAtten;
 #endif
                 //@ Problems in shadows
                 //@ To dark attenuation under angle when not so much wetness

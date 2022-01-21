@@ -10,13 +10,14 @@ static const float kNormalScale = 0.5;
 static const float kWaveLeveScale = 0.15;
 static const float kRefractionMult = 15.0;
 static const float kNormalGradScale = 0.5;
-static const float kSurfWaterGradScale = 0.1;
+static const float kSurfWaterGradScale = 0.5; // 0.1
 
 struct WetnessData
 {
     float wetness; // pure wetness amount.
     float porosity;
     float waveLevel;
+    float puddleTransition;
     float waterLevel; // Where water starts from wetness level.
     float waterSaturation; // How much surface is satureted with water: 0 (low porosity materials no saturation at all) to 1 (puddle formation starts).
     float waterAmount; // How much watness is actual water on the surface.
@@ -78,28 +79,26 @@ WetnessData GetWetnessData(float4 gbufferWetness, float smoothness, float3 posWS
     wetnessData.waveLevel = (gbufferWetness.g * 2.0 - 1.0) * kWaveLeveScale * wetnessData.wetness;
     wetnessData.waterLevel = max(kWaterLevelMin - (1.0 - wetnessData.porosity) * kWaterLevelMin, 0.0);
     wetnessData.waterSaturation = saturate(wetnessData.wetness / (wetnessData.waterLevel + 0.0001));
-    //wetnessData.waterSaturation = pow(saturate(wetnessData.wetness / (wetnessData.waterLevel + 0.0001)), lerp(1.0, 32.0, pow(1.0 - wetnessData.porosity, 16)));
-
     wetnessData.waterAmount = saturate(wetnessData.wetness - wetnessData.waterLevel + wetnessData.waveLevel) * gbufferWetness.b;
-
-    float puddleTransition = saturate(wetnessData.waterAmount * 7.5);
-    wetnessData.normalWS = normalize(lerp(normalWS, float3(0.0, 1.0, 0.0), puddleTransition));
+    wetnessData.puddleTransition = saturate(wetnessData.waterAmount * 7.5);
+    wetnessData.normalWS = normalize(lerp(normalWS, float3(0.0, 1.0, 0.0), wetnessData.puddleTransition));
     float3 waterNormal = PerturbNormal(posWS, wetnessData.normalWS, wetnessData.porosity, uv, wetnessBuffer, wetnessBufferSampler, depth);
-    wetnessData.normalWS = normalize(lerp(wetnessData.normalWS, waterNormal, puddleTransition * wetnessData.waterAmount * kNormalScale));
-
+    wetnessData.normalWS = normalize(lerp(wetnessData.normalWS, waterNormal, wetnessData.puddleTransition * wetnessData.waterAmount * kNormalScale));
     wetnessData.occlusion = 1.0;
     wetnessData.color = kWaterAbsorbtionColor * gbufferWetness.a;
-
     return wetnessData;
 }
 
 void ApplyWetnessToBRDF(WetnessData wetnessData, inout BRDFData brdfData)
 {
-    float3 lum = (brdfData.diffuse.r + brdfData.diffuse.g + brdfData.diffuse.b) / 3.0;
-    // Saturation
-    brdfData.diffuse = lerp(brdfData.diffuse, brdfData.diffuse + normalize(brdfData.diffuse - lum) * wetnessData.waterSaturation * 0.15, sqrt(wetnessData.porosity));
-    // Darkening
-    brdfData.diffuse = lerp(brdfData.diffuse, lerp(brdfData.diffuse, pow(brdfData.diffuse, 3), sqrt(wetnessData.waterSaturation)), sqrt(wetnessData.porosity));
+    if (dot(brdfData.diffuse, brdfData.diffuse) > 0)
+    {
+        float3 lum = (brdfData.diffuse.r + brdfData.diffuse.g + brdfData.diffuse.b) / 3.0;
+        // Saturation
+        brdfData.diffuse = lerp(brdfData.diffuse, brdfData.diffuse + normalize(brdfData.diffuse - lum) * wetnessData.waterSaturation * 0.15, wetnessData.porosity);
+        // Darkening
+        brdfData.diffuse = lerp(brdfData.diffuse, lerp(brdfData.diffuse, pow(brdfData.diffuse, 3), sqrt(wetnessData.waterSaturation)), sqrt(wetnessData.porosity));
+    }
 }
 
 void ComputeWetnessAbsorbtionAttenuation(WetnessData wetnessData, float3 viewDirectionWS, float3 lightDirWS, out float3 lightAtten, out float3 giAtten)
