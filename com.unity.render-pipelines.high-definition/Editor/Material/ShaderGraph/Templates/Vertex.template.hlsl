@@ -115,9 +115,9 @@ float3 GetCustomVelocity(AttributesMesh input
 {
     // build graph inputs
     VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
-    VertexDescription vertexDescription = ExecuteVertexDescription(vertexDescriptionInputs,
+    VertexDescription vertexDescription = ExecuteVertexDescription(vertexDescriptionInputs
 #ifdef HAVE_VFX_MODIFICATION
-        element
+        , element
 #endif
     );
     return vertexDescription.CustomVelocity;
