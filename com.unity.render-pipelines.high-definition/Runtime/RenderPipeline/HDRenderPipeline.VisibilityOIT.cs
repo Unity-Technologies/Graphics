@@ -584,12 +584,13 @@ namespace UnityEngine.Rendering.HighDefinition
         class VBufferOITComputeHiZPassData
         {
             public ComputeShader cs;
-            public RenderBRGBindingData BRGBindingData;
+            //public RenderBRGBindingData BRGBindingData;
             public ComputeBufferHandle countBuffer;
             public ComputeBufferHandle offsetBuffer;
             public ComputeBufferHandle sublistCounterBuffer;
             public ComputeBufferHandle oitVisibilityBuffer;
 
+            public TextureHandle gBuffer0Texture;
             public TextureHandle oitTileHiZOutput;
 
             public int oitHiZMipIdxGenerated;
@@ -603,7 +604,8 @@ namespace UnityEngine.Rendering.HighDefinition
         void RenderVBufferOITTileHiZPass(
             RenderGraph renderGraph, HDCamera hdCamera, int maxMaterialSampleCount, Vector2Int screenSize, VBufferOITOutput vbufferOIT,
             ComputeBufferHandle countBuffer, ComputeBufferHandle offsetBuffer, ComputeBufferHandle sublistCounterBuffer, ComputeBufferHandle oitVisibilityBuffer,
-            out TextureHandle oitTileHiZTexture/*, out ComputeBufferHandle depthPyramidMipLevelOffsetsBuffer*/)
+            TextureHandle gBuffer0Texture,
+            out TextureHandle oitTileHiZTexture)
         {
             using (var builder = renderGraph.AddRenderPass<VBufferOITComputeHiZPassData>("VBufferOITComputeHiZ", out var passData, ProfilingSampler.Get(HDProfileId.VBufferOITComputeHiZ)))
             {
@@ -623,6 +625,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.oitHiZMipsOffsets = hdCamera.depthBufferMipChainInfo.mipLevelOffsets;
                 passData.oitHiZMipsSizes = hdCamera.depthBufferMipChainInfo.mipLevelSizes;
 
+                passData.gBuffer0Texture = builder.ReadTexture(gBuffer0Texture);
+
                 oitTileHiZTexture = builder.ReadWriteTexture(renderGraph.CreateTexture(
                     new TextureDesc(hdCamera.depthBufferMipChainInfo.textureSize.x, hdCamera.depthBufferMipChainInfo.textureSize.y, false, true)
                     {
@@ -630,8 +634,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         useMipMap = false,
                         colorFormat = GetDeferredSSTracingHiZFormat(),
                         bindTextureMS = false,
-                        clearBuffer = true,
-                        clearColor = Color.black,
+                        //clearBuffer = true,
+                        //clearColor = Color.black,
                         name = "OITTileHiZ"
                     }));
                 passData.oitTileHiZOutput = oitTileHiZTexture;
@@ -645,13 +649,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.countBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetBuffer);
 
-                        Vector2Int offsetInput = passData.oitHiZMipsOffsets[0];
-                        Vector2Int offsetOutput = passData.oitHiZMipsOffsets[0];
-                        Vector2Int sizeOutput = passData.oitHiZMipsSizes[0];
+                        Vector2Int offsetInput = data.oitHiZMipsOffsets[0];
+                        Vector2Int offsetOutput = data.oitHiZMipsOffsets[0];
+                        Vector2Int sizeOutput = data.oitHiZMipsSizes[0];
 
                         context.cmd.SetComputeIntParams(data.cs, HDShaderIDs._OITHiZMipInfos, offsetInput.x, offsetInput.y, offsetOutput.x, offsetOutput.y);
 
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OITTileHiZOutput, data.oitTileHiZOutput, 0);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenGBuffer0, data.gBuffer0Texture, 0);
 
                         context.cmd.DispatchCompute(data.cs, kernel, HDUtils.DivRoundUp(sizeOutput.x, 8), HDUtils.DivRoundUp(sizeOutput.y, 8), 1);
                     });
@@ -766,7 +771,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle offscreenDirectReflectionLightingTexture;
                 RenderOITVBufferLightingOffscreenDeferredSSTracing(
                     renderGraph, cull, hdCamera, shadowResult, prepassData.vbufferOIT, lightLists, prepassData,
-                    //depthBuffer,
                     out gBuffer0Texture,
                     out gBuffer1Texture,
                     out offscreenDirectReflectionLightingTexture,
@@ -774,13 +778,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int maxMaterialSampleCount = GetMaxMaterialOITSampleCount(hdCamera);
                 TextureHandle oitTileHiZTexture;
-                //ComputeBufferHandle depthPyramidMipLevelOffsetsBuffer;
                 RenderVBufferOITTileHiZPass(
                     renderGraph, hdCamera, maxMaterialSampleCount, new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight), prepassData.vbufferOIT,
                     prepassData.vbufferOIT.sampleListCountBuffer,
                     prepassData.vbufferOIT.sampleListOffsetBuffer,
                     prepassData.vbufferOIT.sublistCounterBuffer,
-                    prepassData.vbufferOIT.oitVisibilityBuffer, out oitTileHiZTexture);
+                    prepassData.vbufferOIT.oitVisibilityBuffer,
+                    gBuffer0Texture,
+                    out oitTileHiZTexture);
 
                 TextureHandle photonBuffer = OITComputePhotonRefractionBuffer(
                     renderGraph, maxMaterialSampleCount, prepassData.vbufferOIT, gBuffer0Texture, gBuffer1Texture, offscreenDirectReflectionLightingTexture, offscreenDimensions);
@@ -868,7 +873,6 @@ namespace UnityEngine.Rendering.HighDefinition
             in VBufferOITOutput vbufferOIT,
             in BuildGPULightListOutput lightLists,
             in PrepassOutput prepassData,
-            //TextureHandle depthBufferInput,
             out TextureHandle gBuffer0Texture,
             out TextureHandle gBuffer1Texture,
             out TextureHandle offscreenDirectReflectionLightingTexture,

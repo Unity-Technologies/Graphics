@@ -80,6 +80,32 @@ void UnpackVisibilityData(uint3 packedData, out Visibility::VisibilityData data,
     depth = UnpackUIntToFloat(packedData.y, 16, 16);
 }
 
+void GetPixelList(uint pixelOffset, out uint listCount, out uint listOffset)
+{
+    listCount = _VisOITSubListsCounts.Load(pixelOffset << 2);
+    listOffset = _VisOITListsOffsets.Load(pixelOffset << 2);
+}
+
+void GetVisibilitySample(uint i, uint listOffset, out Visibility::VisibilityData data, out uint2 texelCoordinate, out float depthValue)
+{
+    uint3 packedData = _VisOITBuffer.Load3(((listOffset + i) * 3) << 2);
+    VisibilityOIT::UnpackVisibilityData(packedData, data, texelCoordinate, depthValue);
+}
+
+void GetVisibilitySampleWithLinearDepth(uint i, uint listOffset, out Visibility::VisibilityData data, out uint2 texelCoordinate, out float linearDepthValue)
+{
+    float deviceDepth;
+    GetVisibilitySample(i, listOffset, data, texelCoordinate, deviceDepth);
+
+    PositionInputs posInput = GetPositionInput(texelCoordinate, _ScreenSize.zw);
+    posInput.positionWS = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepth, UNITY_MATRIX_I_VP);
+    //linearDepthValue = ComputeNormalizedDeviceCoordinatesWithZ(posInput.positionWS, UNITY_MATRIX_VP).z;
+    linearDepthValue = LinearEyeDepth(posInput.positionWS, GetWorldToViewMatrix());
+    //linearDepthValue = Linear01DepthFromNear(deviceDepth, _ZBufferParams);
+    //linearDepthValue = Linear01Depth(deviceDepth, _ZBufferParams);
+    linearDepthValue = (linearDepthValue - _ProjectionParams.y) / (_ProjectionParams.z - _ProjectionParams.y);
+}
+
 void PackOITGBufferData(float3 normal, float roughness, float3 baseColor, float metalness, out uint4 packedData0, out uint packedData1)
 {
     float2 oct = saturate(PackNormalOctQuadEncode(normal) * 0.5f + 0.5f);
@@ -91,13 +117,18 @@ void PackOITGBufferData(float3 normal, float roughness, float3 baseColor, float 
     packedData1 = PackFloatToUInt(metalness, 0, 8);
 }
 
-void UnpackOITGBufferData(uint4 packedData0, uint packedData1, out float3 normal, out float roughness, out float3 baseColor, out float metalness)
+void UnpackOITNormalFromGBufferData0(uint4 packedData0, out float3 normal)
 {
     float2 oct;
     oct.x = UnpackUIntToFloat(packedData0.x, 0, 16);
     oct.y = UnpackUIntToFloat(packedData0.y, 0, 16);
 
     normal = normalize(UnpackNormalOctQuadEncode(oct * 2.0f - 1.0f));
+}
+
+void UnpackOITGBufferData(uint4 packedData0, uint packedData1, out float3 normal, out float roughness, out float3 baseColor, out float metalness)
+{
+    UnpackOITNormalFromGBufferData0(packedData0, normal);
 
     baseColor.r = UnpackUIntToFloat(packedData0.b, 0, 8);
     baseColor.g = UnpackUIntToFloat(packedData0.b, 8, 8);
@@ -105,18 +136,6 @@ void UnpackOITGBufferData(uint4 packedData0, uint packedData1, out float3 normal
 
     roughness = UnpackUIntToFloat(packedData0.a, 8, 8);
     metalness = UnpackUIntToFloat(packedData1, 0, 8);
-}
-
-void GetPixelList(uint pixelOffset, out uint listCount, out uint listOffset)
-{
-    listCount = _VisOITSubListsCounts.Load(pixelOffset << 2);
-    listOffset = _VisOITListsOffsets.Load(pixelOffset << 2);
-}
-
-void GetVisibilitySample(uint i, uint listOffset, out Visibility::VisibilityData data, out uint2 texelCoordinate, out float depthValue)
-{
-    uint3 packedData = _VisOITBuffer.Load3(((listOffset + i) * 3) << 2);
-    VisibilityOIT::UnpackVisibilityData(packedData, data, texelCoordinate, depthValue);
 }
 
 }
