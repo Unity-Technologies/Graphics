@@ -449,12 +449,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL]
         public enum OITGBufferLayer
         {
-            Normal,
             BaseColor,
+            Normal,
             DiffuseAlbedo,
             SpecularAlbedo,
             Roughness,
-            Metalness
+            Metalness,
+            AbsorptionCoefficient,
+            IOR
         }
         public OITGBufferLayer oitGBufferLayer = OITGBufferLayer.BaseColor;
 

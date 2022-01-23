@@ -190,12 +190,14 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     // Sample GBuffer
     uint4 packedOITGBuffer0 = _VisOITOffscreenGBuffer0[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
-    uint packedOITGBuffer1 = _VisOITOffscreenGBuffer1[COORD_TEXTURE2D_X(offscreenCoord)].r;
+    uint2 packedOITGBuffer1 = _VisOITOffscreenGBuffer1[COORD_TEXTURE2D_X(offscreenCoord)].rg;
     float3 normalWS;
     float roughness;
     float3 baseColor;
     float metalness;
-    VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, normalWS, roughness, baseColor, metalness);
+    float3 absorptionCoefficient;
+    float ior;
+    VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, normalWS, roughness, baseColor, metalness, absorptionCoefficient, ior);
     float3 f0 = lerp(DEFAULT_SPECULAR_VALUE, baseColor, metalness);
     float NdotV = dot(V, normalWS);
     bool isBackface = NdotV < 0.0;
@@ -238,5 +240,4 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
 #else
     _VisOITOutputPhotonBuffer[COORD_TEXTURE2D_X(offscreenCoord)] += float4(eta.xxx, 1.0);
 #endif
-
 }

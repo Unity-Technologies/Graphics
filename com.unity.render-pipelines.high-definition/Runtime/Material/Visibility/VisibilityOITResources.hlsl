@@ -30,7 +30,7 @@ Texture2D<float2> _OITTileHiZ;
 #endif
 
 TEXTURE2D_X_UINT4(_VisOITOffscreenGBuffer0);
-TEXTURE2D_X_UINT(_VisOITOffscreenGBuffer1);
+TEXTURE2D_X_UINT2(_VisOITOffscreenGBuffer1);
 TEXTURE2D_X(_VisOITOffscreenDirectReflectionLighting);
 TEXTURE2D_X(_VisOITOffscreenPhotonRadianceLighting);
 TEXTURE2D_X(_VisOITOffscreenLighting);
@@ -99,43 +99,56 @@ void GetVisibilitySampleWithLinearDepth(uint i, uint listOffset, out Visibility:
 
     PositionInputs posInput = GetPositionInput(texelCoordinate, _ScreenSize.zw);
     posInput.positionWS = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepth, UNITY_MATRIX_I_VP);
-    //linearDepthValue = ComputeNormalizedDeviceCoordinatesWithZ(posInput.positionWS, UNITY_MATRIX_VP).z;
     linearDepthValue = LinearEyeDepth(posInput.positionWS, GetWorldToViewMatrix());
-    //linearDepthValue = Linear01DepthFromNear(deviceDepth, _ZBufferParams);
-    //linearDepthValue = Linear01Depth(deviceDepth, _ZBufferParams);
     linearDepthValue = (linearDepthValue - _ProjectionParams.y) / (_ProjectionParams.z - _ProjectionParams.y);
 }
 
-void PackOITGBufferData(float3 normal, float roughness, float3 baseColor, float metalness, out uint4 packedData0, out uint packedData1)
+void PackOITGBufferData(float3 normal, float roughness, float3 baseColor, float metalness, float3 absorptionCoefficient, float ior, out uint4 packedData0, out uint2 packedData1)
 {
     float2 oct = saturate(PackNormalOctQuadEncode(normal) * 0.5f + 0.5f);
 
-    packedData0.r = PackFloatToUInt(oct.x, 0, 16);
-    packedData0.g = PackFloatToUInt(oct.y, 0, 16);
-    packedData0.b = PackFloatToUInt(baseColor.r, 0, 8) | PackFloatToUInt(baseColor.g, 8, 8);
-    packedData0.a = PackFloatToUInt(baseColor.b, 0, 8) | PackFloatToUInt(roughness, 8, 8);
-    packedData1 = PackFloatToUInt(metalness, 0, 8);
+    packedData0.r = PackFloatToUInt(oct.x, 0, 16);// | PackFloatToUInt(oct.y, 16, 16);
+    //
+    packedData0.g = PackFloatToUInt(absorptionCoefficient.r,  0, 8)
+                  | PackFloatToUInt(absorptionCoefficient.g,  8, 8)
+                  | PackFloatToUInt(absorptionCoefficient.b, 16, 8)
+                  | PackFloatToUInt(metalness, 24, 7);
+    packedData0.b = PackFloatToUInt(baseColor.r, 0, 8)
+                  | PackFloatToUInt(baseColor.g, 8, 8)
+                  | PackFloatToUInt(baseColor.b, 16, 8)
+                  | PackFloatToUInt(roughness, 24, 7);
+    packedData0.a = PackFloatToUInt(oct.y, 0, 16);
+    packedData1.r = 255.0 * clamp(ior, 0.0f, 4.0f) / 4.0f;
+        //PackFloatToUInt(clamp(ior, 0.0f, 4.0f)/4.0f, 0, 8);
+    packedData1.g = 0;
 }
+
 
 void UnpackOITNormalFromGBufferData0(uint4 packedData0, out float3 normal)
 {
     float2 oct;
-    oct.x = UnpackUIntToFloat(packedData0.x, 0, 16);
-    oct.y = UnpackUIntToFloat(packedData0.y, 0, 16);
+    oct.x = UnpackUIntToFloat(packedData0.r, 0, 16);
+    oct.y = UnpackUIntToFloat(packedData0.a, 0, 16);
 
     normal = normalize(UnpackNormalOctQuadEncode(oct * 2.0f - 1.0f));
 }
 
-void UnpackOITGBufferData(uint4 packedData0, uint packedData1, out float3 normal, out float roughness, out float3 baseColor, out float metalness)
+void UnpackOITGBufferData(uint4 packedData0, uint2 packedData1, out float3 normal, out float roughness, out float3 baseColor, out float metalness, out float3 absorptionCoefficient, out float ior)
 {
     UnpackOITNormalFromGBufferData0(packedData0, normal);
 
+    absorptionCoefficient.r = UnpackUIntToFloat(packedData0.g, 0, 8);
+    absorptionCoefficient.g = UnpackUIntToFloat(packedData0.g, 8, 8);
+    absorptionCoefficient.b = UnpackUIntToFloat(packedData0.g, 16, 8);
+    metalness = UnpackUIntToFloat(packedData0.g, 24, 7);
+
     baseColor.r = UnpackUIntToFloat(packedData0.b, 0, 8);
     baseColor.g = UnpackUIntToFloat(packedData0.b, 8, 8);
-    baseColor.b = UnpackUIntToFloat(packedData0.a, 0, 8);
+    baseColor.b = UnpackUIntToFloat(packedData0.b, 16, 8);
+    roughness = UnpackUIntToFloat(packedData0.b, 24, 7);
 
-    roughness = UnpackUIntToFloat(packedData0.a, 8, 8);
-    metalness = UnpackUIntToFloat(packedData1, 0, 8);
+    ior = 4.0f * packedData1.r / 255.0f;
+        //UnpackUIntToFloat(packedData1.r, 0, 8) * 4.0f;
 }
 
 }

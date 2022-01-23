@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         GraphicsFormat GetDeferredSSTracingGBuffer1Format()
         {
-            return GraphicsFormat.R8_UInt;
+            return GraphicsFormat.R8G8_UInt;
         }
 
         GraphicsFormat GetDeferredSSTracingHiZFormat()

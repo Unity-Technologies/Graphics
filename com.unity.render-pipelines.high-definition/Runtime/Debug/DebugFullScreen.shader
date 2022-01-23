@@ -487,26 +487,32 @@ Shader "Hidden/HDRP/DebugFullScreen"
                         uint2 offscreenCoord = uint2(globalOffset % offscreenLightBufferWidth, globalOffset / offscreenLightBufferWidth);
 
                         uint4 packedOITGBuffer0 = _VisOITOffscreenGBuffer0[COORD_TEXTURE2D_X(offscreenCoord)].rgba;
-                        uint packedOITGBuffer1 = _VisOITOffscreenGBuffer1[COORD_TEXTURE2D_X(offscreenCoord)].r;
+                        uint2 packedOITGBuffer1 = _VisOITOffscreenGBuffer1[COORD_TEXTURE2D_X(offscreenCoord)].rg;
                         float3 n;
                         float roughness;
                         float3 baseColor;
                         float metalness;
-                        VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, n, roughness, baseColor, metalness);
+                        float3 absorptionCoefficient;
+                        float ior;
+                        VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, n, roughness, baseColor, metalness, absorptionCoefficient, ior);
 
                         int visOITGBufferLayer = asint(_VisOITGBufferLayer);
-                        if (visOITGBufferLayer == OITGBUFFERLAYER_NORMAL)
-                            value = n * 0.5f + 0.5f;
-                        else if (visOITGBufferLayer == OITGBUFFERLAYER_BASE_COLOR)
+                        if (visOITGBufferLayer == OITGBUFFERLAYER_BASE_COLOR)
                             value = baseColor;
+                        else if (visOITGBufferLayer == OITGBUFFERLAYER_NORMAL)
+                            value = n * 0.5f + 0.5f;
                         else if (visOITGBufferLayer == OITGBUFFERLAYER_DIFFUSE_ALBEDO)
                             value = baseColor * (1.0f - metalness);
                         else if (visOITGBufferLayer == OITGBUFFERLAYER_SPECULAR_ALBEDO)
                             value = lerp(DEFAULT_SPECULAR_VALUE.xxx, baseColor, metalness);
                         else if (visOITGBufferLayer == OITGBUFFERLAYER_ROUGHNESS)
                             value = roughness.xxx;
-                        else if(visOITGBufferLayer == OITGBUFFERLAYER_METALNESS)
+                        else if (visOITGBufferLayer == OITGBUFFERLAYER_METALNESS)
                             value = metalness.xxx;
+                        else if (visOITGBufferLayer == OITGBUFFERLAYER_ABSORPTION_COEFFICIENT)
+                            value = absorptionCoefficient;
+                        else if (visOITGBufferLayer == OITGBUFFERLAYER_IOR)
+                            value = (ior/4.0f).xxx;
                     }
 
                     return float4(value, 1.0);
