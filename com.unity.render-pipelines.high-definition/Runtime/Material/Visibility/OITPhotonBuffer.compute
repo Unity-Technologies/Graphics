@@ -110,7 +110,8 @@ bool ClosestSample(float2 texelCoord, float srcDepth, out int2 offscreenSampleCo
     if (any(texelCoord < float2(0,0)) || any(texelCoord >= _ScreenSize.xy))
         return false;
 
-    int pixelOffset = texelCoord.y * _ScreenSize.x + texelCoord.x;
+    uint2 clampedCoords = (uint2)texelCoord.xy;
+    int pixelOffset = clampedCoords.y * _ScreenSize.x + clampedCoords.x;
     uint listCount, listOffset;
     VisibilityOIT::GetPixelList(pixelOffset, listCount, listOffset);
     float minDist = 1e5;
@@ -164,7 +165,7 @@ float randomFloat(uint seed)
     return floatConstruct(bobJenkinsHash(seed));
 }
 
-#define BOUNCE_COUNT 8
+#define BOUNCE_COUNT 64
 
 [numthreads(SAMPLES_DISPATCH_THREAD_COUNT,1,1)]
 void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -212,20 +213,20 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
     float4 accumulatedRadiance = float4(0,0,0,0);
     for (int b = 0; b < BOUNCE_COUNT; ++b)
     {
-        float2 rand = halton2D((int)(srcSampleId) ^ b);
+        float2 rand = frac(offscreenCoord + halton2D((int)(srcSampleId) ^ b));
         float3 microNormal;
         float sampleWeight = 1.0;
-        //BTDF::GGXSampleWSOmega_w(V, normalWS, rand, roughness, microNormal);
-        SampleGGX_VNDF(roughness, normalWS, V, rand, microNormal, sampleWeight);
+        BTDF::GGXSampleWSOmega_w(V, normalWS, rand, roughness, microNormal);
+        //SampleGGX_VNDF(roughness, normalWS, V, rand, microNormal, sampleWeight);
 
-        float3 reflectedDir = reflect(V, microNormal);
-        float3 refractedDir = refract(V, microNormal, eta);
+        float3 reflectedDir = reflect(-V, microNormal);
+        float3 refractedDir = refract(-V, microNormal, eta);
         float randFloat = randomFloat(srcSampleId + b);
         float3 sampleDir = randFloat < max(f0.x, max(f0.y, f0.z)) ? reflectedDir : refractedDir;
 
-        float3 sampledWS = posWS + lerp(0.004, 0.001, randFloat) * sampleDir;// - 0.001*reflectedDir;//small world increment. TODO make this adaptive
+        float3 sampledWS = posWS + lerp(0.8, 2.0, randFloat) * sampleDir;// - 0.001*reflectedDir;//small world increment. TODO make this adaptive
         float3 sampleNDC = ComputeNormalizedDeviceCoordinatesWithZ(sampledWS, UNITY_MATRIX_VP);
-        float2 samplePixelPos = (sampleNDC.xy * _ScreenSize.xy) + 0.5;
+        float2 samplePixelPos = (sampleNDC.xy * _ScreenSize.xy);
 
         int2 bestSampleCoord;
         int bestSampleIndex;
