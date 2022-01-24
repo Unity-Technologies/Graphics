@@ -121,7 +121,7 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
         offset = real2(offset.x *  sampleJitter.y + offset.y * sampleJitter.x,
                        offset.x * -sampleJitter.x + offset.y * sampleJitter.y);
 
-        real shadowMapDepth = LOAD_TEXTURE2D_LOD(shadowMap, coord.xy + offset, 0.0).x;
+        real shadowMapDepth = LOAD_TEXTURE2D_LOD(shadowMap, coord.xy + offset, 0.0);///.x;
 
         if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z))
         {

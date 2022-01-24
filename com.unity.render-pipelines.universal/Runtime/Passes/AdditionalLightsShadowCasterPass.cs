@@ -489,11 +489,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         Vector4 computeNearFar(ref VisibleLight vLight, Matrix4x4 transform, Light light)
         {
-            //var near = vLight.localToWorldMatrix * new Vector4(0, 0, 1, 1);
-            //var far = vLight.localToWorldMatrix * new Vector4(0, 0, 0, 1);
-            //near -=
-            //near /= near.w;
-            //far /= far.w;
             float n = light.shadowNearPlane;
             float f = light.range;//far.z;
             return new Vector4((f - n) / n, 1.0f, (f - n) / (n * f), 1.0f / f);

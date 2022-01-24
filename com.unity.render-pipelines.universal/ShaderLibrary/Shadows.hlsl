@@ -4,7 +4,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PCSS.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ShaderDebugPrint.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 #include "Core.hlsl"
 
@@ -299,6 +298,9 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap
     float lightArea = min((shadowSoftness + 0.000001), resIndepenentMaxSoftness) * atlasResFactor;
     lightArea = 1;
 
+    // !!!
+    // BlockerSearch() has a LOAD inside it (which is what I was originally trying to do here, switch sampling with a pointsampler to a load)
+    //
     //1) Blocker Search
     float averageBlockerDepth = 0.0;
     float numBlockers         = 0.0;
@@ -331,12 +333,15 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap
     //3) Filter
     // Note: we can't early out of the function if blockers are not found since Vulkan triggers a warning otherwise. Hence, we check for blockerFound here.
     //attenuation = blockerFound ? PCSS(shadowCoord.xyz, filterSize, scale, offset, sampleJitter, ShadowMap, sampler_ShadowMap, filterSampleCount) : 1.0f;
-    //ShaderDebugPrintMouseOver(_ShaderDebugPixelCoords, attenuation);
-    //attenuation = SAMPLE_TEXTURE2D_LOD(ShadowMap, sampler_BaseMap, shadowCoord.xy + offset, 0.0).x;
-    ShaderDebugPrintMouseOver(_ShaderDebugPixelCoords, LOAD_TEXTURE2D_LOD(ShadowMap, shadowCoord.xy + offset, 0.0).x);
+
+    // !!!
+    // Just switch the SAMPLE to LOAD
+    attenuation = SAMPLE_TEXTURE2D_LOD(ShadowMap, sampler_BaseMap, shadowCoord.xy + offset, 0.0).x;
+    //attenuation = LOAD_TEXTURE2D_LOD(ShadowMap, shadowCoord.xy + offset, 0.0).x;
+
+    attenuation += 1; // Just here to make the code easier to locate after transform.
 #endif
 
-    //ShaderDebugPrintMouseOver(_ShaderDebugPixelCoords, attenuation);
     return attenuation;
 }
 
