@@ -16,6 +16,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     context.shadowValue      = 1.0;
     context.splineVisibility = -1;
     context.sampleReflection = 0;
+#ifdef APPLY_FOG_ON_SKY_REFLECTIONS
+    context.positionWS       = posInput.positionWS;
+#endif
 
     // Initialize the contactShadow and contactShadowFade fields
     InvalidateConctactShadow(posInput, context);
