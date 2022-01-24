@@ -1036,7 +1036,8 @@ namespace UnityEngine.Rendering
                 vectorBuffer[i * 3 + 1 + worldToLocalOffset] = new Vector4(mi.m11, mi.m21, mi.m02, mi.m12);
                 vectorBuffer[i * 3 + 2 + worldToLocalOffset] = new Vector4(mi.m22, mi.m03, mi.m13, mi.m23);
 
-                lpq.CalculateInterpolatedLightAndOcclusionProbe(rendererTransform.position, -1, out var lp,
+                int tetrahedronIdx = -1;
+                lpq.CalculateInterpolatedLightAndOcclusionProbe(rendererTransform.position, ref tetrahedronIdx, out var lp,
                     out var probeOcclusion);
 
                 var sh = new SHProperties(lp);
