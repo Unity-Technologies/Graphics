@@ -61,7 +61,7 @@ Build_VikingVillage_BuiltIn_Win_DX12_performance_playmode_runtime_mono_Linear_tr
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
@@ -123,7 +123,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_playmode_editor_mono_Linear_trunk:
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
@@ -181,7 +181,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_build_editmode_mono_Linear_trunk:
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
@@ -274,7 +274,7 @@ Build_VikingVillage_BuiltIn_Win_DX12_performance_playmode_runtime_mono_Linear_CU
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
@@ -336,7 +336,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_playmode_editor_mono_Linear_CUSTOM-RE
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
@@ -394,7 +394,7 @@ VikingVillage_BuiltIn_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM-REV
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  choco install unity-config
+      -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
