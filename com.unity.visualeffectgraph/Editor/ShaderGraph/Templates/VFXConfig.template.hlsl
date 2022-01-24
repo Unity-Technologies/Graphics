@@ -255,9 +255,43 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
 #endif
 }
 
-VFX_SRP_ATTRIBUTES TransformMeshToPreviousElement(VFX_SRP_ATTRIBUTES input, AttributesElement element)
+//TODOPAUL: Factorization !
+float4 VFXGetPreviousClipPosition(VFX_SRP_ATTRIBUTES input, AttributesElement element)
 {
-#if VFX_FEATURE_MOTION_VECTORS_FORWARD || USE_MOTION_VECTORS_PASS
+    float4 cPreviousPos = float4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    uint particleIndex = element.index;
+    uint vertexId = input.vertexID;
+
+#if defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
+
+    //TODOPAUL, move it will solve this missing declaration
+    uint viewTotal = 1;//asuint(cameraXRSettings.x);
+    uint viewCount = 1;//asuint(cameraXRSettings.y);
+    uint viewOffset = 0;//asuint(cameraXRSettings.z);
+    uint elementToVFXBaseIndex = particleIndex * (VFX_FEATURE_MOTION_VECTORS_VERTS * 2 * viewTotal + 1);
+
+    uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
+    if (asuint(currentFrameIndex) - previousFrameIndex == 1u)
+    {
+#if HAS_STRIPS
+        uint vertIndex = (vertexId / 2) % VFX_FEATURE_MOTION_VECTORS_VERTS;
+#else
+        uint vertIndex = vertexId % VFX_FEATURE_MOTION_VECTORS_VERTS;
+#endif
+        uint elementToVFXIndex = elementToVFXBaseIndex + vertIndex * viewCount * 2;
+        elementToVFXIndex += viewOffset * viewCount * VFX_FEATURE_MOTION_VECTORS_VERTS * 2;
+        elementToVFXIndex += unity_StereoEyeIndex * 2;
+        uint2 read = elementToVFXBufferPrevious.Load2(elementToVFXIndex << 2);
+        cPreviousPos.xy = asfloat(read);
+    }
+#endif
+    return cPreviousPos;
+}
+
+VFX_SRP_ATTRIBUTES VFXTransformMeshToPreviousElement(VFX_SRP_ATTRIBUTES input, AttributesElement element)
+{
+#if (VFX_FEATURE_MOTION_VECTORS_FORWARD || USE_MOTION_VECTORS_PASS) && !defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
     uint elementToVFXBaseIndex = element.index * 13;
     uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
 
@@ -273,7 +307,6 @@ VFX_SRP_ATTRIBUTES TransformMeshToPreviousElement(VFX_SRP_ATTRIBUTES input, Attr
 
     input.positionOS = mul(previousElementToVFX, float4(input.positionOS, 1.0f)).xyz;
 #endif//WRITE_MOTION_VECTOR_IN_FORWARD || USE_MOTION_VECTORS_PASS
-
     return input;
 }
 

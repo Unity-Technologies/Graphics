@@ -217,10 +217,14 @@ namespace UnityEditor.VFX
         public override bool SupportsMotionVectorPerVertex(out uint vertsCount)
         {
             var support = base.SupportsMotionVectorPerVertex(out vertsCount);
-            var useShaderGraph = shaderGraph != null
-                                 && shaderGraph.generatesWithShaderGraph
-                                 && VFXLibrary.currentSRPBinder != null;
-            return support && !useShaderGraph; //TODOPAUL: For now, exclude optimization using SG, do it correctly
+
+            var shaderGraph = GetOrRefreshShaderGraphObject();
+            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph && VFXLibrary.currentSRPBinder != null)
+            {
+                support = support && VFXLibrary.currentSRPBinder.GetSupportsMotionVectorPerVertex(shaderGraph, materialSettings);
+            }
+
+            return support;
         }
 
         public BlendMode GetMaterialBlendMode()

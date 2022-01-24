@@ -134,15 +134,21 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
     }
     else
     {
-        bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
-
 #if defined(HAVE_VFX_MODIFICATION)
         GetMeshAndElementIndex(inputMesh, inputElement);
+
+#if defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
+        //fast path for VFX (TODOPAUL clean this)
+        varyingsType.vpass.previousPositionCS = VFXGetPreviousClipPosition(inputMesh, inputElement);
+        return PackVaryingsType(varyingsType);
 #endif
 
+
+        float3 effectivePositionOS = inputMesh.positionOS; //no skin or morph target in vfx
+#else
+        bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
         float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
-
-
+#endif
 
     // Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the motion vector buffer
 #if defined(HAVE_MESH_MODIFICATION)
@@ -160,7 +166,7 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
 
 #if defined(HAVE_VFX_MODIFICATION)
         // Only handle the VFX case here since it is only used with ShaderGraph (and ShaderGraph always has mesh modification enabled).
-        previousMesh = TransformMeshToPreviousElement(previousMesh, inputElement);
+        previousMesh = VFXTransformMeshToPreviousElement(previousMesh, inputElement);
 #endif
 
 #if defined(_ADD_CUSTOM_VELOCITY) // For shader graph custom velocity
