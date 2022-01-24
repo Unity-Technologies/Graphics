@@ -470,7 +470,10 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.rotation = -currentWater.transform.eulerAngles.y * Mathf.Deg2Rad;
             parameters.foamMaskOffset = currentWater.foamMaskOffset;
             parameters.waterMaskOffset = currentWater.waterMaskOffset;
-            if (currentWater.infinite)
+
+            // For now, we are disabling infinite surfaces for metal as there seems to be a bug in the API that
+            // breaks on the DrawMeshInstancedIndirect function.
+            if (currentWater.infinite && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal)
             {
                 parameters.infinite = true;
                 parameters.targetMesh = m_TessellableMesh;
