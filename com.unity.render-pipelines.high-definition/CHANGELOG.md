@@ -67,6 +67,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where APV cells were not populated properly when probe volumes have rotations
 - Fixed issue where changes to APV baking set lists were not saved.
 - Fixed Correlated Color Temperature not being applied in Player builds for Enlighten realtime GI lights (case 1370438);
+- Fixed artifacts on gpu light culling when the frustum near and far are very spread out (case 1386436)
 
 ## [14.0.0] - 2021-11-17
 
