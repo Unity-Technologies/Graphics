@@ -7,6 +7,7 @@
   "dependencies": {
     "com.unity.ugui": "1.0.0",
     "com.unity.modules.physics": "1.0.0",
-    "com.unity.modules.jsonserialize": "1.0.0"
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.code-analysis": "0.1.2-preview"
   }
 }
