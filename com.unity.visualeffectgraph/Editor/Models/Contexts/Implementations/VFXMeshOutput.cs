@@ -148,7 +148,7 @@ namespace UnityEditor.VFX
         {
             base.GenerateErrors(manager);
             var dataParticle = GetData() as VFXDataParticle;
-            if (dataParticle != null && dataParticle.boundsSettingMode != BoundsSettingMode.Manual)
+            if (dataParticle != null && dataParticle.boundsMode != BoundsSettingMode.Manual)
                 manager.RegisterError("WarningBoundsComputation", VFXErrorType.Warning, $"Bounds computation have no sense of what the scale of the output mesh is," +
                     $" so the resulted computed bounds can be too small or big" +
                     $" Please use padding to mitigate this discrepancy.");
