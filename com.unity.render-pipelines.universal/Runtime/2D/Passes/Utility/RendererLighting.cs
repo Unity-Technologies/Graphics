@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -204,7 +205,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
 
-            bool[] doesLightAtIndexHaveShadows = new bool[lights.Count];
+            NativeArray<bool> doesLightAtIndexHaveShadows = new NativeArray<bool>(lights.Count, Allocator.Temp);
 
             // Break up light rendering into batches for the purpose of shadow casting
             var lightIndex = 0;
@@ -286,14 +287,14 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                // Is this correct?
-
                 // Release all of the temporary shadow textures
                 for (var releaseIndex = shadowLightCount - 1; releaseIndex >= 0; releaseIndex--)
                     ShadowRendering.ReleaseShadowRenderTexture(cmd, releaseIndex);
 
                 lightIndex += batchedLights;
             }
+
+            doesLightAtIndexHaveShadows.Dispose();
         }
 
         public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, int endLayerValue,
@@ -302,7 +303,7 @@ namespace UnityEngine.Rendering.Universal
         {
             var maxShadowLightCount = ShadowRendering.maxTextureCount * 4;  // Now encodes shadows into RGBA as well as seperate textures
 
-            bool[] doesLightAtIndexHaveShadows = new bool[lights.Count];
+            NativeArray<bool> doesLightAtIndexHaveShadows = new NativeArray<bool>(lights.Count, Allocator.Temp);
 
             // This case should never happen, but if it does it may cause an infinite loop later.
             if (maxShadowLightCount < 1)
@@ -411,6 +412,8 @@ namespace UnityEngine.Rendering.Universal
 
                 lightIndex += batchedLights;
             }
+
+            doesLightAtIndexHaveShadows.Dispose();
         }
 
         public static void SetShapeLightShaderGlobals(this IRenderPass2D pass, CommandBuffer cmd)
