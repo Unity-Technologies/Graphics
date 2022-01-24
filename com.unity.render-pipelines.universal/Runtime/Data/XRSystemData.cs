@@ -6,7 +6,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable]
+    [Serializable, ReloadGroup]
     public class XRSystemData : ScriptableObject
     {
 #if UNITY_EDITOR

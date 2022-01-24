@@ -304,7 +304,7 @@ namespace UnityEditor.Rendering
         public override bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
             var w = Cast<DebugUI.EnumField>(widget);
-            var s = Cast<DebugStateInt>(state);
+            var s = Cast<DebugStateEnum>(state);
 
             if (w.indexes == null)
                 w.InitIndexes();
