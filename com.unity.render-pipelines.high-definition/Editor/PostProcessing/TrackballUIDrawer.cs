@@ -11,16 +11,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static GUIStyle s_WheelThumb;
         static Vector2 s_WheelThumbSize;
         static Material s_Material;
+        static bool s_MaterialConfigured;
 
         Func<Vector4, Vector3> m_ComputeFunc;
         bool m_ResetState;
         Vector2 m_CursorPos;
-
-        static TrackballUIDrawer()
-        {
-            if (s_Material == null)
-                s_Material = new Material(Shader.Find("Hidden/HD PostProcessing/Editor/Trackball")) { hideFlags = HideFlags.HideAndDontSave };
-        }
 
         public void OnGUI(SerializedProperty property, SerializedProperty overrideState, GUIContent title, Func<Vector4, Vector3> computeFunc)
         {
@@ -28,6 +23,13 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 Debug.LogWarning("TrackballUIDrawer requires a Vector4 property");
                 return;
+            }
+
+            if (!s_MaterialConfigured)
+            {
+                // Initialization of materials with Shader.Find from static constructors is not allowed.
+                s_Material = new Material(Shader.Find("Hidden/HD PostProcessing/Editor/Trackball")) { hideFlags = HideFlags.HideAndDontSave };
+                s_MaterialConfigured = true;
             }
 
             m_ComputeFunc = computeFunc;
