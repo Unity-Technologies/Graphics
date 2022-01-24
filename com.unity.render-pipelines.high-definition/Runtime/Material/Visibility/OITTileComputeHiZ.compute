@@ -67,6 +67,9 @@ void MainInitialize(int3 dispatchThreadID : SV_DispatchThreadID)
 
         float2 minMax = GeomHelper::GetPixelMinMax(linearDepth, normal);
 
+        //float hitPerspective;
+        //PlaneLineIntersection(zero, w0, center, float3(0, 0, 1), hitPerspective);
+
         //minDepth = min(linearDepth, minDepth);
         //maxDepth = max(linearDepth, maxDepth);
         minDepth = min(minMax.x, minDepth);
