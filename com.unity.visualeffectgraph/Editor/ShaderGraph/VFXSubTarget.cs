@@ -213,7 +213,8 @@ namespace UnityEditor.VFX
             foreach (var header in context.additionalDataHeaders)
                 additionalDefines.AppendLine(header);
             foreach (var define in context.additionalDefines)
-                additionalDefines.AppendLine($"#define {define} 1");
+                additionalDefines.AppendLine(define.Contains(' ') ? $"#define {define}" : $"#define {define} 1");
+
             additionalDefinesDescriptor = new AdditionalCommandDescriptor("VFXDefines", additionalDefines.ToString());
 
             // Load Position Attribute
