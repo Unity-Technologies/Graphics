@@ -4,5 +4,5 @@
         engine="UnityEngine.UIElements"
         editor="UnityEditor.UIElements"
         noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd">
-    <Style src="project://database/Packages/com.unity.render-pipelines.core/Runtime/Debugging/RenderingDebugger/Styles/runtime-container.uss?fileID=7433441132597879392&amp;guid=81d34929bfd993540a9c13bb9ecb5fee&amp;type=3#runtime-container" />
+    <Style src="project://database/Packages/com.unity.render-pipelines.core/Runtime/Debugging/RenderingDebugger/Styles/RenderingDebuggerRuntimeContainer.uss?fileID=7433441132597879392&amp;guid=81d34929bfd993540a9c13bb9ecb5fee&amp;type=3#runtime-container" />
 </ui:UXML>

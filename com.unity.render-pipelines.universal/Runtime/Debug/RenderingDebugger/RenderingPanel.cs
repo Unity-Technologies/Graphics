@@ -3,7 +3,7 @@ using System;
 namespace UnityEngine.Rendering.Universal
 {
     [Serializable]
-    [RenderingDebuggerPanel("Rendering", "Packages/com.unity.render-pipelines.universal/Runtime/Debug/RenderingDebugger/rendering-panel.uxml")]
+    [RenderingDebuggerPanel("Rendering", "Packages/com.unity.render-pipelines.universal/Runtime/Debug/RenderingDebugger/RenderingPanel.uxml")]
     class RenderingPanel : ScriptableObject
     {
         /// <summary>

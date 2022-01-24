@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering
 
     sealed class DebugWindow : EditorWindow, IHasCustomMenu
     {
-        static Styles s_Styles;
+        public static Styles s_Styles;
         static GUIStyle s_SplitterLeft;
 
         static float splitterPos = 150f;

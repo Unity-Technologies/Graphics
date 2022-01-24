@@ -1,3 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:EnumField label="Material Override" type="UnityEngine.Rendering.Universal.DebugMaterialMode, Unity.RenderPipeline.Universal.ShaderLibrary" tooltip="Use the drop-down to select a Material property to visualize on every GameObject on screen." name="MaterialOverride" binding-path="materialDebugMode" />
-</ui:UXML>

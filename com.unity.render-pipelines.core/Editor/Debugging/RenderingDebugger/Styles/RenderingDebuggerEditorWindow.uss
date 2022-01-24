@@ -1,0 +1,14 @@
+:root
+{
+    flex-direction: row;
+}
+
+.PanelElement
+{
+    flex-direction: column;
+}
+
+.Hidden
+{
+    display: none;
+}

@@ -1,0 +1,3 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <Style src="project://database/Packages/com.unity.render-pipelines.core/Editor/Debugging/RenderingDebugger/Styles/RenderingDebuggerEditorWindow.uss?fileID=7433441132597879392&amp;guid=76af94ab039920449a9afae7046ca5e8&amp;type=3#content" />
+</ui:UXML>
