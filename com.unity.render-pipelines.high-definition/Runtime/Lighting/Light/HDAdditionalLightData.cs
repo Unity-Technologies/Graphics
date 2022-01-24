@@ -3664,7 +3664,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
-            if (shadowUpdateMode != ShadowUpdateMode.EveryFrame && legacyLight.shadows != LightShadows.None)
+            if (!ShadowIsUpdatedEveryFrame() && legacyLight.shadows != LightShadows.None)
             {
                 HDShadowManager.cachedShadowManager.RegisterLight(this);
             }
