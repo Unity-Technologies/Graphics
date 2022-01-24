@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 19101, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: New Panel Settings
+  m_Name: RenderingDebuggerPanelSettings
   m_EditorClassIdentifier: 
-  themeUss: {fileID: -4733365628477956816, guid: 7f8cffaac2bf2894092534aac1bed896, type: 3}
+  themeUss: {fileID: -4733365628477956816, guid: c81b68cc9b143f44bb4d901ec9852158, type: 3}
   m_TargetTexture: {fileID: 0}
   m_ScaleMode: 1
   m_ReferenceSpritePixelsPerUnit: 100
