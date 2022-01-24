@@ -202,7 +202,7 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 f0 = lerp(DEFAULT_SPECULAR_VALUE, baseColor, metalness);
     float NdotV = dot(V, normalWS);
     bool isBackface = NdotV < 0.0;
-    float iorEstimated = Fresnel0ToIor(f0).x;
+    float iorEstimated = ior;// Fresnel0ToIor(f0).x; // TODO: check on packing the GBuffer if they had IOR otherwise store directly Fresnel0ToIor(f0).x
     float internalIORSource =  isBackface ? 1.0f : iorEstimated;
     float internalIORMedium =  isBackface ? iorEstimated : 1.0f;
     float eta = internalIORMedium / internalIORSource;
@@ -224,15 +224,25 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
         float randFloat = randomFloat(srcSampleId + b);
         float3 sampleDir = randFloat < max(f0.x, max(f0.y, f0.z)) ? reflectedDir : refractedDir;
 
+        // kleber: should multiplye by roughness? 'lerp(0.8, 2.0, randFloat) * sampleDir * roughness'
         float3 sampledWS = posWS + lerp(0.8, 2.0, randFloat) * sampleDir;// - 0.001*reflectedDir;//small world increment. TODO make this adaptive
         float3 sampleNDC = ComputeNormalizedDeviceCoordinatesWithZ(sampledWS, UNITY_MATRIX_VP);
         float2 samplePixelPos = (sampleNDC.xy * _ScreenSize.xy);
+
+        // TODO:?
+        //float curOpaqueDeviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, samplePixelPos.xy).r;
+        //// Hit Opaque
+        //if (sampleNDC.z < curOpaqueDeviceDepth)
+        //{
+        //  Sample Pyramid?
+        //}
 
         int2 bestSampleCoord;
         int bestSampleIndex;
         if (ClosestSample(samplePixelPos, sampleNDC.z, bestSampleCoord, bestSampleIndex))
         {
             float3 radiance = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(bestSampleCoord)].rgb;
+            radiance *= exp(-absorptionCoefficient * length(sampledWS - posWS));
             accumulatedRadiance += float4(radiance * sampleWeight, sampleWeight);
         }
     }

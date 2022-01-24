@@ -118,11 +118,12 @@ void Frag(Varyings packedInput, out uint4 outGBuffer0Texture : SV_Target0, out u
     float metalness = surfaceData.metallic;
 
     // Store the GBuffer
+    // TODO: check on packing the GBuffer if they had IOR otherwise store directly Fresnel0ToIor(f0).x
 #if 1
-    VisibilityOIT::PackOITGBufferData(bsdfData.normalWS.xyz, PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness), surfaceData.baseColor.rgb, metalness, bsdfData.absorptionCoefficient, surfaceData.ior, outGBuffer0Texture, outGBuffer1Texture);
+    VisibilityOIT::PackOITGBufferData(bsdfData.normalWS.xyz, PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness), surfaceData.baseColor.rgb, metalness, surfaceData.transmittanceColor/*bsdfData.absorptionCoefficient*/, surfaceData.ior, outGBuffer0Texture, outGBuffer1Texture);
 #else
     float perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-    VisibilityOIT::PackOITGBufferData(surfaceData.normalWS.xyz, roughness, surfaceData.baseColor, metalness, bsdfData.absorptionCoefficient, surfaceData.ior, outGBuffer0Texture, outGBuffer1Texture);
+    VisibilityOIT::PackOITGBufferData(surfaceData.normalWS.xyz, roughness, surfaceData.baseColor, metalness, surfaceData.transmittanceColor/*bsdfData.absorptionCoefficient*/, surfaceData.ior, outGBuffer0Texture, outGBuffer1Texture);
 #endif
 }

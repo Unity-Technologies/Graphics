@@ -92,13 +92,12 @@ void GetVisibilitySample(uint i, uint listOffset, out Visibility::VisibilityData
     VisibilityOIT::UnpackVisibilityData(packedData, data, texelCoordinate, depthValue);
 }
 
-void GetVisibilitySampleWithLinearDepth(uint i, uint listOffset, out Visibility::VisibilityData data, out uint2 texelCoordinate, out float linearDepthValue)
+void GetVisibilitySampleWithLinearDepth(uint i, uint listOffset, out Visibility::VisibilityData data, out uint2 texelCoordinate, out float deviceDepthValue, out float linearDepthValue)
 {
-    float deviceDepth;
-    GetVisibilitySample(i, listOffset, data, texelCoordinate, deviceDepth);
+    GetVisibilitySample(i, listOffset, data, texelCoordinate, deviceDepthValue);
 
     PositionInputs posInput = GetPositionInput(texelCoordinate, _ScreenSize.zw);
-    posInput.positionWS = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepth, UNITY_MATRIX_I_VP);
+    posInput.positionWS = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepthValue, UNITY_MATRIX_I_VP);
     linearDepthValue = LinearEyeDepth(posInput.positionWS, GetWorldToViewMatrix());
     linearDepthValue = (linearDepthValue - _ProjectionParams.y) / (_ProjectionParams.z - _ProjectionParams.y);
 }
@@ -140,6 +139,8 @@ void UnpackOITGBufferData(uint4 packedData0, uint2 packedData1, out float3 norma
     absorptionCoefficient.r = UnpackUIntToFloat(packedData0.g, 0, 8);
     absorptionCoefficient.g = UnpackUIntToFloat(packedData0.g, 8, 8);
     absorptionCoefficient.b = UnpackUIntToFloat(packedData0.g, 16, 8);
+    absorptionCoefficient = -log(absorptionCoefficient + REAL_EPS) / max(1.0f, REAL_EPS);
+    //absorptionCoefficient = TransmittanceColorAtDistanceToAbsorption(absorptionCoefficient, 1.0f);
     metalness = UnpackUIntToFloat(packedData0.g, 24, 7);
 
     baseColor.r = UnpackUIntToFloat(packedData0.b, 0, 8);
@@ -151,6 +152,73 @@ void UnpackOITGBufferData(uint4 packedData0, uint2 packedData1, out float3 norma
         //UnpackUIntToFloat(packedData1.r, 0, 8) * 4.0f;
 }
 
+}
+
+namespace GeomHelper
+{
+    // PlaneLineIntersection
+    //      p:          Line starting point
+    //      dir:        Line direction (normalized)
+    //      plane_p0:   point on plane
+    //      plane_n:    plane normal
+    //
+    //      hitDistance: distance from 'p' with the direction 'dir'
+    bool PlaneLineIntersection(float3 p, float3 dir, float3 plane_p0, float3 plane_n, out float hitDistance)
+    {
+        const float epsilon = 1e-6f;
+
+        if (abs(dot(dir, plane_n)) < epsilon)
+        {
+            hitDistance = -1e6f;
+            return false;
+        }
+
+        hitDistance = (dot(plane_n, plane_p0) - dot(plane_n, p)) / dot(plane_n, dir);
+        // hitPoint = p + hitDistance * dir;
+
+        return true;
+    }
+
+    // Build a plane from center of froxel and
+    //  intersect with 4 columns of this froxel (4 differents view direction from each corner of the pixel footprint)
+    // Assumption: pixelSize == 1x1
+    float2 GetPixelMinMax(float linearDepth, float3 normal)
+    {
+        const float3 zero = float3(0.0f, 0.0f, 0.0f);
+
+        float3 center = float3(0.0f, 0.0f, linearDepth);
+
+        float3 corner11 = float3(0.5f, 0.5f, linearDepth);
+        float3 corner01 = float3(-0.5f, 0.5f, linearDepth);
+        float3 corner00 = float3(-0.5f, -0.5f, linearDepth);
+        float3 corner10 = float3(0.5f, -0.5f, linearDepth);
+
+        float3 w0 = normalize(corner11);
+        float3 w1 = normalize(corner01);
+        float3 w2 = normalize(corner00);
+        float3 w3 = normalize(corner10);
+
+        float hitZ0;
+        float hitZ1;
+        float hitZ2;
+        float hitZ3;
+        bool hit0 = PlaneLineIntersection(zero, w0, center, normal, hitZ0);
+        bool hit1 = PlaneLineIntersection(zero, w1, center, normal, hitZ1);
+        bool hit2 = PlaneLineIntersection(zero, w2, center, normal, hitZ2);
+        bool hit3 = PlaneLineIntersection(zero, w3, center, normal, hitZ3);
+
+        //if (!hit0 || !hit1 || !hit2 || !hit3)
+        //{
+        //    return float2(0.0f, 0.0f);
+        //}
+
+        float2 minMax;
+
+        minMax.x = min(min(hitZ0, hitZ1), min(hitZ2, hitZ3));
+        minMax.y = max(max(hitZ0, hitZ1), max(hitZ2, hitZ3));
+
+        return minMax;
+    }
 }
 
 #endif
