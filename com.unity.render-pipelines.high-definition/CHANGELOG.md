@@ -103,6 +103,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue where changes to APV baking set lists were not saved.
 - Fixed Normal Map assignation when importing FBX Materials.
 - Fixed sky jittering when TAA is enabled
+- Fixed a nullref exception when creating a new scene while LightExplorer is open.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
