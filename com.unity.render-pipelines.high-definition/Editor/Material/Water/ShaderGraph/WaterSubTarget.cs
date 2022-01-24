@@ -266,6 +266,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stencilWriteMaskWaterVar.hlslDeclarationOverride = HLSLDeclaration.Global;
             stencilWriteMaskWaterVar.generatePropertyBlock = false;
             collector.AddShaderProperty(stencilWriteMaskWaterVar);
+
+            // EmissionColor is a required shader property even if it is not used in this case
+            collector.AddShaderProperty(new ColorShaderProperty()
+            {
+                overrideReferenceName = "_EmissionColor",
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.UnityPerMaterial,
+                value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
+            });
         }
     }
 }
