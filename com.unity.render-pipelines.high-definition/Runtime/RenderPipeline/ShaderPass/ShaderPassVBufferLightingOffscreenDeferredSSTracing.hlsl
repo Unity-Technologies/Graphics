@@ -119,11 +119,34 @@ void Frag(Varyings packedInput, out uint4 outGBuffer0Texture : SV_Target0, out u
 
     // Store the GBuffer
     // TODO: check on packing the GBuffer if they had IOR otherwise store directly Fresnel0ToIor(f0).x
+
+#ifdef HAS_REFRACTION
+    float ior = surfaceData.ior;
+#else
 #if 1
-    VisibilityOIT::PackOITGBufferData(bsdfData.normalWS.xyz, PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness), surfaceData.baseColor.rgb, metalness, surfaceData.transmittanceColor/*bsdfData.absorptionCoefficient*/, surfaceData.ior, outGBuffer0Texture, outGBuffer1Texture);
+    float3 f03 = lerp(DEFAULT_SPECULAR_VALUE.xxx, surfaceData.baseColor, metalness);
+    float3 ior3 = Fresnel0ToIor(f0);
+    const float iorMedium = max(ior3.x, max(ior3.y, ior3.z));;
+    float ior = iorMedium,
+#else
+    const float iorAir = 1.0f;
+    float ni = iorAir;
+    float nt = iorMedium;
+
+    const float MAX_ImIOR_Kt = 3.5f;
+    float eta_k = smoothstep(0.5f, 1.0f, metalness) * MAX_ImIOR_Kt; // Imaginary IOR
+
+    float f0 = (1.0f - (4.0f * ni * nt) / (eta_k * eta_k + Sq(ni + nt)));
+    float ior = Fresnel0ToIor(f0);
+#endif
+#endif
+
+    // TODO: pack 'builtinData.opacity'
+#if 1
+    VisibilityOIT::PackOITGBufferData(bsdfData.normalWS.xyz, PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness), surfaceData.baseColor.rgb, metalness, surfaceData.transmittanceColor/*bsdfData.absorptionCoefficient*/, ior, outGBuffer0Texture, outGBuffer1Texture);
 #else
     float perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-    VisibilityOIT::PackOITGBufferData(surfaceData.normalWS.xyz, roughness, surfaceData.baseColor, metalness, surfaceData.transmittanceColor/*bsdfData.absorptionCoefficient*/, surfaceData.ior, outGBuffer0Texture, outGBuffer1Texture);
+    VisibilityOIT::PackOITGBufferData(surfaceData.normalWS.xyz, roughness, surfaceData.baseColor, metalness, surfaceData.transmittanceColor/*bsdfData.absorptionCoefficient*/, ior, outGBuffer0Texture, outGBuffer1Texture);
 #endif
 }
