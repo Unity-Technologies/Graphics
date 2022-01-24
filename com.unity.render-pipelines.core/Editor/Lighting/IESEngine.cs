@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Unity.Collections;
 using UnityEditor;
@@ -228,6 +229,11 @@ namespace UnityEditor.Rendering
             return (output.importInspectorWarnings, output.output);
         }
 
+        private static byte PackIESValue(float value)
+        {
+            return (byte)Math.Clamp(value * 255, 0, 255);
+        }
+
         NativeArray<Color32> BuildTypeACylindricalTexture(int width, int height)
         {
             float stepU = 360f / (width - 1);
@@ -249,7 +255,7 @@ namespace UnityEditor.Rendering
 
                     float horizontalAnglePosition = m_iesReader.ComputeTypeAorBHorizontalAnglePosition(longitude);
 
-                    byte value = (byte)((m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / m_iesReader.MaxCandelas) * 255);
+                    byte value = PackIESValue(m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / m_iesReader.MaxCandelas);
                     slice[x] = new Color32(value, value, value, value);
                 }
             }
@@ -287,7 +293,7 @@ namespace UnityEditor.Rendering
                     float horizontalAnglePosition = m_iesReader.ComputeTypeAorBHorizontalAnglePosition(longitude);
                     float verticalAnglePosition = m_iesReader.ComputeVerticalAnglePosition(latitude);
 
-                    byte value = (byte)((m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / m_iesReader.MaxCandelas) * 255);
+                    byte value = PackIESValue(m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / m_iesReader.MaxCandelas);
                     slice[x] = new Color32(value, value, value, value);
                 }
             }
@@ -325,7 +331,7 @@ namespace UnityEditor.Rendering
                     float horizontalAnglePosition = m_iesReader.ComputeTypeCHorizontalAnglePosition(longitude);
                     float verticalAnglePosition = m_iesReader.ComputeVerticalAnglePosition(latitude);
 
-                    byte value = (byte)((m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / m_iesReader.MaxCandelas) * 255);
+                    byte value = PackIESValue(m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / m_iesReader.MaxCandelas);
                     slice[x] = new Color32(value, value, value, value);
                 }
             }
@@ -362,7 +368,7 @@ namespace UnityEditor.Rendering
                     // Factor in the light attenuation further from the texture center.
                     float lightAttenuation = applyLightAttenuation ? rayLengthSquared : 1f;
 
-                    byte value = (byte)((m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_iesReader.MaxCandelas * lightAttenuation)) * 255);
+                    byte value = PackIESValue(m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_iesReader.MaxCandelas * lightAttenuation));
                     slice[x] = new Color32(value, value, value, value);
                 }
             }
@@ -400,7 +406,7 @@ namespace UnityEditor.Rendering
                     // Factor in the light attenuation further from the texture center.
                     float lightAttenuation = applyLightAttenuation ? rayLengthSquared : 1f;
 
-                    byte value = (byte)((m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_iesReader.MaxCandelas * lightAttenuation)) * 255);
+                    byte value = PackIESValue(m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_iesReader.MaxCandelas * lightAttenuation));
                     slice[x] = new Color32(value, value, value, value);
                 }
             }
@@ -437,7 +443,7 @@ namespace UnityEditor.Rendering
                     // Factor in the light attenuation further from the texture center.
                     float lightAttenuation = applyLightAttenuation ? (uvLength * uvLength + 1) : 1f;
 
-                    byte value = (byte)((m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_iesReader.MaxCandelas * lightAttenuation)) * 255);
+                    byte value = PackIESValue(m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_iesReader.MaxCandelas * lightAttenuation));
                     slice[x] = new Color32(value, value, value, value);
                 }
             }
