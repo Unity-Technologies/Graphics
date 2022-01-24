@@ -272,6 +272,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_CascadeSplitDistances[3].w * m_CascadeSplitDistances[3].w));
             }
 
+            //float near = 0.01;
+            //float far  =
+            //float4((f - n) / n, 1.0f, (f - n) / (n * f), 1.0f / f);
+            //Shader.PropertyToID("_MainLightShadowmapZParams");
+
             // Inside shader soft shadows are controlled through global keyword.
             // If any additional light has soft shadows it will force soft shadows on main light too.
             // As it is not trivial finding out which additional light has soft shadows, we will pass main light properties if soft shadows are supported.

@@ -3,6 +3,9 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/PCSS.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ShaderDebugPrint.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 #include "Core.hlsl"
 
 #define MAX_SHADOW_CASCADES 4
@@ -73,6 +76,7 @@ half4       _MainLightShadowOffset2;
 half4       _MainLightShadowOffset3;
 half4       _MainLightShadowParams;   // (x: shadowStrength, y: 1.0 if soft shadows, 0.0 otherwise, z: main light fade scale, w: main light fade bias)
 float4      _MainLightShadowmapSize;  // (xy: 1/width and 1/height, zw: width and height)
+//float4      _MainLightShadowmapZParams;
 #ifndef SHADER_API_GLES3
 CBUFFER_END
 #endif
@@ -81,6 +85,7 @@ CBUFFER_END
 
 StructuredBuffer<float4>   _AdditionalShadowParams_SSBO;        // Per-light data - TODO: test if splitting _AdditionalShadowParams_SSBO[lightIndex].w into a separate StructuredBuffer<int> buffer is faster
 StructuredBuffer<float4x4> _AdditionalLightsWorldToShadow_SSBO; // Per-shadow-slice-data - A shadow casting light can have 6 shadow slices (if it's a point light)
+StructuredBuffer<float4>   _AdditionalShadowZParams_SSBO;        // Per-light data - TODO: test if splitting _AdditionalShadowParams_SSBO[lightIndex].w into a separate StructuredBuffer<int> buffer is faster
 
 half4       _AdditionalShadowOffset0;
 half4       _AdditionalShadowOffset1;
@@ -88,6 +93,7 @@ half4       _AdditionalShadowOffset2;
 half4       _AdditionalShadowOffset3;
 half4       _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
 float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
+float4      _AdditionalShadowmapZParams;
 
 #else
 
@@ -110,6 +116,7 @@ CBUFFER_START(AdditionalLightShadows)
 
 half4       _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];                              // Per-light data
 float4x4    _AdditionalLightsWorldToShadow[MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO];  // Per-shadow-slice-data
+float4      _AdditionalShadowZParams[MAX_VISIBLE_LIGHTS];
 
 half4       _AdditionalShadowOffset0;
 half4       _AdditionalShadowOffset1;
@@ -117,6 +124,7 @@ half4       _AdditionalShadowOffset2;
 half4       _AdditionalShadowOffset3;
 half4       _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
 float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
+
 
 #ifndef SHADER_API_GLES3
 CBUFFER_END
@@ -136,6 +144,8 @@ struct ShadowSamplingData
     half4 shadowOffset2;
     half4 shadowOffset3;
     float4 shadowmapSize;
+
+    float4 shadowZBufferParam;// = float4((f - n) / n, 1.0f, (f - n) / (n * f), 1.0f / f);
 };
 
 ShadowSamplingData GetMainLightShadowSamplingData()
@@ -150,6 +160,9 @@ ShadowSamplingData GetMainLightShadowSamplingData()
 
     // shadowmapSize is used in SampleShadowmapFiltered for other platforms
     shadowSamplingData.shadowmapSize = _MainLightShadowmapSize;
+
+    // TODO:
+    shadowSamplingData.shadowZBufferParam = 0;
 
     return shadowSamplingData;
 }
@@ -193,6 +206,15 @@ half4 GetAdditionalLightShadowParams(int lightIndex)
 #endif
 }
 
+half4 GetAdditionalLightShadowZParams(int lightIndex)
+{
+    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+    return _AdditionalShadowZParams_SSBO[lightIndex];
+    #else
+    return _AdditionalShadowZParams[lightIndex];
+    #endif
+}
+
 half SampleScreenSpaceShadowmap(float4 shadowCoord)
 {
     shadowCoord.xy /= shadowCoord.w;
@@ -211,9 +233,10 @@ half SampleScreenSpaceShadowmap(float4 shadowCoord)
 
 real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData)
 {
-    real attenuation;
+    real attenuation = 1;
 
-#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+#if 0
+    #if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
     // 4-tap hardware comparison
     real4 attenuation4;
     attenuation4.x = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + samplingData.shadowOffset0.xyz));
@@ -221,7 +244,7 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap
     attenuation4.z = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + samplingData.shadowOffset2.xyz));
     attenuation4.w = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + samplingData.shadowOffset3.xyz));
     attenuation = dot(attenuation4, real(0.25));
-#else
+    #else
     float fetchesWeights[9];
     float2 fetchesUV[9];
     SampleShadow_ComputeSamples_Tent_5x5(samplingData.shadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
@@ -235,10 +258,88 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap
     attenuation += fetchesWeights[6] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[6].xy, shadowCoord.z));
     attenuation += fetchesWeights[7] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[7].xy, shadowCoord.z));
     attenuation += fetchesWeights[8] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[8].xy, shadowCoord.z));
+    #endif
+#else
+
+
+    // PARAMS
+    float2 scale = 1;
+    float2 offset = float2(0,0);
+    float shadowSoftness = 0.1;
+    int blockerSampleCount = 16;
+    int filterSampleCount = 16;
+    bool isPerspective = true;
+
+    //float f = legacyLight.range;
+    //float n = shadowNearPlane;
+
+    float minFilterRadius = 1;
+
+//#if SHADOW_USE_DEPTH_BIAS == 1
+//    // add the depth bias
+//    tcs.z += depthBias;
+//#endif
+
+    //uint taaFrameIndex = _TaaFrameInfo.z;
+    //float sampleJitterAngle = InterleavedGradientNoise(posSS.xy, taaFrameIndex) * 2.0 * PI;
+    //float2 sampleJitter = float2(sin(sampleJitterAngle), cos(sampleJitterAngle));
+
+    float2 sampleJitter = 0;
+
+    // Note: this is a hack, but the original implementation was faulty as it didn't scale offset based on the resolution of the atlas (*not* the shadow map).
+    // All the softness fitting has been done using a reference 4096x4096, hence the following scale.
+    float atlasResFactor = (4096 * samplingData.shadowmapSize.x);
+
+    //shadowMapSize.xy == 1/size, .zw = size
+
+    // max softness is empirically set resolution of 512, so needs to be set res independent.
+    float shadowMapRes = scale.x * samplingData.shadowmapSize.z; // atlas is square
+    float resIndepenentMaxSoftness = 0.04 * (shadowMapRes / 512);
+
+    float lightArea = min((shadowSoftness + 0.000001), resIndepenentMaxSoftness) * atlasResFactor;
+    lightArea = 1;
+
+    //1) Blocker Search
+    float averageBlockerDepth = 0.0;
+    float numBlockers         = 0.0;
+    bool blockerFound =
+        BlockerSearch(averageBlockerDepth, numBlockers, lightArea,
+        shadowCoord.xyz / shadowCoord.w, sampleJitter, ShadowMap, blockerSampleCount);
+
+    // We scale the softness also based on the distance between the occluder if we assume that the light is a sphere source.
+    // Also, we don't bother if the blocker has not been found.
+    /*if (isPerspective && blockerFound)
+    {
+        float dist = 1.0f / max((samplingData.shadowZBufferParam.z * averageBlockerDepth + samplingData.shadowZBufferParam.w), 0.00001);
+        dist = min(dist, 7.5);  // We need to clamp the distance as the fitted curve will do strange things after this and because there is no point in scale further after this point.
+        float dist2 = dist * dist;
+        // Fitted curve to match ray trace reference as good as possible.
+        float distScale = 3.298300241 - 2.001364639  * dist + 0.4967311427 * dist2 - 0.05464058455 * dist * dist2 + 0.0021974 * dist2 * dist2;
+        shadowSoftness *= distScale;
+
+        // Clamp maximum softness here again and not C# as it could be scaled signifcantly by the distance scale.
+        shadowSoftness = min(shadowSoftness, resIndepenentMaxSoftness);
+    }*/
+
+    //2) Penumbra Estimation
+    float filterSize = shadowSoftness * PenumbraSize(shadowCoord.z, averageBlockerDepth);
+    filterSize = max(filterSize, minFilterRadius);
+    filterSize *= atlasResFactor;
+
+
+
+    //3) Filter
+    // Note: we can't early out of the function if blockers are not found since Vulkan triggers a warning otherwise. Hence, we check for blockerFound here.
+    //attenuation = blockerFound ? PCSS(shadowCoord.xyz, filterSize, scale, offset, sampleJitter, ShadowMap, sampler_ShadowMap, filterSampleCount) : 1.0f;
+    //ShaderDebugPrintMouseOver(_ShaderDebugPixelCoords, attenuation);
+    //attenuation = SAMPLE_TEXTURE2D_LOD(ShadowMap, sampler_BaseMap, shadowCoord.xy + offset, 0.0).x;
+    ShaderDebugPrintMouseOver(_ShaderDebugPixelCoords, LOAD_TEXTURE2D_LOD(ShadowMap, shadowCoord.xy + offset, 0.0).x);
 #endif
 
+    //ShaderDebugPrintMouseOver(_ShaderDebugPixelCoords, attenuation);
     return attenuation;
 }
+
 
 real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, half4 shadowParams, bool isPerspectiveProjection = true)
 {
@@ -319,6 +420,7 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
     ShadowSamplingData shadowSamplingData = GetAdditionalLightShadowSamplingData();
 
     half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
+    shadowSamplingData.shadowZBufferParam = GetAdditionalLightShadowZParams(lightIndex);
 
     int shadowSliceIndex = shadowParams.w;
 

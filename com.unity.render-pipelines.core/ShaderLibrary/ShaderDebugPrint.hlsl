@@ -38,6 +38,8 @@ float4 _ShaderDebugPrintInputMouse;
 int    _ShaderDebugPrintInputFrame;
 CBUFFER_END
 
+int2 _ShaderDebugPixelCoords;
+
 // Mouse coordinates in pixels
 // Relative to game view surface/rendertarget
 // (Typically (0,0) is bottom-left in Unity. TIP: print mouse coords to check if unsure.)
