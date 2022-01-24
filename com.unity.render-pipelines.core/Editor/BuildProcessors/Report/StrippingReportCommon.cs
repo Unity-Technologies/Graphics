@@ -1,30 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    interface IStrippedShader
+    static class VariantCounterExtension
     {
-        string shaderName { get; }
+        public static string ToStrippedVariantInfo([DisallowNull] this IVariantCounter variantCounter)
+        {
+            return $"Total={variantCounter.variantsIn}/{variantCounter.variantsOut}({variantCounter.variantsOut / (float)variantCounter.variantsIn * 100f:0.00}%)";
+        }
+    }
+    interface IVariantCounter
+    {
         uint variantsIn { get; set; }
         uint variantsOut { get; set; }
-        void AddVariant(IStrippedVariant variant);
-        void Log(bool onlySRP);
     }
 
-    interface IStrippedVariant
+    interface IStrippedShader : IVariantCounter
     {
-        uint variantsIn { get; }
-        uint variantsOut { get; }
+        string shaderName { get; }
+        void AddVariant(IStrippedVariant variant);
+        string Log(ShaderVariantLogLevel shaderVariantLogLevel);
+    }
+
+    interface IStrippedVariant : IVariantCounter
+    {
         bool isSRPVariant { get; }
         void AppendLog(StringBuilder sb);
     }
 
     [Serializable]
-    abstract class StrippedShaderBase
+    abstract class StrippedShaderBase : IVariantCounter
     {
         [SerializeField]
         protected string shader;
@@ -45,21 +56,19 @@ namespace UnityEditor.Rendering
             m_StrippedVariants.Add(variant);
         }
 
-        public void Log(bool onlySRP)
+        public string Log(ShaderVariantLogLevel shaderVariantLogLevel)
         {
-            if (onlySRP && !m_StrippedVariants.Any(i => i.isSRPVariant))
-                return;
+            if (shaderVariantLogLevel is ShaderVariantLogLevel.OnlySRPShaders &&  !m_StrippedVariants.Any(i => i.isSRPVariant))
+                return string.Empty;
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(
-                $"STRIPPING {shaderName} - Total={variantsIn}/{variantsOut}({variantsOut / (float)variantsIn * 100f:0.00}%)");
+            sb.AppendLine($"STRIPPING {shader} {this.ToStrippedVariantInfo()}");
             foreach (var strippedVariant in m_StrippedVariants)
             {
-
                 strippedVariant.AppendLog(sb);
             }
 
-            Debug.Log(sb);
+            return sb.ToString();
         }
     }
 }

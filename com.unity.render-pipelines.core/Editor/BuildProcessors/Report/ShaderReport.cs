@@ -14,8 +14,18 @@ namespace UnityEditor.Rendering
         [SerializeField] private string passType;
         [SerializeField] private string renderPipeline;
 
-        public uint variantsIn => inVariants;
-        public uint variantsOut => outVariants;
+        public uint variantsIn
+        {
+            get => inVariants;
+            set => inVariants = value;
+        }
+
+        public uint variantsOut
+        {
+            get => outVariants;
+            set => outVariants = value;
+        }
+
         public double stripTime { get; }
         public bool isSRPVariant => !string.IsNullOrEmpty(renderPipeline);
 

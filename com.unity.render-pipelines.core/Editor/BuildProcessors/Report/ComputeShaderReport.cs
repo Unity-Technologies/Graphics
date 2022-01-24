@@ -31,10 +31,18 @@ namespace UnityEditor.Rendering
     class KernelVariant : IStrippedVariant
     {
         [SerializeField] private uint inVariants;
-        public uint variantsIn => inVariants;
+        public uint variantsIn
+        {
+            get => inVariants;
+            set => inVariants = value;
+        }
 
         [SerializeField] private uint outVariants;
-        public uint variantsOut => outVariants;
+        public uint variantsOut
+        {
+            get => outVariants;
+            set => outVariants = value;
+        }
 
         [SerializeField] private string kernel;
         public double stripTime { get; }

@@ -3,25 +3,51 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
+    class ShaderStrippingInfoOutput
+    {
+        public ShaderStrippingInfoOutput()
+        {
+            logs = new List<string>();
+            exportAsJson = string.Empty;
+        }
+
+        public List<string> logs { get; }
+        public string exportAsJson { get; set; }
+    }
+
+    interface IShaderStrippingOutput
+    {
+        ShaderStrippingInfoOutput GetOutput(ShaderVariantLogLevel shaderVariantLogLevel, bool exportStrippedVariants);
+    }
+
     [Serializable]
-    class ShaderStrippingInfo<TStrippedShader> : ISerializationCallbackReceiver
+    class ShaderStrippingInfo<TStrippedShader> : ISerializationCallbackReceiver, IVariantCounter, IShaderStrippingOutput
         where TStrippedShader : IStrippedShader
     {
         private readonly Dictionary<string, TStrippedShader> m_Dictionary = new();
 
-        private uint totalInVariants = 0;
-        public uint totalVariantsIn { get => totalInVariants; set => totalInVariants = value; }
+        [SerializeField] private uint inVariants;
+        public uint variantsIn
+        {
+            get => inVariants;
+            set => inVariants = value;
+        }
 
-        private uint totalOutVariants = 0;
-        public uint totalVariantsOut { get => totalOutVariants; set => totalOutVariants = value; }
+        [SerializeField] private uint outVariants;
+        public uint variantsOut
+        {
+            get => outVariants;
+            set => outVariants = value;
+        }
 
         public bool TryGetStrippedShader(string shaderName, out IStrippedShader strippedShader)
         {
             bool found = m_Dictionary.TryGetValue(shaderName, out var result);
-            strippedShader = result as IStrippedShader;
+            strippedShader = result;
             return found;
         }
 
@@ -30,23 +56,21 @@ namespace UnityEditor.Rendering
             m_Dictionary.Add(shaderName, (TStrippedShader)strippedShader);
         }
 
-        public void Log(string shaderType, bool onlySRP)
+        public ShaderStrippingInfoOutput GetOutput(ShaderVariantLogLevel shaderVariantLogLevel, bool exportStrippedVariants)
         {
-            Debug.Log($"STRIPPING {shaderType} Total={totalVariantsIn}/{totalVariantsOut}({totalVariantsOut / (float)totalVariantsIn * 100f:0.00}%)");
-            foreach (var (_, value) in m_Dictionary)
-                value.Log(onlySRP);
-        }
+            ShaderStrippingInfoOutput output = new ShaderStrippingInfoOutput();
+            if (shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
+            {
+                foreach (var (_, value) in m_Dictionary)
+                    output.logs.Add(value.Log(shaderVariantLogLevel));
+            }
 
-        public void Export(string fileName)
-        {
-            try
+            if (exportStrippedVariants)
             {
-                File.WriteAllText(fileName, JsonUtility.ToJson(this, true));
+                output.exportAsJson = JsonUtility.ToJson(this, true);
             }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
+
+            return output;
         }
 
         [SerializeField]
