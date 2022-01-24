@@ -1127,8 +1127,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
         /// <summary>Blend Mode.</summary>
         public const string kBlendMode = "_BlendMode";
-        /// <summary>Enable Alpha to Mask.</summary>
-        public const string kAlphaToMask = "_AlphaToMask";
         /// <summary>Enable Fog on Transparent Materials.</summary>
         public const string kEnableFogOnTransparent = "_EnableFogOnTransparent";
         /// <summary>Enable Depth Test for distortion.</summary>
@@ -1222,7 +1220,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string kTransmissionEnable = "_TransmissionEnable";
         internal const string kZTestGBuffer = "_ZTestGBuffer";
         internal const string kZTestDepthEqualForOpaque = "_ZTestDepthEqualForOpaque";
-        internal const string kAlphaToMaskInspector = "_AlphaToMaskInspectorValue";
         internal const string kEmissionColor = "_EmissionColor";
         internal const string kEnableSSR = kReceivesSSR;
         internal const string kAddPrecomputedVelocity = "_AddPrecomputedVelocity";
