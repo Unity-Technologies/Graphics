@@ -98,4 +98,3 @@ Compute support on mobile devices varies widely across brands, mobile GPU archit
 
 ## Fixed
 For information on issues resolved in version 12 of the Visual Effect Graph, embedded in Unity 2021.2, see the [changelog](../changelog/CHANGELOG.html).
-
