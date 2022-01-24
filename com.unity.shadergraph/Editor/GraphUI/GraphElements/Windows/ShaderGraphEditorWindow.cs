@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.Overlays;
-using UnityEditor.ShaderGraph.GraphUI.Controllers;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
@@ -11,32 +10,32 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
 {
-    public class ShaderGraphEditorWindow : GraphViewEditorWindow, ISupportsOverlays
+    public class ShaderGraphEditorWindow : GraphViewEditorWindow // , ISupportsOverlays
     {
         protected override bool CanHandleAssetType(IGraphAssetModel asset) => asset is ShaderGraphAssetModel;
 
-        InspectorController m_InspectorController;
-        ModelInspectorView m_InspectorView => m_InspectorController?.View;
+        // InspectorController m_InspectorController;
+        // ModelInspectorView m_InspectorView => m_InspectorController?.View;
 
-        BlackboardController m_BlackboardController;
-        Blackboard m_BlackboardView => m_BlackboardController?.View;
+        // BlackboardController m_BlackboardController;
+        // Blackboard m_BlackboardView => m_BlackboardController?.View;
 
-        PreviewController m_PreviewController;
-        Preview m_Preview => m_PreviewController?.View;
+        // PreviewController m_PreviewController;
+        // Preview m_Preview => m_PreviewController?.View;
 
-        static GraphWindowTickCommand s_CachedGraphWindowTickCommand = new ();
+        // static GraphWindowTickCommand s_CachedGraphWindowTickCommand = new ();
 
-        public VisualElement GetGraphSubWindow<T>()
-        {
-            if (typeof(T) == typeof(Blackboard))
-                return m_BlackboardView;
-            if (typeof(T) == typeof(ModelInspectorView))
-                return m_InspectorView;
-            if (typeof(T) == typeof(Preview))
-                return m_Preview;
+        //public VisualElement GetGraphSubWindow<T>()
+        //{
+        //    if (typeof(T) == typeof(Blackboard))
+        //        return m_BlackboardView;
+        //    if (typeof(T) == typeof(ModelInspectorView))
+        //        return m_InspectorView;
+        //    if (typeof(T) == typeof(Preview))
+        //        return m_Preview;
 
-            return null;
-        }
+        //    return null;
+        //}
 
         [InitializeOnLoadMethod]
         static void RegisterTool()
@@ -54,14 +53,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
 
         void InitializeSubWindows()
         {
-            m_InspectorController = new InspectorController((CommandDispatcher)GraphTool.Dispatcher, GraphView, this);
-            m_BlackboardController = new BlackboardController((CommandDispatcher)GraphTool.Dispatcher, GraphView, this);
-            m_PreviewController = new PreviewController((CommandDispatcher)GraphTool.Dispatcher, GraphView, this);
+            //m_InspectorController = new InspectorController((CommandDispatcher)GraphTool.Dispatcher, GraphView, this);
+            //m_BlackboardController = new BlackboardController((CommandDispatcher)GraphTool.Dispatcher, GraphView, this);
+            //m_PreviewController = new PreviewController((CommandDispatcher)GraphTool.Dispatcher, GraphView, this);
         }
 
         protected override void OnEnable()
         {
-            GraphTool.Name = "Shader Graph";
+            //GraphTool.Name = "Shader Graph";
             WithSidePanel = false;
 
             base.OnEnable();
@@ -71,43 +70,43 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
             rootVisualElement.style.width = new StyleLength(new Length(100, LengthUnit.Percent));
             rootVisualElement.style.height = new StyleLength(new Length(100, LengthUnit.Percent));
 
-            InitializeSubWindows();
+            // InitializeSubWindows();
 
-            m_BlackboardController.InitializeWindowPosition();
+            // m_BlackboardController.InitializeWindowPosition();
         }
 
-        protected void OnBecameVisible()
-        {
-            if (GraphView.GraphModel is ShaderGraphModel shaderGraphModel)
-            {
-                var shaderGraphState = this.CommandDispatcher.State as ShaderGraphState;
-                shaderGraphState?.GraphPreviewState.SetGraphModel(shaderGraphModel);
-            }
+        ////protected void OnBecameVisible()
+        ////{
+        ////    if (GraphView.GraphModel is ShaderGraphModel shaderGraphModel)
+        ////    {
+        ////        var shaderGraphState = this.CommandDispatcher.State as ShaderGraphState;
+        ////        shaderGraphState?.GraphPreviewState.SetGraphModel(shaderGraphModel);
+        ////    }
 
-        }
+        ////}
 
-        protected override void Update()
-        {
-            base.Update();
+        //protected override void Update()
+        //{
+        //    base.Update();
 
-            CommandDispatcher.Dispatch(new GraphWindowTickCommand());
-        }
+        //    CommandDispatcher.Dispatch(new GraphWindowTickCommand());
+        //}
 
         protected override GraphView CreateGraphView()
         {
-            return new ShaderGraphView(this, CommandDispatcher, EditorToolName);
+            return new ShaderGraphView(this, GraphTool, "Shader Graph");
         }
 
         protected override BlankPage CreateBlankPage()
         {
             var onboardingProviders = new List<OnboardingProvider> {new ShaderGraphOnboardingProvider()};
-            return new BlankPage(CommandDispatcher, onboardingProviders);
+            return new BlankPage(GraphTool?.Dispatcher as CommandDispatcher, onboardingProviders);
         }
 
-        protected override GraphToolState CreateInitialState()
-        {
-            var prefs = Preferences.CreatePreferences(EditorToolName);
-            return new ShaderGraphState(GUID, prefs);
-        }
+        //protected override GraphToolState CreateInitialState()
+        //{
+        //    var prefs = Preferences.CreatePreferences(EditorToolName);
+        //    return new ShaderGraphState(GUID, prefs);
+        //}
     }
 }

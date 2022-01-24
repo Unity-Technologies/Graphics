@@ -16,17 +16,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
         Image m_PreviewImage;
 
         GraphDataNodeModel m_GraphDataNodeModel;
-        CommandDispatcher m_CommandDispatcher;
 
         const string ussRootName = "ge-node-preview-part";
 
         public override VisualElement Root => m_Root;
 
 
-        public NodePreviewPart(CommandDispatcher commandDispatcher, string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName)
+        public NodePreviewPart(string name, IGraphElementModel model, IModelUI ownerElement, string parentClassName)
             : base(name, model, ownerElement, parentClassName)
         {
-            m_CommandDispatcher = commandDispatcher;
             m_GraphDataNodeModel = model as GraphDataNodeModel;
         }
 
@@ -71,12 +69,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
 
         void OnCollapseButtonClicked(MouseDownEvent mouseDownEvent)
         {
-            m_CommandDispatcher.Dispatch(new ChangePreviewExpandedCommand(false, new [] { m_GraphDataNodeModel }));
+            m_OwnerElement.View.Dispatch(new ChangePreviewExpandedCommand(false, new [] { m_GraphDataNodeModel }));
         }
 
         void OnExpandButtonClicked(MouseDownEvent mouseDownEvent)
         {
-            m_CommandDispatcher.Dispatch(new ChangePreviewExpandedCommand(true, new [] { m_GraphDataNodeModel }));
+            m_OwnerElement.View.Dispatch(new ChangePreviewExpandedCommand(true, new [] { m_GraphDataNodeModel }));
         }
 
         void HandlePreviewExpansionStateChanged(bool previewExpanded)

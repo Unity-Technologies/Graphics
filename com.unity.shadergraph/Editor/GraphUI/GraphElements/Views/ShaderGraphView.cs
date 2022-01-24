@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
@@ -9,9 +9,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Views
 {
     public class ShaderGraphView : GraphView
     {
-        public ShaderGraphView(GraphViewEditorWindow window, CommandDispatcher commandDispatcher,
-            string graphViewName)
-            : base(window, commandDispatcher, graphViewName)
+        public ShaderGraphView(GraphViewEditorWindow window, BaseGraphTool graphTool, string graphViewName)
+            : base(window, graphTool, graphViewName)
         {
 
         }

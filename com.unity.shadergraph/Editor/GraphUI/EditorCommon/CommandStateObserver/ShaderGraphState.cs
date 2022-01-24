@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
 using UnityEngine;
@@ -53,10 +53,10 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 graphPreviewState
             );
 
-            commandDispatcher.RegisterCommandHandler<GraphViewStateComponent, GraphWindowTickCommand>(
-                GraphWindowTickCommand.DefaultCommandHandler,
-                graphView.GraphViewState
-            );
+            //commandDispatcher.RegisterCommandHandler<GraphViewStateComponent, GraphWindowTickCommand>(
+            //    GraphWindowTickCommand.DefaultCommandHandler,
+            //    graphView.GraphViewState
+            //);
 
             // Overrides for default GTF commands
 

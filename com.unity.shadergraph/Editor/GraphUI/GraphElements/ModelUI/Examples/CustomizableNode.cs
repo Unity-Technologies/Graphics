@@ -1,4 +1,4 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
 using UnityEngine.GraphToolsFoundation.Overdrive;
@@ -21,11 +21,11 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
             evt.menu.AppendSeparator();
             evt.menu.AppendAction("Add Float Input Port", action =>
             {
-                CommandDispatcher.Dispatch(new AddPortCommand(false, "Input", TypeHandle.Float, new [] { (CustomizableNodeModel)Model }));
+                GraphView.Dispatcher.Dispatch(new AddPortCommand(false, "Input", TypeHandle.Float, new [] { (CustomizableNodeModel)Model }));
             });
             evt.menu.AppendAction("Add Float Output Port", action =>
             {
-                CommandDispatcher.Dispatch(new AddPortCommand(true, "Output", TypeHandle.Float, new [] { (CustomizableNodeModel)Model }));
+                GraphView.Dispatcher.Dispatch(new AddPortCommand(true, "Output", TypeHandle.Float, new [] { (CustomizableNodeModel)Model }));
             });
         }
     }

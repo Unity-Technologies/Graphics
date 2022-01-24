@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             GraphViewStateComponent graphViewState,
             Preferences preferences,
             CreateEdgeCommand command)
-        {         
+        {
             CreateEdgeCommand.DefaultCommandHandler(undoState, graphViewState, preferences, command);
 
             var resolvedSource = command.FromPortModel;

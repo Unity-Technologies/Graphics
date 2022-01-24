@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
 
         void OnRemovePressed()
         {
-            m_OwnerElement.CommandDispatcher.Dispatch(new RemovePortCommand(
+            m_OwnerElement.View.Dispatch(new RemovePortCommand(
                 m_OutputToggle.value,
                 m_PortSelector.value,
                 new [] { (CustomizableNodeModel) m_Model }));

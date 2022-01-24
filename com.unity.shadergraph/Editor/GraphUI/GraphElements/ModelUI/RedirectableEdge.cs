@@ -1,4 +1,4 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
 using UnityEngine;
@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
                 if (evt.clickCount != 2 || evt.button != 0) return;
                 if (Model is not EdgeModel edgeModel) return;
 
-                CommandDispatcher.Dispatch(new AddRedirectNodeCommand(edgeModel, GraphView.ContentViewContainer.WorldToLocal(evt.mousePosition)));
+                View.Dispatch(new AddRedirectNodeCommand(edgeModel, GraphView.ContentViewContainer.WorldToLocal(evt.mousePosition)));
             });
         }
 
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
             evt.menu.AppendAction("Add Redirect Node", action =>
             {
                 if (Model is not EdgeModel edgeModel) return;
-                CommandDispatcher.Dispatch(new AddRedirectNodeCommand(edgeModel, GraphView.ContentViewContainer.WorldToLocal(action.eventInfo.mousePosition)));
+                View.Dispatch(new AddRedirectNodeCommand(edgeModel, GraphView.ContentViewContainer.WorldToLocal(action.eventInfo.mousePosition)));
             });
         }
     }

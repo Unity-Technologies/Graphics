@@ -131,7 +131,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
         public Shader GetShaderObject(GraphDataNodeModel nodeModel)
         {
             var nodeInstanceReader = m_GraphHandler.GetNodeReader(nodeModel.Guid.ToString());
-            return Interpreter.GetShaderForNode(nodeInstanceReader, m_GraphHandler, RegistryInstance);
+            string sourceCode = Interpreter.GetShaderForNode(nodeInstanceReader, m_GraphHandler, RegistryInstance);
+            return ShaderUtil.CreateShaderAsset(sourceCode);
         }
 
         public void GetTimeDependentNodesOnGraph(PooledHashSet<GraphDataNodeModel> timeDependentNodes)

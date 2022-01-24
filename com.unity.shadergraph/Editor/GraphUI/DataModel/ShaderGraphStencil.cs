@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
     {
         public const string Name = "ShaderGraph";
 
-        public override string ToolName => Name;
+        public string ToolName => Name;
 
         public override IBlackboardGraphModel CreateBlackboardGraphModel(IGraphAssetModel graphAssetModel) => new SGBlackboardGraphModel(graphAssetModel);
 
@@ -58,21 +58,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
         {
             return new ShaderGraphProcessor();
         }
-        public override void PopulateBlackboardCreateMenu(string sectionName, GenericMenu menu, CommandDispatcher commandDispatcher)
+
+
+        public override void PopulateBlackboardCreateMenu(string sectionName, GenericMenu menu, IModelView view, IGraphModel graphModel, IGroupModel selectedGroup = null)
         {
-            base.PopulateBlackboardCreateMenu(sectionName, menu, commandDispatcher);
-
-            menu.AddItem(new GUIContent("Create Float4"), false, () =>
-            {
-                const string newItemName = "variable";
-                var finalName = newItemName;
-                var i = 0;
-                // ReSharper disable once AccessToModifiedClosure
-                while (commandDispatcher.State.WindowState.GraphModel.VariableDeclarations.Any(v => v.Title == finalName))
-                    finalName = newItemName + i++;
-
-                commandDispatcher.Dispatch(new CreateGraphVariableDeclarationCommand(finalName, true, TypeHandle.Vector4));
-            });
+            base.PopulateBlackboardCreateMenu(sectionName, menu, view, graphModel, selectedGroup);
         }
     }
 }
