@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace DefaultNamespace
+namespace UnityEditor.Rendering
 {
     public class RenderingDebuggerRuntime : UnityEngine.MonoBehaviour
     {
