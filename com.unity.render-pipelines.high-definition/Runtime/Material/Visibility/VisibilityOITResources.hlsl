@@ -17,6 +17,8 @@ ByteAddressBuffer _VisOITListsOffsets;
 ByteAddressBuffer _VisOITSubListsCounts;
 ByteAddressBuffer _VisOITPixelHash;
 
+RWStructuredBuffer<uint> _OITSortMemoryBuffer;
+
 #ifdef DEBUG_DISPLAY
 float _VisOITGBufferLayerIdx;
 float _VisOITGBufferLayer;
@@ -241,5 +243,13 @@ namespace GeomHelper
         return minMax;
     }
 }
+
+// Sorting Constants
+#define kSorting_NumVariants 3
+#define kSorting_IndirectArgsOffset 0
+#define kSorting_SumsOffset 9
+#define kSorting_CountersOffset 12
+#define kSorting_PixelListOffsetsOffset 15
+#define kSorting_PixelListDataOffset 18
 
 #endif
