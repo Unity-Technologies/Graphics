@@ -163,22 +163,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
             /// <summary>Simulates cloud self-shadowing using raymarching.</summary>
             [Tooltip("Simulates cloud self-shadowing using raymarching.")]
-            public BoolParameter raymarching = new BoolParameter(false);
+            public BoolParameter raymarching = new BoolParameter(true);
             /// <summary>Number of raymarching steps.</summary>
             [Tooltip("Number of raymarching steps.")]
             public ClampedIntParameter steps = new ClampedIntParameter(10, 2, 32);
-            /// <summary>TODO.</summary>
-            [Tooltip("Altitude of the cloud layer.")]
+            /// <summary>Altitude of the bottom of the cloud layer in meters.</summary>
+            [Tooltip("Altitude of the bottom of the cloud layer in meters.")]
             public MinFloatParameter altitude = new MinFloatParameter(1000.0f, 0.0f);
-            /// <summary>Thickness of the clouds.</summary>
-            [Tooltip("Controls the thickness of the clouds.")]
+            /// <summary>Thickness of the cloud layer in meters.</summary>
+            [Tooltip("Thickness of the cloud layer in meters.")]
             public MinFloatParameter thickness = new MinFloatParameter(8000.0f, 0);
-            /// <summary>Thickness of the clouds.</summary>
-            [Tooltip("Controls the thickness of the clouds.")]
-            public ClampedFloatParameter density = new ClampedFloatParameter(0.05f, 0, 1);
-            /// <summary>Thickness of the clouds.</summary>
-            [Tooltip("Controls the thickness of the clouds.")]
-            public ClampedFloatParameter multiScattering = new ClampedFloatParameter(0.0f, 0, 1);
+            /// <summary>Density of the clouds.</summary>
+            [Tooltip("Density of the clouds.")]
+            public ClampedFloatParameter density = new ClampedFloatParameter(0.1f, 0, 1);
+            /// <summary>Controls the amount of multi-scattering inside the cloud.</summary>
+            [Tooltip("Controls the amount of multi-scattering inside the cloud.")]
+            [AdditionalProperty]
+            public ClampedFloatParameter multiScattering = new ClampedFloatParameter(0.75f, 0.0f, 1.0f);
 
             /// <summary>Enable to cast shadows.</summary>
             [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows. This will override the cookie of your directional light.")]

@@ -111,10 +111,9 @@ namespace UnityEngine.Rendering.HighDefinition
             s_VectorArray[0] = _FlowmapParamA; s_VectorArray[1] = _FlowmapParamB;
             m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._FlowmapParam, s_VectorArray);
 
-            Vector4 ambientProbe= Vector4.zero;
             var volumetricClouds = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
-            if (HDRenderPipeline.HasVolumetricClouds(hdCamera, volumetricClouds))
-                ambientProbe = (RenderPipelineManager.currentPipeline as HDRenderPipeline).EvaluateAmbientProbeBottom(volumetricClouds);
+            Vector4 ambientProbe = (RenderPipelineManager.currentPipeline as HDRenderPipeline).EvaluateCloudAmbientProbeBottom(volumetricClouds, hdCamera);
+
 
             Color lightColor = Color.black;
             if (builtinParams.sunLight != null)

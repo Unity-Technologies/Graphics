@@ -52,7 +52,7 @@ void GetCloudVolumeIntersection(int index, float3 dir, out float rangeStart, out
 }
 float GetDensity(float lenPositionWS, float rangeStart, float range, float thickness)
 {
-    float distToCenter = (rangeStart + 0.5 * range) - lenPositionWS;
+    float distToCenter = abs((rangeStart + 0.5 * range) - lenPositionWS);
     float density = 1 - saturate(distToCenter / (range * thickness));
     return density * thickness;
 }

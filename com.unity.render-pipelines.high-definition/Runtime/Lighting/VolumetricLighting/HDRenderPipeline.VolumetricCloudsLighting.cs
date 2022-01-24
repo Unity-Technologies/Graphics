@@ -22,22 +22,28 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_CloudsAmbientProbeBuffer);
         }
 
-        unsafe internal Vector4 EvaluateAmbientProbeBottom(VolumetricClouds settings)
+        // Evaluate the ambient probe under the clouds for the cloud layer
+        // Use probe from the volumetric clouds if available to match visually
+        // Otherwise, use the one from the skymanager
+        unsafe internal Vector4 EvaluateCloudAmbientProbeBottom(VolumetricClouds settings, HDCamera hdCamera)
         {
-            if (m_CloudsAmbientProbeIsReady)
+            SphericalHarmonicsL2 probeSH;
+            if (m_CloudsAmbientProbeIsReady && HDRenderPipeline.HasVolumetricClouds(hdCamera, settings))
             {
-                SphericalHarmonicsL2 probeSH = SphericalHarmonicMath.UndoCosineRescaling(m_CloudsAmbientProbe);
+                probeSH = SphericalHarmonicMath.UndoCosineRescaling(m_CloudsAmbientProbe);
                 probeSH = SphericalHarmonicMath.RescaleCoefficients(probeSH, settings.ambientLightProbeDimmer.value);
-                ZonalHarmonicsL2.GetCornetteShanksPhaseFunction(m_PhaseZHClouds, 0.0f);
-                SphericalHarmonicsL2 finalSH = SphericalHarmonicMath.PremultiplyCoefficients(SphericalHarmonicMath.Convolve(probeSH, m_PhaseZHClouds));
-                SphericalHarmonicMath.PackCoefficients(m_PackedCoeffsProbe, finalSH);
-
-                return EvaluateAmbientProbe(m_PackedCoeffsProbe, Vector3.up);
             }
             else
             {
-                return Vector4.zero;
+                probeSH = skyManager.GetAmbientProbe(hdCamera);
+                probeSH = SphericalHarmonicMath.UndoCosineRescaling(probeSH);
             }
+
+            ZonalHarmonicsL2.GetCornetteShanksPhaseFunction(m_PhaseZHClouds, 0.0f);
+            SphericalHarmonicsL2 finalSH = SphericalHarmonicMath.PremultiplyCoefficients(SphericalHarmonicMath.Convolve(probeSH, m_PhaseZHClouds));
+            SphericalHarmonicMath.PackCoefficients(m_PackedCoeffsProbe, finalSH);
+
+            return EvaluateAmbientProbe(m_PackedCoeffsProbe, Vector3.up);
         }
 
         // Function that fills the buffer with the ambient probe values
