@@ -1,17 +1,40 @@
-:root
+/* Style for tabs */
+#RenderingDebugger
 {
     flex-direction: row;
-}
-
-.PanelElement
-{
-    flex-direction: column;
     flex-grow: 1;
-    padding-top: 10;
-    padding-left: 5;
 }
 
-.Hidden
-{
+/* Style for tabs */
+#tabs {
+    flex-basis: 10%;
+    flex-direction: column;
+    font-size: 12px;
+    -unity-font-style: bold;
+    font-size: 14px;
+    border-right-color: black;
+    border-right-width: 2px;
+}
+
+/* Sets each label in tabs to have the same size. */
+.tab {
+    flex-grow: 1;
+    padding: 10;
+}
+
+/* Adds background color for the selected tab */
+.currentlySelectedTab {
+    background-color: rgb(77, 77, 77);
+    color: rgb(0.2196079, 0.2196079, 0.2196079);
+}
+
+/* Style for tabContent */
+#tabContent {
+    flex-basis: 90%;
+    padding: 5;
+}
+
+/* Hides the unselected tab content */
+.unselectedContent {
     display: none;
 }
