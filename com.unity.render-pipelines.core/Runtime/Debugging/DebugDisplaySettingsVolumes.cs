@@ -12,13 +12,13 @@ namespace UnityEngine.Rendering
     public class DebugDisplaySettingsVolume : IDebugDisplaySettingsData
     {
         /// <summary>Current volume debug settings.</summary>
-        public IVolumeDebugSettings volumeDebugSettings { get; }
+        public IVolumeDebugSettings2 volumeDebugSettings { get; }
 
         /// <summary>
         /// Constructor with the settings
         /// </summary>
         /// <param name="volumeDebugSettings"></param>
-        public DebugDisplaySettingsVolume(IVolumeDebugSettings volumeDebugSettings)
+        public DebugDisplaySettingsVolume(IVolumeDebugSettings2 volumeDebugSettings)
         {
             this.volumeDebugSettings = volumeDebugSettings;
         }
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering
                 var componentNames = new List<GUIContent>() { Styles.none };
                 var componentValues = new List<int>() { componentIndex++ };
 
-                foreach (var type in data.volumeDebugSettings.componentTypes)
+                foreach (var type in data.volumeDebugSettings.volumeComponentsPathAndType)
                 {
                     componentNames.Add(new GUIContent() { text = type.Item1 });
                     componentValues.Add(componentIndex++);
