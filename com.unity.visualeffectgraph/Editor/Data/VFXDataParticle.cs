@@ -18,7 +18,7 @@ namespace UnityEditor.VFX
         string GetCodeOffset(VFXAttribute attrib, string index);
         uint GetBufferSize(uint capacity);
 
-        VFXGPUBufferDesc GetBufferDesc(uint capacity);
+        VFXGPUBufferDesc GetBufferDesc(uint capacity, ComputeBufferMode mode = ComputeBufferMode.Dynamic);
     }
 
     class StructureOfArrayProvider : ILayoutProvider
@@ -129,7 +129,7 @@ namespace UnityEditor.VFX
             return (uint)m_BucketOffsets.LastOrDefault() + capacity * (uint)m_BucketSizes.LastOrDefault();
         }
 
-        public VFXGPUBufferDesc GetBufferDesc(uint capacity)
+        public VFXGPUBufferDesc GetBufferDesc(uint capacity, ComputeBufferMode mode = ComputeBufferMode.Immutable)
         {
             var layout = m_AttributeLayout.Select(o => new VFXLayoutElementDesc()
             {
@@ -149,7 +149,7 @@ namespace UnityEditor.VFX
                 stride = 4,
                 capacity = capacity,
                 layout = layout.ToArray(),
-                mode = ComputeBufferMode.Immutable
+                mode = mode
             };
         }
 
@@ -677,7 +677,7 @@ namespace UnityEditor.VFX
                 }
 
                 attributeSourceBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(m_layoutAttributeSource.GetBufferDesc(staticSourceCount));
+                outBufferDescs.Add(m_layoutAttributeSource.GetBufferDesc(staticSourceCount, ComputeBufferMode.Dynamic));
             }
 
             if (attributeSourceBufferIndex != -1)
