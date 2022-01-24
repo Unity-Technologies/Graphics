@@ -39,6 +39,21 @@ float ComputeWeightValue(float perceptualSmoothness)
     return (_RaytracingReflectionSmoothnessFadeStart == _RaytracingReflectionMinSmoothness) ? 1.0 : max(saturate((perceptualSmoothness - _RaytracingReflectionMinSmoothness) / (_RaytracingReflectionSmoothnessFadeStart -_RaytracingReflectionMinSmoothness)), 0.001);
 }
 
+// Function that evaluates the normal data for a given pixel
+NormalData EvaluateNormalData(uint2 sourceCoord)
+{
+    // Fetch the normal
+    NormalData normalData;
+    DecodeFromNormalBuffer(sourceCoord, normalData);
+
+    // We use a texture to identify if we use a clear coat constant for perceptualRoughness for SSR or use value from normal buffer.
+    // When we use a forward material we can output the normal and perceptualRoughness for the coat for SSR, so we simply bind a black 1x1 texture
+    // When we use deferred material we need to bind the gbuffer2 and read the coat mask
+    float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, sourceCoord);
+    normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_SSR_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
+    return normalData;
+}
+
 [numthreads(RAYTRACING_REFLECTION_TILE_SIZE, RAYTRACING_REFLECTION_TILE_SIZE, 1)]
 void ReflectionRescaleAndAdjustWeight(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
@@ -56,15 +71,8 @@ void ReflectionRescaleAndAdjustWeight(uint3 dispatchThreadId : SV_DispatchThread
     // Fetch the depth
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerGeometryCoord).x;
 
-    // Fetch the normal
-    NormalData normalData;
-    DecodeFromNormalBuffer(centerGeometryCoord, normalData);
-
-    // We use a texture to identify if we use a clear coat constant for perceptualRoughness for SSR or use value from normal buffer.
-    // When we use a forward material we can output the normal and perceptualRoughness for the coat for SSR, so we simply bind a black 1x1 texture
-    // When we use deferred material we need to bind the gbuffer2 and read the coat mask
-    float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, centerGeometryCoord);
-    normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
+    // Fetch the normal data
+    NormalData normalData = EvaluateNormalData(centerGeometryCoord);
 
     // Duplicating same early out condition we do on reflection dispatchrays as that info is 1/2 res while we need full res granularity here.
     // Also, this operates on data we fetch anyway, while the _SsrLightingTextureRW at central pixel is needed only if that pixel contributes to filtering below.
@@ -90,14 +98,9 @@ void ReflectionAdjustWeight(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
 
     // Fetch the depth and normal
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, targetCoord).x;
-    NormalData normalData;
-    DecodeFromNormalBuffer(targetCoord, normalData);
 
-    // We use a texture to identify if we use a clear coat constant for perceptualRoughness for SSR or use value from normal buffer.
-    // When we use a forward material we can output the normal and perceptualRoughness for the coat for SSR, so we simply bind a black 1x1 texture
-    // When we use deferred material we need to bind the gbuffer2 and read the coat mask
-    float4 coatMask = LOAD_TEXTURE2D_X(_SsrClearCoatMaskTexture, targetCoord);
-    normalData.perceptualRoughness = HasClearCoatMask(coatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
+    // Fetch the normal data
+    NormalData normalData = EvaluateNormalData(targetCoord);
 
     // Duplicating same early out condition we do on reflection dispatchrays as that info is 1/2 res while we need full res granularity here.
     // Also, this operates on data we fetch anyway, while the _SsrLightingTextureRW at central pixel is needed only if that pixel contributes to filtering below.
