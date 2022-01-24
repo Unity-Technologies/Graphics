@@ -202,7 +202,11 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 f0 = lerp(DEFAULT_SPECULAR_VALUE, baseColor, metalness);
     float NdotV = dot(V, normalWS);
     bool isBackface = NdotV < 0.0;
-    float iorEstimated = ior;// Fresnel0ToIor(f0).x; // TODO: check on packing the GBuffer if they had IOR otherwise store directly Fresnel0ToIor(f0).x
+
+    //TODO: Soufianne, look into packing of OIR!
+    //float iorEstimated = ior;
+    float iorEstimated = Fresnel0ToIor(f0).x;
+
     float internalIORSource =  isBackface ? 1.0f : iorEstimated;
     float internalIORMedium =  isBackface ? iorEstimated : 1.0f;
     float eta = internalIORMedium / internalIORSource;
