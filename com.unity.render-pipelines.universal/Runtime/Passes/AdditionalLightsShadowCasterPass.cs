@@ -899,7 +899,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     ShadowSliceData shadowSliceData = m_AdditionalLightsShadowSlices[globalShadowSliceIndex];
 
-                    var settings = new ShadowDrawingSettings(cullResults, originalLightIndex);
+                    var settings = new ShadowDrawingSettings(cullResults, originalLightIndex, false);
                     settings.useRenderingLayerMaskTest = UniversalRenderPipeline.asset.supportsLightLayers;
                     settings.splitData = shadowSliceData.splitData;
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, visibleLightIndex,
