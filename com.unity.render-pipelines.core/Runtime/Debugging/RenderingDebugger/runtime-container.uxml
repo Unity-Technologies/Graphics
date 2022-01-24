@@ -1,13 +1,8 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd">
+<ui:UXML
+        xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements"
+        xsi="http://www.w3.org/2001/XMLSchema-instance"
+        engine="UnityEngine.UIElements"
+        editor="UnityEditor.UIElements"
+        noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd">
     <Style src="project://database/Packages/com.unity.render-pipelines.core/Runtime/Debugging/RenderingDebugger/Styles/runtime-container.uss?fileID=7433441132597879392&amp;guid=81d34929bfd993540a9c13bb9ecb5fee&amp;type=3#runtime-container" />
-
-    <!-- Can't access RPs here, so this is temporary -->
-    <ui:Template name="Panel1Template" src="project://database/Packages/com.unity.render-pipelines.universal/Runtime/Debug/RenderingDebugger/temp-panel1.uxml"/>
-    <ui:Template name="Panel2Template" src="project://database/Packages/com.unity.render-pipelines.universal/Runtime/Debug/RenderingDebugger/temp-panel2.uxml"/>
-
-    <ui:VisualElement name="Container">
-        <ui:Label text="Runtime Window" />
-        <ui:Instance name="Panel1" template="Panel1Template"/>
-        <ui:Instance name="Panel2" template="Panel2Template"/>
-    </ui:VisualElement>
 </ui:UXML>
