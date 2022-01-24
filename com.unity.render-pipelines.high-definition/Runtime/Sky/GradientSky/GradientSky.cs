@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ColorParameter bottom = new ColorParameter(Color.white, true, false, true);
         /// <summary>Size of the horizon (middle color.</summary>
         [Tooltip("Sets the size of the horizon (Middle color).")]
-        public FloatParameter gradientDiffusion = new FloatParameter(1);
+        public MinFloatParameter gradientDiffusion = new MinFloatParameter(1, 0.0f);
 
         /// <summary>
         /// Returns the hash code of the gradient sky parameters.
