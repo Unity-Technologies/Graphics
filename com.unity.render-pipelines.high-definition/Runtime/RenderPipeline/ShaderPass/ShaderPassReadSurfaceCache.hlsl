@@ -2,14 +2,13 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-
 struct VaryingsPassToPS
 {
     uint arrayIndex;
 };
 struct PackedVaryingsPassToPS
 {
-    uint arrayIndex : CUSTOM_ARRAY_INDEX;
+    uint arrayIndex : BLENDINDICES1;
 };
 PackedVaryingsPassToPS PackVaryingsPassToPS(VaryingsPassToPS input)
 {
@@ -72,6 +71,8 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
+TEXTURE2D(_SurfaceCacheLit);
+
 float4 Frag(  PackedVaryingsToPS packedInput
             #ifdef _DEPTHOFFSET_ON
             , out float outputDepth : DEPTH_OFFSET_SEMANTIC
@@ -100,6 +101,14 @@ float4 Frag(  PackedVaryingsToPS packedInput
     outputDepth = posInput.deviceDepth;
 #endif
 
+    // read from surface cache (requires lightmap uvs)
+#ifdef LIGHTMAP_ON
+    float2 lightmapUV = input.texCoord1 * unity_LightmapST.xy + unity_LightmapST.zw;
+    float4 cached = SAMPLE_TEXTURE2D(_SurfaceCacheLit, s_linear_clamp_sampler, lightmapUV);
+#else
+    float4 cached = 0;
+#endif
+
     // TODO: actually read from the surface cache
-    return float4(surfaceData.baseColor, 1.0f);
+    return float4(cached.xyz, 1.0f);
 }

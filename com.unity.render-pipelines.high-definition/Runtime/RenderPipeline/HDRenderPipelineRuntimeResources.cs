@@ -82,6 +82,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader buildMaterialFlagsCS;
             [Reload("Runtime/Lighting/LightLoop/Deferred.compute")]
             public ComputeShader deferredCS;
+            [Reload("Runtime/Lighting/LightLoop/DeferredSurfaceCache.compute")]
+            public ComputeShader deferredSurfaceCacheCS;
             [Reload("Runtime/Lighting/Shadow/ContactShadows.compute")]
             public ComputeShader contactShadowCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumeVoxelization.compute")]

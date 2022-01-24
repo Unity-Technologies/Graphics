@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 width = k_CubeSize,
                 height = k_CubeSize,
                 volumeDepth = 6 * k_MaxProbesPerBatch,
-                graphicsFormat = GraphicsFormat.B10G11R11_UFloatPack32,
+                graphicsFormat = GraphicsFormat.R16G16B16A16_SFloat,
                 depthStencilFormat = GraphicsFormat.D32_SFloat,
                 msaaSamples = 1,
             };
@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_CameraPosArray[arrayIndex] = new Vector4(cameraPos.x, cameraPos.y, cameraPos.z, 0.0f);
                     }
 
-                    Camera camera = m_BFProbeCameraCache.GetOrCreate(batchIndex, m_FrameCount, CameraType.Game);
+                    Camera camera = m_BFProbeCameraCache.GetOrCreate(batchIndex, m_FrameCount);
                     camera.gameObject.hideFlags = HideFlags.HideAndDontSave;
                     camera.gameObject.SetActive(false);
                     camera.orthographic = true;
@@ -133,6 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         renderingLayerMask = ~DeferredMaterialBRG.RenderLayerMask,
                         renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque,
+                        rendererConfiguration = PerObjectData.Lightmaps,
                     };
                     var rendererList = context.CreateRendererList(rendererListDesc);
 
@@ -140,6 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     CoreUtils.SetRenderTarget(cmd, m_BFProbeTemp, ClearFlag.All, new Color(0.1f, 0.2f, 0.3f));
                     cmd.SetViewport(new Rect(0, 0, k_CubeSize, k_CubeSize));
 
+                    cmd.SetGlobalTexture(HDShaderIDs._SurfaceCacheLit, m_SurfaceCacheLit.rt);
                     cmd.SetGlobalMatrixArray(_ViewProjMatrixArray, m_ViewProjArray);
                     cmd.SetGlobalVectorArray(_WorldSpaceCameraPosArray, m_CameraPosArray);
 
@@ -188,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var matrices = new List<Matrix4x4>(probeCount);
             for (int probeIndex = 0; probeIndex < probeCount; ++probeIndex)
                 matrices.Add(Matrix4x4.Translate(probes[probeIndex].transform.position));
-            
+
             Graphics.DrawMeshInstanced(m_DebugMesh, 0, m_DebugMaterial, matrices.ToArray(), probeCount, properties, ShadowCastingMode.Off, false, 0, camera, LightProbeUsage.Off, null);
         }
     }

@@ -65,6 +65,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>ReadSurfaceCache pass name.</summary>
         public static readonly string s_ReadSurfaceCacheStr = "ReadSurfaceCache";
 
+        public static readonly string s_SurfaceCacheNameStr = "SurfaceCacheMaterial";
+
 
         // ShaderPass name
         /// <summary>Empty shader tag id.</summary>
@@ -101,6 +103,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_RayTracingPrepassName = new ShaderTagId(s_RayTracingPrepassStr);
         /// <summary>FullScreen Debug shader tag id.</summary>
         public static readonly ShaderTagId s_FullScreenDebugName = new ShaderTagId(s_FullScreenDebugStr);
+        /// <summary>
+        /// Surface cache shader tag id
+        /// </summary>
+        public static readonly ShaderTagId s_SurfaceCacheName = new ShaderTagId(s_SurfaceCacheNameStr);
+
 
         /// <summary>DBuffer Mesh shader tag id.</summary>
         public static readonly ShaderTagId s_DBufferMeshName = new ShaderTagId(s_DBufferMeshStr);
@@ -387,6 +394,12 @@ namespace UnityEngine.Rendering.HighDefinition
             Shader.PropertyToID("_DBufferTexture2"),
             Shader.PropertyToID("_DBufferTexture3")
         };
+
+        public static readonly int _SurfaceCacheAlbedo = Shader.PropertyToID("_SurfaceCacheAlbedo");
+        public static readonly int _SurfaceCacheNormal = Shader.PropertyToID("_SurfaceCacheNormal");
+        public static readonly int _SurfaceCachePosWS = Shader.PropertyToID("_SurfaceCachePosWS");
+        public static readonly int _SurfaceCacheEmissive = Shader.PropertyToID("_SurfaceCacheEmissive");
+        public static readonly int _SurfaceCacheLit = Shader.PropertyToID("_SurfaceCacheLit");
 
         public static readonly int _ShaderVariablesGlobal = Shader.PropertyToID("ShaderVariablesGlobal");
         public static readonly int _ShaderVariablesXR = Shader.PropertyToID("ShaderVariablesXR");

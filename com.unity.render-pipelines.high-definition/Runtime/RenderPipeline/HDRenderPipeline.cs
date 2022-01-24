@@ -464,6 +464,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeVolumetricClouds();
             InitializeSubsurfaceScattering();
             InitializeWaterSystem();
+            InitializeSurfaceCache();
             InitializeBFProbes();
 
             m_DebugDisplaySettings.RegisterDebug();

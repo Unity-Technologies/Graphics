@@ -747,6 +747,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public int shadowMaskTextureIndex;
             public TextureHandle[] gbuffer = new TextureHandle[8];
 
+            public SurfaceCacheBufferOutput surfaceCacheOutput;
+
             public ComputeBufferHandle lightListBuffer;
             public ComputeBufferHandle tileFeatureFlagsBuffer;
             public ComputeBufferHandle tileListBuffer;
@@ -760,7 +762,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle colorBuffer;
         }
 
-        static void RenderComputeDeferredLighting(DeferredLightingPassData data, RenderTargetIdentifier[] colorBuffers, CommandBuffer cmd)
+        static void RenderComputeDeferredLighting(DeferredLightingPassData data, RenderTargetIdentifier[] colorBuffers, CommandBuffer cmd, bool surfaceCache = false)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderDeferredLightingCompute)))
             {
@@ -806,8 +808,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(data.deferredComputeShader, kernel, HDShaderIDs._CameraDepthTexture, data.depthTexture);
 
                     // TODO: Is it possible to setup this outside the loop ? Can figure out how, get this: Property (specularLightingUAV) at kernel index (21) is not set
-                    cmd.SetComputeTextureParam(data.deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
-                    cmd.SetComputeTextureParam(data.deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV, colorBuffers[1]);
+                    if (surfaceCache)
+                    {
+                        cmd.SetComputeTextureParam(data.deferredComputeShader, kernel, HDShaderIDs._SurfaceCacheLit, colorBuffers[0]);
+                    }
+                    else
+                    {
+                        cmd.SetComputeTextureParam(data.deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
+                        cmd.SetComputeTextureParam(data.deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV, colorBuffers[1]);
+                    }
+
                     cmd.SetComputeBufferParam(data.deferredComputeShader, kernel, HDShaderIDs.g_vLightListTile, data.lightListBuffer);
 
                     cmd.SetComputeTextureParam(data.deferredComputeShader, kernel, HDShaderIDs._StencilTexture, data.depthBuffer, 0, RenderTextureSubElement.Stencil);

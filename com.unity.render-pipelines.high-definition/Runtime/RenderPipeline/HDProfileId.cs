@@ -261,6 +261,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         AOVExecute,
         AOVOutput,
+
+        //Surface Cache
+        SurfaceCacheMaterial,
 #if ENABLE_VIRTUALTEXTURES
         VTFeedbackDownsample,
 #endif
