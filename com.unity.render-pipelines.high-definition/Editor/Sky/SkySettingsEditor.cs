@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         GUIContent m_SkyIntensityModeLabel = new UnityEngine.GUIContent("Intensity Mode");
-        GUIContent m_ExposureCompensationLabel = new GUIContent("Exposure Compensaiton", "Sets the exposure compensation of the sky in EV.");
+        GUIContent m_ExposureCompensationLabel = new GUIContent("Exposure Compensation", "Sets the exposure compensation of the sky in EV.");
 
         SerializedDataParameter m_SkyExposure;
         SerializedDataParameter m_SkyMultiplier;
