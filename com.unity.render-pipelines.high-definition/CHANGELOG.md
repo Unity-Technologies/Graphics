@@ -103,6 +103,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue where changes to APV baking set lists were not saved.
 - Fixed Normal Map assignation when importing FBX Materials.
 - Fixed sky jittering when TAA is enabled
+- Fixed issue that caused the uber post process to run even if nothing is to be done, leading to different results when disabling every post process manually vs disabling the whole post-processing pipeline.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
