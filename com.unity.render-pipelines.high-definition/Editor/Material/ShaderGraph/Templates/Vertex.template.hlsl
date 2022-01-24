@@ -47,6 +47,7 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     return output;
 }
 
+//TODOPAUL Rework this factorization considering the time parameter override
 VertexDescription ExecuteVertexDescription(VertexDescriptionInputs vertexDescriptionInputs
 #ifdef HAVE_VFX_MODIFICATION
     , AttributesElement element
