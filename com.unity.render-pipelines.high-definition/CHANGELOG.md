@@ -81,7 +81,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixing missing doc API for RTAS Debug display.
 - Fixed AO dissapearing when DRS would be turned off through a camera, while hardware drs is active in DX12 or Vulkan (case 1383093).
 - Fixed misc shader warnings.
-- Fixed NullReferenceException when opeining a Volume Component with a Diffusion Profile with any inspector.
+- Fixed NullReferenceException when opening a Volume Component with a Diffusion Profile with any inspector.
 - Fixed a shader warning in UnityInstancing.hlsl
 - Fixed for APV debug mode breaking rendering when switching to an asset with APV disabled.
 - Fixed potential asymmetrical resource release in the volumetric clouds (case 1388218).
