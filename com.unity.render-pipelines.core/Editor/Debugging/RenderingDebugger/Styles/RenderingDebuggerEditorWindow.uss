@@ -6,6 +6,9 @@
 .PanelElement
 {
     flex-direction: column;
+    flex-grow: 1;
+    padding-top: 10;
+    padding-left: 5;
 }
 
 .Hidden

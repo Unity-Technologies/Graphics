@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace UnityEditor.Rendering
         private List<SerializedObject> serializedObjects = new ();
 
         private int selectedPanel; // TODO needs to be serialized to support undo & domain reload persistence
+        private string selectedPanelName;
 
         [MenuItem("Window/Analysis/Rendering Debugger (UITK)", priority = 10006)]
         public static void ShowDefaultWindow()
@@ -61,6 +63,7 @@ namespace UnityEditor.Rendering
                     // Create the visual element and clone the panel document
                     VisualElement panelVisualElement = new VisualElement();
                     panelVisualElement.AddToClassList("PanelElement");
+                    panelVisualElement.name = panelDescriptionAttribute.panelName;
                     panelVisualTreeAsset.CloneTree(panelVisualElement);
 
                     // TODO: Scriptable object must be saved somewhere into a rendering debugger manager, obtain it from there
@@ -70,6 +73,17 @@ namespace UnityEditor.Rendering
 
                     // Bind it to the visual element of the panel
                     panelVisualElement.Bind(so);
+
+                    // Initialize first selected
+                    if (!serializedObjects.Any())
+                    {
+                        selectedPanel = 0;
+                        selectedPanelName = panelVisualElement.name;
+                    }
+                    else
+                    {
+                        panelVisualElement.AddToClassList("Hidden");
+                    }
 
                     serializedObjects.Add(so);
 
@@ -88,6 +102,18 @@ namespace UnityEditor.Rendering
             }
 
             this.minSize = new Vector2(400, 250);
+        }
+
+        public void SetSelectedPanel(int panelIndex, string panelName)
+        {
+            // hide previously selected panel
+            this.rootVisualElement.Q<VisualElement>(selectedPanelName, "PanelElement").AddToClassList("Hidden");
+
+            selectedPanel = panelIndex;
+            selectedPanelName = panelName;
+
+            // display newly selected panel
+            this.rootVisualElement.Q<VisualElement>(panelName, "PanelElement").RemoveFromClassList("Hidden");
         }
 
         public void TabContainerOnGUI()
@@ -109,7 +135,7 @@ namespace UnityEditor.Rendering
                 if (EditorGUI.EndChangeCheck())
                 {
                     //Undo.RegisterCompleteObjectUndo(m_Settings, $"Debug Panel '{panel.displayName}' Selection");
-                    selectedPanel = i;
+                    SetSelectedPanel(i, panelAttribute.panelName);
                 }
             }
         }
