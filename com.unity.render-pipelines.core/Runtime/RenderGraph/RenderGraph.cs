@@ -637,7 +637,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public RenderGraphExecution RecordAndExecute(in RenderGraphParameters parameters)
         {
             m_CurrentFrameIndex = parameters.currentFrameIndex;
-            m_CurrentExecutionName = parameters.executionName;
+            m_CurrentExecutionName = parameters.executionName != null ? parameters.executionName : "RenderGraphExecution";
             m_HasRenderGraphBegun = true;
 
             m_Resources.BeginRenderGraph(m_ExecutionCount++);

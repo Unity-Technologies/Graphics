@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering
                 // For properties, get the name of the backing field
                 var name = me.Member is FieldInfo
                     ? me.Member.Name
-                    : "m_" + me.Member.Name.Substring(0, 1).ToUpper() + me.Member.Name.Substring(1);
+                    : "m_" + me.Member.Name.Substring(0, 1).ToUpperInvariant() + me.Member.Name.Substring(1);
                 members.Add(name);
                 me = me.Expression as MemberExpression;
             }
