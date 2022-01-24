@@ -102,7 +102,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where APV cells were not populated properly when probe volumes have rotations
 - Fixed issue where changes to APV baking set lists were not saved.
 - Fixed Normal Map assignation when importing FBX Materials.
-- Fixed sky jittering when TAA is enabled
+- Fixed sky jittering when TAA is enabled.
+- Fixed issue with cached shadows not being rendered via the OnEnable callback.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
