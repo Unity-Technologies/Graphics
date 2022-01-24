@@ -38,7 +38,7 @@ public class RenderGraphViewer : EditorWindow
         }
     }
 
-    [MenuItem("Window/Analysis/Render Graph Viewer", false, 10006)]
+    [MenuItem("Window/Analysis/Render Graph Viewer", false, 10007)]
     static void Init()
     {
         // Get existing open window or if none, make a new one:

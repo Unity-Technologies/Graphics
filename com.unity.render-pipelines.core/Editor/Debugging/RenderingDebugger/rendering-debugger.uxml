@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <Style src="project://database/Packages/com.unity.render-pipelines.core/Editor/Debugging/RenderingDebugger/Styles/content.uss?fileID=7433441132597879392&amp;guid=76af94ab039920449a9afae7046ca5e8&amp;type=3#content" />
+
+    <ui:Template name="Panel1Template" src="project://database/Packages/com.unity.render-pipelines.universal/Runtime/Debug/RenderingDebugger/temp-panel1.uxml"/>
+    <ui:Template name="Panel2Template" src="project://database/Packages/com.unity.render-pipelines.universal/Runtime/Debug/RenderingDebugger/temp-panel2.uxml"/>
+
+    <ui:VisualElement name="Root" style="margin: 2px; margin: 4px; min-width: auto; min-height: auto;">
+        <ui:Label text="Editor Window" />
+        <ui:Instance name="Panel1" template="Panel1Template"/>
+        <ui:Instance name="Panel2" template="Panel2Template"/>
+    </ui:VisualElement>
+</ui:UXML>

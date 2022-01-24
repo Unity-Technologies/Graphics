@@ -1,0 +1,11 @@
+#Container {
+    margin: 12px;
+    padding: 4px;
+    border-radius: 4px;
+    background-color: #383838;
+    opacity: 0.75;
+}
+
+#Content * {
+    color: white;
+}

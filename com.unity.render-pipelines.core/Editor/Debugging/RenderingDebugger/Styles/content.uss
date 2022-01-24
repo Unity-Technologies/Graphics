@@ -1,0 +1,5 @@
+.category-header {
+    -unity-font-style: bold;
+    margin-top: 2px;
+    margin-bottom: 4px;
+}
