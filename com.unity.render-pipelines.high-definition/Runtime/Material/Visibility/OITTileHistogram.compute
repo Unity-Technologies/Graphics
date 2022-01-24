@@ -19,8 +19,6 @@
 
 float4 _PackedOITTileHistogramArgs;
 
-RWStructuredBuffer<uint> _OITSortMemoryBuffer;
-
 int _VisOITBlockJitterOffsetX;
 int _VisOITBlockJitterOffsetY;
 
@@ -77,28 +75,10 @@ void MainClearHistogram(uint3 dispatchThreadID : SV_DispatchThreadID)
 
     _VisOITHistogramOutput.Store(dispatchThreadID.x << 2,  0);
 
-    // Initialize some sorting variables to 0
-    if (dispatchThreadID.x == 0)
+    // Initialize all static sorting memory data to 0
+    if (dispatchThreadID.x < kSorting_PixelListDataOffset)
     {
-        // Sums
-        // Count <= 4
-        _OITSortMemoryBuffer[0] = 0;
-
-        // Count <= 32
-        _OITSortMemoryBuffer[1] = 0;
-
-        // Count > 32
-        _OITSortMemoryBuffer[2] = 0;
-
-        // Counters
-        // Count <= 4
-        _OITSortMemoryBuffer[3] = 0;
-
-        // Count <= 32
-        _OITSortMemoryBuffer[4] = 0;
-
-        // Count > 32
-        _OITSortMemoryBuffer[5] = 0;
+        _OITSortMemoryBuffer[dispatchThreadID.x] = 0;
     }
 }
 
@@ -161,9 +141,8 @@ void MainFlatEnableActiveCounts(int3 dispatchThreadID : SV_DispatchThreadID)
                 sortVariantOffset = 2;
             }
 
-            // Increment the sublist allocation count every time we encounter a valid sublist
-            uint dummy;
-            InterlockedAdd(_OITSortMemoryBuffer[sortVariantOffset], 1, dummy);
+            // Increment the relevant sort variant count based on the number of samples to sort
+            InterlockedAdd(_OITSortMemoryBuffer[kSorting_SumsOffset + sortVariantOffset], 1);
         }
     }
 

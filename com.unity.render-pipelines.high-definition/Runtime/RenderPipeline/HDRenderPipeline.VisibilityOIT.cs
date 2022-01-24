@@ -115,6 +115,38 @@ namespace UnityEngine.Rendering.HighDefinition
             return (int)Math.Max(1, Math.Ceiling(availableBytes / visibilityCost));
         }
 
+        uint GetNumSortVariants()
+        {
+            return 3;
+        }
+
+        string GetSortVariantName(uint index)
+        {
+            string[] kVariantStrings = new string[] {
+                "OITSort_Network",
+                "OITSort_GroupShared_Wave",
+                "OITSort_GroupShared"
+            };
+
+            Debug.Assert(index < GetNumSortVariants());
+
+            return kVariantStrings[index];
+        }
+
+        // Returns the size of the scratch memory required for sorting (in dwords)
+        uint GetSortMemoryNumDwords(Vector2Int screenSize)
+        {
+            uint numSortingVariants = GetNumSortVariants();
+
+            uint numDispatchArgDwords = (numSortingVariants * 3);
+            uint numSumDwords = numSortingVariants;
+            uint numCounterDwords = numSortingVariants;
+            uint numOffsetDwords = numSortingVariants;
+            uint numPixelIndexDwords = (uint)(screenSize.x * screenSize.y);
+
+            return numDispatchArgDwords + numSumDwords + numCounterDwords + numOffsetDwords + numPixelIndexDwords;
+        }
+
         internal bool IsVisibilityOITPassEnabled()
         {
             return currentAsset != null && currentAsset.VisibilityOITMaterial != null && currentAsset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.enabled && RenderBRG.GetRenderBRGMaterialBindingData().valid; ;
@@ -151,12 +183,13 @@ namespace UnityEngine.Rendering.HighDefinition
             var screenSize = new Vector2Int((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y);
             int histogramSize, tileSize;
 
+            int maxMaterialSampleCount = GetMaxMaterialOITSampleCount(hdCamera);
+
             ComputeBufferHandle histogramBuffer;
             ComputeBufferHandle sortMemoryBuffer;
-            ComputeOITTiledHistogram(renderGraph, screenSize, hdCamera.viewCount, output.vbufferOIT.stencilBuffer, out histogramSize, out tileSize, out histogramBuffer, out sortMemoryBuffer);
+            ComputeOITTiledHistogram(renderGraph, maxMaterialSampleCount, screenSize, hdCamera.viewCount, output.vbufferOIT.stencilBuffer, out histogramSize, out tileSize, out histogramBuffer, out sortMemoryBuffer);
             var prefixedHistogramBuffer = ComputeOITTiledPrefixSumHistogramBuffer(renderGraph, histogramBuffer, histogramSize);
 
-            int maxMaterialSampleCount = GetMaxMaterialOITSampleCount(hdCamera);
             ComputeOITAllocateSampleLists(
                 renderGraph, maxMaterialSampleCount, screenSize, output.vbufferOIT.stencilBuffer, prefixedHistogramBuffer, ref sortMemoryBuffer,
                 out ComputeBufferHandle sampleListCountBuffer, out ComputeBufferHandle sampleListOffsetBuffer, out ComputeBufferHandle sublistCounterBuffer, out ComputeBufferHandle pixelHashBuffer);
@@ -249,7 +282,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle sortMemoryBuffer;
         }
 
-        void ComputeOITTiledHistogram(RenderGraph renderGraph, Vector2Int screenSize, int viewCount, TextureHandle stencilBuffer, out int histogramSize, out int tileSize, out ComputeBufferHandle outHistogramBuffer, out ComputeBufferHandle outSortMemoryBuffer)
+        void ComputeOITTiledHistogram(RenderGraph renderGraph, int maxMaterialSampleCount, Vector2Int screenSize, int viewCount, TextureHandle stencilBuffer, out int histogramSize, out int tileSize, out ComputeBufferHandle outHistogramBuffer, out ComputeBufferHandle outSortMemoryBuffer)
         {
             tileSize = 128;
             histogramSize = tileSize * tileSize;
@@ -265,15 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.histogramSize = histogramSize;
                 passData.histogramBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(histogramSize, sizeof(uint), ComputeBufferType.Raw) { name = "OITHistogram" }));
 
-                // Allocate a single large buffer for all of the data required by the sorting shaders
-                uint numSortingVariants = 3;
-                uint numSumDwords = numSortingVariants;
-                uint numCounterDwords = numSortingVariants;
-                uint numOffsetDwords = numSortingVariants;
-                uint numDispatchArgDwords = (numSortingVariants * 3);
-                uint numIndexDwords = (uint)(screenSize.x * screenSize.y);
-                uint totalSortDataDwords = numSumDwords + numCounterDwords + numOffsetDwords + numDispatchArgDwords + numIndexDwords;
-                passData.sortMemoryBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)totalSortDataDwords, sizeof(uint), ComputeBufferType.Structured | ComputeBufferType.IndirectArguments) { name = "OITSortMemory" }));
+                passData.sortMemoryBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)GetSortMemoryNumDwords(screenSize), sizeof(uint), ComputeBufferType.Structured | ComputeBufferType.IndirectArguments) { name = "OITSortMemory" }));
 
                 outHistogramBuffer = passData.histogramBuffer;
                 outSortMemoryBuffer = passData.sortMemoryBuffer;
@@ -554,29 +579,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (OITSortSamplesPassData data, RenderGraphContext context) =>
                     {
-                        int networkSort = data.cs.FindKernel("OITSort_Network");
-                        int groupSharedWaveSort = data.cs.FindKernel("OITSort_GroupShared_Wave");
-                        int groupSharedSort = data.cs.FindKernel("OITSort_GroupShared");
+                        uint indirectArgSizeInBytes = 12;
 
-                        uint indirectArgOffset = 36;
+                        uint numSortVariants = GetNumSortVariants();
+                        for (uint sortVariantIndex = 0; sortVariantIndex < numSortVariants; ++sortVariantIndex)
+                        {
+                            int kernel = data.cs.FindKernel(GetSortVariantName(sortVariantIndex));
+                            uint indirectArgOffset = sortVariantIndex * indirectArgSizeInBytes;
 
-                        context.cmd.SetComputeBufferParam(data.cs, networkSort, HDShaderIDs._RWVisOITBuffer, data.oitVisibilityBuffer);
-                        context.cmd.SetComputeBufferParam(data.cs, networkSort, HDShaderIDs._VisOITListsCounts, data.countBuffer);
-                        context.cmd.SetComputeBufferParam(data.cs, networkSort, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
-                        context.cmd.SetComputeBufferParam(data.cs, networkSort, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
-                        context.cmd.DispatchCompute(data.cs, networkSort, data.sortMemoryBuffer, indirectArgOffset);
-
-                        context.cmd.SetComputeBufferParam(data.cs, groupSharedWaveSort, HDShaderIDs._RWVisOITBuffer, data.oitVisibilityBuffer);
-                        context.cmd.SetComputeBufferParam(data.cs, groupSharedWaveSort, HDShaderIDs._VisOITListsCounts, data.countBuffer);
-                        context.cmd.SetComputeBufferParam(data.cs, groupSharedWaveSort, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
-                        context.cmd.SetComputeBufferParam(data.cs, groupSharedWaveSort, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
-                        context.cmd.DispatchCompute(data.cs, groupSharedWaveSort, data.sortMemoryBuffer, indirectArgOffset + 12);
-
-                        context.cmd.SetComputeBufferParam(data.cs, groupSharedSort, HDShaderIDs._RWVisOITBuffer, data.oitVisibilityBuffer);
-                        context.cmd.SetComputeBufferParam(data.cs, groupSharedSort, HDShaderIDs._VisOITListsCounts, data.countBuffer);
-                        context.cmd.SetComputeBufferParam(data.cs, groupSharedSort, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
-                        context.cmd.SetComputeBufferParam(data.cs, groupSharedSort, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
-                        context.cmd.DispatchCompute(data.cs, groupSharedSort, data.sortMemoryBuffer, indirectArgOffset + 24);
+                            context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._RWVisOITBuffer, data.oitVisibilityBuffer);
+                            context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsCounts, data.countBuffer);
+                            context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
+                            context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
+                            context.cmd.DispatchCompute(data.cs, kernel, data.sortMemoryBuffer, indirectArgOffset);
+                        }
                     });
             }
         }

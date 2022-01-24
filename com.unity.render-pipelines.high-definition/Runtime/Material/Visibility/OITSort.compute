@@ -13,8 +13,6 @@
 #pragma kernel OITSort_GroupShared_Wave
 #pragma kernel OITSort_GroupShared
 
-RWStructuredBuffer<uint> _OITSortMemoryBuffer;
-
 RWByteAddressBuffer _RWVisOITBuffer;
 
 uint3 LoadPackedVisibilitySample(uint i, uint listOffset)
@@ -30,37 +28,40 @@ void StorePackedVisibilitySample(uint i, uint listOffset, uint3 packedSample)
 [numthreads(1, 1, 1)]
 void OITSort_Init()
 {
-    uint sumSmall = _OITSortMemoryBuffer[0];
-    uint sumMed = _OITSortMemoryBuffer[1];
-    uint sumBig = _OITSortMemoryBuffer[2];
+    uint previousSum = 0;
 
-    // 3-5 is counter data
+    // Calculate the pixel list offets via prefix sum
+    for (uint sortVariantIndex = 0; sortVariantIndex < kSorting_NumVariants; ++sortVariantIndex)
+    {
+        uint currentSum = _OITSortMemoryBuffer[kSorting_SumsOffset + sortVariantIndex];
 
-    // Offsets
-    // Count <= 4
-    _OITSortMemoryBuffer[6] = 0;
+        _OITSortMemoryBuffer[kSorting_PixelListOffsetsOffset + sortVariantIndex] = previousSum;
 
-    // Count <= 32
-    _OITSortMemoryBuffer[7] = sumSmall;
+        previousSum += currentSum;
+    }
 
-    // Count > 32
-    _OITSortMemoryBuffer[8] = sumSmall + sumMed;
+    // Set up indirect args
+    // This part is unfortunately still manual since the shaders have different thread group sizes
+
+    uint sumSmall = _OITSortMemoryBuffer[kSorting_SumsOffset + 0];
+    uint sumMed   = _OITSortMemoryBuffer[kSorting_SumsOffset + 1];
+    uint sumBig   = _OITSortMemoryBuffer[kSorting_SumsOffset + 2];
 
     uint3 numGroupsSmall = uint3((sumSmall + 63) / 64, 1, 1);
-    uint3 numGroupsMed = uint3(sumMed, 1, 1);
-    uint3 numGroupsBig = uint3(sumBig, 1, 1);
+    uint3 numGroupsMed   = uint3(sumMed, 1, 1);
+    uint3 numGroupsBig   = uint3(sumBig, 1, 1);
 
-    _OITSortMemoryBuffer[9 + 0] = numGroupsSmall.x;
-    _OITSortMemoryBuffer[9 + 1] = numGroupsSmall.y;
-    _OITSortMemoryBuffer[9 + 2] = numGroupsSmall.z;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 0] = numGroupsSmall.x;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 1] = numGroupsSmall.y;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 2] = numGroupsSmall.z;
 
-    _OITSortMemoryBuffer[9 + 3] = numGroupsMed.x;
-    _OITSortMemoryBuffer[9 + 4] = numGroupsMed.y;
-    _OITSortMemoryBuffer[9 + 5] = numGroupsMed.z;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 3] = numGroupsMed.x;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 4] = numGroupsMed.y;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 5] = numGroupsMed.z;
 
-    _OITSortMemoryBuffer[9 + 6] = numGroupsBig.x;
-    _OITSortMemoryBuffer[9 + 7] = numGroupsBig.y;
-    _OITSortMemoryBuffer[9 + 8] = numGroupsBig.z;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 6] = numGroupsBig.x;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 7] = numGroupsBig.y;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 8] = numGroupsBig.z;
 }
 
 [numthreads(8, 8, 1)]
@@ -92,14 +93,14 @@ void OITSort_BinPixels(int3 dispatchThreadID : SV_DispatchThreadID)
         sortVariantOffset = 2;
     }
 
-    uint sortCounterAddr = 3 + sortVariantOffset;
-    uint sortIndexOffsetAddr = 6 + sortVariantOffset;
+    uint sortCounterAddr = kSorting_CountersOffset + sortVariantOffset;
+    uint sortIndexOffsetAddr = kSorting_PixelListOffsetsOffset + sortVariantOffset;
 
     uint globalSortIndexOffset = _OITSortMemoryBuffer[sortIndexOffsetAddr];
     uint localSortIndexOffset;
     InterlockedAdd(_OITSortMemoryBuffer[sortCounterAddr], 1, localSortIndexOffset);
 
-    uint sortIndexAddr = 18 + globalSortIndexOffset + localSortIndexOffset;
+    uint sortIndexAddr = kSorting_PixelListDataOffset + globalSortIndexOffset + localSortIndexOffset;
     _OITSortMemoryBuffer[sortIndexAddr] = outputPixel;
 }
 
@@ -145,7 +146,7 @@ void OITSort_Network(int3 dispatchThreadId : SV_DispatchThreadID)
 
     // Load pixel index
     uint sortVariantOffset = 0;
-    uint sortSumAddr = sortVariantOffset;
+    uint sortSumAddr = kSorting_SumsOffset + sortVariantOffset;
 
     uint numPixels = _OITSortMemoryBuffer[sortSumAddr];
 
@@ -156,7 +157,7 @@ void OITSort_Network(int3 dispatchThreadId : SV_DispatchThreadID)
 
     if (threadIndex < numPixels)
     {
-        uint pixelIndexAddr = 18 + globalSortIndexOffset + threadIndex;
+        uint pixelIndexAddr = kSorting_PixelListDataOffset + globalSortIndexOffset + threadIndex;
         uint pixelIndex = _OITSortMemoryBuffer[pixelIndexAddr];
 
         uint listCount = _VisOITListsCounts.Load(pixelIndex << 2);
@@ -216,10 +217,10 @@ void OITSort_GroupShared_Wave(uint3 groupThreadId : SV_GroupThreadID, uint3 grou
 
     // Note: This is always 1 since it's the medium variant
     uint sortVariantOffset = 1;
-    uint sortIndexOffsetAddr = 6 + sortVariantOffset;
+    uint sortIndexOffsetAddr = kSorting_PixelListOffsetsOffset + sortVariantOffset;
     uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
 
-    uint pixelIndexAddr = 18 + globalSortIndexOffset + groupId.x;
+    uint pixelIndexAddr = kSorting_PixelListDataOffset + globalSortIndexOffset + groupId.x;
     uint pixelIndex = _OITSortMemoryBuffer[pixelIndexAddr];
 
     uint listCount = _VisOITListsCounts.Load(pixelIndex << 2);
@@ -306,10 +307,10 @@ void OITSort_GroupShared(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: 
 
     // Note: This is always 2 since it's the big variant
     uint sortVariantOffset = 2;
-    uint sortIndexOffsetAddr = 6 + sortVariantOffset;
+    uint sortIndexOffsetAddr = kSorting_PixelListOffsetsOffset + sortVariantOffset;
     uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
 
-    uint pixelIndexAddr = 18 + globalSortIndexOffset + groupId.x;
+    uint pixelIndexAddr = kSorting_PixelListDataOffset + globalSortIndexOffset + groupId.x;
     uint pixelIndex = _OITSortMemoryBuffer[pixelIndexAddr];
 
     uint listCount = _VisOITListsCounts.Load(pixelIndex << 2);
