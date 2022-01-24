@@ -12,12 +12,54 @@ namespace UnityEngine.Experimental.Rendering
     {
         static List<MeshRenderer> addedOccluders;
 
-        private static void AddOccluders()
+        static void ApplyVirtualOffsets(Vector3[] positions, out Vector3[] offsets)
+        {
+            var voSettings = m_BakingSettings.virtualOffsetSettings;
+            if (!voSettings.useVirtualOffset)
+            {
+                offsets = null;
+                return;
+            }
+
+            var queriesHitBackBefore = Physics.queriesHitBackfaces;
+            try
+            {
+                Physics.queriesHitBackfaces = true;
+
+                AddOccluders();
+                ApplyVirtualOffsetsSingleThreaded(positions, out offsets, voSettings);
+            }
+            finally
+            {
+                Physics.queriesHitBackfaces = queriesHitBackBefore;
+                CleanupOccluders();
+            }
+        }
+
+        static void ApplyVirtualOffsetsSingleThreaded(Vector3[] positions, out Vector3[] offsets, VirtualOffsetSettings voSettings)
+        {
+            offsets = new Vector3[positions.Length];
+            for (int i = 0; i < positions.Length; ++i)
+            {
+                int subdivLevel = 0;
+                m_BakingBatch.uniqueBrickSubdiv.TryGetValue(positions[i], out subdivLevel);
+                float brickSize = ProbeReferenceVolume.CellSize(subdivLevel);
+                float searchDistance = (brickSize * m_BakingProfile.minBrickSize) / ProbeBrickPool.kBrickCellCount;
+
+                float scaleForSearchDist = voSettings.searchMultiplier;
+                Vector3 pushedPosition = PushPositionOutOfGeometry(positions[i], scaleForSearchDist * searchDistance, voSettings.outOfGeoOffset);
+
+                offsets[i] = pushedPosition - positions[i];
+                positions[i] = pushedPosition;
+            }
+        }
+
+        static void AddOccluders()
         {
             addedOccluders = new List<MeshRenderer>();
-            for (int sceneIndex = 0; sceneIndex < UnityEngine.SceneManagement.SceneManager.sceneCount; ++sceneIndex)
+            for (int sceneIndex = 0; sceneIndex < SceneManagement.SceneManager.sceneCount; ++sceneIndex)
             {
-                UnityEngine.SceneManagement.Scene scene = UnityEngine.SceneManagement.SceneManager.GetSceneAt(sceneIndex);
+                SceneManagement.Scene scene = SceneManagement.SceneManager.GetSceneAt(sceneIndex);
                 if (!scene.isLoaded)
                     continue;
 
@@ -27,10 +69,10 @@ namespace UnityEngine.Experimental.Rendering
                     MeshRenderer[] renderComponents = gameObject.GetComponentsInChildren<MeshRenderer>();
                     foreach (MeshRenderer mr in renderComponents)
                     {
-                        if (!mr.gameObject.GetComponent<MeshCollider>() && (GameObjectUtility.GetStaticEditorFlags(mr.gameObject).HasFlag(StaticEditorFlags.ContributeGI)))
+                        if ((GameObjectUtility.GetStaticEditorFlags(mr.gameObject) & StaticEditorFlags.ContributeGI) != 0 && !mr.gameObject.TryGetComponent<MeshCollider>(out _))
                         {
                             var meshCollider = mr.gameObject.AddComponent<MeshCollider>();
-                            meshCollider.hideFlags |= (HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild);
+                            meshCollider.hideFlags |= HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild;
                             addedOccluders.Add(mr);
                         }
                     }
@@ -38,9 +80,15 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             var autoSimState = Physics.autoSimulation;
-            Physics.autoSimulation = false;
-            Physics.Simulate(0.1f);
-            Physics.autoSimulation = autoSimState;
+            try
+            {
+                Physics.autoSimulation = false;
+                Physics.Simulate(0.1f);
+            }
+            finally
+            {
+                Physics.autoSimulation = autoSimState;
+            }
         }
 
         private static void CleanupOccluders()
