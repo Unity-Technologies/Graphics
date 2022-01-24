@@ -255,7 +255,8 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
         Visibility::VisibilityData unusedVisData;
         uint2 unusedTexelCoord;
-        VisibilityOIT::GetVisibilitySampleWithLinearDepth(0 /* first sample, assume sorted samples */, listOffset, unusedVisData, unusedTexelCoord, firstLinearDepth);
+        float unusedDeviceDepth;
+        VisibilityOIT::GetVisibilitySampleWithLinearDepth(0 /* first sample, assume sorted samples */, listOffset, unusedVisData, unusedTexelCoord, unusedDeviceDepth, firstLinearDepth);
     }
 
     float opaqueDeviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, posInputRaw.positionSS).r;
