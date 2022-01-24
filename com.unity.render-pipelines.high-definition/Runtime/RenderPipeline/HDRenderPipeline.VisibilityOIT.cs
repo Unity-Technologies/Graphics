@@ -1022,6 +1022,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle offscreenDirectReflectionLightingTexture;
             public TextureHandle photonBuffer;
             public TextureHandle depthBuffer;
+            public TextureHandle opaqueColorPyramid;
             public ComputeBufferHandle oitVisibilityBuffer;
             public ComputeBufferHandle offsetListBuffer;
             public ComputeBufferHandle sublistCounterBuffer;
@@ -1058,6 +1059,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.photonBuffer = builder.ReadTexture(photonBuffer);
                 passData.offscreenDirectReflectionLightingTexture = builder.ReadTexture(offscreenDirectReflectionLightingTexture);
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                RTHandle opaqueColorPyramidRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                //if (opaqueColorPyramidRT == null)
+                //    opaqueColorPyramidRT = renderGraph.defaultResources.blackTextureXR;
+                if (opaqueColorPyramidRT != null)
+                {
+                    TextureHandle opaqueColorPyramid = renderGraph.ImportTexture(opaqueColorPyramidRT);
+                    passData.opaqueColorPyramid = builder.ReadTexture(opaqueColorPyramid);
+                }
                 passData.outputColor = builder.WriteTexture(colorBuffer);
 
                 float offscreenWidthAsFloat; unsafe { int offscreenWidthInt = offscreenLightingSize.x; offscreenWidthAsFloat = *((float*)&offscreenWidthInt); }
@@ -1080,7 +1089,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OITTileHiZ, data.oitTileHiZTexture);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenPhotonRadianceLighting, data.photonBuffer);
-
+                        if (data.opaqueColorPyramid.IsValid())
+                            context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOpaqueColorPyramid, data.opaqueColorPyramid);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenGBuffer0, data.gBuffer0Texture);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenGBuffer1, data.gBuffer1Texture);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenDirectReflectionLighting, data.offscreenDirectReflectionLightingTexture);

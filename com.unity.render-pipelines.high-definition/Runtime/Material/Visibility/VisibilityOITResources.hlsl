@@ -29,6 +29,8 @@ Texture2DArray<float2> _OITTileHiZ;
 Texture2D<float2> _OITTileHiZ;
 #endif
 
+TEXTURE2D_X(_VisOITOpaqueColorPyramid);
+
 TEXTURE2D_X_UINT4(_VisOITOffscreenGBuffer0);
 TEXTURE2D_X_UINT2(_VisOITOffscreenGBuffer1);
 TEXTURE2D_X(_VisOITOffscreenDirectReflectionLighting);
@@ -99,7 +101,7 @@ void GetVisibilitySampleWithLinearDepth(uint i, uint listOffset, out Visibility:
     PositionInputs posInput = GetPositionInput(texelCoordinate, _ScreenSize.zw);
     posInput.positionWS = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepthValue, UNITY_MATRIX_I_VP);
     linearDepthValue = LinearEyeDepth(posInput.positionWS, GetWorldToViewMatrix());
-    linearDepthValue = (linearDepthValue - _ProjectionParams.y) / (_ProjectionParams.z - _ProjectionParams.y);
+    linearDepthValue = ((linearDepthValue - _ProjectionParams.y) / (_ProjectionParams.z - _ProjectionParams.y));
 }
 
 void PackOITGBufferData(float3 normal, float roughness, float3 baseColor, float metalness, float3 absorptionCoefficient, float ior, out uint4 packedData0, out uint2 packedData1)
@@ -179,19 +181,26 @@ namespace GeomHelper
         return true;
     }
 
+    float2 ProjectVectorOn2DFrame(float3 v, float3 x0, float3 x1)
+    {
+        return float2(dot(v, x0), dot(v, x1));
+    }
+
     // Build a plane from center of froxel and
     //  intersect with 4 columns of this froxel (4 differents view direction from each corner of the pixel footprint)
     // Assumption: pixelSize == 1x1
-    float2 GetPixelMinMax(float linearDepth, float3 normal)
+    float2 GetPixelMinMax(float linearDepth, float3 normal)//, out float radiusSq)
     {
+        return linearDepth;
+
         const float3 zero = float3(0.0f, 0.0f, 0.0f);
 
         float3 center = float3(0.0f, 0.0f, linearDepth);
 
-        float3 corner11 = float3(0.5f, 0.5f, linearDepth);
-        float3 corner01 = float3(-0.5f, 0.5f, linearDepth);
+        float3 corner11 = float3( 0.5f,  0.5f, linearDepth);
+        float3 corner01 = float3(-0.5f,  0.5f, linearDepth);
         float3 corner00 = float3(-0.5f, -0.5f, linearDepth);
-        float3 corner10 = float3(0.5f, -0.5f, linearDepth);
+        float3 corner10 = float3( 0.5f, -0.5f, linearDepth);
 
         float3 w0 = normalize(corner11);
         float3 w1 = normalize(corner01);
@@ -207,10 +216,22 @@ namespace GeomHelper
         bool hit2 = PlaneLineIntersection(zero, w2, center, normal, hitZ2);
         bool hit3 = PlaneLineIntersection(zero, w3, center, normal, hitZ3);
 
-        //if (!hit0 || !hit1 || !hit2 || !hit3)
-        //{
-        //    return float2(0.0f, 0.0f);
-        //}
+        float hitPerspective;
+        PlaneLineIntersection(zero, w0, center, float3(0, 0, 1), hitPerspective);
+
+        //float3 hit0 = w0 * hitZ0 - center;
+        //float3 hit1 = w1 * hitZ1 - center;
+        //float3 hit2 = w2 * hitZ2 - center;
+        //float3 hit3 = w3 * hitZ3 - center;
+        //
+        //float2 hit0_2D = ProjectVectorOn2DFrame(hit0, float3(1, 0, 0), float3(0, 1, 0));
+        //float2 hit1_2D = ProjectVectorOn2DFrame(hit1, float3(1, 0, 0), float3(0, 1, 0));
+        //float2 hit2_2D = ProjectVectorOn2DFrame(hit2, float3(1, 0, 0), float3(0, 1, 0));
+        //float2 hit3_2D = ProjectVectorOn2DFrame(hit3, float3(1, 0, 0), float3(0, 1, 0));
+        //
+        //float3 hitSide = w0 * hitPerspective;
+        //float delta = hitPerspective - hitSide;
+        //radiusSq = dot(delta, delta);
 
         float2 minMax;
 
