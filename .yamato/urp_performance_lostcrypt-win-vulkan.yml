@@ -72,7 +72,7 @@ Build_URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Lin
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
          retries: 3
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/2d-sara
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
@@ -147,7 +147,7 @@ URP_Performance_LostCrypt_Win_Vulkan_performance_build_editmode_mono_Linear_trun
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
          retries: 3
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/2d-sara
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
@@ -266,7 +266,7 @@ Build_URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Lin
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
          retries: 3
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/2d-sara
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
@@ -341,7 +341,7 @@ URP_Performance_LostCrypt_Win_Vulkan_performance_build_editmode_mono_Linear_CUST
       -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
          retries: 3
       -  cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/2d-sara
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"

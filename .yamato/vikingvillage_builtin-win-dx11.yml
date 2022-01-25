@@ -60,7 +60,7 @@ Build_VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_tr
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_BUILTIN_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
@@ -122,7 +122,7 @@ VikingVillage_BuiltIn_Win_DX11_performance_playmode_editor_mono_Linear_trunk:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_BUILTIN_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
@@ -180,7 +180,7 @@ VikingVillage_BuiltIn_Win_DX11_performance_build_editmode_mono_Linear_trunk:
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_BUILTIN_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
@@ -273,7 +273,7 @@ Build_VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_CU
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_BUILTIN_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
@@ -335,7 +335,7 @@ VikingVillage_BuiltIn_Win_DX11_performance_playmode_editor_mono_Linear_CUSTOM-RE
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_BUILTIN_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
@@ -393,7 +393,7 @@ VikingVillage_BuiltIn_Win_DX11_performance_build_editmode_mono_Linear_CUSTOM-REV
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_BUILTIN_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_BUILTIN_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"

@@ -69,7 +69,7 @@ Build_VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Li
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
@@ -131,7 +131,7 @@ VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_tru
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
@@ -237,7 +237,7 @@ Build_VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Li
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
@@ -299,7 +299,7 @@ VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_CUS
       -  command: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
          retries: 3
       -  cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/Viking-Village-Perf
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"

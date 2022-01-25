@@ -76,7 +76,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
          retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
@@ -149,7 +149,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_build_editmode_il2cpp_L
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
          retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
@@ -273,7 +273,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
          retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
@@ -346,7 +346,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_build_editmode_il2cpp_L
       -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/BoatAttack
          retries: 3
       -  cd TestProjects/BoatAttack && git checkout %BOAT_ATTACK_REVISION%
-      -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
+      -  gsudo choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  gsudo choco install unity-config
       -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
