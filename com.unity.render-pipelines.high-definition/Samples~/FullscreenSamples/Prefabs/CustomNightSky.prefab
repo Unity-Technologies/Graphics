@@ -31,7 +31,7 @@ Transform:
   - {fileID: 5307182104783676437}
   - {fileID: 5307182104454631038}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5307182104454631036
 GameObject:
@@ -96,7 +96,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SkyMat: {fileID: 2100000, guid: 0115edefbd87b3d4a8cf6ae167886226, type: 2}
-  DirectionalLightTransform: {fileID: 5307182104783676437}
+  Moonlight_transform: {fileID: 5307182104783676437}
 --- !u!1 &5307182104783676424
 GameObject:
   m_ObjectHideFlags: 0
@@ -123,7 +123,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5307182104783676424}
   m_LocalRotation: {x: -0.107121594, y: 0.099955656, z: -0.000068431495, w: -0.9892087}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 2.77, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
