@@ -10,6 +10,17 @@ namespace UnityEditor.Rendering.UIGen
     [InitializeOnLoad]
     class DebugMenuImporter
     {
+        class ImportReport
+        {
+            public Hash128 uiDefinitionHash { get; }
+            string fileLocations;
+
+            public static bool From(out ImportReport report, out Exception error)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         static DebugMenuImporter()
         {
             AssemblyReloadEvents.afterAssemblyReload += ImportDebugMenuCallback;
@@ -36,7 +47,15 @@ namespace UnityEditor.Rendering.UIGen
             if (!GenerateUIDefinition(dataSource, out var definition, out error))
                 return false;
 
-            // TODO: Compare to previously imported definition and continue only if required
+            if (!definition.ComputeHash(out var hash, out error))
+                return false;
+
+            if (!LoadLastImportReport(out var lastReport, out error))
+                return false;
+
+            // Early exit when already computed
+            if (lastReport?.uiDefinitionHash == hash)
+                return true;
 
             // Generate asset and C# library
             if (!definition.GenerateDebugMenuBindableView(
@@ -53,7 +72,13 @@ namespace UnityEditor.Rendering.UIGen
             //   custom inspector for editor
             //   runtime display
 
-            throw new NotImplementedException();
+            if (!ImportReport.From(out var report, out error))
+                return false;
+
+            if (!SaveImportReport(report, out error))
+                return false;
+
+            return true;
         }
 
         static bool ValidateDatasources<TList>(
@@ -92,7 +117,7 @@ namespace UnityEditor.Rendering.UIGen
 
             using (definitions)
             {
-                return definitions.Aggregate(out definition, out error);
+                return definitions.listUnsafe.Aggregate(out definition, out error);
             }
         }
 
@@ -102,6 +127,22 @@ namespace UnityEditor.Rendering.UIGen
             [NotNullWhen(false)] out Exception error
         )
             where TList : IList<System.Type>
+        {
+            throw new NotImplementedException();
+        }
+
+        static bool LoadLastImportReport(
+            out ImportReport report, // can be null
+            [NotNullWhen(false)] out Exception error
+        )
+        {
+            throw new NotImplementedException();
+        }
+
+        static bool SaveImportReport(
+            [DisallowNull] ImportReport report,
+            [NotNullWhen(false)] out Exception error
+        )
         {
             throw new NotImplementedException();
         }

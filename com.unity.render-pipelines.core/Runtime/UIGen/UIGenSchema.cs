@@ -147,6 +147,15 @@ namespace UnityEngine.Rendering.UIGen
             [DisallowNull] this TList definitions,
             [NotNullWhen(true)] out UIDefinition merged,
             [NotNullWhen(false)] out Exception error
+        ) where TList: IList<UIDefinition>
+        {
+            throw new NotImplementedException();
+        }
+
+        public static bool ComputeHash(
+            [DisallowNull] this UIDefinition definition,
+            out Hash128 hash,
+            [NotNullWhen(false)] out Exception error
         )
         {
             throw new NotImplementedException();
