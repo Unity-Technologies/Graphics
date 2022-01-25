@@ -90,10 +90,21 @@ void GetPixelList(uint pixelOffset, out uint listCount, out uint listOffset)
     listOffset = _VisOITListsOffsets.Load(pixelOffset << 2);
 }
 
+uint3 GetVisibilitySamplePacked(uint i, uint listOffset)
+{
+    return _VisOITBuffer.Load3(((listOffset + i) * 3) << 2);
+}
+
 void GetVisibilitySample(uint i, uint listOffset, out Visibility::VisibilityData data, out uint2 texelCoordinate, out float depthValue)
 {
-    uint3 packedData = _VisOITBuffer.Load3(((listOffset + i) * 3) << 2);
+    uint3 packedData = GetVisibilitySamplePacked(i, listOffset);
     VisibilityOIT::UnpackVisibilityData(packedData, data, texelCoordinate, depthValue);
+}
+
+uint GetVisibilitySamplePackedDepth(uint i, uint listOffset)
+{
+    uint3 packedData = GetVisibilitySamplePacked(i, listOffset);
+    return ((packedData.y >> 16) & 0xFFFF);
 }
 
 void GetVisibilitySampleWithLinearDepth(uint i, uint listOffset, out Visibility::VisibilityData data, out uint2 texelCoordinate, out float deviceDepthValue, out float linearDepthValue)

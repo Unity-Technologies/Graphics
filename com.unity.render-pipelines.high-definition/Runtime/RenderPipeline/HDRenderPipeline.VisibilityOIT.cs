@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle samplesDispatchArgsBuffer;
             public ComputeBufferHandle samplesGpuCountBuffer;
             public ComputeBufferHandle oitVisibilityBuffer;
+            public ComputeBufferHandle sortMemoryBuffer;
             public RenderBRGBindingData BRGBindingData;
             public ComputeBuffer depthPyramidMipLevelOffsetsBuffer;
 
@@ -55,6 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 readVBuffer.samplesDispatchArgsBuffer = builder.ReadComputeBuffer(samplesDispatchArgsBuffer);
                 readVBuffer.samplesGpuCountBuffer = builder.ReadComputeBuffer(samplesGpuCountBuffer);
                 readVBuffer.oitVisibilityBuffer = builder.ReadComputeBuffer(oitVisibilityBuffer);
+                readVBuffer.sortMemoryBuffer = builder.ReadComputeBuffer(sortMemoryBuffer);
 
                 readVBuffer.BRGBindingData = BRGBindingData;
                 return readVBuffer;
@@ -134,7 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Returns the size of the scratch memory required for sorting (in dwords)
-        uint GetSortMemoryNumDwords(Vector2Int screenSize)
+        uint GetSortMemoryNumDwords(Vector2Int screenSize, uint maxMaterialSampleCount)
         {
             uint numSortingVariants = GetNumSortVariants();
 
@@ -143,8 +145,9 @@ namespace UnityEngine.Rendering.HighDefinition
             uint numCounterDwords = numSortingVariants;
             uint numOffsetDwords = numSortingVariants;
             uint numPixelIndexDwords = (uint)(screenSize.x * screenSize.y);
+            uint numSortedSampleIndicesDwords = maxMaterialSampleCount;
 
-            return numDispatchArgDwords + numSumDwords + numCounterDwords + numOffsetDwords + numPixelIndexDwords;
+            return numDispatchArgDwords + numSumDwords + numCounterDwords + numOffsetDwords + numPixelIndexDwords + numSortedSampleIndicesDwords;
         }
 
         internal bool IsVisibilityOITPassEnabled()
@@ -209,7 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (isSortingEnabled)
             {
-                OITSortSamples(renderGraph, ref oitVisibilityBuffer, sampleListCountBuffer, sampleListOffsetBuffer, sortMemoryBuffer);
+                OITSortSamples(renderGraph, oitVisibilityBuffer, sampleListCountBuffer, sampleListOffsetBuffer, ref sortMemoryBuffer);
             }
 
             output.vbufferOIT.histogramBuffer = histogramBuffer;
@@ -221,6 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
             output.vbufferOIT.samplesDispatchArgsBuffer = samplesDispatchArgsBuffer;
             output.vbufferOIT.samplesGpuCountBuffer = samplesGpuCountBuffer;
             output.vbufferOIT.oitVisibilityBuffer = oitVisibilityBuffer;
+            output.vbufferOIT.sortMemoryBuffer = sortMemoryBuffer;
             output.vbufferOIT.BRGBindingData = BRGBindingData;
             output.vbufferOIT.depthPyramidMipLevelOffsetsBuffer = m_OITDepthPyramidMipLevelOffsetsBuffer;
         }
@@ -298,7 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.histogramSize = histogramSize;
                 passData.histogramBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(histogramSize, sizeof(uint), ComputeBufferType.Raw) { name = "OITHistogram" }));
 
-                passData.sortMemoryBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)GetSortMemoryNumDwords(screenSize), sizeof(uint), ComputeBufferType.Structured | ComputeBufferType.IndirectArguments) { name = "OITSortMemory" }));
+                passData.sortMemoryBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)GetSortMemoryNumDwords(screenSize, (uint)maxMaterialSampleCount), sizeof(uint), ComputeBufferType.Structured | ComputeBufferType.IndirectArguments) { name = "OITSortMemory" }));
 
                 outHistogramBuffer = passData.histogramBuffer;
                 outSortMemoryBuffer = passData.sortMemoryBuffer;
@@ -390,7 +394,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 sortMemoryBuffer = passData.sortMemoryBuffer;
 
-                float maxMaterialSampleCountAsFloat; unsafe { maxMaterialSampleCountAsFloat = *((float*)&maxMaterialSampleCount); };
+                float maxMaterialSampleCountAsFloat = BitConverter.ToSingle(BitConverter.GetBytes(maxMaterialSampleCount));
                 passData.packedArgs = new Vector4(maxMaterialSampleCountAsFloat, 0.0f, 0.0f, 0.0f);
 
                 outCountBuffer = passData.outCountBuffer;
@@ -564,17 +568,17 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void OITSortSamples(
-            RenderGraph renderGraph, ref ComputeBufferHandle oitVisibilityBuffer, ComputeBufferHandle countBuffer, ComputeBufferHandle offsetListBuffer, ComputeBufferHandle sortMemoryBuffer)
+            RenderGraph renderGraph, ComputeBufferHandle oitVisibilityBuffer, ComputeBufferHandle countBuffer, ComputeBufferHandle offsetListBuffer, ref ComputeBufferHandle sortMemoryBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<OITSortSamplesPassData>("OITSortSamples", out var passData, ProfilingSampler.Get(HDProfileId.OITSortSamples)))
             {
                 passData.cs = defaultResources.shaders.oitSortCS;
-                passData.oitVisibilityBuffer = builder.WriteComputeBuffer(builder.ReadComputeBuffer(oitVisibilityBuffer));
+                passData.oitVisibilityBuffer = builder.ReadComputeBuffer(oitVisibilityBuffer);
                 passData.countBuffer = builder.ReadComputeBuffer(countBuffer);
                 passData.offsetListBuffer = builder.ReadComputeBuffer(offsetListBuffer);
                 passData.sortMemoryBuffer = builder.WriteComputeBuffer(builder.ReadComputeBuffer(sortMemoryBuffer));
 
-                oitVisibilityBuffer = passData.oitVisibilityBuffer;
+                sortMemoryBuffer = passData.sortMemoryBuffer;
 
                 builder.SetRenderFunc(
                     (OITSortSamplesPassData data, RenderGraphContext context) =>
@@ -605,6 +609,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle offsetBuffer;
             public ComputeBufferHandle sublistCounterBuffer;
             public ComputeBufferHandle oitVisibilityBuffer;
+            public ComputeBufferHandle sortMemoryBuffer;
 
             public TextureHandle gBuffer0Texture;
             public TextureHandle oitTileHiZOutput;
@@ -633,6 +638,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.packedArgs = new Vector4(maxMaterialSampleCountAsFloat, 0.0f, 0.0f, 0.0f);
                 passData.countBuffer = builder.ReadComputeBuffer(countBuffer);
                 passData.oitVisibilityBuffer = builder.ReadComputeBuffer(oitVisibilityBuffer);
+                passData.sortMemoryBuffer = builder.ReadComputeBuffer(vbufferOIT.sortMemoryBuffer);
                 passData.sublistCounterBuffer = builder.ReadComputeBuffer(sublistCounterBuffer);
                 passData.offsetBuffer = builder.ReadComputeBuffer(offsetBuffer);
 
@@ -664,6 +670,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.countBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
 
                         Vector2Int offsetInput = data.oitHiZMipsOffsets[0];
                         Vector2Int offsetOutput = data.oitHiZMipsOffsets[0];
@@ -975,6 +982,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle oitVisibilityBuffer;
             public ComputeBufferHandle offsetListBuffer;
             public ComputeBufferHandle sublistCounterBuffer;
+            public ComputeBufferHandle sortMemoryBuffer;
             public TextureHandle sparseColorTexture;
             public Vector4 packedArgs;
         }
@@ -992,6 +1000,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.screenSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
                 passData.oitVisibilityBuffer = builder.ReadComputeBuffer(vbufferOIT.oitVisibilityBuffer);
                 passData.sublistCounterBuffer = builder.ReadComputeBuffer(vbufferOIT.sublistCounterBuffer);
+                passData.sortMemoryBuffer = builder.ReadComputeBuffer(vbufferOIT.sortMemoryBuffer);
                 passData.offsetListBuffer = builder.ReadComputeBuffer(vbufferOIT.sampleListOffsetBuffer);
                 passData.offscreenLighting = builder.ReadTexture(offscreenLighting);
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
@@ -1021,6 +1030,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenLighting, data.offscreenLighting);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOutputSparseColorBuffer, data.sparseColorTexture);
@@ -1042,6 +1052,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle oitVisibilityBuffer;
             public ComputeBufferHandle offsetListBuffer;
             public ComputeBufferHandle sublistCounterBuffer;
+            public ComputeBufferHandle sortMemoryBuffer;
             public TextureHandle oitTileHiZTexture;
             public TextureHandle outputColor;
             public int maxMipHiZ;
@@ -1065,6 +1076,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.cs = defaultResources.shaders.oitResolveDeferredSSTracingCS;
                 passData.screenSize = new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight);
                 passData.oitVisibilityBuffer = builder.ReadComputeBuffer(vbufferOIT.oitVisibilityBuffer);
+                passData.sortMemoryBuffer = builder.ReadComputeBuffer(vbufferOIT.sortMemoryBuffer);
                 passData.sublistCounterBuffer = builder.ReadComputeBuffer(vbufferOIT.sublistCounterBuffer);
                 passData.offsetListBuffer = builder.ReadComputeBuffer(vbufferOIT.sampleListOffsetBuffer);
 
@@ -1103,6 +1115,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITBuffer, data.oitVisibilityBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
+                        context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._OITSortMemoryBuffer, data.sortMemoryBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OITTileHiZ, data.oitTileHiZTexture);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenPhotonRadianceLighting, data.photonBuffer);
                         if (data.opaqueColorPyramid.IsValid())

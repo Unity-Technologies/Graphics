@@ -92,11 +92,23 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     float lastDepthValue;
 #endif
 
+    uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
+
     //int peelLimit = 2;
     float minDepth = 1.0;
     for (uint i = 0; i < listCount; ++i)
     {
-        int globalOffset = i + listOffset;
+        uint sortedSampleIndex = i;
+
+        // Load sorted indices when working with multi-sample lists
+        if (listCount >= 2)
+        {
+            // Load the sorted index that corresponds to the i'th sample
+            uint sortIndexAddr = sortIndicesBaseAddr + i;
+            sortedSampleIndex = _OITSortMemoryBuffer[sortIndexAddr];
+        }
+
+        int globalOffset = sortedSampleIndex + listOffset;
         uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
 
 
@@ -108,7 +120,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         Visibility::VisibilityData unusedVisData;
         uint2 unusedTexelCoord;
         float depthValue;
-        VisibilityOIT::GetVisibilitySample(i, listOffset, unusedVisData, unusedTexelCoord, depthValue);
+        VisibilityOIT::GetVisibilitySample(sortedSampleIndex, listOffset, unusedVisData, unusedTexelCoord, depthValue);
 
 #if ENABLE_SORTING_DEBUG
         if (i == 0)

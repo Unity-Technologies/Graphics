@@ -13,16 +13,14 @@
 #pragma kernel OITSort_GroupShared_Wave
 #pragma kernel OITSort_GroupShared
 
+// BUG: For some reason, the binding system refuses to work unless the visibility buffer resource is provided as read/write instead of read only.
+//      This may have something to do with it moving from an SRV -> UAV descriptor type when the write capability is added.
+//      When this is resolved, this section of code should be removed and this shader should use VisibilityOIT::GetVisibilitySamplePackedDepth instead.
 RWByteAddressBuffer _RWVisOITBuffer;
 
-uint3 LoadPackedVisibilitySample(uint i, uint listOffset)
+uint GetVisibilitySamplePackedDepth(uint i, uint listOffset)
 {
-    return _RWVisOITBuffer.Load3(((listOffset + i) * 3) << 2);
-}
-
-void StorePackedVisibilitySample(uint i, uint listOffset, uint3 packedSample)
-{
-    _RWVisOITBuffer.Store3(((listOffset + i) * 3) << 2, packedSample);
+    return ((_RWVisOITBuffer.Load3(((listOffset + i) * 3) << 2).y >> 16) & 0xFFFF);
 }
 
 [numthreads(1, 1, 1)]
@@ -117,23 +115,10 @@ uint GenerateSortKey(uint keyIndex, uint listCount, uint listOffset)
     uint key = 0xFFFFFFFF;
     if (keyIndex < listCount)
     {
-        uint depth = ((LoadPackedVisibilitySample(keyIndex, listOffset).y >> 16) & 0xFFFF);
-        key = ((depth & 0xFFFF) << 16) | (keyIndex & 0xFFFF);
+        uint packedDepth = GetVisibilitySamplePackedDepth(keyIndex, listOffset);
+        key = ((packedDepth & 0xFFFF) << 16) | (keyIndex & 0xFFFF);
     }
     return key;
-}
-
-uint3 LoadKeyValue(uint sortKey, uint listOffset)
-{
-    uint3 value = uint3(0, 0, 0);
-    uint srcIndex = (sortKey & 0xFFFF);
-    value = LoadPackedVisibilitySample(srcIndex, listOffset);
-    return value;
-}
-
-void StoreKeyValue(uint keyIndex, uint listOffset, uint3 value)
-{
-    StorePackedVisibilitySample(keyIndex, listOffset, value);
 }
 
 #define CSWAP(a, b) if (a < b) SwapUint(a, b)
@@ -191,16 +176,14 @@ void OITSort_Network(int3 dispatchThreadId : SV_DispatchThreadID)
         CSWAP(sortKeys[3], sortKeys[5]);
         CSWAP(sortKeys[3], sortKeys[4]);
 
-        // Shuffle the samples based on the sort results
-        uint3 packedSamples[MAX_NETWORK_INPUTS];
-        for (uint packedSampleIndex = 0; packedSampleIndex < listCount; ++packedSampleIndex)
-        {
-            packedSamples[packedSampleIndex] = LoadKeyValue(sortKeys[packedSampleIndex + (MAX_NETWORK_INPUTS - listCount)], listOffset);
-        }
+        uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
 
         for (uint storeIndex = 0; storeIndex < listCount; ++storeIndex)
         {
-            StoreKeyValue(storeIndex, listOffset, packedSamples[storeIndex]);
+            uint sortedIndex = (sortKeys[storeIndex + (MAX_NETWORK_INPUTS - listCount)] & 0xFFFF);
+            uint sortIndexAddr = sortIndicesBaseAddr + storeIndex;
+
+            _OITSortMemoryBuffer[sortIndexAddr] = sortedIndex;
         }
     }
 }
@@ -278,20 +261,14 @@ void OITSort_GroupShared_Wave(uint3 groupThreadId : SV_GroupThreadID, uint3 grou
     // Load the final sort key for the current thread
     sortKey = sKeys[threadIndex];
 
-    uint srcKeyIndex = ((sortKey >> 16) & 0xFFFF);
-    uint dstKeyIndex = threadIndex;
+    uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
+    uint sortIndexAddr = sortIndicesBaseAddr + ((listCount - 1) - threadIndex);
 
-    uint3 packedSample;
-    if (dstKeyIndex < listCount)
+    uint sortedIndex = ((sortKey >> 16) & 0xFFFF);
+
+    if (threadIndex < listCount)
     {
-        packedSample = LoadPackedVisibilitySample(srcKeyIndex, listOffset);
-    }
-
-    GroupMemoryBarrierWithGroupSync();
-
-    if (dstKeyIndex < listCount)
-    {
-        StorePackedVisibilitySample((listCount - 1) - dstKeyIndex, listOffset, packedSample);
+        _OITSortMemoryBuffer[sortIndexAddr] = sortedIndex;
     }
 }
 
@@ -386,19 +363,13 @@ void OITSort_GroupShared(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: 
     // Load the final sort key for the current thread
     sortKey = sKeys[threadIndex];
 
-    uint srcKeyIndex = ((sortKey >> 16) & 0xFFFF);
-    uint dstKeyIndex = threadIndex;
+    uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
+    uint sortIndexAddr = sortIndicesBaseAddr + ((listCount - 1) - threadIndex);
 
-    uint3 packedSample;
-    if (dstKeyIndex < listCount)
+    uint sortedIndex = ((sortKey >> 16) & 0xFFFF);
+
+    if (threadIndex < listCount)
     {
-        packedSample = LoadPackedVisibilitySample(srcKeyIndex, listOffset);
-    }
-
-    GroupMemoryBarrierWithGroupSync();
-
-    if (dstKeyIndex < listCount)
-    {
-        StorePackedVisibilitySample((listCount - 1) - dstKeyIndex, listOffset, packedSample);
+        _OITSortMemoryBuffer[sortIndexAddr] = sortedIndex;
     }
 }
