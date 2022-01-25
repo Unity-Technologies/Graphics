@@ -201,7 +201,7 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 absorptionCoefficient;
     float ior;
     VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, normalWS, roughness, baseColor, metalness, absorptionCoefficient, ior);
-    float3 f0 = lerp(DEFAULT_SPECULAR_VALUE, baseColor, metalness);
+    float3 f0 = lerp(DEFAULT_SPECULAR_VALUE.xxx, baseColor, metalness);
     float NdotV = dot(V, normalWS);
     bool isBackface = NdotV < 0.0;
     normalWS *= isBackface ? -1.0f : 1.0f;
@@ -225,7 +225,7 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
         float3 reflectedDir = reflect(-V, microNormal);
         float3 refractedDir = refract(-V, microNormal, eta);
         float randFloat = randomFloat(srcSampleId + b);
-        float3 sampleDir = randFloat < max(f0.x, max(f0.y, f0.z)) ? reflectedDir : refractedDir;
+        float3 sampleDir = refractedDir;// randFloat < max(f0.x, max(f0.y, f0.z)) ? reflectedDir : refractedDir;
 
         // kleber: should multiplye by roughness? 'lerp(0.8, 2.0, randFloat) * sampleDir * roughness'
         float3 sampledWS = posWS + lerp(0.8, 2.0, randFloat) * sampleDir;// - 0.001*reflectedDir;//small world increment. TODO make this adaptive

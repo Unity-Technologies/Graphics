@@ -120,16 +120,16 @@ void Frag(Varyings packedInput, out uint4 outGBuffer0Texture : SV_Target0, out u
     // Store the GBuffer
     // TODO: check on packing the GBuffer if they had IOR otherwise store directly Fresnel0ToIor(f0).x
 
-#ifdef HAS_REFRACTION
+#if HAS_REFRACTION
     float ior = surfaceData.ior;
 #else
-#if 1
-    float3 f03 = lerp(DEFAULT_SPECULAR_VALUE.xxx, surfaceData.baseColor, metalness);
-    float3 ior3 = Fresnel0ToIor(f0);
-    const float iorMedium = max(ior3.x, max(ior3.y, ior3.z));;
-    float ior = iorMedium,
+#if 0
+    float3 f03 = lerp(DEFAULT_SPECULAR_VALUE.xxx, surfaceData.baseColor.rgb, surfaceData.metallic);
+    float f0 = max(f03.x, max(f03.y, f03.z));
+    float ior = Fresnel0ToIor(f0);
 #else
     const float iorAir = 1.0f;
+    const float iorMedium = 1.5f;
     float ni = iorAir;
     float nt = iorMedium;
 
