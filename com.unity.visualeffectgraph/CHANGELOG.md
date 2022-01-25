@@ -4,10 +4,9 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [13.1.5] - 2021-12-17
+## [13.1.6] - 2022-01-14
 
 ### Fixed
-- Enable/disable state of VFX blocks and operators are preserved after copy/paste
 - Sticky note title keeps the selected font size when being edited
 - Collision with zero scale lead to undefined behavior [Case 1381562](https://issuetracker.unity3d.com/product/unity/issues/guid/1381562/)
 - Creating a new VFX of the same name as an already opened VFX will reuse the existing window [Case 1382841](https://issuetracker.unity3d.com/product/unity/issues/guid/1382841/)
@@ -18,6 +17,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Particle Strip without lifetime do not die when Alive is set to false. [Case 1376278](https://issuetracker.unity3d.com/product/unity/issues/guid/1376278/)
 - VFX Subgraph operator and block windows now have dedicated icons
 - Some operators were missing in node search window (gradient for instance)
+
+## [13.1.5] - 2021-12-17
+
+### Fixed
+- Enable/disable state of VFX blocks and operators are preserved after copy/paste
 
 ## [13.1.4] - 2021-12-04
 

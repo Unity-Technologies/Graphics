@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.6] - 2022-01-14
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [13.1.5] - 2021-12-17
 
 ### Fixed
@@ -23,6 +28,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Removed the name input for the SSAO and Screen Space Shadows renderer features.
+
+### Changed
+- Re-added the menu button to be able to convert selected materials.
 
 ### Fixed
 - Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]
