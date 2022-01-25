@@ -73,6 +73,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             hdMetadata.subTargetGuid = subTargetGuid;
             hdMetadata.migrateFromOldCrossPipelineSG = m_MigrateFromOldCrossPipelineSG;
             hdMetadata.hdSubTargetVersion = systemData.version;
+            hdMetadata.hasVertexModificationInMotionVector = systemData.customVelocity || systemData.tessellation;
+            if (!hdMetadata.hasVertexModificationInMotionVector)
+            {
+                var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), null);
+                GetActiveBlocks(ref tmpCtx);
+                var vertexBlocks = tmpCtx.activeBlocks.Where(o => o.shaderStage == ShaderStage.Vertex);
+
+                if (vertexBlocks
+                    .Select(o => o.control as MaterialSlot) //<== Wrong ! This isn't what I'm looking for
+                    .Any(o => o.isConnected))
+                {
+                    hdMetadata.hasVertexModificationInMotionVector = true;
+                }
+            }
+
             return hdMetadata;
         }
 

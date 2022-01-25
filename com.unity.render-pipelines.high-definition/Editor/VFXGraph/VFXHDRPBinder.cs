@@ -89,9 +89,14 @@ namespace UnityEditor.VFX.HDRP
 
         public override bool GetSupportsMotionVectorPerVertex(ShaderGraphVfxAsset shaderGraph, VFXMaterialSerializedSettings materialSettings)
         {
-            //TODOPAUL: test approriate defines
+            var path = AssetDatabase.GetAssetPath(shaderGraph);
+            var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+            if (shader.TryGetMetadataOfType<HDMetadata>(out var metaData))
+            {
+                if (metaData.hasVertexModificationInMotionVector)
+                    return false;
+            }
             return true;
-            //return false;
         }
 
         public override bool TransparentMotionVectorEnabled(Material material)
