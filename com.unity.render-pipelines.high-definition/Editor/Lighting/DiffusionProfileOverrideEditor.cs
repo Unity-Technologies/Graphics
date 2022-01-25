@@ -14,7 +14,6 @@ namespace UnityEditor.Rendering.HighDefinition
     sealed class DiffusionProfileOverrideEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_DiffusionProfiles;
-        Volume m_Volume;
 
         DiffusionProfileSettingsListUI listUI = new DiffusionProfileSettingsListUI();
 
@@ -23,8 +22,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnEnable()
         {
             var o = new PropertyFetcher<DiffusionProfileOverride>(serializedObject);
-
-            m_Volume = (m_Inspector.target as Volume);
             m_DiffusionProfiles = Unpack(o.Find(x => x.diffusionProfiles));
         }
 
@@ -36,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // If the volume is null it means that we're editing the component from the asset
             // So we can't access the bounds of the volume to fill diffusion profiles used in the volume
-            if (m_Volume != null && !m_Volume.isGlobal)
+            if (volume != null && !volume.isGlobal)
             {
                 if (GUILayout.Button("Fill Profile List With Scene Materials"))
                     FillProfileListWithScene();
@@ -54,10 +51,10 @@ namespace UnityEditor.Rendering.HighDefinition
         void FillProfileListWithScene()
         {
             var profiles = new HashSet<DiffusionProfileSettings>();
-            if (m_Volume.isGlobal)
+            if (volume.isGlobal)
                 return;
 
-            var volumeCollider = m_Volume.GetComponent<Collider>();
+            var volumeCollider = volume.GetComponent<Collider>();
 
             // Get all mesh renderers that are within the current volume
             var diffusionProfiles = new List<DiffusionProfileSettings>();

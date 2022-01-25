@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the volumetric clouds for the indoor template scenes by disabling them (normal and DXR) (case 1381761).
 - Fixed using the wrong coordinate to compute the sampling direction for the screen space global illumination.
 - Fixed error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
+- Fixed NullReferenceException when opening a Volume Component with a Diffusion Profile with any inspector.
 
 ## [13.1.5] - 2021-12-17
 

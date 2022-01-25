@@ -186,6 +186,11 @@ namespace UnityEditor.Rendering
         /// </summary>
         protected Editor m_Inspector;
 
+        /// <summary>
+        /// Obtains the <see cref="Volume"/> that is being edited from this volume component
+        /// </summary>
+        protected Volume volume => inspector?.target as Volume;
+
         List<(GUIContent displayName, int displayOrder, SerializedDataParameter param)> m_Parameters;
 
         static Dictionary<Type, VolumeParameterDrawer> s_ParameterDrawers;
