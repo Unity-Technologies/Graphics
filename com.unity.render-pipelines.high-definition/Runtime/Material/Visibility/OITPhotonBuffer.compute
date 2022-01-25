@@ -14,6 +14,8 @@
 #define MAX_GGX_ROUGHNESS           0.99999f
 float4 _VBufferLightingOffscreenParams;
 
+TEXTURE2D_X(_DepthTexture);
+
 // Weight for SSR where Fresnel == 1 (returns value/pdf)
 float GetSSRSampleWeight(float3 V, float3 L, float roughness)
 {
@@ -202,17 +204,15 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 f0 = lerp(DEFAULT_SPECULAR_VALUE, baseColor, metalness);
     float NdotV = dot(V, normalWS);
     bool isBackface = NdotV < 0.0;
+    normalWS *= isBackface ? -1.0f : 1.0f;
 
-    //TODO: Soufianne, look into packing of OIR!
-    //float iorEstimated = ior;
-    float iorEstimated = Fresnel0ToIor(f0).x;
+    float iorEstimated = ior; // Use IOR or F0 based on HAS_REFRACTION of the shader cf. OITGBufferPacking
 
     float internalIORSource =  isBackface ? 1.0f : iorEstimated;
     float internalIORMedium =  isBackface ? iorEstimated : 1.0f;
     float eta = internalIORMedium / internalIORSource;
 
     //Importance sample the first direction, along the nromal of the current sample.
-
 #if 1
     float4 accumulatedRadiance = float4(0,0,0,0);
     for (int b = 0; b < BOUNCE_COUNT; ++b)
@@ -221,7 +221,6 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
         float3 microNormal;
         float sampleWeight = 1.0;
         BTDF::GGXSampleWSOmega_w(V, normalWS, rand, roughness, microNormal);
-        //SampleGGX_VNDF(roughness, normalWS, V, rand, microNormal, sampleWeight);
 
         float3 reflectedDir = reflect(-V, microNormal);
         float3 refractedDir = refract(-V, microNormal, eta);
@@ -233,21 +232,24 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
         float3 sampleNDC = ComputeNormalizedDeviceCoordinatesWithZ(sampledWS, UNITY_MATRIX_VP);
         float2 samplePixelPos = (sampleNDC.xy * _ScreenSize.xy);
 
-        // TODO:?
-        //float curOpaqueDeviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, samplePixelPos.xy).r;
-        //// Hit Opaque
-        //if (sampleNDC.z < curOpaqueDeviceDepth)
-        //{
-        //  Sample Pyramid?
-        //}
-
-        int2 bestSampleCoord;
-        int bestSampleIndex;
-        if (ClosestSample(samplePixelPos, sampleNDC.z, bestSampleCoord, bestSampleIndex))
+        float curOpaqueDeviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, samplePixelPos.xy).r;
+        // Hit Opaque
+        if (sampleNDC.z < curOpaqueDeviceDepth)
         {
-            float3 radiance = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(bestSampleCoord)].rgb;
+            float3 radiance = LOAD_TEXTURE2D_X(_VisOITOpaqueColorPyramid, samplePixelPos.xy).rgb;
             radiance *= exp(-absorptionCoefficient * length(sampledWS - posWS));
             accumulatedRadiance += float4(radiance * sampleWeight, sampleWeight);
+        }
+        else
+        {
+            int2 bestSampleCoord;
+            int bestSampleIndex;
+            if (ClosestSample(samplePixelPos, sampleNDC.z, bestSampleCoord, bestSampleIndex))
+            {
+                float3 radiance = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(bestSampleCoord)].rgb;
+                radiance *= exp(-absorptionCoefficient * length(sampledWS - posWS));
+                accumulatedRadiance += float4(radiance * sampleWeight, sampleWeight);
+            }
         }
     }
 

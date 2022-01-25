@@ -788,7 +788,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     out oitTileHiZTexture);
 
                 TextureHandle photonBuffer = OITComputePhotonRefractionBuffer(
-                    renderGraph, maxMaterialSampleCount, prepassData.vbufferOIT, gBuffer0Texture, gBuffer1Texture, offscreenDirectReflectionLightingTexture, offscreenDimensions);
+                    hdCamera, renderGraph, maxMaterialSampleCount, prepassData.vbufferOIT, gBuffer0Texture, gBuffer1Texture, offscreenDirectReflectionLightingTexture, depthBuffer, offscreenDimensions);
 
                 OITResolveLightingDeferredSSTracing(renderGraph, hdCamera, prepassData.vbufferOIT,
                     gBuffer0Texture,
@@ -1060,8 +1060,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.offscreenDirectReflectionLightingTexture = builder.ReadTexture(offscreenDirectReflectionLightingTexture);
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 RTHandle opaqueColorPyramidRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
-                //if (opaqueColorPyramidRT == null)
-                //    opaqueColorPyramidRT = renderGraph.defaultResources.blackTextureXR;
                 if (opaqueColorPyramidRT != null)
                 {
                     TextureHandle opaqueColorPyramid = renderGraph.ImportTexture(opaqueColorPyramidRT);
@@ -1119,16 +1117,20 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle gBuffer0Texture;
             public TextureHandle gBuffer1Texture;
             public TextureHandle offscreenDirectReflectionLightingTexture;
+            public TextureHandle opaqueColorPyramid;
+            public TextureHandle depthBuffer;
             public Vector4 packedArgs;
             public TextureHandle outputPhotonBuffer;
         }
 
         TextureHandle OITComputePhotonRefractionBuffer(
+            HDCamera hdCamera,
             RenderGraph renderGraph, int maxSampleCounts,
             in VBufferOITOutput vbufferOIT,
             TextureHandle gBuffer0Texture,
             TextureHandle gBuffer1Texture,
             TextureHandle offscreenDirectReflectionLightingTexture,
+            TextureHandle depthBuffer,
             Vector2Int offscreenLightingSize)
         {
             TextureHandle output;
@@ -1141,8 +1143,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.samplesDispatchArgsBuffer = builder.ReadComputeBuffer(vbufferOIT.samplesDispatchArgsBuffer);
                 passData.samplesGpuCountBuffer = builder.ReadComputeBuffer(vbufferOIT.samplesGpuCountBuffer);
 
+                RTHandle opaqueColorPyramidRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                if (opaqueColorPyramidRT != null)
+                {
+                    TextureHandle opaqueColorPyramid = renderGraph.ImportTexture(opaqueColorPyramidRT);
+                    passData.opaqueColorPyramid = builder.ReadTexture(opaqueColorPyramid);
+                }
+
                 passData.gBuffer0Texture = builder.ReadTexture(gBuffer0Texture);
                 passData.gBuffer1Texture = builder.ReadTexture(gBuffer1Texture);
+                passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.offscreenDirectReflectionLightingTexture = builder.ReadTexture(offscreenDirectReflectionLightingTexture);
                 passData.outputPhotonBuffer = builder.WriteTexture(renderGraph.CreateTexture(
                     new TextureDesc(offscreenLightingSize.x, offscreenLightingSize.y, false, true)
@@ -1169,6 +1179,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSubListsCounts, data.sublistCounterBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITListsOffsets, data.offsetListBuffer);
                         context.cmd.SetComputeBufferParam(data.cs, kernel, HDShaderIDs._VisOITSamplesCountBuffer, data.samplesGpuCountBuffer);
+
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOpaqueColorPyramid, data.opaqueColorPyramid);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
 
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOutputPhotonBuffer, data.outputPhotonBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenGBuffer0, data.gBuffer0Texture);

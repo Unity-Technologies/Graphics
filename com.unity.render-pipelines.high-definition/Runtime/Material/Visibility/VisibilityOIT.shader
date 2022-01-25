@@ -46,7 +46,7 @@ Shader "HDRP/VisibilityOIT"
             Name "VBufferOITCount"
             Tags { "LightMode" = "VBufferOITCount" }
 
-            Cull Back
+            Cull Off
             ZTest Always
             ZWrite Off
 
@@ -83,7 +83,7 @@ Shader "HDRP/VisibilityOIT"
             Name "VBufferOITStorage"
             Tags { "LightMode" = "VBufferOITStorage" }
 
-            Cull Back
+            Cull Off
             ZTest Always
             ZWrite Off
 
@@ -113,7 +113,6 @@ Shader "HDRP/VisibilityOIT"
             Name "VBufferTestLighting"
             Tags { "LightMode" = "VBufferTestLighting" }
 
-            Cull Back
             ZTest Always
             Cull Off
 
@@ -140,7 +139,7 @@ Shader "HDRP/VisibilityOIT"
             Name "ShadowCaster"
             Tags{ "LightMode" = "ShadowCaster" }
 
-            Cull Back
+            Cull Off
             ZWrite On
             ZTest LEqual
 

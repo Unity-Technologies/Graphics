@@ -277,31 +277,30 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     float ior;
     VisibilityOIT::UnpackOITGBufferData(packedOITGBuffer0, packedOITGBuffer1, normal, roughness, baseColor, metalness, absorptionCoefficient, ior);
 
-    if (opaqueDepthLinear < firstLinearDepth)
+    if (firstLinearDepth > opaqueDepthLinear)
     {
         //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(1.0, 0.0, 0.0, 1.0);
         return;
     }
 
-    //float3 curOpaqueColor = LOAD_TEXTURE2D_X(_VisOITOpaqueColorPyramid, dispatchThreadId.xy + 50.0f).rgb;
-    //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(curOpaqueColor, 1.0);
-    //
-    //return;
-
 #if 0
     float2 positionNDC = (dispatchThreadId.xy + float2(0.5f, 0.5f)) * _ScreenSize.zw;
     float3 positionWS = ComputeWorldSpacePosition(positionNDC, firstdeviceDepth, UNITY_MATRIX_I_VP);
-    float3 camPosWS = GetCurrentViewPosition();
-    float3 wo_first = GetWorldSpaceNormalizeViewDir(positionWS);
+    float3 camPosWS = GetPrimaryCameraPosition();
+                    //GetCurrentViewPosition();
+    float3 wo_first = normalize(positionWS - camPosWS);
+                        //GetWorldSpaceNormalizeViewDir(positionWS);
     //normalize(camPosWS - positionWS);
     float3 dir = reflect(-wo_first, normal);
+
+    //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(dir, 1.0);
+    //return;
+
     //float3 dir = refract(-wo_first, normal, ior);
-    float3 v0 = float3((dispatchThreadId.xy + float2(0.5f, 0.5f)), firstLinearDepth);
-    float3 v1 = v0;
 
     float maxDiag = max(_ScreenSize.z, _ScreenSize.w);
 
-    float3 step0 = v0 + dir;
+    //float3 step0 = v0 + dir;
     float3 vizWeight = float3(_ScreenSize.zw, 1.0f);
 
     //int mipCur = 5;
@@ -313,44 +312,59 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     //float3 curOpaqueColor = LOAD_TEXTURE2D_X(_VisOITOpaqueColorPyramid, v1.xy + float2(100.0, 100.0)).rgb;
     //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(curOpaqueColor, 1.0);
     //return;
+    //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(firstLinearDepth.xxx, 1.0);
+    //return;
 
     int currentMip = 0;
-    const uint maxIter = 1024;
+    const uint maxIter = 32;
     uint curIter = 0;
     bool hasHit = false;
     uint2 hitCoord;
     bool mustSampleHDRI = false;
     bool hasHitOpaque = false;
+
+    float3 v1 = float3(dispatchThreadId.xy + float2(0.5f, 0.5f), firstLinearDepth);
+    float3 v0;
+
+    //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(v1 * vizWeight, 1.0);
+    //return;
+
     while (curIter < maxIter)
     {
-        if (currentMip == 0)
+        v0 = v1;
+        //v1 += dir;
+        //while (all((int2)v0.xy == (int2)v1.xy))
+        do
         {
-            v0 = v1;
-        }
-        v1 += 5.0f * maxDiag * dir;
+            //v1 += 0.5f * dir;
+            v1 += dir;
+        } while ((int)v0.x == (int)v1.x && (int)v0.y == (int)v1.y);
 
         int2 currentSS = (int2)v1.xy;
-        int2 mipCoord = currentSS >> currentMip;
-        int2 mipOffset = _DepthPyramidMipLevelOffsets[currentMip];
+        int2 mipCoord = currentSS;// >> currentMip;
+        int2 mipOffset = _DepthPyramidMipLevelOffsets[0*currentMip];
         float2 depthBound = LOAD_TEXTURE2D_X(_OITTileHiZ, mipCoord + mipOffset).rg;
 
-        if (v1.z > depthBound.x && v1.z < depthBound.y)
+        //if (v1.z >= depthBound.x && v1.z <= depthBound.y)
+        if (v1.z < 1.0f && v1.z > 0.0f)
         {
-            if (currentMip == 0)
+            //if (currentMip == 0)
             {
-                //// Hit Near or Far plane
-                if (v1.z > 1.0f || v1.z < 0.0f)
-                {
-                    mustSampleHDRI = true;
-                    break;
-                }
+                // Hit Near or Far plane
+                //if (v1.z > 1.0f || v1.z < 0.0f)
+                //{
+                //    hasHit = true;
+                //    mustSampleHDRI = true;
+                //    break;
+                //}
 
-                // Hit side of the frustum
-                if (v1.x < 0.0f || v1.y < 0.0f || v1.x > _ScreenSize.x - 1.0f || v1.y > _ScreenSize.y - 1.0f)
-                {
-                    mustSampleHDRI = true;
-                    break;
-                }
+                //// Hit side of the frustum
+                //if (v1.z > 1.0f || v1.z < 0.0f || v1.x < 0.0f || v1.y < 0.0f || v1.x > _ScreenSize.x - 1.0f || v1.y > _ScreenSize.y - 1.0f)
+                //{
+                //    hasHit = true;
+                //    mustSampleHDRI = true;
+                //    break;
+                //}
 
                 float curOpaqueDeviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, v1.xy).r;
 
@@ -360,6 +374,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
                 if (v1.z > curOpaqueLinearDepth)
                 {
+                    hasHit = true;
                     hasHitOpaque = true;
                     break;
                 }
@@ -370,19 +385,24 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
                 VisibilityOIT::GetPixelList(curPixelOffset, curListCount, curListOffset);
                 if (curListCount == 0)
                 {
-                    currentMip = min(currentMip + 1, 9);
+                    //currentMip = min(currentMip + 1, 9);
+                    hasHit = false;
+                    ++curIter;
                     continue;
                 }
 
-                float minDelta = 1e6f;
+                //float minDelta = 1e6f;
                 uint bestIdx = -1;
+                float maxDot = -2.0f;
 
-                int curGlobalOffset;
-                uint2 curOffscreenCoord;
+                //float hitLinearZ = 0.0f;
+                int bestGlobalOffset = -1;
+                uint2 bestOffscreenCoord = -1;
+                float3 bestHit = float3(0, 0, 0);
                 for (uint i = 0; i < curListCount; ++i)
                 {
-                    curGlobalOffset = curListOffset + i;
-                    curOffscreenCoord = uint2(curGlobalOffset % GetOffscreenLightBufferWidth(), curGlobalOffset / GetOffscreenLightBufferWidth());
+                    int curGlobalOffset = curListOffset + i;
+                    uint2 curOffscreenCoord = uint2(curGlobalOffset % GetOffscreenLightBufferWidth(), curGlobalOffset / GetOffscreenLightBufferWidth());
 
                     Visibility::VisibilityData unusedVisData;
                     uint2 unusedTexelCoord;
@@ -394,68 +414,69 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
                     float3 curNormal;
                     VisibilityOIT::UnpackOITNormalFromGBufferData0(curPackedOITGBuffer0, curNormal);
 
-                    float cos0o = dot(curNormal, dir);
-                    bool isBackface = cos0o < 0.0;
+                    //float cos0o = dot(curNormal, dir);
+                    //bool isBackface = cos0o < 0.0;
 
-#if 0
-                    float2 curMinMax = GeomHelper::GetPixelMinMax(curLinearDepth, curNormal);
-                    if (v1.z > curMinMax.x && v1.z < curMinMax.y)
+                    float3 hitSS = float3(v1.xy, curLinearDepth);
+                    float3 toSrc = normalize(hitSS - v0);
+                    float alignMeasure = dot(toSrc, dir);
+
+                    if (maxDot > alignMeasure)
                     {
-                        float hitDistance;
-                        float3 planeCenter = float3(v1.xy, curLinearDepth);
-                        if (GeomHelper::PlaneLineIntersection(v1, dir, planeCenter, curNormal, hitDistance))
-                        {
-                            float3 hitPoint = v1 + hitDistance * dir;
-                            float3 fromPlane = hitPoint - planeCenter;
-                            // Approximation not correct
-                            if (dot(fromPlane, fromPlane) < 0.5f * 0.5f)
-                            {
-                                hasHit = true;
-                                break;
-                            }
-                        }
-                    }
-#else
-                    if (curLinearDepth > curOpaqueLinearDepth)
-                    {
-                        continue;
+                        bestGlobalOffset = curGlobalOffset;
+                        bestOffscreenCoord = curOffscreenCoord;
+                        bestHit = hitSS;
+                        maxDot = alignMeasure;
                     }
 
-                    float deltaZ = abs(v1.z - curLinearDepth);
-                    if (minDelta > deltaZ)
+                    if (curLinearDepth > v1.z)
                     {
-                        minDelta = deltaZ;
-                        hitCoord = curOffscreenCoord;
-                        bestIdx = i;
+                        hasHit = false;
+                        break;
                     }
-#endif
                 }
 
-                if (minDelta < 1.0f)
+                if (maxDot > 0.95f)
                 {
                     hasHit = true;
                     break;
                 }
 
-                //if (hasHit)
-                //    break;
+                if (hasHit)
+                    break;
             }
-            else
-            {
-                currentMip = max(currentMip - 1, 0);
-            }
+            //else
+            //{
+            //    //currentMip = max(currentMip - 1, 0);
+            //}
         }
-        else
-        {
-            currentMip = min(currentMip + 1, 9);
-        }
+        //else
+        //{
+        //    break;
+        //}
+        //else
+        //{
+        //    //currentMip = min(currentMip + 1, 9);
+        //}
 
         ++curIter;
     }
 
+    uint2 hitFinalSS = v1.xy;
+    //if (any(hitFinalSS == dispatchThreadId.xy))
+    //if (all(hitFinalSS == dispatchThreadId.xy) || curIter >= maxIter || any(hitFinalSS == dispatchThreadId.xy))
+    if (curIter >= maxIter)
+    {
+        float3 curOpaqueColor = LOAD_TEXTURE2D_X(_VisOITOpaqueColorPyramid, v1.xy).rgb;
+        _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = pow(float4(curOpaqueColor, 1.0), 1.0);
+        //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = pow(float4(0.64f, 0.29f, 0.64f, 1.0), 2.2);
+        return;
+    }
     if (hasHitOpaque)
     {
-        _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(1.0, 0.5, 0.25, 1.0);
+        //float3 curOpaqueColor = LOAD_TEXTURE2D_X(_VisOITOpaqueColorPyramid, v1.xy).rgb;
+        //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = pow(float4(curOpaqueColor, 1.0), 2.2);
+        _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = pow(float4(1.0f, 0.5f, 0.25f, 1.0), 2.2);
         return;
     }
     if (mustSampleHDRI)
@@ -465,12 +486,15 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     }
     if (hasHit)
     {
-        float3 radiance = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(hitCoord)].rgb;
-        _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(radiance, 1.0);
-        //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(0.0, 1.0, 0.0, 1.0);
+        //float3 radiance = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(hitCoord)].rgb;
+        //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(radiance, 1.0);
+        _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(0.0, 1.0, 0.0, 1.0);
         //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(0.0, 1.0, 0.0, 1.0);
         return;
     }
+
+    //_OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(0.5, 0.5, 0.5, 1.0);
+    return;
 
     float lastOpaqueDeviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, v1.xy).r;
     if (v1.z < lastOpaqueDeviceDepth)
@@ -938,7 +962,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
         coarseRefraction = radianceVal.xyz / radianceVal.a;
     }
-    float3 directLighting = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord)];
+    float3 directLighting = _VisOITOffscreenDirectReflectionLighting[COORD_TEXTURE2D_X(offscreenCoord)].rgb;
     _OutputTexture[COORD_TEXTURE2D_X(posInputRaw.positionSS.xy)] = float4(lerp(coarseRefraction, directLighting, 0.2), 1.0);
 #endif
 }
