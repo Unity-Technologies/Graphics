@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -211,23 +211,24 @@ namespace UnityEngine.Rendering.UIGen
         {
             result = default;
 
+            // TODO multithreading:
+            //   - Map
+            //   - Generation (each sub part sequential):
+            //      - property generation C# + UXML (multithreading inside)
+            //      - Merge intermediate document
             if (!UIDefinitionPropertyCategoryMap.FromDefinition(definition, out var map, out error))
                 return false;
 
-            PooledList<BindableViewIntermediateDocument> intermediateDocuments;
-            using (map)
-            {
-                if (!GenerateBindableViewIntermediateDocumentFromProperties(
-                        definition,
-                        map,
-                        out intermediateDocuments,
-                        out error))
-                    return false;
-            }
+            if (!GenerateBindableViewIntermediateDocumentFromProperties(
+                    definition,
+                    out PooledList<BindableViewIntermediateDocument> intermediateDocuments,
+                    out error))
+                return false;
 
             BindableViewIntermediateDocument mergedDocument;
             using (intermediateDocuments)
             {
+                // TODO: Check if map is needed here
                 if (!MergeIntermediateDocuments(
                         intermediateDocuments.listUnsafe,
                         out mergedDocument,
@@ -236,12 +237,12 @@ namespace UnityEngine.Rendering.UIGen
                     return false;
             }
 
-            return GenerateDocumentFromIntermediate(mergedDocument, out result, out error);
+            using (map)
+                return GenerateDocumentFromIntermediate(map, mergedDocument, out result, out error);
         }
 
         bool GenerateBindableViewIntermediateDocumentFromProperties(
             [DisallowNull] UIDefinition definition,
-            [DisallowNull] UIDefinitionPropertyCategoryMap map,
             out PooledList<BindableViewIntermediateDocument> result,
             [NotNullWhen(false)] out Exception error
         )
@@ -259,6 +260,7 @@ namespace UnityEngine.Rendering.UIGen
         }
 
         bool GenerateDocumentFromIntermediate(
+            [DisallowNull] UIDefinitionPropertyCategoryMap map,
             [DisallowNull] BindableViewIntermediateDocument document,
             [NotNullWhen(true)] out BindableView result,
             [NotNullWhen(false)] out Exception error
@@ -268,5 +270,3 @@ namespace UnityEngine.Rendering.UIGen
         }
     }
 }
-
-
