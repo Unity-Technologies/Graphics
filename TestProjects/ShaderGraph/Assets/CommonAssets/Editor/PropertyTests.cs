@@ -194,21 +194,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 yield return null;
             }
 
-            var categoryList = m_Window.graphObject.graph.categories.ToList();
-            foreach (var category in categoryList)
-            {
-                var categoryView = m_BlackboardTestController.GetBlackboardCategory(category.categoryGuid);
-                Assert.IsNotNull(categoryView, "No blackboard property view found in the blackboard row.");
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, categoryView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, categoryView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
-                Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select category!");
-                yield return null;
-
-                ShaderGraphUITestHelpers.SendDeleteCommand(m_Window, m_GraphEditorView.graphView);
-            }
-
-            // Should be no properties, keywords, dropdowns, and only 1 category, the default category
-            Assert.IsTrue(m_Window.graphObject.graph.properties.Count() == 0 && m_Window.graphObject.graph.properties.Count() == 0 && m_Window.graphObject.graph.categories.Count() == 1 && m_Window.graphObject.graph.dropdowns.Count() == 0);
+            // Should be no properties, keywords, dropdowns
+            Assert.IsTrue(m_Window.graphObject.graph.properties.Count() == 0 && m_Window.graphObject.graph.properties.Count() == 0 && m_Window.graphObject.graph.dropdowns.Count() == 0);
             yield return null;
         }
 
@@ -308,71 +295,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 m_BlackboardTestController.ScrollView.verticalScroller.value = m_BlackboardTestController.ScrollView.scrollOffset.y + 57.5f;
                 yield return null;
             }
-
-            var categoryList = m_Window.graphObject.graph.categories.ToList();
-            foreach (var category in categoryList)
-            {
-                var categoryView = m_BlackboardTestController.GetBlackboardCategory(category.categoryGuid);
-                Assert.IsNotNull(categoryView, "No blackboard property view found in the blackboard row.");
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, categoryView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, categoryView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
-                Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select category!");
-                yield return null;
-
-                ShaderGraphUITestHelpers.SendDuplicateCommand(m_Window);
-
-                m_BlackboardTestController.ScrollView.verticalScroller.value = m_BlackboardTestController.ScrollView.scrollOffset.y + 57.5f;
-                yield return null;
-            }
-
-        }
-
-        [Test]
-        public IEnumerator DuplicateInputTest()
-        {
-            Assert.IsNotNull(m_BlackboardTestController.addBlackboardItemsMenu, "Blackboard Add Items menu reference owned by BlackboardTestController is null.");
-
-            var menuItems = m_BlackboardTestController.addBlackboardItemsMenu.GetPrivateProperty<IList>("menuItems");
-            Assert.IsNotNull(menuItems, "Could not retrieve reference to the menu items of the Blackboard Add Items menu");
-
-            // invoke all menu items on the "add Blackboard Items Menu" to add all property types
-            foreach (var item in menuItems)
-            {
-                var menuFunction = item.GetNonPrivateField<GenericMenu.MenuFunction>("func");
-                menuFunction?.Invoke();
-                yield return null;
-            }
-
-            var cachedPropertyList = m_Window.graphObject.graph.properties.ToList();
-            foreach (var property in cachedPropertyList)
-            {
-                var blackboardRow = m_BlackboardTestController.GetBlackboardRow(property);
-                Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard property.");
-                var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
-                Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
-                yield return null;
-
-                ShaderGraphUITestHelpers.SendDuplicateCommand(m_Window);
-                yield return null;
-            }
-
-            var cachedKeywordList = m_Window.graphObject.graph.keywords.ToList();
-            foreach (var keyword in cachedKeywordList)
-            {
-                var blackboardRow = m_BlackboardTestController.GetBlackboardRow(keyword);
-                Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard keyword.");
-                var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
-                Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
-                yield return null;
-
-                ShaderGraphUITestHelpers.SendDuplicateCommand(m_Window);
-                yield return null;
-            }
-
         }
 
         [Test]
