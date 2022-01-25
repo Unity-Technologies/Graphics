@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UnityEditor.Rendering.Universal.Converters
+namespace UnityEditor.Rendering.Universal
 {
     /// <summary>
     /// A structure needed for the initialization step of the converter.
@@ -12,6 +12,11 @@ namespace UnityEditor.Rendering.Universal.Converters
         /// Stores the list of ConverterItemDescriptor that will be filled in during the initialization step.
         /// </summary>
         internal List<ConverterItemDescriptor> items;
+
+        /// <summary>
+        /// A bool set to true if the converter is running in batch mode.
+        /// </summary>
+        public bool isBatchMode { get; internal set; }
 
         /// <summary>
         /// Add to the list of assets to be converted.
