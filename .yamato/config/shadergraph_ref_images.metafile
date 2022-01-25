@@ -11,7 +11,6 @@ test_platforms:
     - [OSX_Metal, OSX_OpenGLCore]: <shared.platform.commands.unity_downloader_cli>
     - [OSX_OpenGLCore]: brew install python
     - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP brew install python
-    - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP python --version; python3 --version
     - [Linux_OpenGLCore, Linux_Vulkan]: sudo apt install python3.10
     - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan]: |5-
@@ -27,7 +26,7 @@ test_platforms:
     - [OSX_Metal]: mkdir -p TestProjects/ShaderGraph/test-results/
     - [all]: <shared.platform.commands.call_utr>
     after:
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan, OSX_OpenGLCore, iPhone_Metal]: pip install -U unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan, OSX_OpenGLCore, iPhone_Metal]: pip install -U --user unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     - [Linux_OpenGLCore, Linux_Vulkan]: pip3 install -U unityparser --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple && python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; pip3 install -U unityparser && python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
     - [OSX_Metal]: scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
@@ -54,7 +53,7 @@ test_platforms:
     - [OSX_Metal]: mkdir -p TestProjects/ShaderGraph/test-results/
     - [all]: <shared.platform.commands.call_utr>
     after:
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan, OSX_OpenGLCore, iPhone_Metal]: pip install -U unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan, OSX_OpenGLCore, iPhone_Metal]: pip install -U --user unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     - [Linux_OpenGLCore, Linux_Vulkan]: pip3 install -U unityparser --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple && python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; pip3 install -U unityparser && python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
     - [OSX_Metal]: scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
@@ -88,7 +87,7 @@ test_platforms:
     - [all]: <shared.platform.commands.call_utr>
     after:
     - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan, OSX_OpenGLCore, iPhone_Metal]: pip install -U unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan, Android_OpenGLES3, Android_Vulkan, OSX_OpenGLCore, iPhone_Metal]: pip install -U --user unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     - [Linux_OpenGLCore, Linux_Vulkan]: pip3 install -U unityparser --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple && python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     - [OSX_Metal]: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; pip3 install -U unityparser && python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
     - [OSX_Metal]: scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
