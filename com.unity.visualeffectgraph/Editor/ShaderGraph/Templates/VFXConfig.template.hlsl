@@ -255,57 +255,34 @@ void SetupVFXMatrices(AttributesElement element, inout VFX_SRP_VARYINGS output)
 #endif
 }
 
-//TODOPAUL: Factorization !
 float4 VFXGetPreviousClipPosition(VFX_SRP_ATTRIBUTES input, AttributesElement element)
 {
     float4 cPreviousPos = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
-    uint particleIndex = element.index;
+#if (VFX_FEATURE_MOTION_VECTORS_FORWARD || USE_MOTION_VECTORS_PASS)
+    uint elementIndex = element.index;
     uint vertexId = input.vertexID;
-
-#if defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
-
-    //TODOPAUL, move it will solve this missing declaration
-    uint viewTotal = 1;//asuint(cameraXRSettings.x);
-    uint viewCount = 1;//asuint(cameraXRSettings.y);
-    uint viewOffset = 0;//asuint(cameraXRSettings.z);
-    uint elementToVFXBaseIndex = particleIndex * (VFX_FEATURE_MOTION_VECTORS_VERTS * 2 * viewTotal + 1);
-
-    uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
-    if (asuint(currentFrameIndex) - previousFrameIndex == 1u)
+    uint elementToVFXBaseIndex;
+    if (TryGetElementToVFXBaseIndex(elementIndex, elementToVFXBaseIndex))
     {
-#if HAS_STRIPS
-        uint vertIndex = (vertexId / 2) % VFX_FEATURE_MOTION_VECTORS_VERTS;
-#else
-        uint vertIndex = vertexId % VFX_FEATURE_MOTION_VECTORS_VERTS;
-#endif
-        uint elementToVFXIndex = elementToVFXBaseIndex + vertIndex * viewCount * 2;
-        elementToVFXIndex += viewOffset * viewCount * VFX_FEATURE_MOTION_VECTORS_VERTS * 2;
-        elementToVFXIndex += unity_StereoEyeIndex * 2;
-        uint2 read = elementToVFXBufferPrevious.Load2(elementToVFXIndex << 2);
-        cPreviousPos.xy = asfloat(read);
+        cPreviousPos = VFXGetPreviousClipPosition(elementToVFXBaseIndex, vertexId);
     }
 #endif
+
     return cPreviousPos;
 }
 
 VFX_SRP_ATTRIBUTES VFXTransformMeshToPreviousElement(VFX_SRP_ATTRIBUTES input, AttributesElement element)
 {
-#if (VFX_FEATURE_MOTION_VECTORS_FORWARD || USE_MOTION_VECTORS_PASS) && !defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
-    uint elementToVFXBaseIndex = element.index * 13;
-    uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
-
-    float4x4 previousElementToVFX = (float4x4)0;
-    previousElementToVFX[3] = float4(0,0,0,1);
-
-    UNITY_UNROLL
-    for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
+#if (VFX_FEATURE_MOTION_VECTORS_FORWARD || USE_MOTION_VECTORS_PASS)
+    uint elementIndex = element.index;
+    uint elementToVFXBaseIndex;
+    if (TryGetElementToVFXBaseIndex(elementIndex, elementToVFXBaseIndex))
     {
-        uint4 read = elementToVFXBufferPrevious.Load4((elementToVFXBaseIndex + itIndexMatrixRow * 4) << 2);
-        previousElementToVFX[itIndexMatrixRow] = asfloat(read);
+        float4x4 previousElementToVFX = VFXGetPreviousElementToVFX(elementToVFXBaseIndex);
+        input.positionOS = mul(previousElementToVFX, float4(input.positionOS, 1.0f)).xyz;
     }
-
-    input.positionOS = mul(previousElementToVFX, float4(input.positionOS, 1.0f)).xyz;
+    
 #endif//WRITE_MOTION_VECTOR_IN_FORWARD || USE_MOTION_VECTORS_PASS
     return input;
 }

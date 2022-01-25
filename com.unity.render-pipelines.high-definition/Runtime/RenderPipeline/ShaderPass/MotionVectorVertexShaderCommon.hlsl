@@ -157,7 +157,8 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
 
 #if defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
 #if defined(HAVE_MESH_MODIFICATION) || defined(HAVE_VERTEX_MODIFICATION) || defined(_ADD_CUSTOM_VELOCITY) || defined(TESSELLATION_ON)
-#error Unexpected fast path rendering VFX motion vector while there are vertex modification afterwards.
+        //TODOPAUL: Some variant should be excluded with VFX
+        //#error Unexpected fast path rendering VFX motion vector while there are vertex modification afterwards.
 #endif
         if (!previousPositionCSComputed)
         {

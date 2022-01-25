@@ -209,3 +209,64 @@ float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)
         return color;
     #endif
 }
+
+void VFXEncodeMotionVector(float2 motionVec, out float4 outBuffer)
+{
+    EncodeMotionVector(motionVec, outBuffer);
+    outBuffer.zw = 1.0f;
+}
+
+bool TryGetElementToVFXBaseIndex(uint elementIndex, out uint elementToVFXBaseIndex)
+{
+    elementToVFXBaseIndex = ~0u;
+#if defined(VFX_FEATURE_MOTION_VECTORS)
+#if defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
+    uint viewTotal = asuint(cameraXRSettings.x);
+    uint viewCount = asuint(cameraXRSettings.y);
+    uint viewOffset = asuint(cameraXRSettings.z);
+    elementToVFXBaseIndex = elementIndex * (VFX_FEATURE_MOTION_VECTORS_VERTS * 2 * viewTotal + 1);
+#else
+    elementToVFXBaseIndex = elementIndex * 13;
+#endif
+    uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
+    return asuint(currentFrameIndex) - previousFrameIndex == 1u;
+#endif
+    return false;
+}
+
+float4 VFXGetPreviousClipPosition(uint elementToVFXBaseIndex, uint vertexIndex)
+{
+    float4 previousClipPos = float4(0.0f, 0.0f, 0.0f, 1.0f);
+#if VFX_FEATURE_MOTION_VECTORS && defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
+    uint viewTotal = asuint(cameraXRSettings.x);
+    uint viewCount = asuint(cameraXRSettings.y);
+    uint viewOffset = asuint(cameraXRSettings.z);
+
+#if HAS_STRIPS
+    vertexIndex = (vertexIndex / 2) % VFX_FEATURE_MOTION_VECTORS_VERTS;
+#else
+    vertexIndex = vertexIndex % VFX_FEATURE_MOTION_VECTORS_VERTS;
+#endif
+    uint elementToVFXIndex = elementToVFXBaseIndex + vertexIndex * viewCount * 2;
+    elementToVFXIndex += viewOffset * viewCount * VFX_FEATURE_MOTION_VECTORS_VERTS * 2;
+    elementToVFXIndex += unity_StereoEyeIndex * 2;
+    uint2 read = elementToVFXBufferPrevious.Load2(elementToVFXIndex << 2);
+    previousClipPos.xy = asfloat(read);
+
+#endif
+    return previousClipPos;
+}
+
+float4x4 VFXGetPreviousElementToVFX(uint elementToVFXBaseIndex)
+{
+    float4x4 previousElementToVFX = (float4x4)0;
+    previousElementToVFX[3] = float4(0, 0, 0, 1);
+#if VFX_FEATURE_MOTION_VECTORS && !defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
+    for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
+    {
+        uint4 read = elementToVFXBufferPrevious.Load4((elementToVFXBaseIndex + itIndexMatrixRow * 4) << 2);
+        previousElementToVFX[itIndexMatrixRow] = asfloat(read);
+    }
+#endif
+    return previousElementToVFX;
+}

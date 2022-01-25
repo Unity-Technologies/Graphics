@@ -134,48 +134,22 @@ InitStripAttributes(index, attributes, stripData);
 ${VFXEnd}
 
 ${VFXBegin:VFXVertexComputeCurrentAndPreviousClipPos}
-#if VFX_FEATURE_MOTION_VECTORS
-#if defined(VFX_VARYING_VELOCITY_CPOS) && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS)
-#ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
-uint viewTotal = asuint(cameraXRSettings.x);
-uint viewCount = asuint(cameraXRSettings.y);
-uint viewOffset = asuint(cameraXRSettings.z);
-uint elementToVFXBaseIndex = index * (VFX_FEATURE_MOTION_VECTORS_VERTS * 2 * viewTotal + 1);
-#else
-uint elementToVFXBaseIndex = index * 13;
-#endif
-uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
-o.VFX_VARYING_VELOCITY_CPOS = o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = float4(0.0f, 0.0f, 0.0f, 1.0f);
-if (asuint(currentFrameIndex) - previousFrameIndex == 1u)    //if (dot(previousElementToVFX[0], 1) != 0)
+#if VFX_FEATURE_MOTION_VECTORS && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS) && defined(VFX_VARYING_VELOCITY_CPOS)
+uint elementToVFXBaseIndex;
+if (TryGetElementToVFXBaseIndex(index, elementToVFXBaseIndex))
 {
 #ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
-#if HAS_STRIPS
-	uint vertIndex = (id / 2) % VFX_FEATURE_MOTION_VECTORS_VERTS;
+	o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = VFXGetPreviousClipPosition(elementToVFXBaseIndex, id);
 #else
-	uint vertIndex = id % VFX_FEATURE_MOTION_VECTORS_VERTS;
-#endif
-	uint elementToVFXIndex = elementToVFXBaseIndex + vertIndex * viewCount * 2;
-	elementToVFXIndex += viewOffset * viewCount * VFX_FEATURE_MOTION_VECTORS_VERTS * 2;
-	elementToVFXIndex += unity_StereoEyeIndex * 2;
-	uint2 read = elementToVFXBufferPrevious.Load2(elementToVFXIndex << 2);
-	o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS.xy = asfloat(read);
-	o.VFX_VARYING_VELOCITY_CPOS = TransformPositionVFXToNonJitteredClip(vPos);
-	o.VFX_VARYING_VELOCITY_CPOS /= o.VFX_VARYING_VELOCITY_CPOS.w;
-#else
-	float4x4 previousElementToVFX = (float4x4)0;
-	previousElementToVFX[3] = float4(0,0,0,1);
-	UNITY_UNROLL
-	for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
-	{
-		uint4 read = elementToVFXBufferPrevious.Load4((elementToVFXBaseIndex + itIndexMatrixRow * 4) << 2);
-		previousElementToVFX[itIndexMatrixRow] = asfloat(read);
-	}
+	float4x4 previousElementToVFX = VFXGetPreviousElementToVFX(elementToVFXBaseIndex);
 	float3 oldvPos = mul(previousElementToVFX, float4(inputVertexPosition, 1.0f)).xyz;
 	o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = TransformPositionVFXToPreviousClip(oldvPos);
+#endif
 	o.VFX_VARYING_VELOCITY_CPOS = TransformPositionVFXToNonJitteredClip(vPos);
+#ifdef VFX_FEATURE_MOTION_VECTORS_VERTS
+	o.VFX_VARYING_VELOCITY_CPOS /= o.VFX_VARYING_VELOCITY_CPOS.w;
 #endif
 }
-#endif
 #endif
 ${VFXEnd}
 
