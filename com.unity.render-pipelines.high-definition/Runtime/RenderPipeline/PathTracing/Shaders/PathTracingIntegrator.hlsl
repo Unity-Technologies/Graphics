@@ -115,13 +115,6 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
     bool isVisible;
     GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, pathIntersection.cone, isVisible);
 
-    // if (!isVisible)
-    // {
-    //     // This should never happen, return magenta just in case
-    //     pathIntersection.value = float3(1.0, 0.0, 0.5);
-    //     return;
-    // }
-
     // Check if we want to compute direct and emissive lighting for current depth
     bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
 
