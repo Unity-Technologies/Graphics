@@ -122,6 +122,35 @@ namespace UnityEngine.Rendering.UIGen
         {
             QualifiedCategory category;
         }
+
+        // Not Weird API, it is always confusing as for the direction of the data flow
+        // Consider a static API
+        /// <summary>
+        /// Move the data from <paramref name="toMerge"/> into self.
+        /// </summary>
+        /// <param name="toMerge"></param>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public bool TakeAndMerge(
+            [DisallowNull] UIDefinition toMerge,
+            [NotNullWhen(false)] out Exception error
+        )
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public static class UIDefinitionExtensions
+    {
+        public static bool Aggregate<TList>(
+            [DisallowNull] this TList definitions,
+            [NotNullWhen(true)] out UIDefinition merged,
+            [NotNullWhen(false)] out Exception error
+        )
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 
@@ -195,16 +224,39 @@ namespace UnityEngine.Rendering.UIGen
         CSharpSyntaxTree m_BindingCode;
     }
 
+    public static class BindableViewExtensions
+    {
+        public struct DiskLocation
+        {
+            string assetLocation;
+            string runtimeCodeLocation;
+            string editorCodeLocation;
+        }
+
+        // Consider async API?
+        public static bool WriteToDisk(
+            [DisallowNull] this BindableView view,
+            DiskLocation location,
+            [NotNullWhen(false)] out Exception error
+        )
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class BindableViewIntermediateDocument
     {
         XmlElement m_Uxml;
         CSharpSyntaxNode m_Code;
     }
 
-    class DebugMenuUIGenerator
+    public static class DebugMenuUIGenerator
     {
-        public bool GenerateBindableView(
-            [DisallowNull] UIDefinition definition,
+        public struct Parameters { }
+
+        public static bool GenerateDebugMenuBindableView(
+            [DisallowNull] this UIDefinition definition,
+            Parameters parameters,
             [NotNullWhen(true)] out BindableView result,
             [NotNullWhen(false)] out Exception error
         )
@@ -239,7 +291,7 @@ namespace UnityEngine.Rendering.UIGen
             return GenerateDocumentFromIntermediate(mergedDocument, out result, out error);
         }
 
-        bool GenerateBindableViewIntermediateDocumentFromProperties(
+        static bool GenerateBindableViewIntermediateDocumentFromProperties(
             [DisallowNull] UIDefinition definition,
             [DisallowNull] UIDefinitionPropertyCategoryMap map,
             out PooledList<BindableViewIntermediateDocument> result,
@@ -249,7 +301,7 @@ namespace UnityEngine.Rendering.UIGen
             throw new NotImplementedException();
         }
 
-        bool MergeIntermediateDocuments(
+        static bool MergeIntermediateDocuments(
             [DisallowNull] List<BindableViewIntermediateDocument> intermediateDocuments,
             [NotNullWhen(true)] out BindableViewIntermediateDocument result,
             [NotNullWhen(false)] out Exception error
@@ -258,7 +310,7 @@ namespace UnityEngine.Rendering.UIGen
             throw new NotImplementedException();
         }
 
-        bool GenerateDocumentFromIntermediate(
+        static bool GenerateDocumentFromIntermediate(
             [DisallowNull] BindableViewIntermediateDocument document,
             [NotNullWhen(true)] out BindableView result,
             [NotNullWhen(false)] out Exception error
