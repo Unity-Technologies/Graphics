@@ -413,7 +413,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         BlackboardCategoryController m_DefaultCategoryController = null;
         Dictionary<string, BlackboardCategoryController> m_BlackboardCategoryControllers = new Dictionary<string, BlackboardCategoryController>();
 
-        SGBlackboard m_Blackboard;
+        protected SGBlackboard m_Blackboard;
 
         internal SGBlackboard blackboard
         {
