@@ -1,0 +1,26 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/tree.uss?fileID=7433441132597879392&amp;guid=ac779437dc398924e878abefe76a72e0&amp;type=3#tree" />
+    <ui:ScrollView>
+        <ui:Button text="Button" display-tooltip-when-elided="true" binding-path="TestButtonMethodInBindingPath" />
+        <ui:ProgressBar title="my-progress" binding-path="m_Bar" />
+        <ui:Slider picking-mode="Ignore" label="Slider" value="42" high-value="100" binding-path="m_Slider" />
+        <ui:DropdownField label="Dropdown" index="-1" choices="System.Collections.Generic.List`1[System.String]" binding-path="m_Dropdown" />
+        <ui:EnumField label="Enum" type="UnityEngine.TextAlignment, UnityEngine.TextRenderingModule" value="Center" binding-path="m_Enum" />
+        <ui:Toggle label="Toggle" binding-path="m_Toggle" />
+        <ui:TextField picking-mode="Ignore" label="Text Field" value="filler text" binding-path="m_Text" />
+        <ui:IntegerField label="Int Field" value="42" binding-path="m_Int" />
+        <ui:FloatField label="Float Field" value="42.2" binding-path="m_Float" />
+        <ui:LongField label="Long Field" value="42" binding-path="m_Long" />
+        <ui:DoubleField label="Double Field" value="42.2" binding-path="m_Double" />
+        <ui:Hash128Field label="Hash128 Field" value="885eea9fcca73bdadde4ecd6a3af1312" binding-path="m_Hash" />
+        <ui:Vector2Field label="Vec2 Field" binding-path="m_Vec2" />
+        <ui:Vector2IntField label="Vector2Int" binding-path="m_Vec2Int" />
+        <ui:Vector3Field label="Vec3 Field" binding-path="m_Vec3" />
+        <ui:Vector3IntField label="Vector3Int" binding-path="m_Vec3Int" />
+        <ui:Vector4Field label="Vec4 Field" binding-path="m_Vec4" />
+        <ui:RectField label="Rect" binding-path="m_Rect" />
+        <ui:RectIntField label="RectInt" binding-path="m_RectInt" />
+        <ui:BoundsField label="Bounds" binding-path="m_Bounds" />
+        <ui:BoundsIntField label="BoundsInt" binding-path="m_BoundsInt" />
+    </ui:ScrollView>
+</ui:UXML>
