@@ -15,4 +15,4 @@
 * [Synchronizing shader code and C#](generating-shader-includes.md)
 * [Look Dev](Look-Dev.md)
   * [Environment Library](Look-Dev-Environment-Library.md)
-* [View Lighting Tool](view-lighting-tool.md)
+* [Light Anchor](view-lighting-tool.md)
