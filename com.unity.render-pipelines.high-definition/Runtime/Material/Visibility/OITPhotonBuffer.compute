@@ -167,7 +167,7 @@ float randomFloat(uint seed)
     return floatConstruct(bobJenkinsHash(seed));
 }
 
-#define BOUNCE_COUNT 64
+#define ITERATION_COUNTS 8
 
 [numthreads(SAMPLES_DISPATCH_THREAD_COUNT,1,1)]
 void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
@@ -213,18 +213,17 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
     float eta = internalIORMedium / internalIORSource;
 
     //Importance sample the first direction, along the nromal of the current sample.
-#if 1
     float4 accumulatedRadiance = float4(0,0,0,0);
-    for (int b = 0; b < BOUNCE_COUNT; ++b)
+    for (int it = 0; it  < ITERATION_COUNTS; ++it)
     {
-        float2 rand = frac(offscreenCoord + halton2D((int)(srcSampleId) ^ b));
+        float2 rand = frac(offscreenCoord + halton2D((int)(srcSampleId) ^ it));
         float3 microNormal;
         float sampleWeight = 1.0;
         BTDF::GGXSampleWSOmega_w(V, normalWS, rand, roughness, microNormal);
 
         float3 reflectedDir = reflect(-V, microNormal);
         float3 refractedDir = refract(-V, microNormal, eta);
-        float randFloat = randomFloat(srcSampleId + b);
+        float randFloat = randomFloat(srcSampleId + it);
         float3 sampleDir = refractedDir;// randFloat < max(f0.x, max(f0.y, f0.z)) ? reflectedDir : refractedDir;
 
         // kleber: should multiplye by roughness? 'lerp(0.8, 2.0, randFloat) * sampleDir * roughness'
@@ -254,7 +253,4 @@ void MainComputePhotonBuffer(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     _VisOITOutputPhotonBuffer[COORD_TEXTURE2D_X(offscreenCoord)] += accumulatedRadiance;
-#else
-    _VisOITOutputPhotonBuffer[COORD_TEXTURE2D_X(offscreenCoord)] += float4(eta.xxx, 1.0);
-#endif
 }
