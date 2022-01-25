@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 
 using UnityEditor.ShaderFoundry;
+using PassIdentifier = UnityEngine.Rendering.PassIdentifier;
 using BlockInput = UnityEditor.ShaderFoundry.BlockVariable;
 using BlockOutput = UnityEditor.ShaderFoundry.BlockVariable;
 using BlockProperty = UnityEditor.ShaderFoundry.BlockVariable;
@@ -78,7 +79,7 @@ namespace UnityEditor.ShaderFoundry
                 var passBuilder = new TemplatePass.Builder(Container);
                 passBuilder.ReferenceName = legacyPassDescriptor.referenceName;
                 passBuilder.DisplayName = legacyPassDescriptor.displayName;
-                passBuilder.PassIdentifier = new UnityEditor.ShaderFoundry.PassIdentifier(subShaderIndex, subPassIndex);
+                passBuilder.PassIdentifier = new PassIdentifier((uint)subShaderIndex, (uint)subPassIndex);
                 ++subPassIndex;
 
                 BuildLegacyTemplateEntryPoints(result, legacyPassDescriptor, passBuilder, vertexCustomizationPoint, surfaceCustomizationPoint);
