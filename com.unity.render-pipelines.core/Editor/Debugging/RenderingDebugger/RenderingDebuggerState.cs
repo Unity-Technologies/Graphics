@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Codice.CM.SEIDInfo;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -9,10 +10,12 @@ namespace UnityEditor.Rendering
 {
     class RenderingDebuggerState : ScriptableObject
     {
+        private const string kSavePath = "Temp/RenderingDebuggerState.asset";
+
         public string selectedPanelName;
 
         [SerializeField]
-        private List<RenderingDebuggerPanel> m_Panels = new ();
+        public List<RenderingDebuggerPanel> panels = new ();
 
         public RenderingDebuggerPanel GetPanel(Type type)
         {
@@ -20,7 +23,7 @@ namespace UnityEditor.Rendering
                 return panel;
 
             panel = ScriptableObject.CreateInstance(type) as RenderingDebuggerPanel;
-            m_Panels.Add(panel);
+            panels.Add(panel);
 
             return panel;
         }
@@ -29,14 +32,30 @@ namespace UnityEditor.Rendering
 
         public bool TryGetPanel(Type type, out RenderingDebuggerPanel renderingDebuggerPanel)
         {
-            renderingDebuggerPanel = m_Panels.FirstOrDefault(p => p.GetType() == type);
-            return renderingDebuggerPanel != null;
+            renderingDebuggerPanel = panels.FirstOrDefault(p => p.GetType() == type);
+            return panels.Any(p => p.GetType() == type);
         }
         public bool TryGetPanel<T>(out RenderingDebuggerPanel renderingDebuggerPanel) => TryGetPanel(typeof(T), out renderingDebuggerPanel);
 
         void OnEnable()
         {
             hideFlags = HideFlags.HideAndDontSave;
+        }
+
+        internal static RenderingDebuggerState Load()
+        {
+            var objs = InternalEditorUtility.LoadSerializedFileAndForget(kSavePath);
+            RenderingDebuggerState state = (objs.Length > 0 ? objs[0] : null) as RenderingDebuggerState;
+            if (state == null)
+            {
+                state = ScriptableObject.CreateInstance<RenderingDebuggerState>();
+            }
+            return state;
+        }
+
+        internal static void Save(RenderingDebuggerState state)
+        {
+            InternalEditorUtility.SaveToSerializedFileAndForget(new[] { state }, kSavePath, true);
         }
     }
 }

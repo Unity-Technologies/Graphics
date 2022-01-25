@@ -1,13 +1,9 @@
 using System;
-using System.Linq;
-using System.Reflection;
 using UnityEditor.Rendering.UI;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Serialization;
 using UnityEngine.UIElements;
-using Object = System.Object;
 
 namespace UnityEditor.Rendering
 {
@@ -28,11 +24,18 @@ namespace UnityEditor.Rendering
 
         public void CreateGUI()
         {
+            if (m_State == null || m_State.Equals(null))
+                m_State = RenderingDebuggerState.Load();
+
             var windowTemplate = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/com.unity.render-pipelines.core/Editor/Debugging/RenderingDebugger/RenderingDebuggerEditorWindow.uxml");
             if (windowTemplate == null)
                 throw new InvalidOperationException("Root document not found");
 
+            // TODO use Instantiate
             windowTemplate.CloneTree(this.rootVisualElement);
+
+            // TODO temporary way to trigger saving - should think about better ways to do it
+            this.rootVisualElement.RegisterCallback<FocusOutEvent>(OnFocusLost);
 
             var tabsVisualElement = this.rootVisualElement.Q<VisualElement>("tabs");
             var tabContentVisualElement = this.rootVisualElement.Q<VisualElement>("tabContent");
@@ -56,6 +59,8 @@ namespace UnityEditor.Rendering
 
                 // Create the content of the tab
                 VisualElement panelVisualElement = new VisualElement() {name = $"{panel.panelName}{TabbedMenuController.k_ContentNameSuffix}"};
+
+                // TODO use Instantiate
                 panelVisualTreeAsset.CloneTree(panelVisualElement);
 
                 if (firstTabAdded == false && string.IsNullOrEmpty(m_State.selectedPanelName))
@@ -95,12 +100,13 @@ namespace UnityEditor.Rendering
             }
         }
 
+        public void OnFocusLost(FocusOutEvent evt)
+        {
+            RenderingDebuggerState.Save(m_State);
+        }
+
         public void OnEnable()
         {
-            if (m_State == null)
-                m_State = CreateInstance<RenderingDebuggerState>();
-
-            //Debug.Log("OnEnable");
             /*
             var windowTemplate = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/com.unity.render-pipelines.core/Editor/Debugging/RenderingDebugger/RenderingDebuggerEditorWindow.uxml");
             if (windowTemplate == null)
