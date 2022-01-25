@@ -273,7 +273,7 @@ namespace UnityEngine.Rendering.UIGen
 
             if (!GenerateBindableViewIntermediateDocumentFromProperties(
                     definition,
-                    out PooledList<BindableViewIntermediateDocument> intermediateDocuments,
+                    out var intermediateDocuments,
                     out error))
                 return false;
 
