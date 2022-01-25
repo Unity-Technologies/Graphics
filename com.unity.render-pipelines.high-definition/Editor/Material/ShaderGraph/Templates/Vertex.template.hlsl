@@ -47,13 +47,17 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     return output;
 }
 
-//TODOPAUL Rework this factorization considering the time parameter override
-VertexDescription ExecuteVertexDescription(VertexDescriptionInputs vertexDescriptionInputs
+VertexDescription GetVertexDescription(AttributesMesh input, float3 timeParameters
 #ifdef HAVE_VFX_MODIFICATION
     , AttributesElement element
 #endif
 )
 {
+    // build graph inputs
+    VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
+    // Override time parameters with used one (This is required to correctly handle motion vector for vertex animation based on time)
+    $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
+
     // evaluate vertex graph
 #ifdef HAVE_VFX_MODIFICATION
     GraphProperties properties;
@@ -61,11 +65,13 @@ VertexDescription ExecuteVertexDescription(VertexDescriptionInputs vertexDescrip
 
     // Fetch the vertex graph properties for the particle instance.
     GetElementVertexProperties(element, properties);
+
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs, properties);
 #else
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
 #endif
     return vertexDescription;
+
 }
 
 AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
@@ -81,12 +87,7 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
 #endif
     )
 {
-    // build graph inputs
-    VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
-    // Override time parameters with used one (This is required to correctly handle motion vector for vertex animation based on time)
-    $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
-
-    VertexDescription vertexDescription = ExecuteVertexDescription(vertexDescriptionInputs
+    VertexDescription vertexDescription = GetVertexDescription(input, timeParameters
 #ifdef HAVE_VFX_MODIFICATION
         , element
 #endif
@@ -114,9 +115,7 @@ float3 GetCustomVelocity(AttributesMesh input
 #endif
 )
 {
-    // build graph inputs
-    VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
-    VertexDescription vertexDescription = ExecuteVertexDescription(vertexDescriptionInputs
+    VertexDescription vertexDescription = GetVertexDescription(input, _TimeParameters.xyz
 #ifdef HAVE_VFX_MODIFICATION
         , element
 #endif
