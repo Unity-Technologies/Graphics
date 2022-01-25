@@ -40,11 +40,11 @@ Material:
     - _Depth_Test_Ghost_Effect: 0
     - _Depth_Test_Outline: 1
     - _Depth_Test_Stripes_Effect: 1
-    - _Float: 0
+    - _Float: 0.16
     - _Invert: 0
     - _Opacity: 1
     - _OutlineSize: 1
-    - _Outline_Size: 2
+    - _Outline_Size: 3
     - _Power: 2
     - _Pulse_Frequency: 1
     - _Pulse_Power: 0.25
