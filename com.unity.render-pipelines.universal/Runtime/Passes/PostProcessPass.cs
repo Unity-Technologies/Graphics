@@ -441,6 +441,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
                          colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                    // Clear depth to avoid depth invalidation on platforms such as Quest. Custom passes executed after postprocessing pass may require valid depth buffer
+                    cmd.ClearRenderTarget(true, false, Color.black);
 
                     bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
                     if (isRenderToBackBufferTarget)
@@ -472,6 +474,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
                 {
                     cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                    // Clear depth to avoid depth invalidation on platforms such as Quest. Custom passes executed after postprocessing pass may require valid depth buffer
+                    cmd.ClearRenderTarget(true, false, Color.black);
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
                     if (m_Destination == RenderTargetHandle.CameraTarget)
