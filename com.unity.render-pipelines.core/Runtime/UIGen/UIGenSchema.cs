@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml;
+using JetBrains.Annotations;
 using Microsoft.CodeAnalysis.CSharp;
 
 
@@ -132,6 +133,7 @@ namespace UnityEngine.Rendering.UIGen
         /// <param name="error"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
+        [MustUseReturnValue]
         public bool TakeAndMerge(
             [DisallowNull] UIDefinition toMerge,
             [NotNullWhen(false)] out Exception error
@@ -143,6 +145,7 @@ namespace UnityEngine.Rendering.UIGen
 
     public static class UIDefinitionExtensions
     {
+        [MustUseReturnValue]
         public static bool Aggregate<TList>(
             [DisallowNull] this TList definitions,
             [NotNullWhen(true)] out UIDefinition merged,
@@ -152,6 +155,7 @@ namespace UnityEngine.Rendering.UIGen
             throw new NotImplementedException();
         }
 
+        [MustUseReturnValue]
         public static bool ComputeHash(
             [DisallowNull] this UIDefinition definition,
             out Hash128 hash,
@@ -167,6 +171,7 @@ namespace UnityEngine.Rendering.UIGen
 {
     public class UIDefinitionPropertyCategoryMap : IDisposable
     {
+        [MustUseReturnValue]
         public static bool FromDefinition(
             [DisallowNull] UIDefinition definition,
             [NotNullWhen(true)] out UIDefinitionPropertyCategoryMap map,
@@ -186,6 +191,7 @@ namespace UnityEngine.Rendering.UIGen
     {
         List<TValue> m_List;
 
+        [MustUseReturnValue]
         public bool TryGet(
             [NotNullWhen(true)] out List<TValue> thisList,
             [NotNullWhen(false)] out Exception error
@@ -243,6 +249,7 @@ namespace UnityEngine.Rendering.UIGen
         }
 
         // Consider async API?
+        [MustUseReturnValue]
         public static bool WriteToDisk(
             [DisallowNull] this BindableView view,
             DiskLocation location,
@@ -263,6 +270,7 @@ namespace UnityEngine.Rendering.UIGen
     {
         public struct Parameters { }
 
+        [MustUseReturnValue]
         public static bool GenerateDebugMenuBindableView(
             [DisallowNull] this UIDefinition definition,
             Parameters parameters,
@@ -302,6 +310,7 @@ namespace UnityEngine.Rendering.UIGen
                 return GenerateDocumentFromIntermediate(map, mergedDocument, out result, out error);
         }
 
+        [MustUseReturnValue]
         static bool GenerateBindableViewIntermediateDocumentFromProperties(
             [DisallowNull] UIDefinition definition,
             out PooledList<BindableViewIntermediateDocument> result,
@@ -311,6 +320,7 @@ namespace UnityEngine.Rendering.UIGen
             throw new NotImplementedException();
         }
 
+        [MustUseReturnValue]
         static bool MergeIntermediateDocuments(
             [DisallowNull] List<BindableViewIntermediateDocument> intermediateDocuments,
             [NotNullWhen(true)] out BindableViewIntermediateDocument result,
@@ -320,6 +330,7 @@ namespace UnityEngine.Rendering.UIGen
             throw new NotImplementedException();
         }
 
+        [MustUseReturnValue]
         static bool GenerateDocumentFromIntermediate(
             [DisallowNull] UIDefinitionPropertyCategoryMap map,
             [DisallowNull] BindableViewIntermediateDocument document,

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Rendering.UIGen;
 
@@ -41,7 +42,7 @@ namespace UnityEditor.Rendering.UIGen
         {
             var dataSource = TypeCache.GetTypesWithAttribute<DeriveDebugMenuAttribute>();
 
-            if (!ValidateDatasources(dataSource, out error))
+            if (!ValidateDataSources(dataSource, out error))
                 return false;
 
             if (!GenerateUIDefinition(dataSource, out var definition, out error))
@@ -68,10 +69,14 @@ namespace UnityEditor.Rendering.UIGen
             if (!view.WriteToDisk(k_DiskLocation, out error))
                 return false;
 
-            // TODO: generate and write integration
-            //   custom inspector for editor
-            //   runtime display
+            // TODO: may require additional arguments
+            if (!DebugMenuIntegration.GenerateIntegration(out var integrationDocuments, out error))
+                return false;
 
+            if (!integrationDocuments.WriteToDisk(k_DiskLocation, out error))
+                return false;
+
+            // Save import report
             if (!ImportReport.From(out var report, out error))
                 return false;
 
@@ -81,7 +86,8 @@ namespace UnityEditor.Rendering.UIGen
             return true;
         }
 
-        static bool ValidateDatasources<TList>(
+        [MustUseReturnValue]
+        static bool ValidateDataSources<TList>(
             [DisallowNull] TList dataSource,
             [NotNullWhen(false)] out Exception error
         ) where TList : IList<System.Type>
@@ -103,6 +109,7 @@ namespace UnityEditor.Rendering.UIGen
             return false;
         }
 
+        [MustUseReturnValue]
         static bool GenerateUIDefinition<TList>(
             [DisallowNull] TList dataSource,
             [NotNullWhen(true)] out UIDefinition definition,
@@ -121,6 +128,7 @@ namespace UnityEditor.Rendering.UIGen
             }
         }
 
+        [MustUseReturnValue]
         static bool GenerateUIDefinitionPerType<TList>(
             [DisallowNull] TList dataSource,
             out PooledList<UIDefinition> definitions,
@@ -131,6 +139,7 @@ namespace UnityEditor.Rendering.UIGen
             throw new NotImplementedException();
         }
 
+        [MustUseReturnValue]
         static bool LoadLastImportReport(
             out ImportReport report, // can be null
             [NotNullWhen(false)] out Exception error
@@ -139,6 +148,7 @@ namespace UnityEditor.Rendering.UIGen
             throw new NotImplementedException();
         }
 
+        [MustUseReturnValue]
         static bool SaveImportReport(
             [DisallowNull] ImportReport report,
             [NotNullWhen(false)] out Exception error

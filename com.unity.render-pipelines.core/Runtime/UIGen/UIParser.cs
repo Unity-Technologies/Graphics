@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using JetBrains.Annotations;
 
 namespace UnityEngine.Rendering.UIGen
 {
@@ -14,6 +15,7 @@ namespace UnityEngine.Rendering.UIGen
         /// <param name="definition"></param>
         /// <param name="error"></param>
         /// <returns></returns>
+        [MustUseReturnValue]
         public static bool ParseTypeRecursive(
             [DisallowNull] Type type,
             [NotNullWhen(true)] out UIDefinition definition,
@@ -27,6 +29,7 @@ namespace UnityEngine.Rendering.UIGen
             throw new NotImplementedException();
         }
 
+        [MustUseReturnValue]
         public static bool ParseType(
             [DisallowNull] Type type,
             [NotNullWhen(true)] out UIDefinition definition,
