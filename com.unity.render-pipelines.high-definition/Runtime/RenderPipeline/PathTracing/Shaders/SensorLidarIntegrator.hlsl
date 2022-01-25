@@ -1,9 +1,12 @@
+#ifndef UNITY_SENSOR_LIDAR_INTEGRATOR_INCLUDED
+#define UNITY_SENSOR_LIDAR_INTEGRATOR_INCLUDED
+
 // Ray tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
 // Path tracing includes
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/SensorIntersection.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/SensorLidarIntersection.hlsl"
 #ifdef HAS_LIGHTLOOP
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingLight.hlsl"
 #endif
@@ -168,3 +171,5 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
         pathIntersection.value.yz = value.yz;
     }
 }
+
+#endif // UNITY_SENSOR_LIDAR_INTEGRATOR_INCLUDED

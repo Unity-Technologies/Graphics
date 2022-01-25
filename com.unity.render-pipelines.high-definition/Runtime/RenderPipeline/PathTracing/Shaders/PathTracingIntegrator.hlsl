@@ -1,5 +1,5 @@
-#ifndef UNITY_PATH_TRACING_FORWARD_INTEGRATOR_INCLUDED
-#define UNITY_PATH_TRACING_FORWARD_INTEGRATOR_INCLUDED
+#ifndef UNITY_PATH_TRACING_INTEGRATOR_INCLUDED
+#define UNITY_PATH_TRACING_INTEGRATOR_INCLUDED
 
 // Ray tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
@@ -395,4 +395,4 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
     }
 }
 
-#endif // UNITY_PATH_TRACING_FORWARD_INTEGRATOR_INCLUDED
+#endif // UNITY_PATH_TRACING_INTEGRATOR_INCLUDED

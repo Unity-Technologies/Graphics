@@ -1,5 +1,5 @@
-#ifndef UNITY_SENSOR_INTERSECTION_INCLUDED
-#define UNITY_SENSOR_INTERSECTION_INCLUDED
+#ifndef UNITY_SENSOR_LIDAR_INTERSECTION_INCLUDED
+#define UNITY_SENSOR_LIDAR_INTERSECTION_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
 
@@ -34,4 +34,4 @@ void ClearBeamData(inout PathIntersection payload)
     SetBeamDirection(payload, 0.0);
 }
 
-#endif // UNITY_SENSOR_INTERSECTION_INCLUDED
+#endif // UNITY_SENSOR_LIDAR_INTERSECTION_INCLUDED
