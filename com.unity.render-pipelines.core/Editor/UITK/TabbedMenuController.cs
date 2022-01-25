@@ -1,4 +1,5 @@
-﻿using UnityEngine.UIElements;
+﻿using System;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.UI
 {
@@ -15,6 +16,8 @@ namespace UnityEditor.Rendering.UI
         public const string k_ContentNameSuffix = "Content";
 
         private readonly VisualElement m_Root;
+
+        public event Action<string> OnTabSelected;
 
         public TabbedMenuController(VisualElement root)
         {
@@ -64,6 +67,7 @@ namespace UnityEditor.Rendering.UI
             tab.AddToClassList(k_CurrentlySelectedTabClassName);
             VisualElement content = FindContent(tab);
             content.RemoveFromClassList(k_UnselectedContentClassName);
+            OnTabSelected?.Invoke(tab.name);
         }
 
         /* Method for the unselected tab:

@@ -12,6 +12,10 @@ namespace UnityEditor.Rendering
     {
         private TabbedMenuController controller;
 
+        [SerializeField]
+        private RenderingDebuggerState m_state;
+
+
         [MenuItem("Window/Analysis/Rendering Debugger (UITK)", priority = 10006)]
         public static void ShowDefaultWindow()
         {
@@ -48,6 +52,9 @@ namespace UnityEditor.Rendering
             }
             // END TODO
 
+            if (m_state == null)
+                m_state = CreateInstance<RenderingDebuggerState>();
+
             bool firstTabAdded = false;
             foreach (var panel in TypeCache.GetTypesWithAttribute<RenderingDebuggerPanelAttribute>())
             {
@@ -75,10 +82,15 @@ namespace UnityEditor.Rendering
                 // Bind it to the visual element of the panel
                 panelVisualElement.Bind(so);
 
-                if (firstTabAdded == false)
+                if (firstTabAdded == false && string.IsNullOrEmpty(m_state.selectedPanelName))
+                {
+                    firstTabAdded = true;
+                    m_state.selectedPanelName = panelHeader.name;
+                }
+
+                if (panelHeader.name.Equals(m_state.selectedPanelName))
                 {
                     panelHeader.AddToClassList(TabbedMenuController.k_CurrentlySelectedTabClassName);
-                    firstTabAdded = true;
                 }
                 else
                 {
@@ -101,6 +113,7 @@ namespace UnityEditor.Rendering
 
             controller = new(rootVisualElement);
             controller.RegisterTabCallbacks();
+            controller.OnTabSelected += tabName => { m_state.selectedPanelName = tabName; };
 
             this.minSize = new Vector2(400, 250);
         }
