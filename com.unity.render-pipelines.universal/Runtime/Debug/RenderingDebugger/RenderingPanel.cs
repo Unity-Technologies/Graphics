@@ -3,9 +3,13 @@ using System;
 namespace UnityEngine.Rendering.Universal
 {
     [Serializable]
-    [RenderingDebuggerPanel("Rendering", "Packages/com.unity.render-pipelines.universal/Runtime/Debug/RenderingDebugger/RenderingPanel.uxml")]
-    class RenderingPanel : ScriptableObject
+    class RenderingPanel : RenderingDebuggerPanel
     {
+        public override string panelName => "Rendering";
+
+        public override string uiDocument =>
+            "Packages/com.unity.render-pipelines.universal/Runtime/Debug/RenderingDebugger/RenderingPanel.uxml";
+
         /// <summary>
         /// Whether MSAA is enabled.
         /// </summary>
