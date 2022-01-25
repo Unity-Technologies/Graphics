@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using Codice.CM.SEIDInfo;
+using UnityEditor.VersionControl;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -44,8 +45,7 @@ namespace UnityEditor.Rendering
 
         internal static RenderingDebuggerState Load()
         {
-            var objs = InternalEditorUtility.LoadSerializedFileAndForget(kSavePath);
-            RenderingDebuggerState state = (objs.Length > 0 ? objs[0] : null) as RenderingDebuggerState;
+            RenderingDebuggerState state = AssetDatabase.LoadAssetAtPath<RenderingDebuggerState>(kSavePath);
             if (state == null)
             {
                 state = ScriptableObject.CreateInstance<RenderingDebuggerState>();
@@ -55,7 +55,18 @@ namespace UnityEditor.Rendering
 
         internal static void Save(RenderingDebuggerState state)
         {
-            InternalEditorUtility.SaveToSerializedFileAndForget(new[] { state }, kSavePath, true);
+            var objects = new List<UnityEngine.Object>(){ state };
+            objects.AddRange(state.panels);
+
+            InternalEditorUtility.SaveToSerializedFileAndForget(objects.ToArray(), kSavePath, true);
+            /*AssetDatabase.DeleteAsset(kSavePath);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.CreateAsset(state, kSavePath);
+            foreach (var panel in state.panels)
+            {
+                AssetDatabase.AddObjectToAsset(panel, state);
+            }
+            AssetDatabase.SaveAssets();*/
         }
     }
 }
