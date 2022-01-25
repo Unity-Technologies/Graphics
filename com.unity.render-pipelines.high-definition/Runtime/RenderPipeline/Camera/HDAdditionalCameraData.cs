@@ -38,12 +38,24 @@ namespace UnityEngine.Rendering.HighDefinition
         // Note: focalLength is already defined in the regular camera component
         [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture;
         [SerializeField] [Min(0.1f)] float m_FocusDistance;
+        [SerializeField] Camera.GateFitMode m_GateFit;
 
         // Aperture shape
         [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount;
         [SerializeField] Vector2 m_Curvature;
         [SerializeField] [Range(0f, 1f)] float m_BarrelClipping;
         [SerializeField] [Range(-1f, 1f)] float m_Anamorphism;
+
+        /// <summary>
+        /// There are two gates for a camera, the sensor gate and the resolution gate. The
+        /// physical camera sensor gate is defined by the sensorSize property, the resolution
+        /// gate is defined by the render target area.
+        /// </summary>
+        public Camera.GateFitMode gateFit
+        {
+            get => m_GateFit;
+            set => m_GateFit = value;
+        }
 
         /// <summary>
         /// The focus distance of the lens. The Depth of Field Volume override uses this value if you set focusDistanceMode to FocusDistanceMode.Camera.
@@ -146,6 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
             val.curvature = new Vector2(2f, 11f);
             val.barrelClipping = 0.25f;
             val.anamorphism = 0;
+            val.gateFit = Camera.GateFitMode.Vertical;
 
             return val;
         }
