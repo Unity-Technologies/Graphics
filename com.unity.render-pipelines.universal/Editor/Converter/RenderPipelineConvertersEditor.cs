@@ -10,7 +10,7 @@ using UnityEngine.UIElements;
 using UnityEngine.Assertions;
 using UnityEngine.SceneManagement;
 
-namespace UnityEditor.Rendering.Universal.Converters
+namespace UnityEditor.Rendering.Universal
 {
     // Status for each row item to say in which state they are in.
     // This will make sure they are showing the correct icon
@@ -141,9 +141,9 @@ namespace UnityEditor.Rendering.Universal.Converters
 
             // This is the drop down choices.
             m_ConverterContainers = TypeCache.GetTypesDerivedFrom<RenderPipelineConverterContainer>();
-            foreach (var continerType in m_ConverterContainers)
+            foreach (var containerType in m_ConverterContainers)
             {
-                var container = (RenderPipelineConverterContainer)Activator.CreateInstance(continerType);
+                var container = (RenderPipelineConverterContainer)Activator.CreateInstance(containerType);
                 m_Containers.Add(container);
                 m_ContainerChoices.Add(container.name);
             }

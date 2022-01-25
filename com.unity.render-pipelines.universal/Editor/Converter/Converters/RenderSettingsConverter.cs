@@ -6,7 +6,7 @@ using UnityEngine.Rendering.Universal;
 using ShadowQuality = UnityEngine.ShadowQuality;
 using ShadowResolution = UnityEngine.ShadowResolution;
 
-namespace UnityEditor.Rendering.Universal.Converters
+namespace UnityEditor.Rendering.Universal
 {
     internal class RenderSettingsConverter : RenderPipelineConverter
     {
