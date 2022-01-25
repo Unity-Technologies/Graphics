@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
 - Fixed error thrown when layered lit material has an invalid material type.
 - Fixed a nullref when enabling raycount without ray tracing.
+- Fixed an issue where forced sky update (like PBR sky amortized updated) would not update ambient probe.
 
 ## [10.7.0] - 2021-07-02
 
