@@ -247,17 +247,22 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     if (listCount == 0)
         return;
 
+    uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
+
     float firstdeviceDepth = 0.0;
     float firstLinearDepth = 0.0;
     int globalOffset;
     uint2 offscreenCoord;
     {
-        globalOffset = listOffset + 0; // first sample, assume sorted samples
+        // Identify the index of the first sorted sample
+        uint firstSampleIndex = (listCount >= 2) ? _OITSortMemoryBuffer[sortIndicesBaseAddr] : 0;
+
+        globalOffset = listOffset + firstSampleIndex;
         offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
 
         Visibility::VisibilityData unusedVisData;
         uint2 unusedTexelCoord;
-        VisibilityOIT::GetVisibilitySampleWithLinearDepth(0 /* first sample, assume sorted samples */, listOffset, unusedVisData, unusedTexelCoord, firstdeviceDepth, firstLinearDepth);
+        VisibilityOIT::GetVisibilitySampleWithLinearDepth(firstSampleIndex, listOffset, unusedVisData, unusedTexelCoord, firstdeviceDepth, firstLinearDepth);
     }
 
     float opaqueDeviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, dispatchThreadId.xy).r;
@@ -956,7 +961,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
         //float4 radianceVal = float4(0,0,0,0);
         {
-            uint2 offscreenCoord = uint2(listOffset % GetOffscreenLightBufferWidth(), listOffset / GetOffscreenLightBufferWidth());
+            uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());
             radianceVal = _VisOITOffscreenPhotonRadianceLighting[COORD_TEXTURE2D_X(offscreenCoord)];
         }
 
