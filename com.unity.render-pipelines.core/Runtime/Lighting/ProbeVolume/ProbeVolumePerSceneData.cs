@@ -173,7 +173,7 @@ namespace UnityEngine.Experimental.Rendering
             currentState = null;
         }
 
-        public void SetBakingState(string state)
+        internal void SetBakingState(string state)
         {
             if (state == currentState)
                 return;
@@ -184,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
 #if UNITY_EDITOR
-        public void GetBlobFileNames(out string cellDataFilename, out string cellOptionalDataFilename, out string cellSharedDataFilename, out string cellSupportDataFilename)
+        internal void GetBlobFileNames(out string cellDataFilename, out string cellOptionalDataFilename, out string cellSharedDataFilename, out string cellSupportDataFilename)
         {
             var state = ProbeReferenceVolume.instance.bakingState;
             string basePath = Path.Combine(ProbeVolumeAsset.GetDirectory(gameObject.scene.path, gameObject.scene.name), ProbeVolumeAsset.assetName);
@@ -201,6 +201,9 @@ namespace UnityEngine.Experimental.Rendering
             cellSupportDataFilename = GetOrCreateFileName(cellSupportDataAsset, ".CellSupportData.bytes");
         }
 
+        /// <summary>
+        /// Call this function during OnProcessScene to strip debug from project builds.
+        /// </summary>
         public void StripSupportData()
         {
             cellSupportDataAsset = null;
