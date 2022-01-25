@@ -202,7 +202,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 if (target is IHasMetadata iHasMetadata)
                 {
-                    var metadata = iHasMetadata.GetMetadataObject();
+                    var metadata = iHasMetadata.GetMetadataObject(graph);
                     if (metadata == null)
                         continue;
 

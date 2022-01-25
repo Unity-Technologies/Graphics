@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
@@ -66,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public virtual string identifier => GetType().Name;
 
-        public virtual ScriptableObject GetMetadataObject()
+        public virtual ScriptableObject GetMetadataObject(GraphData graph)
         {
             var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
             hdMetadata.shaderID = shaderID;
@@ -76,18 +77,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             hdMetadata.hasVertexModificationInMotionVector = systemData.customVelocity || systemData.tessellation;
             if (!hdMetadata.hasVertexModificationInMotionVector)
             {
-                var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), null);
-                GetActiveBlocks(ref tmpCtx);
-                var vertexBlocks = tmpCtx.activeBlocks.Where(o => o.shaderStage == ShaderStage.Vertex);
-
-                if (vertexBlocks
-                    .Select(o => o.control as MaterialSlot) //<== Wrong ! This isn't what I'm looking for
-                    .Any(o => o.isConnected))
+                var positionsNodes = graph.GetNodes<BlockNode>().Where(o => o.descriptor.control is PositionControl);
+                if (positionsNodes.SelectMany(o => o.GetInputSlots<MaterialSlot>()).Any(o => o.isConnected))
                 {
                     hdMetadata.hasVertexModificationInMotionVector = true;
                 }
             }
-
             return hdMetadata;
         }
 
@@ -144,8 +139,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 context.AddSubShader(patchedSubShader);
             }
         }
-
-
 
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
