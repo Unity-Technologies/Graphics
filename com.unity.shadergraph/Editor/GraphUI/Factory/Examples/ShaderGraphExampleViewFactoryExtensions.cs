@@ -1,4 +1,4 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements;
@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Factory
             ConnectionInfoNodeModel model)
         {
             var ui = new ConnectionInfoNode();
-            ui.SetupBuildAndUpdate(model, store, elementBuilder.View, elementBuilder.Context);
+            ui.SetupBuildAndUpdate(model, elementBuilder.View, elementBuilder.Context);
             return ui;
         }
 
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Factory
             DataNodeModel model)
         {
             var ui = new DataNode();
-            ui.SetupBuildAndUpdate(model, store, elementBuilder.View, elementBuilder.Context);
+            ui.SetupBuildAndUpdate(model, elementBuilder.View, elementBuilder.Context);
             return ui;
         }
 
@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Factory
             ConversionEdgeModel model)
         {
             var ui = new ConversionEdge();
-            ui.SetupBuildAndUpdate(model, store, elementBuilder.View, elementBuilder.Context);
+            ui.SetupBuildAndUpdate(model, elementBuilder.View, elementBuilder.Context);
             return ui;
         }
 
@@ -38,14 +38,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.Factory
             CustomizableNodeModel model)
         {
             var ui = new CustomizableNode();
-            ui.SetupBuildAndUpdate(model, store, elementBuilder.View, elementBuilder.Context);
+            ui.SetupBuildAndUpdate(model, elementBuilder.View, elementBuilder.Context);
             return ui;
         }
 
         public static IModelUI CreatePort(this ElementBuilder elementBuilder, CommandDispatcher store,
             PortModel model)
         {
-            var ui = (Port)GraphViewFactoryExtensions.CreatePort(elementBuilder, store, model);
+            var ui = (Port)GraphViewFactoryExtensions.CreatePort(elementBuilder, model);
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.unity.shadergraph/Editor/GraphUI/GraphElements/Stylesheets/ShaderGraphPorts.uss");
             ui.styleSheets.Add(styleSheet);
             return ui;

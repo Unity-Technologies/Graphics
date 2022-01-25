@@ -1,13 +1,14 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
+using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.GraphToolsFoundation.Overdrive.BasicModel;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
+using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
 {
     public class ShaderGraphOnboardingProvider : OnboardingProvider
     {
-        public override VisualElement CreateOnboardingElements(CommandDispatcher commandDispatcher)
+        public override VisualElement CreateOnboardingElements(Dispatcher commandDispatcher)
         {
             var template = new GraphTemplate<ShaderGraphStencil>("ShaderGraph");
             return AddNewGraphButton<ShaderGraphAssetModel>(template);

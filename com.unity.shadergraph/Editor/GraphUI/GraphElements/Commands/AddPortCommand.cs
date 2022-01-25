@@ -20,10 +20,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch
             m_Type = type;
         }
 
-        public static void DefaultCommandHandler(GraphToolState graphToolState, AddPortCommand command)
+        public static void DefaultCommandHandler(
+            UndoStateComponent undoState,
+            GraphViewStateComponent graphViewState,
+            AddPortCommand command
+        )
         {
-            graphToolState.PushUndo(command);
-            using var graphUpdater = graphToolState.GraphViewState.UpdateScope;
+            undoState.UpdateScope.SaveSingleState(graphViewState, command);
+            using var graphUpdater = graphViewState.UpdateScope;
 
             foreach (var customizableNodeModel in command.Models)
             {

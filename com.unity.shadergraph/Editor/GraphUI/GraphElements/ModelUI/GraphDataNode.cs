@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
 
             if (/*m_GraphDataNodeModel.HasPreview*/ true)
             {
-                m_NodePreviewPart = new NodePreviewPart(CommandDispatcher, "node-preview", Model, this, ussClassName);
+                m_NodePreviewPart = new NodePreviewPart("node-preview", Model, this, ussClassName);
                 PartList.AppendPart(m_NodePreviewPart);
             }
 
@@ -47,12 +47,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
             evt.menu.AppendSeparator();
             evt.menu.AppendAction("Preview/Expand", action =>
             {
-                CommandDispatcher.Dispatch(new ChangePreviewExpandedCommand(true, new [] {m_GraphDataNodeModel}));
+                GraphView.Dispatch(new ChangePreviewExpandedCommand(true, new [] {m_GraphDataNodeModel}));
             });
 
             evt.menu.AppendAction("Preview/Collapse", action =>
             {
-                CommandDispatcher.Dispatch(new ChangePreviewExpandedCommand(false, new [] {m_GraphDataNodeModel}));
+                GraphView.Dispatch(new ChangePreviewExpandedCommand(false, new [] {m_GraphDataNodeModel}));
             });
 
             // TODO: Add preview mode 2D/3D change submenu options to menu

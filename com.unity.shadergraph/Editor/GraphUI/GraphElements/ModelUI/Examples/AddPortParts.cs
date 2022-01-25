@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
 
         void OnAddPressed()
         {
-            m_OwnerElement.CommandDispatcher.Dispatch(new AddPortCommand(
+            m_OwnerElement.View.Dispatch(new AddPortCommand(
                 m_OutputToggle.value,
                 m_NameField.value,
                 ShaderGraphExampleTypes.TypeHandlesByName[m_TypeDropdown.value],

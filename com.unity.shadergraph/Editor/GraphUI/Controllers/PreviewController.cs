@@ -1,41 +1,51 @@
-﻿using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.DataModel;
-using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
-using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
-using UnityEngine;
+//using UnityEditor.GraphToolsFoundation.Overdrive;
+//using UnityEditor.ShaderGraph.GraphUI.DataModel;
+//using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
+//using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
+//using UnityEngine;
 
-namespace UnityEditor.ShaderGraph.GraphUI.Controllers
-{
-    class PreviewController : GraphSubWindowController<Preview, PreviewOverlay>
-    {
-        GraphPreviewStateObserver m_PreviewStateObserver;
 
-        protected override string OverlayID => PreviewOverlay.k_OverlayID;
+// TODO(Brett): Identify why our command handler would not satisfy the syntax requirements for being registered with the command dispatcher.
 
-        public PreviewController(CommandDispatcher dispatcher, GraphView parentGraphView, EditorWindow parentWindow) : base(dispatcher, parentGraphView, parentWindow)
-        {
-            View = new Preview();
+//namespace UnityEditor.ShaderGraph.GraphUI.Controllers
+//{
+//    class PreviewController : GraphSubWindowController<Preview, PreviewOverlay>
+//    {
+//        GraphPreviewStateObserver m_PreviewStateObserver;
 
-            m_PreviewStateObserver = new GraphPreviewStateObserver();
-            dispatcher.RegisterObserver(m_PreviewStateObserver);
+//        protected override string OverlayID => PreviewOverlay.k_OverlayID;
 
-            dispatcher.RegisterCommandHandler<UpdatePortConstantCommand>(HandleUpdatePortConstant);
-        }
+//        public PreviewController(CommandDispatcher dispatcher, GraphView graphView, BaseGraphTool graphTool, EditorWindow parentWindow) : base(dispatcher, graphView, graphTool, parentWindow)
+//        {
+//            View = new Preview();
 
-        static void HandleUpdatePortConstant(GraphToolState graphToolState, UpdatePortConstantCommand command)
-        {
-            UpdatePortConstantCommand.DefaultCommandHandler(graphToolState, command);
+//            GraphPreviewStateComponent graphPreviewState = PersistedState.GetOrCreateViewStateComponent<GraphPreviewStateComponent>("Graph Preview State", ShaderGraphState.m_previewStateWindowGUID);
 
-            if (graphToolState is ShaderGraphState shaderGraphState)
-            {
-                using var previewUpdater = shaderGraphState.GraphPreviewState.UpdateScope;
-                {
-                    if (command.PortModel.NodeModel is GraphDataNodeModel graphDataNodeModel)
-                    {
-                        previewUpdater.UpdateNodePortConstantValue(command.PortModel.Guid.ToString(), command.NewValue, graphDataNodeModel);
-                    }
-                }
-            }
-        }
-    }
-}
+//            m_PreviewStateObserver = new GraphPreviewStateObserver();
+//            graphView.GraphTool.ObserverManager.RegisterObserver(m_PreviewStateObserver);
+//            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, GraphPreviewStateComponent, UpdatePortConstantCommand>
+//                (
+//                (CommandHandler<UpdatePortConstantCommand, UndoStateComponent, GraphViewStateComponent, GraphPreviewStateComponent>)
+//                    HandleUpdatePortConstant,
+//                    graphTool.UndoStateComponent,
+//                    graphView.GraphViewState,
+//                    graphPreviewState
+//                );
+//        }
+
+//        static void HandleUpdatePortConstant(UndoStateComponent undoState, GraphViewStateComponent graphViewState, GraphPreviewStateComponent graphPreviewState, UpdatePortConstantCommand command)
+//        {
+//            UpdatePortConstantCommand.DefaultCommandHandler(undoState, graphViewState, command);
+
+//            {
+//                using var previewUpdater = graphPreviewState.UpdateScope;
+//                {
+//                    if (command.PortModel.NodeModel is GraphDataNodeModel graphDataNodeModel)
+//                    {
+//                        previewUpdater.UpdateNodePortConstantValue(command.PortModel.Guid.ToString(), command.NewValue, graphDataNodeModel);
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}

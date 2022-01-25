@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Factory
             GraphDataNodeModel model)
         {
             var ui = new GraphDataNode();
-            ui.SetupBuildAndUpdate(model, store, elementBuilder.View, elementBuilder.Context);
+            ui.SetupBuildAndUpdate(model, elementBuilder.View, elementBuilder.Context);
             return ui;
         }
 
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Factory
             RedirectNodeModel model)
         {
             var ui = new RedirectNode();
-            ui.SetupBuildAndUpdate(model, store, elementBuilder.View, elementBuilder.Context);
+            ui.SetupBuildAndUpdate(model, elementBuilder.View, elementBuilder.Context);
             return ui;
         }
 
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.Factory
             EdgeModel model)
         {
             var ui = new RedirectableEdge();
-            ui.SetupBuildAndUpdate(model, store, elementBuilder.View, elementBuilder.Context);
+            ui.SetupBuildAndUpdate(model, elementBuilder.View, elementBuilder.Context);
             return ui;
         }
     }

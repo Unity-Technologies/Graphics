@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
@@ -6,14 +6,19 @@ using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.Utilities;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
 namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
 {
     public static class ShaderGraphCommandOverrides
     {
-        public static void HandleCreateEdge(GraphToolState state, CreateEdgeCommand command)
+        public static void HandleCreateEdge(
+            UndoStateComponent undoState,
+            GraphViewStateComponent graphViewState,
+            Preferences preferences,
+            CreateEdgeCommand command)
         {
-            CreateEdgeCommand.DefaultCommandHandler(state, command);
+            CreateEdgeCommand.DefaultCommandHandler(undoState, graphViewState, preferences, command);
 
             var resolvedSource = command.FromPortModel;
             var resolvedDestinations = new List<IPortModel>();
@@ -23,7 +28,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 resolvedDestinations = toRedir.ResolveDestinations().ToList();
 
                 // Update types of descendant redirect nodes.
-                using var graphUpdater = state.GraphViewState.UpdateScope;
+                using var graphUpdater = graphViewState.UpdateScope;
                 foreach (var child in toRedir.GetRedirectTree(true))
                 {
                     child.UpdateTypeFrom(command.FromPortModel);
@@ -43,7 +48,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             if (resolvedSource is not GraphDataPortModel fromDataPort) return;
 
             // Make the corresponding connections in Shader Graph's data model.
-            var shaderGraphModel = (ShaderGraphModel) state.GraphViewState.GraphModel;
+            var shaderGraphModel = (ShaderGraphModel) graphViewState.GraphModel;
             foreach (var toDataPort in resolvedDestinations.OfType<GraphDataPortModel>())
             {
                 // Validation should have already happened in GraphModel.IsCompatiblePort.
@@ -51,11 +56,14 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             }
         }
 
-        public static void HandleBypassNodes(GraphToolState state, BypassNodesCommand command)
+        public static void HandleBypassNodes(
+            UndoStateComponent undoState,
+            GraphViewStateComponent graphViewState,
+            BypassNodesCommand command)
         {
-            BypassNodesCommand.DefaultCommandHandler(state, command);
+            BypassNodesCommand.DefaultCommandHandler(undoState, graphViewState, command);
 
-            var graphModel = (ShaderGraphModel)state.GraphViewState.GraphModel;
+            var graphModel = (ShaderGraphModel)graphViewState.GraphModel;
 
             // Delete backing data for graph data nodes.
             foreach (var graphData in command.Models.OfType<GraphDataNodeModel>())
@@ -64,13 +72,18 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             }
         }
 
-        public static void HandleDeleteElements(GraphToolState state, DeleteElementsCommand command)
+        public static void HandleDeleteElements(
+            UndoStateComponent undoState,
+            GraphViewStateComponent graphViewState,
+            SelectionStateComponent selectionState,
+            GraphPreviewStateComponent graphPreviewState,
+            DeleteElementsCommand command)
         {
             if (!command.Models.Any())
                 return;
 
-            state.PushUndo(command);
-            var graphModel = (ShaderGraphModel)state.GraphViewState.GraphModel;
+            undoState.UpdateScope.SaveSingleState(graphViewState, command);
+            var graphModel = (ShaderGraphModel)graphViewState.GraphModel;
 
             // Partition out redirect nodes because they get special delete behavior.
             var redirects = new List<RedirectNodeModel>();
@@ -82,8 +95,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 else nonRedirects.Add(model);
             }
 
-            using var selectionUpdater = state.SelectionState.UpdateScope;
-            using var graphUpdater = state.GraphViewState.UpdateScope;
+            using var selectionUpdater = selectionState.UpdateScope;
+            using var graphUpdater = graphViewState.UpdateScope;
 
             foreach (var model in nonRedirects)
             {
@@ -128,14 +141,15 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 }
             }
 
-            // Don't delete connections for redirects, because we may have made edges we want to preserve. Edges we
-            // don't need were already deleted in the above loop.
+            // Don't delete connections for redirects, because we may have made
+            // edges we want to preserve. Edges we don't need were already
+            // deleted in the above loop.
             var deletedModels = graphModel.DeleteNodes(redirects, false).ToList();
 
             // Delete everything else as usual.
             deletedModels.AddRange(graphModel.DeleteElements(nonRedirects));
 
-            var selectedModels = deletedModels.Where(m => state.SelectionState.IsSelected(m)).ToList();
+            var selectedModels = deletedModels.Where(m => selectionState.IsSelected(m)).ToList();
             if (selectedModels.Any())
             {
                 selectionUpdater.SelectElements(selectedModels, false);
@@ -143,76 +157,76 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
 
             graphUpdater.MarkDeleted(deletedModels);
 
-            if (state is ShaderGraphState shaderGraphState)
+            using var previewUpdater = graphPreviewState.UpdateScope;
             {
-                using var previewUpdater = shaderGraphState.GraphPreviewState.UpdateScope;
+                foreach (var nodeModel in command.Models)
                 {
-                    foreach (var nodeModel in command.Models)
-                    {
-                        if(nodeModel is GraphDataNodeModel graphDataNodeModel)
-                            previewUpdater.GraphDataNodeRemoved(graphDataNodeModel);
-                    }
-                }
-            }
-
-        }
-
-        // Currently this is unused because we don't take advantage of GTFs ability for models to be enabled/disabled
-        public static void HandleNodeStateChanged(GraphToolState graphToolState, ChangeNodeStateCommand changeNodeStateCommand)
-        {
-            if (graphToolState is ShaderGraphState shaderGraphState)
-            {
-                using var previewUpdater = shaderGraphState.GraphPreviewState.UpdateScope;
-                {
-                    foreach (var nodeModel in changeNodeStateCommand.Models)
-                    {
-                        previewUpdater.UpdateNodeState(nodeModel.Guid.ToString(), changeNodeStateCommand.Value);
-                    }
+                    if(nodeModel is GraphDataNodeModel graphDataNodeModel)
+                        previewUpdater.GraphDataNodeRemoved(graphDataNodeModel);
                 }
             }
         }
 
-        public static void HandleGraphElementRenamed(GraphToolState graphToolState, RenameElementCommand renameElementCommand)
+        // Currently this is unused because we don't take advantage of GTFs ability
+        // for models to be enabled/disabled.
+        public static void HandleNodeStateChanged(
+            GraphPreviewStateComponent graphPreviewState,
+            ChangeNodeStateCommand changeNodeStateCommand
+        )
         {
-            if (graphToolState is ShaderGraphState shaderGraphState)
+            using var previewUpdater = graphPreviewState.UpdateScope;
             {
-                using var previewUpdater = shaderGraphState.GraphPreviewState.UpdateScope;
+                foreach (var nodeModel in changeNodeStateCommand.Models)
                 {
-                    if (renameElementCommand.Model is IVariableDeclarationModel variableDeclarationModel)
-                    {
-                        previewUpdater.MarkNodeNeedingRecompile(variableDeclarationModel.Guid.ToString(), null);
-
-                        // TODO: Handle this in a similar way to HandleUpdateConstantValue, but also accounting for recompiles
-
-                        // React to property being renamed by finding all linked property nodes and marking them as requiring recompile and also needing constant value update
-                        var graphNodes = graphToolState.GraphViewState.GraphModel.NodeModels;
-                        foreach (var graphNode in graphNodes)
-                        {
-                            if (graphNode is IVariableNodeModel variableNodeModel && Equals(variableNodeModel.VariableDeclarationModel, variableDeclarationModel))
-                            {
-                                previewUpdater.MarkNodeNeedingRecompile(variableNodeModel.Guid.ToString(), null);
-                                previewUpdater.UpdateVariableConstantValue(variableDeclarationModel.InitializationModel.ObjectValue, variableNodeModel);
-                            }
-                        }
-                    }
+                    previewUpdater.UpdateNodeState(nodeModel.Guid.ToString(), changeNodeStateCommand.Value);
                 }
             }
         }
 
-        public static void HandleUpdateConstantValue(GraphToolState graphToolState, UpdateConstantValueCommand updateConstantValueCommand)
+        public static void HandleGraphElementRenamed(
+            GraphViewStateComponent graphViewState,
+            GraphPreviewStateComponent graphPreviewState,
+            RenameElementCommand renameElementCommand
+        )
         {
-            if (graphToolState is ShaderGraphState shaderGraphState)
+            using var previewUpdater = graphPreviewState.UpdateScope;
             {
-                using var previewUpdater = shaderGraphState.GraphPreviewState.UpdateScope;
+                if (renameElementCommand.Model is IVariableDeclarationModel variableDeclarationModel)
                 {
-                    // Find all property nodes backed by this constant
-                    var graphNodes = graphToolState.GraphViewState.GraphModel.NodeModels;
+                    previewUpdater.MarkNodeNeedingRecompile(variableDeclarationModel.Guid.ToString(), null);
+
+                    // TODO: Handle this in a similar way to HandleUpdateConstantValue, but also accounting for recompiles
+
+                    // React to property being renamed by finding all linked property nodes and marking them as requiring recompile and also needing constant value update
+                    var graphNodes = graphViewState.GraphModel.NodeModels;
                     foreach (var graphNode in graphNodes)
                     {
-                        if (graphNode is IVariableNodeModel variableNodeModel && Equals(variableNodeModel.VariableDeclarationModel.InitializationModel, updateConstantValueCommand.Constant))
+                        if (graphNode is IVariableNodeModel variableNodeModel && Equals(variableNodeModel.VariableDeclarationModel, variableDeclarationModel))
                         {
-                            previewUpdater.UpdateVariableConstantValue(updateConstantValueCommand.Value, variableNodeModel);
+                            previewUpdater.MarkNodeNeedingRecompile(variableNodeModel.Guid.ToString(), null);
+                            previewUpdater.UpdateVariableConstantValue(variableDeclarationModel.InitializationModel.ObjectValue, variableNodeModel);
                         }
+                    }
+                }
+            }
+        }
+
+        public static void HandleUpdateConstantValue(
+            GraphViewStateComponent graphViewState,
+            GraphPreviewStateComponent graphPreviewState,
+            UpdateConstantValueCommand updateConstantValueCommand
+        )
+        {
+            using var previewUpdater = graphPreviewState.UpdateScope;
+            {
+                // Find all property nodes backed by this constant
+                var graphNodes = graphViewState.GraphModel.NodeModels;
+                foreach (var graphNode in graphNodes)
+                {
+                    if (graphNode is IVariableNodeModel variableNodeModel &&
+                        Equals(variableNodeModel.VariableDeclarationModel.InitializationModel, updateConstantValueCommand.Constant))
+                    {
+                        previewUpdater.UpdateVariableConstantValue(updateConstantValueCommand.Value, variableNodeModel);
                     }
                 }
             }
