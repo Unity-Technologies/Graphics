@@ -43,6 +43,7 @@ ByteAddressBuffer elementToVFXBufferPrevious;
 CBUFFER_START(outputParams)
     float nbMax;
     float systemSeed;
+    float3 cameraXRSettings;
 CBUFFER_END
 
 // Helper macros to always use a valid instanceID
@@ -60,6 +61,10 @@ $splice(VFXSRPCommonInclude)
 $splice(VFXParameterBuffer)
 
 $splice(VFXGeneratedBlockFunction)
+
+struct dummy {};
+#define VFX_VARYING_PS_INPUTS dummy
+#include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl"
 
 struct AttributesElement
 {
