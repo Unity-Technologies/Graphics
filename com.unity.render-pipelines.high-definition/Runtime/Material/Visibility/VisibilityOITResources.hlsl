@@ -256,11 +256,41 @@ namespace GeomHelper
 }
 
 // Sorting Constants
-#define kSorting_NumVariants 3
+#define kSorting_NumVariants 5
 #define kSorting_IndirectArgsOffset 0
-#define kSorting_SumsOffset 9
-#define kSorting_CountersOffset 12
-#define kSorting_PixelListOffsetsOffset 15
-#define kSorting_PixelListDataOffset 18
+#define kSorting_SumsOffset 15
+#define kSorting_CountersOffset 20
+#define kSorting_PixelListOffsetsOffset 25
+#define kSorting_PixelListDataOffset 30
+
+namespace Sorting
+{
+    uint GetVariantOffset(uint sampleCount)
+    {
+        uint sortVariantOffset;
+        if (sampleCount == 2)
+        {
+            sortVariantOffset = 0;
+        }
+        else if (sampleCount <= 4)
+        {
+            sortVariantOffset = 1;
+        }
+        else if (sampleCount <= 8)
+        {
+            sortVariantOffset = 2;
+        }
+        else if (sampleCount <= 32)
+        {
+            sortVariantOffset = 3;
+        }
+        else
+        {
+            sortVariantOffset = 4;
+        }
+
+        return sortVariantOffset;
+    }
+}
 
 #endif
