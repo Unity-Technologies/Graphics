@@ -32867,7 +32867,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
-  m_Label: 
+  m_Label: Simple
   m_Data: {fileID: 8926484042661616403}
   m_InputFlowSlot:
   - link:
@@ -33104,7 +33104,7 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
-  title: New Subgraph
+  title: New ShaderGraph
   m_Owners:
   - {fileID: 8926484042661616360}
   - {fileID: 8926484042661616389}
@@ -33596,7 +33596,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
-  m_Label: 
+  m_Label: Custom Velocity
   m_Data: {fileID: 8926484042661616403}
   m_InputFlowSlot:
   - link:
@@ -34041,7 +34041,7 @@ MonoBehaviour:
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots: []
-  m_Label: 
+  m_Label: Vertex animation
   m_Data: {fileID: 8926484042661616403}
   m_InputFlowSlot:
   - link:
