@@ -4,12 +4,20 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [14.0.1] - 2021-12-07
+
+### Added
+ - Added mip sampling modes for 2d textures, 2d texture arrays and 3d textures
+
+### Fixed
+ - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
+ - Fixed SRP-batching when PVT stacks are bound per material by properly declaring properties for PVT stacks [1372152]
 ## [14.0.0] - 2021-11-17
 
 ### Fixed
+ - Fixed bug with Shader Graph subwindows having their header text overflow when the window is resized smaller than the title [1378203]
  - Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
  - Fixed the behavior of checkerboard node with raytracing
- - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
 
 ## [13.1.2] - 2021-11-05
 
@@ -19,7 +27,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
  - Fixed a recent regression in ShaderGraph Screen Position behavior on some platforms in Built-in, Universal and HDRP [1369450]
- - Fixed SRP-batching when PVT stacks are bound per material by properly declaring properties for PVT stacks [1372152]
 
 ## [13.1.1] - 2021-10-04
 

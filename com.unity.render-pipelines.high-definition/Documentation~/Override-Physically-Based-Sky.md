@@ -1,6 +1,6 @@
 # Physically Based Sky
 
-Physically Based Sky simulates a spherical planet with a two-part atmosphere that has an exponentially decreasing density baased on its altitude. This means that the higher you go above sea level, the less dense the atmosphere is. For information on the implementation for this sky type, see [Implementation details](#ImplementationDetails).
+Physically Based Sky simulates a spherical planet with a two-part atmosphere that has an exponentially decreasing density based on its altitude. This means that the higher you go above sea level, the less dense the atmosphere is. For information on the implementation for this sky type, see [Implementation details](#ImplementationDetails).
 
 The simulation runs as a pre-process, meaning that it runs once instead of on every frame. The simulation evaluates the atmospheric scattering of all combinations of light and view angles and then stores the results in several 3D Textures, which Unity resamples at runtime. The pre-computation is Scene-agnostic, and only depends on the settings of the Physically Based Sky.
 
@@ -9,7 +9,7 @@ The Physically Based Sky’s atmosphere has two types of particles:
 * Air particles with [Rayleigh scattering](<https://en.wikipedia.org/wiki/Rayleigh_scattering>).
 * Aerosol particles with anisotropic [Mie scattering](https://en.wikipedia.org/wiki/Mie_scattering). You can use aerosols to model pollution, height fog, or mist.
 
-You can use Physically Based Sky to simulate the sky during both daytime and night-time. You can change the time of day at runtime without reducing performance. The following images display a Physically Based Sky in Unity's Fontainebleau demo. For more information about the Fontainebleau demo, and for instructions on how to download and use the demo yourself, see https://github.com/Unity-Technologies/FontainebleauDemo. The available Fontainebleau demo only uses Physically Based Sky for its daytime setup in version 2019.3.
+You can use Physically Based Sky to simulate the sky during both daytime and night-time. You can change the time of day at runtime without reducing performance. The following images display a Physically Based Sky in Unity's Fontainebleau demo. For more information about the Fontainebleau demo, and for instructions on how to download and use the demo yourself, see https://github.com/Unity-Technologies/FontainebleauDemo. The Fontainebleau demo only uses Physically Based Sky for its daytime setup in version 2019.3.
 
 ![](Images/Override-PhysicallyBasedSky2.png)
 
@@ -119,7 +119,7 @@ To make this section visible, set **Type** to **Custom Planet**.
 
 This sky type is a practical implementation of the method outlined in the paper [Precomputed Atmospheric Scattering](http://www-ljk.imag.fr/Publications/Basilic/com.lmc.publi.PUBLI_Article@11e7cdda2f7_f64b69/article.pdf) (Bruneton and Neyret, 2008).
 
-This technique assumes that you always view the Scene from above the surface of the planet. This means that if a camera goes below the planet's surface, the sky renders as it would do if the camera was at ground level. Where the surface of the planet is depends on whether you enable or disable **Spherical Mode**:
+This technique assumes that you always view the Scene from above the surface of the planet. This means that if a camera goes below the planet's surface, the sky renders as if the camera was at ground level. Where the surface of the planet is depends on whether you enable or disable the **Spherical Mode** property:
 
 * If you enable **Spherical Mode**, the **Planetary Radius** and **Planet Center Position** properties define where the surface is. In this mode, the surface is at the distance set in **Planetary Radius** away from the position set in **Planet Center Position**.
 * Otherwise, the **Sea Level** property defines where the surface is. In this mode, the surface stretches out infinitely on the xz plane and **Sea Level** sets its world space height.
@@ -132,21 +132,22 @@ The default values in either mode make it so the planet's surface is at **0** on
 
 ## Warmup performance impact
 
-When you switch to or from a Physically Based Sky, it might cause a noticeable drop in framerate. This is because HDRP performs a large amount of precomputations to render a Physically Based Sky, so the first few frames (depending on the Number of bounces parameter) takes more time to render than other HDRP sky types.
+When you switch to or from a Physically Based Sky, it might cause a noticeable drop in framerate. This is because HDRP performs a large amount of precomputations to render a Physically Based Sky, so the first few frames (depending on the **Number of bounces** parameter) takes more time to render than other HDRP sky types.
+
 This also applies when HDRP uses the volume system to interpolate between two different Physically Based Skies with different sets of parameters. To do this, HDRP restarts the precomputation every frame in which it performs interpolation. This causes a noticeable drop in framerate. To avoid this, use a single set of Physically Based Sky parameters for a scene and change the sun light direction and intensity to achieve the result you want.
 
 HDRP restarts precomputation when you change the following parameters:
-- Type
-- Planetary Radius
-- Ground Tint
-- Air Maximum Altitude
-- Air Density
-- Air Tint
-- Aerosol Maximum Altitude
-- Aerosol Density
-- Aerosol Tint
-- Aerosol Anisotropy
-- Number of Bounces
+- **Type**
+- **Planetary Radius**
+- **Ground Tint**
+- **Air Maximum Altitude**
+- **Air Density**
+- **Air Tint**
+- **Aerosol Maximum Altitude**
+- **Aerosol Density**
+- **Aerosol Tint**
+- **Aerosol Anisotropy**
+- **Number of Bounces**
 
 ### Reference list
 
