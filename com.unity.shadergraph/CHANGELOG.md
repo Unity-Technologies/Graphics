@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
  - Fixed the behavior of checkerboard node with raytracing
  - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
+ - Fixed an issue where edges connected to SubGraphNodes would sometimes get lost on upgrading a pre-targets graphs [1379996](https://issuetracker.unity3d.com/product/unity/issues/guid/1379996/)
 
 ### Added
  - Added mip sampling modes for 2d textures, 2d texture arrays and 3d textures
