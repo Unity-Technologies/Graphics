@@ -107,6 +107,7 @@ namespace UnityEditor.VFX.UI
             if (m_MasterSlot == null)
                 return;
             ModelChanged(m_MasterSlot);
+            RefreshGizmo();
         }
 
         bool m_Expanded;
