@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Class managing debug display in HDRP.
     /// </summary>
-    public class DebugDisplaySettings : IDebugData
+    public partial class DebugDisplaySettings : IDebugData
     {
         static string k_PanelDisplayStats = "Display Stats";
         static string k_PanelMaterials = "Material";
@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Debug data.
         /// </summary>
-        public class DebugData
+        public partial class DebugData
         {
             /// <summary>Ratio of the screen size in which overlays are rendered.</summary>
             public float debugOverlayRatio = 0.33f;

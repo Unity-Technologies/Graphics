@@ -21,7 +21,7 @@ platforms:
       default:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
-        flavor: b1.large
+        flavor: b1.xlarge
         model: rtx2080
 
 jobs:
