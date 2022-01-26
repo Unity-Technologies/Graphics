@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering
                 RenderingDebuggerPanel panel = RenderingDebuggerState.instance.GetPanel(panelType);
 
                 // Create the content of the tab
-                VisualElement panelVisualElement = panel.panelElement;
+                VisualElement panelVisualElement = panel.CreatePanel();
                 panelVisualElement.name = panel.panelName;
 
                 // Create the tab

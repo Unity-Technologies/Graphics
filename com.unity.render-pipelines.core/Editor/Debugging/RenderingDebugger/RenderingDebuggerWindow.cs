@@ -24,7 +24,10 @@ namespace UnityEditor.Rendering
             if (windowTemplate == null)
                 throw new InvalidOperationException("Root document not found");
 
-            // TODO use Instantiate
+            // TODO fix - needs editor assembly, use Resources.Load instead?
+            var panelStyle = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.unity.render-pipelines.core/Runtime/Debugging/RenderingDebugger/Styles/RenderingDebuggerPanelStyle.uss");
+
+            // TODO use Instantiate?
             windowTemplate.CloneTree(this.rootVisualElement);
 
             var tabsVisualElement = this.rootVisualElement.Q<VisualElement>("tabs");
@@ -44,8 +47,9 @@ namespace UnityEditor.Rendering
                 panelHeader.AddToClassList(TabbedMenuController.k_TabClassName);
 
                 // Create the content of the tab
-                VisualElement panelVisualElement = panel.panelElement;
+                VisualElement panelVisualElement = panel.CreatePanel();
                 panelVisualElement.name = $"{panel.panelName}{TabbedMenuController.k_ContentNameSuffix}";
+                panelVisualElement.styleSheets.Add(panelStyle);
 
                 if (firstTabAdded == false && string.IsNullOrEmpty(RenderingDebuggerState.instance.selectedPanelName))
                 {

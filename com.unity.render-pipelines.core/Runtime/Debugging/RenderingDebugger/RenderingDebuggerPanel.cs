@@ -2,6 +2,7 @@
 using UnityEditor; // TODO fix this
 #endif
 using System;
+using System.Collections.Generic;
 using UnityEngine.UIElements;
 
 namespace UnityEngine.Rendering
@@ -11,29 +12,14 @@ namespace UnityEngine.Rendering
         protected static readonly string kHiddenClassName = "hidden";
 
         public abstract string panelName { get; }
+
         public abstract VisualElement CreatePanel();
 
         public abstract bool AreAnySettingsActive { get; }
         public abstract bool IsPostProcessingAllowed { get; }
         public abstract bool IsLightingActive { get; }
 
-        private VisualElement m_PanelElement;
-        public VisualElement panelElement
-        {
-            get
-            {
-                if (m_PanelElement == null)
-                    m_PanelElement = CreatePanel();
-
-#if UNITY_EDITOR
-                // TODO fix - needs editor assembly, use Resources.Load instead?
-                var panelStyle = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.unity.render-pipelines.core/Runtime/Debugging/RenderingDebugger/Styles/RenderingDebuggerPanelStyle.uss");
-                m_PanelElement.styleSheets.Add(panelStyle);
-#endif
-
-                return m_PanelElement;
-            }
-        }
+        private List<VisualElement> m_InstantiatedPanels = new List<VisualElement>();
 
         protected VisualElement CreateVisualElement(string uiDocument)
         {
@@ -44,7 +30,9 @@ namespace UnityEngine.Rendering
                 return null;
 
             // Create the content of the tab
-            return panelVisualTreeAsset.Instantiate();
+            var panel = panelVisualTreeAsset.Instantiate();
+            m_InstantiatedPanels.Add(panel);
+            return panel;
 #else
             throw new NotImplementedException();
 #endif
@@ -60,12 +48,19 @@ namespace UnityEngine.Rendering
             fieldElement.RegisterCallback(onFieldValueChanged);
         }
 
-        protected void SetElementHidden(VisualElement element, bool hidden)
+        protected void SetElementHidden(string elementName, bool hidden)
         {
-            if (hidden)
-                element.AddToClassList(kHiddenClassName);
-            else
-                element.RemoveFromClassList(kHiddenClassName);
+            foreach (var panel in m_InstantiatedPanels)
+            {
+                var element = panel.Q(elementName);
+                if (element == null)
+                    throw new InvalidOperationException($"Element {elementName} not found");
+
+                if (hidden)
+                    element.AddToClassList(kHiddenClassName);
+                else
+                    element.RemoveFromClassList(kHiddenClassName);
+            }
         }
     }
 }

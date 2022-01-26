@@ -40,8 +40,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void OnFullScreenDebugModeChanged(ChangeEvent<Enum> evt)
         {
-            var mapSize = panelElement.Q(nameof(fullScreenDebugModeOutputSizeScreenPercent));
-            SetElementHidden(mapSize, (DebugFullScreenMode)evt.newValue == DebugFullScreenMode.None);
+            SetElementHidden(nameof(fullScreenDebugModeOutputSizeScreenPercent), (DebugFullScreenMode)evt.newValue == DebugFullScreenMode.None);
         }
 
         /// <summary>
