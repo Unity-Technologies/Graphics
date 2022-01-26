@@ -8,11 +8,18 @@ namespace UnityEngine.Rendering.UIGen
 {
     public class UIImplementationDocuments
     {
-        string m_ClassName = "UIView";
-
-
         XmlDocument m_Uxml;
-        CSharpSyntaxTree m_BindingCode;
+        CSharpSyntaxTree m_RuntimeCode;
+
+        public static bool From(
+            [DisallowNull] XmlDocument visualTree,
+            [DisallowNull] CSharpSyntaxTree runtimeCode,
+            [NotNullWhen(true)] out UIImplementationDocuments documents,
+            [NotNullWhen(false)] out Exception error
+        )
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public static class BindableViewExtensions
