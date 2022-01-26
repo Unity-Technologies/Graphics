@@ -1,4 +1,5 @@
 using System.Linq;
+using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -186,6 +187,128 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreEqual(BlockFields.SurfaceDescription.NormalTS, blocks[1].descriptor);
             Assert.AreEqual(false, blocks[1].isActive);
             s_ForceVFXFakeTargetVisible = false;
+        }
+
+        sealed class MultiShaderTarget : UnityEditor.ShaderGraph.Target
+        {
+            public MultiShaderTarget()
+            {
+                displayName = "MultiShader Test Target";
+                isHidden = false;
+            }
+
+            public override void GetActiveBlocks(ref UnityEditor.ShaderGraph.TargetActiveBlockContext context)
+            {
+                context.AddBlock(ShaderGraph.BlockFields.SurfaceDescription.BaseColor);
+                context.AddBlock(ShaderGraph.BlockFields.SurfaceDescription.Alpha);
+            }
+
+            public override void GetFields(ref TargetFieldContext context)
+            {
+            }
+
+            public static PassDescriptor BuildPass()
+            {
+                PassDescriptor pass = new PassDescriptor()
+                {
+                    // Definition
+                    displayName = "DepthOnly",
+                    referenceName = "SHADERPASS_DEPTHONLY",
+                    lightMode = "DepthOnly",
+                    useInPreview = true,
+
+                    // Template
+                    passTemplatePath = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Templates/ShaderPass.template",
+                    sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                    // Port Mask
+                    validVertexBlocks = new BlockFieldDescriptor[] { BlockFields.VertexDescription.Position, BlockFields.VertexDescription.Normal, BlockFields.VertexDescription.Tangent },
+                    validPixelBlocks = new BlockFieldDescriptor[] { BlockFields.SurfaceDescription.Alpha, BlockFields.SurfaceDescription.AlphaClipThreshold },
+
+                    // Fields
+                    structs = new StructCollection { { Structs.Attributes }, { Structs.SurfaceDescriptionInputs }, { Structs.VertexDescriptionInputs } },
+                    fieldDependencies = FieldDependencies.Default,
+
+                    // Conditional State
+                    renderStates = null,
+                    pragmas = new PragmaCollection { { Pragma.Target(ShaderModel.Target30) }, { Pragma.MultiCompileInstancing }, { Pragma.Vertex("vert") }, { Pragma.Fragment("frag") } },
+                    defines = null,
+                    keywords = null,
+                    includes = null,
+                    customInterpolators = null,
+                };
+                return pass;
+            }
+
+            public static SubShaderDescriptor BuildSubShader(string additionaShaderID)
+            {
+                SubShaderDescriptor result = new SubShaderDescriptor()
+                {
+                    pipelineTag = "TestPipeline",
+                    renderType = "Opaque",
+                    renderQueue = "Geometry",
+                    generatesPreview = true,
+                    passes = new PassCollection(),
+                    additionalShaderID = additionaShaderID
+                };
+                result.passes.Add(BuildPass());
+                return result;
+            }
+
+            public override void Setup(ref TargetSetupContext context)
+            {
+                var ss = BuildSubShader(null);              // primary shader
+                var ss2 = BuildSubShader("{Name}-second");
+                context.AddSubShader(ss);
+                context.AddSubShader(ss2);
+            }
+
+            public override bool IsActive() => true;
+            public override bool WorksWithSRP(UnityEngine.Rendering.RenderPipelineAsset scriptableRenderPipeline)
+            {
+                return true;
+            }
+
+            public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, System.Action onChange, System.Action<System.String> registerUndo)
+            {
+            }
+        }
+
+        [Test]
+        public void CanBuildMultipleShaders()
+        {
+            GraphData graph = new GraphData();
+            graph.AddContexts();
+
+            var multiTarget = new MultiShaderTarget();
+            graph.SetTargetActive(multiTarget);
+            Assert.IsTrue(graph.allPotentialTargets.Contains(multiTarget));
+
+            graph.OnEnable();
+            graph.ValidateGraph();
+
+            var generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, "MyTestShader");
+            var generatedShaders = generator.allGeneratedShaders.ToList();
+
+            Assert.AreEqual(2, generatedShaders.Count);
+            Assert.IsTrue(generatedShaders[0].shaderName == "MyTestShader");
+            Assert.IsTrue(generatedShaders[1].shaderName == "MyTestShader-second");
+            Assert.IsTrue(generatedShaders[0].codeString.Contains("Shader \"MyTestShader\""));
+            Assert.IsTrue(generatedShaders[1].codeString.Contains("Shader \"MyTestShader-second\""));
+
+            // save graph to file on disk and import it...
+            var path = AssetDatabase.GenerateUniqueAssetPath("Assets/multiShaderTest.ShaderGraph");
+            FileUtilities.WriteShaderGraphToDisk(path, graph);
+
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate | ImportAssetOptions.DontDownloadFromCacheServer);
+
+            // check that we actually have two shader assets in the import result
+            // (they won't work, but they should exist)
+            var assets = AssetDatabase.LoadAllAssetsAtPath(path);
+            int shaderCount = assets.OfType<Shader>().Count();
+            Assert.AreEqual(2, shaderCount);
+
+            AssetDatabase.DeleteAsset(path);
         }
     }
 }
