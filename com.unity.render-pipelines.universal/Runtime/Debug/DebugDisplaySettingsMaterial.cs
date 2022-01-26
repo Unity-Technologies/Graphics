@@ -414,10 +414,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region IDebugDisplaySettingsQuery
-        public bool AreAnySettingsActive =>
-            (materialDebugMode != DebugMaterialMode.None) ||
-            (vertexAttributeDebugMode != DebugVertexAttributeMode.None) ||
-            (materialValidationMode != DebugMaterialValidationMode.None);
+
+        public bool AreAnySettingsActive => true;
+            //(materialDebugMode != DebugMaterialMode.None) ||
+            //(vertexAttributeDebugMode != DebugVertexAttributeMode.None) ||
+            //(materialValidationMode != DebugMaterialValidationMode.None);
         public bool IsPostProcessingAllowed => !AreAnySettingsActive;
         public bool IsLightingActive => !AreAnySettingsActive;
 

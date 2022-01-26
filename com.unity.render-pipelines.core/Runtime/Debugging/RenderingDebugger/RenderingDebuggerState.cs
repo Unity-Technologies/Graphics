@@ -52,7 +52,8 @@ namespace UnityEngine.Rendering
             return panel;
         }
 
-        public RenderingDebuggerPanel GetPanel<T>() => GetPanel(typeof(T));
+        public T GetPanel<T>()
+            where T : RenderingDebuggerPanel => GetPanel(typeof(T)) as T;
 
         public bool TryGetPanel(Type type, out RenderingDebuggerPanel renderingDebuggerPanel)
         {

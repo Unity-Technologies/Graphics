@@ -255,7 +255,8 @@ namespace UnityEngine.Rendering.Universal
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
 
                 // Material settings...
-                cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)MaterialSettings.materialDebugMode);
+                cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)RenderingDebuggerState.instance.GetPanel<MaterialPanel>().materialDebugMode);
+                //cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)MaterialSettings.materialDebugMode);
                 cmd.SetGlobalFloat(k_DebugVertexAttributeModeId, (int)MaterialSettings.vertexAttributeDebugMode);
 
                 cmd.SetGlobalInteger(k_DebugMaterialValidationModeId, (int)MaterialSettings.materialValidationMode);
