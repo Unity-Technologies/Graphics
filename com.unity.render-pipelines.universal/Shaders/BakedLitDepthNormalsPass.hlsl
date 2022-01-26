@@ -2,6 +2,9 @@
 #define UNIVERSAL_BAKEDLIT_DEPTH_NORMALS_PASS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#if defined(LOD_FADE_CROSSFADE)
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
+#endif
 
 struct Attributes
 {
@@ -58,7 +61,9 @@ float4 DepthNormalsFragment(Varyings input) : SV_TARGET
     half alpha = texColor.a * _BaseColor.a;
     AlphaDiscard(alpha, _Cutoff);
 
-    LODFadeCrossFade(input.positionCS);
+    #ifdef LOD_FADE_CROSSFADE
+        LODFadeCrossFade(input.positionCS);
+    #endif
 
     #if defined(_GBUFFER_NORMALS_OCT)
         float3 normalWS = normalize(input.normalWS);

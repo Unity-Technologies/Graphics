@@ -56,11 +56,9 @@ half GetLODDithering(float2 crossFadeSeed, half crossFadeFactor)
 
 void LODFadeCrossFade(float4 positionCS)
 {
-#ifdef LOD_FADE_CROSSFADE
     half d = GetLODDithering(positionCS.xy, unity_LODFade.x);
 
     clip(d);
-#endif
 }
 
 #endif

@@ -258,6 +258,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
+                CorePasses.AddLODCrossFadeControlToPass(ref result, target);
 
                 return result;
             }
@@ -297,6 +298,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 CorePasses.AddTargetSurfaceControlsToPass(ref result, target);
+                CorePasses.AddLODCrossFadeControlToPass(ref result, target);
 
                 return result;
             }

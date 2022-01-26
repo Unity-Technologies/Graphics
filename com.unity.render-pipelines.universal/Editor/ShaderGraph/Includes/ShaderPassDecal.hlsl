@@ -266,7 +266,7 @@ void Frag(PackedVaryings packedInput,
 #endif
 
     DecalSurfaceData surfaceData;
-    GetSurfaceData(input, viewDirectionWS, (uint2)positionSS, angleFadeFactor, surfaceData);
+    GetSurfaceData(input, viewDirectionWS, input.positionCS, angleFadeFactor, surfaceData);
 
 #if defined(DECAL_DBUFFER)
     ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);

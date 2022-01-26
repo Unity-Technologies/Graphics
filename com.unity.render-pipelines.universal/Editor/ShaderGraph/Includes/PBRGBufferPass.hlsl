@@ -78,6 +78,10 @@ FragmentOutput frag(PackedVaryings packedInput)
         half alpha = 1;
     #endif
 
+    #ifdef LOD_FADE_CROSSFADE
+        LODFadeCrossFade(unpacked.positionCS);
+    #endif
+
     InputData inputData;
     InitializeInputData(unpacked, surfaceDescription, inputData);
     // TODO: Mip debug modes would require this, open question how to do this on ShaderGraph.
