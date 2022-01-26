@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace UnityEngine.Rendering.UIGen
 {
-    public class BindableViewIntermediateDocument
+    public class UIImplementationIntermediateDocuments
     {
         XmlElement m_Uxml;
         CSharpSyntaxNode m_Code;

@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering.UIGen
         public static bool GenerateDebugMenuBindableView(
             [DisallowNull] this UIDefinition definition,
             Parameters parameters,
-            [NotNullWhen(true)] out BindableView result,
+            [NotNullWhen(true)] out UIImplementationDocuments result,
             [NotNullWhen(false)] out Exception error
         )
         {
@@ -257,26 +257,26 @@ namespace UnityEngine.Rendering.UIGen
                     out error))
                 return false;
 
-            BindableViewIntermediateDocument mergedDocument;
+            UIImplementationIntermediateDocuments mergedDocuments;
             using (intermediateDocuments)
             {
                 // TODO: Check if map is needed here
                 if (!MergeIntermediateDocuments(
                         intermediateDocuments.listUnsafe,
-                        out mergedDocument,
+                        out mergedDocuments,
                         out error
                     ))
                     return false;
             }
 
             using (index)
-                return GenerateDocumentFromIntermediate(index, mergedDocument, out result, out error);
+                return GenerateDocumentFromIntermediate(index, mergedDocuments, out result, out error);
         }
 
         [MustUseReturnValue]
         static bool GenerateBindableViewIntermediateDocumentFromProperties(
             [DisallowNull] UIDefinition definition,
-            out PooledList<BindableViewIntermediateDocument> result,
+            out PooledList<UIImplementationIntermediateDocuments> result,
             [NotNullWhen(false)] out Exception error
         )
         {
@@ -285,8 +285,8 @@ namespace UnityEngine.Rendering.UIGen
 
         [MustUseReturnValue]
         static bool MergeIntermediateDocuments(
-            [DisallowNull] List<BindableViewIntermediateDocument> intermediateDocuments,
-            [NotNullWhen(true)] out BindableViewIntermediateDocument result,
+            [DisallowNull] List<UIImplementationIntermediateDocuments> intermediateDocuments,
+            [NotNullWhen(true)] out UIImplementationIntermediateDocuments result,
             [NotNullWhen(false)] out Exception error
         )
         {
@@ -296,8 +296,8 @@ namespace UnityEngine.Rendering.UIGen
         [MustUseReturnValue]
         static bool GenerateDocumentFromIntermediate(
             [DisallowNull] UIDefinitionPropertyCategoryIndex index,
-            [DisallowNull] BindableViewIntermediateDocument document,
-            [NotNullWhen(true)] out BindableView result,
+            [DisallowNull] UIImplementationIntermediateDocuments documents,
+            [NotNullWhen(true)] out UIImplementationDocuments result,
             [NotNullWhen(false)] out Exception error
         )
         {

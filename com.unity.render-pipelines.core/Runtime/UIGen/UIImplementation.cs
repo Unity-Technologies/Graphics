@@ -6,8 +6,10 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace UnityEngine.Rendering.UIGen
 {
-    public class BindableView
+    public class UIImplementationDocuments
     {
+        string m_Name;
+
         XmlDocument m_Uxml;
         CSharpSyntaxTree m_BindingCode;
     }
@@ -24,7 +26,7 @@ namespace UnityEngine.Rendering.UIGen
         // Consider async API?
         [MustUseReturnValue]
         public static bool WriteToDisk(
-            [DisallowNull] this BindableView view,
+            [DisallowNull] this UIImplementationDocuments view,
             DiskLocation location,
             [NotNullWhen(false)] out Exception error
         )
