@@ -20,6 +20,9 @@ namespace UnityEngine.Rendering.Universal
         SoftShadows,
     }
 
+    /// <summary>
+    /// Softness quality of soft shadows. Higher means better quality, but lower performance.
+    /// </summary>
     public enum SoftShadowQuality
     {
         Low,
@@ -882,6 +885,9 @@ namespace UnityEngine.Rendering.Universal
             internal set { m_SoftShadowsSupported = value; }
         }
 
+        /// <summary>
+        /// Controls the softness of soft shadows.
+        /// </summary>
         public SoftShadowQuality softShadowQuality
         {
             get { return m_SoftShadowQuality; }

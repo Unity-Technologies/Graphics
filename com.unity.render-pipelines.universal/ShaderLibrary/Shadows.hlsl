@@ -207,9 +207,9 @@ half SampleScreenSpaceShadowmap(float4 shadowCoord)
 
 real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData)
 {
-    real attenuation = 1.0f;
+    real attenuation = real(1.0);
 
-    if (samplingData.softShadowQuality == 1.0h) // Low
+    if (samplingData.softShadowQuality == half(1.0)) // Low
     {
         // 4-tap hardware comparison
         real4 attenuation4;
@@ -219,7 +219,7 @@ real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap
         attenuation4.w = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + float3(samplingData.shadowOffset1.zw, 0)));
         attenuation = dot(attenuation4, real(0.25));
     }
-    else if(samplingData.softShadowQuality == 2.0h) // Medium
+    else if(samplingData.softShadowQuality == half(2.0)) // Medium
     {
         real fetchesWeights[9];
         real2 fetchesUV[9];
