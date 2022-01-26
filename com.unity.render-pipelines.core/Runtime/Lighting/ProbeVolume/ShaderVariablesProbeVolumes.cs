@@ -13,10 +13,10 @@ namespace UnityEngine.Rendering
         GlobalRegister = 5
     }
 
-    [GenerateHLSL]
     /// <summary>
     /// Defines the method used to reduce leaking.
     /// </summary>
+    [GenerateHLSL]
     public enum APVLeakReductionMode
     {
         /// <summary>
