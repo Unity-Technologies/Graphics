@@ -5,14 +5,14 @@ namespace UnityEngine.Rendering.UIGen
 {
     // use it on the data source
     // must be on a static class
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
     public class DeriveDebugMenuAttribute : Attribute
     {
 
     }
 
     // Use it on a property to display it in the debug menu
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method)]
     public class DebugMenuPropertyAttribute : Attribute
     {
         public string primaryCategory { get; }

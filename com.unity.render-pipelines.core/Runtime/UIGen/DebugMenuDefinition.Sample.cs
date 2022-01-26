@@ -5,15 +5,29 @@ namespace UnityEngine.Rendering.UIGen
 {
     // Sample code
     [DeriveDebugMenu]
-    public static class SampleDebugMenuData
+    public class SampleDebugMenuData
     {
-        public static SampleDebugDataSet1 dataSet1;
-        public static SampleDebugDataSet2 dataSet2 { get; } = new SampleDebugDataSet2();
+        [DeriveDebugMenu]
+        public static SampleDebugMenuData instance { get; } = new SampleDebugMenuData();
+
+        public SampleDebugDataSet1 dataSet1;
+        public SampleDebugDataSet2 dataSet2 { get; } = new SampleDebugDataSet2();
     }
+
+    public struct Label {}
 
     public class SampleDebugDataSet1
     {
+        public static class UI
+        {
+            [DebugMenuProperty("Category A")]
+            public static Label label;
+        }
+
         public SampleDebugDataSet3 dataSet3;
+
+        [DebugMenuProperty("Category A")]
+        public void Button() { }
 
         [DebugMenuProperty("Category A")]
         public float dataSet1FloatValue;

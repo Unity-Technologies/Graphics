@@ -169,12 +169,12 @@ namespace UnityEngine.Rendering.UIGen
 
 namespace UnityEngine.Rendering.UIGen
 {
-    public class UIDefinitionPropertyCategoryMap : IDisposable
+    public class UIDefinitionPropertyCategoryIndex : IDisposable
     {
         [MustUseReturnValue]
         public static bool FromDefinition(
             [DisallowNull] UIDefinition definition,
-            [NotNullWhen(true)] out UIDefinitionPropertyCategoryMap map,
+            [NotNullWhen(true)] out UIDefinitionPropertyCategoryIndex index,
             [NotNullWhen(false)] out Exception error
         )
         {
@@ -285,7 +285,7 @@ namespace UnityEngine.Rendering.UIGen
             //   - Generation (each sub part sequential):
             //      - property generation C# + UXML (multithreading inside)
             //      - Merge intermediate document
-            if (!UIDefinitionPropertyCategoryMap.FromDefinition(definition, out var map, out error))
+            if (!UIDefinitionPropertyCategoryIndex.FromDefinition(definition, out var index, out error))
                 return false;
 
             if (!GenerateBindableViewIntermediateDocumentFromProperties(
@@ -306,8 +306,8 @@ namespace UnityEngine.Rendering.UIGen
                     return false;
             }
 
-            using (map)
-                return GenerateDocumentFromIntermediate(map, mergedDocument, out result, out error);
+            using (index)
+                return GenerateDocumentFromIntermediate(index, mergedDocument, out result, out error);
         }
 
         [MustUseReturnValue]
@@ -332,7 +332,7 @@ namespace UnityEngine.Rendering.UIGen
 
         [MustUseReturnValue]
         static bool GenerateDocumentFromIntermediate(
-            [DisallowNull] UIDefinitionPropertyCategoryMap map,
+            [DisallowNull] UIDefinitionPropertyCategoryIndex index,
             [DisallowNull] BindableViewIntermediateDocument document,
             [NotNullWhen(true)] out BindableView result,
             [NotNullWhen(false)] out Exception error

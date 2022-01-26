@@ -25,7 +25,6 @@ namespace UnityEditor.Rendering.UIGen
         /// <param name="documents"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
         [MustUseReturnValue]
         public static bool GenerateIntegration(
             [NotNullWhen(true)] out Documents documents,
