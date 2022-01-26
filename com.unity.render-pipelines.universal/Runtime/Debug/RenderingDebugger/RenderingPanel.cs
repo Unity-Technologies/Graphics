@@ -36,14 +36,72 @@ namespace UnityEngine.Rendering.Universal
         public int fullScreenDebugModeOutputSizeScreenPercent = 50;
 
         /// <summary>
+        /// Whether HDR is enabled.
+        /// </summary>
+        public bool enableHDR = true;
+
+        /// <summary>
         /// Whether MSAA is enabled.
         /// </summary>
         public bool enableMsaa = true;
 
         /// <summary>
-        /// Whether HDR is enabled.
+        /// Current debug post processing mode.
         /// </summary>
-        public bool enableHDR = true;
+        public DebugPostProcessingMode postProcessingDebugMode { get; set; } = DebugPostProcessingMode.Auto;
 
+        // Under the hood, the implementation uses a single enum (DebugSceneOverrideMode). For UI & public API,
+        // we have split this enum into WireframeMode and a separate Overdraw boolean.
+
+        DebugWireframeMode m_WireframeMode = DebugWireframeMode.None;
+
+        /// <summary>
+        /// Current debug wireframe mode.
+        /// </summary>
+        public DebugWireframeMode wireframeMode
+        {
+            get => m_WireframeMode;
+            set
+            {
+                m_WireframeMode = value;
+                UpdateDebugSceneOverrideMode();
+            }
+        }
+
+        void UpdateDebugSceneOverrideMode()
+        {
+            switch (wireframeMode)
+            {
+                case DebugWireframeMode.Wireframe:
+                    sceneOverrideMode = DebugSceneOverrideMode.Wireframe;
+                    break;
+                case DebugWireframeMode.SolidWireframe:
+                    sceneOverrideMode = DebugSceneOverrideMode.SolidWireframe;
+                    break;
+                case DebugWireframeMode.ShadedWireframe:
+                    sceneOverrideMode = DebugSceneOverrideMode.ShadedWireframe;
+                    break;
+                default:
+                    sceneOverrideMode = overdraw ? DebugSceneOverrideMode.Overdraw : DebugSceneOverrideMode.None;
+                    break;
+            }
+        }
+
+        internal DebugSceneOverrideMode sceneOverrideMode { get; set; } = DebugSceneOverrideMode.None;
+
+        bool m_Overdraw = false;
+
+        /// <summary>
+        /// Whether debug overdraw mode is active.
+        /// </summary>
+        public bool overdraw
+        {
+            get => m_Overdraw;
+            set
+            {
+                m_Overdraw = value;
+                UpdateDebugSceneOverrideMode();
+            }
+        }
     }
 }
