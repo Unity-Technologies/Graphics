@@ -220,12 +220,7 @@ uint3 DOTSInstanceData_Load3(uint address)
 }
 uint4 DOTSInstanceData_Load4(uint address)
 {
-    uint4 v;
-    v.x = DOTSInstanceData_Load(address);
-    v.y = DOTSInstanceData_Load(address + 4);
-    v.z = DOTSInstanceData_Load(address + 8);
-    v.w = DOTSInstanceData_Load(address + 12);
-    return v;
+    return asuint(unity_DOTSInstanceDataRaw[address >> 4]);
 }
 #else
 uint DOTSInstanceData_Load(uint address)
