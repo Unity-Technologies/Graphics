@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [VolumeComponentEditor(typeof(ProbeVolumesOptions))]
+    [CustomEditor(typeof(ProbeVolumesOptions))]
     sealed class ProbeVolumesOptionsEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_NormalBias;
