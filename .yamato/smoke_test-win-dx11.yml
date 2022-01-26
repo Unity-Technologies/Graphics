@@ -24,7 +24,7 @@ Smoke_Test_Win_DX11_playmode_mono_Linear_2019.4:
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  comaand: .\.Editor\Unity.exe -version
+      -  command: .\.Editor\Unity.exe -version
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
