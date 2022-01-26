@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.UIGen
     public class UIImplementationDocuments
     {
         string m_ClassName = "UIView";
-        
+
 
         XmlDocument m_Uxml;
         CSharpSyntaxTree m_BindingCode;
@@ -22,6 +22,15 @@ namespace UnityEngine.Rendering.UIGen
             string assetLocation;
             string runtimeCodeLocation;
             string editorCodeLocation;
+
+            public bool GetEditorPath(
+                [DisallowNull] string relativePath,
+                [NotNullWhen(true)] out string path,
+                [NotNullWhen(false)] out Exception error
+            )
+            {
+                throw new NotImplementedException();
+            }
         }
 
         // Consider async API?
