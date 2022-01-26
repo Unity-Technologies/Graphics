@@ -32,9 +32,9 @@ namespace UnityEngine.Rendering
             {
                 RenderingDebuggerPanel panel = RenderingDebuggerState.instance.GetPanel(panelType);
 
-                var panelVisualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(panel.uiDocument);
-                if (panelVisualTreeAsset == null)
-                    continue;
+                // Create the content of the tab
+                VisualElement panelVisualElement = panel.panelElement;
+                panelVisualElement.name = panel.panelName;
 
                 // Create the tab
                 var panelHeader = new Label()
@@ -43,12 +43,6 @@ namespace UnityEngine.Rendering
                     text = panel.panelName
                 };
                 runtimeUIDocument.rootVisualElement.Add(panelHeader);
-
-                // Create the content of the tab
-                VisualElement panelVisualElement = new VisualElement() {name = panel.panelName};
-
-                // TODO use Instantiate
-                panelVisualTreeAsset.CloneTree(panelVisualElement);
 
                 runtimeUIDocument.rootVisualElement.Add(panelVisualElement);
                 panelVisualElement.Bind(new SerializedObject(panel));

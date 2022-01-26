@@ -1,4 +1,6 @@
 using System;
+using UnityEditor;
+using UnityEngine.UIElements;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -7,8 +9,11 @@ namespace UnityEngine.Rendering.Universal
     {
         public override string panelName => "Rendering";
 
-        public override string uiDocument =>
-            "Packages/com.unity.render-pipelines.universal/Runtime/Debug/RenderingDebugger/RenderingPanel.uxml";
+        public override VisualElement CreatePanel()
+        {
+            return CreateVisualElement(
+                "Packages/com.unity.render-pipelines.universal/Runtime/Debug/RenderingDebugger/RenderingPanel.uxml");
+        }
 
         /// <summary>
         /// Whether MSAA is enabled.

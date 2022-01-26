@@ -35,10 +35,6 @@ namespace UnityEditor.Rendering
             {
                 RenderingDebuggerPanel panel = RenderingDebuggerState.instance.GetPanel(panelType);
 
-                var panelVisualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(panel.uiDocument);
-                if (panelVisualTreeAsset == null)
-                    continue;
-
                 // Create the tab
                 var panelHeader = new Label()
                 {
@@ -48,10 +44,8 @@ namespace UnityEditor.Rendering
                 panelHeader.AddToClassList(TabbedMenuController.k_TabClassName);
 
                 // Create the content of the tab
-                VisualElement panelVisualElement = new VisualElement() {name = $"{panel.panelName}{TabbedMenuController.k_ContentNameSuffix}"};
-
-                // TODO use Instantiate
-                panelVisualTreeAsset.CloneTree(panelVisualElement);
+                VisualElement panelVisualElement = panel.panelElement;
+                panelVisualElement.name = $"{panel.panelName}{TabbedMenuController.k_ContentNameSuffix}";
 
                 if (firstTabAdded == false && string.IsNullOrEmpty(RenderingDebuggerState.instance.selectedPanelName))
                 {
