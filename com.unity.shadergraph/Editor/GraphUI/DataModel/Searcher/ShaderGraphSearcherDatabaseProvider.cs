@@ -23,7 +23,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.DataModel
             // TODO: Handle categories, possible caching
 
             var searcherItems = new List<SearcherItem>();
-            if (graphModel is ShaderGraphModel shaderGraphModel && shaderGraphModel.Stencil is ShaderGraphStencil shaderGraphStencil)
+            if (graphModel is ShaderGraphModel shaderGraphModel &&
+                shaderGraphModel.Stencil is ShaderGraphStencil shaderGraphStencil)
             {
                 var registry = shaderGraphStencil.GetRegistry();
                 foreach (var registryKey in registry.BrowseRegistryKeys())

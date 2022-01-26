@@ -85,7 +85,12 @@ namespace UnityEditor.ShaderGraph.Registry
                 }
             }
 
-            internal static ShaderFoundry.ShaderFunction MathNodeFunctionBuilder(string OpName, string Op, INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
+            internal static ShaderFoundry.ShaderFunction MathNodeFunctionBuilder(
+                string OpName,
+                string Op,
+                INodeReader data,
+                ShaderFoundry.ShaderContainer container,
+                Registry registry)
             {
                 data.TryGetPort("Out", out var outPort);
                 var typeBuilder = registry.GetTypeBuilder(GraphType.kRegistryKey);
@@ -133,6 +138,64 @@ namespace UnityEditor.ShaderGraph.Registry
             public ShaderFoundry.ShaderFunction GetShaderFunction(INodeReader data, ShaderFoundry.ShaderContainer container, Registry registry)
             {
                 return NodeHelpers.MathNodeFunctionBuilder("Add", "+", data, container, registry);
+            }
+        }
+
+        // TODO (Brett) [BEFORE RELEASE] The doc in this class is a basic 
+        // description of what needs to be done to add nodes.
+        // CLEAN THIS DOC
+        class PowNode : Defs.INodeDefinitionBuilder
+        {
+            public RegistryKey GetRegistryKey() => new RegistryKey { Name = "Pow", Version = 1 };
+            public RegistryFlags GetRegistryFlags() => RegistryFlags.Func;
+
+            /**
+             * BuildNode defines the input and output ports of a node, along with
+             * the port types.
+             */
+            public void BuildNode(INodeReader userData, INodeWriter nodeWriter, Registry registry)
+            {
+                var portWriter = nodeWriter.AddPort<GraphType>(userData, "In", true, registry);
+                portWriter.SetField<int>(GraphType.kLength, 1);
+                portWriter = nodeWriter.AddPort<GraphType>(userData, "Exp", true, registry);
+                portWriter.SetField<int>(GraphType.kLength, 1);
+                portWriter = nodeWriter.AddPort<GraphType>(userData, "Out", false, registry);
+                portWriter.SetField<int>(GraphType.kLength, 1);
+            }
+
+            /**
+             * GetShaderFunction defines the output of the built 
+             * ShaderFoundry.ShaderFunction that results from specific
+             * node data.
+             */
+            public ShaderFoundry.ShaderFunction GetShaderFunction(
+                INodeReader data,
+                ShaderFoundry.ShaderContainer container,
+                Registry registry)
+            {
+                // Get the HLSL type to associate with our variables in the
+                // shader function we want to write.
+
+                // In this case, all the types are the same. We only ask for the
+                // type associated with the "Out" port/field.
+                data.TryGetPort("Out", out var port); // TODO (Brett) This should have some error checking
+
+                var shaderType = registry.GetShaderType((IFieldReader)port, container);
+
+                // Get a builder from ShaderFoundry
+                var shaderFunctionBuilder = new ShaderFoundry.ShaderFunction.Builder(container, "Pow");
+
+                // Set up the vars in the shader function.
+                // Each var in this case is the same type.
+                shaderFunctionBuilder.AddInput(shaderType, "In");
+                shaderFunctionBuilder.AddInput(shaderType, "Exp");
+                shaderFunctionBuilder.AddOutput(shaderType, "Out");
+
+                // Add the shader function body.
+                shaderFunctionBuilder.AddLine("Out = pow(In, Exp);");
+
+                // Return the results of ShaderFoundry's build.
+                return shaderFunctionBuilder.Build();
             }
         }
 
