@@ -78,6 +78,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
 - Fixed the behavior the max ray length for recursive rendering to match RTR and rasterization.
 - Fixed Normal Map assiignation when importing FBX Materials.
+- Fixed the list of included HDRP asset used for stripping in the build process.
 
 ## [12.1.3] - 2021-11-17
 
