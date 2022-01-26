@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed GPU event particle init after restarting VisualEffect [Case 1378335](https://issuetracker.unity3d.com/product/unity/issues/guid/1378335/)
 - No more exception raised when selecting all nodes with CTRL+A and then deleting them
 - Particle Strip without lifetime do not die when Alive is set to false. [Case 1376278](https://issuetracker.unity3d.com/product/unity/issues/guid/1376278/)
+- Reduce GC.Allocs in the SceneViewGUICallback. [Case 1305929](https://issuetracker.unity3d.com/product/unity/issues/guid/1305929/)
 
 ## [13.1.2] - 2021-11-05
 

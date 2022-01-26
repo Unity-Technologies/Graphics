@@ -464,48 +464,54 @@ namespace UnityEditor.VFX
             if (effects.Count == 0)
                 return;
 
-            var buttonWidth = GUILayout.Width(52);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Stop), buttonWidth))
+            if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Stop), Contents.sceneViewButtonWidth))
             {
                 effects.ForEach(x => x.ControlStop());
             }
             if (effects.All(x => x.pause))
             {
-                if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Play), buttonWidth))
+                if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Play), Contents.sceneViewButtonWidth))
                 {
                     effects.ForEach(x => x.ControlPlayPause());
                 }
             }
             else
             {
-                if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Pause), buttonWidth))
+                if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Pause), Contents.sceneViewButtonWidth))
                 {
                     effects.ForEach(x => x.ControlPlayPause());
                 }
             }
 
 
-            if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Step), buttonWidth))
+            if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Step), Contents.sceneViewButtonWidth))
             {
                 effects.ForEach(x => x.ControlStep());
             }
-            if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Restart), buttonWidth))
+            if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Restart), Contents.sceneViewButtonWidth))
             {
                 effects.ForEach(x => x.ControlRestart());
             }
             GUILayout.EndHorizontal();
 
-
-            var playRates = effects.Select(x => x.playRate).Distinct().ToArray();
-            float playRate = playRates[0];
+            float playRate = effects[0].playRate;
+            bool mixedValues = false;
+            for (int i = 1; i < effects.Count; i++)
+            {
+                if (Math.Abs(effects[i].playRate - playRate) > 1e-5)
+                {
+                    mixedValues = true;
+                    break;
+                }
+            }
 
             float playRateValue = playRate * VisualEffectControl.playRateToValue;
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label(Contents.playRate, GUILayout.Width(46));
-            EditorGUI.showMixedValue = playRates.Length > 1;
-            var newPlayRateVal = EditorGUILayout.PowerSlider("", (float)Math.Round(playRateValue), VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(124));
+            GUILayout.Label(Contents.playRate, Contents.playRateWidth);
+            EditorGUI.showMixedValue = mixedValues;
+            var newPlayRateVal = EditorGUILayout.PowerSlider("", (float)Math.Round(playRateValue), VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, Contents.powerSliderWidth);
             EditorGUI.showMixedValue = false;
             if (playRate >= 0 && GUI.changed)
             {
@@ -513,7 +519,7 @@ namespace UnityEditor.VFX
             }
 
             var eventType = Event.current.type;
-            if (EditorGUILayout.DropdownButton(Contents.setPlayRate, FocusType.Passive, GUILayout.Width(40)))
+            if (EditorGUILayout.DropdownButton(Contents.setPlayRate, FocusType.Passive, Contents.playRateDropdownWidth))
             {
                 GenericMenu menu = new GenericMenu();
                 foreach (var value in VisualEffectControl.setPlaybackValues)
@@ -529,19 +535,19 @@ namespace UnityEditor.VFX
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Show Bounds", GUILayout.Width(192));
-            VisualEffectUtility.renderBounds = EditorGUILayout.Toggle(VisualEffectUtility.renderBounds, GUILayout.Width(18));
+            GUILayout.Label("Show Bounds", Contents.showToggleLabelsWidth);
+            VisualEffectUtility.renderBounds = EditorGUILayout.Toggle(VisualEffectUtility.renderBounds, Contents.showToggleWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Show Event Tester", GUILayout.Width(192));
-            VFXEventTesterWindow.visible = EditorGUILayout.Toggle(VFXEventTesterWindow.visible, GUILayout.Width(18));
+            GUILayout.Label("Show Event Tester", Contents.showToggleLabelsWidth);
+            VFXEventTesterWindow.visible = EditorGUILayout.Toggle(VFXEventTesterWindow.visible, Contents.showToggleWidth);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button(new GUIContent("Play()")))
+            if (GUILayout.Button(Contents.play))
                 effects.ForEach(x => x.Play());
-            if (GUILayout.Button(new GUIContent("Stop()")))
+            if (GUILayout.Button(Contents.stop))
                 effects.ForEach(x => x.Stop());
             GUILayout.EndHorizontal();
         }
@@ -1424,8 +1430,16 @@ namespace UnityEditor.VFX
             public static readonly GUIContent resetInitialEvent = EditorGUIUtility.TrTextContent("Default");
             public static readonly GUIContent setPlayRate = EditorGUIUtility.TrTextContent("Set");
             public static readonly GUIContent playRate = EditorGUIUtility.TrTextContent("Rate");
+            public static readonly GUILayoutOption playRateWidth = GUILayout.Width(46);
+            public static readonly GUILayoutOption showToggleLabelsWidth = GUILayout.Width(192);
+            public static readonly GUILayoutOption showToggleWidth = GUILayout.Width(18);
+            public static readonly GUILayoutOption powerSliderWidth = GUILayout.Width(124);
+            public static readonly GUILayoutOption sceneViewButtonWidth = GUILayout.Width(52);
+            public static readonly GUILayoutOption playRateDropdownWidth = GUILayout.Width(40);
 
             public static readonly GUIContent graphInBundle = EditorGUIUtility.TrTextContent("Exposed properties are hidden in the Inspector when Visual Effect Assets are stored in Asset Bundles.");
+            public static readonly GUIContent play = new GUIContent("Play()");
+            public static readonly GUIContent stop = new GUIContent("Stop()");
 
             static readonly GUIContent[] m_Icons;
 
