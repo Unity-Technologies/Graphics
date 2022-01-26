@@ -50,6 +50,7 @@ namespace UnityEditor.ShaderGraph.GraphUI
                 RegistryInstance.Register<Registry.Types.GraphType>();
                 RegistryInstance.Register<Registry.Types.GraphTypeAssignment>();
                 RegistryInstance.Register<Registry.Types.AddNode>();
+                RegistryInstance.Register<Registry.Types.PowNode>();
             }
             return RegistryInstance;
         }

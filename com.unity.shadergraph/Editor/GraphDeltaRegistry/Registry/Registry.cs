@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph.GraphDelta;
 using System.Linq;
 using UnityEditor.ShaderGraph.Registry.Defs;
+using UnityEditor.ShaderGraph.Registry.Types;
 
 namespace UnityEditor.ShaderGraph.Registry
 {
@@ -78,6 +79,12 @@ namespace UnityEditor.ShaderGraph.Registry
         {
             Register<Defs.ContextBuilder>();
             Register<Defs.ReferenceNodeBuilder>();
+        }
+
+        internal ShaderFoundry.ShaderType GetShaderType(IFieldReader field, ShaderFoundry.ShaderContainer container)
+        {
+            var graphTypeBuilder = this.GetTypeBuilder(GraphType.kRegistryKey);
+            return graphTypeBuilder.GetShaderType(field, container, this);
         }
 
         public IEnumerable<RegistryKey> BrowseRegistryKeys() => builders.Keys;
