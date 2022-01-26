@@ -107,7 +107,6 @@ namespace UnityEditor.VFX.UI
             if (m_MasterSlot == null)
                 return;
             ModelChanged(m_MasterSlot);
-            RefreshGizmo();
         }
 
         bool m_Expanded;
@@ -124,6 +123,10 @@ namespace UnityEditor.VFX.UI
             UpdateInfos();
             Profiler.EndSample();
 
+            if (m_GizmoContext != null)
+            {
+                m_GizmoContext.Unprepare();
+            }
             sourceNode.DataEdgesMightHaveChanged();
 
             Profiler.BeginSample("VFXDataAnchorController.NotifyChange");
@@ -490,10 +493,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (!VFXGizmoUtility.HasGizmo(portType))
                     return false;
-                if (m_GizmoContext == null)
-                {
-                    m_GizmoContext = new VFXDataAnchorGizmoContext(this);
-                }
+                CreateGizmoContextIfNeeded();
                 return VFXGizmoUtility.NeedsComponent(m_GizmoContext);
             }
         }
@@ -504,10 +504,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (!VFXGizmoUtility.HasGizmo(portType))
                     return false;
-                if (m_GizmoContext == null)
-                {
-                    m_GizmoContext = new VFXDataAnchorGizmoContext(this);
-                }
+                CreateGizmoContextIfNeeded();
                 return m_GizmoContext.IsIndeterminate();
             }
         }
@@ -518,11 +515,16 @@ namespace UnityEditor.VFX.UI
         {
             if (VFXGizmoUtility.HasGizmo(portType))
             {
-                if (m_GizmoContext == null)
-                {
-                    m_GizmoContext = new VFXDataAnchorGizmoContext(this);
-                }
+                CreateGizmoContextIfNeeded();
                 VFXGizmoUtility.Draw(m_GizmoContext, component);
+            }
+        }
+
+        void CreateGizmoContextIfNeeded()
+        {
+            if (m_GizmoContext == null)
+            {
+                m_GizmoContext = new VFXDataAnchorGizmoContext(this);
             }
         }
 
