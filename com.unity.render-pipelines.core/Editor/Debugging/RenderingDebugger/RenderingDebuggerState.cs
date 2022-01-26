@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using UnityEditor.VersionControl;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -11,11 +8,8 @@ namespace UnityEditor.Rendering
 {
     class RenderingDebuggerState : ScriptableObject
     {
-        private const string kSavePath = "Temp/RenderingDebuggerState.asset";
-
         public string selectedPanelName;
 
-        [SerializeField]
         public List<RenderingDebuggerPanel> panels = new ();
 
         public RenderingDebuggerPanel GetPanel(Type type)
@@ -24,6 +18,13 @@ namespace UnityEditor.Rendering
                 return panel;
 
             panel = ScriptableObject.CreateInstance(type) as RenderingDebuggerPanel;
+
+            // IMPORTANT: Since this class has HideAndDontSave, all ScriptableObjects inside of it must also have it.
+            // Otherwise you will end up with null objects in your List<ScriptableObject> when returning from play mode.
+            // Also, if you use UITK Binding on an object with "Hide" in hideFlags, it will disable UI. Hence we only use
+            // HideFlags.DontSave here.
+            panel.hideFlags = HideFlags.DontSave;
+
             panels.Add(panel);
 
             return panel;
@@ -41,32 +42,6 @@ namespace UnityEditor.Rendering
         void OnEnable()
         {
             hideFlags = HideFlags.HideAndDontSave;
-        }
-
-        internal static RenderingDebuggerState Load()
-        {
-            RenderingDebuggerState state = AssetDatabase.LoadAssetAtPath<RenderingDebuggerState>(kSavePath);
-            if (state == null)
-            {
-                state = ScriptableObject.CreateInstance<RenderingDebuggerState>();
-            }
-            return state;
-        }
-
-        internal static void Save(RenderingDebuggerState state)
-        {
-            var objects = new List<UnityEngine.Object>(){ state };
-            objects.AddRange(state.panels);
-
-            InternalEditorUtility.SaveToSerializedFileAndForget(objects.ToArray(), kSavePath, true);
-            /*AssetDatabase.DeleteAsset(kSavePath);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.CreateAsset(state, kSavePath);
-            foreach (var panel in state.panels)
-            {
-                AssetDatabase.AddObjectToAsset(panel, state);
-            }
-            AssetDatabase.SaveAssets();*/
         }
     }
 }

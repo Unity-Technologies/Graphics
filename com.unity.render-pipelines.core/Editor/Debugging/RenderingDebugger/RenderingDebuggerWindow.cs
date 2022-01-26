@@ -11,9 +11,7 @@ namespace UnityEditor.Rendering
     {
         private TabbedMenuController controller;
 
-        [SerializeField]
         private RenderingDebuggerState m_State;
-
 
         [MenuItem("Window/Analysis/Rendering Debugger (UITK)", priority = 10006)]
         public static void ShowDefaultWindow()
@@ -25,7 +23,7 @@ namespace UnityEditor.Rendering
         public void CreateGUI()
         {
             if (m_State == null || m_State.Equals(null))
-                m_State = RenderingDebuggerState.Load();
+                m_State = CreateInstance<RenderingDebuggerState>();
 
             var windowTemplate = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/com.unity.render-pipelines.core/Editor/Debugging/RenderingDebugger/RenderingDebuggerEditorWindow.uxml");
             if (windowTemplate == null)
@@ -33,9 +31,6 @@ namespace UnityEditor.Rendering
 
             // TODO use Instantiate
             windowTemplate.CloneTree(this.rootVisualElement);
-
-            // TODO temporary way to trigger saving - should think about better ways to do it
-            this.rootVisualElement.RegisterCallback<FocusOutEvent>(OnFocusLost);
 
             var tabsVisualElement = this.rootVisualElement.Q<VisualElement>("tabs");
             var tabContentVisualElement = this.rootVisualElement.Q<VisualElement>("tabContent");
@@ -98,11 +93,6 @@ namespace UnityEditor.Rendering
                     .Q<VisualElement>($"{panel.panelName}{TabbedMenuController.k_ContentNameSuffix}")
                     .Bind(new SerializedObject(panel));
             }
-        }
-
-        public void OnFocusLost(FocusOutEvent evt)
-        {
-            RenderingDebuggerState.Save(m_State);
         }
 
         public void OnEnable()
