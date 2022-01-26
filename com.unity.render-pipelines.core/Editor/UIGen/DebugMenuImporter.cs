@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.UIGen
                 return false;
 
             // TODO: may require additional arguments
-            if (!DebugMenuIntegration.GenerateIntegration(out var integrationDocuments, out error))
+            if (!DebugMenuIntegration.GenerateIntegration(default, out var integrationDocuments, out error))
                 return false;
 
             if (!integrationDocuments.WriteToDisk(k_DiskLocation, out error))

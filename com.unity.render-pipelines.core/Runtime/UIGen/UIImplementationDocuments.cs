@@ -8,7 +8,8 @@ namespace UnityEngine.Rendering.UIGen
 {
     public class UIImplementationDocuments
     {
-        string m_Name;
+        string m_ClassName = "UIView";
+        
 
         XmlDocument m_Uxml;
         CSharpSyntaxTree m_BindingCode;
