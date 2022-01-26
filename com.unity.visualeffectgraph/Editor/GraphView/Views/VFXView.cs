@@ -1200,6 +1200,7 @@ namespace UnityEditor.VFX.UI
             }
 
             UpdateVCSState();
+            UpdateGlobalSelection();
 
             m_LockedElement.PlaceInFront(contentViewContainer);
         }
