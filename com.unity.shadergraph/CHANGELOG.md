@@ -12,6 +12,8 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
   - Fixed bug with Shader Graph subwindows having their header text overflow when the window is resized smaller than the title [1378203]
+  - Fixed issue where Duplicating/Copy-Pasting last keyword in the blackboard throws an exception [1394378]
+  - Fixed an issue where some graphs with incorrectly formatted data would not display their shader inputs in the blackboard [1384315]
   - Fixed the behavior of checkerboard node with raytracing
   - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
   - Fixed a validation error in ShaderGraph when using the SimpleNoise node both inside and outside a subgraph [1383046] (https://issuetracker.unity3d.com/issues/validation-error-is-usually-thrown-when-simple-noise-node-is-both-in-a-shadergraph-and-in-a-sub-graph)
