@@ -146,6 +146,7 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
         effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
 #endif
 
+        // See _TransparentCameraOnlyMotionVectors in HDCamera.cs
 #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
         if (_TransparentCameraOnlyMotionVectors > 0)
         {
@@ -156,13 +157,13 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
 #endif
 
 #if defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
-#if defined(HAVE_MESH_MODIFICATION) || defined(HAVE_VERTEX_MODIFICATION) || defined(_ADD_CUSTOM_VELOCITY) || defined(TESSELLATION_ON)
-        //TODOPAUL: Some variant should be excluded with VFX
-        //#error Unexpected fast path rendering VFX motion vector while there are vertex modification afterwards.
+        //TODO: Remove unexpected _ADD_PRECOMPUTED_VELOCITY variant for VFX
+#if defined(HAVE_VERTEX_MODIFICATION) || defined(_ADD_CUSTOM_VELOCITY) || defined(TESSELLATION_ON)// || defined(_ADD_PRECOMPUTED_VELOCITY)
+#error Unexpected fast path rendering VFX motion vector while there are vertex modification afterwards.
 #endif
         if (!previousPositionCSComputed)
         {
-            //previousPositionRWS is only needed for TESSELLATION_ON
+            // previousPositionRWS is only needed for TESSELLATION_ON
             varyingsType.vpass.previousPositionCS = VFXGetPreviousClipPosition(inputMesh, inputElement);
             previousPositionCSComputed = true;
         }
@@ -240,7 +241,7 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
         // so don't convert to CS yet.
         varyingsType.vpass.previousPositionRWS = previousPositionRWS;
 #else
-        //Final computation from previousPositionRWS
+        // Final computation from previousPositionRWS (if not already done)
         if (!previousPositionCSComputed)
         {
             varyingsType.vpass.previousPositionCS = mul(UNITY_MATRIX_PREV_VP, float4(previousPositionRWS, 1.0));
