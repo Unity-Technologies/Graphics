@@ -1,16 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
-using UnityEngine.Rendering;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
-namespace UnityEditor.Rendering
+namespace UnityEngine.Rendering
 {
-    class RenderingDebuggerState : ScriptableObject
+#if UNITY_EDITOR
+    public class RenderingDebuggerState : ScriptableSingleton<RenderingDebuggerState>
     {
+#else
+    public class RenderingDebuggerState : ScriptableObject
+    {
+        private static RenderingDebuggerState s_Instance;
+
+        /// <summary>
+        /// The singleton instance that contains the current settings of Rendering Debugger.
+        /// </summary>
+        public static RenderingDebuggerState instance
+        {
+            get
+            {
+                if (s_Instance == null)
+                    s_Instance = CreateInstance<RenderingDebuggerState>();
+                return s_Instance;
+            }
+        }
+#endif
+
         public string selectedPanelName;
 
-        public List<RenderingDebuggerPanel> panels = new ();
+        private List<RenderingDebuggerPanel> panels = new ();
 
         public RenderingDebuggerPanel GetPanel(Type type)
         {
@@ -26,7 +49,6 @@ namespace UnityEditor.Rendering
             panel.hideFlags = HideFlags.DontSave;
 
             panels.Add(panel);
-
             return panel;
         }
 
