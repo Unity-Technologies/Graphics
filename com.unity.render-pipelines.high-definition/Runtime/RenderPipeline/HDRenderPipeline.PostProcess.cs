@@ -643,17 +643,20 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputColor;
             public TextureHandle blurTmpBuffer;
             public TextureHandle blurOutput;
+            public TextureHandle particleFogBuffer;
             public TextureHandle[] mipsUp;
             public TextureHandle[] mipsDown;
             public Vector4[] bloomMipInfo;
+            public RendererListHandle fogParticles;
             public int bloomMipCount;
             public int blurKernel;
             public int upsampleKernel;
             public int scatteringKernel;
             public int bilateralBlurKernel;
+            public int bilateralPrefilterKernel;
         }
 
-        TextureHandle ScreenSpaceScattering(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle volumetricLightingTexture, TextureHandle screenSpaceScatteringDensityBuffer)
+        TextureHandle ScreenSpaceScattering(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResults, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle volumetricLightingTexture, TextureHandle screenSpaceScatteringDensityBuffer)
         {
             var ssms = hdCamera.volumeStack.GetComponent<SSMS>();
             var fog = hdCamera.volumeStack.GetComponent<Fog>();
@@ -671,10 +674,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.volumetricLightingTexture = builder.ReadTexture(volumetricLightingTexture);
                 passData.outputColor = builder.WriteTexture(renderGraph.CreateTexture(colorBuffer));
                 passData.blurKernel = passData.screenSpaceScatteringCS.FindKernel("BloomTest");
+                passData.blurOutput = builder.CreateTransientTexture(colorBuffer);
+                passData.particleFogBuffer = builder.CreateTransientTexture(colorBuffer);
                 passData.upsampleKernel = passData.screenSpaceScatteringCS.FindKernel("Upsample");
                 passData.scatteringKernel = passData.screenSpaceScatteringCS.FindKernel("Scattering");
                 passData.bilateralBlurKernel = passData.screenSpaceScatteringCS.FindKernel("BilateralBlur");
-                passData.blurOutput = builder.CreateTransientTexture(colorBuffer);
+                passData.bilateralPrefilterKernel = passData.screenSpaceScatteringCS.FindKernel("BilateralPrefilter");
 
                 int maxSize = Mathf.Max(hdCamera.actualWidth, hdCamera.actualHeight);
                 int iterations = Mathf.Clamp(ssms.blurLevel.value, 1, Mathf.FloorToInt(Mathf.Log(maxSize, 2)));
@@ -682,30 +687,30 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.blurTmpBuffer = builder.CreateTransientTexture(colorBuffer);
 
-                // passData.mipsUp = new TextureHandle[passData.bloomMipCount];
-                // passData.mipsDown = new TextureHandle[passData.bloomMipCount];
-                // passData.bloomMipInfo = new Vector4[passData.bloomMipCount];
-                // for (int i = 0; i < passData.bloomMipCount; i++)
-                // {
-                //     float p = 1f / Mathf.Pow(2f, i);
-                //     float sw = p;
-                //     float sh = p;
-                //     int pw = Mathf.Max(1, Mathf.RoundToInt(sw * postProcessViewportSize.x));
-                //     int ph = Mathf.Max(1, Mathf.RoundToInt(sh * postProcessViewportSize.y));
-                //     var scale = new Vector2(sw, sh);
-                //     var pixelSize = new Vector2Int(pw, ph);
+                passData.mipsUp = new TextureHandle[passData.bloomMipCount];
+                passData.mipsDown = new TextureHandle[passData.bloomMipCount];
+                passData.bloomMipInfo = new Vector4[passData.bloomMipCount];
+                for (int i = 0; i < passData.bloomMipCount; i++)
+                {
+                    float p = 1f / Mathf.Pow(2f, i);
+                    float sw = p;
+                    float sh = p;
+                    int pw = Mathf.Max(1, Mathf.RoundToInt(sw * postProcessViewportSize.x));
+                    int ph = Mathf.Max(1, Mathf.RoundToInt(sh * postProcessViewportSize.y));
+                    var scale = new Vector2(sw, sh);
+                    var pixelSize = new Vector2Int(pw, ph);
 
-                //     passData.bloomMipInfo[i] = new Vector4(pw, ph, sw, sh);
-                //     passData.mipsDown[i] = builder.CreateTransientTexture(new TextureDesc(scale, IsDynamicResUpscaleTargetEnabled(), true)
-                //     { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "MipDown" });
+                    passData.bloomMipInfo[i] = new Vector4(pw, ph, sw, sh);
+                    passData.mipsDown[i] = builder.CreateTransientTexture(new TextureDesc(scale, IsDynamicResUpscaleTargetEnabled(), true)
+                    { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "MipDown" });
 
-                //     passData.mipsUp[i] = builder.CreateTransientTexture(new TextureDesc(scale, IsDynamicResUpscaleTargetEnabled(), true)
-                //     { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "MipUp" });
-                //     if (i == 0)
-                //         passData.blurOutput = passData.mipsUp[i];
-                // }
+                    passData.mipsUp[i] = builder.CreateTransientTexture(new TextureDesc(scale, IsDynamicResUpscaleTargetEnabled(), true)
+                    { colorFormat = GetPostprocessTextureFormat(), enableRandomWrite = true, name = "MipUp" });
+                    if (i == 0)
+                        passData.blurOutput = passData.mipsUp[i];
+                }
 
-                // passData.mipsDown[0] = passData.colorBuffer;
+                passData.mipsDown[0] = passData.colorBuffer;
 
                 void DispatchWithGuardBands(CommandBuffer cmd, ComputeShader shader, RTHandle sourceRT, int kernelId, in Vector2Int size, in int viewCount)
                 {
@@ -720,9 +725,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.DispatchCompute(shader, kernelId, (w + 7) / 8, (h + 7) / 8, viewCount);
                 }
 
+                passData.fogParticles = builder.UseRendererList(renderGraph.CreateRendererList(new RendererUtils.RendererListDesc(m_AllTransparentPassNames, cullingResults, hdCamera.camera)
+                {
+                    sortingCriteria = SortingCriteria.CommonTransparent,
+                    rendererConfiguration = PerObjectData.None,
+                    renderQueueRange = HDRenderQueue.k_RenderQueue_AllTransparent,
+                    layerMask = 1 << LayerMask.NameToLayer("FogParticles")
+                }));
+
                 builder.SetRenderFunc((ScreenSpaceScatteringPassData data, RenderGraphContext ctx) =>
                 {
                     RTHandle colorBuffer = data.colorBuffer;
+
+                    CoreUtils.SetRenderTarget(ctx.cmd, data.particleFogBuffer, data.depthBuffer, ClearFlag.Color);
+                    CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, data.fogParticles);
 
                     if (false)
                     {
@@ -764,13 +780,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Bilateral blur (depth aware to avoid color bleeding)
 
+                        // Prefilter step to avoid flickering:
+                        ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.bilateralPrefilterKernel, HDShaderIDs._Input, data.colorBuffer);
+                        ctx.cmd.SetComputeVectorParam(data.screenSpaceScatteringCS, "_InputSize", new Vector4(colorBuffer.rt.width, colorBuffer.rt.height, 1f / colorBuffer.rt.width, 1f / colorBuffer.rt.height));
+                        ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.bilateralPrefilterKernel, HDShaderIDs._Output, data.blurOutput);
+                        ctx.cmd.DispatchCompute(data.screenSpaceScatteringCS, data.bilateralPrefilterKernel, (hdCamera.actualWidth + 7) / 8, (hdCamera.actualHeight + 7) / 8, data.hdCamera.viewCount); 
+
                         // Bilateral blur uses vbuffer to determine the blur amount so we need to bind all the buffer
                         ctx.cmd.SetComputeVectorParam(data.screenSpaceScatteringCS, "_Curve", ssms.densityCurve);
                         ctx.cmd.SetComputeFloatParam(data.screenSpaceScatteringCS, "_DensityPower", ssms.densityPower.value);
+                        ctx.cmd.SetComputeFloatParam(data.screenSpaceScatteringCS, "_EnableBlurDepthTest", ssms.depthTestBlur.value ? 1 : 0);
+                        ctx.cmd.SetComputeFloatParam(data.screenSpaceScatteringCS, "_UseInscatteringInsteadOfOpacity", ssms.useFogInscatteringInsteadOfOpacity.value ? 1 : 0);
+                        ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.bilateralBlurKernel, "_ParticleFogBuffer", data.particleFogBuffer);
                         ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.bilateralBlurKernel, HDShaderIDs._VBufferLighting, data.volumetricLightingTexture);
 
                         // Vertical pass
-                        ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.bilateralBlurKernel, HDShaderIDs._Input, data.colorBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.bilateralBlurKernel, HDShaderIDs._Input, data.blurOutput);
                         ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.bilateralBlurKernel, HDShaderIDs._Output, data.blurTmpBuffer);
                         ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.bilateralBlurKernel, HDShaderIDs._CameraDepthTexture, data.depthBuffer);
                         ctx.cmd.SetComputeFloatParam(data.screenSpaceScatteringCS, "_Radius", ssms.blurRadius.value);
@@ -803,6 +828,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.scatteringKernel, "_InputColorBuffer", data.colorBuffer);
                     ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.scatteringKernel, HDShaderIDs._VBufferLighting, data.volumetricLightingTexture);
                     ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.scatteringKernel, HDShaderIDs._CameraDepthTexture, data.depthBuffer);
+                    ctx.cmd.SetComputeTextureParam(data.screenSpaceScatteringCS, data.scatteringKernel, "_ParticleFogBuffer", data.particleFogBuffer);
 
                     ctx.cmd.SetComputeFloatParam(data.screenSpaceScatteringCS, "_DepthScale", ssms.depthScaling.value);
                     ctx.cmd.SetComputeFloatParam(data.screenSpaceScatteringCS, "_DensityScale", ssms.densityScaling.value);

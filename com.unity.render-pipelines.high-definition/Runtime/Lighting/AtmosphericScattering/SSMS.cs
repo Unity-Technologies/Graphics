@@ -14,6 +14,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable fog.</summary>
         [Tooltip("Enables the SSMS.")]
         public BoolParameter enabled = new BoolParameter(false);
+        public BoolParameter depthTestBlur = new BoolParameter(false);
+        public BoolParameter useFogInscatteringInsteadOfOpacity = new BoolParameter(false);
 
         /// <summary>SSMS color.</summary>
         // [Tooltip("Specifies the constant color of the fog.")]

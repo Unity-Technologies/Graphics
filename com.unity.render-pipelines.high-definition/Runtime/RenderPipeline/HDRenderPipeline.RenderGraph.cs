@@ -209,8 +209,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedNormalBuffer, vtFeedbackBuffer, currentColorPyramid, volumetricLighting, rayCountTexture, m_SkyManager.GetSkyReflection(hdCamera), gpuLightListOutput, ref prepassOutput,
                         shadowResult, cullingResults, customPassCullingResults, aovRequest, aovCustomPassBuffers);
-
-                    colorBuffer = ScreenSpaceScattering(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, volumetricLighting, screenSpaceScatteringDensityBuffer);
+                    
+                    colorBuffer = ScreenSpaceScattering(m_RenderGraph, hdCamera, cullingResults, colorBuffer, prepassOutput.resolvedDepthBuffer, volumetricLighting, screenSpaceScatteringDensityBuffer);
 
                     uiBuffer = RenderTransparentUI(m_RenderGraph, hdCamera, prepassOutput.depthBuffer);
 

@@ -1,6 +1,7 @@
 // Copied & modified from ColorPyramid.compute
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VBuffer.hlsl"
@@ -13,6 +14,7 @@
 #pragma kernel Upsample
 #pragma kernel Scattering
 #pragma kernel BilateralBlur
+#pragma kernel BilateralPrefilter
 
 #define GROUP_SIZE 8
 
@@ -264,55 +266,59 @@ void EvaluateAtmosphericScattering2(PositionInputs posInput, float3 V, out float
 float _ScatterStartDistance;
 float4 _Curve;
 float _DensityPower;
+TEXTURE2D_X(_ParticleFogBuffer);
+
+float _UseInscatteringInsteadOfOpacity;
+
+// Absolutely not PBR :)
+float GetVisualOfDensity(uint2 coordSS)
+{
+    float rawDepth = LoadCameraDepth(coordSS).r;
+    PositionInputs posInput = GetPositionInput(coordSS, _ScreenSize.zw, rawDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+    float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+
+    float3 fogColor;
+    float3 fogOpacity;
+    float density;
+    EvaluateAtmosphericScattering2(posInput, V, fogColor, fogOpacity);
+
+    if (_UseInscatteringInsteadOfOpacity)
+        density = Luminance(fogColor);
+    else
+        density = fogOpacity.x;
+
+    float additionalFogparticleDensity = saturate(Luminance(_ParticleFogBuffer[COORD_TEXTURE2D_X(coordSS.xy)]));
+    density = saturate(density - _Curve.x);
+
+    density = pow(density, _DensityPower);
+
+    density = saturate(density + additionalFogparticleDensity);
+
+    return density * _DensityScale;
+}
 
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void Scattering(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-    float rawDepth = LoadCameraDepth(dispatchThreadId.xy).r;
-    PositionInputs posInput = GetPositionInput(dispatchThreadId.xy, _ScreenSize.zw, rawDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-    float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
-    float3 fogColor;
-    float3 fogOpacity;
-    EvaluateAtmosphericScattering2(posInput, V, fogColor, fogOpacity);
-
-    float2 uv = float2(dispatchThreadId.xy) * _InputSize.zw;
+    // TODO: implement scattering color?
     float3 color;
-
     float4 inputColor = _InputColorBuffer[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
-    // TODO: implement scattering color
     float3 blurColor = _Input[COORD_TEXTURE2D_X(dispatchThreadId.xy)].rgb;
 
-    // uint2 densityPixelCoords = uint2(uv * _DensityBufferSize.xy);
-    // float density = SAMPLE_TEXTURE2D_X_LOD(_DensityBuffer, s_linear_clamp_sampler, uv, 0).a;
-    float density = saturate(fogOpacity.x - _Curve.x);
-    
-    // float d2 = clamp(density - _Curve.x, 0, _Curve.y);
-    // d2 = _Curve.z * d2 * d2;
-    // density = d2;
-    density = pow(density, _DensityPower);
-
-    // float blurAmount = saturate(density) / 5;
-
-    // Remap fog between 0 and 1 using max fog dist.
-    // TODO: take distance from camera instead of depth
-    float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
-    linearDepth = saturate(((linearDepth - _ScatterStartDistance) / _MaxFogDistance2));
-
-    // atenuate blur with original texture:
-    // blurColor = lerp(inputColor.rgb, blurColor, 0.2);
-
-    float t = density * _DensityScale + linearDepth * _DepthScale;
+    float d = GetVisualOfDensity(dispatchThreadId.xy);
     // float t = density * _DensityScale;
-    // color.rgb = lerp(inputColor.rgb, blurColor, density * _DensityScale * (linearDepth * _DepthScale));
-    color.rgb = lerp(inputColor.rgb, blurColor, saturate(t));
+    color.rgb = lerp(inputColor.rgb, blurColor, saturate(d));
 
     _OutputColor[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(color, inputColor.a); // keep alpha
+    // _OutputColor[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(blurColor, inputColor.a); // keep alpha
+    // _OutputColor[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(t.xxx, inputColor.a); // keep alpha
 }
 
 struct BilateralData
 {
+    float fogDensity;
     float z01;
 };
 
@@ -320,37 +326,28 @@ BilateralData TapBilateralData(uint2 coordSS)
 {
     BilateralData key;
 
-    // float deviceDepth = LoadCameraDepth(coordSS);
-    // key.z01 = Linear01Depth(deviceDepth, _ZBufferParams);
-    // return key;
-
+    float d = GetVisualOfDensity(coordSS);
     float rawDepth = LoadCameraDepth(coordSS).r;
-    PositionInputs posInput = GetPositionInput(coordSS, _ScreenSize.zw, rawDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-    float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
-    float3 fogColor;
-    float3 fogOpacity;
-    EvaluateAtmosphericScattering2(posInput, V, fogColor, fogOpacity);
-    float density = saturate(fogOpacity.x - _Curve.x);
-
-    // float d2 = clamp(density - _Curve.x, 0, _Curve.y);
-    // d2 = _Curve.z * d2 * d2;
-    // density = d2;
-    density = pow(density, _DensityPower);
-
-    float t = density * _DensityScale;
-
-    // Should be in 01 range but hey
-    key.z01 = saturate(t);
+    key.fogDensity = saturate(d);
+    key.z01 = Linear01Depth(rawDepth, _ZBufferParams);
 
     return key;
 }
+
+float _EnableBlurDepthTest;
 
 float ComputeBilateralWeight(BilateralData center, BilateralData tap)
 {
     float depthWeight = 1.0;
 
-    depthWeight = max(0.0, 1.0 - abs(tap.z01 - center.z01));
+    depthWeight = max(0.0, 1.0 - abs(tap.fogDensity - center.fogDensity));
+
+    if (_EnableBlurDepthTest)
+    {
+        if (center.z01 - tap.z01 > 0.1)
+            depthWeight = 0;
+    }
 
     return depthWeight;
 }
@@ -384,28 +381,7 @@ void BilateralBlur(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Tap the central pixel coordinates
     const BilateralData center = TapBilateralData(geometrCoords);
 
-    float radius = _Radius;
-
-    // Calculate radius based on density:
-    uint2 coordSS = dispatchThreadId.xy;
-    float rawDepth = LoadCameraDepth(coordSS).r;
-    PositionInputs posInput = GetPositionInput(coordSS, _ScreenSize.zw, rawDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-    float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
-
-    float3 fogColor;
-    float3 fogOpacity;
-    EvaluateAtmosphericScattering2(posInput, V, fogColor, fogOpacity);
-    float density = saturate(fogOpacity.x - _Curve.x);
-
-    // float d2 = clamp(density - _Curve.x, 0, _Curve.y);
-    // d2 = _Curve.z * d2 * d2;
-    // density = d2;
-    density = pow(density, _DensityPower);
-
-    float t = density * _DensityScale;
-
-    radius *= t;
-
+    float radius = _Radius * GetVisualOfDensity(centerCoord);
     const float sigma =  radius * BILATERAL_FILTER_SIGMA;
     const int effectiveRadius = min(sigma * 2.0, radius);
 
@@ -434,4 +410,25 @@ void BilateralBlur(uint3 dispatchThreadId : SV_DispatchThreadID)
     finalColor = colorSum / wSum;
 
     _Output[COORD_TEXTURE2D_X(centerCoord)] = float4(finalColor, originalPixel.a);
+}
+
+half3 Median(half3 a, half3 b, half3 c)
+{
+    return a + b + c - min(min(a, b), c) - max(max(a, b), c);
+}
+
+[numthreads(8, 8, 1)]
+void BilateralPrefilter(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    float3 d = float3(1, 1, 0);
+    half4 s0 = _Input[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+    half3 s1 = _Input[COORD_TEXTURE2D_X(dispatchThreadId.xy - d.xz)].rgb;
+    half3 s2 = _Input[COORD_TEXTURE2D_X(dispatchThreadId.xy + d.xz)].rgb;
+    half3 s3 = _Input[COORD_TEXTURE2D_X(dispatchThreadId.xy - d.zy)].rgb;
+    half3 s4 = _Input[COORD_TEXTURE2D_X(dispatchThreadId.xy + d.zy)].rgb;
+    half3 m = Median(Median(s0.rgb, s1, s2), s3, s4);
+
+    _Output[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = m;
 }
