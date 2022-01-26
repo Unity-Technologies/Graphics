@@ -35,7 +35,8 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var cmd = CommandBufferPool.Get();
+            var cmd = renderingData.commandBuffer;
+
             using (new ProfilingScope(cmd, m_ProfilingScope))
             {
                 CoreUtils.SetRenderTarget(cmd, m_UpscaleHandle,
@@ -43,8 +44,6 @@ namespace UnityEngine.Rendering.Universal
                     ClearFlag.None, Color.clear);
                 Blit(cmd, m_Source, m_UpscaleHandle);
             }
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
     }
 }

@@ -19,12 +19,7 @@ namespace UnityEngine.Rendering.Universal
             if (!renderingData.cameraData.xr.enabled)
                 return;
 
-            CommandBuffer cmd = CommandBufferPool.Get();
-
-            renderingData.cameraData.xr.RenderOcclusionMesh(cmd);
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            renderingData.cameraData.xr.RenderOcclusionMesh(renderingData.commandBuffer);
         }
     }
 }

@@ -44,18 +44,19 @@ namespace UnityEngine.Rendering.Universal
 
     public struct RenderingData
     {
+        public CommandBuffer commandBuffer;
         public CullingResults cullResults;
         public CameraData cameraData;
         public LightData lightData;
         public ShadowData shadowData;
         public PostProcessingData postProcessingData;
-        public bool supportsDynamicBatching;
         public PerObjectData perObjectData;
 
         /// <summary>
         /// True if post-processing effect is enabled while rendering the camera stack.
         /// </summary>
         public bool postProcessingEnabled;
+        public bool supportsDynamicBatching;
     }
 
     public struct LightData
