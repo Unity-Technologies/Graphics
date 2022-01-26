@@ -3,11 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Xml;
 using JetBrains.Annotations;
-using Microsoft.CodeAnalysis.CSharp;
-
-
 
 // namespace UnityEngine.Rendering.UIGen
 // {
@@ -233,39 +229,6 @@ namespace UnityEngine.Rendering.UIGen
 
 namespace UnityEngine.Rendering.UIGen
 {
-    public class BindableView
-    {
-        XmlDocument m_Uxml;
-        CSharpSyntaxTree m_BindingCode;
-    }
-
-    public static class BindableViewExtensions
-    {
-        public struct DiskLocation
-        {
-            string assetLocation;
-            string runtimeCodeLocation;
-            string editorCodeLocation;
-        }
-
-        // Consider async API?
-        [MustUseReturnValue]
-        public static bool WriteToDisk(
-            [DisallowNull] this BindableView view,
-            DiskLocation location,
-            [NotNullWhen(false)] out Exception error
-        )
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class BindableViewIntermediateDocument
-    {
-        XmlElement m_Uxml;
-        CSharpSyntaxNode m_Code;
-    }
-
     public static class DebugMenuUIGenerator
     {
         public struct Parameters { }
