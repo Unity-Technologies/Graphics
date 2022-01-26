@@ -475,6 +475,7 @@ To change the buffer format of the Custom Pass component in your HDRP asset, go 
 | **Format**   | **Bits Per Pixel** | **Description**                                              |
 | ------------ | ------------------ | ------------------------------------------------------------ |
 | R8G8B8A8     | 32                 | This format is the most resource efficient, but it might cause banding issues. HDRP uses this format by default. |
+| Signed R8G8B8A8 | 32              | This format is similar to R8G8B8A8 but you can store unsigned data. |
 | R11G11B10    | 32                 | This format has a higher precision than R8G8B8A8 but does not support alpha channels. |
 | R16G16B16A16 | 64                 | This format has the highest precision but uses twice as much memory as R8G8B8A8 and R11G11B10. |
 
