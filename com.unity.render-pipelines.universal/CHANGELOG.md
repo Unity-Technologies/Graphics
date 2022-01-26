@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Re-added the menu button to be able to convert selected materials.
 - Reverted intermediate texture behavior.
 - Shader Variant Log Level moved from the URP Asset to URP Global Settings.
+- Particle alpha channel blend mode to match standard shader.
 
 ### Fixed
 - Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]
@@ -23,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material converter not being able to be called in batch mode. [case 1375962]
 - Fixed an issue where specular color was not matching behaviour in Legacy and HDRP. [case 1326941](https://issuetracker.unity3d.com/issues/urp-specular-color-behavior-does-not-match-legacy-or-hdrp)
 - Fixed a shader compiler issue with mismatching variable types when calling lerp.
+- Fixed double alpha modulate for particle unlit shader.
 
 ## [14.0.0] - 2021-11-17
 
