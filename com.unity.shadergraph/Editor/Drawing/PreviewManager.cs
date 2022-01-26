@@ -833,7 +833,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             Assert.IsNotNull(node); // master preview is handled above
 
                             // Get shader code and compile
-                            var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}", null);
+                            var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}");
                             BeginCompile(preview, generator.generatedShader);
                         }
 
@@ -1248,7 +1248,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Skip generation for VFXTarget
             if (!m_Graph.isOnlyVFXTarget)
             {
-                var generator = new Generator(m_Graph, m_Graph.outputNode, GenerationMode.Preview, "Master", null);
+                var generator = new Generator(m_Graph, m_Graph.outputNode, GenerationMode.Preview, "Master");
                 shaderData.shaderString = generator.generatedShader;
 
                 // record the blocks temporarily created for missing stack blocks
