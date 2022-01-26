@@ -4,6 +4,29 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [14.0.1] - 2021-12-07
+
+### Added
+ - Added mip sampling modes for 2d textures, 2d texture arrays and 3d textures
+
+### Fixed
+ - Fixed broken documentation URL for block nodes. [1381488](https://issuetracker.unity3d.com/product/unity/issues/guid/1381488)
+ - Fixed SRP-batching when PVT stacks are bound per material by properly declaring properties for PVT stacks [1372152]
+## [14.0.0] - 2021-11-17
+
+### Fixed
+ - Gradient field doesn't support HDR values [Case 1381867](https://issuetracker.unity3d.com/product/unity/issues/guid/1381867/)
+ - Fixed the behavior of checkerboard node with raytracing
+
+## [13.1.2] - 2021-11-05
+
+### Added
+ - Added ability to set "Global" or "Per Material" shader declaration in PVT node settings [1372152]
+ - Show PVT stack names (needed for binding) under the Properties in the Shader Inspector
+
+### Fixed
+ - Fixed a recent regression in ShaderGraph Screen Position behavior on some platforms in Built-in, Universal and HDRP [1369450]
+
 ## [13.1.1] - 2021-10-04
 
 ### Added
@@ -15,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
  - Changed the title suffix on old nodes and properties rom "Deprecated" to "Legacy".
  - Updated searcher package dependency version to 4.9.1
+ - Renamed the Shader Graph Texel Size node to Texture Size and added two additional output ports that actually output the texel size in addition to the texture size.
 
 ### Fixed
  - Fixed a usability issue where in some cases searcher would suggest one collapsed category of results that user would have to manually expand anyway
@@ -30,7 +54,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Fixed missing shader keyword stage during keyword copying.
  - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
  - Fixed upgrade warnings on SpeedTree8 subgraphs.
- - Fixed a recent regression in ShaderGraph Screen Position behavior on some platforms in Built-in, Universal and HDRP [1369450]
 
 ## [13.1.0] - 2021-09-24
 

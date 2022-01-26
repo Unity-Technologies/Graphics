@@ -15,6 +15,33 @@ namespace UnityEngine.Rendering.Universal
         Subtractive,
     };
 
+    /// <summary>
+    /// Enumeration that indicates what kind of image scaling is occurring if any
+    /// </summary>
+    internal enum ImageScalingMode
+    {
+        /// No scaling
+        None,
+
+        /// Upscaling to a larger image
+        Upscaling,
+
+        /// Downscaling to a smaller image
+        Downscaling
+    }
+
+    /// <summary>
+    /// Enumeration that indicates what kind of upscaling filter is being used
+    /// </summary>
+    internal enum ImageUpscalingFilter
+    {
+        /// Bilinear filtering
+        Linear,
+
+        /// Nearest-Neighbor filtering
+        Point
+    }
+
     public struct RenderingData
     {
         public CullingResults cullResults;
@@ -110,6 +137,8 @@ namespace UnityEngine.Rendering.Universal
         internal int pixelHeight;
         internal float aspectRatio;
         public float renderScale;
+        internal ImageScalingMode imageScalingMode;
+        internal ImageUpscalingFilter upscalingFilter;
         public bool clearDepth;
         public CameraType cameraType;
         public bool isDefaultViewport;
@@ -164,10 +193,13 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderer != null)
             {
-                bool renderingToBackBufferTarget = renderer.cameraColorTarget == BuiltinRenderTextureType.CameraTarget;
+#pragma warning disable 0618 // Obsolete usage: Backwards compatibility for custom pipelines that aren't using RTHandles
+                var targetId = renderer.cameraColorTargetHandle?.nameID ?? renderer.cameraDepthTarget;
+#pragma warning restore 0618
+                bool renderingToBackBufferTarget = targetId == BuiltinRenderTextureType.CameraTarget;
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (xr.enabled)
-                    renderingToBackBufferTarget |= renderer.cameraColorTarget == xr.renderTarget && !xr.renderTargetIsRenderTexture;
+                    renderingToBackBufferTarget |= targetId == xr.renderTarget && !xr.renderTargetIsRenderTexture;
 #endif
                 bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
                 return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
@@ -217,6 +249,10 @@ namespace UnityEngine.Rendering.Universal
         /// Final background color in the active color space.
         /// </summary>
         public Color backgroundColor;
+
+        /// Camera at the top of the overlay camera stack
+        /// </summary>
+        public Camera baseCamera;
     }
 
     public struct ShadowData
@@ -303,6 +339,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int projectionParams = Shader.PropertyToID("_ProjectionParams");
         public static readonly int zBufferParams = Shader.PropertyToID("_ZBufferParams");
         public static readonly int orthoParams = Shader.PropertyToID("unity_OrthoParams");
+        public static readonly int globalMipBias = Shader.PropertyToID("_GlobalMipBias");
 
         public static readonly int screenSize = Shader.PropertyToID("_ScreenSize");
 
@@ -398,6 +435,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string Fxaa = "_FXAA";
         public static readonly string Dithering = "_DITHERING";
         public static readonly string ScreenSpaceOcclusion = "_SCREEN_SPACE_OCCLUSION";
+        public static readonly string PointSampling = "_POINT_SAMPLING";
 
         public static readonly string HighQualitySampling = "_HIGH_QUALITY_SAMPLING";
 
@@ -536,13 +574,16 @@ namespace UnityEngine.Rendering.Universal
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
             bool isHdrEnabled, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
+            int scaledWidth = (int)((float)camera.pixelWidth * renderScale);
+            int scaledHeight = (int)((float)camera.pixelHeight * renderScale);
+
             RenderTextureDescriptor desc;
 
             if (camera.targetTexture == null)
             {
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
-                desc.width = (int)((float)desc.width * renderScale);
-                desc.height = (int)((float)desc.height * renderScale);
+                desc.width = scaledWidth;
+                desc.height = scaledHeight;
                 desc.graphicsFormat = MakeRenderTextureGraphicsFormat(isHdrEnabled, needsAlpha);
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
@@ -551,8 +592,9 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 desc = camera.targetTexture.descriptor;
-                desc.width = camera.pixelWidth;
-                desc.height = camera.pixelHeight;
+                desc.width = scaledWidth;
+                desc.height = scaledHeight;
+
                 if (camera.cameraType == CameraType.SceneView && !isHdrEnabled)
                 {
                     desc.graphicsFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);

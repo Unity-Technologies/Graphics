@@ -51,7 +51,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="builtinParams">Engine parameters that you can use to render the sky.</param>
         /// <returns>True if the PreRenderSky step is required.</returns>
+        [System.Obsolete("Please implement RequiresPreRender instead")]
         public virtual bool RequiresPreRenderSky(BuiltinSkyParameters builtinParams) { return false; }
+
+        /// <summary>
+        /// Whether the PreRenderSky step is required or not.
+        /// </summary>
+        /// <param name="skySettings">Sky setting for the current sky.</param>
+        /// <returns>True if the sky needs a pre-render pass.</returns>
+        public virtual bool RequiresPreRender(SkySettings skySettings) { return false; }
 
 
         /// <summary>
@@ -86,8 +94,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_LastFrameUpdate < parameters.frameIndex)
             {
+                // Here we need a temporary command buffer to be executed because this is called during render graph construction.
+                // This means that we don't have a proper command buffer to provide unless in a render graph pass.
+                // Besides, we need this function to be executed immediately to retrieve the return value so it cannot be executed later as a proper render graph pass.
+                var previousCommandBuffer = parameters.commandBuffer;
+                var commandBuffer = CommandBufferPool.Get("SkyUpdate");
+                parameters.commandBuffer = commandBuffer;
                 m_LastFrameUpdate = parameters.frameIndex;
-                return Update(parameters);
+                var result = Update(parameters);
+                Graphics.ExecuteCommandBuffer(commandBuffer);
+                CommandBufferPool.Release(commandBuffer);
+                parameters.commandBuffer = previousCommandBuffer;
+                return result;
             }
 
             return false;

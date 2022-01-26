@@ -233,42 +233,40 @@ namespace UnityEngine.Rendering
         public void ResetRequestedTexture() => m_RequestedTextures.Clear();
 
         /// <summary>
-        /// Reserve space from atlas for a texture.
+        /// Reserves the space on the texture atlas
         /// </summary>
-        /// <param name="texture">Source texture.</param>
-        /// <returns>True on success, false otherwise.</returns>
+        /// <param name="texture">The source texture</param>
+        /// <returns>True if the space is reserved</returns>
         public bool ReserveSpace(Texture texture) => ReserveSpace(texture, texture.width, texture.height);
 
         /// <summary>
-        /// Reserve space from atlas for a texture.
+        /// Reserves the space on the texture atlas
         /// </summary>
-        /// <param name="texture">Source texture.</param>
-        /// <param name="width">Request width in pixels.</param>
-        /// <param name="height">Request height in pixels.</param>
-        /// <returns>True on success, false otherwise.</returns>
+        /// <param name="texture">The source texture</param>
+        /// <param name="width">The width</param>
+        /// <param name="height">The height</param>
+        /// <returns>True if the space is reserved</returns>
         public bool ReserveSpace(Texture texture, int width, int height)
             => ReserveSpace(GetTextureID(texture), width, height);
 
-
         /// <summary>
-        /// Reserve space from atlas for a texture.
-        /// Pass width and height for CubeMap (use 2*width) & Texture2D (use width).
+        /// Reserves the space on the texture atlas
         /// </summary>
-        /// <param name="textureA">Source texture A.</param>
-        /// <param name="textureB">Source texture B.</param>
-        /// <param name="width">Request width in pixels.</param>
-        /// <param name="height">Request height in pixels.</param>
-        /// <returns>True on success, false otherwise.</returns>
+        /// <param name="textureA">The source texture A</param>
+        /// <param name="textureB">The source texture B</param>
+        /// <param name="width">The width</param>
+        /// <param name="height">The height</param>
+        /// <returns>True if the space is reserved</returns>
         public bool ReserveSpace(Texture textureA, Texture textureB, int width, int height)
             => ReserveSpace(GetTextureID(textureA, textureB), width, height);
 
         /// <summary>
-        /// Reserve space from atlas for a texture.
+        /// Reserves the space on the texture atlas
         /// </summary>
-        /// <param name="id">Source texture ID.</param>
-        /// <param name="width">Request width in pixels.</param>
-        /// <param name="height">Request height in pixels.</param>
-        /// <returns>True on success, false otherwise.</returns>
+        /// <param name="id">The id</param>
+        /// <param name="width">The width</param>
+        /// <param name="height">The height</param>
+        /// <returns>True if the space is reserved</returns>
         bool ReserveSpace(int id, int width, int height)
         {
             m_RequestedTextures[id] = new Vector2Int(width, height);
