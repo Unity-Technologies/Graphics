@@ -27,6 +27,8 @@ namespace UnityEngine.Rendering.Universal
         public override bool IsPostProcessingAllowed => !AreAnySettingsActive;
         public override bool IsLightingActive => !AreAnySettingsActive;
 
+        public override bool TryGetScreenClearColor(ref Color color) => false;
+
         private void OnMaterialOverrideChanged(ChangeEvent<Enum> evt)
         {
             // Handling code

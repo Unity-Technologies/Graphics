@@ -33,6 +33,28 @@ namespace UnityEngine.Rendering.Universal
 
         public override bool IsLightingActive => (sceneOverrideMode == DebugSceneOverrideMode.None);
 
+        public override bool TryGetScreenClearColor(ref Color color)
+        {
+            switch (sceneOverrideMode)
+            {
+                case DebugSceneOverrideMode.None:
+                case DebugSceneOverrideMode.ShadedWireframe:
+                    return false;
+
+                case DebugSceneOverrideMode.Overdraw:
+                    color = Color.black;
+                    return true;
+
+                case DebugSceneOverrideMode.Wireframe:
+                case DebugSceneOverrideMode.SolidWireframe:
+                    color = new Color(0.1f, 0.1f, 0.1f, 1.0f);
+                    return true;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(color));
+            }
+        }
+
         /// <summary>
         /// Current debug fullscreen overlay mode.
         /// </summary>

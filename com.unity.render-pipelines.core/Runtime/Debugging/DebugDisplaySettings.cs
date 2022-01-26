@@ -115,9 +115,9 @@ namespace UnityEngine.Rendering
         /// <returns>True if the color reference was updated, and false otherwise.</returns>
         public virtual bool TryGetScreenClearColor(ref Color color)
         {
-            foreach (IDebugDisplaySettingsData setting in m_Settings)
+            foreach (var panel in RenderingDebuggerState.instance.GetPanels())
             {
-                if (setting.TryGetScreenClearColor(ref color))
+                if (panel.TryGetScreenClearColor(ref color))
                     return true;
             }
 
