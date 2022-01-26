@@ -174,8 +174,39 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                         return;
 
                     setNodesAsDirtyCallback?.Invoke();
-                    node.owner.owner.RegisterCompleteObjectUndo("Change Disable Global Mip Bias");
+                    node.owner.owner.RegisterCompleteObjectUndo(undoLabel);
                     SetterFn((bool)evt.newValue);
+                    node.owner.ValidateGraph();
+                    updateNodeViewsCallback?.Invoke();
+                    node.Dirty(ModificationScope.Graph);
+                });
+            });
+            if (node is Serialization.MultiJsonInternal.UnknownNodeType)
+                fieldObj.SetEnabled(false);
+            parentElement.Add(propertyRow);
+        }
+
+        internal static void AddCustomEnumProperty<T>(
+            VisualElement parentElement, AbstractMaterialNode node,
+            Action setNodesAsDirtyCallback, Action updateNodeViewsCallback,
+            String label,
+            String undoLabel,
+            Func<T> GetterFn,
+            Action<T> SetterFn) where T : System.Enum, IConvertible
+        {
+            var fieldObj = new EnumField(GetterFn());
+            //fieldObj.value = ;
+            var propertyRow = new PropertyRow(new Label(label));
+            propertyRow.Add(fieldObj, (field) =>
+            {
+                field.RegisterValueChangedCallback(evt =>
+                {
+                    if (evt.newValue.Equals(GetterFn()))
+                        return;
+
+                    setNodesAsDirtyCallback?.Invoke();
+                    node.owner.owner.RegisterCompleteObjectUndo(undoLabel);
+                    SetterFn((T)evt.newValue);
                     node.owner.ValidateGraph();
                     updateNodeViewsCallback?.Invoke();
                     node.Dirty(ModificationScope.Graph);

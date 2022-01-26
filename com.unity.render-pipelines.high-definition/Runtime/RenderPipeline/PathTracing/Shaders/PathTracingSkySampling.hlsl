@@ -75,18 +75,18 @@ float GetSkyCDF(PTSKY_TEXTURE2D(cdf), uint i, uint j)
 float SampleSkyCDF(PTSKY_TEXTURE2D(cdf), uint size, uint j, float smp)
 {
     uint i = 0;
-    for (uint half = size >> 1, offset = half; offset > 0; offset >>= 1)
+    for (uint halfsize = size >> 1, offset = halfsize; offset > 0; offset >>= 1)
     {
-        if (smp < GetSkyCDF(cdf, half, j))
+        if (smp < GetSkyCDF(cdf, halfsize, j))
         {
             // i is already in the right half (lower one)
-            half -= offset >> 1;
+            halfsize -= offset >> 1;
         }
         else
         {
             // i has to move to the other half (upper one)
             i += offset;
-            half += offset >> 1;
+            halfsize += offset >> 1;
         }
     }
 

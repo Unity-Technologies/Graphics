@@ -35,7 +35,7 @@ In mixed tracing mode, HDRP still uses ray tracing for any geometry inside the r
 #### Ray Tracing
 
 * Transparent Emissive Material are not taken into account.
-* No [decals](decal.md) are supported including Emissive Decals.
+* No [decals](../decal.md) are supported including Emissive Decals.
 
 #### Mixed Tracing
 

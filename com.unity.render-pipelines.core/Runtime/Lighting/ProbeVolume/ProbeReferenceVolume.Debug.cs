@@ -67,6 +67,7 @@ namespace UnityEngine.Experimental.Rendering
 
         const int kProbesPerBatch = 511;
 
+        /// <summary>Name of debug panel for Probe Volume</summary>
         public static readonly string k_DebugPanelName = "Probe Volume";
 
         internal ProbeVolumeDebug debugDisplay { get; } = new ProbeVolumeDebug();
@@ -120,7 +121,7 @@ namespace UnityEngine.Experimental.Rendering
                 subdivisionDebugColors[4] = new Color(1.0f, 0.0f, 1.0f);
                 subdivisionDebugColors[5] = new Color(0.0f, 1.0f, 1.0f);
                 subdivisionDebugColors[6] = new Color(0.5f, 0.5f, 0.5f);
-			}
+            }
 
             RegisterDebug(parameters);
 
