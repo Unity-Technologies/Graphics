@@ -1,3 +1,5 @@
+
+#if defined(VFX_VARYING_PS_INPUTS)
 float4 GetFlipbookMotionVectors(VFX_VARYING_PS_INPUTS i, float4 uvs, float blend)
 {
     float4 mvs = (float4)0;
@@ -95,6 +97,7 @@ float4 VFXGetParticleColor(VFX_VARYING_PS_INPUTS i)
     #endif
     return color;
 }
+#endif
 
 float VFXLinearEyeDepth(float depth)
 {
@@ -110,6 +113,7 @@ float VFXLinearEyeDepthOrthographic(float depth)
 #endif
 }
 
+#if defined(VFX_VARYING_PS_INPUTS)
 float VFXGetSoftParticleFade(VFX_VARYING_PS_INPUTS i)
 {
     float fade = 1.0f;
@@ -150,6 +154,7 @@ float4 VFXGetTextureColorWithProceduralUV(VFXSampler2DArray s, VFX_VARYING_PS_IN
 {
     return SampleTexture(s, GetUVData(i, uv));
 }
+#endif
 
 float3 VFXGetTextureNormal(VFXSampler2D s,float2 uv)
 {
@@ -161,6 +166,7 @@ float3 VFXGetTextureNormal(VFXSampler2D s,float2 uv)
     return normal;
 }
 
+#if defined(VFX_VARYING_PS_INPUTS)
 float4 VFXGetFragmentColor(VFX_VARYING_PS_INPUTS i)
 {
     float4 color = VFXGetParticleColor(i);
@@ -178,6 +184,7 @@ void VFXClipFragmentColor(float alpha,VFX_VARYING_PS_INPUTS i)
     #endif
     #endif
 }
+#endif
 
 float3 VFXGetPositionRWS(float3 posWS)
 {
@@ -197,6 +204,7 @@ float3 VFXGetPositionAWS(float3 posWS)
 #endif
 }
 
+#if defined(VFX_VARYING_PS_INPUTS)
 float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)
 {
     #if USE_FOG && defined(VFX_VARYING_POSCS)
@@ -209,6 +217,7 @@ float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)
         return color;
     #endif
 }
+#endif
 
 void VFXEncodeMotionVector(float2 motionVec, out float4 outBuffer)
 {

@@ -62,10 +62,7 @@ $splice(VFXParameterBuffer)
 
 $splice(VFXGeneratedBlockFunction)
 
-struct dummy {};
-#define VFX_VARYING_PS_INPUTS dummy
 #include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl"
-#undef VFX_VARYING_PS_INPUTS
 
 struct AttributesElement
 {
