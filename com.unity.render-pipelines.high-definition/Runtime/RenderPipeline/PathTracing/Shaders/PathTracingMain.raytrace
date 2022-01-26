@@ -52,16 +52,16 @@ void MissCamera(inout PathIntersection payload : SV_RayPayload)
     if (_RaytracingMinRecursion > 1)
     {
         payload.value = 0.0;
-        payload.alpha = 0.0;
+        payload.throughput.x = 0.0;
         return;
     }
 
     float4 missColor = GetCameraMissValue(payload.pixelCoord);
 
     payload.value = missColor.rgb;
-    payload.alpha = missColor.a;
+    payload.throughput.x = missColor.a;
 
-    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.value, payload.alpha);
+    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), payload.value, payload.throughput.x);
 
     if (_EnableVolumetricFog)
     {
@@ -160,8 +160,8 @@ void GenerateCameraRay(uint2 pixelCoord, out PathIntersection payload, out RayDe
     jitteredPixelCoord.y += GetSample(tiledPixelCoord, _RaytracingSampleIndex, 41) / tileCount.y;
 
     // Initialize the payload for this camera ray
-    payload.value = 1.0;
-    payload.alpha = 1.0;
+    payload.throughput = 1.0;
+    payload.value = 0.0;
     payload.remainingDepth = _RaytracingMaxRecursion;
     payload.pixelCoord = tiledPixelCoord;
     payload.maxRoughness = 0.0;
@@ -212,9 +212,48 @@ void TracePath()
     PathIntersection payload;
     GenerateCameraRay(pixelCoord, payload, ray);
 
-    // Compute the radiance contribution for this path (and alpha/presence)
+    // Trace our camera ray
     TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 0, ray, payload);
 
-    // And copy the full path radiance value to our output buffer
-    _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(payload.value, payload.alpha);
+    // These are the quantities we want to compute for the path
+    float3 value = payload.value;
+    float alpha;
+
+    // Test if something was hit
+    if (payload.t < FLT_INF)
+    {
+        // If we hit something, always set alpha/presence to 1.0
+        alpha = 1.0;
+
+        // Prepare ray decription for continuation rays
+        // FIXME Explain
+        ray.TMin = 0.0;
+        ray.TMax = 2.0 * _RaytracingRayBias;
+
+        // Iterate over each path segments, up to a specified max recursion value
+        for (uint iter = 1; iter < _RaytracingMaxRecursion && any(payload.rayDirection); iter++)
+        {
+            // Update the payload
+            //payload.pixelCoord = pixelCoord;
+            payload.remainingDepth = _RaytracingMaxRecursion - iter;
+
+            // Update our continuation ray, from the payload
+            ray.Origin = payload.rayOrigin;
+            ray.Direction = payload.rayDirection;
+
+            // Trace our continuation ray
+            TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, ray, payload);
+
+            // Add the value for this path segment
+            value += payload.value;
+        }
+    }
+    else
+    {
+        // Use the alpha of the background/sky
+        alpha = payload.throughput.x;
+    }
+
+    // Copy the full path radiance value (and alpha/presence) to our output buffer
+    _FrameTexture[COORD_TEXTURE2D_X(pixelCoord)] = float4(value, alpha);
 }

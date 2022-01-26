@@ -209,7 +209,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
                 // Complete PathIntersection structure for this sample
                 nextPathIntersection.value = pathThroughput * rrFactor;
-                nextPathIntersection.remainingDepth = pathIntersection.remainingDepth - 1;
+                nextPathIntersection.remainingDepth = pathIntersection.remainingDepth + 2;
                 nextPathIntersection.t = rayDescriptor.TMax;
 
                 // Adjust the path max roughness (used for roughness clamping, to reduce fireflies)
@@ -218,8 +218,8 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
                 // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
                 nextPathIntersection.cone.spreadAngle = pathIntersection.cone.spreadAngle + roughnessToSpreadAngle(nextPathIntersection.maxRoughness);
 
-                // Shoot ray for indirect lighting
-                TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, rayDescriptor, nextPathIntersection);
+                // Pre=shoot ray for indirect lighting, that we also use to shadow lights
+                TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, rayDescriptor, nextPathIntersection);
 
                 if (computeDirect)
                 {
@@ -284,12 +284,13 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     // Always set the new t value
     pathIntersection.t = RayTCurrent();
 
-    // If the max depth has been reached, bail out
-    if (!pathIntersection.remainingDepth)
-    {
-        pathIntersection.value = 0.0;
-        return;
-    }
+    // FIXME: we should not need this test anymore, since we have removed recursion
+    // // If the max depth has been reached, bail out
+    // if (!pathIntersection.remainingDepth)
+    // {
+    //     pathIntersection.value = 0.0;
+    //     return;
+    // }
 
     // Grab depth information
     int currentDepth = GetCurrentDepth(pathIntersection);
@@ -368,7 +369,11 @@ void AnyHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeDa
     {
         IgnoreHit();
     }
-    else if (pathIntersection.remainingDepth > _RaytracingMaxRecursion)
+    else if (pathIntersection.remainingDepth == _RaytracingMaxRecursion + 2) // FIXME
+    {
+        pathIntersection.t = min(pathIntersection.t, RayTCurrent());
+    }
+    else if (pathIntersection.remainingDepth > _RaytracingMaxRecursion) // FIXME
     {
 #ifdef _SURFACE_TYPE_TRANSPARENT
     #if HAS_REFRACTION

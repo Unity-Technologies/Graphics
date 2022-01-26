@@ -6,20 +6,37 @@
 // Structure that defines the current state of the intersection, for path tracing
 struct PathIntersection
 {
-    // t as in: O + t*D = H (i.e. distance between O and H, if D is normalized)
-    float t;
-    // Resulting value (often color) of the ray
-    float3 value;
-    // Resulting alpha (camera rays only)
-    float alpha;
-    // Cone representation of the ray
-    RayCone cone;
-    // The remaining available depth for the current ray
-    uint remainingDepth;
-    // Pixel coordinate from which the initial ray was launched
+    // // t as in: O + t*D = H (i.e. distance between O and H, if D is normalized)
+    // float t;
+    // // Resulting value (often color) of the ray
+    // float3 value;
+    // // Resulting alpha (camera rays only)
+    // float alpha;
+    // // Cone representation of the ray
+    // RayCone cone;
+    // // The remaining available depth for the current ray
+    // uint remainingDepth;
+    // // Pixel coordinate from which the initial ray was launched
+    // uint2 pixelCoord;
+    // // Max roughness encountered along the path
+    // float maxRoughness;
+
+    // Read Only
     uint2 pixelCoord;
-    // Max roughness encountered along the path
+    uint remainingDepth; // to be renamed to segmentID
+
+    // Read/Write
+    float3 throughput; // NEW
     float maxRoughness;
+    RayCone cone; // We can remove it until we actually use it
+
+
+    // Write Only
+    float3 value;
+    float t; // Can we remove it?
+    float3 rayOrigin; // NEW
+    float3 rayDirection; // NEW
+
 };
 
 int GetCurrentDepth(PathIntersection pathIntersection)
