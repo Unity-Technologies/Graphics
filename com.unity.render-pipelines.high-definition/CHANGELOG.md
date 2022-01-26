@@ -25,6 +25,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed the behavior the max ray length for recursive rendering to match RTR and rasterization.
 - Fixed issue with automatic RendererList culling option getting ignored (case 1388854).
 - Fixed NeedMotionVectorForTransparent checking the wrong flag.
+- Fixed the list of included HDRP asset used for stripping in the build process.
 
 ## [13.1.4] - 2021-12-04
 
