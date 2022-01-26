@@ -127,19 +127,7 @@ void MainFlatEnableActiveCounts(int3 dispatchThreadID : SV_DispatchThreadID)
         // (Lists of 0 or 1 samples don't need sorting)
         if (storageValue >= 2)
         {
-            uint sortVariantOffset;
-            if (storageValue <= 8)
-            {
-                sortVariantOffset = 0;
-            }
-            else if (storageValue <= 32)
-            {
-                sortVariantOffset = 1;
-            }
-            else
-            {
-                sortVariantOffset = 2;
-            }
+            uint sortVariantOffset = Sorting::GetVariantOffset(storageValue);
 
             // Increment the relevant sort variant count based on the number of samples to sort
             InterlockedAdd(_OITSortMemoryBuffer[kSorting_SumsOffset + sortVariantOffset], 1);

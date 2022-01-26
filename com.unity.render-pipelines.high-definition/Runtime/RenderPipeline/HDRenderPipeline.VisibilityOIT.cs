@@ -119,13 +119,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         uint GetNumSortVariants()
         {
-            return 3;
+            return 5;
         }
 
         string GetSortVariantName(uint index)
         {
             string[] kVariantStrings = new string[] {
-                "OITSort_Network",
+                "OITSort_Swap",
+                "OITSort_Network_4",
+                "OITSort_Network_8",
                 "OITSort_GroupShared_Wave",
                 "OITSort_GroupShared"
             };

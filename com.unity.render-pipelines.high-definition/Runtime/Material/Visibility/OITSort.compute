@@ -9,7 +9,9 @@
 
 #pragma kernel OITSort_Init
 #pragma kernel OITSort_BinPixels
-#pragma kernel OITSort_Network
+#pragma kernel OITSort_Swap
+#pragma kernel OITSort_Network_4
+#pragma kernel OITSort_Network_8
 #pragma kernel OITSort_GroupShared_Wave
 #pragma kernel OITSort_GroupShared
 
@@ -41,25 +43,37 @@ void OITSort_Init()
     // Set up indirect args
     // This part is unfortunately still manual since the shaders have different thread group sizes
 
-    uint sumSmall = _OITSortMemoryBuffer[kSorting_SumsOffset + 0];
-    uint sumMed   = _OITSortMemoryBuffer[kSorting_SumsOffset + 1];
-    uint sumBig   = _OITSortMemoryBuffer[kSorting_SumsOffset + 2];
+    uint sum2     = _OITSortMemoryBuffer[kSorting_SumsOffset + 0];
+    uint sum4     = _OITSortMemoryBuffer[kSorting_SumsOffset + 1];
+    uint sum8     = _OITSortMemoryBuffer[kSorting_SumsOffset + 2];
+    uint sumMed   = _OITSortMemoryBuffer[kSorting_SumsOffset + 3];
+    uint sumBig   = _OITSortMemoryBuffer[kSorting_SumsOffset + 4];
 
-    uint3 numGroupsSmall = uint3((sumSmall + 63) / 64, 1, 1);
+    uint3 numGroups2     = uint3((sum2 + 63) / 64, 1, 1);
+    uint3 numGroups4     = uint3((sum4 + 63) / 64, 1, 1);
+    uint3 numGroups8     = uint3((sum8 + 63) / 64, 1, 1);
     uint3 numGroupsMed   = uint3(sumMed, 1, 1);
     uint3 numGroupsBig   = uint3(sumBig, 1, 1);
 
-    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 0] = numGroupsSmall.x;
-    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 1] = numGroupsSmall.y;
-    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 2] = numGroupsSmall.z;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 0]  = numGroups2.x;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 1]  = numGroups2.y;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 2]  = numGroups2.z;
 
-    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 3] = numGroupsMed.x;
-    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 4] = numGroupsMed.y;
-    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 5] = numGroupsMed.z;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 3]  = numGroups4.x;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 4]  = numGroups4.y;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 5]  = numGroups4.z;
 
-    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 6] = numGroupsBig.x;
-    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 7] = numGroupsBig.y;
-    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 8] = numGroupsBig.z;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 6]  = numGroups8.x;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 7]  = numGroups8.y;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 8]  = numGroups8.z;
+
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 9]  = numGroupsMed.x;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 10] = numGroupsMed.y;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 11] = numGroupsMed.z;
+
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 12] = numGroupsBig.x;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 13] = numGroupsBig.y;
+    _OITSortMemoryBuffer[kSorting_IndirectArgsOffset + 14] = numGroupsBig.z;
 }
 
 [numthreads(8, 8, 1)]
@@ -77,19 +91,7 @@ void OITSort_BinPixels(int3 dispatchThreadID : SV_DispatchThreadID)
     if (listCount < 2)
         return;
 
-    uint sortVariantOffset;
-    if (listCount <= 8)
-    {
-        sortVariantOffset = 0;
-    }
-    else if (listCount <= 32)
-    {
-        sortVariantOffset = 1;
-    }
-    else
-    {
-        sortVariantOffset = 2;
-    }
+    uint sortVariantOffset = Sorting::GetVariantOffset(listCount);
 
     uint sortCounterAddr = kSorting_CountersOffset + sortVariantOffset;
     uint sortIndexOffsetAddr = kSorting_PixelListOffsetsOffset + sortVariantOffset;
@@ -100,6 +102,50 @@ void OITSort_BinPixels(int3 dispatchThreadID : SV_DispatchThreadID)
 
     uint sortIndexAddr = kSorting_PixelListDataOffset + globalSortIndexOffset + localSortIndexOffset;
     _OITSortMemoryBuffer[sortIndexAddr] = outputPixel;
+}
+
+[numthreads(64, 1, 1)]
+void OITSort_Swap(int3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint threadIndex = dispatchThreadId.x;
+
+    // Load pixel index
+    uint sortVariantOffset = 0;
+    uint sortSumAddr = kSorting_SumsOffset + sortVariantOffset;
+
+    uint numPixels = _OITSortMemoryBuffer[sortSumAddr];
+
+    // Note: this is always 0 since this is the first group
+    //uint sortIndexOffsetAddr = 6 + sortVariantOffset;
+    //uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
+    uint globalSortIndexOffset = 0;
+
+    if (threadIndex < numPixels)
+    {
+        uint pixelIndexAddr = kSorting_PixelListDataOffset + globalSortIndexOffset + threadIndex;
+        uint pixelIndex = _OITSortMemoryBuffer[pixelIndexAddr];
+
+        // This variant ONLY works on exactly 2 samples
+        uint listCount = 2;
+        uint listOffset = _VisOITListsOffsets.Load(pixelIndex << 2);
+
+        uint sampleDepth0 = GetVisibilitySamplePackedDepth(0, listOffset);
+        uint sampleDepth1 = GetVisibilitySamplePackedDepth(1, listOffset);
+
+        uint keyIndex0 = 0;
+        uint keyIndex1 = 1;
+
+        if (sampleDepth0 < sampleDepth1)
+        {
+            keyIndex0 = 1;
+            keyIndex1 = 0;
+        }
+
+        uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
+
+        _OITSortMemoryBuffer[sortIndicesBaseAddr + 0] = keyIndex0;
+        _OITSortMemoryBuffer[sortIndicesBaseAddr + 1] = keyIndex1;
+    }
 }
 
 // Please turn this into a v_swap ;)
@@ -122,23 +168,22 @@ uint GenerateSortKey(uint keyIndex, uint listCount, uint listOffset)
 }
 
 #define CSWAP(a, b) if (a < b) SwapUint(a, b)
-#define MAX_NETWORK_INPUTS 8
+#define MAX_NETWORK_INPUTS_4 4
+#define MAX_NETWORK_INPUTS_8 8
 
 [numthreads(64, 1, 1)]
-void OITSort_Network(int3 dispatchThreadId : SV_DispatchThreadID)
+void OITSort_Network_4(int3 dispatchThreadId : SV_DispatchThreadID)
 {
     uint threadIndex = dispatchThreadId.x;
 
+    uint sortVariantOffset = 1;
+    uint sortIndexOffsetAddr = kSorting_PixelListOffsetsOffset + sortVariantOffset;
+    uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
+
     // Load pixel index
-    uint sortVariantOffset = 0;
     uint sortSumAddr = kSorting_SumsOffset + sortVariantOffset;
 
     uint numPixels = _OITSortMemoryBuffer[sortSumAddr];
-
-    // Note: this is always 0 since this is the first group
-    //uint sortIndexOffsetAddr = 6 + sortVariantOffset;
-    //uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
-    uint globalSortIndexOffset = 0;
 
     if (threadIndex < numPixels)
     {
@@ -149,8 +194,56 @@ void OITSort_Network(int3 dispatchThreadId : SV_DispatchThreadID)
         uint listOffset = _VisOITListsOffsets.Load(pixelIndex << 2);
 
         // Generate sort keys from depth
-        uint sortKeys[MAX_NETWORK_INPUTS];
-        for (uint sortKeyIndex = 0; sortKeyIndex < MAX_NETWORK_INPUTS; ++sortKeyIndex)
+        uint sortKeys[MAX_NETWORK_INPUTS_4];
+        for (uint sortKeyIndex = 0; sortKeyIndex < MAX_NETWORK_INPUTS_4; ++sortKeyIndex)
+        {
+            sortKeys[sortKeyIndex] = GenerateSortKey(sortKeyIndex, listCount, listOffset);
+        }
+
+        // Sort the keys
+        CSWAP(sortKeys[0], sortKeys[1]);
+        CSWAP(sortKeys[2], sortKeys[3]);
+        CSWAP(sortKeys[0], sortKeys[2]);
+        CSWAP(sortKeys[1], sortKeys[3]);
+        CSWAP(sortKeys[1], sortKeys[2]);
+
+        uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
+
+        for (uint storeIndex = 0; storeIndex < listCount; ++storeIndex)
+        {
+            uint sortedIndex = (sortKeys[storeIndex + (MAX_NETWORK_INPUTS_4 - listCount)] & 0xFFFF);
+            uint sortIndexAddr = sortIndicesBaseAddr + storeIndex;
+
+            _OITSortMemoryBuffer[sortIndexAddr] = sortedIndex;
+        }
+    }
+}
+
+[numthreads(64, 1, 1)]
+void OITSort_Network_8(int3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint threadIndex = dispatchThreadId.x;
+
+    uint sortVariantOffset = 2;
+    uint sortIndexOffsetAddr = kSorting_PixelListOffsetsOffset + sortVariantOffset;
+    uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
+
+    // Load pixel index
+    uint sortSumAddr = kSorting_SumsOffset + sortVariantOffset;
+
+    uint numPixels = _OITSortMemoryBuffer[sortSumAddr];
+
+    if (threadIndex < numPixels)
+    {
+        uint pixelIndexAddr = kSorting_PixelListDataOffset + globalSortIndexOffset + threadIndex;
+        uint pixelIndex = _OITSortMemoryBuffer[pixelIndexAddr];
+
+        uint listCount = _VisOITListsCounts.Load(pixelIndex << 2);
+        uint listOffset = _VisOITListsOffsets.Load(pixelIndex << 2);
+
+        // Generate sort keys from depth
+        uint sortKeys[MAX_NETWORK_INPUTS_8];
+        for (uint sortKeyIndex = 0; sortKeyIndex < MAX_NETWORK_INPUTS_8; ++sortKeyIndex)
         {
             sortKeys[sortKeyIndex] = GenerateSortKey(sortKeyIndex, listCount, listOffset);
         }
@@ -180,7 +273,7 @@ void OITSort_Network(int3 dispatchThreadId : SV_DispatchThreadID)
 
         for (uint storeIndex = 0; storeIndex < listCount; ++storeIndex)
         {
-            uint sortedIndex = (sortKeys[storeIndex + (MAX_NETWORK_INPUTS - listCount)] & 0xFFFF);
+            uint sortedIndex = (sortKeys[storeIndex + (MAX_NETWORK_INPUTS_8 - listCount)] & 0xFFFF);
             uint sortIndexAddr = sortIndicesBaseAddr + storeIndex;
 
             _OITSortMemoryBuffer[sortIndexAddr] = sortedIndex;
@@ -198,8 +291,7 @@ void OITSort_GroupShared_Wave(uint3 groupThreadId : SV_GroupThreadID, uint3 grou
 
     // Load pixel index
 
-    // Note: This is always 1 since it's the medium variant
-    uint sortVariantOffset = 1;
+    uint sortVariantOffset = 3;
     uint sortIndexOffsetAddr = kSorting_PixelListOffsetsOffset + sortVariantOffset;
     uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
 
@@ -282,8 +374,7 @@ void OITSort_GroupShared(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: 
 
     // Load pixel index
 
-    // Note: This is always 2 since it's the big variant
-    uint sortVariantOffset = 2;
+    uint sortVariantOffset = 4;
     uint sortIndexOffsetAddr = kSorting_PixelListOffsetsOffset + sortVariantOffset;
     uint globalSortIndexOffset = _OITSortMemoryBuffer.Load(sortIndexOffsetAddr);
 
