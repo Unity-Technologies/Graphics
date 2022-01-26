@@ -15,6 +15,8 @@ Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ### Fixed
+ - Fixed issue where Duplicating/Copy-Pasting last keyword in the blackboard throws an exception [1394378]
+ - Fixed an issue where some graphs with incorrectly formatted data would not display their shader inputs in the blackboard [1384315]
  - Fixed bug with Shader Graph subwindows having their header text overflow when the window is resized smaller than the title [1378203]
 
 ## [13.1.4] - 2021-12-04
