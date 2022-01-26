@@ -33,7 +33,7 @@ ShaderGraph_BuiltIn_Lighting_Linux_OpenGLCore_playmode_mono_Linear_trunk:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BuiltInGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/BuiltInGraphicsTest_Lighting --zero-tests-are-ok=1
+                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BuiltInGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/BuiltInGraphicsTest_Lighting
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -71,7 +71,7 @@ ShaderGraph_BuiltIn_Lighting_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISI
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BuiltInGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/BuiltInGraphicsTest_Lighting --zero-tests-are-ok=1
+                DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BuiltInGraphicsTest_Lighting/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/BuiltInGraphicsTest_Lighting
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
