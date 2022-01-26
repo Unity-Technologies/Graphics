@@ -1,0 +1,20 @@
+{
+	"FileContentKeywordValidation":
+	{
+		"Keywords":
+		[
+			{
+				"Targets": "+XboxOne",
+				"Files":
+				[
+					"Editor/SetupProject.cs",
+					"Runtime/Utils.cs"
+				],
+				"Patterns":
+				[
+					"gamecorescarlett"
+				]
+			}
+		]
+	}
+}
