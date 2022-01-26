@@ -380,7 +380,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
 
-			var cmd = renderingData.commandBuffer;
+            var cmd = renderingData.commandBuffer;
             DebugHandler?.Setup(context, ref cameraData, cmd);
 
             if (cameraData.cameraType != CameraType.Game)
