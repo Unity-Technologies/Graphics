@@ -118,7 +118,56 @@ namespace UnityEngine.Rendering.UIGen
         public class CategorizedProperty
         {
             QualifiedCategory category;
+            Property property;
         }
+
+        public class Property
+        {
+            List<IFeatureParameter> featureParameters = new();
+            Property parent;
+        }
+
+        public interface IFeatureParameter { }
+
+        public struct Min<T> : IFeatureParameter
+        {
+            public readonly T value;
+        }
+
+        public struct Max<T> : IFeatureParameter
+        {
+            public readonly T value;
+        }
+
+        //Range is Min + Max. It only add a display as a slider
+        public struct DisplayAsSlider : IFeatureParameter // range is better
+        { }
+
+        public struct ColorUsage : IFeatureParameter
+        {
+            public readonly bool showAlpha;
+            public readonly bool hdr;
+        }
+
+        public struct EnabledIf : IFeatureParameter
+        {
+            public readonly Func<bool> isEnabled;
+        }
+
+        public struct CallMethod : IFeatureParameter
+        {
+            public readonly Action call;
+        }
+
+        public struct DataBind/*<T>*/ : IFeatureParameter
+        {
+            string bindingPath;
+            //public readonly Func<T> get;
+            //public readonly Action<T> set;
+        }
+
+        public PooledList<Property> properties = new();
+
 
         // Not Weird API, it is always confusing as for the direction of the data flow
         // Consider a static API
@@ -146,7 +195,7 @@ namespace UnityEngine.Rendering.UIGen
             [DisallowNull] this TList definitions,
             [NotNullWhen(true)] out UIDefinition merged,
             [NotNullWhen(false)] out Exception error
-        ) where TList: IList<UIDefinition>
+        ) where TList : IList<UIDefinition>
         {
             throw new NotImplementedException();
         }
@@ -183,6 +232,7 @@ namespace UnityEngine.Rendering.UIGen
 
 namespace UnityEngine.Rendering.UIGen
 {
+    //make pooled dictionary
     public struct PooledList<TValue> : IDisposable
     {
         List<TValue> m_List;
@@ -229,6 +279,8 @@ namespace UnityEngine.Rendering.UIGen
 
 namespace UnityEngine.Rendering.UIGen
 {
+    using static UnityEngine.Rendering.UIGen.UIDefinition;
+
     public static class DebugMenuUIGenerator
     {
         public struct Parameters { }
@@ -245,9 +297,7 @@ namespace UnityEngine.Rendering.UIGen
 
             // TODO multithreading:
             //   - Map
-            //   - Generation (each sub part sequential):
-            //      - property generation C# + UXML (multithreading inside)
-            //      - Merge intermediate document
+            //   - Property generation C# + UXML (multithreading inside)
             if (!UIDefinitionPropertyCategoryIndex.FromDefinition(definition, out var index, out error))
                 return false;
 
@@ -257,46 +307,25 @@ namespace UnityEngine.Rendering.UIGen
                     out error))
                 return false;
 
-            UIImplementationIntermediateDocuments mergedDocuments;
-            using (intermediateDocuments)
-            {
-                // TODO: Check if map is needed here
-                if (!MergeIntermediateDocuments(
-                        intermediateDocuments.listUnsafe,
-                        out mergedDocuments,
-                        out error
-                    ))
-                    return false;
-            }
-
             using (index)
-                return GenerateDocumentFromIntermediate(index, mergedDocuments, out result, out error);
+                return GenerateDocumentFromIntermediate(index, intermediateDocuments, out result, out error);
         }
 
         [MustUseReturnValue]
         static bool GenerateBindableViewIntermediateDocumentFromProperties(
             [DisallowNull] UIDefinition definition,
-            out PooledList<UIImplementationIntermediateDocuments> result,
+            out Dictionary<Property, UIImplementationIntermediateDocuments> result,
             [NotNullWhen(false)] out Exception error
         )
         {
             throw new NotImplementedException();
         }
 
-        [MustUseReturnValue]
-        static bool MergeIntermediateDocuments(
-            [DisallowNull] List<UIImplementationIntermediateDocuments> intermediateDocuments,
-            [NotNullWhen(true)] out UIImplementationIntermediateDocuments result,
-            [NotNullWhen(false)] out Exception error
-        )
-        {
-            throw new NotImplementedException();
-        }
 
         [MustUseReturnValue]
         static bool GenerateDocumentFromIntermediate(
             [DisallowNull] UIDefinitionPropertyCategoryIndex index,
-            [DisallowNull] UIImplementationIntermediateDocuments documents,
+            [DisallowNull] Dictionary<Property, UIImplementationIntermediateDocuments> intermediateDocuments,
             [NotNullWhen(true)] out UIImplementationDocuments result,
             [NotNullWhen(false)] out Exception error
         )
