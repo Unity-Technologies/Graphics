@@ -169,8 +169,7 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var data in perSceneDataList)
                 data.Clear();
 
-            if (!isBakingOnlyActiveScene)
-                ProbeReferenceVolume.instance.Clear();
+            ProbeReferenceVolume.instance.Clear();
 
             var probeVolumes = GetProbeVolumeList();
             foreach (var probeVolume in probeVolumes)
@@ -346,7 +345,7 @@ namespace UnityEngine.Experimental.Rendering
         // proper UX.
         internal static void PerformDilation()
         {
-            var perSceneDataList = GetPerSceneDataList();
+            var perSceneDataList = ProbeReferenceVolume.instance.perSceneDataList;
             if (perSceneDataList.Count == 0) return;
 
             Dictionary<int, List<string>> cell2Assets = new Dictionary<int, List<string>>();
@@ -359,6 +358,7 @@ namespace UnityEngine.Experimental.Rendering
             foreach (var sceneData in perSceneDataList)
             {
                 var asset = sceneData.asset;
+                if (asset == null) continue; // This can happen if we have never baked one of the scenes of the loaded scenes.
                 string assetPath = asset.GetSerializedFullPath();
                 foreach (var cell in asset.cells)
                 {
@@ -398,8 +398,9 @@ namespace UnityEngine.Experimental.Rendering
                     var activeSceneAssetID = -1;
                     if (isBakingOnlyActiveScene)
                     {
-                        Debug.Assert(perSceneDataList.Count <= 1); // We have max one per scene data as we only consider one scene here.
-                        activeSceneAssetID = perSceneDataList.Count > 0 ? perSceneDataList[0].asset.GetInstanceID() : -1;
+                        var activeSceneList = GetPerSceneDataList();
+                        Debug.Assert(activeSceneList.Count <= 1); // We have max one per scene data as we only consider one scene here.
+                        activeSceneAssetID = activeSceneList.Count > 0 ? activeSceneList[0].asset.GetInstanceID() : -1;
                     }
 
                     if (everythingLoaded)
@@ -408,13 +409,16 @@ namespace UnityEngine.Experimental.Rendering
                         {
                             var cell = cellInfo.cell;
 
-                            if (isBakingOnlyActiveScene)
+                            if (isBakingOnlyActiveScene && cellInfo.sourceAssetInstanceID != activeSceneAssetID)
                             {
-                                if (cellInfo.sourceAssetInstanceID != activeSceneAssetID) continue;
+                                dilatedCells.Add(cell);
+                            }
+                            else
+                            {
+                                PerformDilation(cell, dilationSettings);
+                                dilatedCells.Add(cell);
                             }
 
-                            PerformDilation(cell, dilationSettings);
-                            dilatedCells.Add(cell);
                         }
                     }
                     else
@@ -467,7 +471,10 @@ namespace UnityEngine.Experimental.Rendering
                     }
 
                     foreach (var sceneData in perSceneDataList)
+                    {
+                        if (sceneData.asset == null) continue; // This can happen if we have never baked one of the scenes of the loaded scenes.
                         prv.AddPendingAssetRemoval(sceneData.asset);
+                    }
 
                     // Make sure unloading happens.
                     prv.PerformPendingOperations();
@@ -532,12 +539,10 @@ namespace UnityEngine.Experimental.Rendering
             m_BakedCells.Clear();
 
             // Clear baked data
-            var perSceneDataList = GetPerSceneDataList();
-            foreach (var data in perSceneDataList)
+            foreach (var data in probeRefVolume.perSceneDataList)
                 data.QueueAssetRemoval();
 
-            if (!isBakingOnlyActiveScene)
-                ProbeReferenceVolume.instance.Clear();
+            ProbeReferenceVolume.instance.Clear();
 
             // Make sure all pending operations are done (needs to be after the Clear to unload all previous scenes)
             probeRefVolume.PerformPendingOperations();
@@ -649,6 +654,7 @@ namespace UnityEngine.Experimental.Rendering
             // Map from each scene to its per scene data, and create a new asset for each scene
             var scene2Data = new Dictionary<Scene, ProbeVolumePerSceneData>();
 
+            var perSceneDataList = GetPerSceneDataList();
             foreach (var data in perSceneDataList)
             {
                 data.asset = ProbeVolumeAsset.CreateAsset(data);
