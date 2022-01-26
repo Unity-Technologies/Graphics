@@ -1,8 +1,8 @@
-# Invert Colors Node
+# Invert Channels Node
 
 ## Description
 
-Inverts the colors of input **In** on a per channel basis. This [Node](Node.md) assumes all input values are in the range 0 - 1.
+Inverts the channels of input **In**. This [Node](Node.md) assumes all input values are in the range 0 - 1.
 
 ## Ports
 
@@ -25,10 +25,10 @@ Inverts the colors of input **In** on a per channel basis. This [Node](Node.md) 
 The following example code represents one possible outcome of this node.
 
 ```
-float2 _InvertColors_InvertColors = float4(Red, Green, Blue, Alpha);
+float2 _InvertChannels_InvertChannels = float4(Red, Green, Blue, Alpha);
 
-void Unity_InvertColors_float4(float4 In, float4 InvertColors, out float4 Out)
+void Unity_InvertChannels_float4(float4 In, float4 InvertChannels, out float4 Out)
 {
-    Out = abs(InvertColors - In);
+    Out = abs(InvertChannels - In);
 }
 ```
