@@ -1,4 +1,4 @@
-namespace UnityEditor.Rendering.Universal.Converters
+namespace UnityEditor.Rendering.Universal
 {
     /// <summary>
     /// A structure needed for the conversion part of the converter.
@@ -16,7 +16,11 @@ namespace UnityEditor.Rendering.Universal.Converters
         /// <summary> Info to store data to be shown in the UI. </summary>
         public string info { get; set; }
 
+        /// <summary> A bool to set if this item failed to convert. </summary>
         internal bool hasConverted { get; set; }
+
+        /// <summary> A bool set to true if the converter is running in batch mode. </summary>
+        public bool isBatchMode { get; internal set; }
 
         /// <summary> Constructor for the RunItemContext. </summary>
         public RunItemContext(ConverterItemInfo item)
@@ -25,6 +29,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             didFail = false;
             info = "";
             hasConverted = false;
+            isBatchMode = false;
         }
     }
 }
