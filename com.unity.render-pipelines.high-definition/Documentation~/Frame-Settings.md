@@ -1,6 +1,6 @@
 # Frame Settings
 
-Frame Settings are settings HDRP uses to render Cameras, real-time, baked, and custom reflections. You can set the default values for Frame Settings for each of these three individually from within the [HDRP Global Settings](Default-Settings-Window.md) tab (menu: **Edit > Project Settings > Graphics > HDRP Settings**).
+Frame Settings are settings HDRP uses to render Cameras, real-time, baked, and custom reflections. You can set the default values for Frame Settings for each of these three individually from within the [HDRP Global Settings](Default-Settings-Window.md) tab (menu: **Edit** > **Project Settings** > **Graphics > HDRP Global Settings**).
 
 ![](Images/FrameSettings1.png)
 
