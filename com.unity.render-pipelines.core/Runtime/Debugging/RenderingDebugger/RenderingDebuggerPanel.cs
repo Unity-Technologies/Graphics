@@ -1,5 +1,7 @@
-﻿using System;
-using UnityEditor;
+﻿#if UNITY_EDITOR
+using UnityEditor; // TODO fix this
+#endif
+using System;
 using UnityEngine.UIElements;
 
 namespace UnityEngine.Rendering
@@ -7,33 +9,32 @@ namespace UnityEngine.Rendering
     public abstract class RenderingDebuggerPanel : ScriptableObject
     {
         public abstract string panelName { get; }
+        public abstract VisualElement CreatePanel();
+
+        private VisualElement m_PanelElement;
         public VisualElement panelElement
         {
             get
             {
-                if (m_RootElement == null)
-                    m_RootElement = CreatePanel();
-                return m_RootElement;
+                if (m_PanelElement == null)
+                    m_PanelElement = CreatePanel();
+                return m_PanelElement;
             }
         }
 
-        private VisualElement m_RootElement;
-
         protected VisualElement CreateVisualElement(string uiDocument)
         {
+#if UNITY_EDITOR
+            // TODO fix - needs editor assembly, use Resources.Load instead?
             var panelVisualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uiDocument);
             if (panelVisualTreeAsset == null)
                 return null;
 
             // Create the content of the tab
-            VisualElement visualElement = new VisualElement();
-
-            // TODO use Instantiate
-            panelVisualTreeAsset.CloneTree(visualElement);
-
-            return visualElement;
+            return panelVisualTreeAsset.Instantiate();
+#else
+            throw new NotImplementedException();
+#endif
         }
-
-        public abstract VisualElement CreatePanel();
     }
 }
