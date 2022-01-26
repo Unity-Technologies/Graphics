@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering
     /// The volume settings
     /// </summary>
     /// <typeparam name="T">A <see cref="MonoBehaviour"/> with <see cref="IAdditionalData"/></typeparam>
-    public abstract class VolumeDebugSettings<T> : IVolumeDebugSettings
+    public abstract partial class VolumeDebugSettings<T> : IVolumeDebugSettings2
         where T : MonoBehaviour, IAdditionalData
     {
         /// <summary>Current volume component to debug.</summary>
@@ -82,29 +82,19 @@ namespace UnityEngine.Rendering
         /// <summary>Type of the current component to debug.</summary>
         public Type selectedComponentType
         {
-            get { return componentTypes[selectedComponent - 1].Item2; }
+            get => volumeComponentsPathAndType[selectedComponent - 1].Item2;
             set
             {
-                var index = componentTypes.FindIndex(t => t.Item2 == value);
+                var index = volumeComponentsPathAndType.FindIndex(t => t.Item2 == value);
                 if (index != -1)
                     selectedComponent = index + 1;
             }
         }
 
-        static List<(string, Type)> s_ComponentTypes;
+        static List<(string, Type)> s_ComponentPathAndType;
 
         /// <summary>List of Volume component types.</summary>
-        public List<(string, Type)> componentTypes
-        {
-            get
-            {
-                if (s_ComponentTypes == null)
-                {
-                    s_ComponentTypes = VolumeManager.GetSupportedVolumeComponents(targetRenderPipeline);
-                }
-                return s_ComponentTypes;
-            }
-        }
+        public List<(string, Type)> volumeComponentsPathAndType => s_ComponentPathAndType ??= VolumeManager.GetSupportedVolumeComponents(targetRenderPipeline);
 
         /// <summary>
         /// The list of the additional camera datas

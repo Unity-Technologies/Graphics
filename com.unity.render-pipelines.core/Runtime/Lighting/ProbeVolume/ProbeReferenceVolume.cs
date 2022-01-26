@@ -367,7 +367,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             public Vector3Int position;
             public int index;
-            public SphericalHarmonicsL2[] sh;
             public int minSubdiv;
             public int indexChunkCount;
             public int shChunkCount;
@@ -577,6 +576,8 @@ namespace UnityEngine.Experimental.Rendering
         float[] m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
         Bounds m_CurrGlobalBounds = new Bounds();
 
+        internal Bounds globalBounds { get { return m_CurrGlobalBounds; } set { m_CurrGlobalBounds = value; } }
+
         internal Dictionary<int, CellInfo> cells = new Dictionary<int, CellInfo>();
         ObjectPool<CellInfo> m_CellInfoPool = new ObjectPool<CellInfo>(x => x.Clear(), null, false);
         ProbeBrickPool.DataLocation m_TemporaryDataLocation;
@@ -646,6 +647,27 @@ namespace UnityEngine.Experimental.Rendering
 
         internal bool clearAssetsOnVolumeClear = false;
 
+        /// <summary>Delegate for baking state change.</summary>
+        /// <param name="newState">The new baking state.</param>
+        public delegate void BakingStateChangedDelegate(string newState);
+        /// <summary>Delegate called when the baking state is changed. </summary>
+        public BakingStateChangedDelegate onBakingStateChanged;
+
+        /// <summary>The currently selected baking state.</summary>
+        public string bakingState
+        {
+            get => sceneData.bakingState;
+            set
+            {
+                sceneData.bakingState = value;
+#if UNITY_EDITOR
+                EditorUtility.SetDirty(sceneData.parentAsset);
+#endif
+            }
+        }
+
+        internal static string defaultBakingState = "Default";
+
         /// <summary>
         /// Get the memory budget for the Probe Volume system.
         /// </summary>
@@ -657,6 +679,19 @@ namespace UnityEngine.Experimental.Rendering
         public float probeVolumesWeight { get => m_ProbeVolumesWeight; set => m_ProbeVolumesWeight = Mathf.Clamp01(value); }
 
         static ProbeReferenceVolume _instance = new ProbeReferenceVolume();
+
+        internal List<ProbeVolumePerSceneData> perSceneDataList { get; private set; } = new List<ProbeVolumePerSceneData>();
+
+        internal void RegisterPerSceneData(ProbeVolumePerSceneData data)
+        {
+            if (!perSceneDataList.Contains(data))
+                perSceneDataList.Add(data);
+        }
+
+        internal void UnregisterPerSceneData(ProbeVolumePerSceneData data)
+        {
+            perSceneDataList.Remove(data);
+        }
 
         /// <summary>
         /// Get the instance of the probe reference volume (singleton).
@@ -693,12 +728,14 @@ namespace UnityEngine.Experimental.Rendering
 
 #if UNITY_EDITOR
             if (sceneData != null)
-            {
                 UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += sceneData.OnSceneSaved;
-            }
             AdditionalGIBakeRequestsManager.instance.Init();
 #endif
             m_EnabledBySRP = true;
+
+            if (sceneData != null)
+                foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+                    data.SetBakingState(sceneData.bakingState);
         }
 
         /// <summary>
@@ -1096,8 +1133,6 @@ namespace UnityEngine.Experimental.Rendering
             Bounds intersectBound = new Bounds();
             intersectBound.min = Vector3.Max(cellBounds.min, m_CurrGlobalBounds.min);
             intersectBound.max = Vector3.Min(cellBounds.max, m_CurrGlobalBounds.max);
-
-            Vector3 size = intersectBound.max - intersectBound.min;
 
             var toStart = intersectBound.min - cellBounds.min;
             minValidLocalIdxAtMaxRes.x = Mathf.CeilToInt((toStart.x) / MinBrickSize());
