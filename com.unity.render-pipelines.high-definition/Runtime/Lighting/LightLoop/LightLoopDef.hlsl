@@ -7,9 +7,6 @@
 
 #define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
-// The default refraction proxy extents reflect the default reflection probe extent value in meters (10).
-#define DEFAULT_REFRACTION_EXTENTS 10
-
 // Some file may not required HD shadow context at all. In this case provide an empty one
 // Note: if a double defintion error occur it is likely have include HDShadow.hlsl (and so HDShadowContext.hlsl) after lightloopdef.hlsl
 #ifndef HAVE_HD_SHADOW_CONTEXT
@@ -83,8 +80,8 @@ EnvLightData InitDefaultRefractionEnvLightData(int envIndex)
 {
     EnvLightData output = InitSkyEnvLightData(envIndex);
 
-    // For screen space refraction, instead of an infinite projection, configure a proxy with finite extents.
-    output.proxyExtents = DEFAULT_REFRACTION_EXTENTS.xxx;
+    // For screen space refraction, instead of an infinite projection, utilize the renderer's extents.
+    output.proxyExtents = GetRendererExtents();
 
     // Revert the infinite projection.
     output.minProjectionDistance = 0;
