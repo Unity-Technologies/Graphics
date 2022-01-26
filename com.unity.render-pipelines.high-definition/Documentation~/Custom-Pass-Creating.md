@@ -159,6 +159,8 @@ However, not all materials are supported by every injection point in a draw rend
 
 When Unity renders a material that is not supported by the current injection point, it results in an undefined behavior. For example, rendering GameObjects with lit shaders in the **After Opaque Depth And Normal** injection point produces unexpected results.
 
+Also note that decals are not supported on objects rendered by the DrawRenderers pass.
+
 <a name="Object-ID-Custom-Pass"></a>
 
 ## Object ID Custom Pass
