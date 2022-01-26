@@ -1,4 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:EnumField label="Map Overlays" type="UnityEngine.Rendering.Universal.DebugFullScreenMode, Unity.RenderPipeline.Universal.ShaderLibrary" tooltip="Overlays render pipeline textures to validate the scene." name="fullScreenDebugMode" binding-path="fullScreenDebugMode" />
+    <ui:SliderInt label="Map Size" tooltip="Set the size of the render pipeline texture in the scene." name="fullScreenDebugModeOutputSizeScreenPercent" binding-path="fullScreenDebugModeOutputSizeScreenPercent" high-value="100" low-value="1" value="50" tabindex="0" class="hidden subsetting" />
     <ui:Toggle label="MSAA" name="MSAA" tooltip="Use the checkbox to disable MSAA in the scene." binding-path="enableMsaa" />
     <ui:Toggle label="HDR" name="HDR" binding-path="enableHDR" tooltip="Use the checkbox to disable High Dynamic Range in the scene." />
 </ui:UXML>

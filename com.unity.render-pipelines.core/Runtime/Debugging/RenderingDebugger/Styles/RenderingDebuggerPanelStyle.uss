@@ -1,0 +1,7 @@
+.hidden {
+    display: none;
+}
+
+.subsetting {
+    padding-left: 8px;
+}

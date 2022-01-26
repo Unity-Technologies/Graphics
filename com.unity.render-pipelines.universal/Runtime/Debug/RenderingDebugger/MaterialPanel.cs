@@ -11,18 +11,12 @@ namespace UnityEngine.Rendering.Universal
 
         public override VisualElement CreatePanel()
         {
-            // Create the content of the tab
-            VisualElement panelVisualElement =
-                CreateVisualElement(
-                    "Packages/com.unity.render-pipelines.universal/Runtime/Debug/RenderingDebugger/MaterialPanel.uxml");
+            VisualElement panel = CreateVisualElement(
+                "Packages/com.unity.render-pipelines.universal/Runtime/Debug/RenderingDebugger/MaterialPanel.uxml");
 
-            var enumFieldMaterialOverride = panelVisualElement
-                .Q<EnumField>("MaterialOverride");
+            RegisterCallback<Enum>(panel, nameof(materialDebugMode), OnMaterialOverrideChanged);
 
-            enumFieldMaterialOverride
-                .RegisterCallback<ChangeEvent<Enum>>(OnMaterialOverrideChanged);
-
-            return panelVisualElement;
+            return panel;
         }
 
         private void OnMaterialOverrideChanged(ChangeEvent<Enum> evt)
