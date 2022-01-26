@@ -125,6 +125,11 @@ namespace UnityEngine.Rendering.UIGen
         {
             List<IFeatureParameter> featureParameters = new();
             Property parent;
+
+            /// <summary>
+            /// path from context root to this property, member access separated by `.`
+            /// </summary>
+            public string propertyPath { get; }
         }
 
         public interface IFeatureParameter { }

@@ -109,6 +109,47 @@ namespace UnityEngine.Rendering.UIGen
         )
         {
             error = default;
+            runtimeCode = default;
+
+            using (HashSetPool<string>.Get(out var usings))
+            using (ListPool<MemberDeclarationSyntax>.Get(out var types))
+            {
+                if (!GenerateUIViewDeclaration(parameters, intermediateDocuments, usings, out var uiViewDeclaration, out error))
+                    return false;
+
+                if (!GenerateContextDeclarations(parameters, intermediateDocuments, usings, out var interfaceDeclaration, out var implementationDeclaration, out error))
+                    return false;
+
+                types.Add(uiViewDeclaration);
+                types.Add(interfaceDeclaration);
+                types.Add(implementationDeclaration);
+
+                var usingDirectives = SyntaxFactory.List<UsingDirectiveSyntax>(
+                    usings.Select(u => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(u))));
+
+                runtimeCode = (CSharpSyntaxTree) SyntaxFactory.SyntaxTree(
+                    SyntaxFactory.CompilationUnit(
+                        SyntaxFactory.List<ExternAliasDirectiveSyntax>(),
+                        usingDirectives,
+                        SyntaxFactory.List<AttributeListSyntax>(),
+                        SyntaxFactory.List(types)
+                    )
+                );
+            }
+
+            return true;
+        }
+
+        [MustUseReturnValue]
+        static bool GenerateUIViewDeclaration(
+            Parameters parameters,
+            [DisallowNull] Dictionary<UIDefinition.Property, UIImplementationIntermediateDocuments> intermediateDocuments,
+            [DisallowNull] HashSet<string> usings,
+            [NotNullWhen(true)] out TypeDeclarationSyntax declaration,
+            [NotNullWhen(false)] out Exception error
+        )
+        {
+            error = default;
 
             var bindContextBodies = intermediateDocuments.Select(p => p.Value.bindContextBody)
                 .Aggregate(new StringBuilder(), (acc, s) =>
@@ -123,12 +164,12 @@ namespace UnityEngine.Rendering.UIGen
                     return acc;
                 }).ToString();
 
-            var code = $@"using System;
-using System.Diagnostics.CodeAnalysis;
-using UnityEngine.UIElements;
-using UnityEngine.Rendering.UIGen;
+            usings.Add("System");
+            usings.Add("System.Diagnostics.CodeAnalysis");
+            usings.Add("UnityEngine.UIElements");
+            usings.Add("UnityEngine.Rendering.UIGen");
 
-public sealed class {parameters.uiViewTypeName} : UIView<{parameters.uiViewTypeName}, I{parameters.uiViewContextTypeName}>
+            var code = $@"public sealed class {parameters.uiViewTypeName} : UIView<{parameters.uiViewTypeName}, I{parameters.uiViewContextTypeName}>
 {{
     static DebugMenu()
     {{
@@ -153,8 +194,28 @@ public sealed class {parameters.uiViewTypeName} : UIView<{parameters.uiViewTypeN
         {unbindContextBodies}
     }}
 }}";
-            runtimeCode = (CSharpSyntaxTree) SyntaxFactory.ParseSyntaxTree(code);
+            declaration = (TypeDeclarationSyntax) SyntaxFactory.ParseSyntaxTree(code).GetRoot();
+            return true;
+        }
 
+        [MustUseReturnValue]
+        static bool GenerateContextDeclarations(
+            Parameters parameters,
+            [DisallowNull] Dictionary<UIDefinition.Property, UIImplementationIntermediateDocuments> intermediateDocuments,
+            [DisallowNull] HashSet<string> usings,
+            [NotNullWhen(true)] out TypeDeclarationSyntax interfaceDeclaration,
+            [NotNullWhen(true)] out TypeDeclarationSyntax implementationDeclaration,
+            [NotNullWhen(false)] out Exception error
+        )
+        {
+            error = default;
+
+            // TODO: Find a way to acquire the data needed to generate context types
+            //  1. Type and name of root properties
+            //  2. Static access for the implementation of the root properties
+            //    UIDefinition may not need to know this, maybe it is an additional input to the generation
+
+            throw new NotImplementedException();
             return true;
         }
     }
