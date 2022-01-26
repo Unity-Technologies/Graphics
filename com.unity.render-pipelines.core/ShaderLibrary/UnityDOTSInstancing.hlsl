@@ -130,9 +130,14 @@ for t, c, sz in (
 #define UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, var, default_value) LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
 #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP_WITH_CUSTOM_DEFAULT(type, arr, var, default_value) LoadDOTSInstancedData_##type(default_value, UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
 
+#define UNITY_ACCESS_DOTS_INSTANCED_PROP_DEFAULT_FROM_SECONDARY(type, var) LoadDOTSInstancedDataWithSecondary_##type(UNITY_DOTS_INSTANCED_METADATA_NAME(type, var))
+
 #ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
 CBUFFER_START(unity_DOTSInstanceData)
     float4 unity_DOTSInstanceDataRaw[4096];
+CBUFFER_END
+CBUFFER_START(unity_DOTSInstanceDataSecondary)
+    float4 unity_DOTSInstanceDataRawSecondary[4096];
 CBUFFER_END
 #else
 ByteAddressBuffer unity_DOTSInstanceData;
@@ -218,9 +223,32 @@ uint3 DOTSInstanceData_Load3(uint address)
     v.z = DOTSInstanceData_Load(address + 8);
     return v;
 }
+uint DOTSInstanceData_Secondary_Load(uint address)
+{
+    return asuint(unity_DOTSInstanceDataRawSecondary[address >> 4][(address>>2)&3]);
+}
+uint2 DOTSInstanceData_Secondary_Load2(uint address)
+{
+    uint2 v;
+    v.x = DOTSInstanceData_Secondary_Load(address);
+    v.y = DOTSInstanceData_Secondary_Load(address+4);
+    return v;
+}
+uint3 DOTSInstanceData_Secondary_Load3(uint address)
+{
+    uint3 v;
+    v.x = DOTSInstanceData_Secondary_Load(address);
+    v.y = DOTSInstanceData_Secondary_Load(address + 4);
+    v.z = DOTSInstanceData_Secondary_Load(address + 8);
+    return v;
+}
 uint4 DOTSInstanceData_Load4(uint address)
 {
     return asuint(unity_DOTSInstanceDataRaw[address >> 4]);
+}
+uint4 DOTSInstanceData_Secondary_Load4(uint address)
+{
+    return asuint(unity_DOTSInstanceDataRawSecondary[address >> 4]);
 }
 #else
 uint DOTSInstanceData_Load(uint address)
@@ -261,6 +289,12 @@ type##width LoadDOTSInstancedData_##type##width(type##width default_value, uint 
 { \
     return IsDOTSInstancedProperty(metadata) ? \
         conv(DOTSInstanceData_Load##width(ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width))) : default_value; \
+} \
+type##width LoadDOTSInstancedDataWithSecondary_##type##width(uint metadata) \
+{ \
+    return IsDOTSInstancedProperty(metadata) \
+        ? conv(DOTSInstanceData_Load##width(ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width))) \
+        : conv(DOTSInstanceData_Secondary_Load##width(ComputeDOTSInstanceDataAddress(metadata, sizeof_type * width))); \
 }
 
 DEFINE_DOTS_LOAD_INSTANCE_SCALAR(float, asfloat, 4)
