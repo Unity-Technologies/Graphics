@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Xml;
+using JetBrains.Annotations;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace UnityEngine.Rendering.UIGen
