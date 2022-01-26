@@ -25,6 +25,7 @@
 
             // VFX includes
             ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Common/RayTracingInputStructure.template")}
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/CommonOutput.template")}
             ${VFXPerPassInclude}
 
             // Needs to be included after the VFX includes
@@ -60,10 +61,12 @@
                 // Load the VFX attributes that we need for this
                 ${VFXLoadAttributes}
                 ${VFXProcessBlocks}
+                ${VFXGetColorRT}
+
 
                 // Given that we will be multiplying the final color by the current exposure multiplier outside of this function, we need to make sure that
                 // the unlit color is not impacted by that. Thus, we multiply it by the inverse of the current exposure multiplier.
-                rayIntersection.color = SampleTexture(VFX_SAMPLER(mainTexture), attributeData.barycentrics) * attributes.color.xyz * GetInverseCurrentExposureMultiplier();
+                rayIntersection.color = color * GetInverseCurrentExposureMultiplier();
 
                 // Apply fog attenuation
                 ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), rayIntersection.t, rayIntersection.color, true);

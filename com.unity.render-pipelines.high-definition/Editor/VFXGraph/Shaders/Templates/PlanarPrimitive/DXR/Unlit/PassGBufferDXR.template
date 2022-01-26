@@ -32,6 +32,8 @@
 
             // VFX includes
             ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Common/RayTracingInputStructure.template")}
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/CommonOutput.template")}
+
             ${VFXPerPassInclude}
 
             // Needs to be included after the VFX includes
@@ -75,6 +77,7 @@
                 ${VFXLoadAttributes}
                 ${VFXProcessBlocks}
                 ${VFXLoadSizeRT}
+                ${VFXGetColorRT}
 
                 // First we pack the data into the standard bsdf data
                 StandardBSDFData standardLitData;
@@ -83,7 +86,7 @@
                 // Output is not to be lit
                 // The inverse current exposure multiplier needs to only be applied to the color as it need to be brought to the current exposure value, the emissive
                 // color is already in the right exposure space.
-                standardLitData.emissiveAndBaked = SampleTexture(VFX_SAMPLER(mainTexture), attributeData.barycentrics) * attributes.color.xyz * GetInverseCurrentExposureMultiplier();
+                standardLitData.emissiveAndBaked = color * GetInverseCurrentExposureMultiplier();
                 standardLitData.isUnlit = 1;
 
                 // Be cause this will not be lit, we need to apply atmospheric scattering right away
