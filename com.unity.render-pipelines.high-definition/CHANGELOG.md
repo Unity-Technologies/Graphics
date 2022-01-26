@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the behavior the max ray length for recursive rendering to match RTR and rasterization.
 - Moved more internals of the sky manager to proper Render Graph passes.
 - Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
+- Change the default custom pass buffer format from R8G8B8A8_SNorm to R8G8B8A8_UNorm. Additionally, an option in the custom pass buffer format settings is available to use the old format.
 
 ### Fixed
 - Fixed build warnings due to the exception in burst code (case 1382827).
