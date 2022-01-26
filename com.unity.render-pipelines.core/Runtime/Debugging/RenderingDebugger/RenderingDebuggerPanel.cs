@@ -13,6 +13,10 @@ namespace UnityEngine.Rendering
         public abstract string panelName { get; }
         public abstract VisualElement CreatePanel();
 
+        public abstract bool AreAnySettingsActive { get; }
+        public abstract bool IsPostProcessingAllowed { get; }
+        public abstract bool IsLightingActive { get; }
+
         private VisualElement m_PanelElement;
         public VisualElement panelElement
         {

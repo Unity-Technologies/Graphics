@@ -71,8 +71,8 @@ namespace UnityEngine.Rendering.Universal
         internal bool IsActiveModeUnsupportedForDeferred =>
             m_DebugDisplaySettings.lightingSettings.lightingDebugMode != DebugLightingMode.None ||
             m_DebugDisplaySettings.lightingSettings.lightingFeatureFlags != DebugLightingFeatureFlags.None ||
-            m_DebugDisplaySettings.renderingSettings.sceneOverrideMode != DebugSceneOverrideMode.None ||
-            m_DebugDisplaySettings.materialSettings.materialDebugMode != DebugMaterialMode.None ||
+            RenderingDebuggerState.instance.GetPanel<RenderingPanel>().sceneOverrideMode != DebugSceneOverrideMode.None ||
+            RenderingDebuggerState.instance.GetPanel<MaterialPanel>().materialDebugMode != DebugMaterialMode.None ||
             m_DebugDisplaySettings.materialSettings.vertexAttributeDebugMode != DebugVertexAttributeMode.None ||
             m_DebugDisplaySettings.materialSettings.materialValidationMode != DebugMaterialValidationMode.None;
 
@@ -100,7 +100,8 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                return RenderingSettings.sceneOverrideMode == DebugSceneOverrideMode.None || RenderingSettings.sceneOverrideMode == DebugSceneOverrideMode.Overdraw;
+                var renderingDebugState = RenderingDebuggerState.instance.GetPanel<RenderingPanel>();
+                return renderingDebugState.sceneOverrideMode == DebugSceneOverrideMode.None || renderingDebugState.sceneOverrideMode == DebugSceneOverrideMode.Overdraw;
             }
         }
 
@@ -125,8 +126,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode, out int textureHeightPercent)
         {
-            debugFullScreenMode = RenderingSettings.fullScreenDebugMode;
-            textureHeightPercent = RenderingSettings.fullScreenDebugModeOutputSizeScreenPercent;
+            var renderingDebugState = RenderingDebuggerState.instance.GetPanel<RenderingPanel>();
+            debugFullScreenMode = renderingDebugState.fullScreenDebugMode;
+            textureHeightPercent = renderingDebugState.fullScreenDebugModeOutputSizeScreenPercent;
             return debugFullScreenMode != DebugFullScreenMode.None;
         }
 
@@ -143,7 +145,11 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
             }
 
-            switch (RenderingSettings.sceneOverrideMode)
+
+            var renderingDebugState = RenderingDebuggerState.instance.GetPanel<RenderingPanel>();
+            DebugSceneOverrideMode sceneOverrideMode = renderingDebugState.sceneOverrideMode;
+
+            switch (sceneOverrideMode)
             {
                 case DebugSceneOverrideMode.Overdraw:
                 {
@@ -254,17 +260,19 @@ namespace UnityEngine.Rendering.Universal
             {
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.DEBUG_DISPLAY);
 
+                var materialDebugState = RenderingDebuggerState.instance.GetPanel<MaterialPanel>();
+                var renderingDebugState = RenderingDebuggerState.instance.GetPanel<RenderingPanel>();
+
                 // Material settings...
-                cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)RenderingDebuggerState.instance.GetPanel<MaterialPanel>().materialDebugMode);
-                //cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)MaterialSettings.materialDebugMode);
+                cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)materialDebugState.materialDebugMode);
                 cmd.SetGlobalFloat(k_DebugVertexAttributeModeId, (int)MaterialSettings.vertexAttributeDebugMode);
 
                 cmd.SetGlobalInteger(k_DebugMaterialValidationModeId, (int)MaterialSettings.materialValidationMode);
 
                 // Rendering settings...
                 cmd.SetGlobalInteger(k_DebugMipInfoModeId, (int)RenderingSettings.mipInfoMode);
-                cmd.SetGlobalInteger(k_DebugSceneOverrideModeId, (int)RenderingSettings.sceneOverrideMode);
-                cmd.SetGlobalInteger(k_DebugFullScreenModeId, (int)RenderingSettings.fullScreenDebugMode);
+                cmd.SetGlobalInteger(k_DebugSceneOverrideModeId, (int)renderingDebugState.sceneOverrideMode);
+                cmd.SetGlobalInteger(k_DebugFullScreenModeId, (int)renderingDebugState.fullScreenDebugMode);
                 cmd.SetGlobalInteger(k_DebugValidationModeId, (int)RenderingSettings.validationMode);
                 cmd.SetGlobalColor(k_DebugValidateBelowMinThresholdColorPropertyId, Color.red);
                 cmd.SetGlobalColor(k_DebugValidateAboveMaxThresholdColorPropertyId, Color.blue);
@@ -303,7 +311,7 @@ namespace UnityEngine.Rendering.Universal
 
                 public Enumerator(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer)
                 {
-                    DebugSceneOverrideMode sceneOverrideMode = debugHandler.DebugDisplaySettings.renderingSettings.sceneOverrideMode;
+                    DebugSceneOverrideMode sceneOverrideMode = RenderingDebuggerState.instance.GetPanel<RenderingPanel>().sceneOverrideMode;
 
                     m_DebugHandler = debugHandler;
                     m_Context = context;

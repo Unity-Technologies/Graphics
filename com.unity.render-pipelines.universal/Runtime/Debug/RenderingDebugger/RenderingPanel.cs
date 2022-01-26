@@ -19,6 +19,20 @@ namespace UnityEngine.Rendering.Universal
             return panel;
         }
 
+        public override bool AreAnySettingsActive =>
+            (postProcessingDebugMode != DebugPostProcessingMode.Auto) ||
+            (fullScreenDebugMode != DebugFullScreenMode.None) ||
+            (sceneOverrideMode != DebugSceneOverrideMode.None) ||
+            //(validationMode != DebugValidationMode.None) || // TODO
+            !enableMsaa ||
+            !enableHDR;
+
+        public override bool IsPostProcessingAllowed =>
+            (postProcessingDebugMode != DebugPostProcessingMode.Disabled) &&
+            (sceneOverrideMode == DebugSceneOverrideMode.None);
+
+        public override bool IsLightingActive => (sceneOverrideMode == DebugSceneOverrideMode.None);
+
         /// <summary>
         /// Current debug fullscreen overlay mode.
         /// </summary>

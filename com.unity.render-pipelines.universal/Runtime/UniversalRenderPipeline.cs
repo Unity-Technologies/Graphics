@@ -1287,13 +1287,15 @@ namespace UnityEngine.Rendering.Universal
 
             if (debugDisplaySettings.AreAnySettingsActive && !cameraData.isPreviewCamera)
             {
+                var renderingDebugState = RenderingDebuggerState.instance.GetPanel<RenderingPanel>();
+
                 DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.renderingSettings;
                 int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
 
-                if (!renderingSettings.enableMsaa)
+                if (!renderingDebugState.enableMsaa)
                     msaaSamples = 1;
 
-                if (!renderingSettings.enableHDR)
+                if (!renderingDebugState.enableHDR)
                     cameraData.isHdrEnabled = false;
 
                 if (!debugDisplaySettings.IsPostProcessingAllowed)

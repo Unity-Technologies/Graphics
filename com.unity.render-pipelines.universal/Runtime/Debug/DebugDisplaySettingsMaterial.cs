@@ -415,12 +415,9 @@ namespace UnityEngine.Rendering.Universal
 
         #region IDebugDisplaySettingsQuery
 
-        public bool AreAnySettingsActive => true;
-            //(materialDebugMode != DebugMaterialMode.None) ||
-            //(vertexAttributeDebugMode != DebugVertexAttributeMode.None) ||
-            //(materialValidationMode != DebugMaterialValidationMode.None);
-        public bool IsPostProcessingAllowed => !AreAnySettingsActive;
-        public bool IsLightingActive => !AreAnySettingsActive;
+        public bool AreAnySettingsActive => RenderingDebuggerState.instance.GetPanel<MaterialPanel>().AreAnySettingsActive;
+        public bool IsPostProcessingAllowed => RenderingDebuggerState.instance.GetPanel<MaterialPanel>().IsPostProcessingAllowed;
+        public bool IsLightingActive => RenderingDebuggerState.instance.GetPanel<MaterialPanel>().IsLightingActive;
 
         public bool TryGetScreenClearColor(ref Color color)
         {

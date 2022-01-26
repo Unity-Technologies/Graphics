@@ -15,9 +15,9 @@ namespace UnityEngine.Rendering.Universal
 
         private void Begin()
         {
-            DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.sceneOverrideMode;
+            var renderingDebugState = RenderingDebuggerState.instance.GetPanel<RenderingPanel>();
 
-            switch (sceneOverrideMode)
+            switch (renderingDebugState.sceneOverrideMode)
             {
                 case DebugSceneOverrideMode.Wireframe:
                 {
@@ -46,9 +46,9 @@ namespace UnityEngine.Rendering.Universal
 
         private void End()
         {
-            DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.sceneOverrideMode;
+            var renderingDebugState = RenderingDebuggerState.instance.GetPanel<RenderingPanel>();
 
-            switch (sceneOverrideMode)
+            switch (renderingDebugState.sceneOverrideMode)
             {
                 case DebugSceneOverrideMode.Wireframe:
                 {
@@ -100,7 +100,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal RenderStateBlock GetRenderStateBlock(RenderStateBlock renderStateBlock)
         {
-            DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.sceneOverrideMode;
+            var renderingDebugState = RenderingDebuggerState.instance.GetPanel<RenderingPanel>();
+            DebugSceneOverrideMode sceneOverrideMode = renderingDebugState.sceneOverrideMode;
 
             // Potentially override parts of the RenderStateBlock
             switch (sceneOverrideMode)

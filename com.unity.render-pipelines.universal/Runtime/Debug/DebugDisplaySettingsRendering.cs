@@ -329,20 +329,12 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region IDebugDisplaySettingsData
-        public bool AreAnySettingsActive => (postProcessingDebugMode != DebugPostProcessingMode.Auto) ||
-        (fullScreenDebugMode != DebugFullScreenMode.None) ||
-        (sceneOverrideMode != DebugSceneOverrideMode.None) ||
-        (mipInfoMode != DebugMipInfoMode.None) ||
-        (validationMode != DebugValidationMode.None) ||
-        !enableMsaa ||
-        !enableHDR;
 
-        public bool IsPostProcessingAllowed => (postProcessingDebugMode != DebugPostProcessingMode.Disabled) &&
-        (sceneOverrideMode == DebugSceneOverrideMode.None) &&
-        (mipInfoMode == DebugMipInfoMode.None);
+        public bool AreAnySettingsActive => RenderingDebuggerState.instance.GetPanel<RenderingPanel>().AreAnySettingsActive;
 
-        public bool IsLightingActive => (sceneOverrideMode == DebugSceneOverrideMode.None) &&
-        (mipInfoMode == DebugMipInfoMode.None);
+        public bool IsPostProcessingAllowed => RenderingDebuggerState.instance.GetPanel<RenderingPanel>().IsPostProcessingAllowed;
+
+        public bool IsLightingActive => RenderingDebuggerState.instance.GetPanel<RenderingPanel>().IsLightingActive;
 
         public bool TryGetScreenClearColor(ref Color color)
         {

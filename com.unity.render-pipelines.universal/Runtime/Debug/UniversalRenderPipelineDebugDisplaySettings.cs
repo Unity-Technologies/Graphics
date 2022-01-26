@@ -40,9 +40,10 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                DebugPostProcessingMode debugPostProcessingMode = renderingSettings.postProcessingDebugMode;
 
-                switch (debugPostProcessingMode)
+                var renderingDebugState = RenderingDebuggerState.instance.GetPanel<RenderingPanel>();
+
+                switch (renderingDebugState.postProcessingDebugMode)
                 {
                     case DebugPostProcessingMode.Disabled:
                     {
@@ -65,7 +66,7 @@ namespace UnityEngine.Rendering.Universal
 
                     default:
                     {
-                        throw new ArgumentOutOfRangeException(nameof(debugPostProcessingMode), $"Invalid post-processing state {debugPostProcessingMode}");
+                        throw new ArgumentOutOfRangeException(nameof(renderingDebugState.postProcessingDebugMode), $"Invalid post-processing state {renderingDebugState.postProcessingDebugMode}");
                     }
                 }
             }
