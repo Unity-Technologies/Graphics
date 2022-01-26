@@ -154,6 +154,8 @@ if (TryGetElementToVFXBaseIndex(index, elementToVFXBaseIndex))
 ${VFXEnd}
 
 ${VFXBegin:VFXComputeOutputMotionVector}
+
+//NB. the w division is only relevant without VFX_FEATURE_MOTION_VECTORS_VERTS
 float2 velocity = (i.VFX_VARYING_VELOCITY_CPOS.xy/i.VFX_VARYING_VELOCITY_CPOS.w) - (i.VFX_VARYING_VELOCITY_CPOS_PREVIOUS.xy/i.VFX_VARYING_VELOCITY_CPOS_PREVIOUS.w);
 #if UNITY_UV_STARTS_AT_TOP
 	velocity.y = -velocity.y;
