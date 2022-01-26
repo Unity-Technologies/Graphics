@@ -327,6 +327,7 @@ namespace UnityEngine.Experimental.Rendering
         /// Global probe volumes weight. Allows for fading out probe volumes influence falling back to ambient probe.
         /// </summary>
         public float weight;
+        /// <summary>
         /// Method used for leak reduction.
         /// </summary>
         public APVLeakReductionMode leakReductionMode;
