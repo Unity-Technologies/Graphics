@@ -199,12 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderGraph, maxMaterialSampleCount, screenSize, output.vbufferOIT.stencilBuffer, prefixedHistogramBuffer, ref sortMemoryBuffer,
                 out ComputeBufferHandle sampleListCountBuffer, out ComputeBufferHandle sampleListOffsetBuffer, out ComputeBufferHandle sublistCounterBuffer, out ComputeBufferHandle pixelHashBuffer);
 
-            bool isSortingEnabled = m_Asset.currentPlatformRenderPipelineSettings.orderIndependentTransparentSettings.sortingEnabled;
-
-            if (isSortingEnabled)
-            {
-                OITSortPrePass(renderGraph, screenSize, ref sortMemoryBuffer, sampleListCountBuffer);
-            }
+            OITSortPrePass(renderGraph, screenSize, ref sortMemoryBuffer, sampleListCountBuffer);
 
             ComputeOITSampleDispatchArgs(renderGraph, sampleListCountBuffer, screenSize, out ComputeBufferHandle samplesDispatchArgsBuffer, out ComputeBufferHandle samplesGpuCountBuffer);
 
@@ -212,10 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 renderGraph, maxMaterialSampleCount, hdCamera, cullResults, BRGBindingData,
                 sampleListCountBuffer, sampleListOffsetBuffer, ref sublistCounterBuffer, pixelHashBuffer);
 
-            if (isSortingEnabled)
-            {
-                OITSortSamples(renderGraph, oitVisibilityBuffer, sampleListCountBuffer, sampleListOffsetBuffer, ref sortMemoryBuffer);
-            }
+            OITSortSamples(renderGraph, oitVisibilityBuffer, sampleListCountBuffer, sampleListOffsetBuffer, ref sortMemoryBuffer);
 
             output.vbufferOIT.histogramBuffer = histogramBuffer;
             output.vbufferOIT.prefixedHistogramBuffer = prefixedHistogramBuffer;
