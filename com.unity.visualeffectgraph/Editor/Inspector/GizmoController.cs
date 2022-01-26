@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.UI
     enum GizmoError
     {
         None = 0,
-        HasLinkGPU = 1 << 0,
+        HasLinkIndeterminate = 1 << 0,
         NeedComponent = 1 << 1,
         NeedExplicitSpace = 1 << 2,
         NotAvailable = 1 << 3

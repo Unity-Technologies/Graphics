@@ -233,7 +233,7 @@ class VFXSlotContainerEditor : Editor
 
         private static Texture2D warningIcon = EditorGUIUtility.LoadIcon(EditorResources.iconsPath + "console.warnicon.sml.png");
         public static GUIContent gizmoWarningDefault = EditorGUIUtility.TrIconContent(warningIcon, "The gizmo value is indeterminate.");
-        public static GUIContent gizmoWarningHasLinkGPU = EditorGUIUtility.TrIconContent(warningIcon, "The gizmo state is indeterminate because the value relies on GPU evaluation.");
+        public static GUIContent gizmoWarningHasLinkIndeterminate = EditorGUIUtility.TrIconContent(warningIcon, "The gizmo state is indeterminate because the value relies on an indeterminate evaluation.");
         public static GUIContent gizmoWarningNeedComponent = EditorGUIUtility.TrIconContent(warningIcon, "Local values require a target GameObject to display");
         public static GUIContent gizmoWarningNeedExplicitSpace = EditorGUIUtility.TrIconContent(warningIcon, "The gizmo value needs an explicit Local or World space.");
         public static GUIContent gizmoWarningNotAvailable = EditorGUIUtility.TrIconContent(warningIcon, "There isn't any gizmo available.");
@@ -242,9 +242,9 @@ class VFXSlotContainerEditor : Editor
         public static GUIContent GetGizmoErrorContent(GizmoError gizmoError)
         {
             var content = Contents.gizmoWarningDefault;
-            if (gizmoError.HasFlag(GizmoError.HasLinkGPU))
+            if (gizmoError.HasFlag(GizmoError.HasLinkIndeterminate))
             {
-                content = Contents.gizmoWarningHasLinkGPU;
+                content = Contents.gizmoWarningHasLinkIndeterminate;
             }
             else if (gizmoError.HasFlag(GizmoError.NeedComponent))
             {
