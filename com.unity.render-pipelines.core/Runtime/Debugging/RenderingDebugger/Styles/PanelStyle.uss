@@ -1,0 +1,17 @@
+.hidden {
+    display: none;
+}
+
+.subsetting {
+    margin-left: 10px;
+}
+
+.unity-group-box > .unity-label
+{
+    -unity-font-style: bold;
+}
+
+.unity-group-box > *
+{
+    margin-left: 0px;
+}

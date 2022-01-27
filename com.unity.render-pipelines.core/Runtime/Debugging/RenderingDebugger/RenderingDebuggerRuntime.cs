@@ -47,6 +47,9 @@ namespace UnityEngine.Rendering
                 runtimeUIDocument.rootVisualElement.Add(panelVisualElement);
                 panelVisualElement.Bind(new SerializedObject(panel));
             }
+
+            var firstFieldElement = runtimeUIDocument.rootVisualElement.Q(null, "unity-base-field");
+            firstFieldElement?.Focus();
         }
     }
 }
