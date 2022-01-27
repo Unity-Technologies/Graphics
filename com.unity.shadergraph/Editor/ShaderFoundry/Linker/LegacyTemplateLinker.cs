@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderFoundry
             builder.AddLine("SubShader");
             using (builder.BlockScope())
             {
-                GenerateSubShaderTags(m_LegacySubShader, builder);
+                GenerateSubShaderTags(m_LegacySubShader, templateInstance, builder);
 
                 var template = templateInstance.Template;
                 foreach (var pass in template.Passes)
@@ -58,35 +58,22 @@ namespace UnityEditor.ShaderFoundry
             }
         }
 
-        void GenerateSubShaderTags(UnityEditor.ShaderGraph.SubShaderDescriptor descriptor, ShaderBuilder builder)
+        void GenerateSubShaderTags(UnityEditor.ShaderGraph.SubShaderDescriptor descriptor, TemplateInstance templateInstance, ShaderBuilder builder)
         {
             builder.AppendLine("Tags");
             using (builder.BlockScope())
             {
-                // Pipeline tag
-                if (!string.IsNullOrEmpty(descriptor.pipelineTag))
-                    builder.AppendLine($"\"RenderPipeline\"=\"{descriptor.pipelineTag}\"");
-                else
-                    builder.AppendLine("// RenderPipeline: <None>");
-
-                // Render Type
-                if (!string.IsNullOrEmpty(descriptor.renderType))
-                    builder.AppendLine($"\"RenderType\"=\"{descriptor.renderType}\"");
-                else
-                    builder.AppendLine("// RenderType: <None>");
-
                 // Custom shader tags.
                 if (!string.IsNullOrEmpty(descriptor.customTags))
                     builder.AppendLine(descriptor.customTags);
 
-                // Render Queue
-                if (!string.IsNullOrEmpty(descriptor.renderQueue))
-                    builder.AppendLine($"\"Queue\"=\"{descriptor.renderQueue}\"");
-                else
-                    builder.AppendLine("// Queue: <None>");
+                var template = templateInstance.Template;
 
-                // ShaderGraphShader tag (so we can tell what shadergraph built)
-                builder.AppendLine("\"ShaderGraphShader\"=\"true\"");
+                // Emit the template tags then the template instance tags
+                foreach (var tagDescriptor in template.TagDescriptors)
+                    builder.AppendLine($"\"{tagDescriptor.Name}\"=\"{tagDescriptor.Value}\"");
+                foreach (var tagDescriptor in templateInstance.TagDescriptors)
+                    builder.AppendLine($"\"{tagDescriptor.Name}\"=\"{tagDescriptor.Value}\"");
             }
         }
         
@@ -576,13 +563,22 @@ namespace UnityEditor.ShaderFoundry
             }
 
             // Tags
-            if (!string.IsNullOrEmpty(pass.lightMode))
+            using (var tagBuilder = new ShaderStringBuilder())
             {
-                spliceCommands.Add("LightMode", $"\"LightMode\" = \"{pass.lightMode}\"");
-            }
-            else
-            {
-                spliceCommands.Add("LightMode", "// LightMode: <None>");
+                if (!string.IsNullOrEmpty(pass.lightMode))
+                {
+                    tagBuilder.AddLine("LightMode", $"\"LightMode\" = \"{pass.lightMode}\"");
+                }
+                else
+                {
+                    tagBuilder.AddLine("LightMode", "// LightMode: <None>");
+                }
+
+                // Currently there is no location to insert pass tags. For now, insert all of the pass tags into the "LightMode" splice point.
+                foreach (var tagDescriptor in templatePass.TagDescriptors)
+                    tagBuilder.AppendLine($"\"{tagDescriptor.Name}\"=\"{tagDescriptor.Value}\"");
+                
+                spliceCommands.Add("LightMode", tagBuilder.ToString());
             }
 
             // --------------------------------------------------
