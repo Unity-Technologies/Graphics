@@ -97,6 +97,11 @@ namespace UnityEditor.Rendering.Universal
             return unsupportedGraphicsApisMessage == null;
         }
 
+        static bool ValidateCrossFadeDitheringTextures(UniversalRenderPipelineAsset pipelineAsset)
+        {
+            return pipelineAsset.bayerMatrixTex && pipelineAsset.blueNoise64LTex;
+        }
+
         static readonly ExpandedState<Expandable, UniversalRenderPipelineAsset> k_ExpandedState = new(Expandable.Rendering, "URP");
         readonly static AdditionalPropertiesState<ExpandableAdditional, Light> k_AdditionalPropertiesState = new(0, "URP");
 
@@ -149,6 +154,9 @@ namespace UnityEditor.Rendering.Universal
             serialized.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
             EditorGUILayout.PropertyField(serialized.upscalingFilter, Styles.upscalingFilterText);
             EditorGUILayout.PropertyField(serialized.lodCrossFadeTypeProp, Styles.lodCrossFadeTypeText);
+            if(!ValidateCrossFadeDitheringTextures(serialized.asset))
+                CoreEditorUtils.DrawFixMeBox("Asset doesn't hold references to dithering textures. LOD Cross Fade might not work correctly.",
+                    () => ResourceReloader.ReloadAllNullIn(serialized.asset, UniversalRenderPipelineAsset.packagePath));
         }
 
         static void DrawLighting(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)

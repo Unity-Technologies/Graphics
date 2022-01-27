@@ -245,6 +245,12 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
 
+        [Reload("Textures/BlueNoise64/L/LDR_LLL1_0.png")]
+        [SerializeField] Texture2D m_BlueNoise64LTex;
+
+        [Reload("Textures/BayerMatrix.png")]
+        [SerializeField] Texture2D m_BayerMatrixTex;
+
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
         // minimum, the lut being encoded in log. Lower sizes would work better with an additional
         // 1D shaper lut but for now we'll keep it simple.
@@ -690,6 +696,16 @@ namespace UnityEngine.Rendering.Universal
         public LODCrossFadeType lodCrossFadeType
         {
             get { return m_LODCrossFadeType; }
+        }
+
+        public Texture2D blueNoise64LTex
+        {
+            get { return m_BlueNoise64LTex; }
+        }
+
+        public Texture2D bayerMatrixTex
+        {
+            get { return m_BayerMatrixTex; }
         }
 
         /// <summary>
@@ -1257,13 +1273,7 @@ namespace UnityEngine.Rendering.Universal
 
             if(asset.k_AssetPreviousVersion < 11)
             {
-                PostProcessData defaultPostProcessData = PostProcessData.GetDefaultPostProcessData();
-                ResourceReloader.ReloadAllNullIn(defaultPostProcessData, packagePath);
-
-                PostProcessData postProcessData = (asset.scriptableRendererData as UniversalRendererData)?.postProcessData;
-                if(postProcessData != defaultPostProcessData)
-                    ResourceReloader.ReloadAllNullIn(postProcessData, packagePath);
-                
+                ResourceReloader.ReloadAllNullIn(asset, packagePath);
                 asset.k_AssetPreviousVersion = 11;
             }
 
