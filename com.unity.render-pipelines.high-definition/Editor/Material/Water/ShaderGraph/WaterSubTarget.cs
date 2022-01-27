@@ -69,6 +69,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static BlockFieldDescriptor Caustics = new BlockFieldDescriptor(kMaterial, "Caustics", "Caustics", "SURFACEDESCRIPTION_CAUSTICS", new FloatControl(0.0f), ShaderStage.Fragment);
         }
 
+        public static PragmaCollection WaterTessellationInstanced = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target50) },
+            { Pragma.Vertex("Vert") },
+            { Pragma.Fragment("Frag") },
+            { Pragma.Hull("Hull") },
+            { Pragma.Domain("Domain") },
+            { Pragma.OnlyRenderers(PragmaRenderers.GetHighEndPlatformArray()) },
+            { new PragmaDescriptor { value = "instancing_options procedural:SetupInstanceID"}},
+        };
+
         #region Keywords
         public static KeywordDescriptor WaterSurfaceGBuffer = new KeywordDescriptor()
         {
@@ -89,15 +100,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stages = KeywordShaderStage.Default
         };
 
-        public static KeywordDescriptor WaterProceduralGeometry = new KeywordDescriptor()
-        {
-            displayName = "WaterProceduralGeometry",
-            referenceName = "WATER_PROCEDURAL_GEOMETRY",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.Predefined,
-            scope = KeywordScope.Global,
-        };
-
         public static KeywordDescriptor HasRefraction = new KeywordDescriptor()
         {
             displayName = "HasRefraction",
@@ -106,36 +108,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.Predefined,
             scope = KeywordScope.Global,
         };
-
-        public static KeywordDescriptor ClusteredLightList = new KeywordDescriptor()
-        {
-            displayName = "ClusteredLightList",
-            referenceName = "USE_CLUSTERED_LIGHTLIST",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.Predefined,
-            scope = KeywordScope.Global,
-        };
         #endregion
 
-        #region Defines
-        public static DefineCollection WaterGBufferDefinesProcedural = new DefineCollection
+        #region Definess
+        public static DefineCollection WaterGBufferDefines = new DefineCollection
         {
             { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
-            { CoreKeywordDescriptors.HasLightloop, 1 },
-            { WaterProceduralGeometry, 1 },
             { HasRefraction, 1 },
-            { WaterSurfaceGBuffer, 1 },
-            { ClusteredLightList, 1 },
-            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
-        };
-
-        public static DefineCollection WaterGBufferDefinesMesh = new DefineCollection
-        {
-            { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
-            { CoreKeywordDescriptors.HasLightloop, 1 },
-            { HasRefraction, 1 },
-            { WaterSurfaceGBuffer, 1 },
-            { ClusteredLightList, 1 },
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
         #endregion
@@ -155,23 +134,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }) },
         };
 
-        public static PassDescriptor GenerateWaterGBufferPassProcedural()
+        public static PassDescriptor GenerateWaterGBufferPassTesselation()
         {
             return new PassDescriptor
             {
                 // Definition
-                displayName = "GBufferProcedural",
+                displayName = "GBufferTesselation",
                 referenceName = "SHADERPASS_GBUFFER",
-                lightMode = "GBufferProcedural",
+                lightMode = "GBufferTesselation",
                 useInPreview = true,
 
                 // Collections
-                structs = CoreStructCollections.BasicProcedural,
+                structs = CoreStructCollections.BasicTessellation,
                 // We need motion vector version as GBuffer pass support transparent motion vector and we can't use ifdef for it
                 requiredFields = CoreRequiredFields.BasicLighting,
                 renderStates = WaterGBuffer,
-                pragmas = HDShaderPasses.GeneratePragmas(CorePragmas.DotsInstanced, false, false),
-                defines = HDShaderPasses.GenerateDefines(WaterGBufferDefinesProcedural, false, false),
+                pragmas = WaterTessellationInstanced,
+                defines = HDShaderPasses.GenerateDefines(WaterGBufferDefines, false, true),
                 includes = GenerateIncludes(),
 
                 virtualTextureFeedback = false,
@@ -188,50 +167,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kLightLoop, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.CoreUtility);
-                includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(WaterIncludes.kPassWaterGBuffer, IncludeLocation.Postgraph);
-
-                return includes;
-            }
-        }
-
-        public static PassDescriptor GenerateWaterGBufferPassMesh()
-        {
-            return new PassDescriptor
-            {
-                // Definition
-                displayName = "GBufferMesh",
-                referenceName = "SHADERPASS_GBUFFER",
-                lightMode = "GBufferMesh",
-                useInPreview = true,
-
-                // Collections
-                structs = CoreStructCollections.Basic,
-                // We need motion vector version as GBuffer pass support transparent motion vector and we can't use ifdef for it
-                requiredFields = CoreRequiredFields.BasicLighting,
-                renderStates = WaterGBuffer,
-                pragmas = HDShaderPasses.GeneratePragmas(CorePragmas.DotsInstanced, false, false),
-                defines = HDShaderPasses.GenerateDefines(WaterGBufferDefinesMesh, false, false),
-                includes = GenerateIncludes(),
-
-                virtualTextureFeedback = false,
-                customInterpolators = CoreCustomInterpolators.Common
-            };
-
-            IncludeCollection GenerateIncludes()
-            {
-                var includes = new IncludeCollection();
-
-                includes.Add(CoreIncludes.CorePregraph);
-                includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kLightLoop, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
                 includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
@@ -255,8 +190,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 var passes = new PassCollection
                 {
                     // Generate the water GBuffer pass
-                    GenerateWaterGBufferPassProcedural(),
-                    GenerateWaterGBufferPassMesh(),
+                    GenerateWaterGBufferPassTesselation(),
                 };
                 return passes;
             }
@@ -269,6 +203,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Water specific properties
             context.AddField(StructFields.VertexDescriptionInputs.uv0);
             context.AddField(StructFields.VertexDescriptionInputs.uv1);
+            context.AddField(HDFields.GraphTessellation);
+            context.AddField(HDFields.TessellationFactor);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -297,6 +233,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.Decals);
             pass.keywords.Add(CoreKeywordDescriptors.Shadow);
             pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
+            pass.keywords.Add(CoreKeywordDescriptors.ProceduralInstancing);
+            pass.keywords.Add(CoreKeywordDescriptors.StereoInstancing);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
@@ -328,6 +266,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stencilWriteMaskWaterVar.hlslDeclarationOverride = HLSLDeclaration.Global;
             stencilWriteMaskWaterVar.generatePropertyBlock = false;
             collector.AddShaderProperty(stencilWriteMaskWaterVar);
+
+            // EmissionColor is a required shader property even if it is not used in this case
+            collector.AddShaderProperty(new ColorShaderProperty()
+            {
+                overrideReferenceName = "_EmissionColor",
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.UnityPerMaterial,
+                value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
+            });
         }
     }
 }

@@ -454,7 +454,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
         {
             LightVolumeData lightData = _LightVolumeData[idxCoarse];
             const bool bIsSpotDisc = true; // (lightData.flags&IS_CIRCULAR_SPOT_SHAPE) != 0;
-            for(int i=0; i<PIXEL_PER_THREAD && !lightValid; i++)
+            for(int i=0; i<PIXEL_PER_THREAD; i++)
             {
                 int idx = t + i*NR_THREADS;
 
@@ -477,12 +477,14 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
 #else
                 lightValid = isValid;
 #endif
+                if (isValid)
+                    break;
             }
         }
         else if (uLightVolume == LIGHTVOLUMETYPE_SPHERE)
         {
             LightVolumeData lightData = _LightVolumeData[idxCoarse];
-            for(int i=0; i<PIXEL_PER_THREAD && !lightValid; i++)
+            for(int i=0; i<PIXEL_PER_THREAD; i++)
             {
                 int idx = t + i*NR_THREADS;
 
@@ -500,12 +502,14 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
 #else
                 lightValid = isValid;
 #endif
+                if (isValid)
+                    break;
            }
         }
         else if (uLightVolume ==  LIGHTVOLUMETYPE_BOX)
         {
             LightVolumeData lightData = _LightVolumeData[idxCoarse];
-            for(int i=0; i<PIXEL_PER_THREAD && !lightValid; i++)
+            for(int i=0; i<PIXEL_PER_THREAD; i++)
             {
                 int idx = t + i*NR_THREADS;
 
@@ -523,6 +527,8 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float vL
 #else
                 lightValid = isValid;
 #endif
+                if (isValid)
+                    break;
             }
         }
         else
