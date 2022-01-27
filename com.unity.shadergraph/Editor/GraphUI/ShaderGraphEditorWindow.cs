@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
         [MenuItem("Window/Shaders/ShaderGraph", false)]
         public static void ShowWindow()
         {
-            // TODO (Brett) Should this be GetWindow<ShaderGraphEditorWindow>();
+            // GetWindow<ShaderGraphEditorWindow>();
             var shaderGraphEditorWindow = CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
             shaderGraphEditorWindow.Show();
             shaderGraphEditorWindow.Focus();
@@ -44,11 +44,8 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
 
         protected override GraphView CreateGraphView()
         {
-            // TODO (Brett) The name needs to come from a GraphTool.
             var graphView = new ShaderGraphView(this, GraphTool, GraphTool.Name);
-
-            // TODO (Brett) Maybe set initial searcher size here (from MathBook example)
-            // GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.k_CreateNode, new Vector2(425, 400), 2.0f);
+            GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.k_CreateNode, new Vector2(425, 100), 2.0f);
 
             // TODO (Brett) Maybe register command handlers here (from MathBook example)
             // graphView.RegisterCommandHandler<SetNumberOfInputPortCommand>(SetNumberOfInputPortCommand.DefaultCommandHandler);
