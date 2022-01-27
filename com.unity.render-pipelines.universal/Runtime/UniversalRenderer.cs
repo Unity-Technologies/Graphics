@@ -381,7 +381,7 @@ namespace UnityEngine.Rendering.Universal
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
 
             var cmd = renderingData.commandBuffer;
-            DebugHandler?.Setup(context, ref cameraData, cmd);
+            DebugHandler?.Setup(context, ref renderingData);
 
             if (cameraData.cameraType != CameraType.Game)
                 useRenderPassEnabled = false;

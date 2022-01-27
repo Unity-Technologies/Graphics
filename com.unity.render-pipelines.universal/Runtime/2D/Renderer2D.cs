@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.Universal
                     stackHasPostProcess = stackHasPostProcess && DebugHandler.IsPostProcessingAllowed;
                 }
 
-                DebugHandler.Setup(context, ref cameraData, renderingData.commandBuffer);
+                DebugHandler.Setup(context, ref renderingData);
             }
 
 #if UNITY_EDITOR

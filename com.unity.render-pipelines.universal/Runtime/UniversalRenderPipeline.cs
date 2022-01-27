@@ -420,7 +420,7 @@ namespace UnityEngine.Rendering.Universal
                     ScriptableRenderContext.EmitGeometryForCamera(camera);
 
                 var cullResults = context.Cull(ref cullingParameters);
-                InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, out var renderingData, cmd);
+                InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, cmd, out var renderingData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 if (asset.useAdaptivePerformance)
                     ApplyAdaptivePerformance(ref renderingData);
@@ -992,7 +992,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
-            bool anyPostProcessingEnabled, out RenderingData renderingData, CommandBuffer cmd)
+            bool anyPostProcessingEnabled, CommandBuffer cmd, out RenderingData renderingData)
         {
             using var profScope = new ProfilingScope(null, Profiling.Pipeline.initializeRenderingData);
 

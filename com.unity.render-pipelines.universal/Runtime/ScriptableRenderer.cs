@@ -830,7 +830,7 @@ namespace UnityEngine.Rendering.Universal
                 // Draw Gizmos...
                 if (drawGizmos)
                 {
-                    DrawGizmos(context, camera, GizmoSubset.PreImageEffects, cmd);
+                    DrawGizmos(context, camera, GizmoSubset.PreImageEffects, renderingData);
                 }
 
                 // In this block after rendering drawing happens, e.g, post processing, video player capture.
@@ -846,7 +846,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (drawGizmos)
                 {
-                    DrawGizmos(context, camera, GizmoSubset.PostImageEffects, cmd);
+                    DrawGizmos(context, camera, GizmoSubset.PostImageEffects, renderingData);
                 }
 
                 InternalFinishRendering(context, cameraData.resolveFinalTarget, cmd);
@@ -1590,12 +1590,13 @@ namespace UnityEngine.Rendering.Universal
         internal virtual void EnableSwapBufferMSAA(bool enable) { }
 
         [Conditional("UNITY_EDITOR")]
-        void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset, CommandBuffer cmd)
+        void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset, RenderingData renderingData)
         {
 #if UNITY_EDITOR
             if (!Handles.ShouldRenderGizmos() || camera.sceneViewFilterMode == Camera.SceneViewFilterMode.ShowFiltered)
                 return;
 
+            var cmd = renderingData.commandBuffer;
             using (new ProfilingScope(cmd, Profiling.drawGizmos))
             {
                 context.ExecuteCommandBuffer(cmd);

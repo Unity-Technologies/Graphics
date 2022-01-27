@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (m_CreateEmptyShadowmap)
             {
-                SetEmptyMainLightCascadeShadowmap(ref context, renderingData.commandBuffer);
+                SetEmptyMainLightCascadeShadowmap(ref context, ref renderingData);
                 return;
             }
 
@@ -173,8 +173,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_CascadeSlices[i].Clear();
         }
 
-        void SetEmptyMainLightCascadeShadowmap(ref ScriptableRenderContext context, CommandBuffer cmd)
+        void SetEmptyMainLightCascadeShadowmap(ref ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            var cmd = renderingData.commandBuffer;
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, true);
             cmd.SetGlobalTexture(m_MainLightShadowmapID, m_EmptyLightShadowmapTexture.nameID);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
@@ -185,7 +186,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.Clear();
         }
 
-        void RenderMainLightCascadeShadowmap(ref ScriptableRenderContext context, /*ref CullingResults cullResults, ref LightData lightData, ref ShadowData shadowData,*/ ref RenderingData renderingData)
+        void RenderMainLightCascadeShadowmap(ref ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cullResults = renderingData.cullResults;
             var lightData = renderingData.lightData;
