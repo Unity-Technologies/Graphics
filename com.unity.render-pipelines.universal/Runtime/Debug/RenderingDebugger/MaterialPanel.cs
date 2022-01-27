@@ -152,8 +152,8 @@ namespace UnityEngine.Rendering.Universal
             VisualElement panel = CreateVisualElement(
                 "Packages/com.unity.render-pipelines.universal/Runtime/Debug/RenderingDebugger/MaterialPanel.uxml");
 
-            RegisterCallback<Enum>(panel, nameof(materialValidationMode), OnMaterialValidationModeChanged);
-            RegisterCallback<Enum>(panel, nameof(albedoValidationPreset), OnMaterialAlbedoDebugValidationPresetChanged);
+            RegisterCallback<Enum>(panel, nameof(materialValidationMode), materialValidationMode, OnMaterialValidationModeChanged);
+            RegisterCallback<Enum>(panel, nameof(albedoValidationPreset), albedoValidationPreset, OnMaterialAlbedoDebugValidationPresetChanged);
 
             return panel;
         }

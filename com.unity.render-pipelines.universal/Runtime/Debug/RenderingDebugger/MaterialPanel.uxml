@@ -5,15 +5,15 @@
     </ui:Foldout>
     <ui:Foldout text="Material Validation" name="MaterialValidation" binding-path="materialValidationExpanded">
         <ui:EnumField label="Material Validation Mode" type="UnityEngine.Rendering.Universal.DebugMaterialValidationMode, Unity.RenderPipeline.Universal.ShaderLibrary" tooltip="Debug and validate material properties." binding-path="materialValidationMode" name="materialValidationMode" />
-        <ui:GroupBox text="Albedo Settings" name="AlbedoSettings" class="hidden">
+        <ui:GroupBox text="Albedo Settings" name="AlbedoSettings">
             <ui:EnumField label="Validation Mode" type="UnityEngine.Rendering.Universal.DebugDisplaySettingsMaterial+AlbedoDebugValidationPreset, Unity.RenderPipelines.Universal.Runtime" tooltip="Validate using a list of preset surfaces and inputs based on real-world surfaces." binding-path="albedoValidationPreset" name="albedoValidationPreset" />
-            <uie:ColorField label="Target Color" binding-path="albedoCompareColor" name="albedoCompareColor" tooltip="Custom target color for albedo validation." class="hidden"/>
+            <uie:ColorField label="Target Color" binding-path="albedoCompareColor" name="albedoCompareColor" tooltip="Custom target color for albedo validation."/>
             <ui:FloatField label="Min Luminance" value="0" tooltip="Any values set below this field are invalid and appear red on screen." name="MinLuminance" binding-path="albedoMinLuminance" />
             <ui:FloatField label="Max Luminance" value="0" tooltip="Any values set above this field are invalid and appear blue on screen." name="MaxLuminance" binding-path="albedoMaxLuminance" />
-            <ui:FloatField label="Hue Tolerance" value="0" tooltip="Validate a material based on a specific hue." binding-path="albedoHueTolerance" name="albedoHueTolerance" class="hidden"/>
-            <ui:FloatField label="Saturation Tolerance" value="0" tooltip="Validate a material based on a specific Saturation." binding-path="albedoSaturationTolerance" name="albedoSaturationTolerance" class="hidden"/>
+            <ui:FloatField label="Hue Tolerance" value="0" tooltip="Validate a material based on a specific hue." binding-path="albedoHueTolerance" name="albedoHueTolerance"/>
+            <ui:FloatField label="Saturation Tolerance" value="0" tooltip="Validate a material based on a specific Saturation." binding-path="albedoSaturationTolerance" name="albedoSaturationTolerance"/>
         </ui:GroupBox>
-        <ui:GroupBox text="Metallic Settings" name="MetallicSettings" class="hidden">
+        <ui:GroupBox text="Metallic Settings" name="MetallicSettings">
             <ui:FloatField label="Min Value" value="0" tooltip="Any values set below this field are invalid and appear red on screen." name="MetallicMaxValue" binding-path="metallicMinValue" />
             <ui:FloatField label="Max Value" value="0" tooltip="Any values set above this field are invalid and appear blue on screen." name="MetallicMaxValue" binding-path="metallicMaxValue" />
         </ui:GroupBox>

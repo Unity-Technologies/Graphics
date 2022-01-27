@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
             var panel = CreateVisualElement(
                 "Packages/com.unity.render-pipelines.universal/Runtime/Debug/RenderingDebugger/RenderingPanel.uxml");
 
-            RegisterCallback<Enum>(panel, nameof(fullScreenDebugMode), OnFullScreenDebugModeChanged);
+            RegisterCallback<Enum>(panel, nameof(fullScreenDebugMode), fullScreenDebugMode, OnFullScreenDebugModeChanged);
 
             return panel;
         }

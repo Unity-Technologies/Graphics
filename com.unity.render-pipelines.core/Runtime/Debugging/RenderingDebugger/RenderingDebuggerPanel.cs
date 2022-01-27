@@ -3,6 +3,7 @@ using UnityEditor; // TODO fix this
 #endif
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine.UIElements;
 
 namespace UnityEngine.Rendering
@@ -40,13 +41,17 @@ namespace UnityEngine.Rendering
         }
 
         // Utility methods
-
-        protected void RegisterCallback<T>(VisualElement panel, string fieldElementName, EventCallback<ChangeEvent<T>> onFieldValueChanged)
+        protected void RegisterCallback<T>(VisualElement panel, string fieldElementName, T currentValue, EventCallback<ChangeEvent<T>> onFieldValueChanged)
         {
+            if (onFieldValueChanged == null)
+                throw new ArgumentNullException(nameof(onFieldValueChanged));
+
             var fieldElement = panel.Q(fieldElementName);
             if (fieldElement == null)
                 throw new InvalidOperationException($"Element {fieldElementName} not found");
+
             fieldElement.RegisterCallback(onFieldValueChanged);
+            onFieldValueChanged(ChangeEvent<T>.GetPooled(currentValue, currentValue));
         }
 
         protected void SetElementHidden(string elementName, bool hidden)
