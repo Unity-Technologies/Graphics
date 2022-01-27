@@ -104,8 +104,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (m_Desc.msaaSamples > 1)
                 EnableMSAA(true);
-
-            ReAllocate(cmd);
         }
 
         public RTHandle GetBufferA()

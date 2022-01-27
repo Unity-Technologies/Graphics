@@ -520,6 +520,17 @@ namespace UnityEngine.Rendering.Universal
             if (useRenderPassEnabled || useDepthPriming)
                 createColorTexture |= createDepthTexture;
 
+            //Set rt descriptors so preview camera's have access should it be needed
+            CommandBuffer cmd = CommandBufferPool.Get();
+            var colorDescriptor = cameraTargetDescriptor;
+            colorDescriptor.useMipMap = false;
+            colorDescriptor.autoGenerateMips = false;
+            colorDescriptor.depthBufferBits = (int)DepthBits.None;
+            m_ColorBufferSystem.SetCameraSettings(cmd, colorDescriptor, FilterMode.Bilinear);
+            
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
             {
@@ -562,20 +573,7 @@ namespace UnityEngine.Rendering.Universal
             if (rendererFeatures.Count != 0 && !isPreviewCamera)
                 ConfigureCameraColorTarget(m_ColorBufferSystem.PeekBackBuffer());
 
-            //setup RT descriptor for preview camera
-            if(isPreviewCamera)
-            {
-                CommandBuffer cmd = CommandBufferPool.Get();
-
-                var colorDescriptor = cameraTargetDescriptor;
-                colorDescriptor.useMipMap = false;
-                colorDescriptor.autoGenerateMips = false;
-                colorDescriptor.depthBufferBits = (int)DepthBits.None;
-                m_ColorBufferSystem.SetCameraSettings(cmd, colorDescriptor, FilterMode.Bilinear);
-
-                context.ExecuteCommandBuffer(cmd);
-                CommandBufferPool.Release(cmd);
-            }
+            
 
             cameraData.renderer.useDepthPriming = useDepthPriming;
 
@@ -647,7 +645,7 @@ namespace UnityEngine.Rendering.Universal
                 depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
                 RenderingUtils.ReAllocateIfNeeded(ref m_DepthTexture, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthTexture");
 
-                CommandBuffer cmd = CommandBufferPool.Get();
+                cmd = CommandBufferPool.Get();
                 cmd.SetGlobalTexture(m_DepthTexture.name, m_DepthTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -679,7 +677,7 @@ namespace UnityEngine.Rendering.Universal
 
                 RenderingUtils.ReAllocateIfNeeded(ref normalsTexture, normalDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: normalsTextureName);
 
-                CommandBuffer cmd = CommandBufferPool.Get();
+                cmd = CommandBufferPool.Get();
                 cmd.SetGlobalTexture(normalsTexture.name, normalsTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -832,10 +830,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 SupportedRenderingFeatures.active.motionVectors = true; // hack for enabling UI
 
-                var colorDescriptor = cameraTargetDescriptor;
-                colorDescriptor.graphicsFormat = MotionVectorRenderPass.m_TargetFormat;
-                colorDescriptor.depthBufferBits = (int)DepthBits.None;
-                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorColor, colorDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorTexture");
+                var colorDesc = cameraTargetDescriptor;
+                colorDesc.graphicsFormat = MotionVectorRenderPass.m_TargetFormat;
+                colorDesc.depthBufferBits = (int)DepthBits.None;
+                RenderingUtils.ReAllocateIfNeeded(ref m_MotionVectorColor, colorDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_MotionVectorTexture");
 
                 var depthDescriptor = cameraTargetDescriptor;
                 depthDescriptor.graphicsFormat = GraphicsFormat.None;
@@ -1112,11 +1110,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_ColorBufferSystem.PeekBackBuffer() == null || m_ColorBufferSystem.PeekBackBuffer().nameID != BuiltinRenderTextureType.CameraTarget)
                 {
-                    var colorDescriptor = descriptor;
-                    colorDescriptor.useMipMap = false;
-                    colorDescriptor.autoGenerateMips = false;
-                    colorDescriptor.depthBufferBits = (int)DepthBits.None;
-                    m_ColorBufferSystem.SetCameraSettings(cmd, colorDescriptor, FilterMode.Bilinear);
                     m_ActiveCameraColorAttachment = m_ColorBufferSystem.GetBackBuffer(cmd);
                     ConfigureCameraColorTarget(m_ActiveCameraColorAttachment);
                     cmd.SetGlobalTexture("_CameraColorTexture", m_ActiveCameraColorAttachment.nameID);
