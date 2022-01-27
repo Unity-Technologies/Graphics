@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Xml;
 using JetBrains.Annotations;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -17,18 +15,18 @@ namespace UnityEngine.Rendering.UIGen
 {
     public static class GeneratorUtility
     {
-        static readonly Dictionary<Type, UIPropertyTypeGenerator> s_Generators = new()
+        static readonly Dictionary<Type, UIPropertyGenerator> s_Generators = new()
         {
             //default generators : hardcoded list
-            { IntUIPropertyTypeGenerator.typeSupported, new IntUIPropertyTypeGenerator() },
+            { IntUIPropertyGenerator.typeSupported, new IntUIPropertyGenerator() },
         };
 
-        static Dictionary<string, Dictionary<Type, UIPropertyTypeGenerator>> s_OverridingGenerators = new();
+        static Dictionary<string, Dictionary<Type, UIPropertyGenerator>> s_OverridingGenerators = new();
 
         // TODO: [Fred] Can we use a Type instead of a string
-        public static Dictionary<Type, UIPropertyTypeGenerator> GetGenerators(in string UIName = null)
+        public static Dictionary<Type, UIPropertyGenerator> GetGenerators(in string UIName = null)
         {
-            var generators = new Dictionary<Type, UIPropertyTypeGenerator>(s_Generators);
+            var generators = new Dictionary<Type, UIPropertyGenerator>(s_Generators);
 
             if (string.IsNullOrEmpty(UIName))
                 return generators;
@@ -46,29 +44,29 @@ namespace UnityEngine.Rendering.UIGen
         [InitializeOnLoadMethod]
         static void FindCustomGenerator()
         {
-            var customGeneratorTypes = TypeCache.GetTypesWithAttribute<CustomGeneratorAttribute>();
+            var customGeneratorTypes = TypeCache.GetTypesWithAttribute<PropertyGeneratorSupportsAttribute>();
 
             foreach (var customGeneratorType in customGeneratorTypes)
             {
                 //sanity check
-                if (!typeof(UIPropertyTypeGenerator).IsAssignableFrom(customGeneratorType))
+                if (!typeof(UIPropertyGenerator).IsAssignableFrom(customGeneratorType))
                 {
-                    Debug.LogError($"{nameof(CustomGeneratorAttribute)} should only be used on class implementing {nameof(UIPropertyTypeGenerator)}<T>. Found on {customGeneratorType.FullName}. Skipping.");
+                    Debug.LogError($"{nameof(PropertyGeneratorSupportsAttribute)} should only be used on class implementing {nameof(UIPropertyGenerator)}<T>. Found on {customGeneratorType.FullName}. Skipping.");
                     continue;
                 }
 
-                var attributes = customGeneratorType.GetCustomAttributes(typeof(CustomGeneratorAttribute), false);
-                foreach (CustomGeneratorAttribute attribute in attributes)
+                var attributes = customGeneratorType.GetCustomAttributes(typeof(PropertyGeneratorSupportsAttribute), false);
+                foreach (PropertyGeneratorSupportsAttribute attribute in attributes)
                 {
                     if (!s_OverridingGenerators.ContainsKey(attribute.UIName))
                         s_OverridingGenerators[attribute.UIName] = new();
 
-                    var generator = Activator.CreateInstance(customGeneratorType) as UIPropertyTypeGenerator;
+                    var generator = Activator.CreateInstance(customGeneratorType) as UIPropertyGenerator;
 
                     //sanity check
                     if (s_OverridingGenerators[attribute.UIName].ContainsKey(generator.GetTypeSupported()))
                     {
-                        Debug.LogError($"There is several {nameof(CustomGeneratorAttribute)} conflicting for type {generator.GetTypeSupported().FullName}. Discarding {customGeneratorType.FullName}.");
+                        Debug.LogError($"There is several {nameof(PropertyGeneratorSupportsAttribute)} conflicting for type {generator.GetTypeSupported().FullName}. Discarding {customGeneratorType.FullName}.");
                         continue;
                     }
 
@@ -102,16 +100,26 @@ namespace UnityEngine.Rendering.UIGen
     }
 
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    public class CustomGeneratorAttribute : Attribute
+    public class PropertyGeneratorSupportsAttribute : Attribute
     {
-        public readonly string UIName;
-        public CustomGeneratorAttribute(string UIName)
+        public readonly Type uiType;
+        public PropertyGeneratorSupportsAttribute(Type uiType)
         {
-            this.UIName = UIName;
+            this.uiType = uiType;
         }
     }
 
-    public interface IUIPropertyTypeGenerator
+    [AttributeUsage(AttributeTargets.Class)]
+    public class UIPropertyGeneratorAttribute : Attribute
+    {
+        public Type[] supportedTypes { get; }
+
+        public UIPropertyGeneratorAttribute(params Type[] supportedTypes) {
+            this.supportedTypes = supportedTypes;
+        }
+    }
+
+    public interface IUIPropertyGenerator
     {
         [MustUseReturnValue]
         bool Generate(
@@ -120,7 +128,7 @@ namespace UnityEngine.Rendering.UIGen
             [NotNullWhen(false)] out Exception error);
     }
 
-    public abstract class UIPropertyTypeGenerator : IUIPropertyTypeGenerator
+    public abstract class UIPropertyGenerator : IUIPropertyGenerator
     {
         [MustUseReturnValue]
         public abstract bool Generate(
@@ -128,27 +136,10 @@ namespace UnityEngine.Rendering.UIGen
             [NotNullWhen(true)] out UIImplementationIntermediateDocuments documents,
             [NotNullWhen(false)] out Exception error
         );
-
-        // TODO: [Fred] A generator may support multiple type, we should find another way to register
-        // TODO: [Fred] this can be a property getter instead
-        internal abstract Type GetTypeSupported();
-
-        internal UIPropertyTypeGenerator()
-            => throw new Exception($"You should not inerhit directly from {nameof(UIPropertyTypeGenerator)}. Use {nameof(UIPropertyTypeGenerator)}<T> instead.");
-
-        internal UIPropertyTypeGenerator(bool unused) { }
     }
 
-    public abstract class UIPropertyTypeGenerator<T> : UIPropertyTypeGenerator
-    {
-        internal override Type GetTypeSupported() => typeSupported;
-        public static Type typeSupported => typeof(T);
-
-        public UIPropertyTypeGenerator() : base(true) { }
-    }
-
-
-    public class IntUIPropertyTypeGenerator : UIPropertyTypeGenerator<int>
+    [UIPropertyGenerator(typeof(int))]
+    public class IntUIPropertyGenerator : UIPropertyGenerator
     {
         public override bool Generate(
             [DisallowNull] in Property property,

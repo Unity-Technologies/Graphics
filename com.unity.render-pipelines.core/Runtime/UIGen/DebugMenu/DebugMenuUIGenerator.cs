@@ -12,6 +12,10 @@ namespace UnityEngine.Rendering.UIGen
 {
     public static class DebugMenuUIGenerator
     {
+        // TODO: [Fred] This is where we can look for type added by an extension mecanism
+        //    Here, only default types are added
+        static readonly UIPropertySetGenerator k_DebugMenuUIPropertyGenerator = UIPropertySetGenerator.FromGeneratorTypesOrEmpty();
+
         public struct Parameters
         {
             public string uiViewTypeName;
@@ -57,11 +61,15 @@ namespace UnityEngine.Rendering.UIGen
         [MustUseReturnValue]
         static bool GenerateBindableViewIntermediateDocumentFromProperties(
             [DisallowNull] UIDefinition definition,
+            // TODO: [Fred] should be pooled
             out Dictionary<UIDefinition.Property, UIImplementationIntermediateDocuments> result,
             [NotNullWhen(false)] out Exception error
         )
         {
-            throw new NotImplementedException();
+            if (!k_DebugMenuUIPropertyGenerator.GenerateIntermediateDocumentsFor(definition, out result, out error))
+                return false;
+
+            return true;
         }
 
 

@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.UIGen
             /// path from context root to this property, member access separated by `.`
             /// </summary>
             public string propertyPath { get; set; }
+            public Type type { get; }
         }
     }
 }

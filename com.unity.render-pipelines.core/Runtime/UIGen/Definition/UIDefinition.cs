@@ -5,8 +5,10 @@ using JetBrains.Annotations;
 
 namespace UnityEngine.Rendering.UIGen
 {
+    // TODO: [Fred] should be immutable with structs
     public partial class UIDefinition
     {
+        // TODO: [Fred] should be readonly
         public PooledList<Property> properties = new();
 
 
