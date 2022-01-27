@@ -50,6 +50,11 @@
             "name": "com.unity.burst",
             "expression": "1.5.0",
             "define": "ENABLE_BURST_1_5_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.sensorsdk",
+            "expression": "2.0.0",
+            "define": "ENABLE_SENSOR_SDK"
         }
     ],
     "noEngineReferences": false

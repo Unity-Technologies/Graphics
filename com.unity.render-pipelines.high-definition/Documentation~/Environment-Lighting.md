@@ -9,7 +9,7 @@ In the High Definition Render Pipeline (HDRP), there are two parts to environmen
 Essentially, you use the visual environment to control how the sky looks in your Scene and use the lighting environment to control how the sky contributes to indirect ambient lighting.
 
 ## Visual Environment
-The Visual Environment is a Volume override that tells HDRP what type of [sky](HDRP-Features.md#sky) and [fog](HDRP-Features.md#fog) you want to see through Cameras that the Volume affects. For information on how to customize Visual Environments, see the [Visual Environment](Override-Visual-Environment.md) documentation.
+The Visual Environment is a Volume override that tells HDRP what type of [sky](HDRP-Features.md#sky) you want to see through Cameras that the Volume affects. For information on how to customize Visual Environments, see the [Visual Environment](Override-Visual-Environment.md) documentation.
 
 Your Unity Project’s [HDRP Asset](HDRP-Asset.md) has the following properties that also affect all Visual Environments:
 
@@ -66,7 +66,15 @@ HDRP uses the ambient Light Probe as the final fallback for indirect diffuse lig
 - Mesh Renderers that have their **Light Probe Mode** set to **Off**
 - Volumetric fog if the Global Light Probe dimmer is set to a value above 0
 
-The ambient Light Probe can be static (generated only once) or dynamic (updated at runtime).**Note**: If there is a **Light Probe group** in your Scene and you have computed indirect ambient lighting, then the Ambient Light Probe only affects Mesh Renderers that have their **Light Probe Mode** set to **Off**, and that have **Volumetric fog** (if it’s enabled in the Scene).
+The ambient Light Probe can be static (generated only once from the static lighting sky set in the HDRP **Environment (HDRP)**panel) or dynamic (updated at runtime from the sky currently in use).
+
+***\*Note\****: If there is a ***\*Light Probe group\**** in your Scene and you have computed indirect ambient lighting, then the Ambient Light Probe only affects Mesh Renderers that have their ***\*Light Probe Mode\**** set to ***\*Off\****, and that have ***\*Volumetric fog\**** (if it’s enabled in the Scene).
+
+### Limitation of Dynamic Ambient mode
+
+The Ambient Light Probe always affects your scene one frame late after HDRP calculates it. This is because HDRP calculates Ambient Light Probes on the GPU and then uses asynchronous readback on the CPU.
+
+As a result, the ambient lighting might not match the actual lighting and cause visual artifacts. This can happen when you use the dynamic ambient mode and use reflection probes that update on demand.
 
 ## Ambient Reflection Probe
 

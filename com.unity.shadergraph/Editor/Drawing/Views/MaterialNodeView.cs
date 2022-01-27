@@ -397,7 +397,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         string ConvertToShader(GenerationMode mode)
         {
-            var generator = new Generator(node.owner, node, mode, node.name, null);
+            var generator = new Generator(node.owner, node, mode, node.name);
             return generator.generatedShader;
         }
 
@@ -504,13 +504,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         title = customDeprecationMessage.GetCustomDeprecationLabel();
                     }
-                    else if (ShaderGraphPreferences.allowDeprecatedBehaviors)
-                    {
-                        title = node.name + $" (Deprecated V{node.sgVersion})";
-                    }
                     else
                     {
-                        title = node.name + $" (Deprecated)";
+                        title = node.name + $" (Legacy v{node.sgVersion})";
                     }
                 }
                 else

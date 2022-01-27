@@ -26,19 +26,6 @@ namespace UnityEditor.Rendering.HighDefinition
             uiBlocks.OnGUI(materialEditor, props);
         }
 
-        public override void ValidateMaterial(Material material) => SetupUnlitKeywordsAndPass(material);
-
-        // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        public static void SetupUnlitKeywordsAndPass(Material material)
-        {
-            material.SetupBaseUnlitKeywords();
-            material.SetupBaseUnlitPass();
-
-            if (material.HasProperty(kEmissiveColorMap))
-                CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
-
-            // All the bits exclusively related to lit are ignored inside the BaseLitGUI function.
-            BaseLitGUI.SetupStencil(material, receivesSSR: false, useSplitLighting: false);
-        }
+        public override void ValidateMaterial(Material material) => UnlitAPI.ValidateMaterial(material);
     }
 } // namespace UnityEditor

@@ -2,6 +2,8 @@
 #pragma kernel CSVFXInitDeadListBuffer
 #pragma kernel CSVFXZeroInitBuffer
 
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch opengl gles3
+
 #include "HLSLSupport.cginc"
 
 CBUFFER_START(Uniform)

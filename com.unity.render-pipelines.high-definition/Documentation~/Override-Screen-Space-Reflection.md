@@ -8,9 +8,16 @@ HDRP implements [ray-traced reflection](Ray-Traced-Reflections.md) on top of thi
 
 [!include[](snippets/Volume-Override-Enable-Override.md)]
 
-For this feature:
-The property to enable in your HDRP Asset is: **Lighting > Reflections > Screen Space Reflection**.
-The property to enable in your Frame Settings is: **Lighting > Screen Space Reflection**.
+To enable Screen Space Reflection:
+
+1. In your HDRP Asset Inspector window, go to **Lighting** > **Reflections** and enable **Screen Space Reflection**
+
+2. Enable Screen Space Reflection in Frame Settings
+
+   * If you want to enable Screen Space Reflection for all cameras, go to **Edit** > **Project Settings** > **Graphics** > **HDRP Global Settings** > **Frame Settings (Default Values)** > **Lighting** and enable **Screen Space Reflection**
+   * If you want to enable Screen Space Reflection for specific cameras, in the Inspector window of each camera:
+      1. Go to **Rendering** and enable **Custom Frame Settings**
+      2. Go to **Frame Settings Overrides** > **Lighting** and enable **Screen Space Reflection**
 
 ## Using Screen Space Reflection
 
@@ -34,17 +41,43 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |
-| **Enable**                    | Indicates whether HDRP processes SSR for Cameras in the influence of this effect's Volume. |
+| **Enable (Opaque)**           | Indicates whether HDRP processes SSR on opaque objects for Cameras in the influence of this effect's Volume. |
+| **Enable (Transparent)**      | Indicates whether HDRP processes SSR on transparent objects for Cameras in the influence of this effect's Volume. |
 | **Tracing**                   | Specifies the method HDRP uses to calculate reflections. Depending on the option you select, the properties visible in the Inspector change. For more information on what the options do, see [tracing modes](#tracing-modes). The options are:<br/>&#8226; **Ray Marching**: Uses a screen-space ray marching solution to calculate reflections. For the list of properties this option exposes, see [Screen-space](#screen-space).<br/>&#8226; **Ray Tracing**: Uses ray tracing to calculate reflections. For information on ray-traced reflections, see [ray-traced reflection](Ray-Traced-Reflections.md). For the list of properties this option exposes, see [Ray-traced](#ray-traced).<br/>&#8226; **Mixed**: Uses a combination of ray tracing and ray marching to calculate reflections. For the list of properties this option exposes, see [Ray-traced](#ray-traced). |
 | **Algorithm**                 | Specifies the algorithm to use for the screen-space reflection effect. The options are:<br/>&#8226; **Approximation**: Approximates screen-space reflection to quickly calculate a result. This solution is less precise than **PBR Accumulation**, particularly for rough surfaces, but is less resource intensive.<br/>&#8226; **PBR Accumulation**: Accumulates multiple frames to calculate a more accurate result. You can control the amount of accumulation using **Accumulation Factor**. This solution might produce more ghosting than **Approximation**, due to the accumulation, and is also more resources intensive. HDRP does not apply this algorithm to transparent material and instead always uses **Approximation**. |
 | **Minimum Smoothness**        | Use the slider to set the minimum amount of surface smoothness at which HDRP performs SSR tracing. Lower values result in HDRP performing SSR tracing for less smooth GameObjects. If the smoothness value of the pixel is lower than this value, HDRP falls back to the next available reflection method in the [reflection hierarchy](Reflection-in-HDRP.md#ReflectionHierarchy). |
 | **Smoothness Fade Start**     | Use the slider to set the smoothness value at which SSR reflections begin to fade out. Lower values result in HDRP fading out SSR reflections for less smooth GameObjects. The fade is in the range [Minimum Smoothness, Smoothness Fade Start]. |
-| **Reflect Sky**               | Indicates whether HDRP should use SSR to handle sky reflection. If you disable this property, pixels that reflect the sky use the next level of the [reflection hierarchy](Reflection-in-HDRP.md#ReflectionHierarchy).<br />**Note**: SSR uses the depth buffer to calculate reflection and HDRP does not add transparent GameObjects to the depth buffer. If you enable this property, transparent GameObject that appear over the sky in the color buffer can cause visual artifacts and incorrect looking reflection. This is a common limitation for SSR techniques. |
+| **Reflect Sky**               | Indicates whether HDRP should use SSR to handle sky reflection. If you disable this property, pixels that reflect the sky use the next level of the [reflection hierarchy](Reflection-in-HDRP.md#ReflectionHierarchy).<br />**Note**: SSR uses the depth buffer to calculate reflection and HDRP does not add transparent GameObjects to the depth buffer. If you enable this property, transparent GameObject that appear over the sky in the color buffer can cause visual artifacts and incorrect looking reflection. This is a common limitation for SSR techniques. This only affects SSR on opaque objects and is not supported for SSR on transparent.|
 | **Screen Edge Fade Distance** | Use the slider to control the distance at which HDRP fades out screen space reflections when the destination of the ray is near the boundaries of the screen. Increase this value to increase the distance from the screen edge at which HDRP fades out screen space reflections for a ray destination. |
 | **Object Thickness**          | Use the slider to control the thickness of the GameObjects on screen. Because the SSR algorithm can not distinguish thin GameObjects from thick ones, this property helps trace rays behind GameObjects. The algorithm applies this property to every GameObject uniformly. |
 | **Quality**                   | Specifies the quality level to use for this effect. Each quality level applies different preset values. Unity also stops you from editing the properties that the preset overrides. If you want to set your own values for every property, select **Custom**. |
 | - **Max Ray Steps**           | Sets the maximum number of iterations that the algorithm can execute before it stops trying to find an intersection with a Mesh. For example, if you set the number of iterations to 1000 and the algorithm only needs 10 to find an intersection, the algorithm terminates after 10 iterations. If you set this value too low, the algorithm may terminate too early and abruptly stop reflections. |
 | **Accumulation Factor**       | The speed of the accumulation convergence. 0 means no accumulation. 1 means accumulation is very slow which is useful for fixed images. The more accumulation, the more accurate the result but the more ghosting occurs when moving. When using accumulation, it is important to find a balance between convergence quality and the ghosting artifact. Also note that rougher reflective surfaces require more accumulation to produce a converged image without noise.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
+| **World Space Speed Rejection**   | When enabled, HDRP calculates speed in world space to reject samples.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation**. |
+| **Speed Rejection**               | Controls the likelihood that HDRP rejects history based on the previous frame motion vectors of both the surface and the GameObject that the sample hits.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation** and enable **Additional Properties** from the contextual menu. |
+| **Speed Rejection Scaler Factor** | Controls the upper range of speed. The faster a GameObject or the Camera move, the higher this number is.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation** enable **Additional Properties** from the contextual menu. |
+| **Speed From Reflecting Surface** | When enabled, HDRP rejects samples based on the reflecting surface movement. You must check this property or **Speed From Reflected Surface**.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation** enable **Additional Properties** from the contextual menu. |
+| **Speed From Reflected Surface**  | When enabled, HDRP rejects samples based on the reflected surface movement. You must check this property or **Speed From Reflecting Surface**.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation** enable **Additional Properties** from the contextual menu. |
+| **Speed Smooth Rejection**        | When enabled, HDRP can partially reject history for moving objects to create a smoother transition. When disabled, HDRP either rejects or keeps history.<br/>This property only appears if you enable **World Space Speed Rejection** enable **Additional Properties** from the contextual menu. |
+| **Roughness Bias**            | Controls the relative roughness offset. A low value means material roughness stays the same, a high value results in smoother reflections.<br/>This property only appears if you set **Algorithm** to **PBR Accumulation** enable **Additional Properties** from the contextual menu. |
+
+## Debugging Speed Rejection
+
+HDRP includes a **Fullscreen Debug Mode** called **Screen Space Reflection Speed Rejection** (menu: **Lighting > Fullscreen debug mode > Screen Space Reflection Speed Rejection**) that you can use to visualise the contribution of the following properties:
+
+- **Speed Rejection**
+- **Speed Rejection Scaler Factor**
+- **Speed From Reflecting Surface**
+- **Speed From Reflected Surface**
+- **Speed Smooth Rejection**
+
+This fullscreen debug mode uses a color scale from green to red. Green areas indicate the sample is accumulated according to the **Accumulation Factor** and red areas indicate that HDRP rejects this sample. Orange areas indicate a that HDRP accumulates some samples and rejects some samples in this area.
+
+In the following example image, the car GameObject is in the center of the Camera's view. This means the car has no relative motion to the Camera.
+
+This example image uses **Speed From Reflected Surface** to accumulate the samples from the car and partially accumulate the samples from the sky. This makes the car and its reflection appear green, and the surface that reflects the sky appear orange.
+
+![](Images/ScreenSpaceReflectionPBR_SpeedRejectionSmooth.gif)
 
 ### Ray-traced
 
@@ -60,7 +93,7 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 | **Quality**                   | Specifies the preset HDRP uses to populate the values of the following nested properties. The options are:<br/>&#8226; **Low**: A preset that emphasizes performance over quality.<br/>&#8226; **Medium**: A preset that balances performance and quality.<br/>&#8226; **High**: A preset that emphasizes quality over performance.<br/>&#8226; **Custom**: Allows you to override each property individually.<br/>This property only appears if you set **Mode** to **Performance**. |
 | **Minimum Smoothness**        | See **Minimum Smoothness** in [Screen-space](#screen-space). |
 | **Smoothness Fade Start**     | See **Smoothness Fade Start** in [Screen-space](#screen-space). |
-| **Max Ray Length**            | Controls the maximum length of reflection rays. The higher this value is, the more resource-intensive ray-traced reflection is if a ray doesn't find an intersection. |
+| **Max Ray Length**            | Controls the maximum length of reflection rays in meters. The higher this value is, the more resource-intensive ray-traced reflection is if a ray doesn't find an intersection. |
 | **Clamp Value**               | Controls the threshold that HDRP uses to clamp the pre-exposed value. This reduces the range of values and makes the reflections more stable to denoise, but reduces quality. |
 | **Full Resolution**           | Enable this feature to increase the ray budget to one ray per pixel, per frame. Disable this feature to decrease the ray budget to one ray per four pixels, per frame.<br/>This property only appears if you set **Mode** to **Performance**. |
 | **Sample Count**              | Controls the number of rays per pixel per frame. Increasing this value increases execution time linearly.<br/>This property only appears if you set **Mode** to **Quality**. |
@@ -78,8 +111,10 @@ To calculate SSR, HDRP reads a color buffer with a blurred mipmap generated duri
 
 If a transparent material has **Receive SSR Transparent** enabled, HDRP always uses the **Approximation** algorithm to calculate SSR, even you select **PBR Accumulation**.
 
-
+When a transparent material has rendering pass set to **Low Resolution**, then **Receive SSR Transparent** can't be selected.
 
 ### Ray-traced reflection
 
 Currently, ray tracing in HDRP does not support [decals](decal.md). This means that, when you use ray-traced reflection, decals do not appear in reflective surfaces.
+
+If a transparent material has **Receive SSR Transparent** enabled, HDRP will evaluate the reflections as smooth.

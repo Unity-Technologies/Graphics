@@ -1,3 +1,6 @@
+using UnityEngine;
+using UnityEngine.Rendering.Universal;
+
 namespace UnityEditor.Rendering.Universal.Internal
 {
     /// <summary>
@@ -22,6 +25,15 @@ namespace UnityEditor.Rendering.Universal
         {
             //Measurements
             public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+        }
+
+        internal static void FeatureHelpBox(string message, MessageType type)
+        {
+            CoreEditorUtils.DrawFixMeBox(message, type, "Open", () =>
+            {
+                Selection.activeObject = UniversalRenderPipeline.asset.scriptableRendererData;
+                GUIUtility.ExitGUI();
+            });
         }
     }
 }

@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(GlobalIllumination))]
+    [CustomEditor(typeof(GlobalIllumination))]
     class GlobalIlluminatorEditor : VolumeComponentWithQualityEditor
     {
         // Shared rasterization / ray tracing parameter
@@ -99,7 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
             base.OnEnable();
         }
 
-        static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of global illumination rays. The higher this value is, the more expensive ray traced global illumination is.");
+        static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of global illumination rays in meters. The higher this value is, the more expensive ray traced global illumination is.");
         static public readonly GUIContent k_FullResolutionSSText = EditorGUIUtility.TrTextContent("Full Resolution", "Controls if the screen space global illumination should be evaluated at half resolution.");
         static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Depth Tolerance", "Controls the tolerance when comparing the depth of two pixels.");
         static public readonly GUIContent k_RayMissFallbackHierarchyText = EditorGUIUtility.TrTextContent("Ray Miss", "Controls the fallback hierarchy for indirect diffuse in case the ray misses.");
@@ -168,7 +168,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportSSGI ?? false)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Screen Space Global illumination.", MessageType.Error, wide: true);
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Screen Space Global illumination.", MessageType.Error,
+                    HDRenderPipelineUI.Expandable.Reflection, "m_RenderPipelineSettings.supportSSGI");
                 return;
             }
 
@@ -231,7 +232,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (tracingMode == RayCastingMode.RayTracing)
                             RayTracingQualityModeGUI();
                         else
-                            EditorGUILayout.HelpBox("The current HDRP Asset does not support the mixed mode which is only available in performance mode.", MessageType.Error, wide: true);
+                            HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support the mixed mode which is only available in performance mode.", MessageType.Error,
+                            HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportedRayTracingMode");
                     }
                     else
                     {

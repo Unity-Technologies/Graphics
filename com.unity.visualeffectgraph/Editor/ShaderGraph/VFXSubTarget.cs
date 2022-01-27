@@ -175,10 +175,22 @@ namespace UnityEditor.VFX
             //Texture used as input of the shaderGraph will be declared by the shaderGraph generation
             //However, if we are sampling a texture (or a mesh), we have to declare them before the VFX code generation.
             //Thus, remove texture used in SG from VFX declaration and let the remainder.
-            var filteredTextureInSG = context.inputSlots.Where(o =>
+            var shaderGraphOutput = context as VFXShaderGraphParticleOutput;
+            if (shaderGraphOutput == null)
+                throw new InvalidOperationException("Unexpected null VFXShaderGraphParticleOutput");
+            var shaderGraphObject = shaderGraphOutput.GetOrRefreshShaderGraphObject();
+            if (shaderGraphObject == null)
+                throw new InvalidOperationException("Unexpected null GetOrRefreshShaderGraphObject");
+            var texureUsedInternallyInSG = shaderGraphObject.textureInfos.Select(o =>
+            {
+                return o.name;
+            });
+            var textureExposedFromSG = context.inputSlots.Where(o =>
             {
                 return VFXExpression.IsTexture(o.property.type);
             }).Select(o => o.property.name);
+
+            var filteredTextureInSG = texureUsedInternallyInSG.Concat(textureExposedFromSG).ToArray();
 
             // Parameter Cbuffer
             VFXCodeGenerator.BuildParameterBuffer(contextData, filteredTextureInSG, out var parameterBuffer);

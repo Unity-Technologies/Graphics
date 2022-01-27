@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(SubSurfaceScattering))]
+    [CustomEditor(typeof(SubSurfaceScattering))]
     class SubSurfaceScatteringEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_RayTracing;
@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!currentAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Ray Tracing.", MessageType.Error, wide: true);
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Ray Tracing.", MessageType.Error, HDRenderPipelineUI.Expandable.Rendering, "m_RenderPipelineSettings.supportRayTracing");
                 return;
             }
 

@@ -123,6 +123,36 @@ float4 SampleTexture2DBicubic(TEXTURE2D_PARAM(tex, smp), float2 coord, float4 te
                            weights[1].x * SAMPLE_TEXTURE2D_LOD(tex, smp, min((ic + float2(offsets[1].x, offsets[1].y) - 0.5) * texSize.zw, maxCoord), 0.0));
 }
 
+float4 SampleTexture2DArrayBicubic(TEXTURE2D_ARRAY_PARAM(tex, smp), float2 coord, float slice, float4 texSize)
+{
+    float2 xy = coord * texSize.xy + 0.5;
+    float2 ic = floor(xy);
+    float2 fc = frac(xy);
+
+    float2 weights[2], offsets[2];
+    BicubicFilter(fc, weights, offsets);
+
+    return weights[0].y * (weights[0].x * SAMPLE_TEXTURE2D_ARRAY(tex, smp, (ic + float2(offsets[0].x, offsets[0].y) - 0.5) * texSize.zw, slice).rgba  +
+                           weights[1].x * SAMPLE_TEXTURE2D_ARRAY(tex, smp, (ic + float2(offsets[1].x, offsets[0].y) - 0.5) * texSize.zw, slice).rgba) +
+           weights[1].y * (weights[0].x * SAMPLE_TEXTURE2D_ARRAY(tex, smp, (ic + float2(offsets[0].x, offsets[1].y) - 0.5) * texSize.zw, slice).rgba  +
+                           weights[1].x * SAMPLE_TEXTURE2D_ARRAY(tex, smp, (ic + float2(offsets[1].x, offsets[1].y) - 0.5) * texSize.zw, slice).rgba);
+}
+
+float4 SampleTexture2DArrayBicubicLOD(TEXTURE2D_ARRAY_PARAM(tex, smp), float2 coord, float slice, float4 texSize, int lod)
+{
+    float2 xy = coord * texSize.xy + 0.5;
+    float2 ic = floor(xy);
+    float2 fc = frac(xy);
+
+    float2 weights[2], offsets[2];
+    BicubicFilter(fc, weights, offsets);
+
+    return weights[0].y * (weights[0].x * SAMPLE_TEXTURE2D_ARRAY_LOD(tex, smp, (ic + float2(offsets[0].x, offsets[0].y) - 0.5) * texSize.zw, slice, lod).rgba  +
+                           weights[1].x * SAMPLE_TEXTURE2D_ARRAY_LOD(tex, smp, (ic + float2(offsets[1].x, offsets[0].y) - 0.5) * texSize.zw, slice, lod).rgba) +
+           weights[1].y * (weights[0].x * SAMPLE_TEXTURE2D_ARRAY_LOD(tex, smp, (ic + float2(offsets[0].x, offsets[1].y) - 0.5) * texSize.zw, slice, lod).rgba  +
+                           weights[1].x * SAMPLE_TEXTURE2D_ARRAY_LOD(tex, smp, (ic + float2(offsets[1].x, offsets[1].y) - 0.5) * texSize.zw, slice, lod).rgba);
+}
+
 #if !defined(SHADER_API_GLES)
 // texSize = (width, height, 1/width, 1/height)
 // texture array version for XR single-pass

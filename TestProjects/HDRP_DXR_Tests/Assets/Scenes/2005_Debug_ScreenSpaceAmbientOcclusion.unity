@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.6719971, g: 0.655691, b: 0.70701516, a: 1}
+  m_IndirectSpecularColor: {r: 0.67199713, g: 0.6556911, b: 0.7070152, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -98,7 +98,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: e6251f6951443e540a21f7615b3f4d67,
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 23f828be21c65fa4ab4f50d91591e4ba,
     type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -157,6 +157,7 @@ MonoBehaviour:
   m_Profile: {fileID: 11400000, guid: 5980e844cd12a154ba80b1b27e71d1a0, type: 2}
   m_StaticLightingSkyUniqueID: 1
   m_StaticLightingCloudsUniqueID: 0
+  m_StaticLightingVolumetricClouds: 0
 --- !u!114 &244782083
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -169,7 +170,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isGlobal: 1
+  m_IsGlobal: 1
   priority: 0
   blendDistance: 0
   weight: 1
@@ -223,6 +224,8 @@ MonoBehaviour:
   fullScreenDebugMode: 0
   lightlayers: 0
   lightingFullScreenDebugMode: 2
+  lightingFullScreenDebugRTASView: 0
+  lightingFullScreenDebugRTASMode: 0
 --- !u!4 &492201402
 Transform:
   m_ObjectHideFlags: 0
@@ -243,6 +246,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 2
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1734518174987435543, guid: 331e07d695ca55a4081f1b96408bb7a0,
@@ -371,12 +375,14 @@ PrefabInstance:
       value: 70005818916701
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_AddedGameObjects: []
   m_SourcePrefab: {fileID: 100100000, guid: 331e07d695ca55a4081f1b96408bb7a0, type: 3}
 --- !u!1001 &1591321125
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 2
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 6117102520564098274, guid: 0c9fcf2263b163643b5bc77eddcf9135,
@@ -440,12 +446,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_AddedGameObjects: []
   m_SourcePrefab: {fileID: 100100000, guid: 0c9fcf2263b163643b5bc77eddcf9135, type: 3}
 --- !u!1001 &7793836365404148222
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 2
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 6312840580185104537, guid: fb318ff2eb4d4824184e1ed9635266f6,
@@ -509,4 +517,5 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_AddedGameObjects: []
   m_SourcePrefab: {fileID: 100100000, guid: fb318ff2eb4d4824184e1ed9635266f6, type: 3}

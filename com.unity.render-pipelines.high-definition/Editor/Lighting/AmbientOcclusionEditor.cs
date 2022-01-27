@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(AmbientOcclusion))]
+    [CustomEditor(typeof(AmbientOcclusion))]
     class AmbientOcclusionEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_Intensity;
@@ -72,7 +72,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportSSAO ?? false)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Ambient Occlusion.", MessageType.Error, wide: true);
+                HDEditorUtils.QualitySettingsHelpBox("The current HDRP Asset does not support Ambient Occlusion.", MessageType.Error,
+                    HDRenderPipelineUI.Expandable.Lighting, "m_RenderPipelineSettings.supportSSAO");
                 return;
             }
 

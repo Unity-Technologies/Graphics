@@ -30,12 +30,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 01247c41aba2d4bc0ad94a11af8bdb11, type: 2}
   - {fileID: 11400000, guid: 04618ff2d33c0432a81d00fdee3fae55, type: 2}
   - {fileID: 11400000, guid: eae387d1d2a20a946ae2441e0319f1a0, type: 2}
+  - {fileID: 11400000, guid: ab4527fe9ad5ef949bffe9447fabcfa2, type: 2}
   m_DefaultRendererIndex: 3
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 1
   m_OpaqueDownsampling: 1
   m_SupportsTerrainHoles: 1
-  m_StoreActionsOptimization: 0
   m_SupportsHDR: 1
   m_MSAA: 4
   m_RenderScale: 1
@@ -60,6 +60,8 @@ MonoBehaviour:
   m_ShadowDepthBias: 1
   m_ShadowNormalBias: 1
   m_SoftShadowsSupported: 1
+  m_ConservativeEnclosingSphere: 0
+  m_NumIterationsEnclosingSphere: 64
   m_AdditionalLightsCookieResolution: 2048
   m_AdditionalLightsCookieFormat: 3
   m_UseSRPBatcher: 1
@@ -67,6 +69,7 @@ MonoBehaviour:
   m_MixedLightingSupported: 1
   m_SupportsLightLayers: 0
   m_DebugLevel: 0
+  m_StoreActionsOptimization: 0
   m_UseAdaptivePerformance: 1
   m_ColorGradingMode: 0
   m_ColorGradingLutSize: 32

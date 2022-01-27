@@ -36,6 +36,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         protected VisualElement m_GraphSettingsContainer;
         protected VisualElement m_NodeSettingsContainer;
 
+        List<IPropertyDrawer> m_AllActivePropertyDrawers = new List<IPropertyDrawer>();
+
         Label m_MaxItemsMessageLabel;
 
         void RegisterPropertyDrawer(Type newPropertyDrawerType)
@@ -131,6 +133,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         public void Update()
         {
+            // Tear down all existing active property drawers, everything is getting rebuilt
+            foreach (IPropertyDrawer propDrawer in m_AllActivePropertyDrawers)
+                propDrawer.DisposePropertyDrawer();
+            m_AllActivePropertyDrawers.Clear();
+
             ShowGraphSettings_Internal(m_GraphSettingsContainer);
 
             m_NodeSettingsContainer.Clear();
@@ -191,7 +198,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             IInspectable inspectable,
             IPropertyDrawer propertyDrawerToUse = null)
         {
-            InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable, TriggerInspectorUpdate, propertyDrawerToUse);
+            InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable, TriggerInspectorUpdate, m_AllActivePropertyDrawers, propertyDrawerToUse);
         }
 
         internal void HandleGraphChanges()
@@ -222,11 +229,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         // which for SG, is a representation of the settings in GraphData
         protected virtual void ShowGraphSettings_Internal(VisualElement contentContainer)
         {
+            contentContainer.Clear();
+
             var graphEditorView = ParentView.GetFirstAncestorOfType<GraphEditorView>();
             if (graphEditorView == null)
                 return;
 
-            contentContainer.Clear();
             DrawInspectable(contentContainer, (IInspectable)ParentView, m_graphSettingsPropertyDrawer);
             contentContainer.MarkDirtyRepaint();
         }
@@ -239,6 +247,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             VisualElement outputVisualElement,
             IInspectable inspectable,
             Action propertyChangeCallback,
+            List<IPropertyDrawer> allPropertyDrawerInstances,
             IPropertyDrawer propertyDrawerToUse = null)
         {
             var dataObject = inspectable.GetObjectToInspect();
@@ -257,16 +266,23 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
                 var propertyType = propertyInfo.GetGetMethod(true).Invoke(inspectable, new object[] { }).GetType();
 
-                if (IsPropertyTypeHandled(propertyDrawerList, propertyType, out var propertyDrawerTypeToUse))
+                var propertyDrawerInstance = propertyDrawerToUse;
+                if (propertyDrawerInstance == null)
                 {
-                    var propertyDrawerInstance = propertyDrawerToUse ??
-                        (IPropertyDrawer)Activator.CreateInstance(propertyDrawerTypeToUse);
+                    if (IsPropertyTypeHandled(propertyDrawerList, propertyType, out var propertyDrawerTypeToUse))
+                        propertyDrawerInstance = (IPropertyDrawer)Activator.CreateInstance(propertyDrawerTypeToUse);
+                }
+
+                if (propertyDrawerInstance != null)
+                {
                     // Assign the inspector update delegate so any property drawer can trigger an inspector update if it needs it
                     propertyDrawerInstance.inspectorUpdateDelegate = propertyChangeCallback;
                     // Supply any required data to this particular kind of property drawer
                     inspectable.SupplyDataToPropertyDrawer(propertyDrawerInstance, propertyChangeCallback);
                     var propertyGUI = propertyDrawerInstance.DrawProperty(propertyInfo, dataObject, attribute);
                     outputVisualElement.Add(propertyGUI);
+                    if (allPropertyDrawerInstances != null)
+                        allPropertyDrawerInstances.Add(propertyDrawerInstance);
                 }
             }
         }

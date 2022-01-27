@@ -49,5 +49,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 (string)propertyInfo.GetValue(actualObject),
                 attribute.labelName);
         }
+
+        void IPropertyDrawer.DisposePropertyDrawer() { }
     }
 }

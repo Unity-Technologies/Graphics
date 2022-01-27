@@ -32,7 +32,6 @@ namespace UnityEngine.Experimental.Rendering
             public int minControllerSubdivLevel;
             public int maxControllerSubdivLevel;
             public int maxSubdivLevelInsideVolume;
-            public float geometryDistanceOffset;
         }
 
         public class GPUSubdivisionContext : IDisposable
@@ -416,6 +415,8 @@ namespace UnityEngine.Experimental.Rendering
 
             cmd.WaitAllAsyncReadbackRequests();
             Graphics.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+            CommandBufferPool.Release(cmd);
         }
 
         static bool RastersizeGeometry(CommandBuffer cmd, ProbeReferenceVolume.Volume cellVolume, GPUSubdivisionContext ctx,
@@ -619,7 +620,6 @@ namespace UnityEngine.Experimental.Rendering
                         minControllerSubdivLevel = minSubdiv,
                         maxControllerSubdivLevel = maxSubdiv,
                         maxSubdivLevelInsideVolume = subdivLevel,
-                        geometryDistanceOffset = kp.component.geometryDistanceOffset,
                     });
                 }
 

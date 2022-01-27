@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.UI
 {
     abstract class VFXAbstractProvider<T> : VFXFilterWindow.IProvider
     {
-        Action<T, Vector2> m_onSpawnDesc;
+        readonly Action<T, Vector2> m_onSpawnDesc;
 
         protected class VFXBlockElement : VFXFilterWindow.Element
         {
@@ -18,10 +18,7 @@ namespace UnityEditor.VFX.UI
             public VFXBlockElement(int level, T desc, string category, string name)
             {
                 this.level = level;
-                var str = name;
-                if (!string.IsNullOrEmpty(category))
-                    str += " (" + category.Replace("/", " ") + ") ";
-                content = new GUIContent(str /*, VFXEditor.styles.GetIcon(desc.Icon)*/);
+                content = new GUIContent(name /*, VFXEditor.styles.GetIcon(desc.Icon)*/);
                 descriptor = desc;
             }
         }
@@ -116,7 +113,7 @@ namespace UnityEditor.VFX.UI
                 this.newBlock = newBlock;
             }
 
-            public override string category { get { return newBlock.info.category; } }
+            public override string category { get { return newBlock.category; } }
             public override string name { get { return newBlock.name; } }
         }
 
@@ -132,7 +129,7 @@ namespace UnityEditor.VFX.UI
             public override string name { get { return item.name; } }
         }
 
-        VFXContextController m_ContextController;
+        readonly VFXContextController m_ContextController;
         public VFXBlockProvider(VFXContextController context, Action<Descriptor, Vector2> onAddBlock) : base(onAddBlock)
         {
             m_ContextController = context;

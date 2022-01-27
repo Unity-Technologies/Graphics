@@ -80,15 +80,6 @@ namespace UnityEngine.Rendering.Universal
         PerPixel = 1,
     }
 
-    public enum ShaderVariantLogLevel
-    {
-        Disabled,
-        [InspectorName("Only URP Shaders")]
-        OnlyUniversalRPShaders,
-        [InspectorName("All Shaders")]
-        AllShaders
-    }
-
     [Obsolete("PipelineDebugLevel is unused and has no effect.", false)]
     public enum PipelineDebugLevel
     {
@@ -137,15 +128,29 @@ namespace UnityEngine.Rendering.Universal
         UsePipelineSettings = 2,
     }
 
+    /// <summary>
+    /// Defines the upscaling filter selected by the user the universal render pipeline asset.
+    /// </summary>
+    public enum UpscalingFilterSelection
+    {
+        [InspectorName("Automatic")]
+        Auto,
+        [InspectorName("Bilinear")]
+        Linear,
+        [InspectorName("Nearest-Neighbor")]
+        Point
+    }
+
     [ExcludeFromPreset]
+    [URPHelpURL("universalrp-asset")]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 9;
-        [SerializeField] int k_AssetPreviousVersion = 9;
+        [SerializeField] int k_AssetVersion = 10;
+        [SerializeField] int k_AssetPreviousVersion = 10;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
@@ -166,6 +171,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsHDR = true;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
+        [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
         // TODO: Shader Quality Tiers
 
         // Main directional light Settings
@@ -227,7 +233,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_MaxPixelLights = 0;
         [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._256;
 
-        [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
         [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
 
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
@@ -379,8 +384,10 @@ namespace UnityEngine.Rendering.Universal
                 return null;
             }
 
+            DestroyRenderers();
+            var pipeline = new UniversalRenderPipeline(this);
             CreateRenderers();
-            return new UniversalRenderPipeline(this);
+            return pipeline;
         }
 
         void DestroyRenderers()
@@ -421,7 +428,14 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateRenderers()
         {
-            DestroyRenderers();
+            if (m_Renderers != null)
+            {
+                for (int i = 0; i < m_Renderers.Length; ++i)
+                {
+                    if (m_Renderers[i] != null)
+                        Debug.LogError($"Creating renderers but previous instance wasn't properly destroyed: m_Renderers[{i}]");
+                }
+            }
 
             if (m_Renderers == null || m_Renderers.Length != m_RendererDataList.Length)
                 m_Renderers = new ScriptableRenderer[m_RendererDataList.Length];
@@ -509,7 +523,10 @@ namespace UnityEngine.Rendering.Universal
 
             // RendererData list differs from RendererList. Create RendererList.
             if (m_Renderers == null || m_Renderers.Length < m_RendererDataList.Length)
+            {
+                DestroyRenderers();
                 CreateRenderers();
+            }
 
             // This renderer data is outdated or invalid, we recreate the renderer
             // so we construct all render passes with the updated data
@@ -658,6 +675,17 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_RenderScale; }
             set { m_RenderScale = ValidateRenderScale(value); }
+        }
+
+        /// <summary>
+        /// Returns the upscaling filter desired by the user
+        /// Note: Filter selections differ from actual filters in that they may include "meta-filters" such as
+        ///       "Automatic" which resolve to an actual filter at a later time.
+        /// </summary>
+        public UpscalingFilterSelection upscalingFilter
+        {
+            get { return m_UpscalingFilter; }
+            set { m_UpscalingFilter = value; }
         }
 
         public LightRenderingMode mainLightRenderingMode
@@ -865,12 +893,6 @@ namespace UnityEngine.Rendering.Universal
             get { return m_SupportsLightLayers; }
         }
 
-        public ShaderVariantLogLevel shaderVariantLogLevel
-        {
-            get { return m_ShaderVariantLogLevel; }
-            set { m_ShaderVariantLogLevel = value; }
-        }
-
         /// <summary>
         /// Returns the selected update mode for volumes.
         /// </summary>
@@ -918,13 +940,20 @@ namespace UnityEngine.Rendering.Universal
             set { m_UseAdaptivePerformance = value; }
         }
 
+        /// <summary>
+        /// Set to true to enable a conservative method for calculating the size and position of the minimal enclosing sphere around the frustum cascade corner points for shadow culling.
+        /// </summary>
         public bool conservativeEnclosingSphere
         {
             get { return m_ConservativeEnclosingSphere; }
             set { m_ConservativeEnclosingSphere = value; }
         }
 
-        public int numItertionsEnclosingSphere
+        /// <summary>
+        /// Set the number of iterations to reduce the cascade culling enlcosing sphere to be closer to the absolute minimun enclosing sphere, but will also require more CPU computation for increasing values.
+        /// This parameter is used only when conservativeEnclosingSphere is set to true. Default value is 64.
+        /// </summary>
+        public int numIterationsEnclosingSphere
         {
             get { return m_NumIterationsEnclosingSphere; }
             set { m_NumIterationsEnclosingSphere = value; }
@@ -1155,6 +1184,12 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetVersion = 9;
             }
 
+            if (k_AssetVersion < 10)
+            {
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 10;
+            }
+
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
@@ -1191,6 +1226,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 // The added feature was reverted, we keep this version to avoid breakage in case somebody already has version 7
                 asset.k_AssetPreviousVersion = 9;
+            }
+
+            if (asset.k_AssetPreviousVersion < 10)
+            {
+                UniversalRenderPipelineGlobalSettings.Ensure().shaderVariantLogLevel = (Rendering.ShaderVariantLogLevel) asset.m_ShaderVariantLogLevel;
+                asset.k_AssetPreviousVersion = 10;
             }
 
             EditorUtility.SetDirty(asset);

@@ -36,24 +36,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
 
-            TextureHandle result;
+            // Trace the signal
+            var traceResult = TraceAO(renderGraph, hdCamera, depthBuffer, normalBuffer, rayCountTexture, shaderVariablesRaytracing);
 
-            if (GetRayTracingState())
-            {
-                // Trace the signal
-                var traceResult = TraceAO(renderGraph, hdCamera, depthBuffer, normalBuffer, rayCountTexture, shaderVariablesRaytracing);
+            // Denoise if required
+            TextureHandle denoisedAO = DenoiseAO(renderGraph, hdCamera, traceResult, depthBuffer, normalBuffer, motionVectors, historyValidationBuffer);
 
-                // Denoise if required
-                result = DenoiseAO(renderGraph, hdCamera, traceResult, depthBuffer, normalBuffer, motionVectors, historyValidationBuffer);
-
-                // Compose the result to be done
-                result = ComposeAO(renderGraph, hdCamera, result);
-            }
-            else
-            {
-                result = renderGraph.defaultResources.blackTextureXR;
-            }
-            return result;
+            // Compose the result to be done
+            return ComposeAO(renderGraph, hdCamera, denoisedAO);
         }
 
         struct TraceAmbientOcclusionResult
@@ -114,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Other parameters
                 passData.raytracingCB = shaderVariablesRaytracing;
                 passData.aoShaderRT = m_GlobalSettings.renderPipelineRayTracingResources.aoRaytracingRT;
-                passData.rayTracingAccelerationStructure = RequestAccelerationStructure();
+                passData.rayTracingAccelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();
 
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);

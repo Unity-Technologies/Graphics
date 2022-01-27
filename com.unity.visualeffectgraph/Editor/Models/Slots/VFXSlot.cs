@@ -606,9 +606,7 @@ namespace UnityEditor.VFX
                 var owner = this.owner;
                 if (owner != null)
                 {
-                    int index = owner.GetSlotIndex(this);
-                    owner.RemoveSlot(this);
-                    owner.AddSlot(newSlot, index);
+                    owner.ReplaceSlot(this, newSlot);
                 }
             }
             else

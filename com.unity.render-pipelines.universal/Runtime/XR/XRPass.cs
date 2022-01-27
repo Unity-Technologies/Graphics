@@ -38,6 +38,7 @@ namespace UnityEngine.Rendering.Universal
         internal readonly Rect viewport;
         internal readonly Mesh occlusionMesh;
         internal readonly int textureArraySlice;
+        internal readonly Vector2 eyeCenterUV;
 
         internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int dstSlice)
         {
@@ -46,6 +47,8 @@ namespace UnityEngine.Rendering.Universal
             viewport = vp;
             occlusionMesh = null;
             textureArraySlice = dstSlice;
+
+            eyeCenterUV = ComputeEyeCenterUV(proj);
         }
 
         internal XRView(XRDisplaySubsystem.XRRenderPass renderPass, XRDisplaySubsystem.XRRenderParameter renderParameter)
@@ -61,6 +64,18 @@ namespace UnityEngine.Rendering.Universal
             viewport.width  *= renderPass.renderTargetDesc.width;
             viewport.y      *= renderPass.renderTargetDesc.height;
             viewport.height *= renderPass.renderTargetDesc.height;
+
+            eyeCenterUV = ComputeEyeCenterUV(projMatrix);
+        }
+
+        private static Vector2 ComputeEyeCenterUV(Matrix4x4 proj)
+        {
+            var projectionParameters = proj.decomposeProjection;
+            float left = Math.Abs(projectionParameters.left);
+            float right = Math.Abs(projectionParameters.right);
+            float top = Math.Abs(projectionParameters.top);
+            float bottom = Math.Abs(projectionParameters.bottom);
+            return new Vector2(left / (right + left), top / (top + bottom));
         }
     }
 
@@ -434,6 +449,26 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
             }
+        }
+
+        // Take a point that is center-relative (0.5, 0.5) and modify it to be placed relative to the view's center instead,
+        // respecting the asymmetric FOV (if it is used)
+        internal Vector4 ApplyXRViewCenterOffset(Vector2 center)
+        {
+            Vector4 result = Vector4.zero;
+            float centerDeltaX = 0.5f - center.x;
+            float centerDeltaY = 0.5f - center.y;
+
+            result.x = views[0].eyeCenterUV.x - centerDeltaX;
+            result.y = views[0].eyeCenterUV.y - centerDeltaY;
+            if (singlePassEnabled)
+            {
+                // With single-pass XR, we need to add the data for the 2nd view
+                result.z = views[1].eyeCenterUV.x - centerDeltaX;
+                result.w = views[1].eyeCenterUV.y - centerDeltaY;
+            }
+
+            return result;
         }
 
         // Store array to avoid allocating every frame

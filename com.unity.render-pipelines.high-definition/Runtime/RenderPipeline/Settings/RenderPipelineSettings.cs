@@ -101,10 +101,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportRuntimeAOVAPI = false,
                 supportDitheringCrossFade = true,
                 supportTerrainHole = false,
+                supportWater = false,
+                waterSimulationResolution = WaterSimulationResolution.Medium128,
                 planarReflectionResolution = new PlanarReflectionAtlasResolutionScalableSetting(new[] { PlanarReflectionAtlasResolution.Resolution256,
                                                                                                         PlanarReflectionAtlasResolution.Resolution1024,
-                                                                                                        PlanarReflectionAtlasResolution.Resolution2048 },
-                    ScalableSettingSchemaId.With3Levels),
+                                                                                                        PlanarReflectionAtlasResolution.Resolution2048 }, ScalableSettingSchemaId.With3Levels),
                 lightLoopSettings = GlobalLightLoopSettings.NewDefault(),
                 hdShadowInitParams = HDShadowInitParameters.NewDefault(),
                 decalSettings = GlobalDecalSettings.NewDefault(),
@@ -122,6 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
                 supportProbeVolume = false,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
+                supportProbeVolumeStreaming = false,
                 probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
             return settings;
@@ -181,6 +183,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportVolumetricClouds;
         /// <summary>Support light layers.</summary>
         public bool supportLightLayers;
+        /// <summary>Support Water Surfaces.</summary>
+        public bool supportWater;
+        /// <summary>Water simulation resolution</summary>
+        public WaterSimulationResolution waterSimulationResolution;
+
         /// <summary>Name for light layer 0.</summary>
         public string lightLayerName0
         {
@@ -336,6 +343,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportProbeVolume;
         /// <summary>Support Probe Volumes.</summary>
         public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
+        /// <summary>Support Streaming for Probe Volumes.</summary>
+        public bool supportProbeVolumeStreaming;
         /// <summary>Probe Volumes SH Bands.</summary>
         public ProbeVolumeSHBands probeVolumeSHBands;
 

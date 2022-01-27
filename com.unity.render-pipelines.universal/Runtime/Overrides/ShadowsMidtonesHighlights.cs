@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("End point of the transition between midtones and highlights.")]
         public MinFloatParameter highlightsEnd = new MinFloatParameter(1f, 0f);
 
+        /// <inheritdoc/>
         public bool IsActive()
         {
             var defaultState = new Vector4(1f, 1f, 1f, 0f);
@@ -36,6 +37,7 @@ namespace UnityEngine.Rendering.Universal
                 || highlights != defaultState;
         }
 
+        /// <inheritdoc/>
         public bool IsTileCompatible() => true;
     }
 }

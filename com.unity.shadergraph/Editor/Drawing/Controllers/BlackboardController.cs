@@ -174,6 +174,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             switch (shaderInputToCopy)
             {
                 case AbstractShaderProperty property:
+
                     var copiedProperty = (AbstractShaderProperty)graphData.AddCopyOfShaderInput(property, insertIndex);
                     if (copiedProperty != null) // some property types cannot be duplicated (unknown types)
                     {
@@ -193,11 +194,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
 
                 case ShaderKeyword shaderKeyword:
+                    // InsertIndex gets passed in relative to the blackboard position of an item overall,
+                    // and not relative to the array sizes of the properties/keywords/dropdowns
+                    var keywordInsertIndex = insertIndex - graphData.properties.Count();
+
                     // Don't duplicate built-in keywords within the same graph
                     if (shaderKeyword.isBuiltIn && graphData.keywords.Any(p => p.referenceName == shaderInputToCopy.referenceName))
                         return;
 
-                    var copiedKeyword = (ShaderKeyword)graphData.AddCopyOfShaderInput(shaderKeyword, insertIndex);
+                    var copiedKeyword = (ShaderKeyword)graphData.AddCopyOfShaderInput(shaderKeyword, keywordInsertIndex);
 
                     // Update the keyword nodes that depends on the copied node
                     foreach (var node in dependentNodeList)
@@ -213,7 +218,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
 
                 case ShaderDropdown shaderDropdown:
-                    var copiedDropdown = (ShaderDropdown)graphData.AddCopyOfShaderInput(shaderDropdown, insertIndex);
+                    // InsertIndex gets passed in relative to the blackboard position of an item overall,
+                    // and not relative to the array sizes of the properties/keywords/dropdowns
+                    var dropdownInsertIndex = insertIndex - graphData.properties.Count() - graphData.keywords.Count();
+
+                    var copiedDropdown = (ShaderDropdown)graphData.AddCopyOfShaderInput(shaderDropdown, dropdownInsertIndex);
 
                     // Update the dropdown nodes that depends on the copied node
                     foreach (var node in dependentNodeList)
@@ -404,7 +413,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         BlackboardCategoryController m_DefaultCategoryController = null;
         Dictionary<string, BlackboardCategoryController> m_BlackboardCategoryControllers = new Dictionary<string, BlackboardCategoryController>();
 
-        SGBlackboard m_Blackboard;
+        protected SGBlackboard m_Blackboard;
 
         internal SGBlackboard blackboard
         {
@@ -457,7 +466,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     propertyTypesOrder.isKeyword = false;
                     propertyTypesOrder.deprecatedPropertyName = name;
                     propertyTypesOrder.version = ColorShaderProperty.deprecatedVersion;
-                    ViewModel.propertyNameToAddActionMap.Add("Color (Deprecated)", AddShaderInputAction.AddDeprecatedPropertyAction(propertyTypesOrder));
+                    ViewModel.propertyNameToAddActionMap.Add($"Color (Legacy v0)", AddShaderInputAction.AddDeprecatedPropertyAction(propertyTypesOrder));
                     ViewModel.propertyNameToAddActionMap.Add(name, AddShaderInputAction.AddPropertyAction(shaderInputType));
                 }
                 else
