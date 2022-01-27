@@ -72,6 +72,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Use this method to assign the shaders that will be used to render occlusion mesh for each XRPass and the final mirror view.
         /// </summary>
+        /// <param name="passAllocator"></param>
         /// <param name="occlusionMeshPS"></param>
         /// <param name="mirrorViewPS"></param>
         public static void Initialize(Func<XRPassCreateInfo, XRPass> passAllocator, Shader occlusionMeshPS, Shader mirrorViewPS)

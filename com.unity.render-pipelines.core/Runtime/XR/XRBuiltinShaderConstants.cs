@@ -7,7 +7,9 @@ namespace UnityEngine.Experimental.Rendering
     /// </summary>
     public static class XRBuiltinShaderConstants
     {
-        // References to builtin shader constants
+        /// <summary>
+        /// Cached unique id for unity_StereoCameraProjection
+        /// </summary>
         static public readonly int unity_StereoCameraProjection = Shader.PropertyToID("unity_StereoCameraProjection");
 
         /// <summary>
