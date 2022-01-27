@@ -787,8 +787,9 @@ namespace UnityEngine.Rendering.Universal
             bool isSceneViewCamera = (camera.cameraType == CameraType.SceneView);
             float renderScale = isSceneViewCamera ? 1.0f : cameraData.renderScale;
 
+            cameraData.hdrColorBufferFormat = asset ? asset.hdrColorBufferFormat : HDRColorBufferFormat.Default;
             cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, renderScale,
-                cameraData.isHdrEnabled, asset.hdrColorBufferFormat, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
+                cameraData.isHdrEnabled, cameraData.hdrColorBufferFormat, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
         }
 
         /// <summary>

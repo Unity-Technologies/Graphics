@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.Universal
         public float renderScale;
         internal ImageScalingMode imageScalingMode;
         internal ImageUpscalingFilter upscalingFilter;
-        public HDRColorBufferFormat hdrColorBufferFormat;
+        internal HDRColorBufferFormat hdrColorBufferFormat;
         public CameraType cameraType;
         public bool clearDepth;
         public bool isDefaultViewport;

@@ -579,7 +579,6 @@ namespace UnityEngine.Rendering.Universal
             Clear(CameraRenderType.Base);
             m_ActiveRenderPassQueue.Clear();
 
-            // TODO: should the asset be passed in to break deps? Maybe we can then rely on the asset, an no need to duplicate state here.
             if (UniversalRenderPipeline.asset)
             {
                 m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;

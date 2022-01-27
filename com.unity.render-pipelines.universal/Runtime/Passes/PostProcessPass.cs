@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 
@@ -12,7 +11,7 @@ namespace UnityEngine.Rendering.Universal
     }
 }
 
-namespace UnityEngine.Rendering.Universal.Internal
+namespace UnityEngine.Rendering.Universal
 {
     // TODO: TAA
     // TODO: Motion blur
