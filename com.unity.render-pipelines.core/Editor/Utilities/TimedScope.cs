@@ -37,7 +37,9 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>
-        /// Obtains a <see cref="TimedScope"/>, the pointer must points to a valid memory location for a double, not being null is not enough
+        /// Obtains a <see cref="TimedScope"/>.
+        /// 
+        /// Safety: <paramref name="durationMsPtr"/> must be a non-null pointer to a valid memory location for a double.
         /// </summary>
         /// <param name="durationMsPtr">The pointer to the <see cref="double"/> to fill with the duration</param>
         /// <returns>A <see cref="TimedScope"/></returns>
