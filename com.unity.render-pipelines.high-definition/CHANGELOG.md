@@ -67,6 +67,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where APV cells were not populated properly when probe volumes have rotations
 - Fixed issue where changes to APV baking set lists were not saved.
 - Fixed Correlated Color Temperature not being applied in Player builds for Enlighten realtime GI lights (case 1370438);
+- Fixed artifacts on gpu light culling when the frustum near and far are very spread out (case 1386436)
+- Fixed missing unit in ray tracing related tooltips and docs (case 1397491).
 - Fixed errors spamming when in player mode due to ray tracing light cluster debug view (case 1390471).
 
 ## [14.0.0] - 2021-11-17
@@ -121,6 +123,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRP build issues with DOTS_INSTANCING_ON shader variant.
 - Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
 - Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
+- Fixed NullReferenceException when opening a Volume Component with a Diffusion Profile with any inspector.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
