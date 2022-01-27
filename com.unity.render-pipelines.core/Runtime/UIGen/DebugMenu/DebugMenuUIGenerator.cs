@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using System.Xml.Linq;
 using JetBrains.Annotations;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -171,11 +172,20 @@ namespace UnityEngine.Rendering.UIGen
             Parameters parameters,
             [DisallowNull] UIDefinitionPropertyCategoryIndex index,
             [DisallowNull] Dictionary<UIDefinition.Property, UIImplementationIntermediateDocuments> intermediateDocuments,
-            [NotNullWhen(true)] out XmlDocument visualTreeAsset,
+            [NotNullWhen(true)] out XDocument visualTreeAsset,
             [NotNullWhen(false)] out Exception error
         )
         {
-            visualTreeAsset = new XmlDocument();
+            var document = XDocument.Parse(@"<?xml version=""1.0"" encoding=""utf-8""?>
+                <engine:UXML
+            xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
+            xmlns:engine=""UnityEngine.UIElements""
+            xmlns:editor=""UnityEditor.UIElements""
+            xsi:noNamespaceSchemaLocation=""../../UIElementsSchema/UIElements.xsd""
+                >
+
+                </engine:UXML>");
+            visualTreeAsset =document;
             error = default;
             return true;
         }

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Xml;
+using System.Xml.Linq;
 using JetBrains.Annotations;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -11,7 +12,7 @@ namespace UnityEngine.Rendering.UIGen
     {
         public static bool From(
             [DisallowNull] string identifier,
-            [DisallowNull] XmlDocument visualTree,
+            [DisallowNull] XDocument visualTree,
             [DisallowNull] CSharpSyntaxTree runtimeCode,
             [NotNullWhen(true)] out UIImplementationDocuments documents,
             [NotNullWhen(false)] out Exception error
@@ -23,12 +24,12 @@ namespace UnityEngine.Rendering.UIGen
         }
 
         string m_Identifier;
-        XmlDocument m_Uxml;
+        XDocument m_Uxml;
         CSharpSyntaxTree m_RuntimeCode;
 
         UIImplementationDocuments(
             [DisallowNull] string identifier,
-            [DisallowNull] XmlDocument uxml,
+            [DisallowNull] XDocument uxml,
             [DisallowNull] CSharpSyntaxTree runtimeCode
         )
         {
@@ -54,7 +55,7 @@ namespace UnityEngine.Rendering.UIGen
                 Directory.CreateDirectory(Path.GetDirectoryName(uxmlPath));
                 Directory.CreateDirectory(Path.GetDirectoryName(runtimeCodePath));
 
-                File.WriteAllText(uxmlPath, m_Uxml.OuterXml);
+                File.WriteAllText(uxmlPath, m_Uxml.ToString());
                 File.WriteAllText(runtimeCodePath, m_RuntimeCode.ToString());
             }
             catch (Exception e)
