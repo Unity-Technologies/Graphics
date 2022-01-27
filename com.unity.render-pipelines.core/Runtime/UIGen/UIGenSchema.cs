@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.UIGen
             /// <summary>
             /// path from context root to this property, member access separated by `.`
             /// </summary>
-            public string propertyPath { get; }
+            public string propertyPath { get; set; }
         }
 
         public interface IFeatureParameter { }
@@ -281,6 +281,3 @@ namespace UnityEngine.Rendering.UIGen
         }
     }
 }
-
-namespace UnityEngine.Rendering.UIGen
-{ }
