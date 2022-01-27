@@ -482,16 +482,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     uint visOITGBufferLayerIdx = asint(_VisOITGBufferLayerIdx);
                     if (visOITGBufferLayerIdx < listCount)
                     {
-                        uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
-                        uint sortedSampleIndex = visOITGBufferLayerIdx;
-
-                        // Load sorted indices when working with multi-sample lists
-                        if (listCount >= 2)
-                        {
-                            // Load the sorted index that corresponds to the i'th sample
-                            uint sortIndexAddr = sortIndicesBaseAddr + visOITGBufferLayerIdx;
-                            sortedSampleIndex = _OITSortMemoryBuffer[sortIndexAddr];
-                        }
+                        uint sortedSampleIndex = Sorting::GetSortedSampleIndex(visOITGBufferLayerIdx, listCount, listOffset);
 
                         int globalOffset = sortedSampleIndex + listOffset;
                         uint offscreenLightBufferWidth = _DebugViewportSize.xy.x;// (uint)_VBufferOITLightingOffscreenWidth;

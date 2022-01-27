@@ -93,21 +93,11 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     float lastDepthValue;
 #endif
 
-    uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
-
     //int peelLimit = 2;
     float minDepth = 1.0;
     for (uint i = 0; i < listCount; ++i)
     {
-        uint sortedSampleIndex = i;
-
-        // Load sorted indices when working with multi-sample lists
-        if (listCount >= 2)
-        {
-            // Load the sorted index that corresponds to the i'th sample
-            uint sortIndexAddr = sortIndicesBaseAddr + i;
-            sortedSampleIndex = _OITSortMemoryBuffer[sortIndexAddr];
-        }
+        uint sortedSampleIndex = Sorting::GetSortedSampleIndex(i, listCount, listOffset);
 
         int globalOffset = sortedSampleIndex + listOffset;
         uint2 offscreenCoord = uint2(globalOffset % GetOffscreenLightBufferWidth(), globalOffset / GetOffscreenLightBufferWidth());

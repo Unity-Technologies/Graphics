@@ -310,6 +310,23 @@ namespace Sorting
 
         return sortVariantOffset;
     }
+
+    // Returns the depth sorted sample index associated with the provided list index value
+    uint GetSortedSampleIndex(uint listIndex, uint listCount, uint listOffset)
+    {
+        uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
+        uint sortedSampleIndex = listIndex;
+
+        // Load sorted indices when working with multi-sample lists
+        if (listCount >= 2)
+        {
+            // Load the sorted index that corresponds to the i'th sample
+            uint sortIndexAddr = sortIndicesBaseAddr + listIndex;
+            sortedSampleIndex = _OITSortMemoryBuffer[sortIndexAddr];
+        }
+
+        return sortedSampleIndex;
+    }
 }
 
 #endif
