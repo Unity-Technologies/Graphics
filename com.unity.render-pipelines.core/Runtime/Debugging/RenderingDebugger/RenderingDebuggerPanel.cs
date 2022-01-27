@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering
         public abstract bool IsPostProcessingAllowed { get; }
         public abstract bool IsLightingActive { get; }
 
+        public abstract bool TryGetScreenClearColor(ref Color color);
         private List<VisualElement> m_InstantiatedPanels = new List<VisualElement>();
 
         protected VisualElement CreateVisualElement(string uiDocument)

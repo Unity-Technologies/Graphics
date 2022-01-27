@@ -5,3 +5,9 @@
 .subsetting {
     padding-left: 8px;
 }
+
+/* Controls the amount of space allocated for individual field labels */
+.unity-base-field__label
+{
+    min-width: 200px;
+}

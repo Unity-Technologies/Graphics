@@ -62,6 +62,8 @@ namespace UnityEngine.Rendering
         }
         public bool TryGetPanel<T>(out RenderingDebuggerPanel renderingDebuggerPanel) => TryGetPanel(typeof(T), out renderingDebuggerPanel);
 
+        public List<RenderingDebuggerPanel> GetPanels() => panels;
+
         void OnEnable()
         {
             hideFlags = HideFlags.HideAndDontSave;

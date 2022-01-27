@@ -166,7 +166,9 @@ namespace UnityEngine.Rendering.Universal
         public override bool IsPostProcessingAllowed => !AreAnySettingsActive;
         public override bool IsLightingActive => !AreAnySettingsActive;
 
-        private void OnMaterialAlbedoDebugValidationPresetChanged(ChangeEvent<Enum> evt)
+        public override bool TryGetScreenClearColor(ref Color color) => false;
+
+        private void OnMaterialOverrideChanged(ChangeEvent<Enum> evt)
         {
             var newEnum = (DebugDisplaySettingsMaterial.AlbedoDebugValidationPreset)evt.newValue;
             AlbedoDebugValidationPresetData presetData = m_AlbedoDebugValidationPresetData[(int)newEnum];
