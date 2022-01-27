@@ -4,6 +4,12 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
+void VFXEncodeMotionVector(float2 motionVec, out float4 outBuffer)
+{
+    EncodeMotionVector(motionVec, outBuffer);
+    outBuffer.zw = 1.0f;
+}
+
 float4 VFXTransformPositionWorldToNonJitteredClip(float3 posWS)
 {
 #if VFX_WORLD_SPACE

@@ -219,12 +219,6 @@ float4 VFXApplyFog(float4 color,VFX_VARYING_PS_INPUTS i)
 }
 #endif
 
-void VFXEncodeMotionVector(float2 motionVec, out float4 outBuffer)
-{
-    EncodeMotionVector(motionVec, outBuffer);
-    outBuffer.zw = 1.0f;
-}
-
 bool TryGetElementToVFXBaseIndex(uint elementIndex, out uint elementToVFXBaseIndex)
 {
     elementToVFXBaseIndex = ~0u;
