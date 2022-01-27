@@ -2,19 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using UnityEditor;
-using UnityEditor.VFX;
+
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.Profiling;
 
-
 using UnityObject = UnityEngine.Object;
-using UnityEditor.Graphs;
-using UnityEditor.VFX.Operator;
 
 namespace UnityEditor.VFX
 {
@@ -265,7 +260,15 @@ namespace UnityEditor.VFX
                 if (vfxResource != null)
                 {
                     vfxResource.GetOrCreateGraph().UpdateSubAssets();
-                    vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
+                    try
+                    {
+                        VFXGraph.compilingInEditMode = vfxResource.GetOrCreateGraph().GetCompilationMode() == VFXCompilationMode.Edition;
+                        vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
+                    }
+                    finally
+                    {
+                        VFXGraph.compilingInEditMode = false;
+                    }
                 }
             }
             Profiler.EndSample();
@@ -308,7 +311,7 @@ namespace UnityEditor.VFX
 
         public static bool IsAssetEditable(this VisualEffectResource resource)
         {
-            return AssetDatabase.IsOpenForEdit(resource.asset, StatusQueryOptions.UseCachedIfPossible);
+            return AssetDatabase.IsOpenForEdit((UnityEngine.Object)resource.asset ?? resource.subgraph, StatusQueryOptions.UseCachedIfPossible);
         }
     }
 
@@ -354,6 +357,8 @@ namespace UnityEditor.VFX
 
         public readonly VFXErrorManager errorManager = new VFXErrorManager();
 
+        [NonSerialized]
+        internal static bool compilingInEditMode = false;
 
         public override void OnEnable()
         {
@@ -694,6 +699,11 @@ namespace UnityEditor.VFX
             }
         }
 
+        public VFXCompilationMode GetCompilationMode()
+        {
+            return m_CompilationMode;
+        }
+
         public void SetForceShaderValidation(bool forceShaderValidation, bool reimport = true)
         {
             if (m_ForceShaderValidation != forceShaderValidation)
@@ -933,6 +943,9 @@ namespace UnityEditor.VFX
 
         public void CompileForImport()
         {
+            if (VFXGraph.compilingInEditMode)
+                m_CompilationMode = VFXCompilationMode.Edition;
+
             if (!GetResource().isSubgraph)
             {
                 // Don't pursue the compile if one of the dependency is not yet loaded

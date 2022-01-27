@@ -85,8 +85,6 @@ Nightly_HDRP_2022.1:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/all-hdrp_performancetests.yml#HDRP_PerformanceTests_2022.1
-         rerun: on_new_revision
       -  path: .yamato/all-hdrp_dxr.yml#HDRP_DXR_2022.1
          rerun: on_new_revision
       -  path: .yamato/all-hdrp.yml#HDRP_2022.1
@@ -169,8 +167,6 @@ Nightly_HDRP_CUSTOM-REVISION:
         TEST_FILTER: .*
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
-      -  path: .yamato/all-hdrp_performancetests.yml#HDRP_PerformanceTests_CUSTOM-REVISION
-         rerun: on_new_revision
       -  path: .yamato/all-hdrp_dxr.yml#HDRP_DXR_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/all-hdrp.yml#HDRP_CUSTOM-REVISION

@@ -500,7 +500,9 @@ namespace UnityEditor.VFX.UI
                 m_EventsContainer.Clear();
             m_Events.Clear();
             if (m_DebugUI != null)
-                m_DebugUI.Clear();
+            {
+                m_DebugUI.SetDebugMode(VFXUIDebug.Modes.None, this, true);
+            }
 
             DeleteBoundsRecorder();
             RefreshInitializeErrors();
@@ -522,6 +524,16 @@ namespace UnityEditor.VFX.UI
             {
                 context.controller.model.RefreshErrors(m_View.controller.graph);
             }
+        }
+
+        public void LockUI()
+        {
+            m_BoundsToolContainer.SetEnabled(false);
+        }
+
+        public void UnlockUI()
+        {
+            m_BoundsToolContainer.SetEnabled(true);
         }
 
         public bool Attach(VisualEffect effect = null)
@@ -624,7 +636,6 @@ namespace UnityEditor.VFX.UI
             UpdatePlayRate();
             UpdatePlayButton();
             UpdateBoundsModes();
-            m_ApplyBoundsButton.SetEnabled(m_BoundsRecorder.bounds.Any() && m_View.IsAssetEditable());
             UpdateRecordingButton();
         }
 
