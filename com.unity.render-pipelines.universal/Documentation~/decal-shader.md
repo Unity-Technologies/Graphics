@@ -18,7 +18,7 @@ The pre-built Decal Shader has the following properties:
 
 * **Normal Blend**: this property defines the proportion in which the the normal texture selected in the Normal Map property blends with the normal map of the Material that the decal is projected on. 0: the decal does not affect the Material it's projected on. 1: the normal map of the decal replaces the normal map of the Material it's projected on.
 
-The above properties are defined in the shader graph and therefore would vary for any custom decal shader graph. Some properties however are common to any decal shader. These properties reside in the **Advanced Options** section of the material insepctor. 
+The above properties are defined in the shader graph and therefore would vary for any custom decal shader graph. Some properties however are common to any decal shader. These properties reside in the **Advanced Options** section of the material insepctor.
 
 | __Property__ | __Description__ |
 |---|---|
@@ -31,7 +31,7 @@ The above properties are defined in the shader graph and therefore would vary fo
 ## Making Decal Shaders
 The provided `Shader Graphs/Decal` shader is meant to be simple and doesn’t expose all of the features supported by decals in URP. In order to take full advantage of decals, users can create custom decal shaders using Shader Graph and the decal subtarget.
 
-A main configuration needed for the decal subtarget is to decide which surface properties the decal effects. Enabling these properties will effectively “override” the equivalent Lit Shader property on the surface. 
+A main configuration needed for the decal subtarget is to decide which surface properties the decal effects. Enabling these properties will effectively “override” the equivalent Lit Shader property on the surface.
 
 ![Affecting properties](Images/decal/decal-affect-properties.png)
 

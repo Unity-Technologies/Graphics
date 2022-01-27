@@ -146,4 +146,3 @@ It’s not uncommon to see a large amount of decal projectors in a scene. This m
 In order to keep material counts low, users are encouraged to atlas their decals. Decal atlasing means to layout texture content such that data that isn't neceserally part of the same decal is kept in the same texture. Which part of the atlas to display is then controlled using the per decal UV offset properties on the decal projector.
 
 ![Decal Atlas](Images/decal/decal-atlas.png) </br> *To the left is a decal atlas with four distinct decals. To the right, a decal projector is displaying only one of them. If the matarial has GPU instancing enabled, any instance of these four decals will render in a single instanced draw call.*
-
