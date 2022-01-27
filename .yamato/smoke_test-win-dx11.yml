@@ -41,7 +41,7 @@ Smoke_Test_Win_DX11_playmode_mono_Linear_2019.4:
 Smoke_Test_Win_DX11_editmode_mono_Linear_2019.4:
     name: Smoke_Test on Win_DX11_editmode_mono_Linear on version 2019.4
     agent:
-        type: Unity::VM::GPU
+        type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
     variables:
@@ -174,7 +174,7 @@ Smoke_Test_Win_DX11_playmode_mono_Linear_fast-2019.4:
 Smoke_Test_Win_DX11_editmode_mono_Linear_fast-2019.4:
     name: Smoke_Test on Win_DX11_editmode_mono_Linear on version fast-2019.4
     agent:
-        type: Unity::VM::GPU
+        type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
     variables:
@@ -308,7 +308,7 @@ Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
 Smoke_Test_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
     name: Smoke_Test on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::VM::GPU
+        type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
     variables:
