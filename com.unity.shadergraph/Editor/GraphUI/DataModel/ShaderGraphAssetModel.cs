@@ -1,8 +1,6 @@
 ﻿using System;
 using UnityEditor.Callbacks;
 using UnityEditor.GraphToolsFoundation.Overdrive;
-using UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows;
-using GraphViewEditorWindow = UnityEditor.GraphToolsFoundation.Overdrive.GraphViewEditorWindow;
 
 namespace UnityEditor.ShaderGraph.GraphUI.DataModel
 {
