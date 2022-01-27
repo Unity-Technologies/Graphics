@@ -75,6 +75,9 @@ EditorBuildSettings:
     path: Assets/Scenes/108_UpscalingFilters_Point.unity
     guid: 4634b21ca67fa1b4bab24ec37f196b4b
   - enabled: 1
+    path: Assets/Scenes/108_UpscalingFilters_FSR.unity
+    guid: 39df0b33bc51d7f40b6ee02863991adf
+  - enabled: 1
     path: Assets/Scenes/125_CameraStackingVolumes.unity
     guid: 9173c5ffc1365594aa9b927c4cd84c54
   - enabled: 1

@@ -147,7 +147,9 @@ namespace UnityEngine.Rendering.Universal
         [InspectorName("Bilinear")]
         Linear,
         [InspectorName("Nearest-Neighbor")]
-        Point
+        Point,
+        [InspectorName("FidelityFX Super Resolution 1.0")]
+        FSR
     }
 
     [ExcludeFromPreset]
@@ -181,6 +183,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
+        [SerializeField] bool m_FsrOverrideSharpness = false;
+        [SerializeField] float m_FsrSharpness = FSRUtils.kDefaultSharpnessLinear;
         // TODO: Shader Quality Tiers
 
         // Main directional light Settings
@@ -683,6 +687,28 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_UpscalingFilter; }
             set { m_UpscalingFilter = value; }
+        }
+
+        /// <summary>
+        /// If this property is set to true, the value from the fsrSharpness property will control the intensity of the
+        /// sharpening filter associated with FidelityFX Super Resolution.
+        /// </summary>
+        public bool fsrOverrideSharpness
+        {
+            get { return m_FsrOverrideSharpness; }
+            set { m_FsrOverrideSharpness = value; }
+        }
+
+        /// <summary>
+        /// Controls the intensity of the sharpening filter associated with FidelityFX Super Resolution.
+        /// A value of 1.0 produces maximum sharpness while a value of 0.0 disables the sharpening filter entirely.
+        ///
+        /// Note: This value only has an effect when the fsrOverrideSharpness property is set to true.
+        /// </summary>
+        public float fsrSharpness
+        {
+            get { return m_FsrSharpness; }
+            set { m_FsrSharpness = value; }
         }
 
         public LightRenderingMode mainLightRenderingMode
