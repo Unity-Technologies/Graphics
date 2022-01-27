@@ -86,15 +86,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Renderer is using swapbuffer system
         bool m_UseSwapBuffer;
 
-        // RTHandle alias for _TempTarget
-        RTHandle m_TempTarget = RTHandles.Alloc(ShaderConstants._TempTarget);
-
-        // RTHandle alias for _TempTarget2
-        RTHandle m_TempTarget2 = RTHandles.Alloc(ShaderConstants._TempTarget2);
-
-        // RTHandle used as a temporary target when operations need to be performed before image scaling
-        RTHandle m_ScalingSetupTarget;
-
         // True if there are passes that will run after post processing logic and before final post
         bool m_hasExternalPostPasses;
 
@@ -1422,6 +1413,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
+            bool isScalingSetupUsed = false;
+            bool isUpscaledTextureUsed = false;
+
             bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
 
             if (cameraData.imageScalingMode != ImageScalingMode.None)
@@ -1458,6 +1452,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
 
                     cmd.GetTemporaryRT(ShaderConstants._ScalingSetupTexture, tempRtDesc, FilterMode.Point);
+                    isScalingSetupUsed = true;
+
                     Blit(cmd, m_Source, ShaderConstants._ScalingSetupTexture, m_Materials.scalingSetup);
 
                     cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, ShaderConstants._ScalingSetupTexture);
@@ -1496,12 +1492,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                                 upscaleRtDesc.height = cameraData.pixelHeight;
 
                                 // EASU
-                                RenderingUtils.ReAllocateIfNeeded(ref m_UpscaledTarget, upscaleRtDesc, FilterMode.Point, TextureWrapMode.Clamp, name: "_UpscaledTexture");
+                                cmd.GetTemporaryRT(ShaderConstants._UpscaledTexture, upscaleRtDesc, FilterMode.Point);
+                                isUpscaledTextureUsed = true;
+
                                 var fsrInputSize = new Vector2(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
                                 var fsrOutputSize = new Vector2(cameraData.pixelWidth, cameraData.pixelHeight);
                                 FSRUtils.SetEasuConstants(cmd, fsrInputSize, fsrInputSize, fsrOutputSize);
 
-                                Blit(cmd, sourceRtId, m_UpscaledTarget, m_Materials.easu);
+                                Blit(cmd, sourceRtId, ShaderConstants._UpscaledTexture, m_Materials.easu);
 
                                 // RCAS
                                 // Use the override value if it's available, otherwise use the default.
@@ -1516,7 +1514,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                                 }
 
                                 // Update the source texture for the next operation
-                                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_UpscaledTarget);
+                                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, ShaderConstants._UpscaledTexture);
                                 PostProcessUtils.SetSourceSize(cmd, upscaleRtDesc);
 
                                 break;
@@ -1576,6 +1574,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
                 cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
                 cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
+            }
+
+            if (isUpscaledTextureUsed)
+            {
+                cmd.ReleaseTemporaryRT(ShaderConstants._UpscaledTexture);
+            }
+
+            if (isScalingSetupUsed)
+            {
+                cmd.ReleaseTemporaryRT(ShaderConstants._ScalingSetupTexture);
             }
         }
 
@@ -1703,6 +1711,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _FullscreenProjMat = Shader.PropertyToID("_FullscreenProjMat");
 
             public static readonly int _ScalingSetupTexture = Shader.PropertyToID("_ScalingSetupTexture");
+            public static readonly int _UpscaledTexture = Shader.PropertyToID("_UpscaledTexture");
 
             public static int[] _BloomMipUp;
             public static int[] _BloomMipDown;
