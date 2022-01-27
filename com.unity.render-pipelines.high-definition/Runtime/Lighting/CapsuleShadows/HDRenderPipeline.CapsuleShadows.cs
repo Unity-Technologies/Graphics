@@ -85,6 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
             if (capsuleShadows.enable.value)
             {
+                bool scalePenumbraAlongX = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleShadowMethod == CapsuleShadowMethod.Ellipsoid;
                 var occluders = CapsuleOccluderManager.instance.occluders;
                 foreach (CapsuleOccluder occluder in occluders)
                 {
@@ -100,8 +101,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // align local X with the capsule axis
                         Vector3 localZ = lightDirection;
-                        Vector3 localX = Vector3.Cross(localZ, data.axisDirWS).normalized;
-                        Vector3 localY = Vector3.Cross(localZ, localX);
+                        Vector3 localY = Vector3.Cross(localZ, data.axisDirWS).normalized;
+                        Vector3 localX = Vector3.Cross(localY, localZ);
 
                         // capsule bounds, extended along light direction
                         Vector3 centerRWS = data.centerRWS;
@@ -114,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // expand by max penumbra
                         float penumbraSize = Mathf.Tan(lightHalfAngle) * maxRange;
-                        halfExtentLS.x += penumbraSize;
+                        halfExtentLS.x += scalePenumbraAlongX ? (penumbraSize*(data.offset + data.radius)/data.radius) : penumbraSize;
                         halfExtentLS.y += penumbraSize;
 
                         bbox = new OrientedBBox(new Matrix4x4(
