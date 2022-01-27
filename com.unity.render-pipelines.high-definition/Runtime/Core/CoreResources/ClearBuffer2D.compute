@@ -1,0 +1,19 @@
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+#pragma kernel ClearBuffer2DMain
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+float4 _ClearValue;
+float4 _BufferSize;
+
+RW_TEXTURE2D_X(float4, _Buffer2D);
+
+[numthreads(8, 8, 1)]
+void ClearBuffer2DMain(uint3 dispatchThreadID : SV_DispatchThreadID)
+{
+    if (any(dispatchThreadID.xy >= (uint2)_BufferSize.xy))
+        return;
+
+    _Buffer2D[COORD_TEXTURE2D_X(dispatchThreadID.xy)] = _ClearValue;
+}

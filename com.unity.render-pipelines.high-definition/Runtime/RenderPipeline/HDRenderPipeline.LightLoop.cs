@@ -1066,6 +1066,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public int accumulateSmoothSpeedRejectionSurfaceDebugKernel;
             public int accumulateSmoothSpeedRejectionHitDebugKernel;
 
+            public ComputeShader clearBuffer2DCS;
+            public int clearBuffer2DKernel;
+
             public bool transparentSSR;
             public bool usePBRAlgo;
             public bool accumNeedClear;
@@ -1224,6 +1227,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.accumulateSmoothSpeedRejectionSurfaceDebugKernel = m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel;
                     passData.accumulateSmoothSpeedRejectionHitDebugKernel = m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel;
 
+                    passData.clearBuffer2DCS = m_ClearBuffer2DCS;
+                    passData.clearBuffer2DKernel = m_ClearBuffer2DKernel;
+
                     passData.transparentSSR = transparent;
                     passData.usePBRAlgo = usePBRAlgo;
                     passData.width = hdCamera.actualWidth;
@@ -1288,9 +1294,19 @@ namespace UnityEngine.Rendering.HighDefinition
                             else
                             {
                                 if (data.accumNeedClear || data.debugDisplaySpeed)
-                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccum, ClearFlag.Color, Color.clear);
+                                {
+                                    ctx.cmd.SetComputeTextureParam(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDShaderIDs._Buffer2D, data.ssrAccum);
+                                    ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._ClearValue, Color.clear);
+                                    ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._BufferSize, new Vector4((float)data.width, (float)data.height, 0.0f, 0.0f));
+                                    ctx.cmd.DispatchCompute(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
+                                }
                                 if (data.previousAccumNeedClear || data.debugDisplaySpeed)
-                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
+                                {
+                                    ctx.cmd.SetComputeTextureParam(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDShaderIDs._Buffer2D, data.ssrAccumPrev);
+                                    ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._ClearValue, Color.clear);
+                                    ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._BufferSize, new Vector4((float)data.width, (float)data.height, 0.0f, 0.0f));
+                                    ctx.cmd.DispatchCompute(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
+                                }
 
                                 ctx.cmd.DisableShaderKeyword("SSR_APPROX");
                             }
