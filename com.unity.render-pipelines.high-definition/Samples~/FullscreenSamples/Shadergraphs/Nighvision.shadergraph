@@ -2358,17 +2358,17 @@
     "m_Type": "UnityEditor.Rendering.HighDefinition.CustomColorBufferNode",
     "m_ObjectId": "2a64a078bf91498586af08e4a420502d",
     "m_Group": {
-        "m_Id": "9662ca82f140410bbef882fa2bedb755"
+        "m_Id": ""
     },
     "m_Name": "Custom Color Buffer",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -651.2000732421875,
-            "y": 553.199951171875,
-            "width": 162.800048828125,
-            "height": 78.0
+            "x": -646.6666259765625,
+            "y": 596.0,
+            "width": 163.33331298828126,
+            "height": 78.6666259765625
         }
     },
     "m_Slots": [
@@ -3866,13 +3866,6 @@
         "y": 0.0
     },
     "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.Rendering.HighDefinition.ShaderGraph.HDFullscreenData",
-    "m_ObjectId": "5f1a02f1edc14fbc96804f56e9159450",
-    "m_ShowOnlyHDStencilBits": true
 }
 
 {
@@ -7629,9 +7622,6 @@
     "m_Datas": [
         {
             "m_Id": "54e61a7d8de444b2b05f2748bcb3f083"
-        },
-        {
-            "m_Id": "5f1a02f1edc14fbc96804f56e9159450"
         }
     ],
     "m_CustomEditorGUI": "",

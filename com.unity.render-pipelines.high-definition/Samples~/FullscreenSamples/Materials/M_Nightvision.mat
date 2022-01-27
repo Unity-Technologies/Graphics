@@ -40,8 +40,8 @@ Material:
     - _Blur: 1
     - _Blur_Max: 2
     - _Blur_Min: 0.25
-    - _Brightness: 5
-    - _Depth_Gain: 0.1
+    - _Brightness: 10
+    - _Depth_Gain: 0.05
     - _Depth_Gain_Distance: 20
     - _Desaturation: 1
     - _EaseIn: 10000

@@ -54,6 +54,6 @@ Material:
     - _Color: {r: 1, g: 0.23137257, b: 0, a: 0}
     - _Horizon_Color: {r: 0.24691468, g: 0.25727597, b: 0.38679248, a: 1}
     - _Moon_Tint: {r: 0.79011106, g: 0.75157225, b: 1, a: 0}
-    - _Moonlight_Forward_Direction: {r: -0.19773935, g: -0.21194491, b: 0.95706767, a: 0}
+    - _Moonlight_Forward_Direction: {r: -0.18646094, g: -0.21194491, b: 0.9593288, a: 0}
     - _Zenith_Color: {r: 0.04004982, g: 0.056373566, b: 0.25471696, a: 0}
   m_BuildTextureStacks: []
