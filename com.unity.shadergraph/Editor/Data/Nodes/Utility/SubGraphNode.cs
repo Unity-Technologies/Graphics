@@ -401,9 +401,9 @@ namespace UnityEditor.ShaderGraph
                 List<MaterialSlot> inputs = new List<MaterialSlot>();
                 MaterialSlot found = null;
                 GetInputSlots(inputs);
-                foreach(var input in inputs)
+                foreach (var input in inputs)
                 {
-                    if(input.shaderOutputName == prop.referenceName && input.id != id)
+                    if (input.shaderOutputName == prop.referenceName && input.id != id)
                     {
                         found = input;
                         break;
@@ -536,11 +536,11 @@ namespace UnityEditor.ShaderGraph
                 AddSlot(slot);
                 validNames.Add(id);
 
-                if(found != null)
+                if (found != null)
                 {
                     List<IEdge> edges = new List<IEdge>();
                     owner.GetEdges(found.slotReference, edges);
-                    foreach(var edge in edges)
+                    foreach (var edge in edges)
                     {
                         toFix.Add((edge.outputSlot, slot.slotReference));
                     }
@@ -561,7 +561,7 @@ namespace UnityEditor.ShaderGraph
             // sort slot order to match subgraph property order
             SetSlotOrder(validNames);
 
-            foreach(var (from,to) in toFix)
+            foreach (var (from, to) in toFix)
             {
                 //for whatever reason, in this particular error fix, GraphView will incorrectly either add two edgeViews or none
                 //but it does work correctly if we dont notify GraphView of this added edge. Gross.
