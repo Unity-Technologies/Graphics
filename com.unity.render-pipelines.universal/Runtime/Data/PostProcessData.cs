@@ -6,7 +6,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable]
+    [Serializable, ReloadGroup]
     public class PostProcessData : ScriptableObject
     {
 #if UNITY_EDITOR
@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.Universal
 
 #endif
 
-        [Serializable, ReloadGroup]
+        [Serializable]
         public sealed class ShaderResources
         {
             [Reload("Shaders/PostProcessing/StopNaN.shader")]
