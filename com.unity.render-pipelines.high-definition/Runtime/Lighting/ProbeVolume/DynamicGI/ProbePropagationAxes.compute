@@ -4,15 +4,17 @@
 
 #pragma kernel PropagateLight
 #define GROUP_SIZE 64
-//#pragma enable_d3d11_debug_symbols
+// #pragma enable_d3d11_debug_symbols
+
+#pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
+#pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
 
 
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationSphericalGaussians.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeSphericalHarmonicsLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagation.hlsl"
 
 #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 // Force probe volume bilateral filtering off to speed things up.
@@ -32,6 +34,7 @@
     #define PROPAGATION_AXIS_AMOUNT 26
 #endif
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationBasis.hlsl"
 
 float4 _RayAxis[NEIGHBOR_AXIS_COUNT];
 StructuredBuffer<NeighborAxisLookup> _SortedNeighborAxisLookups;
@@ -44,6 +47,7 @@ int _HitRadianceCacheAxisCount;
 
 float _PropagationContribution;
 float _PropagationSharpness;
+float _Sharpness;
 
 uint _ProbeVolumeDGIResolutionXY;
 uint _ProbeVolumeDGIResolutionX;
@@ -62,6 +66,8 @@ int _ProbeVolumeDGIEngineDataIndex;
 
 float _RangeInFrontOfCamera;
 float _RangeBehindCamera;
+
+float4 _AmbientProbe[SH_PACKED_COEFFICIENT_COUNT];
 
 uint3 ProbeIndexToProbeCoordinatesUint(uint probeIndex)
 {
@@ -175,8 +181,9 @@ SHIncomingIrradiance ProbeVolumeEvaluateIncomingIrradiance(float3 positionWS, ui
     ProbeVolumeSphericalHarmonicsL2 coefficients;
     ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL2(posInput, normalWSForBias, viewDirectionWSForBias, renderingLayers, coefficients, weightHierarchy);
 
+    float skyWeight = 1 - weightHierarchy;
     SHOutgoingRadiosityWithProjectedConstantsPacked outgoingRadiosityProjectedConstantsPacked;
-    [unroll] for (int i = 0; i < SH_PACKED_COEFFICIENT_COUNT; ++i) { outgoingRadiosityProjectedConstantsPacked.data[i] = coefficients.data[i]; }
+    [unroll] for (int i = 0; i < SH_PACKED_COEFFICIENT_COUNT; ++i) { outgoingRadiosityProjectedConstantsPacked.data[i] = coefficients.data[i] + _AmbientProbe[i] * skyWeight; }
     SHOutgoingRadiosityWithProjectedConstants outgoingRadiosityProjectedConstants = SHOutgoingRadiosityWithProjectedConstantsCompute(outgoingRadiosityProjectedConstantsPacked);
     SHOutgoingRadiosity bakedOutgoingRadiosity = SHOutgoingRadiosityCompute(outgoingRadiosityProjectedConstants);
     shIncomingIrradiance = SHIncomingIrradianceCompute(bakedOutgoingRadiosity);
@@ -187,11 +194,6 @@ SHIncomingIrradiance ProbeVolumeEvaluateIncomingIrradiance(float3 positionWS, ui
 
 float3 ProbeVolumeEvaluateIncomingRadiance(SHIncomingIrradiance shIncomingIrradiance, float3 directionWS)
 {
-    // TODO: Rather than simply point sampling the incoming radiance, we could approximately evaluate the integral of the axis SG and the SH term using very similar math
-    // to what we use for converting from SGs to SH in ProbePropagationCombine.compute.
-    // In short, we would generate a zonal harmonic that approximately represents our SG, use it as a window for our SH data, compute the integral of our windowed SH term over the sphere,
-    // and use that as the amplitude for our axis SG (likely requires careful normalization).
-    // Point sampling might be good enough - would just be nice to have the option to compare.
     float3 incomingRadiance = IncomingRadianceCompute(shIncomingIrradiance, directionWS);
 
     // Values can be negative due to ringing. Clip off negative values.
@@ -210,13 +212,13 @@ bool IsBoundaryProbe(uint3 probeCoordinate, uint3 resolution)
         || ((probeCoordinate.z + 1) == resolution.z);
 }
 
-float3 ComputeNeighborBoundaryEdgeWorldPosition(float3 probeWorldPosition, int axisIndex, float3x3 probeVolumeLtw, inout float3 neighborWorldDirection)
+float3 ComputeNeighborBoundaryEdgeWorldPosition(float3 probeWorldPosition, int axisIndex, float3x3 probeVolumeLtw)
 {
     float3 neighborDirection = _RayAxis[axisIndex].xyz;
     float neighborAxisLength = _RayAxis[axisIndex].w;
-    neighborWorldDirection = mul(neighborDirection, probeVolumeLtw);
+    float3 neighborDirectionWS = mul(neighborDirection, probeVolumeLtw);
 
-    return probeWorldPosition + neighborWorldDirection * neighborAxisLength * _ProbeVolumeDGIMaxNeighborDistance;
+    return probeWorldPosition + neighborDirectionWS * neighborAxisLength * _ProbeVolumeDGIMaxNeighborDistance;
 }
 
 [numthreads(GROUP_SIZE, 1, 1)]
@@ -228,7 +230,6 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         const uint axisIndex = (uint)index / _ProbeVolumeProbeCount;
         const uint probeIndex = (uint)index - axisIndex * _ProbeVolumeProbeCount;
 
-        float4 lightingAndWeight = float4(0, 0, 0, 1);
         uint3 probeCoordinate = ProbeIndexToProbeCoordinatesUint(probeIndex);
 
         const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
@@ -247,26 +248,26 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
         }
 
 #if defined(SAMPLE_NEIGHBORS_DIRECTION_ONLY)
-        SHIncomingIrradiance shIncomingIrradiance;
-        ZERO_INITIALIZE(SHIncomingIrradiance, shIncomingIrradiance);
+        SHIncomingIrradiance shIncomingIrradianceProbeCurrent;
+        ZERO_INITIALIZE(SHIncomingIrradiance, shIncomingIrradianceProbeCurrent);
         if (IsBoundaryProbe(probeCoordinate, uint3(_ProbeVolumeDGIResolutionX, _ProbeVolumeDGIResolutionY, _ProbeVolumeDGIResolutionZ)))
         {
-            float3 neighborWorldDirection;
-            float3 boundaryEdgePositionWS = ComputeNeighborBoundaryEdgeWorldPosition(probePositionWS, axisIndex, probeVolumeLtw, neighborWorldDirection);
-            shIncomingIrradiance = ProbeVolumeEvaluateIncomingIrradiance(boundaryEdgePositionWS, _ProbeVolumeDGILightLayers);
+            float3 boundaryEdgePositionWS = ComputeNeighborBoundaryEdgeWorldPosition(probePositionWS, axisIndex, probeVolumeLtw);
+            shIncomingIrradianceProbeCurrent = ProbeVolumeEvaluateIncomingIrradiance(boundaryEdgePositionWS, _ProbeVolumeDGILightLayers);
         }
 #endif
 
-        float3 incomingRadiance = 0;
-        float weight = 0.0f;
+        float3 incomingHitRadiance = 0;
+        float3 incomingMissRadiance = 0;
         float probeValidity = 0;
         int neighborAxisIndexOffset = axisIndex * NEIGHBOR_AXIS_COUNT;
 
+        BasisAxisHit basisAxisHit = ComputeBasisAxisHit(_RayAxis[axisIndex].xyz, _Sharpness);
+        
         for(int l=0; l < PROPAGATION_AXIS_AMOUNT; ++l)
         {
             NeighborAxisLookup neighborAxisLookup = _SortedNeighborAxisLookups[neighborAxisIndexOffset + l];
             int i = neighborAxisLookup.index;
-            float sgWeight = neighborAxisLookup.sgWeight;
 
             uint sampleAxis = i * _ProbeVolumeProbeCount + probeIndex;
             NeighborAxis neighbor = _ProbeVolumeNeighbors[sampleAxis];
@@ -276,11 +277,19 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
             UnpackIndicesAndValidityOnly(neighbor.hitIndexValidity, hitIndex, probeAxisValidity);
             probeValidity += probeAxisValidity;
 
-            float3 incomingNeighborRadiance = 0;
+            BasisAxisHit basisAxisNeighborHit = ComputeBasisAxisHit(neighborAxisLookup.neighborDirection, _Sharpness);
+
+            // Previously, we normalized the hit data with simply: 4.0 * PI / 26.0, aka the solid angle of a uniformly distributed monte carlo sample.
+            // But our basis is not uniformly distributed, so giving all hits the same weight would over-emphasize diagonals.
+            // Instead, we 
+            // The difference is fairly subtle, so if for some reason in the future we need to optimize this down, we can look at just using 4 * PI / 26.
+            float basisAxisNeighborHitIntegral = ComputeBasisAxisHitIntegral(basisAxisNeighborHit);
+
             if(hitIndex < (uint)_HitRadianceCacheAxisCount)
             {
                 // Hit
-                incomingNeighborRadiance = _HitRadianceCacheAxis[hitIndex];
+                float weight = ComputeBasisAxisHitEvaluateFromDirection(basisAxisHit, neighborAxisLookup.neighborDirection) * basisAxisNeighborHitIntegral;
+                incomingHitRadiance += _HitRadianceCacheAxis[hitIndex] * weight;
             }
             else
             {
@@ -293,41 +302,47 @@ void PropagateLight(uint3 id : SV_DispatchThreadID)
                    neighborProbeCoordinate.z >= 0 && neighborProbeCoordinate.z < (int)_ProbeVolumeDGIResolutionZ)
                 {
                     #if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
-                        incomingNeighborRadiance = 0;
                     #else
                         uint neighborProbeIndex = ProbeCoordinateToIndex(neighborProbeCoordinate);
                         float3 prevAxisRadiance = ReadPreviousPropagationAxis(neighborProbeIndex, axisIndex);
 
-                        incomingNeighborRadiance = prevAxisRadiance;
+                        BasisAxisMiss basisAxisMiss = ComputeBasisAxisMiss(neighborAxisLookup.neighborDirection, _Sharpness, _PropagationSharpness);
+
+                        float weight = ComputeBasisAxisMissEvaluateFromDirection(basisAxisMiss, _RayAxis[axisIndex].xyz);
+                        incomingMissRadiance += prevAxisRadiance * weight;
                     #endif
                 }
 #if defined(SAMPLE_NEIGHBORS_DIRECTION_ONLY) || defined(SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION)
                 else
-                {
-                    float3 neighborDirection = neighborAxisLookup.neighborDirection;
-                    float3 neighborWorldDirection = neighborDirection;
-
+                {                    
                     #if defined(SAMPLE_NEIGHBORS_POSITION_AND_DIRECTION)
                         // sample neighbor probe volumes to gather radiance from neighbor volumes
-                        float3 boundaryEdgePositionWS = ComputeNeighborBoundaryEdgeWorldPosition(probePositionWS, i, probeVolumeLtw, neighborWorldDirection);
+                        float3 boundaryEdgePositionWS = ComputeNeighborBoundaryEdgeWorldPosition(probePositionWS, i, probeVolumeLtw);
                         SHIncomingIrradiance shIncomingIrradiance = ProbeVolumeEvaluateIncomingIrradiance(boundaryEdgePositionWS, _ProbeVolumeDGILightLayers);
                     #else
-                        neighborWorldDirection = mul(neighborDirection, probeVolumeLtw);
+                        // Need to have unique variable names for the outer vs inner scope SH, as using the same name was causing a subtle compiler error where lighting was too dim for the direction only case.
+                        SHIncomingIrradiance shIncomingIrradiance = shIncomingIrradianceProbeCurrent;
                     #endif
 
-                    incomingNeighborRadiance = ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, neighborWorldDirection) * INV_PI;
+                    float weight = ComputeBasisAxisHitEvaluateFromDirection(basisAxisHit, neighborAxisLookup.neighborDirection) * basisAxisNeighborHitIntegral;
+
+                    // Because convolution in SH space is cheap (zonal harmonic window component-wise multiplication), we are able to
+                    // more accurately capture the integral of incoming irradiance over the hit basis solid angle + weight.
+                    // It's important to note that this is an approximation - because our hit axis lobe is not a zonal harmonic - it is an SG or AmbientDice lobe,
+                    // but it can be approximately represented as an ZH.
+                    // This has been validated against a ground truth monte carlo sampling of the basis over the hemisphere and the results are almost completely indestinguishable.
+                    float3 basisAxisHitDirectionWS = mul(basisAxisHit.mean, probeVolumeLtw);
+                    ZHWindow basisAxisHitZHWindow = ComputeZHWindowFromBasisAxisHit(basisAxisHit);
+                    SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(shIncomingIrradiance, basisAxisHitZHWindow);
+                    incomingHitRadiance += ProbeVolumeEvaluateIncomingRadiance(shIncomingIrradiance, basisAxisHitDirectionWS) * weight;
                 }
 #endif
             }
-
-            weight += sgWeight;
-            incomingRadiance += incomingNeighborRadiance * sgWeight;
         }
 
-        incomingRadiance *= rcp(max(weight, 0.00001));
         probeValidity *= 1.0 / PROPAGATION_AXIS_AMOUNT;
 
-        lightingAndWeight.rgb += incomingRadiance * _PropagationContribution;
-        WritePropagationOutput(index, lightingAndWeight, probeValidity);
+        float3 lighting = (incomingHitRadiance + incomingMissRadiance) * _PropagationContribution;
+        WritePropagationOutput(index, lighting, probeValidity);
     }
 }
