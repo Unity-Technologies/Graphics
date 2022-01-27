@@ -50,15 +50,16 @@ namespace UnityEditor.Rendering.UIGen
             if (!GenerateDefinitions(dataSource, out var definition, out var context, out error))
                 return false;
 
-            if (!definition.ComputeHash(out var hash, out error))
-                return false;
-
-            if (!LoadLastImportReport(out var lastReport, out error))
-                return false;
-
-            // Early exit when already computed
-            if (lastReport?.uiDefinitionHash == hash)
-                return true;
+            // TODO: [Fred] Compute hash later
+            // if (!definition.ComputeHash(out var hash, out error))
+            //     return false;
+            //
+            // if (!LoadLastImportReport(out var lastReport, out error))
+            //     return false;
+            //
+            // // Early exit when already computed
+            // if (lastReport?.uiDefinitionHash == hash)
+            //     return true;
 
             // Generate asset and C# library
 
@@ -138,10 +139,12 @@ namespace UnityEditor.Rendering.UIGen
             using (uiDefinitions)
             using (uiContextDefinitions)
             {
-                if (!uiDefinitions.listUnsafe.Aggregate(out uiDefinition, out error))
+                uiDefinition = new UIDefinition();
+                if (!uiDefinitions.listUnsafe.AggregateInto(uiDefinition, out error))
                     return false;
 
-                if (!uiContextDefinitions.listUnsafe.Aggregate(out uiContextDefinition, out error))
+                uiContextDefinition = new UIContextDefinition();
+                if (!uiContextDefinitions.listUnsafe.AggregateInto(uiContextDefinition, out error))
                     return false;
             }
 
@@ -186,7 +189,7 @@ namespace UnityEditor.Rendering.UIGen
         static bool GenerateUIDefinitionForType(
             [DisallowNull] Type type,
             [NotNullWhen(true)] out UIDefinition uiDefinition,
-            [NotNullWhen(true)]out UIContextDefinition uiContextDefinition,
+            [NotNullWhen(true)] out UIContextDefinition uiContextDefinition,
             [NotNullWhen(false)] out Exception error
         )
         {
@@ -231,27 +234,35 @@ namespace UnityEditor.Rendering.UIGen
                         return false;
                 }
 
+                // Find non-leaves types and recurse
+                foreach (var (childType, childPath)
+                         in typeWalk.GetFields(BindingFlags.Instance | BindingFlags.Public)
+                             .Select(info => (type: info.FieldType, info: (MemberInfo)info))
+                             .Union(typeWalk.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                                 .Select(info => (info.PropertyType, (MemberInfo)info)))
+                             .Where(info => info.Item2.GetCustomAttribute(typeof(DebugMenuPropertyAttribute)) == null)
+                             .Select(info => (
+                                 childType: info.Item1,
+                                 childPath: $"{pathWalk}.{info.Item2.Name}"
+                             )))
+                {
+                    if (!GenerateUIDefinitionRecursive(childType, uiDefinitionWalk, childPath, out errorWalk))
+                        return false;
+                }
+
                 errorWalk = default;
                 return true;
             }
 
-            [MustUseReturnValue]
-            bool GenerateContextDefinition(
-                [DisallowNull] Type typeWalk,
-                [NotNullWhen(true)] out UIContextDefinition uiContextDefinitionWalk,
-                [NotNullWhen(false)] out Exception errorWalk
-            )
-            {
-                throw new NotImplementedException();
-            }
-
             uiContextDefinition = default;
             uiDefinition = new UIDefinition();
+            // Note: the initial path must be the same as the context paths, see GenerateContextDefinition
             var path = type.Name;
             if (!GenerateUIDefinitionRecursive(type, uiDefinition, path, out error))
                 return false;
 
-            if (!GenerateContextDefinition(type, out uiContextDefinition, out error))
+            uiContextDefinition = new UIContextDefinition();
+            if (!uiContextDefinition.AddMember(type, path, out error))
                 return false;
 
             return true;

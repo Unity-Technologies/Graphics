@@ -6,10 +6,10 @@ using JetBrains.Annotations;
 namespace UnityEngine.Rendering.UIGen
 {
     // TODO: [Fred] should be immutable with structs
-    public partial class UIDefinition
+    public partial class UIDefinition : IDisposable, ITakeAndMerge<UIDefinition>
     {
         // TODO: [Fred] should be readonly
-        public PooledList<CategorizedProperty> categorizedProperties { get; } = new();
+        public PooledList<CategorizedProperty> categorizedProperties { get; } = PooledList<CategorizedProperty>.New();
 
 
         // Not Weird API, it is always confusing as for the direction of the data flow
@@ -27,22 +27,21 @@ namespace UnityEngine.Rendering.UIGen
             [NotNullWhen(false)] out Exception error
         )
         {
-            throw new NotImplementedException();
+            categorizedProperties.list.AddRange(toMerge.categorizedProperties.list);
+            toMerge.categorizedProperties.list.Clear();
+            error = default;
+            return true;
+        }
+
+        public void Dispose()
+        {
+            // TODO: [Fred] add ObjectDisposedException on relevant method & getter
+            categorizedProperties.Dispose();
         }
     }
 
     public static class UIDefinitionExtensions
     {
-        [MustUseReturnValue]
-        public static bool Aggregate<TList>(
-            [DisallowNull] this TList definitions,
-            [NotNullWhen(true)] out UIDefinition merged,
-            [NotNullWhen(false)] out Exception error
-        ) where TList : IList<UIDefinition>
-        {
-            throw new NotImplementedException();
-        }
-
         [MustUseReturnValue]
         public static bool ComputeHash(
             [DisallowNull] this UIDefinition definition,

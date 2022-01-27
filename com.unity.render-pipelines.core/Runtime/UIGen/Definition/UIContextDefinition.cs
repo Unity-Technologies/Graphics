@@ -5,27 +5,40 @@ using JetBrains.Annotations;
 
 namespace UnityEngine.Rendering.UIGen
 {
-    public class UIContextDefinition
+    public class UIContextDefinition : ITakeAndMerge<UIContextDefinition>
     {
-        public struct Member
+        public readonly struct Member
         {
-            public Type type;
-            public string name;
+            public readonly Type type;
+            public readonly string name;
+
+            public Member(Type type, string name)
+            {
+                this.type = type;
+                this.name = name;
+            }
         }
 
         public List<Member> members { get; } = new List<Member>();
-    }
 
-    public static class UIContextDefinitionExtensions
-    {
         [MustUseReturnValue]
-        public static bool Aggregate<TList>(
-            [DisallowNull] this TList definitions,
-            [NotNullWhen(true)] out UIContextDefinition merged,
+        public bool AddMember(
+            [DisallowNull] Type type,
+            [DisallowNull] string name,
             [NotNullWhen(false)] out Exception error
-        ) where TList : IList<UIContextDefinition>
+        )
         {
-            throw new NotImplementedException();
+            members.Add(new Member(type, name));
+            error = default;
+            return true;
+        }
+
+        public bool TakeAndMerge(UIContextDefinition input, out Exception error)
+        {
+            members.AddRange(input.members);
+            input.members.Clear();
+            error = default;
+            return true;
         }
     }
 }
