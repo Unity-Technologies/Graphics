@@ -121,34 +121,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRP build issues with DOTS_INSTANCING_ON shader variant.
 - Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
 - Fixed Transparent Depth Pre/Post pass by default for the built-in HDRP Hair shader graph.
-- Fixed build warnings due to the exception in burst code (case 1382827).
-- Fixed SpeedTree graph compatibility by removing custom interpolators.
-- Fixed default value of "Distortion Blur" from 1 to 0 according to the doc.
-- Fixed FOV change when enabling physical camera.
-- Fixed spot light shadows near plane
-- Fixed unsupported material properties show when rendering pass is Low Resolution.
-- Fixed auto-exposure mismatch between sky background and scene objects in path tracing (case 1385131).
-- Fixed option to force motion blur off when in XR.
-- Fixed write to VT feedback in debug modes (case 1376874)
-- Fixed the water system not working on metal.
-- Fixed the missing debug menus to visualize the ray tracing acceleration structure (case 1371410).
-- Fixed compilation issue related to shader stripping in ray tracing.
-- Fixed flipped UV for directional light cookie on PBR Sky (case 1382656).
-- Fixing missing doc API for RTAS Debug display.
-- Fixed AO dissapearing when DRS would be turned off through a camera, while hardware drs is active in DX12 or Vulkan (case 1383093).
-- Fixed misc shader warnings.
-- Fixed a shader warning in UnityInstancing.hlsl
-- Fixed for APV debug mode breaking rendering when switching to an asset with APV disabled.
-- Fixed potential asymmetrical resource release in the volumetric clouds (case 1388218).
-- Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
-- Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
-- Fixed the intensity of the sky being reduced signficantly even if there is no clouds (case 1388279).
-- Fixed a crash with render graph viewer when render graph is not provided with an execution name.
-- Fixed rendering in the editor when an incompatible API is added (case 1384634).
-- Fixed issue with typed loads on RGBA16F in Volumetric Lighting Filtering.
-- Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
-- Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
-- Fixed render request order when there are shared dependencies.
+- Fixed NullReferenceException when opening a Volume Component with a Diffusion Profile with any inspector.
 
 ### Changed
 - Converted most TGA textures files to TIF to reduce the size of HDRP material samples.
