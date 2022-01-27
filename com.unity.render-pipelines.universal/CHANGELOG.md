@@ -9,18 +9,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
 - Added batch mode support for the converters.
-- Soft shadow quality. Low, PCF 3x3 recommended for mobile. Medium, Tent 5x5. High, Tent 7x7.
+- Added Soft Shadows filtering quality option in the pipeline asset. Low, PCF 3x3 pixel area with fixed offsets which is recommended for mobile. Medium, Tent 5x5 pixel area as the default. High, Tent 7x7 pixel area.
 
 ### Changed
 - Re-added the menu button to be able to convert selected materials.
 - Reverted intermediate texture behavior.
 - Shader Variant Log Level moved from the URP Asset to URP Global Settings.
-- Remove SHADER_API_MOBILE from shaders in cases where it affects quality.
-- Remove SHADER_HINT_NICE_QUALITY from shaders.
-- Remove low quality light fade.
-- Remove implicit SHADER_QUALITY_LOW. It now must be defined in .shader file to opt-in. SHADER_QUALITY_LOW affects particle, grass and nature view vector normalization, LOD crossfade, SH eval vertex/pixel.
-- Always normalize normal per vertex.
-- Packed additionalShadowOffsets into 2 float4 constants instead of 4.
+- Removed SHADER_API_MOBILE from shaders in cases where it affected quality.
+- Removed SHADER_HINT_NICE_QUALITY from shaders.
+- Removed low quality light fade for lighting consistency on both desktop and mobile.
+- Removed implicit SHADER_QUALITY_LOW. It now must be defined in .shader file to opt-in. SHADER_QUALITY_LOW affects particle, grass and nature view vector normalization, LOD crossfade, SH eval vertex/pixel.
 
 ### Fixed
 - Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]

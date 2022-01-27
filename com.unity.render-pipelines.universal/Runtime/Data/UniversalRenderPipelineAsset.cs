@@ -886,7 +886,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Controls the softness of soft shadows.
+        /// Controls the quality of soft shadow filtering.
         /// </summary>
         public SoftShadowQuality softShadowQuality
         {
