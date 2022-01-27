@@ -14,6 +14,11 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.large
 
 jobs:
   - name: PR <PROJECT_NAME>

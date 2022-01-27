@@ -24,7 +24,6 @@ Smoke_Test_Win_DX11_playmode_mono_Linear_2019.4:
          retries: 2
       -  command: unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: .\.Editor\Unity.exe -version
       -  command: |5-
                 git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                 set /p GIT_REVISIONDATE=<revdate.tmp
@@ -42,8 +41,8 @@ Smoke_Test_Win_DX11_playmode_mono_Linear_2019.4:
 Smoke_Test_Win_DX11_editmode_mono_Linear_2019.4:
     name: Smoke_Test on Win_DX11_editmode_mono_Linear on version 2019.4
     agent:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -76,7 +75,7 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_2019.4:
     name: Smoke_Test on Win_DX11_Standalone_mono_Linear on version 2019.4
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -106,9 +105,9 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_2019.4:
 Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_2019.4:
     name: Build Smoke_Test on Win_DX11_mono_Linear_Standalone_build_Player on version 2019.4
     agent:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
@@ -143,7 +142,7 @@ Smoke_Test_Win_DX11_playmode_mono_Linear_fast-2019.4:
     name: Smoke_Test on Win_DX11_playmode_mono_Linear on version fast-2019.4
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -175,8 +174,8 @@ Smoke_Test_Win_DX11_playmode_mono_Linear_fast-2019.4:
 Smoke_Test_Win_DX11_editmode_mono_Linear_fast-2019.4:
     name: Smoke_Test on Win_DX11_editmode_mono_Linear on version fast-2019.4
     agent:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -209,7 +208,7 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_fast-2019.4:
     name: Smoke_Test on Win_DX11_Standalone_mono_Linear on version fast-2019.4
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -239,9 +238,9 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_fast-2019.4:
 Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_fast-2019.4:
     name: Build Smoke_Test on Win_DX11_mono_Linear_Standalone_build_Player on version fast-2019.4
     agent:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         UTR_VERSION: "current"
@@ -276,7 +275,7 @@ Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     name: Smoke_Test on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -309,8 +308,8 @@ Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
 Smoke_Test_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
     name: Smoke_Test on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -344,7 +343,7 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Smoke_Test on Win_DX11_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -375,9 +374,9 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
 Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build Smoke_Test on Win_DX11_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
