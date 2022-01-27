@@ -22,7 +22,7 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
         inputData.normalWS = input.normalWS;
     #endif
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
-    inputData.viewDirectionWS = SafeNormalize(input.viewDirectionWS);
+    inputData.viewDirectionWS = SafeNormalize(GetWorldSpaceViewDir(input.positionWS));
 
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
         inputData.shadowCoord = input.shadowCoord;
@@ -113,6 +113,8 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         surface.clearCoatMask       = saturate(surfaceDescription.CoatMask);
         surface.clearCoatSmoothness = saturate(surfaceDescription.CoatSmoothness);
     #endif
+
+    surface.albedo = AlphaModulate(surface.albedo, surface.alpha);
 
 #ifdef _DBUFFER
     ApplyDecalToSurfaceData(unpacked.positionCS, surface, inputData);

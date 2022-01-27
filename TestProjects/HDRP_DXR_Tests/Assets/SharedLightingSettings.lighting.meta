@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+<<<<<<< HEAD:TestProjects/HDRP_Tests/Assets/GraphicTests/Scenes/1x_Materials/1227_Lit_Planar_Triplanar_ObjectSpace/Planar_OS.mat.meta
+guid: 7d16f7750864ffc41af0855257807d90
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+=======
+guid: 23f828be21c65fa4ab4f50d91591e4ba
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 4890085278179872738
+>>>>>>> fec42fad19d3c04cedaadd68c1bf39a435c73ee6:TestProjects/HDRP_DXR_Tests/Assets/SharedLightingSettings.lighting.meta
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

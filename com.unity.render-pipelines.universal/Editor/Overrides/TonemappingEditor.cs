@@ -2,7 +2,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [VolumeComponentEditor(typeof(Tonemapping))]
+    [CustomEditor(typeof(Tonemapping))]
     sealed class TonemappingEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_Mode;

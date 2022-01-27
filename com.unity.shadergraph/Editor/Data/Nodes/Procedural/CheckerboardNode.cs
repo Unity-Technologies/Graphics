@@ -27,12 +27,12 @@ namespace UnityEditor.ShaderGraph
             return
 @"
 {
+#if defined(SHADER_STAGE_RAY_TRACING)
+    int2 checker = frac(Frequency * UV) > 0.5;
+    Out = checker.x ^ checker.y ? ColorA : ColorB;
+#else
     UV = (UV.xy + 0.5) * Frequency;
     $precision2 distance3 = 4.0 * abs(frac(UV + 0.25) - 0.5) - 1.0;
-#if defined(SHADER_STAGE_RAY_TRACING)
-    int2 alpha = saturate(distance3 * FLT_MAX);
-    Out = lerp(ColorB, ColorA, alpha.x ^ alpha.y);
-#else
     $precision4 derivatives = $precision4(ddx(UV), ddy(UV));
     $precision2 duv_length = sqrt($precision2(dot(derivatives.xz, derivatives.xz), dot(derivatives.yw, derivatives.yw)));
     $precision2 scale = 0.35 / duv_length.xy;
