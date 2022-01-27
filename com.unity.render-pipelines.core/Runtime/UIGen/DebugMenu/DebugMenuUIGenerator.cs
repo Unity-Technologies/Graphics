@@ -250,6 +250,11 @@ namespace UnityEngine.Rendering.UIGen
         {
             error = default;
 
+            // TODO: [Fred] This only works because it happens we have the same path on the integration path
+            //   We need a cleaner way to define location where assets are stored and share it among algorithm
+            //   #soft-technical-debt
+            var defaultAssetPath = $"Assets/{parameters.uiViewTypeName}/{parameters.uiViewTypeName}.uxml";
+
             var bindContextBodies = intermediateDocuments.Select(p => p.Value.bindContextBody)
                 .Aggregate(new StringBuilder(), (acc, s) =>
                 {
@@ -268,11 +273,12 @@ namespace UnityEngine.Rendering.UIGen
             usings.Add("UnityEngine.UIElements");
             usings.Add("UnityEngine.Rendering.UIGen");
 
-            var code = $@"public sealed class {parameters.uiViewTypeName} : UIView<{parameters.uiViewTypeName}, I{parameters.uiViewContextTypeName}>
+            var code = $@"[UnityEditor.InitializeOnLoad]
+public sealed class {parameters.uiViewTypeName} : UIView<{parameters.uiViewTypeName}, I{parameters.uiViewContextTypeName}>
 {{
-    static DebugMenu()
+    static {parameters.uiViewTypeName}()
     {{
-        UIViewDefaults<{parameters.uiViewTypeName}>.DefaultTemplateAssetPath = ""Assets/DebugMenu.uxml"";
+        UIViewDefaults<{parameters.uiViewTypeName}>.DefaultTemplateAssetPath = ""{defaultAssetPath}"";
     }}
 
     protected override bool BindContext(

@@ -8,8 +8,9 @@ using Object = UnityEngine.Object;
 namespace UnityEditor.Rendering.UIGen
 {
     public class UIViewEditorWindow<TUIView, TIContext, TContext> : EditorWindow
-        where TUIView: UIView<TUIView, TIContext>
+        where TUIView: UIView<TUIView, TIContext>, new()
         where TContext: class, TIContext, new()
+        where TIContext : class
     {
         static bool LoadDefaultVisualTreeAsset(
             [NotNullWhen(true)] out VisualTreeAsset vsTree,
@@ -55,7 +56,9 @@ namespace UnityEditor.Rendering.UIGen
             if (!LoadDefaultVisualTreeAsset(out var vsTree, out error))
                 return false;
 
-            if (!UIView<TUIView, TContext>.FromVisualTreeAsset(vsTree, out m_UIViewInstance, out error))
+            // TODO: [Fred] Must be initialized during allocation (faillable allocation & init)
+            m_UIViewInstance = new TUIView();
+            if (!m_UIViewInstance.SetVisualTreeAsset(vsTree, out error))
                 return false;
 
             var context = new TContext();
@@ -71,19 +74,13 @@ namespace UnityEditor.Rendering.UIGen
         {
             error = default;
 
-            if (m_UIViewInstance == null || !InstantiateDebugMenu(out error))
+            if (m_UIViewInstance == null && !InstantiateDebugMenu(out error))
                 return false;
 
             if (!m_UIViewInstance.AddTo(rootVisualElement, out error))
                 return false;
 
             return true;
-        }
-
-        void Awake()
-        {
-            if (!InstantiateDebugMenu(out var error))
-                Debug.LogException(error);
         }
 
         void CreateGUI()

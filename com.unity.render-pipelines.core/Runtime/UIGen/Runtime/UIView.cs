@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using JetBrains.Annotations;
 using UnityEngine.UIElements;
 
 namespace UnityEngine.Rendering.UIGen
@@ -11,17 +12,23 @@ namespace UnityEngine.Rendering.UIGen
     }
 
     public abstract class UIView<TSelf, TContext>
+        where TSelf: UIView<TSelf, TContext>, new()
+        where TContext: class
     {
         TContext m_Context;
         TemplateContainer m_Container;
 
-        public static bool FromVisualTreeAsset(
-            [DisallowNull] VisualTreeAsset treeAsset,
-            [NotNullWhen(true)] out TSelf view,
-            [NotNullWhen(false)] out Exception error
+        // TODO: [Fred] Very bad practice, visual tree asset should be assigned once at initialization and
+        //  be constant. Otherwise we don't know what happens if it changes during its lifetime
+        [MustUseReturnValue]
+        public bool SetVisualTreeAsset(
+            [DisallowNull] VisualTreeAsset asset,
+            out Exception error
         )
         {
-            throw new NotImplementedException();
+            m_Container = asset.Instantiate();
+            error = default;
+            return true;
         }
 
         public bool AddTo(
@@ -29,7 +36,9 @@ namespace UnityEngine.Rendering.UIGen
             [NotNullWhen(false)] out Exception error
         )
         {
-            throw new NotImplementedException();
+            root.Add(m_Container);
+            error = null;
+            return true;
         }
 
         public bool AssignContext(
@@ -37,7 +46,30 @@ namespace UnityEngine.Rendering.UIGen
             [NotNullWhen(false)] out Exception error
         )
         {
-            throw new NotImplementedException();
+            if (context == null && m_Context == null
+                || context != null && context.Equals(m_Context))
+            {
+                // nothing to do
+                error = null;
+                return true;
+            }
+
+            if (m_Context != null)
+            {
+                if (!UnbindContext(m_Context, m_Container, out error))
+                    return false;
+                m_Context = null;
+            }
+
+            if (context != null)
+            {
+                m_Context = context;
+                if (!BindContext(context, m_Container, out error))
+                    return false;
+            }
+
+            error = default;
+            return true;
         }
 
         protected abstract bool BindContext(

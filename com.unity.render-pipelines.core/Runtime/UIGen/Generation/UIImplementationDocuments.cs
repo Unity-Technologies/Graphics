@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Xml;
 using System.Xml.Linq;
 using JetBrains.Annotations;
 using Microsoft.CodeAnalysis.CSharp;
@@ -55,7 +54,7 @@ namespace UnityEngine.Rendering.UIGen
                 Directory.CreateDirectory(Path.GetDirectoryName(uxmlPath));
                 Directory.CreateDirectory(Path.GetDirectoryName(runtimeCodePath));
 
-                File.WriteAllText(uxmlPath, m_Uxml.ToString());
+                m_Uxml.Save(uxmlPath);
                 File.WriteAllText(runtimeCodePath, m_RuntimeCode.ToString());
             }
             catch (Exception e)
