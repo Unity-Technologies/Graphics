@@ -51,7 +51,10 @@ namespace UnityEngine.Rendering
                 throw new InvalidOperationException($"Element {fieldElementName} not found");
 
             fieldElement.RegisterCallback(onFieldValueChanged);
-            onFieldValueChanged(ChangeEvent<T>.GetPooled(currentValue, currentValue));
+            using (ChangeEvent<T> evt = ChangeEvent<T>.GetPooled(default, currentValue))
+            {
+                onFieldValueChanged(evt);
+            }
         }
 
         protected void SetElementHidden(string elementName, bool hidden)

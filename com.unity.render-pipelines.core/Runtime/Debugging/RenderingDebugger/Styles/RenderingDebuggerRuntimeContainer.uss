@@ -6,3 +6,25 @@
     opacity: 0.5;
     color: white;
 }
+
+/* Sets each label in tabs to have the same size. */
+.tab {
+    flex-grow: 1;
+    padding: 10;
+}
+
+/* Adds background color for the selected tab */
+.currentlySelectedTab {
+    font-size: 20;
+}
+
+/* Style for tabContent */
+#tabContent {
+    flex-basis: 90%;
+    padding: 5;
+}
+
+/* Hides the unselected tab content */
+.unselectedContent {
+    display: none;
+}
