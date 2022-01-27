@@ -121,12 +121,12 @@ namespace UnityEngine.Rendering.UIGen
             error = default;
             // TODO: [Fred] Must be pooled
             result = new();
-            foreach (var property in definition.properties.list)
+            foreach (var categorizedProperty in definition.categorizedProperties.list)
             {
-                if (GenerateIntermediateDocumentsFor(property, out var document, out error))
+                if (GenerateIntermediateDocumentsFor(categorizedProperty, out var document, out error))
                     return false;
 
-                result.Add(property, document);
+                result.Add(categorizedProperty.property, document);
             }
 
             return true;
@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.UIGen
 
         [MustUseReturnValue]
         public bool GenerateIntermediateDocumentsFor(
-            [DisallowNull] UIDefinition.Property property,
+            [DisallowNull] UIDefinition.CategorizedProperty categorizedProperty,
             [NotNullWhen(true)] out UIImplementationIntermediateDocuments result,
             [NotNullWhen(false)] out Exception error
         )
@@ -142,17 +142,17 @@ namespace UnityEngine.Rendering.UIGen
             result = default;
 
             UIPropertyGenerator generator = default;
-            if (property.generatorOverride != null)
+            if (categorizedProperty.property.generatorOverride != null)
             {
                 // get custom generator
             }
             else
             {
-                if (!m_GeneratorSet.GetGeneratorForPropertyType(property.type, out generator, out error))
+                if (!m_GeneratorSet.GetGeneratorForPropertyType(categorizedProperty.property.type, out generator, out error))
                     return false;
             }
 
-            if (!generator.Generate(property, out result, out error))
+            if (!generator.Generate(categorizedProperty.property, out result, out error))
                 return false;
 
             // TODO: [Fred] Add feature mutators here

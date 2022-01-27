@@ -54,28 +54,30 @@ namespace UnityEngine.Rendering.UIGen
                 error = default;
                 return true;
             }
-        }
 
-        [MustUseReturnValue]
-        public bool AddProperty(
-            PropertyPath path,
-            [DisallowNull] Type type,
-            PropertyName name,
-            PropertyTooltip tooltip,
-            [NotNullWhen(true)] out Property property,
-            [NotNullWhen(false)] out Exception error
-        )
-        {
-            if (!Property.New(path, type, out property, out error))
-                return false;
+            [MustUseReturnValue]
+            public bool SetDisplayName(
+                PropertyName name,
+                [NotNullWhen(false)] out Exception error
+            )
+            {
+                if (!AddFeature(new DisplayName(name), out error))
+                    return false;
 
-            if (!property.AddFeature(new DisplayName(name), out error))
-                return false;
+                return true;
+            }
 
-            if (!property.AddFeature(new Tooltip(tooltip), out error))
-                return false;
+            [MustUseReturnValue]
+            public bool SetTooltip(
+                PropertyTooltip tooltip,
+                [NotNullWhen(false)] out Exception error
+            )
+            {
+                if (!AddFeature(new Tooltip(tooltip), out error))
+                    return false;
 
-            return true;
+                return true;
+            }
         }
     }
 }

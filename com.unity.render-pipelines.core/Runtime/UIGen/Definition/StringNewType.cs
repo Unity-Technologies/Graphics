@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.UIGen
 {
     public partial class UIDefinition
     {
-    public struct CategoryId : IEquatable<CategoryId>
+        public struct CategoryId : IEquatable<CategoryId>
         {
             public static readonly CategoryId Empty = default;
         
@@ -28,6 +28,9 @@ namespace UnityEngine.Rendering.UIGen
                 error = default;
                 return true;
             }
+        
+            public unsafe static CategoryId FromUnsafe([DisallowNull] string value)
+                => new CategoryId(value);
         
             string m_Name;
         
@@ -77,6 +80,9 @@ namespace UnityEngine.Rendering.UIGen
                 return true;
             }
         
+            public unsafe static PropertyPath FromUnsafe([DisallowNull] string value)
+                => new PropertyPath(value);
+        
             string m_Name;
         
             PropertyPath(string name) {
@@ -125,6 +131,9 @@ namespace UnityEngine.Rendering.UIGen
                 return true;
             }
         
+            public unsafe static PropertyName FromUnsafe([DisallowNull] string value)
+                => new PropertyName(value);
+        
             string m_Name;
         
             PropertyName(string name) {
@@ -172,6 +181,9 @@ namespace UnityEngine.Rendering.UIGen
                 error = default;
                 return true;
             }
+        
+            public unsafe static PropertyTooltip FromUnsafe([DisallowNull] string value)
+                => new PropertyTooltip(value);
         
             string m_Name;
         

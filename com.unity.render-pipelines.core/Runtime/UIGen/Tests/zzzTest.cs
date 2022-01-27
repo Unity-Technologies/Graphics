@@ -13,7 +13,11 @@ public class zzzTest : MonoBehaviour
     static void TestGenXML()
     {
         var gen = new IntUIPropertyGenerator();
-        var property = new Property() { propertyPath = "test" };
-        bool success = gen.Generate(property, out var unused, out var error);
+        if (!Property.New(PropertyPath.FromUnsafe("test"), typeof(int), out var property, out var error))
+        {
+            Debug.LogException(error);
+            return;
+        }
+        bool success = gen.Generate(property, out var unused, out error);
     }
 }

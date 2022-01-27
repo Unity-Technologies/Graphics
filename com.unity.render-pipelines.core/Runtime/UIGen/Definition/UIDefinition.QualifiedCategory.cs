@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using JetBrains.Annotations;
 
 namespace UnityEngine.Rendering.UIGen
 {
@@ -6,12 +8,38 @@ namespace UnityEngine.Rendering.UIGen
     {
         public struct QualifiedCategory : IEquatable<QualifiedCategory>
         {
-            CategoryId primary;
-            CategoryId secondary;
+            [MustUseReturnValue]
+            public static bool From(
+                CategoryId primary,
+                CategoryId? secondary,
+                out QualifiedCategory category,
+                [NotNullWhen(false)] out Exception error
+            )
+            {
+                category = default;
+                if (primary == CategoryId.Empty)
+                {
+                    error = new ArgumentException($"Primary category must not be empty.");
+                    return false;
+                }
+
+                category = new QualifiedCategory(primary, secondary);
+                error = default;
+                return true;
+            }
+
+            public readonly CategoryId primary;
+            public readonly CategoryId? secondary;
+
+            QualifiedCategory(CategoryId primary, CategoryId? secondary)
+            {
+                this.primary = primary;
+                this.secondary = secondary;
+            }
 
             public bool Equals(QualifiedCategory other)
             {
-                return primary.Equals(other.primary) && secondary.Equals(other.secondary);
+                return primary.Equals(other.primary) && Nullable.Equals(secondary, other.secondary);
             }
 
             public override bool Equals(object obj)

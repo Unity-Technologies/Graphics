@@ -8,8 +8,28 @@ namespace UnityEngine.Rendering.UIGen
     {
         public class CategorizedProperty
         {
-            QualifiedCategory category;
-            Property property;
+            [MustUseReturnValue]
+            public static bool From(
+                QualifiedCategory category,
+                [DisallowNull] Property property,
+                [NotNullWhen(true)] out CategorizedProperty categorizedProperty,
+                [NotNullWhen(false)] out Exception error
+            )
+            {
+                categorizedProperty = new CategorizedProperty(category, property);
+                error = default;
+                return true;
+            }
+
+            public readonly QualifiedCategory category;
+            [System.Diagnostics.CodeAnalysis.NotNull]
+            public Property property { get; }
+
+            CategorizedProperty(QualifiedCategory category, [DisallowNull] Property property)
+            {
+                this.category = category;
+                this.property = property;
+            }
         }
 
         [MustUseReturnValue]
@@ -18,6 +38,8 @@ namespace UnityEngine.Rendering.UIGen
             [DisallowNull] Type type,
             PropertyName name,
             PropertyTooltip tooltip,
+            CategoryId primaryCategory,
+            CategoryId? secondaryCategory,
             [NotNullWhen(true)] out Property property,
             [NotNullWhen(false)] out Exception error
         )
@@ -25,11 +47,27 @@ namespace UnityEngine.Rendering.UIGen
             if (!Property.New(path, type, out property, out error))
                 return false;
 
-            if (!property.AddFeature(new DisplayName(name), out error))
+            if (!property.SetDisplayName(name, out error))
+                    return false;
+
+            if (!property.SetTooltip(tooltip, out error))
                 return false;
 
-            if (!property.AddFeature(new Tooltip(tooltip), out error))
+            return true;
+        }
+
+        [MustUseReturnValue]
+        public bool AddCategorizedProperty(
+            QualifiedCategory category,
+            [DisallowNull] Property property,
+            [NotNullWhen(true)] out CategorizedProperty categorizedProperty,
+            [NotNullWhen(false)] out Exception error
+        )
+        {
+            if (!CategorizedProperty.From(category, property, out categorizedProperty, out error))
                 return false;
+
+            categorizedProperties.list.Add(categorizedProperty);
 
             return true;
         }

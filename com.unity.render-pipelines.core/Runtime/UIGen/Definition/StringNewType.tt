@@ -62,6 +62,9 @@ public struct <#+ Write(decl.name); #> : IEquatable<<#+ Write(decl.name); #>>
         return true;
     }
 
+    public unsafe static <#+ Write(decl.name); #> FromUnsafe([DisallowNull] string value)
+        => new <#+ Write(decl.name); #>(value);
+
     string m_Name;
 
     <#+ Write(decl.name); #>(string name) {

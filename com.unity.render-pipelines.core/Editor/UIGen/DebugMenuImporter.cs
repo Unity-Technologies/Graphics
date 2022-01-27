@@ -204,10 +204,11 @@ namespace UnityEditor.Rendering.UIGen
                              .Where(info => info.GetCustomAttribute(typeof(DebugMenuPropertyAttribute)) != null)
                              .Select(info => (info.Name, info.MemberType, (DebugMenuPropertyAttribute)info.GetCustomAttribute(typeof(DebugMenuPropertyAttribute)))))
                 {
+                    
                     if (UIDefinition.Property.From(
                             name, propertyType, attribute
                     ))
-                    uiDefinitionWalk.properties.list.Add();
+                    uiDefinitionWalk.categorizedProperties.list.Add();
                 }
 
             }

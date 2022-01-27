@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.UIGen
             documents = default;
             error = default;
 
-            if (!GeneratorUtility.ExtractAndNicifyName(property.propertyPath, out var niceName, out error))
+            if (!GeneratorUtility.ExtractAndNicifyName((string) property.propertyPath, out var niceName, out error))
                 return false;
 
             XmlDocument doc = new XmlDocument();
@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.UIGen
             XmlElement element = doc.CreateElement("ui:IntegerField");
             element.SetAttribute("label", niceName);
             element.SetAttribute("value", "42");
-            element.SetAttribute("binding-path", property.propertyPath);
+            element.SetAttribute("binding-path", (string) property.propertyPath);
             doc.DocumentElement.AppendChild(element);
 
             if (!UIImplementationIntermediateDocuments.From(element, out var document, out error))
