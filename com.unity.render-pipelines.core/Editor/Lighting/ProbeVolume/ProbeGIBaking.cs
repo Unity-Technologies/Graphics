@@ -500,9 +500,24 @@ namespace UnityEngine.Experimental.Rendering
                     AssetDatabase.SaveAssets();
                     AssetDatabase.Refresh();
 
-                    foreach (var sceneData in perSceneDataList)
+                    if (isBakingOnlyActiveScene)
                     {
-                        sceneData.QueueAssetLoading();
+                        // We need to make sure the latest baked is the first loaded.
+                        var sceneDataList = GetPerSceneDataList();
+                        if (sceneDataList.Count > 0)
+                            sceneDataList[0].QueueAssetLoading();
+                        foreach (var sceneData in perSceneDataList)
+                        {
+                            if (sceneData != sceneDataList[0])
+                                sceneData.QueueAssetLoading();
+                        }
+                    }
+                    else
+                    {
+                        foreach (var sceneData in perSceneDataList)
+                        {
+                            sceneData.QueueAssetLoading();
+                        }
                     }
                 }
 
@@ -538,8 +553,17 @@ namespace UnityEngine.Experimental.Rendering
             m_CellPosToIndex.Clear();
             m_BakedCells.Clear();
 
+            var perSceneDataList = GetPerSceneDataList();
+            var fullPerSceneDataList = probeRefVolume.perSceneDataList;
+
+            ProbeVolumePerSceneData activeSceneData = null;
+            if (isBakingOnlyActiveScene && perSceneDataList.Count > 0)
+            {
+                activeSceneData = perSceneDataList[0];
+            }
+
             // Clear baked data
-            foreach (var data in probeRefVolume.perSceneDataList)
+            foreach (var data in fullPerSceneDataList)
                 data.QueueAssetRemoval();
 
             ProbeReferenceVolume.instance.Clear();
@@ -654,11 +678,13 @@ namespace UnityEngine.Experimental.Rendering
             // Map from each scene to its per scene data, and create a new asset for each scene
             var scene2Data = new Dictionary<Scene, ProbeVolumePerSceneData>();
 
-            var perSceneDataList = GetPerSceneDataList();
-            foreach (var data in perSceneDataList)
+            foreach (var data in fullPerSceneDataList)
             {
-                data.asset = ProbeVolumeAsset.CreateAsset(data);
-                data.states.TryAdd(ProbeReferenceVolume.instance.bakingState, default);
+                if (isBakingOnlyActiveScene && data == activeSceneData)
+                {
+                    data.asset = ProbeVolumeAsset.CreateAsset(data);
+                    data.states.TryAdd(ProbeReferenceVolume.instance.bakingState, default);
+                }
                 scene2Data[data.gameObject.scene] = data;
             }
 
@@ -679,8 +705,11 @@ namespace UnityEngine.Experimental.Rendering
                         var asset = data.asset;
                         var profile = probeRefVolume.sceneData.GetProfileForScene(scene);
                         asset.StoreProfileData(profile);
-                        CellCountInDirections(out asset.minCellPosition, out asset.maxCellPosition, profile.cellSizeInMeters);
-                        asset.globalBounds = globalBounds;
+                        if (!isBakingOnlyActiveScene)
+                        {
+                            CellCountInDirections(out asset.minCellPosition, out asset.maxCellPosition, profile.cellSizeInMeters);
+                            asset.globalBounds = globalBounds;
+                        }
 
                         EditorUtility.SetDirty(asset);
                     }
