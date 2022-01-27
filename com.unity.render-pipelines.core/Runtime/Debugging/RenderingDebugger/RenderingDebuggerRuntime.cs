@@ -77,10 +77,18 @@ namespace UnityEngine.Rendering
             runtimeRenderingDebugger.SetUp(tabsVisualElement);
         }
 
+        private PanelTab m_PanelTab = null;
         void SetUp(PanelTab panelTab)
         {
+            m_PanelTab = panelTab;
             panelTab.OnTabSelected += tabName => { RenderingDebuggerState.instance.selectedPanelName = tabName; };
             panelTab.SetSelectedChoice(RenderingDebuggerState.instance.selectedPanelName);
+            RenderingDebuggerState.instance.onSelectedPanelChanged += OnSelectedPanelChanged;
+        }
+
+        void OnSelectedPanelChanged(string selectedPanel)
+        {
+            m_PanelTab.SetSelectedChoice(RenderingDebuggerState.instance.selectedPanelName);
         }
     }
 }

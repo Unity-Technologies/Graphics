@@ -37,9 +37,14 @@ namespace UnityEditor.Rendering.UI
            - If it is not selected, find other tabs that are selected, unselect them
            - Then select the tab that was clicked on
         */
-        private void TabOnClick(ClickEvent evt)
+        void TabOnClick(ClickEvent evt)
         {
             Label clickedTab = evt.currentTarget as Label;
+            OnLabelClick(clickedTab);
+        }
+
+        public void OnLabelClick(Label clickedTab)
+        {
             if (!TabIsCurrentlySelected(clickedTab))
             {
                 GetAllTabs().Where(
@@ -48,6 +53,7 @@ namespace UnityEditor.Rendering.UI
                 SelectTab(clickedTab);
             }
         }
+
         //Method that returns a Boolean indicating whether a tab is currently selected
         private static bool TabIsCurrentlySelected(Label tab)
         {
@@ -62,7 +68,7 @@ namespace UnityEditor.Rendering.UI
         /* Method for the selected tab:
            -  Takes a tab as a parameter and adds the currentlySelectedTab class
            -  Then finds the tab content and removes the unselectedContent class */
-        private void SelectTab(Label tab)
+        void SelectTab(Label tab)
         {
             tab.AddToClassList(k_CurrentlySelectedTabClassName);
             VisualElement content = FindContent(tab);
@@ -73,7 +79,7 @@ namespace UnityEditor.Rendering.UI
         /* Method for the unselected tab:
            -  Takes a tab as a parameter and removes the currentlySelectedTab class
            -  Then finds the tab content and adds the unselectedContent class */
-        private void UnselectTab(Label tab)
+        void UnselectTab(Label tab)
         {
             tab.RemoveFromClassList(k_CurrentlySelectedTabClassName);
             VisualElement content = FindContent(tab);

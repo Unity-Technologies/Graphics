@@ -68,9 +68,16 @@ namespace UnityEditor.Rendering
 
             controller = new(rootVisualElement);
             controller.RegisterTabCallbacks();
+
+            RenderingDebuggerState.instance.onSelectedPanelChanged += OnSelectedPanelChanged;
             controller.OnTabSelected += tabName => { RenderingDebuggerState.instance.selectedPanelName = tabName; };
 
             BindPanels();
+        }
+
+        void OnSelectedPanelChanged(string selectedPanel)
+        {
+            controller.OnLabelClick(rootVisualElement.Q<Label>(selectedPanel));
         }
 
         public void BindPanels()

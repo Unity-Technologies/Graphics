@@ -31,7 +31,23 @@ namespace UnityEngine.Rendering
         }
 #endif
 
-        public string selectedPanelName;
+        public event Action<string> onSelectedPanelChanged;
+
+        [SerializeField]
+        private string m_SelectedPanelName;
+
+        public string selectedPanelName
+        {
+            get => m_SelectedPanelName;
+            set
+            {
+                if (m_SelectedPanelName != value)
+                {
+                    m_SelectedPanelName = value;
+                    onSelectedPanelChanged?.Invoke(m_SelectedPanelName);
+                }
+            }
+        }
 
         private List<RenderingDebuggerPanel> panels = new ();
 
