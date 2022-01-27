@@ -71,5 +71,10 @@ namespace UnityEngine.Rendering
                     element.RemoveFromClassList(kHiddenClassName);
             }
         }
+
+        public void Reset()
+        {
+            m_InstantiatedPanels.Clear();
+        }
     }
 }

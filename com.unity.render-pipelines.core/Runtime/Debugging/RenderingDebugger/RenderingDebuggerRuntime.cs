@@ -74,6 +74,9 @@ namespace UnityEngine.Rendering
             var firstFieldElement = runtimeUIDocument.rootVisualElement.Q(null, "unity-base-field");
             firstFieldElement?.Focus();
 
+            var resetButtonElement = runtimeUIDocument.rootVisualElement.Q<Button>("ResetButton");
+            resetButtonElement.clicked += () => RenderingDebuggerState.instance.Reset();
+
             runtimeRenderingDebugger.SetUp(tabsVisualElement);
         }
 
@@ -83,12 +86,18 @@ namespace UnityEngine.Rendering
             m_PanelTab = panelTab;
             panelTab.OnTabSelected += tabName => { RenderingDebuggerState.instance.selectedPanelName = tabName; };
             panelTab.SetSelectedChoice(RenderingDebuggerState.instance.selectedPanelName);
-            RenderingDebuggerState.instance.onSelectedPanelChanged += OnSelectedPanelChanged;
+            RenderingDebuggerState.instance.OnSelectedPanelChanged += OnSelectedPanelChanged;
+            RenderingDebuggerState.instance.OnReset += OnReset;
         }
 
         void OnSelectedPanelChanged(string selectedPanel)
         {
             m_PanelTab.SetSelectedChoice(RenderingDebuggerState.instance.selectedPanelName);
+        }
+
+        void OnReset()
+        {
+            CreateRuntimeRenderingDebuggerUI();
         }
     }
 }

@@ -3,17 +3,22 @@
 {
     flex-direction: row;
     flex-grow: 1;
+    color: white;
+    background-color: rgb(63, 63, 63);
+}
+
+#Footer {
+    background-color: rgb(47, 47, 47);
 }
 
 /* Style for tabs */
 #tabs {
     flex-basis: 10%;
     flex-direction: column;
-    font-size: 12px;
-    -unity-font-style: bold;
-    font-size: 14px;
-    border-right-color: black;
+    font-size: 13px;
     border-right-width: 2px;
+    min-width: 120px;
+    height: 40px;
 }
 
 /* Sets each label in tabs to have the same size. */
@@ -24,14 +29,15 @@
 
 /* Adds background color for the selected tab */
 .currentlySelectedTab {
-    background-color: rgb(77, 77, 77);
-    color: rgb(0.2196079, 0.2196079, 0.2196079);
+    background-color: rgb(62, 95, 150);
 }
 
 /* Style for tabContent */
 #tabContent {
+    background-color: rgb(47, 47, 47);
     flex-basis: 90%;
     padding: 5;
+    margin-right: -4px; /* weird margin fix ?? */
 }
 
 /* Hides the unselected tab content */

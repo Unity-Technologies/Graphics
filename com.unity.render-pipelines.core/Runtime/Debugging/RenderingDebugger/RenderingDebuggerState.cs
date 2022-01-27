@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering
         }
 #endif
 
-        public event Action<string> onSelectedPanelChanged;
+        public event Action<string> OnSelectedPanelChanged;
 
         [SerializeField]
         private string m_SelectedPanelName;
@@ -44,9 +44,20 @@ namespace UnityEngine.Rendering
                 if (m_SelectedPanelName != value)
                 {
                     m_SelectedPanelName = value;
-                    onSelectedPanelChanged?.Invoke(m_SelectedPanelName);
+                    OnSelectedPanelChanged?.Invoke(m_SelectedPanelName);
                 }
             }
+        }
+
+        public event Action OnReset;
+
+        public void Reset()
+        {
+            foreach (var p in panels)
+                p.Reset();
+
+            panels.Clear();
+            OnReset?.Invoke();
         }
 
         private List<RenderingDebuggerPanel> panels = new ();

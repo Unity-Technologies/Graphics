@@ -69,8 +69,12 @@ namespace UnityEditor.Rendering
             controller = new(rootVisualElement);
             controller.RegisterTabCallbacks();
 
-            RenderingDebuggerState.instance.onSelectedPanelChanged += OnSelectedPanelChanged;
+            RenderingDebuggerState.instance.OnSelectedPanelChanged += OnSelectedPanelChanged;
             controller.OnTabSelected += tabName => { RenderingDebuggerState.instance.selectedPanelName = tabName; };
+
+            RenderingDebuggerState.instance.OnReset += OnReset;
+            var resetButtonElement = this.rootVisualElement.Q<Button>("ResetButton");
+            resetButtonElement.clicked += () => RenderingDebuggerState.instance.Reset();
 
             BindPanels();
         }
@@ -89,6 +93,12 @@ namespace UnityEditor.Rendering
                     .Q<VisualElement>($"{panel.panelName}{TabbedMenuController.k_ContentNameSuffix}")
                     .Bind(new SerializedObject(panel));
             }
+        }
+
+        private void OnReset()
+        {
+            this.rootVisualElement.Clear();
+            CreateGUI();
         }
     }
 }
