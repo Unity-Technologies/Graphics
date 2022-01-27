@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the behavior the max ray length for recursive rendering to match RTR and rasterization.
 - Moved more internals of the sky manager to proper Render Graph passes.
 - Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
+- Renamed the Exposure field to Exposure Compensation in sky volume overrides (case 1392530).
 
 ### Fixed
 - Fixed build warnings due to the exception in burst code (case 1382827).
@@ -67,6 +68,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where APV cells were not populated properly when probe volumes have rotations
 - Fixed issue where changes to APV baking set lists were not saved.
 - Fixed Correlated Color Temperature not being applied in Player builds for Enlighten realtime GI lights (case 1370438);
+- Fixed artifacts on gpu light culling when the frustum near and far are very spread out (case 1386436)
+- Fixed missing unit in ray tracing related tooltips and docs (case 1397491).
+- Fixed errors spamming when in player mode due to ray tracing light cluster debug view (case 1390471).
+- Fixed warning upon deleting APV data assets.
 
 ## [14.0.0] - 2021-11-17
 
