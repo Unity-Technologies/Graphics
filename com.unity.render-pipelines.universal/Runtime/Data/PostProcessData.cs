@@ -6,7 +6,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, ReloadGroup]
+    [Serializable]
     public class PostProcessData : ScriptableObject
     {
 #if UNITY_EDITOR
