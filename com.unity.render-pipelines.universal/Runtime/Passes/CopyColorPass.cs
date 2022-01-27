@@ -143,21 +143,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag,
                     clearColor);
 
-                bool useDrawProceduleBlit = renderingData.cameraData.xr.enabled;
+                bool useDrawProceduleBlit = SystemInfo.graphicsShaderLevel >= 30;
                 switch (m_DownsamplingMethod)
                 {
                     case Downsampling.None:
-                        RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
+                        RenderingUtils.CoreBlit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
                         break;
                     case Downsampling._2xBilinear:
-                        RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
+                        RenderingUtils.CoreBlit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
                         break;
                     case Downsampling._4xBox:
                         m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
-                        RenderingUtils.Blit(cmd, source, destination, m_SamplingMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
+                        RenderingUtils.CoreBlit(cmd, source, destination, m_SamplingMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
                         break;
                     case Downsampling._4xBilinear:
-                        RenderingUtils.Blit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
+                        RenderingUtils.CoreBlit(cmd, source, destination, m_CopyColorMaterial, 0, useDrawProceduleBlit, RenderBufferLoadAction.DontCare);
                         break;
                 }
             }
