@@ -158,11 +158,11 @@ void SwapUint(inout uint a, inout uint b)
 
 uint GenerateSortKey(uint keyIndex, uint listCount, uint listOffset)
 {
-    uint key = 0xFFFFFFFF;
+    uint key = 0;
     if (keyIndex < listCount)
     {
         uint packedDepth = GetVisibilitySamplePackedDepth(keyIndex, listOffset);
-        key = ((packedDepth & 0xFFFF) << 16) | (keyIndex & 0xFFFF);
+        key = ((packedDepth & 0xFFFF) << 16) | (0xFF << 8) | (keyIndex & 0xFF);
     }
     return key;
 }
@@ -209,12 +209,15 @@ void OITSort_Network_4(int3 dispatchThreadId : SV_DispatchThreadID)
 
         uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
 
-        for (uint storeIndex = 0; storeIndex < listCount; ++storeIndex)
+        for (uint storeIndex = 0; storeIndex < MAX_NETWORK_INPUTS_4; ++storeIndex)
         {
-            uint sortedIndex = (sortKeys[storeIndex + (MAX_NETWORK_INPUTS_4 - listCount)] & 0xFFFF);
+            uint sortedIndex = (sortKeys[storeIndex] & 0xFF);
             uint sortIndexAddr = sortIndicesBaseAddr + storeIndex;
 
-            _OITSortMemoryBuffer[sortIndexAddr] = sortedIndex;
+            if (storeIndex < listCount)
+            {
+                _OITSortMemoryBuffer[sortIndexAddr] = sortedIndex;
+            }
         }
     }
 }
@@ -271,12 +274,15 @@ void OITSort_Network_8(int3 dispatchThreadId : SV_DispatchThreadID)
 
         uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
 
-        for (uint storeIndex = 0; storeIndex < listCount; ++storeIndex)
+        for (uint storeIndex = 0; storeIndex < MAX_NETWORK_INPUTS_8; ++storeIndex)
         {
-            uint sortedIndex = (sortKeys[storeIndex + (MAX_NETWORK_INPUTS_8 - listCount)] & 0xFFFF);
+            uint sortedIndex = (sortKeys[storeIndex] & 0xFF);
             uint sortIndexAddr = sortIndicesBaseAddr + storeIndex;
 
-            _OITSortMemoryBuffer[sortIndexAddr] = sortedIndex;
+            if (storeIndex < listCount)
+            {
+                _OITSortMemoryBuffer[sortIndexAddr] = sortedIndex;
+            }
         }
     }
 }
@@ -303,8 +309,9 @@ void OITSort_GroupShared_Wave(uint3 groupThreadId : SV_GroupThreadID, uint3 grou
 
     uint sortKey = GenerateSortKey(threadIndex, listCount, listOffset);
 
-    // Flip the key so the depth is in the LSBs
-    sortKey = (sortKey << 16) | (sortKey >> 16);
+    // Flip the key so the depth is in the LSBs since we only sort the bottom 16-bits
+    // Also flip the depth key value so we get a descending order sort
+    sortKey = (sortKey << 16) | (0xFFFF - (sortKey >> 16));
 
     sKeys[threadIndex] = sortKey;
 
@@ -354,9 +361,9 @@ void OITSort_GroupShared_Wave(uint3 groupThreadId : SV_GroupThreadID, uint3 grou
     sortKey = sKeys[threadIndex];
 
     uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
-    uint sortIndexAddr = sortIndicesBaseAddr + ((listCount - 1) - threadIndex);
+    uint sortIndexAddr = sortIndicesBaseAddr + threadIndex;
 
-    uint sortedIndex = ((sortKey >> 16) & 0xFFFF);
+    uint sortedIndex = ((sortKey >> 16) & 0xFF);
 
     if (threadIndex < listCount)
     {
@@ -386,8 +393,9 @@ void OITSort_GroupShared(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: 
 
     uint sortKey = GenerateSortKey(threadIndex, listCount, listOffset);
 
-    // Flip the key so the depth is in the LSBs
-    sortKey = (sortKey << 16) | (sortKey >> 16);
+    // Flip the key so the depth is in the LSBs since we only sort the bottom 16-bits
+    // Also flip the depth key value so we get a descending order sort
+    sortKey = (sortKey << 16) | (0xFFFF - (sortKey >> 16));
 
     sKeys[threadIndex] = sortKey;
 
@@ -455,9 +463,9 @@ void OITSort_GroupShared(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId: 
     sortKey = sKeys[threadIndex];
 
     uint sortIndicesBaseAddr = kSorting_PixelListDataOffset + (_ScreenSize.x * _ScreenSize.y) + listOffset;
-    uint sortIndexAddr = sortIndicesBaseAddr + ((listCount - 1) - threadIndex);
+    uint sortIndexAddr = sortIndicesBaseAddr + threadIndex;
 
-    uint sortedIndex = ((sortKey >> 16) & 0xFFFF);
+    uint sortedIndex = ((sortKey >> 16) & 0xFF);
 
     if (threadIndex < listCount)
     {
