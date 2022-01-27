@@ -285,7 +285,7 @@ VFX_SRP_ATTRIBUTES VFXTransformMeshToPreviousElement(VFX_SRP_ATTRIBUTES input, A
         float4x4 previousElementToVFX = VFXGetPreviousElementToVFX(elementToVFXBaseIndex);
         input.positionOS = mul(previousElementToVFX, float4(input.positionOS, 1.0f)).xyz;
     }
-    
+
 #endif//WRITE_MOTION_VECTOR_IN_FORWARD || USE_MOTION_VECTORS_PASS
     return input;
 }
