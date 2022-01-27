@@ -17,6 +17,7 @@ The version number for this package has increased due to a version update of a r
 ### Fixed
 - Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]
 - Fixed incorrect light indexing on Windows Editor with Android target. [case 1378103](https://issuetracker.unity3d.com/product/unity/issues/guid/1378103/)
+- Fixed Lens Flare not accounting Render Scale setting. [case 1376820](https://issuetracker.unity3d.com/issues/urp-lens-flare-do-not-account-for-render-scale-setting)
 - Fixed a performance regression in the 2D renderer regarding the PostProcessPass [case 1347893]
 - Fixed a regression where filtering the scene view yielded incorrect visual results [case 1360233] (https://issuetracker.unity3d.com/product/unity/issues/guid/1360233)
 - VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
