@@ -1,0 +1,101 @@
+﻿<#@ template language="C#" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#
+    var stringNewTypes = new StringNewTypeDeclaration[]
+    {
+        new("CategoryId"),
+        new("PropertyPath"),
+        new("PropertyName"),
+        new("PropertyTooltip"),
+    };
+#>
+using System;
+using System.Diagnostics.CodeAnalysis;
+using JetBrains.Annotations;
+
+namespace UnityEngine.Rendering.UIGen
+{
+    public partial class UIDefinition
+    {
+        <#
+    PushIndent("        ");
+    Write(stringNewTypes);
+    PopIndent();
+    #>
+    }
+}
+<#+
+    public class StringNewTypeDeclaration
+    {
+        public string name;
+
+        public StringNewTypeDeclaration(string name)
+        {
+            this.name = name;
+        }
+    }
+
+    public void Write(StringNewTypeDeclaration decl)
+    {
+#>
+public struct <#+ Write(decl.name); #> : IEquatable<<#+ Write(decl.name); #>>
+{
+    public static readonly <#+ Write(decl.name); #> Empty = default;
+
+    [MustUseReturnValue]
+    public static bool From(
+        [DisallowNull] string name,
+        out <#+ Write(decl.name); #> <#+ Write(decl.name); #>,
+        [NotNullWhen(false)] out Exception error
+    )
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            error = new ArgumentException($"{nameof(<#+ Write(decl.name); #>)} must not be empty");
+            <#+ Write(decl.name); #> = Empty;
+            return false;
+        }
+
+        <#+ Write(decl.name); #> = new <#+ Write(decl.name); #>(name);
+        error = default;
+        return true;
+    }
+
+    string m_Name;
+
+    <#+ Write(decl.name); #>(string name) {
+        m_Name = name;
+    }
+
+    public bool Equals(<#+ Write(decl.name); #> other)
+    {
+        return m_Name == other.m_Name;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is <#+ Write(decl.name); #> other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return (m_Name != null ? m_Name.GetHashCode() : 0);
+    }
+
+    public static bool operator ==(in <#+ Write(decl.name); #> l, in <#+ Write(decl.name); #> r) => r.Equals(l);
+    public static bool operator !=(in <#+ Write(decl.name); #> l, in <#+ Write(decl.name); #> r) => !r.Equals(l);
+    public static explicit operator string(in <#+ Write(decl.name); #> v) => v.m_Name;
+}
+<#+
+    }
+
+
+    public void Write(IEnumerable<StringNewTypeDeclaration> decls)
+    {
+        foreach (var decl in decls)
+        {
+            Write(decl);
+        }
+    }
+#>

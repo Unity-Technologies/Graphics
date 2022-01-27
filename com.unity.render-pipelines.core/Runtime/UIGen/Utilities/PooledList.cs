@@ -9,6 +9,11 @@ namespace UnityEngine.Rendering.UIGen
     {
         List<TValue> m_List;
 
+        public static PooledList<TValue> New()
+        {
+            return new PooledList<TValue> {m_List = Pool.ListPool<TValue>.Get()};
+        }
+
         [MustUseReturnValue]
         public bool TryGet(
             [NotNullWhen(true)] out List<TValue> thisList,

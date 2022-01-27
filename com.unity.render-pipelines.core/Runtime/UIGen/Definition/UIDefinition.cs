@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.UIGen
     public partial class UIDefinition
     {
         // TODO: [Fred] should be readonly
-        public PooledList<Property> properties = new();
+        public PooledList<CategorizedProperty> properties { get; } = new();
 
 
         // Not Weird API, it is always confusing as for the direction of the data flow

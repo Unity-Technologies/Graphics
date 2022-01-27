@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.Rendering.UIGen;
 
 namespace UnityEditor.Rendering.UIGen
@@ -99,7 +101,8 @@ namespace UnityEditor.Rendering.UIGen
             var misusedAttributes = dataSource.Where(t => !t.IsClass
                 // Check for static class
                 || (t.IsAbstract && t.IsSealed))
-                .Select(t => new Exception($"Attribute {nameof(DeriveDebugMenuAttribute)} must be used on a non-static class {t.Name}"))
+                .Select(t => new Exception($"Attribute {nameof(DeriveDebugMenuAttribute)} " +
+                    $"must be used on a non-static class {t.Name}"))
                 .ToList();
 
             if (misusedAttributes.Count == 0)
@@ -124,7 +127,7 @@ namespace UnityEditor.Rendering.UIGen
             uiDefinition = default;
             uiContextDefinition = default;
 
-            if (!GenerateUIDefinitionPerType(
+            if (!GenerateUIDefinitionForAllTypes(
                     dataSource,
                     out var uiDefinitions,
                     out var uiContextDefinitions,
@@ -146,15 +149,88 @@ namespace UnityEditor.Rendering.UIGen
         }
 
         [MustUseReturnValue]
-        static bool GenerateUIDefinitionPerType<TList>(
+        static bool GenerateUIDefinitionForAllTypes<TList>(
             [DisallowNull] TList dataSource,
             out PooledList<UIDefinition> uiDefinitions,
             out PooledList<UIContextDefinition> uiContextDefinitions,
             [NotNullWhen(false)] out Exception error
         )
-            where TList : IList<System.Type>
+            where TList : IList<Type>
         {
-            throw new NotImplementedException();
+            uiDefinitions = default;
+            uiContextDefinitions = default;
+            error = default;
+
+            using (ListPool<UIDefinition>.Get(out var uiDefinitionsTmp))
+            using (ListPool<UIContextDefinition>.Get(out var uiContextDefinitionsTmp))
+            {
+                foreach (var type in dataSource)
+                {
+                    if (!GenerateUIDefinitionForType(type, out var uiDefinition, out var uiContextDefinition, out error))
+                        return false;
+
+                    uiDefinitionsTmp.Add(uiDefinition);
+                    uiContextDefinitionsTmp.Add(uiContextDefinition);
+                }
+
+                uiDefinitions = PooledList<UIDefinition>.New();
+                uiContextDefinitions = PooledList<UIContextDefinition>.New();
+                uiDefinitions.listUnsafe.AddRange(uiDefinitionsTmp);
+                uiContextDefinitions.listUnsafe.AddRange(uiContextDefinitionsTmp);
+            }
+
+            return true;
+        }
+
+        [MustUseReturnValue]
+        static bool GenerateUIDefinitionForType(
+            [DisallowNull] Type type,
+            [NotNullWhen(true)] out UIDefinition uiDefinition,
+            [NotNullWhen(true)]out UIContextDefinition uiContextDefinition,
+            [NotNullWhen(false)] out Exception error
+        )
+        {
+            [MustUseReturnValue]
+            bool GenerateUIDefinitionRecursive(
+                [DisallowNull] Type typeWalk,
+                [DisallowNull] UIDefinition uiDefinitionWalk,
+                [NotNullWhen(false)] out Exception errorWalk
+            )
+            {
+                // Find leaves
+                foreach (var (name, propertyType, attribute) in typeWalk.GetFields(BindingFlags.Instance | BindingFlags.Public)
+                             .Cast<MemberInfo>()
+                             .Union(typeWalk.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                             .Where(info => info.GetCustomAttribute(typeof(DebugMenuPropertyAttribute)) != null)
+                             .Select(info => (info.Name, info.MemberType, (DebugMenuPropertyAttribute)info.GetCustomAttribute(typeof(DebugMenuPropertyAttribute)))))
+                {
+                    if (UIDefinition.Property.From(
+                            name, propertyType, attribute
+                    ))
+                    uiDefinitionWalk.properties.list.Add();
+                }
+
+            }
+
+            [MustUseReturnValue]
+            bool GenerateContextDefinition(
+                [DisallowNull] Type typeWalk,
+                [NotNullWhen(true)] out UIContextDefinition uiContextDefinitionWalk,
+                [NotNullWhen(false)] out Exception errorWalk
+            )
+            {
+
+            }
+
+            uiContextDefinition = default;
+            uiDefinition = new UIDefinition();
+            if (!GenerateUIDefinitionRecursive(type, uiDefinition, out error))
+                return false;
+
+            if (!GenerateContextDefinition(type, out uiContextDefinition, out error))
+                return false;
+
+            return true;
         }
 
         [MustUseReturnValue]
