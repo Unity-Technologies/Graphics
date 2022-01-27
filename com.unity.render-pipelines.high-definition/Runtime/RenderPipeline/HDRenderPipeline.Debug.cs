@@ -426,6 +426,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             mpb.SetBuffer(HDShaderIDs._VisOITSubListsCounts, data.vBufferOIT.sublistCounterBuffer);
                             mpb.SetBuffer(HDShaderIDs._VisOITBuffer, data.vBufferOIT.oitVisibilityBuffer);
                             mpb.SetBuffer(HDShaderIDs._VisOITPixelHash, data.vBufferOIT.pixelHashBuffer);
+                            mpb.SetBuffer(HDShaderIDs._OITSortMemoryBuffer, data.vBufferOIT.sortMemoryBuffer);
 
                             uint oitGBufferLayerIdx = data.debugDisplaySettings.data.materialDebugSettings.oitGBufferLayerIdx;
                             int oitGBufferLayer = (int)data.debugDisplaySettings.data.materialDebugSettings.oitGBufferLayer;
