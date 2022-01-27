@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Xml;
 using JetBrains.Annotations;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 #if UNITY_EDITOR
 using UnityEditor;

@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.UIGen
             Dictionary<Type, UIPropertyGenerator> m_Generators = new();
 
             [MustUseReturnValue]
-            public bool Get(
+            public bool GetGeneratorForPropertyType(
                 [DisallowNull] Type propertyType,
                 [NotNullWhen(true)] out UIPropertyGenerator uiPropertyGenerator,
                 [NotNullWhen(false)] out Exception error
@@ -141,8 +141,16 @@ namespace UnityEngine.Rendering.UIGen
         {
             result = default;
 
-            if (!m_GeneratorSet.Get(property.type, out UIPropertyGenerator generator, out error))
-                return false;
+            UIPropertyGenerator generator = default;
+            if (property.generatorOverride != null)
+            {
+                // get custom generator
+            }
+            else
+            {
+                if (!m_GeneratorSet.GetGeneratorForPropertyType(property.type, out generator, out error))
+                    return false;
+            }
 
             if (!generator.Generate(property, out result, out error))
                 return false;

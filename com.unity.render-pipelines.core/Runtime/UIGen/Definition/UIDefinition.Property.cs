@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.UIGen
             /// </summary>
             public string propertyPath { get; set; }
             public Type type { get; }
+            public Type generatorOverride { get; }
         }
     }
 }
