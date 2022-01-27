@@ -8,13 +8,70 @@ using JetBrains.Annotations;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Rendering.UIGen
 {
     public static class DebugMenuUIGenerator
     {
+        public struct DebugMenu { }
+
         // TODO: [Fred] This is where we can look for type added by an extension mecanism
         //    Here, only default types are added
-        static readonly UIPropertySetGenerator k_DebugMenuUIPropertyGenerator = UIPropertySetGenerator.FromGeneratorTypesOrEmpty();
+        static UIPropertySetGenerator k_DebugMenuUIPropertyGenerator = UIPropertySetGenerator.Empty();
+
+#if UNITY_EDITOR
+        [MustUseReturnValue]
+        static bool FindPropertyGeneratorsFor<TView>(
+            [NotNullWhen(true)] out List<Type> generators,
+            [NotNullWhen(false)] out Exception error
+        )
+        {
+            var customGeneratorTypes = TypeCache.GetTypesWithAttribute<UIPropertyGeneratorSupportsAttribute>();
+
+            // TODO: [Fred] Must be pooled
+            generators = new();
+            foreach (var customGeneratorType in customGeneratorTypes)
+            {
+                //sanity check
+                if (!typeof(UIPropertyGenerator).IsAssignableFrom(customGeneratorType))
+                {
+                    Debug.LogError($"{nameof(UIPropertyGeneratorSupportsAttribute)} should only be used on class implementing {nameof(UIPropertyGenerator)}. Found on {customGeneratorType.FullName}. Skipping.");
+                    continue;
+                }
+
+                var attributes = customGeneratorType.GetCustomAttributes(typeof(UIPropertyGeneratorSupportsAttribute), false);
+                foreach (UIPropertyGeneratorSupportsAttribute attribute in attributes)
+                {
+                    if (attribute.uiType != typeof(TView))
+                        continue;
+
+                    generators.Add(customGeneratorType);
+                }
+            }
+
+            error = default;
+            return true;
+        }
+
+        [InitializeOnLoadMethod]
+        static void FindCustomGenerator()
+        {
+            if (!FindPropertyGeneratorsFor<DebugMenu>(out var generators, out var error))
+            {
+                Debug.LogException(error);
+                return;
+            }
+
+            if (UIPropertySetGenerator.TryFromGeneratorTypes(generators, out k_DebugMenuUIPropertyGenerator, out error))
+            {
+                Debug.LogException(error);
+                return;
+            }
+        }
+#endif
 
         public struct Parameters
         {

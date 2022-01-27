@@ -15,66 +15,6 @@ namespace UnityEngine.Rendering.UIGen
 {
     public static class GeneratorUtility
     {
-        static readonly Dictionary<Type, UIPropertyGenerator> s_Generators = new()
-        {
-            //default generators : hardcoded list
-            { IntUIPropertyGenerator.typeSupported, new IntUIPropertyGenerator() },
-        };
-
-        static Dictionary<string, Dictionary<Type, UIPropertyGenerator>> s_OverridingGenerators = new();
-
-        // TODO: [Fred] Can we use a Type instead of a string
-        public static Dictionary<Type, UIPropertyGenerator> GetGenerators(in string UIName = null)
-        {
-            var generators = new Dictionary<Type, UIPropertyGenerator>(s_Generators);
-
-            if (string.IsNullOrEmpty(UIName))
-                return generators;
-
-            if (!s_OverridingGenerators.ContainsKey(UIName))
-                return generators;
-
-            foreach (var kvp in s_OverridingGenerators[UIName])
-                generators[kvp.Key] = kvp.Value;
-
-            return generators;
-        }
-
-#if UNITY_EDITOR
-        [InitializeOnLoadMethod]
-        static void FindCustomGenerator()
-        {
-            var customGeneratorTypes = TypeCache.GetTypesWithAttribute<PropertyGeneratorSupportsAttribute>();
-
-            foreach (var customGeneratorType in customGeneratorTypes)
-            {
-                //sanity check
-                if (!typeof(UIPropertyGenerator).IsAssignableFrom(customGeneratorType))
-                {
-                    Debug.LogError($"{nameof(PropertyGeneratorSupportsAttribute)} should only be used on class implementing {nameof(UIPropertyGenerator)}<T>. Found on {customGeneratorType.FullName}. Skipping.");
-                    continue;
-                }
-
-                var attributes = customGeneratorType.GetCustomAttributes(typeof(PropertyGeneratorSupportsAttribute), false);
-                foreach (PropertyGeneratorSupportsAttribute attribute in attributes)
-                {
-                    if (!s_OverridingGenerators.ContainsKey(attribute.UIName))
-                        s_OverridingGenerators[attribute.UIName] = new();
-
-                    var generator = Activator.CreateInstance(customGeneratorType) as UIPropertyGenerator;
-
-                    //sanity check
-                    if (s_OverridingGenerators[attribute.UIName].ContainsKey(generator.GetTypeSupported()))
-                    {
-                        Debug.LogError($"There is several {nameof(PropertyGeneratorSupportsAttribute)} conflicting for type {generator.GetTypeSupported().FullName}. Discarding {customGeneratorType.FullName}.");
-                        continue;
-                    }
-
-                    s_OverridingGenerators[attribute.UIName][generator.GetTypeSupported()] = generator;
-                }
-            }
-        }
-
         public static bool ExtractAndNicifyName([DisallowNull] in string bindingPath, [NotNullWhen(true)] out string nicifyedName, [NotNullWhen(false)] out Exception error)
         {
             nicifyedName = null;
@@ -96,14 +36,13 @@ namespace UnityEngine.Rendering.UIGen
             nicifyedName = ObjectNames.NicifyVariableName(end);
             return true;
         }
-#endif
     }
 
-    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-    public class PropertyGeneratorSupportsAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
+    public class UIPropertyGeneratorSupportsAttribute : Attribute
     {
         public readonly Type uiType;
-        public PropertyGeneratorSupportsAttribute(Type uiType)
+        public UIPropertyGeneratorSupportsAttribute(Type uiType)
         {
             this.uiType = uiType;
         }
@@ -138,6 +77,7 @@ namespace UnityEngine.Rendering.UIGen
         );
     }
 
+    [UIPropertyGeneratorSupports(typeof(DebugMenuUIGenerator.DebugMenu))]
     [UIPropertyGenerator(typeof(int))]
     public class IntUIPropertyGenerator : UIPropertyGenerator
     {

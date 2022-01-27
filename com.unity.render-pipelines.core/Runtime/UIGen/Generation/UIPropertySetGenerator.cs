@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.UIGen
         public static UIPropertySetGenerator Empty() => new UIPropertySetGenerator();
 
         public static bool TryFromGeneratorTypes(
-            [DisallowNull] Type[] types,
+            [DisallowNull] IEnumerable<Type> types,
             [NotNullWhen(true)] out UIPropertySetGenerator setGenerator,
             [NotNullWhen(false)] out Exception error
         )
@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.UIGen
                     return false;
                 }
 
-                if (type.IsAssignableFrom(typeof(UIPropertyGenerator)))
+                if (typeof(UIPropertyGenerator).IsAssignableFrom(type))
                 {
                     error = new ArgumentException($"Type {type.Name} is not a {nameof(UIPropertyGenerator)}");
                     return false;
