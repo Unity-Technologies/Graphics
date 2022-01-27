@@ -83,12 +83,14 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Current debug post processing mode.
         /// </summary>
-        public DebugPostProcessingMode postProcessingDebugMode { get; set; } = DebugPostProcessingMode.Auto;
+        public DebugPostProcessingMode postProcessingDebugMode = DebugPostProcessingMode.Auto;
 
         // Under the hood, the implementation uses a single enum (DebugSceneOverrideMode). For UI & public API,
         // we have split this enum into WireframeMode and a separate Overdraw boolean.
 
-        DebugWireframeMode m_WireframeMode = DebugWireframeMode.None;
+        // NOTE: Should be private, but must be public for data binding.
+        // TODO binding to this doesn't work because the property setter updating SceneOverrideMode never gets called. Need to rethink.
+        public DebugWireframeMode m_WireframeMode = DebugWireframeMode.None;
 
         /// <summary>
         /// Current debug wireframe mode.
@@ -124,7 +126,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal DebugSceneOverrideMode sceneOverrideMode { get; set; } = DebugSceneOverrideMode.None;
 
-        bool m_Overdraw = false;
+        // NOTE: Should be private, but must be public for data binding.
+        // TODO binding to this doesn't work because the property setter updating SceneOverrideMode never gets called. Need to rethink.
+        public bool m_Overdraw = false;
 
         /// <summary>
         /// Whether debug overdraw mode is active.
