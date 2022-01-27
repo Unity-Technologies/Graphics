@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
         [MenuItem("Window/Shaders/ShaderGraph", false)]
         public static void ShowWindow()
         {
-            // GetWindow<ShaderGraphEditorWindow>();
+            //GetWindow<ShaderGraphEditorWindow>();
             var shaderGraphEditorWindow = CreateWindow<ShaderGraphEditorWindow>(typeof(SceneView), typeof(ShaderGraphEditorWindow));
             shaderGraphEditorWindow.Show();
             shaderGraphEditorWindow.Focus();
