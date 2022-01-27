@@ -52,7 +52,7 @@ public struct <#+ Write(decl.name); #> : IEquatable<<#+ Write(decl.name); #>>
     {
         if (string.IsNullOrEmpty(name))
         {
-            error = new ArgumentException($"{nameof(<#+ Write(decl.name); #>)} must not be empty");
+            error = new ArgumentException($"{nameof(<#+ Write(decl.name); #>)} must not be empty").WithStackTrace();
             <#+ Write(decl.name); #> = Empty;
             return false;
         }

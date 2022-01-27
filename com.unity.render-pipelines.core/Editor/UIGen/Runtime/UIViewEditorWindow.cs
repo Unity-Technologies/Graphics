@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.UIGen
 
             if (asset == null)
             {
-                error = new Exception($"Asset is missing at {path}");
+                error = new Exception($"Asset is missing at {path}").WithStackTrace();
                 return false;
             }
 

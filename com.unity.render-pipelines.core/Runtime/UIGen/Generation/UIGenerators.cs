@@ -22,14 +22,14 @@ namespace UnityEngine.Rendering.UIGen
             error = null;
             if (string.IsNullOrEmpty(bindingPath))
             {
-                error = new Exception("Providen binding path is empty. Cannot be nicified.");
+                error = new Exception("Providen binding path is empty. Cannot be nicified.").WithStackTrace();
                 return false;
             }
 
             int index = bindingPath.LastIndexOf('.');
             if (index == bindingPath.Length - 1)
             {
-                error = new Exception("Providen binding path is cannot end with '.'.");
+                error = new Exception("Providen binding path is cannot end with '.'.").WithStackTrace();
                 return false;
             }
 

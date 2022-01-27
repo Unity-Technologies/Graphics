@@ -103,7 +103,7 @@ namespace UnityEditor.Rendering.UIGen
             );
             if (syntaxTree == null)
             {
-                error = new Exception("Failed to create syntax tree");
+                error = new Exception("Failed to create syntax tree").WithStackTrace();
                 return false;
             }
 

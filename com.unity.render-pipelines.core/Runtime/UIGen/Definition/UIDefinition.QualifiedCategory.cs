@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.UIGen
                 category = default;
                 if (primary == CategoryId.Empty)
                 {
-                    error = new ArgumentException($"Primary category must not be empty.");
+                    error = new ArgumentException($"Primary category must not be empty.").WithStackTrace();
                     return false;
                 }
 

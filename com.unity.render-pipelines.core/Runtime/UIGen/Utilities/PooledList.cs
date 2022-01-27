@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.UIGen
         {
             if (m_List == null)
             {
-                error = new ObjectDisposedException(nameof(PooledList<TValue>));
+                error = new ObjectDisposedException(nameof(PooledList<TValue>)).WithStackTrace();
                 thisList = null;
                 return false;
             }

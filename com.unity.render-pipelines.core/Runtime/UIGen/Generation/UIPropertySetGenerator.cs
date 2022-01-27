@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.UIGen
             {
                 if (!m_PropertyTypeToGenerator.TryGetValue(propertyType, out uiPropertyGenerator))
                 {
-                    error = new ArgumentException($"Property type {propertyType.Name} has no registered generator");
+                    error = new ArgumentException($"Property type {propertyType.Name} has no registered generator").WithStackTrace();
                     return false;
                 }
 
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.UIGen
             {
                 if (!m_GeneratorTypeToGenerator.TryGetValue(generatorType, out uiPropertyGenerator))
                 {
-                    error = new ArgumentException($"Generator type {generatorType.Name} is not registered generator");
+                    error = new ArgumentException($"Generator type {generatorType.Name} is not registered generator").WithStackTrace();
                     return false;
                 }
 
@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.UIGen
             {
                 if (!m_PropertyTypeToGenerator.TryAdd(supportedType, instance))
                 {
-                    error = new ArgumentException($"{supportedType.Name} has already a generator registered");
+                    error = new ArgumentException($"{supportedType.Name} has already a generator registered").WithStackTrace();
                     return false;
                 }
 
@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.UIGen
             {
                 if (!m_GeneratorTypeToGenerator.TryAdd(instance.GetType(), instance))
                 {
-                    error = new ArgumentException($"{instance.GetType().Name} is already generator registered");
+                    error = new ArgumentException($"{instance.GetType().Name} is already generator registered").WithStackTrace();
                     return false;
                 }
 
@@ -96,19 +96,19 @@ namespace UnityEngine.Rendering.UIGen
             {
                 if (type == null)
                 {
-                    error = new ArgumentNullException(nameof(types), "A type provided is null");
+                    error = new ArgumentNullException(nameof(types), "A type provided is null").WithStackTrace();
                     return false;
                 }
 
                 if (type.GetCustomAttribute(typeof(UIPropertyGeneratorAttribute)) is not UIPropertyGeneratorAttribute attr)
                 {
-                    error = new ArgumentException($"Type {type.Name} do not have a {nameof(UIPropertyGeneratorAttribute)}");
+                    error = new ArgumentException($"Type {type.Name} do not have a {nameof(UIPropertyGeneratorAttribute)}").WithStackTrace();
                     return false;
                 }
 
                 if (typeof(UIPropertyGenerator).IsAssignableFrom(type))
                 {
-                    error = new ArgumentException($"Type {type.Name} is not a {nameof(UIPropertyGenerator)}");
+                    error = new ArgumentException($"Type {type.Name} is not a {nameof(UIPropertyGenerator)}").WithStackTrace();
                     return false;
                 }
 

@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.UIGen
         {
             if (string.IsNullOrEmpty(value))
             {
-                error = new ArgumentNullException(name);
+                error = new ArgumentNullException(name).WithStackTrace();
                 return false;
             }
 

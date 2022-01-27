@@ -105,7 +105,7 @@ namespace UnityEditor.Rendering.UIGen
                 // Check for static class
                 || (t.IsAbstract && t.IsSealed))
                 .Select(t => new Exception($"Attribute {nameof(DeriveDebugMenuAttribute)} " +
-                    $"must be used on a non-static class {t.Name}"))
+                    $"must be used on a non-static class {t.Name}").WithStackTrace())
                 .ToList();
 
             if (misusedAttributes.Count == 0)
@@ -114,7 +114,7 @@ namespace UnityEditor.Rendering.UIGen
                 return true;
             }
 
-            error = new AggregateException(misusedAttributes);
+            error = new AggregateException(misusedAttributes).WithStackTrace();
             return false;
         }
 

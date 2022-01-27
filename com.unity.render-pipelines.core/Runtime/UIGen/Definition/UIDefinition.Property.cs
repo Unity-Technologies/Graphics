@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.UIGen
             {
                 if (!m_FeatureParametersPerFeatureType.TryAdd(typeof(TFeature), feature))
                 {
-                    error = new ArgumentException($"Feature {typeof(TFeature).Name} is already added");
+                    error = new ArgumentException($"Feature {typeof(TFeature).Name} is already added").WithStackTrace();
                     return false;
                 }
 
