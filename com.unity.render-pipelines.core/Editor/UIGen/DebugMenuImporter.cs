@@ -86,9 +86,9 @@ namespace UnityEditor.Rendering.UIGen
                 return false;
 
             // // Write assets and C# generated library
-            // if (!view.WriteToDisk(s_GenerationTargetLocations, out error))
-            //     return false;
-            //
+            if (!view.WriteToDisk(s_GenerationTargetLocations, out error))
+                return false;
+
             // TODO: may require additional arguments
             if (!DebugMenuIntegration.GenerateIntegration(s_IntegrationParameters, out var integrationDocuments, out error))
                 return false;

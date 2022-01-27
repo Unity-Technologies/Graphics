@@ -5,8 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using JetBrains.Annotations;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -207,16 +209,20 @@ namespace UnityEngine.Rendering.UIGen
                 types.Add(interfaceDeclaration);
                 types.Add(implementationDeclaration);
 
-                var usingDirectives = SyntaxFactory.List<UsingDirectiveSyntax>(
-                    usings.Select(u => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(u))));
+                var usingDirectives = SyntaxFactory.List(
+                    usings.Select(u => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(u)).NormalizeWhitespace()));
+
+                var compilationUnit = SyntaxFactory.CompilationUnit(
+                    SyntaxFactory.List<ExternAliasDirectiveSyntax>(),
+                    usingDirectives,
+                    SyntaxFactory.List<AttributeListSyntax>(),
+                    SyntaxFactory.List(types)
+                );
+
+                compilationUnit = (CompilationUnitSyntax) Formatter.Format(compilationUnit, new AdhocWorkspace());
 
                 runtimeCode = (CSharpSyntaxTree) SyntaxFactory.SyntaxTree(
-                    SyntaxFactory.CompilationUnit(
-                        SyntaxFactory.List<ExternAliasDirectiveSyntax>(),
-                        usingDirectives,
-                        SyntaxFactory.List<AttributeListSyntax>(),
-                        SyntaxFactory.List(types)
-                    )
+                    compilationUnit
                 );
             }
 
@@ -260,21 +266,27 @@ namespace UnityEngine.Rendering.UIGen
     }}
 
     protected override bool BindContext(
-        [DisallowNull] TContext context,
+        [DisallowNull] I{parameters.uiViewContextTypeName} context,
         [DisallowNull] TemplateContainer container,
         [NotNullWhen(false)] out Exception error
     )
     {{
+        error = default;
         {bindContextBodies}
+
+        return true;
     }}
 
     protected override bool UnbindContext(
-        [DisallowNull] TContext context,
+        [DisallowNull] I{parameters.uiViewContextTypeName} context,
         [DisallowNull] TemplateContainer container,
         [NotNullWhen(false)] out Exception error
     )
     {{
+        error = default;
         {unbindContextBodies}
+
+        return true;
     }}
 }}";
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(code);
