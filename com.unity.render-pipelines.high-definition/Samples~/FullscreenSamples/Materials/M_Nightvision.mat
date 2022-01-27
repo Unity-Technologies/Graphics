@@ -41,13 +41,13 @@ Material:
     - _Blur_Max: 2
     - _Blur_Min: 0.25
     - _Brightness: 10
-    - _Depth_Gain: 0.1
+    - _Depth_Gain: 0.05
     - _Depth_Gain_Distance: 20
     - _Desaturation: 1
     - _EaseIn: 10000
     - _Exposure: 8.95
     - _Flatten: 2
-    - _Float: 2
+    - _Float: 3.64
     - _Float_1: 10
     - _Fullscreen_AlphaBlendOperation: 0
     - _Fullscreen_BlendMode: 1
