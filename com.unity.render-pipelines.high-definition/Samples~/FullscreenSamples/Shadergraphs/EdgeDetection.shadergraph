@@ -363,6 +363,9 @@
         },
         {
             "m_Id": "113c0905c2a74a8b8d8ec7388521888a"
+        },
+        {
+            "m_Id": "36b2a7e1af9e4317b2034026ca898256"
         }
     ],
     "m_GroupDatas": [
@@ -663,6 +666,20 @@
             "m_InputSlot": {
                 "m_Node": {
                     "m_Id": "dcf1840def80485a9a26069c8a8297d9"
+                },
+                "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "36b2a7e1af9e4317b2034026ca898256"
+                },
+                "m_SlotId": 1
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "ae84baaa7b724f788f852867e1a604c9"
                 },
                 "m_SlotId": 0
             }
@@ -1782,7 +1799,7 @@
             },
             "m_InputSlot": {
                 "m_Node": {
-                    "m_Id": "ae84baaa7b724f788f852867e1a604c9"
+                    "m_Id": "36b2a7e1af9e4317b2034026ca898256"
                 },
                 "m_SlotId": 0
             }
@@ -4019,8 +4036,8 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 4621.599609375,
-            "y": 3309.60009765625,
+            "x": 4600.39990234375,
+            "y": 3207.60009765625,
             "width": 139.60009765625,
             "height": 119.199951171875
         }
@@ -4548,6 +4565,42 @@
     "m_Labels": [
         "Y"
     ]
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.RedirectNodeData",
+    "m_ObjectId": "36b2a7e1af9e4317b2034026ca898256",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Redirect Node",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 4742.20166015625,
+            "y": 3639.012451171875,
+            "width": 0.0,
+            "height": 0.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "c001bd003bcb427c8124fa48a0fb3c09"
+        },
+        {
+            "m_Id": "fa4037203feb442cb1995e1e41a1c77d"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    }
 }
 
 {
@@ -5954,8 +6007,8 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 4342.39990234375,
-            "y": 3378.400146484375,
+            "x": 4321.19970703125,
+            "y": 3276.400146484375,
             "width": 135.60009765625,
             "height": 35.199951171875
         }
@@ -11405,6 +11458,30 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
+    "m_ObjectId": "c001bd003bcb427c8124fa48a0fb3c09",
+    "m_Id": 0,
+    "m_DisplayName": "",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    }
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "c27efe44d6b640b08aa33da06b73aece",
     "m_Id": 4,
@@ -14114,6 +14191,30 @@
     "m_Id": 0,
     "m_DisplayName": "",
     "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
+    "m_ObjectId": "fa4037203feb442cb1995e1e41a1c77d",
+    "m_Id": 1,
+    "m_DisplayName": "",
+    "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "",
     "m_StageCapability": 3,
