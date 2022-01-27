@@ -6,6 +6,12 @@
     margin-left: 10px;
 }
 
+/* Controls the amount of space allocated for individual field labels */
+.unity-base-field__label
+{
+    min-width: 200px;
+}
+
 .unity-group-box > .unity-label
 {
     -unity-font-style: bold;
