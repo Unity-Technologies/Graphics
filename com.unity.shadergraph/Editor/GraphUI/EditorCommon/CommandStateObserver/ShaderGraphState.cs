@@ -53,11 +53,6 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 graphPreviewState
             );
 
-            //commandDispatcher.RegisterCommandHandler<GraphViewStateComponent, GraphWindowTickCommand>(
-            //    GraphWindowTickCommand.DefaultCommandHandler,
-            //    graphView.GraphViewState
-            //);
-
             // Overrides for default GTF commands
 
             dispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, Preferences, CreateEdgeCommand>(

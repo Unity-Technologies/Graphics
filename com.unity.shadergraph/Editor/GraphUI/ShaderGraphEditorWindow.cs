@@ -44,8 +44,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
             var graphView = new ShaderGraphView(this, GraphTool, GraphTool.Name);
             GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.k_CreateNode, new Vector2(425, 100), 2.0f);
 
-            // TODO (Brett) Maybe register command handlers here (from MathBook example)
-            // graphView.RegisterCommandHandler<SetNumberOfInputPortCommand>(SetNumberOfInputPortCommand.DefaultCommandHandler);
+            // TODO (Brett) Command registration or state handler creation belongs here.
+            // Example: graphView.RegisterCommandHandler<SetNumberOfInputPortCommand>(SetNumberOfInputPortCommand.DefaultCommandHandler);
+            // Other Example: new ShaderGraphState(GUID, prefs); 
 
             return graphView;
         }
