@@ -1,6 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Packages/com.unity.render-pipelines.core/Runtime/Debugging/RenderingDebugger/Styles/RenderingDebuggerRuntimeContainer.uss?fileID=7433441132597879392&amp;guid=81d34929bfd993540a9c13bb9ecb5fee&amp;type=3#RenderingDebuggerRuntimeContainer" />
-    <UnityEngine.Rendering.PanelTab name="tabs" style="justify-content: space-between;" />
-    <ui:VisualElement name="tabContent" />
-    <ui:Button text="Reset" display-tooltip-when-elided="true" name="ResetButton" style="width: 60px; height: 40px;" />
+    <ui:VisualElement name="Root">
+        <UnityEngine.Rendering.PanelTab name="tabs" style="justify-content: space-between;" />
+        <ui:VisualElement name="tabContent" />
+        <ui:Button text="Reset" display-tooltip-when-elided="true" name="ResetButton" style="width: 60px; height: 40px;" />
+    </ui:VisualElement>
 </ui:UXML>

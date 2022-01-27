@@ -12,9 +12,7 @@ namespace UnityEngine.Rendering
     {
         public const string k_UnselectedContentClassName = "unselectedContent";
 
-        #if UNITY_EDITOR
-        [MenuItem("Rendering Debugger (UITK)/Runtime")]
-        #endif
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void CreateRuntimeRenderingDebuggerUI()
         {
             UIDocument runtimeUIDocument = null;
@@ -24,7 +22,11 @@ namespace UnityEngine.Rendering
                 DestroyImmediate(runtimeRenderingDebugger.gameObject);
             }
 
-            var runtimeRenderingDebuggerGO = new GameObject("RenderingDebugger");
+            if (!Application.isPlaying)
+                return;
+
+            var runtimeRenderingDebuggerGO = new GameObject("[Rendering Debugger]");
+            DontDestroyOnLoad(runtimeRenderingDebuggerGO);
             runtimeRenderingDebugger = runtimeRenderingDebuggerGO.AddComponent<RenderingDebuggerRuntime>();
             runtimeUIDocument = runtimeRenderingDebuggerGO.AddComponent<UIDocument>();
             runtimeUIDocument.visualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/com.unity.render-pipelines.core/Runtime/Debugging/RenderingDebugger/RenderingDebuggerRuntimeContainer.uxml");

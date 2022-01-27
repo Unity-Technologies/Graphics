@@ -1,10 +1,16 @@
 :root {
-    margin: 12px;
-    padding: 4px;
-    border-radius: 4px;
-    background-color: #383838;
-    opacity: 0.5;
+    background-color: rgba(1,1,1,0);
     color: white;
+}
+
+#Root {
+    margin: 12px;
+    padding: 8px;
+    border-radius: 8px;
+    background-color: #383838;
+    opacity: 0.6;
+    width: 60%;
+    height: 100%;
 }
 
 /* Sets each label in tabs to have the same size. */
