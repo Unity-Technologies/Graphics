@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
             m_LastBounce = Unpack(o.Find(x => x.lastBounce));
         }
 
-        static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "This defines the maximal travel distance of rays.");
+        static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "This defines the maximal travel distance of rays in meters.");
 
         public override void OnInspectorGUI()
         {
