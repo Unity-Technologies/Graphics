@@ -10,7 +10,8 @@ namespace UnityEngine.Rendering.UIGen
     {
         class GeneratorSet
         {
-            Dictionary<Type, UIPropertyGenerator> m_Generators = new();
+            Dictionary<Type, UIPropertyGenerator> m_PropertyTypeToGenerator = new();
+            Dictionary<Type, UIPropertyGenerator> m_GeneratorTypeToGenerator = new();
 
             [MustUseReturnValue]
             public bool GetGeneratorForPropertyType(
@@ -19,7 +20,7 @@ namespace UnityEngine.Rendering.UIGen
                 [NotNullWhen(false)] out Exception error
             )
             {
-                if (!m_Generators.TryGetValue(propertyType, out uiPropertyGenerator))
+                if (!m_PropertyTypeToGenerator.TryGetValue(propertyType, out uiPropertyGenerator))
                 {
                     error = new ArgumentException($"Property type {propertyType.Name} has no registered generator");
                     return false;
@@ -30,15 +31,48 @@ namespace UnityEngine.Rendering.UIGen
             }
 
             [MustUseReturnValue]
-            public bool TryAdd(
+            public bool GetGeneratorForGeneratorType(
+                [DisallowNull] Type generatorType,
+                [NotNullWhen(true)] out UIPropertyGenerator uiPropertyGenerator,
+                [NotNullWhen(false)] out Exception error
+            )
+            {
+                if (!m_GeneratorTypeToGenerator.TryGetValue(generatorType, out uiPropertyGenerator))
+                {
+                    error = new ArgumentException($"Generator type {generatorType.Name} is not registered generator");
+                    return false;
+                }
+
+                error = default;
+                return true;
+            }
+
+            [MustUseReturnValue]
+            public bool TryAddPropertyTypeGenerator(
                 [DisallowNull] Type supportedType,
                 [DisallowNull] UIPropertyGenerator instance,
                 [NotNullWhen(false)] out Exception error
             )
             {
-                if (!m_Generators.TryAdd(supportedType, instance))
+                if (!m_PropertyTypeToGenerator.TryAdd(supportedType, instance))
                 {
                     error = new ArgumentException($"{supportedType.Name} has already a generator registered");
+                    return false;
+                }
+
+                error = default;
+                return true;
+            }
+
+            [MustUseReturnValue]
+            public bool TryAddGeneratorTypeGenerator(
+                [DisallowNull] UIPropertyGenerator instance,
+                [NotNullWhen(false)] out Exception error
+            )
+            {
+                if (!m_GeneratorTypeToGenerator.TryAdd(instance.GetType(), instance))
+                {
+                    error = new ArgumentException($"{instance.GetType().Name} is already generator registered");
                     return false;
                 }
 
@@ -84,9 +118,12 @@ namespace UnityEngine.Rendering.UIGen
                 }
 
                 var instance = (UIPropertyGenerator)Activator.CreateInstance(type);
+                if (!setGenerator.m_GeneratorSet.TryAddGeneratorTypeGenerator(instance, out error))
+                    return false;
+
                 foreach (var supportedType in attr.supportedTypes)
                 {
-                    if (!setGenerator.m_GeneratorSet.TryAdd(supportedType, instance, out error))
+                    if (!setGenerator.m_GeneratorSet.TryAddPropertyTypeGenerator(supportedType, instance, out error))
                         return false;
                 }
             }
@@ -144,11 +181,18 @@ namespace UnityEngine.Rendering.UIGen
             UIPropertyGenerator generator = default;
             if (categorizedProperty.property.generatorOverride != null)
             {
-                // get custom generator
+                if (!m_GeneratorSet.GetGeneratorForGeneratorType(
+                        categorizedProperty.property.generatorOverride,
+                        out generator,
+                        out error
+                    ))
+                    return false;
             }
             else
             {
-                if (!m_GeneratorSet.GetGeneratorForPropertyType(categorizedProperty.property.type, out generator, out error))
+                if (!m_GeneratorSet.GetGeneratorForPropertyType(categorizedProperty.property.type,
+                        out generator,
+                        out error))
                     return false;
             }
 

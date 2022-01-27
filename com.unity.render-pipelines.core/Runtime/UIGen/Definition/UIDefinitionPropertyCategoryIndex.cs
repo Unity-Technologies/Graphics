@@ -13,9 +13,13 @@ namespace UnityEngine.Rendering.UIGen
             [NotNullWhen(false)] out Exception error
         )
         {
-            throw new NotImplementedException();
+            index = new UIDefinitionPropertyCategoryIndex();
+            error = default;
+            return true;
         }
 
         public void Dispose() { }
+
+        UIDefinitionPropertyCategoryIndex() { }
     }
 }
