@@ -378,7 +378,7 @@ platforms:
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: mobile/android-execution-r19:stable
+        image: sdet/gamecode_win10:stable
         flavor: b1.large
     commands:
       [OpenGLES3, Vulkan]:
@@ -392,6 +392,15 @@ platforms:
                     set /p GIT_REVISIONDATE=<revdate.tmp
                     echo %GIT_REVISIONDATE%
                     del revdate.tmp
+                    utr <UTR_FLAGS>
+        call_utr_hikey_android_sdk_root:
+          - command: |5-
+                    set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                    git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                    set /p GIT_REVISIONDATE=<revdate.tmp
+                    echo %GIT_REVISIONDATE%
+                    del revdate.tmp
+                    set ANDROID_SDK_ROOT=%cd%/WindowsEditor/Data/PlaybackEngines/AndroidPlayer/SDK
                     utr <UTR_FLAGS>
         call_utr_without_git:
           - command: utr <UTR_FLAGS>

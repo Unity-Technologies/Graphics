@@ -144,6 +144,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return -1;
         }
 
+
         internal Bounds UpdateSpriteMesh()
         {
             if (m_LightCookieSprite == null && (m_Vertices.Length != 1 || m_Triangles.Length != 1))
@@ -154,7 +155,28 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite);
         }
 
-        internal void UpdateMesh(bool forceUpdate)
+        internal int GetTopMostLitLayerIndex()
+        {
+            var largestIndex = -1;
+            var largestLayer = 0;
+
+            var layers = Light2DManager.GetCachedSortingLayer();
+            for (var i = 0; i < m_ApplyToSortingLayers.Length; ++i)
+            {
+                for (var layer = layers.Length - 1; layer >= largestLayer; --layer)
+                {
+                    if (layers[layer].id == m_ApplyToSortingLayers[i])
+                    {
+                        largestIndex = layers[layer].value;
+                        largestLayer = layer;
+                    }
+                }
+            }
+
+            return largestIndex;
+        }
+
+        internal void UpdateMesh()
         {
             switch (m_LightType)
             {

@@ -25,6 +25,11 @@
             "name": "com.unity.visualeffectgraph",
             "expression": "10.0.0-preview.15",
             "define": "VFX_GRAPH_10_0_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.rendering.hybrid",
+            "expression": "0.14.0-preview.0",
+            "define": "ENABLE_HYBRID_RENDERER_V2"
         }
     ],
     "noEngineReferences": false

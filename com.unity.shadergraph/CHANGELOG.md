@@ -4,10 +4,22 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.9.0] - 2021-12-06
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [10.8.0] - 2021-09-20
+
+### Fixed
+ - Fixed ShaderGraph errors caused by very large or very small default values for color or float properties [1313932]
+ - Fixed a ShaderGraph warning when connecting a node using Object Space BiTangent to the vertex stage [1361512] (https://issuetracker.unity3d.com/issues/shader-graph-cross-implicit-truncation-of-vector-type-errors-are-thrown-when-connecting-transform-node-to-vertex-block)
+ - Fixed a ShaderGraph issue where Float properties in Integer mode would not be cast properly in graph previews [1332564]
+
 ## [10.7.0] - 2021-07-02
 
 ### Added
-  - Added a ShaderGraph animated preview framerate throttle.
+- Added a ShaderGraph animated preview framerate throttle.
 
 ### Fixed
 - Fixed SubGraph SamplerState property defaults not being respected [1336119]
@@ -16,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the incorrect value written to the VT feedback buffer when VT is not used.
 - Fixed compilation problems on preview shader when using hybrid renderer v2 and property desc override Hybrid Per Instance
 - Fixed a serialization bug wrt PVT property flags when using subgraphs. This fixes SRP batcher compatibility.
+- Fixed an incorrect direction transform from view to world space [1365187]
 
 ## [10.6.0] - 2021-04-29
 

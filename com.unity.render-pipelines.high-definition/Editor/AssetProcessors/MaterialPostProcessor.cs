@@ -35,13 +35,25 @@ namespace UnityEditor.Rendering.HighDefinition
 
             int materialIdx = 0;
             int totalMaterials = distinctGuids.Count();
-            foreach (var asset in distinctGuids)
+
+            try
             {
-                materialIdx++;
-                var path = AssetDatabase.GUIDToAssetPath(asset);
-                EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
-                AssetDatabase.ImportAsset(path);
+                AssetDatabase.StartAssetEditing();
+
+                foreach (var asset in distinctGuids)
+                {
+                    materialIdx++;
+                    var path = AssetDatabase.GUIDToAssetPath(asset);
+                    EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
+                    AssetDatabase.ImportAsset(path);
+                }
             }
+            finally
+            {
+                // Ensure the AssetDatabase knows we're finished editing
+                AssetDatabase.StopAssetEditing();
+            }
+
             UnityEditor.EditorUtility.ClearProgressBar();
 
             MaterialPostprocessor.s_NeedsSavingAssets = true;

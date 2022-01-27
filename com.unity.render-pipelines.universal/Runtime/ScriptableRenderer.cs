@@ -321,6 +321,9 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int AfterRendering = 3;
         }
 
+        private StoreActionsOptimization m_StoreActionsOptimizationSetting = StoreActionsOptimization.Auto;
+        private static bool m_UseOptimizedStoreActions = false;
+
         const int k_RenderPassBlockCount = 4;
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
@@ -339,6 +342,14 @@ namespace UnityEngine.Rendering.Universal
 
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
+
+        private static RenderBufferStoreAction[] m_ActiveColorStoreActions = new RenderBufferStoreAction[]
+        {
+            RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store,
+            RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store, RenderBufferStoreAction.Store
+        };
+
+        private static RenderBufferStoreAction m_ActiveDepthStoreAction = RenderBufferStoreAction.Store;
 
         // CommandBuffer.SetRenderTarget(RenderTargetIdentifier[] colors, RenderTargetIdentifier depth, int mipLevel, CubemapFace cubemapFace, int depthSlice);
         // called from CoreUtils.SetRenderTarget will issue a warning assert from native c++ side if "colors" array contains some invalid RTIDs.
@@ -381,6 +392,11 @@ namespace UnityEngine.Rendering.Universal
             }
             Clear(CameraRenderType.Base);
             m_ActiveRenderPassQueue.Clear();
+
+            if (UniversalRenderPipeline.asset)
+                m_StoreActionsOptimizationSetting = UniversalRenderPipeline.asset.storeActionsOptimization;
+
+            m_UseOptimizedStoreActions = m_StoreActionsOptimizationSetting != StoreActionsOptimization.Store;
         }
 
         public void Dispose()
@@ -561,6 +577,11 @@ namespace UnityEngine.Rendering.Universal
                     ExecuteBlock(RenderPassBlock.MainRenderingTransparent, in renderBlocks, context, ref renderingData);
                 }
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                    cameraData.xr.canMarkLateLatch = false;
+#endif
+
                 // Draw Gizmos...
                 DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
@@ -662,6 +683,10 @@ namespace UnityEngine.Rendering.Universal
                 if (activeRenderPassQueue[i] == null)
                     activeRenderPassQueue.RemoveAt(i);
             }
+
+            // if any pass was injected, the "automatic" store optimization policy will disable the optimized load actions
+            if (count > 0 && m_StoreActionsOptimizationSetting == StoreActionsOptimization.Auto)
+                m_UseOptimizedStoreActions = false;
         }
 
         void ClearRenderingState(CommandBuffer cmd)
@@ -729,6 +754,10 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
 
             renderPass.Execute(context, ref renderingData);
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled && cameraData.xr.hasMarkedLateLatch)
+                cameraData.xr.UnmarkLateLatchShaderProperties(cmd, ref cameraData);
+#endif
         }
 
         void SetRenderPassAttachments(CommandBuffer cmd, ScriptableRenderPass renderPass, ref CameraData cameraData)
@@ -902,9 +931,10 @@ namespace UnityEngine.Rendering.Universal
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
 
                 // Only setup render target if current render pass attachments are different from the active ones
-                if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
+                if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None ||
+                        renderPass.colorStoreActions[0] != m_ActiveColorStoreActions[0] || renderPass.depthStoreAction != m_ActiveDepthStoreAction)
                 {
-                    SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
+                    SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, renderPass.colorStoreActions[0], renderPass.depthStoreAction);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                     if (cameraData.xr.enabled)
@@ -924,6 +954,8 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
+                if (cameraData.xr.isLateLatchEnabled)
+                    cameraData.xr.canMarkLateLatch = true;
                 cameraData.xr.StartSinglePass(cmd);
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
                 context.ExecuteCommandBuffer(cmd);
@@ -951,6 +983,11 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
                 m_ActiveColorAttachments[i] = 0;
 
+            m_ActiveColorStoreActions[0] = RenderBufferStoreAction.Store;
+            m_ActiveDepthStoreAction = RenderBufferStoreAction.Store;
+            for (int i = 1; i < m_ActiveColorStoreActions.Length; ++i)
+                m_ActiveColorStoreActions[i] = RenderBufferStoreAction.Store;
+
             m_ActiveDepthAttachment = depthAttachment;
 
             RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ?
@@ -963,8 +1000,40 @@ namespace UnityEngine.Rendering.Universal
                 depthAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor);
         }
 
-        static void SetRenderTarget(
-            CommandBuffer cmd,
+        internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor, RenderBufferStoreAction colorStoreAction, RenderBufferStoreAction depthStoreAction)
+        {
+            m_ActiveColorAttachments[0] = colorAttachment;
+            for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
+                m_ActiveColorAttachments[i] = 0;
+
+            m_ActiveColorStoreActions[0] = colorStoreAction;
+            m_ActiveDepthStoreAction = depthStoreAction;
+            for (int i = 1; i < m_ActiveColorStoreActions.Length; ++i)
+                m_ActiveColorStoreActions[i] = RenderBufferStoreAction.Store;
+
+            m_ActiveDepthAttachment = depthAttachment;
+
+            RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ?
+                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+
+            RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 ?
+                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+
+            // if we shouldn't use optimized store actions then fall back to the conservative safe (un-optimal!) route and just store everything
+            if (!m_UseOptimizedStoreActions)
+            {
+                if (colorStoreAction != RenderBufferStoreAction.StoreAndResolve)
+                    colorStoreAction = RenderBufferStoreAction.Store;
+                if (depthStoreAction != RenderBufferStoreAction.StoreAndResolve)
+                    depthStoreAction = RenderBufferStoreAction.Store;
+            }
+
+
+            SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
+                depthAttachment, depthLoadAction, depthStoreAction, clearFlag, clearColor);
+        }
+
+        static void SetRenderTarget(CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,
             RenderBufferStoreAction colorStoreAction,
@@ -988,7 +1057,8 @@ namespace UnityEngine.Rendering.Universal
             // XRTODO: Revisit the logic. Why treat CameraTarget depth specially?
             if (depthAttachment == BuiltinRenderTextureType.CameraTarget)
             {
-                SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
+                cmd.SetRenderTarget(colorAttachment, colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
+                CoreUtils.ClearRenderTarget(cmd, clearFlags, clearColor);
             }
             else
             {

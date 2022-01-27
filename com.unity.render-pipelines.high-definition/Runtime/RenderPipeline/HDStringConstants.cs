@@ -526,7 +526,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SpaceEmissionTexture              = Shader.PropertyToID("_SpaceEmissionTexture");
         public static readonly int _SpaceEmissionMultiplier           = Shader.PropertyToID("_SpaceEmissionMultiplier");
 
-        public static readonly int _RenderSunDisk                     = Shader.PropertyToID("_RenderSunDisk");
+        public static readonly int _RenderSunDisk = Shader.PropertyToID("_RenderSunDisk");
 
         public static readonly int _ColorSaturation                   = Shader.PropertyToID("_ColorSaturation");
         public static readonly int _AlphaSaturation                   = Shader.PropertyToID("_AlphaSaturation");

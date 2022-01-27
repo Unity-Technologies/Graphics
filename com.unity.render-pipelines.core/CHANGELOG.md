@@ -4,6 +4,19 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.9.0] - 2021-12-06
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [10.8.0] - 2021-09-20
+
+### Fixed
+- Fixed potentially conflicting runtime Rendering Debugger UI command by adding an option to disable runtime UI altogether (1345783).
+- Fixed issue when changing volume profiles at runtime with a script (case 1364256).
+- Fixed XR support in CoreUtils.DrawFullscreen function.
+- Fixed an issue causing Render Graph execution errors after a random amount of time.
+
 ## [10.7.0] - 2021-07-02
 
 ### Fixed

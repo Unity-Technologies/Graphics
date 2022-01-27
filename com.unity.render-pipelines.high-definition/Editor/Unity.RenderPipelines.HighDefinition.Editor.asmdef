@@ -30,6 +30,11 @@
             "name": "com.unity.xr.management",
             "expression": "1.0.0",
             "define": "ENABLE_XR_MANAGEMENT"
+        },
+        {
+            "name": "com.unity.rendering.hybrid",
+            "expression": "0.14.0-preview.0",
+            "define": "ENABLE_HYBRID_RENDERER_V2"
         }
     ]
 }
