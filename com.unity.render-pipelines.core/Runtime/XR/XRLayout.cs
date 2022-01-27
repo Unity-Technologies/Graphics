@@ -54,6 +54,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Used by render pipelines to access all registered passes on this layout.
         /// </summary>
+        /// <returns></returns>
         public List<(Camera, XRPass)> GetActivePasses()
         {
             return m_ActivePasses;

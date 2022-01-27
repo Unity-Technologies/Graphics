@@ -138,6 +138,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Used by the render pipeline to initiate a new rendering frame through a XR layout.
         /// </summary>
+        /// <returns></returns>
         public static XRLayout NewLayout()
         {
             RefreshDeviceInfo();

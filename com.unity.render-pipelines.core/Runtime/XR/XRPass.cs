@@ -9,16 +9,16 @@ namespace UnityEngine.Experimental.Rendering
     /// </summary>
     public struct XRPassCreateInfo
     {
-        public RenderTargetIdentifier renderTarget;
-        public RenderTextureDescriptor renderTargetDesc;
-        public ScriptableCullingParameters cullingParameters;
-        public Material occlusionMeshMaterial;
-        public int multipassId;
-        public int cullingPassId;
-        public bool copyDepth;
+        internal RenderTargetIdentifier renderTarget;
+        internal RenderTextureDescriptor renderTargetDesc;
+        internal ScriptableCullingParameters cullingParameters;
+        internal Material occlusionMeshMaterial;
+        internal int multipassId;
+        internal int cullingPassId;
+        internal bool copyDepth;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-        public UnityEngine.XR.XRDisplaySubsystem.XRRenderPass xrSdkRenderPass;
+        internal UnityEngine.XR.XRDisplaySubsystem.XRRenderPass xrSdkRenderPass;
 #endif
     }
 
@@ -46,6 +46,8 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Default allocator method for XRPass.
         /// </summary>
+        /// <param name="createInfo"></param>
+        /// <returns></returns>
         public static XRPass CreateDefault(XRPassCreateInfo createInfo)
         {
             XRPass pass = GenericPool<XRPass>.Get();
@@ -117,6 +119,7 @@ namespace UnityEngine.Experimental.Rendering
         /// Returns the projection matrix for a given view.
         /// </summary>
         /// <param name="viewIndex"></param>
+        /// <returns></returns>
         public Matrix4x4 GetProjMatrix(int viewIndex = 0)
         {
             return m_Views[viewIndex].projMatrix;
@@ -126,6 +129,7 @@ namespace UnityEngine.Experimental.Rendering
         /// Returns the view matrix for a given view.
         /// </summary>
         /// <param name="viewIndex"></param>
+        /// <returns></returns>
         public Matrix4x4 GetViewMatrix(int viewIndex = 0)
         {
             return m_Views[viewIndex].viewMatrix;
@@ -135,6 +139,7 @@ namespace UnityEngine.Experimental.Rendering
         /// Returns the viewport for a given view.
         /// </summary>
         /// <param name="viewIndex"></param>
+        /// <returns></returns>
         public Rect GetViewport(int viewIndex = 0)
         {
             return m_Views[viewIndex].viewport;
@@ -144,6 +149,7 @@ namespace UnityEngine.Experimental.Rendering
         /// Returns the occlusion mesh for a given view.
         /// </summary>
         /// <param name="viewIndex"></param>
+        /// <returns></returns>
         public Mesh GetOcclusionMesh(int viewIndex = 0)
         {
             return m_Views[viewIndex].occlusionMesh;
@@ -153,6 +159,7 @@ namespace UnityEngine.Experimental.Rendering
         /// Returns the destination slice index (for texture array) for a given view.
         /// </summary>
         /// <param name="viewIndex"></param>
+        /// <returns></returns>
         public int GetTextureArraySlice(int viewIndex = 0)
         {
             return m_Views[viewIndex].textureArraySlice;
@@ -232,6 +239,8 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Take a point that is center-relative (0.5, 0.5) and modify it to be placed relative to the view's center instead, respecting the asymmetric FOV (if it is used)
         /// </summary>
+        /// <param name="center"></param>
+        /// <returns></returns>
         public Vector4 ApplyXRViewCenterOffset(Vector2 center)
         {
             Vector4 result = Vector4.zero;
@@ -272,6 +281,10 @@ namespace UnityEngine.Experimental.Rendering
             m_OcclusionMesh.UpdateCombinedMesh();
         }
 
+        /// <summary>
+        /// Initialize the base class fields.
+        /// </summary>
+        /// <param name="createInfo"></param>
         public void InitBase(XRPassCreateInfo createInfo)
         {
             m_Views.Clear();
