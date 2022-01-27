@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.UIGen
             if (!ValidateDataSources(dataSource, out error))
                 return false;
 
-            if (!GenerateDefinitions(dataSource, out var definition, out error))
+            if (!GenerateDefinitions(dataSource, out var definition, out var context, out error))
                 return false;
 
             if (!definition.ComputeHash(out var hash, out error))
@@ -59,7 +59,10 @@ namespace UnityEditor.Rendering.UIGen
                 return true;
 
             // Generate asset and C# library
-            if (!definition.GenerateDebugMenuBindableView(
+
+            if (!DebugMenuUIGenerator.GenerateDebugMenuBindableView(
+                    definition,
+                    context,
                     new DebugMenuUIGenerator.Parameters(),
                     out var view,
                     out error))
