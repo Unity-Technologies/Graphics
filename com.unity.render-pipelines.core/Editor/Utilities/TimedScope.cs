@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Obtains a <see cref="TimedScope"/>
         /// </summary>
-        /// <param name="durationMs">The reference to the <see cref="double"/> to fill with the duration</param>
+        /// <param name="durationMs">The location to write the duration in milliseconds to.</param>
         /// <returns>A <see cref="TimedScope"/></returns>
         public static TimedScope FromRef(ref double durationMs)
         {
