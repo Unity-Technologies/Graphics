@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Correlated Color Temperature not being applied in Player builds for Enlighten realtime GI lights (case 1370438);
 - Fixed artifacts on gpu light culling when the frustum near and far are very spread out (case 1386436)
 - Fixed missing unit in ray tracing related tooltips and docs (case 1397491).
+- Fixed wave intrinsics path for FPTL early out. Early out now happens for the whole wave (related to 1386436)
 
 ## [14.0.0] - 2021-11-17
 
