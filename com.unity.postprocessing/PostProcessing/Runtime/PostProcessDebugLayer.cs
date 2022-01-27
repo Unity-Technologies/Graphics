@@ -328,8 +328,10 @@ namespace UnityEngine.Rendering.PostProcessing
                 var sheet = context.propertySheets.Get(context.resources.shaders.debugOverlays);
                 sheet.ClearKeywords();
 
+#if !UNITY_2022_1_OR_NEWER
                 if (context.camera.actualRenderingPath == RenderingPath.DeferredLighting)
                     sheet.EnableKeyword("SOURCE_GBUFFER");
+#endif
 
                 PushDebugOverlay(context.command, BuiltinRenderTextureType.None, sheet, 1);
             }
