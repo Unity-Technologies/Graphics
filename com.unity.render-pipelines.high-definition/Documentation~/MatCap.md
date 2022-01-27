@@ -1,23 +1,23 @@
 # MatCap mode
 
-In MatCap mode, the High Definition Render Pipeline (HDRP) replaces the functionality of the Scene window's Lighting button with a material capture (MatCap) view. MatCap mode uses an image that completely captures a Material, including baked-in lighting. When using MatCap mode, HDRP replaces all of the Materials and lighting in the Scene with what is in the MatCap.
+In MatCap mode, the High Definition Render Pipeline (HDRP) replaces the functionality of the Scene view's Lighting button with a material capture (MatCap) view. MatCap mode uses an image that completely captures a Material, including baked-in lighting. When using MatCap mode, HDRP replaces all the Materials and lighting in the Scene with what's in the MatCap.
 
-MatCap mode is particularly useful to navigate and get a sense of the Scene without setting up the Scene lighting. For example, if you were to edit a dark area, like the inside of a cave, it would be difficult to navigate with low lighting MatCap mode makes it much easier to navigate in such dark areas.
+MatCap mode is useful to navigate and get a sense of the Scene without setting up the Scene lighting. For example, if you were to edit a dark area, like the inside of a cave, MatCap mode makes it much easier to navigate in this low lighting.
 
 ## Using MatCap
 
-To activate MatCap mode, disable the Lighting toggle in the Scene window.
+To activate MatCap mode, disable the Lighting toggle in the Scene view.
 
 ![](Images/MatCap1.png)
 
-MatCap mode preserves the normal maps and you can use the original Material albedo. To configure MatCap mode, go to **Edit > Preferences > HD Render Pipeline** and use the following properties.
+MatCap mode preserves the normal maps and you can use the original Material albedo. To configure MatCap mode, go to **Edit** > **Preferences** > **HD Render Pipeline** and use the following properties.
 
 ## Properties
 
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |
-| **Mix Albedo in MatCap Mode** | Enable the checkbox to make HDRP mix the albedo of the Material with its material capture. |
-| **MatCap Intensity Scale**    | Set the intensity of the material capture. This increases the brightness of the Scene. This is especially useful if the albedo darkens the Scene considerably. |
+| **Mix Albedo in MatCap Mode** | Enable to make HDRP mix the albedo of the Material with its material capture. |
+| **MatCap Intensity Scale**    | Set the intensity of the material capture. This increases the brightness of the Scene. This is useful if the albedo darkens the Scene considerably. |
 
 ## Default material captures
 
@@ -32,11 +32,11 @@ You can also activate MatCap view as a **Lighting Debug Mode** in the [Rendering
 
 ## MatCap examples
 
-MatCap off:
 ![](Images/MatCap2.png)
+MatCap off
 
-MatCap on:
 ![](Images/MatCap3.png)
+MatCap on
 
-MatCap on with albedo:
 ![](Images/MatCap4.png)
+MatCap on with albedo
