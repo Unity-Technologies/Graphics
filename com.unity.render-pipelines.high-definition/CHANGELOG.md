@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that placed an OnDemand shadow in the atlas before it was ever rendered.
 - Fixed issue at edge of screen on some platforms when SSAO is on.
 - Fixed warning when an APV baking set is renamed.
+- Fixed the Exposure field name to Exposure Compensation name in sky volume overrides (case 1392530).
 
 ## [12.1.4] - 2021-12-07
 
