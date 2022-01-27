@@ -85,7 +85,7 @@ namespace UnityEditor.VFX.UI
             {
                 return false;
             }
-            
+
             try
             {
                 var serializableGraph = JsonUtility.FromJson<SerializableGraph>(content);
