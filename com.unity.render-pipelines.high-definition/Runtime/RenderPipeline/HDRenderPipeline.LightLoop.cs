@@ -44,6 +44,15 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, buffers.screenspaceShadowBuffer);
         }
 
+        static void BindDefaultTexturesLightingBuffers(RenderGraphDefaultResources defaultResources, CommandBuffer cmd)
+        {
+            cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, defaultResources.blackTextureXR);
+            cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, defaultResources.blackTextureXR);
+            cmd.SetGlobalTexture(HDShaderIDs._IndirectDiffuseTexture, defaultResources.blackTextureXR);
+            cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, defaultResources.blackUIntTextureXR);
+            cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, defaultResources.blackTextureXR);
+        }
+
         class BuildGPULightListPassData
         {
             public BuildGPULightListParameters  buildGPULightListParameters;
@@ -533,7 +542,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!hdCamera.colorPyramidHistoryIsValid)
                 {
                     hdCamera.colorPyramidHistoryIsValid = true; // For the next frame...
+                    hdCamera.colorPyramidHistoryValidFrames = 0;
                     result = renderGraph.defaultResources.blackTextureXR;
+                }
+                else
+                {
+                    hdCamera.colorPyramidHistoryValidFrames++;
                 }
             }
 

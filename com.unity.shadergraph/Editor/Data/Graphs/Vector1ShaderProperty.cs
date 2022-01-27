@@ -24,6 +24,18 @@ namespace UnityEditor.ShaderGraph.Internal
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
+        public override float value
+        {
+            get
+            {
+                if (floatType == FloatType.Integer)
+                {
+                    return (int)base.value;
+                }
+                return base.value;
+            }
+            set => base.value = value;
+        }
         string enumTagString
         {
             get
@@ -62,7 +74,7 @@ namespace UnityEditor.ShaderGraph.Internal
             switch(floatType)
             {
                 case FloatType.Slider:
-                    return $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValue(m_RangeValues.x)}, {NodeUtils.FloatToShaderValue(m_RangeValues.y)})) = {valueString}";
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValueShaderLabSafe(m_RangeValues.x)}, {NodeUtils.FloatToShaderValueShaderLabSafe(m_RangeValues.y)})) = {valueString}";
                 case FloatType.Integer:
                     return $"{hideTagString}{referenceName}(\"{displayName}\", Int) = {((int)value).ToString(CultureInfo.InvariantCulture)}";
                 case FloatType.Enum:

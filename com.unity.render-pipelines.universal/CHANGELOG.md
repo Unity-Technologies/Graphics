@@ -4,7 +4,37 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.10.0]
+
+### Fixed
+- Fixed an issue where ShadowCaster2Ds were sometimes being rendered twice in the editor while in playmode.
+
+
+## [10.9.0] - 2021-12-06
+
+### Fixed
+- Fixed a 2D Renderer issue with volumetric lights sometimes not showing. [case 1329119]
+- Fixed an issue with Shader Graph Lit shaders where the "additional lights" keywords could be applied erroneously. [case 1387281]
+
+## [10.8.0] - 2021-09-20
+
+### Added
+- Added [DisallowMultipleRendererFeature] attribute for Renderer Features.
+- Added a DepthNormalOnly pass for UniversalUnlit Shadergraph shaders.
+
+### Changed
+- MaterialReimporter.ReimportAllMaterials now batches the asset database changes to improve performance.
+
+### Fixed
+- Fixed ShaderGraph needing updated normals for ShadowCaster in URP.
+- Fixed memory leak with XR combined occlusion meshes. [case 1366173]
+- Fixed an issue with MSAA falling back to the incorrect value when sample count 2 is not supported on some Android GPUs.
+
 ## [10.7.0] - 2021-07-02
+
+### Added
+- Added support for controlling Volume Framework Update Frequency in UI on Cameras and URP Asset as well as through scripting.
+- XR: Added Late Latching support to reduce VR latency (Quest).
 
 ### Fixed
 - Fixed terrain hole shadowing [case 1349305]
@@ -13,7 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a case where camera dimension can be zero. [case 1321168](https://issuetracker.unity3d.com/issues/urp-attempting-to-get-camera-relative-temporary-rendertexture-is-thrown-when-tweening-the-viewport-rect-values-of-a-camera)
 - VFX: Fixed soft particles when HDR or Opaque texture isn't enabled
 - VFX: Fixed OpenGL soft particles fallback when depth texture isn't available
-- Fixed an issue where ShadowCaster2Ds were sometimes being rendered twice in the editor while in playmode.
+- Fixed UniversalRenderPipelineAsset multi-edit.
 
 ## [10.6.0] - 2021-04-29
 

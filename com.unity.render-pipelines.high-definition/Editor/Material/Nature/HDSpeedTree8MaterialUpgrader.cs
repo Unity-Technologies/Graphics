@@ -67,14 +67,16 @@ namespace UnityEditor.Rendering.HighDefinition
         private const string kDefaultDiffusionProfileName = "Foliage";
         private static void SetDefaultDiffusionProfile(Material mat)
         {
+            string matDiffProfile = HDUtils.ConvertVector4ToGUID(mat.GetVector("Diffusion_Profile_Asset"));
             string guid = "";
             long localID;
             uint diffusionProfileHash = 0;
             foreach (var diffusionProfileAsset in HDRenderPipeline.defaultAsset.diffusionProfileSettingsList)
             {
-                if (diffusionProfileAsset != null && diffusionProfileAsset.name.Equals(kDefaultDiffusionProfileName))
+                if (diffusionProfileAsset != null)
                 {
-                    if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier<DiffusionProfileSettings>(diffusionProfileAsset, out guid, out localID))
+                    bool gotGuid = AssetDatabase.TryGetGUIDAndLocalFileIdentifier<DiffusionProfileSettings>(diffusionProfileAsset, out guid, out localID);
+                    if (gotGuid && (diffusionProfileAsset.name.Equals(kDefaultDiffusionProfileName) || guid.Equals(matDiffProfile)))
                     {
                         diffusionProfileHash = diffusionProfileAsset.profile.hash;
                         break;

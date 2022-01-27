@@ -359,6 +359,34 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             includes = CoreIncludes.DepthOnly,
         };
 
+        // used by lit/unlit subtargets
+        public static PassDescriptor DepthNormalOnly = new PassDescriptor()
+        {
+            // Definition
+            displayName = "DepthNormals",
+            referenceName = "SHADERPASS_DEPTHNORMALSONLY",
+            lightMode = "DepthNormals",
+            useInPreview = false,
+
+            // Template
+            passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+            sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+            // Port Mask
+            validVertexBlocks = CoreBlockMasks.Vertex,
+            validPixelBlocks = CoreBlockMasks.FragmentDepthNormals,
+
+            // Fields
+            structs = CoreStructCollections.Default,
+            requiredFields = CoreRequiredFields.DepthNormals,
+            fieldDependencies = CoreFieldDependencies.Default,
+
+            // Conditional State
+            renderStates = CoreRenderStates.DepthNormalsOnly,
+            pragmas = CorePragmas.Instanced,
+            includes = CoreIncludes.DepthNormalsOnly,
+        };
+
         public static readonly PassDescriptor ShadowCaster = new PassDescriptor()
         {
             // Definition
@@ -409,6 +437,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             BlockFields.SurfaceDescription.Alpha,
             BlockFields.SurfaceDescription.AlphaClipThreshold,
         };
+
+        public static readonly BlockFieldDescriptor[] FragmentDepthNormals = new BlockFieldDescriptor[]
+        {
+            BlockFields.SurfaceDescription.NormalOS,
+            BlockFields.SurfaceDescription.NormalTS,
+            BlockFields.SurfaceDescription.NormalWS,
+            BlockFields.SurfaceDescription.Alpha,
+            BlockFields.SurfaceDescription.AlphaClipThreshold,
+        };
     }
 #endregion
 
@@ -430,7 +467,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     {
         public static readonly FieldCollection ShadowCaster = new FieldCollection()
         {
-            StructFields.Attributes.normalOS,
+            StructFields.Varyings.normalWS,
+        };
+
+        public static readonly FieldCollection DepthNormals = new FieldCollection()
+        {
+            StructFields.Attributes.uv1,                            // needed for meta vertex position
+            StructFields.Varyings.normalWS,
+            StructFields.Varyings.tangentWS,                        // needed for vertex lighting
         };
     }
 #endregion
@@ -728,15 +772,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor AdditionalLights = new KeywordDescriptor()
         {
             displayName = "Additional Lights",
-            referenceName = "_ADDITIONAL",
+            referenceName = "",
             type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
             entries = new KeywordEntry[]
             {
-                new KeywordEntry() { displayName = "Vertex", referenceName = "LIGHTS_VERTEX" },
-                new KeywordEntry() { displayName = "Fragment", referenceName = "LIGHTS" },
-                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "Vertex", referenceName = "ADDITIONAL_LIGHTS_VERTEX" },
+                new KeywordEntry() { displayName = "Fragment", referenceName = "ADDITIONAL_LIGHTS" },
             }
         };
 

@@ -109,6 +109,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static int ClampsTransparentRangePriority(int value) => Math.Max(-k_TransparentPriorityQueueRange, Math.Min(value, k_TransparentPriorityQueueRange));
 
+        public const int meshDecalPriorityRange = 50; // This range is arbitrary and match sorting priority
+
         public static RenderQueueType GetTypeByRenderQueueValue(int renderQueue)
         {
             if (renderQueue == (int)Priority.Background)

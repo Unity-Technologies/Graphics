@@ -1033,6 +1033,8 @@ namespace UnityEngine.Rendering.HighDefinition
         int                     m_RecorderTempRT = Shader.PropertyToID("TempRecorder");
         MaterialPropertyBlock   m_RecorderPropertyBlock = new MaterialPropertyBlock();
         Rect?                   m_OverridePixelRect = null;
+		
+		internal bool hasCaptureActions => m_RecorderCaptureActions != null;
 
         void SetupCurrentMaterialQuality(CommandBuffer cmd)
         {

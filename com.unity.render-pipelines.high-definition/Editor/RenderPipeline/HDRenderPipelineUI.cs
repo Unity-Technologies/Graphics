@@ -350,7 +350,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!serialized.renderPipelineSettings.supportedLitShaderMode.hasMultipleDifferentValues)
             {
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality, Styles.filteringQuality);
+                // TEMP: HDShadowFilteringQuality.VeryHigh - This filtering mode is not ready so disabling in UI
+                // To re-enable remove the wo following light and re-enable the third one
+                int value = EditorGUILayout.IntPopup(Styles.filteringQuality, serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality.enumValueIndex, Styles.shadowFilteringNames, Styles.shadowFilteringValue);
+                serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality.enumValueIndex = value;
+                //EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality, Styles.filteringQuality);
             }
             else
             {

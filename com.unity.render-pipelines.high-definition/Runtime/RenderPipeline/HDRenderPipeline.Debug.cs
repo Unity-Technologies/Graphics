@@ -593,6 +593,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             HDUtils.BlitColorAndDepth(context.cmd, data.clearColorTexture, data.clearDepthTexture, new Vector4(1, 1, 0, 0), 0, !data.clearDepth);
                         }
 
+                        BindDefaultTexturesLightingBuffers(context.defaultResources, context.cmd);
+
                         BindDBufferGlobalData(data.dbuffer, context);
                         DrawOpaqueRendererList(context, data.frameSettings, data.opaqueRendererList);
 

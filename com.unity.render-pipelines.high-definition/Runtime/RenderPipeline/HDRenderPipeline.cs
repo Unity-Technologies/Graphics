@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="rayValues">Specifes which ray count value should be returned.</param>
         /// <returns>The approximated ray count for a frame</returns>
-        public uint GetRaysPerFrame(RayCountValues rayValues) { return m_RayCountManager.GetRaysPerFrame(rayValues); }
+        public uint GetRaysPerFrame(RayCountValues rayValues) { return m_RayCountManager != null ? m_RayCountManager.GetRaysPerFrame(rayValues) : 0; }
 
         // Renderer Bake configuration can vary depends on if shadow mask is enabled or no
         PerObjectData m_CurrentRendererConfigurationBakedLighting = HDUtils.k_RendererConfigurationBakedLighting;
@@ -4009,7 +4009,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var desc = new RendererListDesc(m_MeshDecalsPassNames, cullingResults, hdCamera.camera)
             {
-                sortingCriteria = SortingCriteria.CommonOpaque,
+                sortingCriteria = SortingCriteria.CommonOpaque | SortingCriteria.RendererPriority,
                 rendererConfiguration = PerObjectData.None,
                 renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque
             };

@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (texture.IsValid())
                 ctx.cmd.SetGlobalTexture(shaderId, texture);
             else
-                ctx.cmd.SetGlobalTexture(shaderId, ctx.defaultResources.blackTexture);
+                ctx.cmd.SetGlobalTexture(shaderId, ctx.defaultResources.defaultShadowTexture);
         }
 
         void BindShadowGlobalResources(RenderGraph renderGraph, in ShadowResult shadowResult)
@@ -92,6 +92,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     BindAtlasTexture(ctx, data.shadowResult.cachedPunctualShadowResult, HDShaderIDs._CachedShadowmapAtlas);
                     BindAtlasTexture(ctx, data.shadowResult.cachedAreaShadowResult, HDShaderIDs._CachedAreaLightShadowmapAtlas);
                 });
+            }
+        }
+
+        internal static void BindDefaultShadowGlobalResources(RenderGraph renderGraph)
+        {
+            using (var builder = renderGraph.AddRenderPass<BindShadowGlobalResourcesPassData>("BindDefaultShadowGlobalResources", out var passData))
+            {
+                builder.AllowPassCulling(false);
+                builder.SetRenderFunc(
+                    (BindShadowGlobalResourcesPassData data, RenderGraphContext ctx) =>
+                    {
+                        BindAtlasTexture(ctx, ctx.defaultResources.defaultShadowTexture, HDShaderIDs._ShadowmapAtlas);
+                        BindAtlasTexture(ctx, ctx.defaultResources.defaultShadowTexture, HDShaderIDs._ShadowmapCascadeAtlas);
+                        BindAtlasTexture(ctx, ctx.defaultResources.defaultShadowTexture, HDShaderIDs._ShadowmapAreaAtlas);
+                        BindAtlasTexture(ctx, ctx.defaultResources.defaultShadowTexture, HDShaderIDs._CachedShadowmapAtlas);
+                        BindAtlasTexture(ctx, ctx.defaultResources.defaultShadowTexture, HDShaderIDs._CachedAreaLightShadowmapAtlas);
+                    });
             }
         }
 
