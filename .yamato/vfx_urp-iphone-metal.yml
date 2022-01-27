@@ -25,7 +25,7 @@ VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
       -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200
     after:
       -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -96,7 +96,7 @@ VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_trunk:
       -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=iOS --player-load-path=players --suite=playmode --timeout=1200
     after:
       -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -173,7 +173,7 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_trunk:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
+                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP
     after:
       -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -209,7 +209,7 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_trunk:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=Metal" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=iOS --scripting-backend=IL2CPP --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
+                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=Metal" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=iOS --scripting-backend=IL2CPP --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP
     after:
       -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -239,7 +239,7 @@ VFX_URP_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200
     after:
       -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -310,7 +310,7 @@ VFX_URP_iPhone_Metal_Standalone_PerformanceTests_il2cpp_Linear_CUSTOM-REVISION:
       -  command: chmod +x ./utr
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=iOS --player-load-path=players --suite=playmode --timeout=1200
     after:
       -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -387,7 +387,7 @@ VFX_URP_iPhone_Metal_playmode_PerformanceTests_il2cpp_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
+                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --performance-project-version=. --report-performance-data --performance-project-id=VFX --scripting-backend=IL2CPP --suite=playmode --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP
     after:
       -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
@@ -423,7 +423,7 @@ VFX_URP_iPhone_Metal_editmode_PerformanceTests_il2cpp_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=Metal" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=iOS --scripting-backend=IL2CPP --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
+                ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=Metal" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=iOS --scripting-backend=IL2CPP --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP
     after:
       -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
       -  command: find_instabilities || exit 0
