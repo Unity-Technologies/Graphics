@@ -177,7 +177,7 @@ half4 GetMainLightShadowParams()
 
 // ShadowParams
 // x: ShadowStrength
-// y: 1.0 if shadow is soft, 0.0 otherwise
+// y: >= 1.0 if shadow is soft, 0.0 otherwise. Higher value for higher quality. (1.0 == low, 2.0 == medium, 3.0 == high)
 // z: 1.0 if cast by a point light (6 shadow slices), 0.0 if cast by a spot light (1 shadow slice)
 // w: first shadow slice index for this light, there can be 6 in case of point lights. (-1 for non-shadow-casting-lights)
 half4 GetAdditionalLightShadowParams(int lightIndex)
