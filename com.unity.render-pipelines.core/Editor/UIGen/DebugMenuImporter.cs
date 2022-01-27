@@ -194,23 +194,45 @@ namespace UnityEditor.Rendering.UIGen
             bool GenerateUIDefinitionRecursive(
                 [DisallowNull] Type typeWalk,
                 [DisallowNull] UIDefinition uiDefinitionWalk,
+                [DisallowNull] string pathWalk,
                 [NotNullWhen(false)] out Exception errorWalk
             )
             {
                 // Find leaves
-                foreach (var (name, propertyType, attribute) in typeWalk.GetFields(BindingFlags.Instance | BindingFlags.Public)
-                             .Cast<MemberInfo>()
-                             .Union(typeWalk.GetProperties(BindingFlags.Instance | BindingFlags.Public))
-                             .Where(info => info.GetCustomAttribute(typeof(DebugMenuPropertyAttribute)) != null)
-                             .Select(info => (info.Name, info.MemberType, (DebugMenuPropertyAttribute)info.GetCustomAttribute(typeof(DebugMenuPropertyAttribute)))))
+                foreach (var (propertyPath, propertyType, propertyName, tooltip, primary, secondary)
+                         in typeWalk.GetFields(BindingFlags.Instance | BindingFlags.Public)
+                             .Select(info => (type: info.FieldType, info: (MemberInfo)info))
+                             .Union(typeWalk.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                                 .Select(info => (info.PropertyType, (MemberInfo)info)))
+                             .Where(info => info.Item2.GetCustomAttribute(typeof(DebugMenuPropertyAttribute)) != null)
+                             .Select(info =>
+                             {
+                                 var attribute = (DebugMenuPropertyAttribute)info.Item2.GetCustomAttribute(typeof(DebugMenuPropertyAttribute));
+                                 return (
+                                     propertyPath: UIDefinition.PropertyPath.FromUnsafe($"{pathWalk}.{info.Item2.Name}"),
+                                     type: info.Item1,
+                                     propertyName: UIDefinition.PropertyName.FromUnsafe(info.Item2.Name),
+                                     tooltip: UIDefinition.PropertyTooltip.FromUnsafe(attribute.tooltip),
+                                     primaryCategory: UIDefinition.CategoryId.FromUnsafe(attribute.primaryCategory),
+                                     secondaryCategory: UIDefinition.CategoryId.FromUnsafe(attribute.secondaryCategory)
+                                );
+                             }))
                 {
-                    
-                    if (UIDefinition.Property.From(
-                            name, propertyType, attribute
-                    ))
-                    uiDefinitionWalk.categorizedProperties.list.Add();
+                    if (!uiDefinitionWalk.AddCategorizedProperty(
+                            propertyPath,
+                            propertyType,
+                            propertyName,
+                            tooltip,
+                            primary,
+                            secondary,
+                            out _,
+                            out errorWalk
+                        ))
+                        return false;
                 }
 
+                errorWalk = default;
+                return true;
             }
 
             [MustUseReturnValue]
@@ -220,12 +242,13 @@ namespace UnityEditor.Rendering.UIGen
                 [NotNullWhen(false)] out Exception errorWalk
             )
             {
-
+                throw new NotImplementedException();
             }
 
             uiContextDefinition = default;
             uiDefinition = new UIDefinition();
-            if (!GenerateUIDefinitionRecursive(type, uiDefinition, out error))
+            var path = type.Name;
+            if (!GenerateUIDefinitionRecursive(type, uiDefinition, path, out error))
                 return false;
 
             if (!GenerateContextDefinition(type, out uiContextDefinition, out error))
