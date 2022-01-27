@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.UIGen
 {
     public static class DebugMenuUIGenerator
     {
+        const string Identifier = "DebugMenu";
+
         public struct DebugMenu { }
 
         // TODO: [Fred] This is where we can look for type added by an extension mecanism
@@ -113,7 +115,12 @@ namespace UnityEngine.Rendering.UIGen
                 return false;
 
             using (index)
-                return GenerateDocumentFromIntermediate(parameters, index, intermediateDocuments, out result, out error);
+                return GenerateDocumentFromIntermediate(parameters,
+                    index,
+                    intermediateDocuments,
+                    contextDefinition,
+                    out result,
+                    out error);
         }
 
         [MustUseReturnValue]
@@ -132,23 +139,26 @@ namespace UnityEngine.Rendering.UIGen
 
 
         [MustUseReturnValue]
-        static bool GenerateDocumentFromIntermediate(
-            Parameters parameters,
+        static bool GenerateDocumentFromIntermediate(Parameters parameters,
             [DisallowNull] UIDefinitionPropertyCategoryIndex index,
             [DisallowNull] Dictionary<UIDefinition.Property, UIImplementationIntermediateDocuments> intermediateDocuments,
+            [DisallowNull] UIContextDefinition uiContextDefinition,
             [NotNullWhen(true)] out UIImplementationDocuments result,
-            [NotNullWhen(false)] out Exception error
-        )
+            [NotNullWhen(false)] out Exception error)
         {
             result = default;
 
-            if (!GenerateRuntimeCode(parameters, intermediateDocuments, out var runtimeCode, out error))
+            if (!GenerateRuntimeCode(parameters,
+                    intermediateDocuments,
+                    uiContextDefinition,
+                    out var runtimeCode,
+                    out error))
                 return false;
 
             if (!GenerateVisualTreeAsset(parameters, index, intermediateDocuments, out var visualTreeAsset, out error))
                 return false;
 
-            if (!UIImplementationDocuments.From(visualTreeAsset, runtimeCode, out result, out error))
+            if (!UIImplementationDocuments.From(Identifier, visualTreeAsset, runtimeCode, out result, out error))
                 return false;
 
             return true;
@@ -163,16 +173,17 @@ namespace UnityEngine.Rendering.UIGen
             [NotNullWhen(false)] out Exception error
         )
         {
-            throw new NotImplementedException();
+            visualTreeAsset = new XmlDocument();
+            error = default;
+            return true;
         }
 
         [MustUseReturnValue]
-        static bool GenerateRuntimeCode(
-            Parameters parameters,
+        static bool GenerateRuntimeCode(Parameters parameters,
             [DisallowNull] Dictionary<UIDefinition.Property, UIImplementationIntermediateDocuments> intermediateDocuments,
+            [DisallowNull] UIContextDefinition uiContextDefinition,
             [NotNullWhen(true)] out CSharpSyntaxTree runtimeCode,
-            [NotNullWhen(false)] out Exception error
-        )
+            [NotNullWhen(false)] out Exception error)
         {
             error = default;
             runtimeCode = default;
@@ -183,7 +194,13 @@ namespace UnityEngine.Rendering.UIGen
                 if (!GenerateUIViewDeclaration(parameters, intermediateDocuments, usings, out var uiViewDeclaration, out error))
                     return false;
 
-                if (!GenerateContextDeclarations(parameters, intermediateDocuments, usings, out var interfaceDeclaration, out var implementationDeclaration, out error))
+                if (!GenerateContextDeclarations(parameters,
+                        intermediateDocuments,
+                        uiContextDefinition,
+                        usings,
+                        out var interfaceDeclaration,
+                        out var implementationDeclaration,
+                        out error))
                     return false;
 
                 types.Add(uiViewDeclaration);
@@ -265,23 +282,32 @@ namespace UnityEngine.Rendering.UIGen
         }
 
         [MustUseReturnValue]
-        static bool GenerateContextDeclarations(
-            Parameters parameters,
+        static bool GenerateContextDeclarations(Parameters parameters,
             [DisallowNull] Dictionary<UIDefinition.Property, UIImplementationIntermediateDocuments> intermediateDocuments,
+            [DisallowNull] UIContextDefinition uiContextDefinition,
             [DisallowNull] HashSet<string> usings,
             [NotNullWhen(true)] out TypeDeclarationSyntax interfaceDeclaration,
             [NotNullWhen(true)] out TypeDeclarationSyntax implementationDeclaration,
-            [NotNullWhen(false)] out Exception error
-        )
+            [NotNullWhen(false)] out Exception error)
         {
             error = default;
 
-            // TODO: Find a way to acquire the data needed to generate context types
-            //  1. Type and name of root properties
-            //  2. Static access for the implementation of the root properties
-            //    UIDefinition may not need to know this, maybe it is an additional input to the generation
+            interfaceDeclaration = (TypeDeclarationSyntax) SyntaxFactory.ParseSyntaxTree($@"public interface I{parameters.uiViewContextTypeName}
+{{
+    {uiContextDefinition.members
+        .Select(member => $"{member.type} {member.name} {{get;}}")
+        .AggregateStrings("\r\n")}
+}}
+").GetRoot();
 
-            throw new NotImplementedException();
+            implementationDeclaration = (TypeDeclarationSyntax) SyntaxFactory.ParseSyntaxTree($@"public class {parameters.uiViewContextTypeName} : I{parameters.uiViewContextTypeName}
+{{
+    {uiContextDefinition.members
+        .Select(member => $"public {member.type} {member.name} => {member.type}.instance;")
+        .AggregateStrings("\r\n")}
+}}
+").GetRoot();
+
             return true;
         }
     }

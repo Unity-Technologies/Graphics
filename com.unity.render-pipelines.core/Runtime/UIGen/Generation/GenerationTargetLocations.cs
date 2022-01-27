@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using JetBrains.Annotations;
 
 namespace UnityEngine.Rendering.UIGen
 {
@@ -8,17 +10,62 @@ namespace UnityEngine.Rendering.UIGen
     /// </summary>
     public struct GenerationTargetLocations
     {
-        string assetLocation;
-        string runtimeCodeLocation;
-        string editorCodeLocation;
+        [MustUseReturnValue]
+        public static bool From(
+            [DisallowNull] string assetLocation,
+            [DisallowNull] string runtimeCodeLocation,
+            [DisallowNull] string editorCodeLocation,
+            out GenerationTargetLocations locations,
+            [NotNullWhen(false)] out Exception error
+        )
+        {
+            locations = new GenerationTargetLocations(assetLocation, runtimeCodeLocation, editorCodeLocation);
+            error = default;
+            return true;
+        }
+
+        string m_AssetLocation;
+        string m_RuntimeCodeLocation;
+        string m_EditorCodeLocation;
+
+        GenerationTargetLocations(
+            [DisallowNull] string assetLocation,
+            [DisallowNull] string runtimeCodeLocation,
+            [DisallowNull] string editorCodeLocation)
+        {
+            m_AssetLocation = assetLocation;
+            m_RuntimeCodeLocation = runtimeCodeLocation;
+            m_EditorCodeLocation = editorCodeLocation;
+        }
 
         public bool GetEditorPathFor(
             [DisallowNull] string relativePath,
             [NotNullWhen(true)] out string path,
             [NotNullWhen(false)] out Exception error
+        ) => GetPathFor(m_EditorCodeLocation, relativePath, out path, out error);
+
+        public bool GetRuntimeCodePathFor(
+            [DisallowNull] string relativePath,
+            [NotNullWhen(true)] out string path,
+            [NotNullWhen(false)] out Exception error
+        ) => GetPathFor(m_RuntimeCodeLocation, relativePath, out path, out error);
+
+        public bool GetAssetPathFor(
+            [DisallowNull] string relativePath,
+            [NotNullWhen(true)] out string path,
+            [NotNullWhen(false)] out Exception error
+        ) => GetPathFor(m_AssetLocation, relativePath, out path, out error);
+
+        static bool GetPathFor(
+            [DisallowNull] string basePath,
+            [DisallowNull] string relativePath,
+            [NotNullWhen(true)] out string path,
+            [NotNullWhen(false)] out Exception error
         )
         {
-            throw new NotImplementedException();
+            path = Path.Combine(basePath, relativePath);
+            error = default;
+            return true;
         }
     }
 }

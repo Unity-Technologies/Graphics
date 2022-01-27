@@ -20,7 +20,9 @@ namespace UnityEditor.Rendering.UIGen
 
             public static bool From(out ImportReport report, out Exception error)
             {
-                throw new NotImplementedException();
+                report = new ImportReport();
+                error = default;
+                return true;
             }
         }
 
@@ -83,11 +85,11 @@ namespace UnityEditor.Rendering.UIGen
                 return false;
 
             // Save import report
-            if (!ImportReport.From(out var report, out error))
-                return false;
+            // if (!ImportReport.From(out var report, out error))
+            //     return false;
 
-            if (!SaveImportReport(report, out error))
-                return false;
+            // if (!SaveImportReport(report, out error))
+            //     return false;
 
             return true;
         }

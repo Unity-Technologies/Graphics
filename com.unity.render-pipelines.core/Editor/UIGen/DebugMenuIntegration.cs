@@ -15,6 +15,15 @@ namespace UnityEditor.Rendering.UIGen
             string m_EditorCodeFileName;
             CSharpSyntaxTree m_EditorWindowCode;
 
+            Documents(
+                [DisallowNull] string editorCodeFileName,
+                [DisallowNull] CSharpSyntaxTree editorWindowCode
+            )
+            {
+                m_EditorCodeFileName = editorCodeFileName;
+                m_EditorWindowCode = editorWindowCode;
+            }
+
             [MustUseReturnValue]
             public bool WriteToDisk(
                 GenerationTargetLocations locations,
@@ -38,13 +47,15 @@ namespace UnityEditor.Rendering.UIGen
             }
 
             public static bool From(
-                [DisallowNull] SyntaxTree syntaxTree,
+                [DisallowNull] CSharpSyntaxTree editorCode,
                 [DisallowNull] string editorCodeFilename,
                 [NotNullWhen(true)] out Documents documents,
                 [NotNullWhen(false)] out Exception error
             )
             {
-                throw new NotImplementedException();
+                documents = new Documents(editorCodeFilename, editorCode);
+                error = default;
+                return true;
             }
         }
 
@@ -79,8 +90,8 @@ namespace UnityEditor.Rendering.UIGen
                 || !parameters.editorWindowName.FailIfNullOrEmpty(nameof(parameters.editorWindowName), out error))
                 return false;
 
-            var syntaxTree = SyntaxFactory.ParseSyntaxTree(
-@$"public class {parameters.uiViewType}: UnityEngine.Rendering.UIGen.UIView<{parameters.uiViewType}, {parameters.uiViewContextType}>
+            var syntaxTree = (CSharpSyntaxTree) SyntaxFactory.ParseSyntaxTree(
+                @$"public class {parameters.uiViewType}: UnityEngine.Rendering.UIGen.UIView<{parameters.uiViewType}, {parameters.uiViewContextType}>
 {{
     [MenuItem(""{parameters.editorMenuPath}"")]
     static void Show()
@@ -89,7 +100,7 @@ namespace UnityEditor.Rendering.UIGen
         window.titleContent = new GUIContent(""{parameters.editorWindowName}"");
     }}
 }}"
-);
+            );
             if (syntaxTree == null)
             {
                 error = new Exception("Failed to create syntax tree");
