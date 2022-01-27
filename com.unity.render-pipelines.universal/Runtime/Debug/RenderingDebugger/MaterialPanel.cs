@@ -9,11 +9,9 @@ namespace UnityEngine.Rendering.Universal
     {
         public override string panelName => "Material";
 
-        public bool materialFiltersExpanded = true;
         public DebugMaterialMode materialDebugMode;
         public DebugVertexAttributeMode vertexAttributeDebugMode;
 
-        public bool materialValidationExpanded = true;
         public DebugMaterialValidationMode materialValidationMode;
 
         // Albedo

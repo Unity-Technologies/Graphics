@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering
             element.AddToClassList(TabbedMenuController.k_UnselectedContentClassName);
         }
 
-        private void OnPreviousClicked()
+        internal void OnPreviousClicked()
         {
             var oldSelected = m_Tabs[m_CurrentSelectedChoice] as Label;
 
@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering
             UnSelectTabAndSelectCurrent(oldSelected);
         }
 
-        private void OnNextClicked()
+        internal void OnNextClicked()
         {
             var oldSelected = m_Tabs[m_CurrentSelectedChoice] as Label;
 
@@ -65,22 +65,26 @@ namespace UnityEngine.Rendering
             UnSelectTabAndSelectCurrent(oldSelected);
         }
 
-        void UnSelectTabAndSelectCurrent(Label label)
+        void UnSelectTabAndSelectCurrent(Label oldSelectedTabLabel)
         {
-            label.RemoveFromClassList(TabbedMenuController.k_CurrentlySelectedTabClassName);
-            label.AddToClassList(TabbedMenuController.k_UnselectedContentClassName);
+            oldSelectedTabLabel.RemoveFromClassList(TabbedMenuController.k_CurrentlySelectedTabClassName);
+            oldSelectedTabLabel.AddToClassList(TabbedMenuController.k_UnselectedContentClassName);
 
-            var contentName = label.name.Replace(TabbedMenuController.k_TabNameSuffix, TabbedMenuController.k_ContentNameSuffix);
-            tabContentVisualElement.Q<VisualElement>(contentName).AddToClassList(TabbedMenuController.k_UnselectedContentClassName);
+            var oldSelectedContentName = oldSelectedTabLabel.name.Replace(TabbedMenuController.k_TabNameSuffix, TabbedMenuController.k_ContentNameSuffix);
+            var oldSelectedContent = tabContentVisualElement.Q<VisualElement>(oldSelectedContentName);
+            oldSelectedContent.AddToClassList(TabbedMenuController.k_UnselectedContentClassName);
+            oldSelectedContent.RemoveFromClassList(TabbedMenuController.k_SelectedContentClassName);
 
-            var newSelectedTab = m_Tabs[m_CurrentSelectedChoice] as Label;
-            newSelectedTab.AddToClassList(TabbedMenuController.k_CurrentlySelectedTabClassName);
-            newSelectedTab.RemoveFromClassList(TabbedMenuController.k_UnselectedContentClassName);
+            var newSelectedTabLabel = m_Tabs[m_CurrentSelectedChoice] as Label;
+            newSelectedTabLabel.AddToClassList(TabbedMenuController.k_CurrentlySelectedTabClassName);
+            newSelectedTabLabel.RemoveFromClassList(TabbedMenuController.k_UnselectedContentClassName);
 
-            var newSelectedTabContentName = newSelectedTab.name.Replace(TabbedMenuController.k_TabNameSuffix, TabbedMenuController.k_ContentNameSuffix);
-            tabContentVisualElement.Q<VisualElement>(newSelectedTabContentName).RemoveFromClassList(TabbedMenuController.k_UnselectedContentClassName);
+            var newSelectedTabContentName = newSelectedTabLabel.name.Replace(TabbedMenuController.k_TabNameSuffix, TabbedMenuController.k_ContentNameSuffix);
+            var newSelectedContent = tabContentVisualElement.Q<VisualElement>(newSelectedTabContentName);
+            newSelectedContent.RemoveFromClassList(TabbedMenuController.k_UnselectedContentClassName);
+            newSelectedContent.AddToClassList(TabbedMenuController.k_SelectedContentClassName);
 
-            OnTabSelected.Invoke(newSelectedTab.name);
+            OnTabSelected.Invoke(newSelectedTabLabel.name);
         }
 
         public VisualElement tabContentVisualElement { get; set; }

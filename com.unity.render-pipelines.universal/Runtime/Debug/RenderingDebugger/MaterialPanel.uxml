@@ -1,10 +1,10 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Packages/com.unity.render-pipelines.core/Runtime/Debugging/RenderingDebugger/Styles/PanelStyle.uss?fileID=7433441132597879392&amp;guid=1a7d736459387bd4db58b84f407db331&amp;type=3#PanelStyle" />
-    <ui:Foldout text="Material Filters" name="MaterialFilters" binding-path="materialFiltersExpanded">
+    <ui:GroupBox text="Material Filters" name="MaterialFilters">
         <ui:EnumField label="Material Override" type="UnityEngine.Rendering.Universal.DebugMaterialMode, Unity.RenderPipeline.Universal.ShaderLibrary" tooltip="Use the drop-down to select a Material property to visualize on every GameObject on screen." name="materialDebugMode" binding-path="materialDebugMode" />
-        <ui:EnumField label="Vertex Attribute" type="UnityEngine.Rendering.Universal.DebugVertexAttributeMode, Unity.RenderPipeline.Universal.ShaderLibrary" />
-    </ui:Foldout>
-    <ui:Foldout text="Material Validation" name="MaterialValidation" binding-path="materialValidationExpanded">
+        <ui:EnumField label="Vertex Attribute" type="UnityEngine.Rendering.Universal.DebugVertexAttributeMode, Unity.RenderPipeline.Universal.ShaderLibrary"/>
+    </ui:GroupBox>
+    <ui:GroupBox text="Material Validation" name="MaterialValidation">
         <ui:EnumField label="Material Validation Mode" type="UnityEngine.Rendering.Universal.DebugMaterialValidationMode, Unity.RenderPipeline.Universal.ShaderLibrary" tooltip="Debug and validate material properties." binding-path="materialValidationMode" name="materialValidationMode" />
         <ui:GroupBox text="Albedo Settings" name="AlbedoSettings" class="subsetting">
             <ui:EnumField label="Validation Mode" type="UnityEngine.Rendering.Universal.DebugDisplaySettingsMaterial+AlbedoDebugValidationPreset, Unity.RenderPipelines.Universal.Runtime" tooltip="Validate using a list of preset surfaces and inputs based on real-world surfaces." binding-path="albedoValidationPreset" name="albedoValidationPreset" />
@@ -18,5 +18,5 @@
             <ui:FloatField label="Min Value" value="0" tooltip="Any values set below this field are invalid and appear red on screen." name="MetallicMaxValue" binding-path="metallicMinValue" />
             <ui:FloatField label="Max Value" value="0" tooltip="Any values set above this field are invalid and appear blue on screen." name="MetallicMaxValue" binding-path="metallicMaxValue" />
         </ui:GroupBox>
-    </ui:Foldout>
+    </ui:GroupBox>
 </ui:UXML>

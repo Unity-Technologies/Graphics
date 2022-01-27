@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering.UI
         public const string k_TabClassName = "tab";
         public const string k_CurrentlySelectedTabClassName = "currentlySelectedTab";
         public const string k_UnselectedContentClassName = "unselectedContent";
+        public const string k_SelectedContentClassName = "selectedContent";
         // Tab and tab content have the same prefix but different suffix
         // Define the suffix of the tab name
         public const string k_TabNameSuffix = "Tab";

@@ -1,4 +1,5 @@
-﻿using UnityEditor.Rendering.UI;
+﻿using System;
+using UnityEditor.Rendering.UI;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
@@ -11,6 +12,8 @@ namespace UnityEngine.Rendering
     public class RenderingDebuggerRuntime : UnityEngine.MonoBehaviour
     {
         public const string k_UnselectedContentClassName = "unselectedContent";
+
+        private UIDocument m_RuntimeUIDocument;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void CreateRuntimeRenderingDebuggerUI()
@@ -73,23 +76,43 @@ namespace UnityEngine.Rendering
                 panelVisualElement.Bind(new SerializedObject(panel));
             }
 
-            var firstFieldElement = runtimeUIDocument.rootVisualElement.Q(null, "unity-base-field");
-            firstFieldElement?.Focus();
-
             var resetButtonElement = runtimeUIDocument.rootVisualElement.Q<Button>("ResetButton");
             resetButtonElement.clicked += () => RenderingDebuggerState.instance.Reset();
 
-            runtimeRenderingDebugger.SetUp(tabsVisualElement);
+            runtimeRenderingDebugger.SetUp(runtimeUIDocument, tabsVisualElement);
+        }
+
+        private void FindFocus()
+        {
+            var currentTabContent = m_RuntimeUIDocument.rootVisualElement.Q<TemplateContainer>(className: TabbedMenuController.k_SelectedContentClassName);
+            if (currentTabContent == null)
+            {
+                Debug.LogWarning("No tab selected");
+                return;
+            }
+
+            var firstFieldElement = currentTabContent.Q(className: "unity-base-field");
+            Debug.Log($"Focusing on {firstFieldElement?.name ?? "(null)"}");
+            firstFieldElement?.Focus();
         }
 
         private PanelTab m_PanelTab = null;
-        void SetUp(PanelTab panelTab)
+        void SetUp(UIDocument runtimeUIDocument, PanelTab panelTab)
         {
+            m_RuntimeUIDocument = runtimeUIDocument;
             m_PanelTab = panelTab;
-            panelTab.OnTabSelected += tabName => { RenderingDebuggerState.instance.selectedPanelName = tabName; };
+            panelTab.OnTabSelected += tabName =>
+            {
+                RenderingDebuggerState.instance.selectedPanelName = tabName;
+                FindFocus();
+            };
             panelTab.SetSelectedChoice(RenderingDebuggerState.instance.selectedPanelName);
             RenderingDebuggerState.instance.OnSelectedPanelChanged += OnSelectedPanelChanged;
             RenderingDebuggerState.instance.OnReset += OnReset;
+
+            m_RuntimeUIDocument.rootVisualElement.RegisterCallback<KeyDownEvent>(OnKeyDown);
+
+            FindFocus();
         }
 
         void OnSelectedPanelChanged(string selectedPanel)
@@ -100,6 +123,20 @@ namespace UnityEngine.Rendering
         void OnReset()
         {
             CreateRuntimeRenderingDebuggerUI();
+        }
+
+        void OnKeyDown(KeyDownEvent evt)
+        {
+            if (evt.keyCode == KeyCode.PageDown)
+            {
+                m_PanelTab.OnPreviousClicked();
+                FindFocus();
+            }
+            else if (evt.keyCode == KeyCode.PageUp)
+            {
+                m_PanelTab.OnNextClicked();
+                FindFocus();
+            }
         }
     }
 }

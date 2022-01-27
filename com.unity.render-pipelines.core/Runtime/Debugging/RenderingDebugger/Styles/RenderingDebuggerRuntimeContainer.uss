@@ -34,3 +34,16 @@
 .unselectedContent {
     display: none;
 }
+
+.unity-group-box {
+    background-color: rgba(0,0,0,0.4);
+    padding: 10px;
+    border-width: 1px;
+    border-radius: 2px;
+    border-color: black;
+}
+
+.unity-base-field:focus > .unity-base-field__label
+{
+    color: aqua;
+}
