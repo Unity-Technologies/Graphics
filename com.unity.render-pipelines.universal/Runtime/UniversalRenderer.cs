@@ -573,8 +573,6 @@ namespace UnityEngine.Rendering.Universal
             if (rendererFeatures.Count != 0 && !isPreviewCamera)
                 ConfigureCameraColorTarget(m_ColorBufferSystem.PeekBackBuffer());
 
-
-
             cameraData.renderer.useDepthPriming = useDepthPriming;
 
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
