@@ -4,6 +4,13 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Fixed an issue where Sprite type Light2Ds would throw an exeception if missing a sprite
+- Fixed an issue where Sprite type Light2Ds were missing a default sprite
+
+
 ## [10.9.0] - 2021-12-06
 
 ### Fixed
@@ -35,8 +42,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed artifacts in Speed Tree 8 billboard LODs due to SpeedTree LOD smoothing/crossfading [case 1348407]
 - Fixed an issue where the scene view would turn black when bloom was enabled. [case 1298790](https://issuetracker.unity3d.com/issues/urp-bloom-and-tonemapping-causes-the-screen-to-go-black-in-scene-mode), [case 1340848](https://issuetracker.unity3d.com/issues/urp-bloom-produces-visual-artifacts-when-color-slash-emission-are-not-clamped)
 - Fixed a case where camera dimension can be zero. [case 1321168](https://issuetracker.unity3d.com/issues/urp-attempting-to-get-camera-relative-temporary-rendertexture-is-thrown-when-tweening-the-viewport-rect-values-of-a-camera)
-- Fixed an issue where Sprite type Light2Ds would throw an exeception if missing a sprite
-- Fixed an issue where Sprite type Light2Ds were missing a default sprite
 - VFX: Fixed soft particles when HDR or Opaque texture isn't enabled
 - VFX: Fixed OpenGL soft particles fallback when depth texture isn't available
 - Fixed UniversalRenderPipelineAsset multi-edit.
