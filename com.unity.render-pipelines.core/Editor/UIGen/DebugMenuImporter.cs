@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.UIGen
             if (!ValidateDataSources(dataSource, out error))
                 return false;
 
-            if (!GenerateUIDefinition(dataSource, out var definition, out error))
+            if (!GenerateDefinitions(dataSource, out var definition, out error))
                 return false;
 
             if (!definition.ComputeHash(out var hash, out error))
@@ -95,8 +95,8 @@ namespace UnityEditor.Rendering.UIGen
             // Find errors
             var misusedAttributes = dataSource.Where(t => !t.IsClass
                 // Check for static class
-                || !(t.IsAbstract && t.IsSealed))
-                .Select(t => new Exception($"Attribute {nameof(DeriveDebugMenuAttribute)} is used on a non-static class {t.Name}"))
+                || (t.IsAbstract && t.IsSealed))
+                .Select(t => new Exception($"Attribute {nameof(DeriveDebugMenuAttribute)} must be used on a non-static class {t.Name}"))
                 .ToList();
 
             if (misusedAttributes.Count == 0)
@@ -110,28 +110,43 @@ namespace UnityEditor.Rendering.UIGen
         }
 
         [MustUseReturnValue]
-        static bool GenerateUIDefinition<TList>(
+        static bool GenerateDefinitions<TList>(
             [DisallowNull] TList dataSource,
-            [NotNullWhen(true)] out UIDefinition definition,
+            [NotNullWhen(true)] out UIDefinition uiDefinition,
+            [NotNullWhen(true)] out UIContextDefinition uiContextDefinition,
             [NotNullWhen(false)] out Exception error
         )
             where TList : IList<System.Type>
         {
-            definition = default;
+            uiDefinition = default;
+            uiContextDefinition = default;
 
-            if (!GenerateUIDefinitionPerType(dataSource, out var definitions, out error))
+            if (!GenerateUIDefinitionPerType(
+                    dataSource,
+                    out var uiDefinitions,
+                    out var uiContextDefinitions,
+                    out error
+                ))
                 return false;
 
-            using (definitions)
+            using (uiDefinitions)
+            using (uiContextDefinitions)
             {
-                return definitions.listUnsafe.Aggregate(out definition, out error);
+                if (!uiDefinitions.listUnsafe.Aggregate(out uiDefinition, out error))
+                    return false;
+
+                if (!uiContextDefinitions.listUnsafe.Aggregate(out uiContextDefinition, out error))
+                    return false;
             }
+
+            return true;
         }
 
         [MustUseReturnValue]
         static bool GenerateUIDefinitionPerType<TList>(
             [DisallowNull] TList dataSource,
-            out PooledList<UIDefinition> definitions,
+            out PooledList<UIDefinition> uiDefinitions,
+            out PooledList<UIContextDefinition> uiContextDefinitions,
             [NotNullWhen(false)] out Exception error
         )
             where TList : IList<System.Type>

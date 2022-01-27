@@ -87,7 +87,8 @@ namespace UnityEngine.Rendering.UIGen
 
         [MustUseReturnValue]
         public static bool GenerateDebugMenuBindableView(
-            [DisallowNull] this UIDefinition definition,
+            [DisallowNull] UIDefinition uiDefinition,
+            [DisallowNull] UIContextDefinition contextDefinition,
             Parameters parameters,
             [NotNullWhen(true)] out UIImplementationDocuments result,
             [NotNullWhen(false)] out Exception error
@@ -102,11 +103,11 @@ namespace UnityEngine.Rendering.UIGen
             // TODO multithreading:
             //   - Map
             //   - Property generation C# + UXML (multithreading inside)
-            if (!UIDefinitionPropertyCategoryIndex.FromDefinition(definition, out var index, out error))
+            if (!UIDefinitionPropertyCategoryIndex.FromDefinition(uiDefinition, out var index, out error))
                 return false;
 
             if (!GenerateBindableViewIntermediateDocumentFromProperties(
-                    definition,
+                    uiDefinition,
                     out var intermediateDocuments,
                     out error))
                 return false;
