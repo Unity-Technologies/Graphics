@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml;
+using System.Xml.Linq;
 using JetBrains.Annotations;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEngine.Rendering.UIGen.UXML;
 #endif
 
 using Property = UnityEngine.Rendering.UIGen.UIDefinition.Property;
@@ -54,7 +56,8 @@ namespace UnityEngine.Rendering.UIGen
     {
         public Type[] supportedTypes { get; }
 
-        public UIPropertyGeneratorAttribute(params Type[] supportedTypes) {
+        public UIPropertyGeneratorAttribute(params Type[] supportedTypes)
+        {
             this.supportedTypes = supportedTypes;
         }
     }
@@ -91,17 +94,13 @@ namespace UnityEngine.Rendering.UIGen
             documents = default;
             error = default;
 
-            if (!GeneratorUtility.ExtractAndNicifyName((string) property.propertyPath, out var niceName, out error))
+            if (!GeneratorUtility.ExtractAndNicifyName((string)property.propertyPath, out var niceName, out error))
                 return false;
 
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml("<root></root>");
-
-            XmlElement element = doc.CreateElement("ui:IntegerField");
+            UxmlElement element = UxmlElement.Create<IntergerField>();
             element.SetAttribute("label", niceName);
-            element.SetAttribute("value", "42");
-            element.SetAttribute("binding-path", (string) property.propertyPath);
-            doc.DocumentElement.AppendChild(element);
+            element.SetAttribute("value", 42);
+            element.SetAttribute("binding-path", (string)property.propertyPath);
 
             if (!UIImplementationIntermediateDocuments.From(element, out var document, out error))
                 return false;
@@ -110,7 +109,7 @@ namespace UnityEngine.Rendering.UIGen
 
             //debug purpose only
             Debug.Log(document.bindContextBody.ToString());
-            Debug.Log(doc.OuterXml);
+            Debug.Log(element.ToString());
             //end debug
 
             return true;

@@ -1,19 +1,22 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Xml;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using UnityEngine.Rendering.UIGen.UXML;
 
 namespace UnityEngine.Rendering.UIGen
 {
     public class UIImplementationIntermediateDocuments
     {
-        XmlElement m_PropertyUxml;
+        UxmlElement m_PropertyUxml;
         BlockSyntax m_BindContextBody;
         BlockSyntax m_UnbindContextBody;
 
-        UIImplementationIntermediateDocuments([DisallowNull] XmlElement element)
+        UIImplementationIntermediateDocuments([DisallowNull] UxmlElement element)
         {
             m_BindContextBody = SyntaxFactory.Block(Enumerable.Empty<StatementSyntax>());
             m_UnbindContextBody = SyntaxFactory.Block(Enumerable.Empty<StatementSyntax>());
@@ -21,7 +24,7 @@ namespace UnityEngine.Rendering.UIGen
         }
 
         public static bool From(
-            [DisallowNull] XmlElement element,
+            [DisallowNull] UxmlElement element,
             [NotNullWhen(true)] out UIImplementationIntermediateDocuments documents,
             [NotNullWhen(false)] out Exception error
         )
@@ -32,7 +35,7 @@ namespace UnityEngine.Rendering.UIGen
         }
 
         [DisallowNull]
-        public XmlElement propertyUxml
+        public UxmlElement propertyUxml
         {
             get => m_PropertyUxml;
             set => m_PropertyUxml = value;
