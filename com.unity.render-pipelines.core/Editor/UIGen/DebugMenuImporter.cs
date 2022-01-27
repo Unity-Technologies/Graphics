@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.UIGen
                 Debug.LogException(error);
         }
 
-        static GenerationTarget k_GenerationTarget;
+        static GenerationTargetLocations s_GenerationTargetLocations;
 
         static bool ImportDebugMenu(
             [NotNullWhen(false)]out Exception error
@@ -66,14 +66,14 @@ namespace UnityEditor.Rendering.UIGen
                 return false;
 
             // Write assets and C# generated library
-            if (!view.WriteToDisk(k_GenerationTarget, out error))
+            if (!view.WriteToDisk(s_GenerationTargetLocations, out error))
                 return false;
 
             // TODO: may require additional arguments
             if (!DebugMenuIntegration.GenerateIntegration(default, out var integrationDocuments, out error))
                 return false;
 
-            if (!integrationDocuments.WriteToDisk(k_GenerationTarget, out error))
+            if (!integrationDocuments.WriteToDisk(s_GenerationTargetLocations, out error))
                 return false;
 
             // Save import report

@@ -3,7 +3,10 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace UnityEngine.Rendering.UIGen
 {
-    public struct GenerationTarget
+    /// <summary>
+    /// Defines where files should be generated
+    /// </summary>
+    public struct GenerationTargetLocations
     {
         string assetLocation;
         string runtimeCodeLocation;

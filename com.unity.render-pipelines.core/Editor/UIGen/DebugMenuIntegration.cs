@@ -17,11 +17,11 @@ namespace UnityEditor.Rendering.UIGen
 
             [MustUseReturnValue]
             public bool WriteToDisk(
-                GenerationTarget location,
+                GenerationTargetLocations locations,
                 [NotNullWhen(false)] out Exception error
             )
             {
-                if (!location.GetEditorPathFor(m_EditorCodeFileName, out var editorPath, out error))
+                if (!locations.GetEditorPathFor(m_EditorCodeFileName, out var editorPath, out error))
                     return false;
 
                 try

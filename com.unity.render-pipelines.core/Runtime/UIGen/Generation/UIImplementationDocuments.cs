@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.UIGen
         [MustUseReturnValue]
         public static bool WriteToDisk(
             [DisallowNull] this UIImplementationDocuments view,
-            GenerationTarget location,
+            GenerationTargetLocations locations,
             [NotNullWhen(false)] out Exception error
         )
         {

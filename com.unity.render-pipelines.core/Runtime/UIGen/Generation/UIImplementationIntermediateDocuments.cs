@@ -13,18 +13,20 @@ namespace UnityEngine.Rendering.UIGen
         BlockSyntax m_BindContextBody;
         BlockSyntax m_UnbindContextBody;
 
+        UIImplementationIntermediateDocuments([DisallowNull] XmlElement element)
+        {
+            m_BindContextBody = SyntaxFactory.Block(Enumerable.Empty<StatementSyntax>());
+            m_UnbindContextBody = SyntaxFactory.Block(Enumerable.Empty<StatementSyntax>());
+            m_PropertyUxml = element;
+        }
+
         public static bool From(
             [DisallowNull] XmlElement element,
             [NotNullWhen(true)] out UIImplementationIntermediateDocuments documents,
             [NotNullWhen(false)] out Exception error
         )
         {
-            documents = new UIImplementationIntermediateDocuments()
-            {
-                m_BindContextBody = SyntaxFactory.Block(Enumerable.Empty<StatementSyntax>()),
-                m_UnbindContextBody = SyntaxFactory.Block(Enumerable.Empty<StatementSyntax>()),
-                m_PropertyUxml = element
-            };
+            documents = new UIImplementationIntermediateDocuments(element);
             error = null;
             return true;
         }

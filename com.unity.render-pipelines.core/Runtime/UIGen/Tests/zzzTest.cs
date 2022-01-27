@@ -12,7 +12,7 @@ public class zzzTest : MonoBehaviour
     [MenuItem("CONTEXT/zzzTest/Test Gen XML")]
     static void TestGenXML()
     {
-        var gen = new IntGenerator();
+        var gen = new IntUIPropertyTypeGenerator();
         var property = new Property() { propertyPath = "test" };
         bool success = gen.Generate(property, out var unused, out var error);
     }

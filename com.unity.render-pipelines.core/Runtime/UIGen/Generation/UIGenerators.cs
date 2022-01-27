@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Xml;
+using JetBrains.Annotations;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -16,17 +17,18 @@ namespace UnityEngine.Rendering.UIGen
 {
     public static class GeneratorUtility
     {
-        static readonly Dictionary<Type, Generator> s_Generators = new()
+        static readonly Dictionary<Type, UIPropertyTypeGenerator> s_Generators = new()
         {
             //default generators : hardcoded list
-            { IntGenerator.typeSupported, new IntGenerator() },
+            { IntUIPropertyTypeGenerator.typeSupported, new IntUIPropertyTypeGenerator() },
         };
 
-        static Dictionary<string, Dictionary<Type, Generator>> s_OverridingGenerators = new();
+        static Dictionary<string, Dictionary<Type, UIPropertyTypeGenerator>> s_OverridingGenerators = new();
 
-        public static Dictionary<Type, Generator> GetGenerators(in string UIName = null)
+        // TODO: [Fred] Can we use a Type instead of a string
+        public static Dictionary<Type, UIPropertyTypeGenerator> GetGenerators(in string UIName = null)
         {
-            var generators = new Dictionary<Type, Generator>(s_Generators);
+            var generators = new Dictionary<Type, UIPropertyTypeGenerator>(s_Generators);
 
             if (string.IsNullOrEmpty(UIName))
                 return generators;
@@ -49,9 +51,9 @@ namespace UnityEngine.Rendering.UIGen
             foreach (var customGeneratorType in customGeneratorTypes)
             {
                 //sanity check
-                if (!typeof(Generator).IsAssignableFrom(customGeneratorType))
+                if (!typeof(UIPropertyTypeGenerator).IsAssignableFrom(customGeneratorType))
                 {
-                    Debug.LogError($"{nameof(CustomGeneratorAttribute)} should only be used on class implementing {nameof(Generator)}<T>. Found on {customGeneratorType.FullName}. Skipping.");
+                    Debug.LogError($"{nameof(CustomGeneratorAttribute)} should only be used on class implementing {nameof(UIPropertyTypeGenerator)}<T>. Found on {customGeneratorType.FullName}. Skipping.");
                     continue;
                 }
 
@@ -61,7 +63,7 @@ namespace UnityEngine.Rendering.UIGen
                     if (!s_OverridingGenerators.ContainsKey(attribute.UIName))
                         s_OverridingGenerators[attribute.UIName] = new();
 
-                    var generator = Activator.CreateInstance(customGeneratorType) as Generator;
+                    var generator = Activator.CreateInstance(customGeneratorType) as UIPropertyTypeGenerator;
 
                     //sanity check
                     if (s_OverridingGenerators[attribute.UIName].ContainsKey(generator.GetTypeSupported()))
@@ -109,33 +111,53 @@ namespace UnityEngine.Rendering.UIGen
         }
     }
 
-    public abstract class Generator
+    public interface IUIPropertyTypeGenerator
     {
-        public abstract bool Generate([DisallowNull] in Property property, [NotNullWhen(true)] out UIImplementationIntermediateDocuments documents, [NotNullWhen(false)] out Exception error);
-
-        internal abstract Type GetTypeSupported();
-
-        internal Generator()
-            => throw new Exception($"You should not inerhit directly from {nameof(Generator)}. Use {nameof(Generator)}<T> instead.");
-
-        internal Generator(bool unused) { }
+        [MustUseReturnValue]
+        bool Generate(
+            [DisallowNull] in Property property,
+            [NotNullWhen(true)] out UIImplementationIntermediateDocuments documents,
+            [NotNullWhen(false)] out Exception error);
     }
 
-    public abstract class Generator<T> : Generator
+    public abstract class UIPropertyTypeGenerator : IUIPropertyTypeGenerator
+    {
+        [MustUseReturnValue]
+        public abstract bool Generate(
+            [DisallowNull] in Property property,
+            [NotNullWhen(true)] out UIImplementationIntermediateDocuments documents,
+            [NotNullWhen(false)] out Exception error
+        );
+
+        // TODO: [Fred] A generator may support multiple type, we should find another way to register
+        // TODO: [Fred] this can be a property getter instead
+        internal abstract Type GetTypeSupported();
+
+        internal UIPropertyTypeGenerator()
+            => throw new Exception($"You should not inerhit directly from {nameof(UIPropertyTypeGenerator)}. Use {nameof(UIPropertyTypeGenerator)}<T> instead.");
+
+        internal UIPropertyTypeGenerator(bool unused) { }
+    }
+
+    public abstract class UIPropertyTypeGenerator<T> : UIPropertyTypeGenerator
     {
         internal override Type GetTypeSupported() => typeSupported;
         public static Type typeSupported => typeof(T);
 
-        public Generator() : base(true) { }
+        public UIPropertyTypeGenerator() : base(true) { }
     }
 
 
-    public class IntGenerator : Generator<int>
+    public class IntUIPropertyTypeGenerator : UIPropertyTypeGenerator<int>
     {
-        public override bool Generate([DisallowNull] in Property property, [NotNullWhen(true)] out UIImplementationIntermediateDocuments documents, [NotNullWhen(false)] out Exception error)
+        public override bool Generate(
+            [DisallowNull] in Property property,
+            [NotNullWhen(true)] out UIImplementationIntermediateDocuments documents,
+            [NotNullWhen(false)] out Exception error
+        )
         {
-            documents = new();
-            error = null;
+            documents = default;
+            error = default;
 
             if (!GeneratorUtility.ExtractAndNicifyName(property.propertyPath, out var niceName, out error))
                 return false;
@@ -149,18 +171,14 @@ namespace UnityEngine.Rendering.UIGen
             element.SetAttribute("binding-path", property.propertyPath);
             doc.DocumentElement.AppendChild(element);
 
-            //debug purpose only
-            Debug.Log(doc.OuterXml);
-            //end debug
-
-
             if (!UIImplementationIntermediateDocuments.From(element, out var document, out error))
                 return false;
 
-            document.bindContextBody = document.bindContextBody.AddStatements(SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression("int toto = 0;")));
+            document.bindContextBody = document.bindContextBody.AddStatements(SyntaxFactory.ParseStatement("int toto = 0;"));
 
             //debug purpose only
             Debug.Log(document.bindContextBody.ToString());
+            Debug.Log(doc.OuterXml);
             //end debug
 
             return true;
