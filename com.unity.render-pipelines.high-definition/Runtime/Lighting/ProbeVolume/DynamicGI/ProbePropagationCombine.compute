@@ -4,12 +4,12 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeRotate.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationGlobals.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeSphericalHarmonicsLighting.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbeVolumeSphericalHarmonicsDeringing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationBasis.hlsl"
 
 #pragma kernel CombinePropagationAxis
 
-#pragma multi_compile _ SH_FROM_SG_PBR_FIT SH_FROM_SG_PBR_FIT_WITH_COSINE_WINDOW
-#pragma multi_compile _ 
+#pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
+#pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
 
 #define GROUP_SIZE 64
 //#pragma enable_d3d11_debug_symbols
@@ -27,9 +27,9 @@ float4 _ProbeVolumeAtlasResolutionAndSliceCount;
 float3 _ProbeVolumeAtlasSHRotateRight;
 float3 _ProbeVolumeAtlasSHRotateUp;
 float3 _ProbeVolumeAtlasSHRotateForward;
-float3 _ProbeVolumeAtlasDynamicSHRotateRight;
-float3 _ProbeVolumeAtlasDynamicSHRotateUp;
-float3 _ProbeVolumeAtlasDynamicSHRotateForward;
+
+float3 _ProbeVolumeDGIBoundsRight;
+float3 _ProbeVolumeDGIBoundsUp;
 
 StructuredBuffer<float3> _RadianceCacheAxis;
 int _RadianceCacheAxisCount;
@@ -37,7 +37,7 @@ float _BakedLightingContribution;
 float _DynamicPropagationContribution;
 float4 _RayAxis[NEIGHBOR_AXIS_COUNT];
 
-float _PropagationSharpness;
+float _Sharpness;
 
 
 uint3 ComputeWriteIndexFromReadIndex(uint readIndex, float3 resolution)
@@ -125,90 +125,10 @@ void WriteFinalSHOutgoingRadiosityWithProjectedConstantsPacked(uint3 writeIndex,
     _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 6)] = float4(outgoingRadiosityProjectedConstantsPacked.data[6].xyz, validity);
 }
 
-SHIncomingIrradiance ProjectPropagationAxisFromPeak(uint probeIndex)
+SHIncomingIrradiance SHIncomingIrradianceComputeFromBasisAxisHit(BasisAxisHit basisAxisHit, float3 radiance)
 {
-    SHIncomingIrradiance incomingIrradiance;
-    ZERO_INITIALIZE(SHIncomingIrradiance, incomingIrradiance);
-
-    uint localIndex = probeIndex;
-    for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
-    {
-        float3 radiance = _RadianceCacheAxis[localIndex].xyz;
-        float3 direction = _RayAxis[axis].xyz;
-        const float3x3 probeVolumeAtlasDynamicSHRotate = float3x3(_ProbeVolumeAtlasDynamicSHRotateRight, _ProbeVolumeAtlasDynamicSHRotateUp, _ProbeVolumeAtlasDynamicSHRotateForward);
-        direction = mul(direction, probeVolumeAtlasDynamicSHRotate);
-        
-        SHIncomingIrradianceAccumulate(incomingIrradiance, direction, radiance);
-        //FCCAddToOutputRepresentation(radiance, direction, incomingIrradiance);
-        localIndex += _ProbeVolumeAtlasReadBufferCount;
-    }
-
-    return incomingIrradiance;
-}
-
-// data for fit generated with: https://gist.github.com/pastasfuture/e1a7d80d6ed1104540b22edc15ce655a
-// Fit coefficient function fit generated in desmos (for non zero parameters c0, c2, and c6): https://www.desmos.com/calculator/rnrmjlz1jb
-// Reference implementation: https://www.shadertoy.com/view/7tsXzH
-//
-// Note: These ComputeSphericalHarmonicFromSphericalGaussian functions can be replaced with hardcoded constants once we make sharpness hardcoded.
-#if !defined(SH_FROM_SG_PBR_FIT_WITH_COSINE_WINDOW)
-float ZHWindowComputeFromSphericalGaussianC0(float sharpness)
-{
-    // sharpness * 1.22962 + 0.823224 is always positive. abs is to simply make the compiler happy.
-    return pow(abs(sharpness) * 1.22962 + 0.823224, -1.25462) * 3.73236 + 0.0289582;
-}
-
-float ZHWindowComputeFromSphericalGaussianC1(float sharpness)
-{
-    return exp2(-3.78299 * pow(abs(sharpness * 0.766922 + -0.687697), -0.95733)) * -0.862788 + 0.851292;
-}
-
-float ComputeSigmoidSCurve(float x, float p)
-{
-    float a = exp2(x * p);
-    return a / (a + 1.0);
-}
-
-float ZHWindowComputeFromSphericalGaussianC2(float sharpness)
-{
-    return lerp(
-        sharpness * sharpness * -0.0326676 + sharpness * 0.225077,
-        ComputeSigmoidSCurve(sharpness * 15.3784 + -31.6152, 0.0162406) * -0.707591 + 0.85572,
-        saturate((sharpness - 0.800167) / (0.800167 - 4.57034))
-    );
-}
-#else
-float ZHWindowComputeFromSphericalGaussianC0(float sharpness)
-{
-    // sharpness * 0.386254 + 1.55848 is always positive. abs is to simply make the compiler happy.
-    return pow(abs(sharpness) * 0.386254 + 1.55848, -1.52661) * 1.72542 + 0.0290483;
-}
-
-float ZHWindowComputeFromSphericalGaussianC1(float sharpness)
-{
-    return exp2(-8.6001 * pow(abs(sharpness * 1.53466 + 3.47572), -1.16397)) * -1.32848 + 1.34496;
-}
-
-float ZHWindowComputeFromSphericalGaussianC2(float sharpness)
-{
-    return exp2(-0.506072 * pow(abs(sharpness * 0.273738 + 0.296201), -1.06396)) * -0.506072 + 0.511033;
-}
-#endif
-
-ZHWindow ZHWindowComputeFromSphericalGaussian(float sharpness)
-{
-    ZHWindow zhWindow;
-    zhWindow.data[0] = ZHWindowComputeFromSphericalGaussianC0(sharpness);
-    zhWindow.data[1] = ZHWindowComputeFromSphericalGaussianC1(sharpness);
-    zhWindow.data[2] = ZHWindowComputeFromSphericalGaussianC2(sharpness);
-
-    return zhWindow;
-}
-
-SHIncomingIrradiance SHIncomingIrradianceComputeFromSphericalGaussian(float3 direction, float sharpness, float3 radiance)
-{
-    ZHWindow zhWindow = ZHWindowComputeFromSphericalGaussian(sharpness);
-    SHWindow shWindow = SHWindowComputeFromZHWindow(zhWindow, direction);
+    ZHWindow zhWindow = ComputeZHWindowFromBasisAxisHit(basisAxisHit);
+    SHWindow shWindow = SHWindowComputeFromZHWindow(zhWindow, basisAxisHit.mean);
     SHIncomingIrradiance irradiance = SHIncomingIrradianceComputeFromSHWindowAndRadiance(shWindow, radiance);
 
     return irradiance;
@@ -223,13 +143,16 @@ SHIncomingIrradiance ProjectPropagationAxisFromFit(uint probeIndex)
     for (int axis = 0; axis < NEIGHBOR_AXIS_COUNT; ++axis)
     {
         float3 radiance = _RadianceCacheAxis[localIndex].xyz;
-        float3 direction = _RayAxis[axis].xyz;
-        const float3x3 probeVolumeAtlasDynamicSHRotate = float3x3(_ProbeVolumeAtlasDynamicSHRotateRight, _ProbeVolumeAtlasDynamicSHRotateUp, _ProbeVolumeAtlasDynamicSHRotateForward);
-        direction = mul(direction, probeVolumeAtlasDynamicSHRotate);
+        float3 directionOS = _RayAxis[axis].xyz;
+        const float3x3 probeVolumeLtw = float3x3(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp, cross(_ProbeVolumeDGIBoundsRight, _ProbeVolumeDGIBoundsUp));
+        float3 directionWS = mul(directionOS, probeVolumeLtw);
 
-        SHIncomingIrradiance incomingIrradianceCurrentSG = SHIncomingIrradianceComputeFromSphericalGaussian(direction, _PropagationSharpness, radiance);
+        BasisAxisHit basisAxisHit = ComputeBasisAxisHit(directionOS, _Sharpness);
+        basisAxisHit.mean = directionWS; // Rotate the basis to world space after constructing it (because the construction can be dependant on the object space direction (i.e: diagonals with less energy)).
 
-        SHIncomingIrradianceAccumulateFromSHIncomingIrradiance(incomingIrradiance, incomingIrradianceCurrentSG);
+        SHIncomingIrradiance incomingIrradianceCurrentLobe = SHIncomingIrradianceComputeFromBasisAxisHit(basisAxisHit, radiance);
+
+        SHIncomingIrradianceAccumulateFromSHIncomingIrradiance(incomingIrradiance, incomingIrradianceCurrentLobe);
 
         localIndex += _ProbeVolumeAtlasReadBufferCount;
     }
@@ -239,11 +162,7 @@ SHIncomingIrradiance ProjectPropagationAxisFromFit(uint probeIndex)
 
 SHIncomingIrradiance ProjectPropagationAxis(uint probeIndex)
 {
-#if defined(SH_FROM_SG_PBR_FIT) || defined(SH_FROM_SG_PBR_FIT_WITH_COSINE_WINDOW)
     return ProjectPropagationAxisFromFit(probeIndex);
-#else
-    return ProjectPropagationAxisFromPeak(probeIndex);
-#endif
 }
 
 

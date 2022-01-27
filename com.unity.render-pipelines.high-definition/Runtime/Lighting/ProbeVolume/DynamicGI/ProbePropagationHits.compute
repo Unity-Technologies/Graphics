@@ -5,21 +5,21 @@
 #define GROUP_SIZE 64
 //#pragma enable_d3d11_debug_symbols
 
+#pragma multi_compile BASIS_SPHERICAL_GAUSSIAN BASIS_SPHERICAL_GAUSSIAN_WINDOWED BASIS_AMBIENT_DICE_SHARP BASIS_AMBIENT_DICE_SOFTER BASIS_AMBIENT_DICE_SUPER_SOFT BASIS_AMBIENT_DICE_ULTRA_SOFT
+#pragma multi_compile BASIS_PROPAGATION_OVERRIDE_NONE BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT
 
 #define SHADOW_MINIMAL
 #define LIGHT_EVALUATION_NO_HEIGHT_FOG
 #define DEBUGGING 0
 #define SUPPORTS_AREA_LIGHTS 1
 
-
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationSphericalGaussians.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagation.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationLighting.hlsl"
-
-
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/DynamicGI/ProbePropagationBasis.hlsl"
 
 RWStructuredBuffer<float3> _HitRadianceCacheAxis;
 int _HitRadianceCacheAxisCount;
@@ -29,12 +29,12 @@ int _ProbeVolumeNeighborHitCount;
 
 float4 _RayAxis[NEIGHBOR_AXIS_COUNT];
 
-float _DirectContribution;
 float _IndirectScale;
+float _MaxAlbedo;
 float _BakedEmissionMultiplier;
 float _RayBias;
 float _InfiniteBounce;
-float _InfiniteBounceSharpness;
+float _Sharpness;
 
 float _ProbeVolumeDGIMaxNeighborDistance;
 uint _ProbeVolumeDGIResolutionXY;
@@ -71,17 +71,17 @@ float3 BiasLightPositionNearHit(float3 lightPosition, float3 hitPosition)
 }
 
 
-// Returns true if light has been computed for this
-void GatherLighting(SurfaceHitData hit, inout float4 lighting)
+float3 EvaluateDirectLightingAtHit(SurfaceHitData hit)
 {
     LightData light;
+    float3 directLighting = 0;
 
     // Punctual
     for (uint puncLightIdx = 0; puncLightIdx < _DynamicGIPunctualLightCount; ++puncLightIdx)
     {
         light = _DynamicGILightDatas[puncLightIdx];
         light.positionRWS += BiasLightPositionNearHit(light.positionRWS, GetCameraRelativePositionWS(hit.position));
-        lighting.xyz += GetLightingForAxisPunctual(light, _IndirectScale, hit) * _DirectContribution;
+        directLighting += GetLightingForAxisPunctual(light, _IndirectScale, hit);
     }
 
 #if SUPPORTS_AREA_LIGHTS
@@ -90,7 +90,7 @@ void GatherLighting(SurfaceHitData hit, inout float4 lighting)
     for (uint areaLightIdx = (uint)_DynamicGIPunctualLightCount; areaLightIdx < (uint)lastAreaLightIndex; ++areaLightIdx)
     {
         light = _DynamicGILightDatas[areaLightIdx];
-        lighting.xyz += GetLightingForAxisArea(light, _IndirectScale, hit) * _DirectContribution;
+        directLighting += GetLightingForAxisArea(light, _IndirectScale, hit);
     }
 #endif
 
@@ -101,25 +101,42 @@ void GatherLighting(SurfaceHitData hit, inout float4 lighting)
         // Only support the shadow casting one otherwise result is completely off.
         if (dirData.affectDynamicGI > 0.0f && _DirectionalShadowIndex == (int)dirLightIdx)
         {
-            lighting.xyz += GetLightingForAxisDirectional(dirData, _IndirectScale * dirData.bounceIntensity, hit) * _DirectContribution;
+            directLighting += GetLightingForAxisDirectional(dirData, _IndirectScale * dirData.bounceIntensity, hit);
         }
     }
 
-    lighting.w += _DirectContribution;
+    return directLighting;
 }
 
+float3 EvaluateBRDFLambertApproximate(uint probeIndex, float3 surfaceNormal, float sharpness, in float4 _RayAxis[NEIGHBOR_AXIS_COUNT])
+{
+    float3 color = 0;
+    for(int i=0; i < NEIGHBOR_AXIS_COUNT; ++i)
+    {
+        float3 prevAxisRadiance = ReadPreviousPropagationAxis(probeIndex, i);
+        float3 axis = _RayAxis[i].xyz;
 
-float3 EstimateIncomingBounceLightSG(uint probeIndex, PackedNeighborHit neighborData)
+        BasisAxisHit basisAxisHit = ComputeBasisAxisHit(axis, sharpness);
+
+        float integral = ComputeBasisAxisHitAndClampedCosineProductIntegral(basisAxisHit, surfaceNormal);
+
+        color += prevAxisRadiance * integral;
+    }
+
+    return color;
+}
+
+float3 EstimateIncomingBounceLightAtHit(uint probeIndex, SurfaceHitData hit)
 {
     #if defined(PREVIOUS_RADIANCE_CACHE_INVALID)
         return 0;
     #else
-        float3 normal = UnpackNormal(neighborData.normalAxis);
-        float4 albedoDistance = UnpackAlbedoAndDistance(neighborData.albedoDistance, _ProbeVolumeDGIMaxNeighborDistance);
+        const float maxAlbedoChannel = max(max(hit.albedo.r, hit.albedo.g), hit.albedo.b);
+        const float3 infiniteBounceAlbedo = maxAlbedoChannel > _MaxAlbedo ? hit.albedo * _MaxAlbedo / maxAlbedoChannel : hit.albedo;
 
-        float3 incomingIrradiance = EvaluateBRDFLambertApproximate(probeIndex, normal, _InfiniteBounceSharpness, _RayAxis);
-        incomingIrradiance *= _InfiniteBounce * INV_PI;
-        incomingIrradiance *= albedoDistance.rgb;
+        float3 incomingIrradiance = EvaluateBRDFLambertApproximate(probeIndex, hit.normal, _Sharpness, _RayAxis);
+        incomingIrradiance *= _InfiniteBounce;
+        incomingIrradiance *= infiniteBounceAlbedo;
 
         return incomingIrradiance;
     #endif
@@ -185,20 +202,19 @@ void AccumulateLightingDirectional(uint3 id : SV_DispatchThreadID)
             return;
         }
 
+        const SurfaceHitData hit = ConstructSurfaceHit(neighborData, worldPosition, probeVolumeLtw);
+
         #if defined(COMPUTE_INFINITE_BOUNCE)
-            float3 prevValue = EstimateIncomingBounceLightSG(probeIndex, neighborData);
-            float infiniteBounceWeight = max(1.0, _InfiniteBounce * INV_PI);
-            float4 lightingAndWeight = float4(prevValue, infiniteBounceWeight);
+            float3 lighting = EstimateIncomingBounceLightAtHit(probeIndex, hit);
         #else
-            float4 lightingAndWeight = float4(0, 0, 0, 1);
+            float3 lighting = 0;
         #endif
 
+        lighting += EvaluateDirectLightingAtHit(hit);
 
-        SurfaceHitData hit = ConstructSurfaceHit(neighborData, worldPosition, probeVolumeLtw);
-        GatherLighting(hit, lightingAndWeight);
+        lighting += UnpackEmission(neighborData.emission) * _BakedEmissionMultiplier;
 
-        const float3 finalRadiance = NormalizeOutputRadiance(lightingAndWeight, probeValidity);
-        const float3 emission = UnpackEmission(neighborData.emission) * _BakedEmissionMultiplier;
-        _HitRadianceCacheAxis[hitAxisIndex] = finalRadiance + emission;
+        const float3 finalRadiance = NormalizeOutputRadiance(lighting, probeValidity);
+        _HitRadianceCacheAxis[hitAxisIndex] = finalRadiance;
     }
 }

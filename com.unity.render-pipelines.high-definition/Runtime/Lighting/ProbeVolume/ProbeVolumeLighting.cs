@@ -1044,6 +1044,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public List<ProbeVolumeHandle> volumes;
             public ProbeDynamicGI giSettings;
             public ShaderVariablesGlobal globalCB;
+            public SphericalHarmonicsL2 ambientProbe;
         }
 
         class ProbeVolumeDynamicGIPassData
@@ -1071,6 +1072,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.volumes = ProbeVolumeManager.manager.GetVolumesToRender();
             data.giSettings = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
             data.globalCB = m_ShaderVariablesGlobalCB;
+            data.ambientProbe = m_SkyManager.GetAmbientProbe(hdCamera);
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolumeDynamicGI) && m_SupportDynamicGI)
             {
@@ -1116,7 +1118,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var simulationRequest = sortedRequests[i];
                         ProbeVolumeHandle volume = data.volumes[simulationRequest.probeVolumeIndex];
-                        ProbeVolumeDynamicGI.instance.DispatchProbePropagation(cmd, volume, data.giSettings, in data.globalCB, probeVolumeAtlas);
+                        ProbeVolumeDynamicGI.instance.DispatchProbePropagation(cmd, volume, data.giSettings, in data.globalCB, probeVolumeAtlas, data.ambientProbe);
                     }
                 }
                 else if (data.mode == ProbeVolumeDynamicGIMode.Clear)

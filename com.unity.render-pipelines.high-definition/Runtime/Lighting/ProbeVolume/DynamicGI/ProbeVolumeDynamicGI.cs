@@ -68,6 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static float s_2DDiagonalDist;
         internal static float s_2DDiagonal;
         internal static Vector4[] s_NeighborAxis;
+        static Vector4[] s_AmbientProbe;
 
         private ComputeShader _PropagationClearRadianceShader = null;
         private ComputeShader _PropagationHitsShader = null;
@@ -88,6 +89,27 @@ namespace UnityEngine.Rendering.HighDefinition
             All = 0,
             Most,
             Least
+        }
+
+        [Serializable]
+        public enum ProbeVolumeDynamicGIBasis
+        {
+            BasisSphericalGaussian = 0,
+            BasisSphericalGaussianWindowed,
+            BasisAmbientDiceSharp,
+            BasisAmbientDiceSofter,
+            BasisAmbientDiceSuperSoft,
+            BasisAmbientDiceUltraSoft
+        }
+
+        [Serializable]
+        public enum ProbeVolumeDynamicGIBasisPropagationOverride
+        {
+            None = 0,
+            BasisSphericalGaussian,
+            BasisAmbientDiceWrappedSofter,
+            BasisAmbientDiceWrappedSuperSoft,
+            BasisAmbientDiceWrappedUltraSoft
         }
 
         ProbeVolumeDynamicGI()
@@ -131,6 +153,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 new Vector4( 0, -s_2DDiagonal,  s_2DDiagonal, s_2DDiagonalDist),
                 new Vector4( 0, -s_2DDiagonal, -s_2DDiagonal, s_2DDiagonalDist),
             };
+            
+            s_AmbientProbe = new Vector4[7];
 
             _sortedNeighborAxisLookups = new NeighborAxisLookup[s_NeighborAxis.Length * s_NeighborAxis.Length];
             _probeVolumeSimulationRequests = new ProbeVolumeSimulationRequest[MAX_SIMULATIONS_PER_FRAME];
@@ -427,8 +451,105 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeVolume.CleanupBuffer(_sortedNeighborAxisLookupsBuffer);
         }
 
+        private void SetBasisKeywords(ProbeVolumeDynamicGIBasis basis, ProbeVolumeDynamicGIBasisPropagationOverride basisPropagationOverride, ComputeShader shader)
+        {
+            CoreUtils.SetKeyword(shader, "BASIS_SPHERICAL_GAUSSIAN", false);
+            CoreUtils.SetKeyword(shader, "BASIS_SPHERICAL_GAUSSIAN_WINDOWED", false);
+            CoreUtils.SetKeyword(shader, "BASIS_AMBIENT_DICE_SHARP", false);
+            CoreUtils.SetKeyword(shader, "BASIS_AMBIENT_DICE_SOFTER", false);
+            CoreUtils.SetKeyword(shader, "BASIS_AMBIENT_DICE_SUPER_SOFT", false);
+            CoreUtils.SetKeyword(shader, "BASIS_AMBIENT_DICE_ULTRA_SOFT", false);
 
-        internal void DispatchProbePropagation(CommandBuffer cmd, ProbeVolumeHandle probeVolume, ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals, RenderTargetIdentifier probeVolumeAtlasSHRTHandle)
+            switch (basis)
+            {
+                case ProbeVolumeDynamicGIBasis.BasisSphericalGaussian:
+                {
+                    CoreUtils.SetKeyword(shader, "BASIS_SPHERICAL_GAUSSIAN", true);
+                    break;
+                }
+                case ProbeVolumeDynamicGIBasis.BasisSphericalGaussianWindowed:
+                {
+                     CoreUtils.SetKeyword(shader, "BASIS_SPHERICAL_GAUSSIAN_WINDOWED", true);
+                    break;
+                }
+                case ProbeVolumeDynamicGIBasis.BasisAmbientDiceSharp:
+                {
+                    CoreUtils.SetKeyword(shader, "BASIS_AMBIENT_DICE_SHARP", true);
+                    break;
+                }
+                case ProbeVolumeDynamicGIBasis.BasisAmbientDiceSofter:
+                {
+                    CoreUtils.SetKeyword(shader, "BASIS_AMBIENT_DICE_SOFTER", true);
+                    break;
+                }
+                case ProbeVolumeDynamicGIBasis.BasisAmbientDiceSuperSoft:
+                {
+                    CoreUtils.SetKeyword(shader, "BASIS_AMBIENT_DICE_SUPER_SOFT", true);
+                    break;
+                }
+                case ProbeVolumeDynamicGIBasis.BasisAmbientDiceUltraSoft:
+                {
+                    CoreUtils.SetKeyword(shader, "BASIS_AMBIENT_DICE_ULTRA_SOFT", true);
+                    break;
+                }
+
+                default:
+                {
+                    Debug.Assert(false);
+                    break;
+                }
+            }
+
+            CoreUtils.SetKeyword(shader, "BASIS_PROPAGATION_OVERRIDE_NONE", false);
+            CoreUtils.SetKeyword(shader, "BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN", false);
+            CoreUtils.SetKeyword(shader, "BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER", false);
+            CoreUtils.SetKeyword(shader, "BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT", false);
+            CoreUtils.SetKeyword(shader, "BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT", false);
+
+            switch (basisPropagationOverride)
+            {
+                case ProbeVolumeDynamicGIBasisPropagationOverride.None:
+                {
+                    CoreUtils.SetKeyword(shader, "BASIS_PROPAGATION_OVERRIDE_NONE", true);
+                    break;
+                }
+
+                case ProbeVolumeDynamicGIBasisPropagationOverride.BasisSphericalGaussian:
+                {
+                    CoreUtils.SetKeyword(shader, "BASIS_PROPAGATION_OVERRIDE_SPHERICAL_GAUSSIAN", true);
+                    break;
+                }
+
+                case ProbeVolumeDynamicGIBasisPropagationOverride.BasisAmbientDiceWrappedSofter:
+                {
+                    CoreUtils.SetKeyword(shader, "BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SOFTER", true);
+                    break;
+                }
+
+                case ProbeVolumeDynamicGIBasisPropagationOverride.BasisAmbientDiceWrappedSuperSoft:
+                {
+                    CoreUtils.SetKeyword(shader, "BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_SUPER_SOFT", true);
+                    break;
+                }
+
+                case ProbeVolumeDynamicGIBasisPropagationOverride.BasisAmbientDiceWrappedUltraSoft:
+                {
+                    CoreUtils.SetKeyword(shader, "BASIS_PROPAGATION_OVERRIDE_AMBIENT_DICE_WRAPPED_ULTRA_SOFT", true);
+                    break;
+                }
+
+                default:
+                {
+                    Debug.Assert(false);
+                    break;
+                }
+            }
+        }
+
+
+        internal void DispatchProbePropagation(CommandBuffer cmd, ProbeVolumeHandle probeVolume,
+            ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals,
+            RenderTargetIdentifier probeVolumeAtlasSHRTHandle, SphericalHarmonicsL2 ambientProbe)
         {
             var previousRadianceCacheInvalid = InitializePropagationBuffers(probeVolume);
 
@@ -437,7 +558,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIHits)))
                 DispatchPropagationHits(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid);
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGIAxes)))
-                DispatchPropagationAxes(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid);
+                DispatchPropagationAxes(cmd, probeVolume, in giSettings, previousRadianceCacheInvalid, ambientProbe);
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ProbeVolumeDynamicGICombine)))
                 DispatchPropagationCombine(cmd, probeVolume, in giSettings, in shaderGlobals, probeVolumeAtlasSHRTHandle);
 
@@ -485,6 +606,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var kernel = _PropagationHitsShader.FindKernel("AccumulateLightingDirectional");
             var shader = _PropagationHitsShader;
 
+            SetBasisKeywords(giSettings.basis.value, giSettings.basisPropagationOverride.value, shader);
+
             var obb = probeVolume.GetProbeVolumeEngineDataBoundingBox();
             var data = probeVolume.GetProbeVolumeEngineData();
             cmd.SetComputeFloatParam(shader, "_ProbeVolumeDGIMaxNeighborDistance", data.maxNeighborDistance);
@@ -499,11 +622,11 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_ProbeVolumeNeighborHits", probeVolume.propagationBuffers.neighborHits);
             cmd.SetComputeIntParam(shader, "_ProbeVolumeNeighborHitCount", probeVolume.propagationBuffers.neighborHits.count);
             cmd.SetComputeFloatParam(shader, "_IndirectScale", giSettings.indirectMultiplier.value);
+            cmd.SetComputeFloatParam(shader, "_MaxAlbedo", giSettings.maxAlbedo.value);
             cmd.SetComputeFloatParam(shader, "_BakedEmissionMultiplier", giSettings.bakedEmissionMultiplier.value);
             cmd.SetComputeFloatParam(shader, "_RayBias", giSettings.bias.value);
             cmd.SetComputeFloatParam(shader, "_LeakMultiplier", giSettings.leakMultiplier.value);
-            cmd.SetComputeFloatParam(shader, "_DirectContribution", giSettings.directContribution.value);
-            cmd.SetComputeFloatParam(shader, "_InfiniteBounceSharpness", giSettings.infiniteBounceSharpness.value);
+            cmd.SetComputeFloatParam(shader, "_Sharpness", giSettings.sharpness.value);
             cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
 
             cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);
@@ -532,10 +655,13 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
         }
 
-        void DispatchPropagationAxes(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, bool previousRadianceCacheInvalid)
+        void DispatchPropagationAxes(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings,
+            bool previousRadianceCacheInvalid, SphericalHarmonicsL2 ambientProbe)
         {
             var kernel = _PropagationAxesShader.FindKernel("PropagateLight");
             var shader = _PropagationAxesShader;
+
+            SetBasisKeywords(giSettings.basis.value, giSettings.basisPropagationOverride.value, shader);
 
             var obb = probeVolume.GetProbeVolumeEngineDataBoundingBox();
             var data = probeVolume.GetProbeVolumeEngineData();
@@ -596,7 +722,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeIntParam(shader, "_ProbeVolumeProbeCount", probeVolume.propagationBuffers.neighbors.count / s_NeighborAxis.Length);
             cmd.SetComputeFloatParam(shader, "_LeakMultiplier", giSettings.leakMultiplier.value);
             cmd.SetComputeFloatParam(shader, "_PropagationContribution", giSettings.propagationContribution.value);
-            cmd.SetComputeFloatParam(shader, "_PropagationSharpness", giSettings.propagationSharpness.value);
+            cmd.SetComputeFloatParam(shader, "_Sharpness", giSettings.sharpness.value);
             cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
 
             cmd.SetComputeBufferParam(shader, kernel, "_HitRadianceCacheAxis", probeVolume.propagationBuffers.hitRadianceCache);
@@ -604,6 +730,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeFloatParam(shader, "_RangeBehindCamera", giSettings.rangeBehindCamera.value);
             cmd.SetComputeFloatParam(shader, "_RangeInFrontOfCamera", giSettings.rangeInFrontOfCamera.value);
+            
+            UpdateAmbientProbe(ambientProbe, giSettings.skyMultiplier.value);
+            cmd.SetComputeVectorArrayParam(shader, "_AmbientProbe", s_AmbientProbe);
 
             cmd.SetComputeBufferParam(shader, kernel, "_PreviousRadianceCacheAxis", probeVolume.propagationBuffers.GetReadRadianceCacheAxis());
             cmd.SetComputeBufferParam(shader, kernel, "_RadianceCacheAxis", probeVolume.propagationBuffers.GetWriteRadianceCacheAxis());
@@ -612,9 +741,44 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(shader, kernel, "_SortedNeighborAxisLookups", _sortedNeighborAxisLookupsBuffer);
             CoreUtils.SetKeyword(shader, "PREVIOUS_RADIANCE_CACHE_INVALID", previousRadianceCacheInvalid);
 
+            cmd.SetComputeFloatParam(shader, "_PropagationSharpness", giSettings.propagationSharpness.value);
+            cmd.SetComputeFloatParam(shader, "_Sharpness", giSettings.sharpness.value);
+
             int numHits = probeVolume.propagationBuffers.neighbors.count;
             int dispatchX = (numHits + 63) / 64;
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);
+        }
+
+        static void UpdateAmbientProbe(SphericalHarmonicsL2 ambientProbe, float multiplier)
+        {
+            // Pack sky probe in the way Probe Volume stores final SH to combine them easily.
+            var c0 = new Vector4(ambientProbe[0, 0], ambientProbe[1, 0], ambientProbe[2, 0], ambientProbe[0, 3]) * multiplier;
+            var c1 = new Vector4(ambientProbe[0, 1], ambientProbe[0, 2], ambientProbe[1, 3], ambientProbe[1, 1]) * multiplier;
+            var c2 = new Vector4(ambientProbe[1, 2], ambientProbe[2, 3], ambientProbe[2, 1], ambientProbe[2, 2]) * multiplier;
+            var c3 = new Vector4(ambientProbe[0, 4], ambientProbe[0, 5], ambientProbe[0, 6], ambientProbe[0, 7]) * multiplier;
+            var c4 = new Vector4(ambientProbe[1, 4], ambientProbe[1, 5], ambientProbe[1, 6], ambientProbe[1, 7]) * multiplier;
+            var c5 = new Vector4(ambientProbe[2, 4], ambientProbe[2, 5], ambientProbe[2, 6], ambientProbe[2, 7]) * multiplier;
+            var c6 = new Vector4(ambientProbe[0, 8], ambientProbe[1, 8], ambientProbe[2, 8], 0f) * multiplier;
+
+            /*
+            // Denormalize Quadratic term:
+            c3.z /= 3f;
+            c4.z /= 3f;
+            c5.z /= 3f;
+
+            // Denormalize DC term:
+            c0.w += c3.z;
+            c1.w += c4.z;
+            c2.w += c5.z;
+            */
+
+            s_AmbientProbe[0] = c0;
+            s_AmbientProbe[1] = c1;
+            s_AmbientProbe[2] = c2;
+            s_AmbientProbe[3] = c3;
+            s_AmbientProbe[4] = c4;
+            s_AmbientProbe[5] = c5;
+            s_AmbientProbe[6] = c6;
         }
 
         void DispatchPropagationCombine(CommandBuffer cmd, ProbeVolumeHandle probeVolume, in ProbeDynamicGI giSettings, in ShaderVariablesGlobal shaderGlobals, RenderTargetIdentifier probeVolumeAtlasSHRTHandle)
@@ -623,6 +787,10 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeVolume.ProbeVolumeAtlasKey key = probeVolume.ComputeProbeVolumeAtlasKey();
             var kernel = _PropagationCombineShader.FindKernel("CombinePropagationAxis");
             var shader = _PropagationCombineShader;
+
+            SetBasisKeywords(giSettings.basis.value, giSettings.basisPropagationOverride.value, shader);
+
+            var obb = probeVolume.GetProbeVolumeEngineDataBoundingBox();
 
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeResolution, new Vector3(
                 probeVolume.parameters.resolutionX,
@@ -643,11 +811,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateUp, key.rotation * new Vector3(0.0f, 1.0f, 0.0f));
             cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasSHRotateForward, key.rotation * new Vector3(0.0f, 0.0f, 1.0f));
 
-            var dynamicRotation = probeVolume.rotation;
-            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasDynamicSHRotateRight, dynamicRotation * new Vector3(1.0f, 0.0f, 0.0f));
-            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasDynamicSHRotateUp, dynamicRotation * new Vector3(0.0f, 1.0f, 0.0f));
-            cmd.SetComputeVectorParam(shader, HDShaderIDs._ProbeVolumeAtlasDynamicSHRotateForward, dynamicRotation * new Vector3(0.0f, 0.0f, 1.0f));
-
             cmd.SetComputeIntParam(shader, HDShaderIDs._ProbeVolumeAtlasReadBufferCount, numProbes);
 
             var volumeBuffers = probeVolume.GetVolumeBuffers();
@@ -664,30 +827,11 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(shader, "_DynamicPropagationContribution", giSettings.dynamicAmount.value);
             cmd.SetComputeVectorArrayParam(shader, "_RayAxis", s_NeighborAxis);
 
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsRight", obb.right);
+            cmd.SetComputeVectorParam(shader, "_ProbeVolumeDGIBoundsUp", obb.up);
+            
             cmd.SetComputeFloatParam(shader, "_PropagationSharpness", giSettings.propagationSharpness.value);
-
-            switch (giSettings.shFromSGMode.value)
-            {
-                case ProbeDynamicGI.SHFromSGMode.SamplePeakAndProject:
-                {
-                    CoreUtils.SetKeyword(shader, "SH_FROM_SG_PBR_FIT", false);
-                    CoreUtils.SetKeyword(shader, "SH_FROM_SG_PBR_FIT_WITH_COSINE_WINDOW", false);
-                    break;
-                }
-                case ProbeDynamicGI.SHFromSGMode.SHFromSGFit:
-                {
-                    CoreUtils.SetKeyword(shader, "SH_FROM_SG_PBR_FIT", true);
-                    CoreUtils.SetKeyword(shader, "SH_FROM_SG_PBR_FIT_WITH_COSINE_WINDOW", false);
-                    break;
-                }
-                case ProbeDynamicGI.SHFromSGMode.SHFromSGFitWithCosineWindow:
-                {
-                    CoreUtils.SetKeyword(shader, "SH_FROM_SG_PBR_FIT", false);
-                    CoreUtils.SetKeyword(shader, "SH_FROM_SG_PBR_FIT_WITH_COSINE_WINDOW", true);
-                    break;
-                }
-                default: break;
-            }
+            cmd.SetComputeFloatParam(shader, "_Sharpness", giSettings.sharpness.value);
 
             int dispatchX = (numProbes + 63) / 64;
             cmd.DispatchCompute(shader, kernel, dispatchX, 1, 1);

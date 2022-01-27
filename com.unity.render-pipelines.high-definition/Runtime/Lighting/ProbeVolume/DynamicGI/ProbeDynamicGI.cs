@@ -21,24 +21,28 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter indirectMultiplier = new ClampedFloatParameter(1f, 0.0f, 2f);
         [Tooltip("Multiplier for material emissive colors that affect Dynamic GI")]
         public ClampedFloatParameter bakedEmissionMultiplier = new ClampedFloatParameter(0f, 0f, 2f);
+        [Tooltip("Multiplier for sky lighting that affect Dynamic GI of")]
+        public ClampedFloatParameter skyMultiplier = new ClampedFloatParameter(0f, 0f, 2f);
         [Tooltip("A control for blending in more influence of infinite bounce light near surfaces")]
         public ClampedFloatParameter infiniteBounce = new ClampedFloatParameter(1f, 0.0f, 2f);
+        [Tooltip("Limits albedo value used for infinite bounces to prevent lighting from blowing up")]
+        public ClampedFloatParameter maxAlbedo = new ClampedFloatParameter(0.9f, 0f, 1f);
+        [Tooltip("Advanced control for the contribution amount of secondary propagation indirect light")]
+        public ClampedFloatParameter propagationContribution = new ClampedFloatParameter(1f, 0f, 2f);
 
         [Tooltip("Max range to perform dynamic GI operation on an individual probe")]
         public ClampedFloatParameter rangeInFrontOfCamera = new ClampedFloatParameter(50.0f, 0.0f, 100.0f);
         [Tooltip("Max range to perform dynamic GI operation on an individual probe")]
         public ClampedFloatParameter rangeBehindCamera = new ClampedFloatParameter(25.0f, 0.0f, 100.0f);
 
-        [Tooltip("Advanced control for the contribution amount of direct light")]
-        public ClampedFloatParameter directContribution = new ClampedFloatParameter(1f, 0.5f, 2);
-        [Tooltip("Advanced control for the contribution amount of secondary propagation indirect light")]
-        public ClampedFloatParameter propagationContribution = new ClampedFloatParameter(1f, 0.5f, 2);
+        [Tooltip("Advanced control selecting the how light is represented and propagated along each axis")]
+        public ProbeVolumeDynamicGIBasisParameter basis = new ProbeVolumeDynamicGIBasisParameter(ProbeVolumeDynamicGI.ProbeVolumeDynamicGIBasis.BasisAmbientDiceSharp);
+        [Tooltip("Advanced control selecting an alternative basis for use during propagation. None uses the same basis for propagation as hits.")]
+        public ProbeVolumeDynamicGIBasisPropagationOverrideParameter basisPropagationOverride = new ProbeVolumeDynamicGIBasisPropagationOverrideParameter(ProbeVolumeDynamicGI.ProbeVolumeDynamicGIBasisPropagationOverride.BasisAmbientDiceWrappedSuperSoft);
+        [Tooltip("Advanced control for the SG sharpness used when evaluating the influence of infinite bounce light near surfaces")]
+        public ClampedFloatParameter sharpness = new ClampedFloatParameter(6.0f, 0.0f, 16.0f);
         [Tooltip("Advanced control for the SG sharpness used when propagating light")]
         public ClampedFloatParameter propagationSharpness = new ClampedFloatParameter(2.0f, 0.0f, 16.0f);
-        [Tooltip("Advanced control for the SG sharpness used when evaluating the influence of infinite bounce light near surfaces")]
-        public ClampedFloatParameter infiniteBounceSharpness = new ClampedFloatParameter(2.0f, 0.0f, 16.0f);
-        [Tooltip("Advanced control for probe propagation combine pass.\nSamplePeakAndProject: Spherical gaussians will simply be evaluated at their peak and projected to convert to spherical harmonics.\nSHFromSGFit: A spherical gaussian to spherical harmonic function fit is used, which is physically plausible.\nSHFromSGFitWithCosineWindow: A spherical gaussian with an additional cosine window to spherical harmonic function fit is used, which is physically plausible. Less directional blur than SHFromSGFit.")]
-        public SHFromSGModeParameter shFromSGMode = new SHFromSGModeParameter(SHFromSGMode.SamplePeakAndProject);
         [Tooltip("Advanced control for darkening down the indirect light on invalid probes")]
         public ClampedFloatParameter leakMultiplier = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
         [Tooltip("Advanced control to bias the distance from the normal of the hit surface to perform direct lighting evaluation on")]
@@ -54,18 +58,18 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Advanced control to clear all dynamic GI buffers in the event lighting blows up when tuning")]
         public BoolParameter clear = new BoolParameter(false);
 
+        
         [Serializable]
-        public enum SHFromSGMode
+        public sealed class ProbeVolumeDynamicGIBasisParameter : VolumeParameter<ProbeVolumeDynamicGI.ProbeVolumeDynamicGIBasis>
         {
-            SamplePeakAndProject = 0,
-            SHFromSGFit,
-            SHFromSGFitWithCosineWindow
-        };
+            public ProbeVolumeDynamicGIBasisParameter(ProbeVolumeDynamicGI.ProbeVolumeDynamicGIBasis value, bool overrideState = false)
+                : base(value, overrideState) {}
+        }
 
         [Serializable]
-        public sealed class SHFromSGModeParameter : VolumeParameter<SHFromSGMode>
+        public sealed class ProbeVolumeDynamicGIBasisPropagationOverrideParameter : VolumeParameter<ProbeVolumeDynamicGI.ProbeVolumeDynamicGIBasisPropagationOverride>
         {
-            public SHFromSGModeParameter(SHFromSGMode value, bool overrideState = false)
+            public ProbeVolumeDynamicGIBasisPropagationOverrideParameter(ProbeVolumeDynamicGI.ProbeVolumeDynamicGIBasisPropagationOverride value, bool overrideState = false)
                 : base(value, overrideState) {}
         }
 

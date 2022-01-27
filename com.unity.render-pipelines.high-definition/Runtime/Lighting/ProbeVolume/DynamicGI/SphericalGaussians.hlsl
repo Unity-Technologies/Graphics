@@ -15,6 +15,41 @@ float SGEvaluateFromDirection(in SphericalGaussian sg, const in float3 direction
     return sg.amplitude * exp(dot(sg.mean, direction) * sg.sharpness - sg.sharpness);
 }
 
+float SGClampedCosineWindowEvaluateFromDirection(in SphericalGaussian sg, const in float3 direction)
+{
+    // MADD optimized form of: a.amplitude * exp(a.sharpness * (dot(a.mean, direction) - 1.0));
+    float mDotD = dot(sg.mean, direction);
+    return sg.amplitude * saturate(mDotD) * exp(mDotD * sg.sharpness - sg.sharpness);
+}
+
+// https://www.desmos.com/calculator/nk5axg4tf0
+float SGClampedCosineWindowIntegralFromSharpness(const in float sharpness)
+{
+    return exp2(2.15943 * pow(abs(sharpness * 0.0862171 + 0.620987), -1.0)) * 0.315329 + -0.297488;
+}
+
+float SGClampedCosineWindowIntegral(in SphericalGaussian sg)
+{
+    return sg.amplitude * SGClampedCosineWindowIntegralFromSharpness(sg.sharpness);
+}
+
+// Does not include divide by PI required to normalize the clamped cosine diffuse BRDF.
+// This was done to match the format of SGIrradianceFitted() which also does not include the divide by PI.
+// Post dividing by PI is required.
+float SGClampedCosineWindowAndClampedCosineProductIntegral(in SphericalGaussian sg, const in float3 clampedCosineNormal)
+{
+    float mDotN = dot(sg.mean, clampedCosineNormal);
+
+    float sharpnessScale = pow(abs(sg.sharpness), -0.136519) * 2.08795 + -0.635199;
+    float sharpnessBias = pow(abs(sg.sharpness), 0.0798249) * 1.07557 + -1.24343;
+
+    mDotN = mDotN * sharpnessScale + sharpnessBias;
+
+    float res = max(0.0, exp2(-6.4923 * pow(abs(mDotN * 0.310635 + -0.864745), 4.0)) * 1.43768 + -0.00923259);
+    res *= SGClampedCosineWindowIntegral(sg);
+    return res;
+}
+
 // Note: Integral(SG) == SolidAngle(sg)
 // http://research.microsoft.com/en-us/um/people/johnsny/papers/sg.pdf
 // http://cg.cs.tsinghua.edu.cn/people/~kun/interreflection/interreflection_paper.pdf
@@ -48,6 +83,7 @@ float SGIntegralApproximate(const in SphericalGaussian a)
 }
 
 // https://mynameismjp.wordpress.com/2016/10/09/sg-series-part-3-diffuse-lighting-from-an-sg-light-source/
+// This does not include BRDF normalization term 1 / Pi.
 float SGIrradianceFitted(const in SphericalGaussian lightingLobe, const in float3 surfaceNormal)
 {
     const float muDotN = dot(lightingLobe.mean, surfaceNormal);
@@ -78,5 +114,15 @@ float SGIrradianceFitted(const in SphericalGaussian lightingLobe, const in float
     return result * SGIntegralApproximate(lightingLobe);
 }
 
+SphericalGaussian SphericalGaussianVectorProduct(SphericalGaussian lhs, SphericalGaussian rhs)
+{
+    SphericalGaussian res;
+    res.mean = lhs.sharpness * lhs.mean + rhs.sharpness * rhs.mean;
+    res.sharpness = length(res.mean);
+    res.mean /= res.sharpness;
+    res.amplitude = lhs.amplitude * rhs.amplitude * exp(res.sharpness - (lhs.sharpness + rhs.sharpness));
+
+    return res;
+}
 
 #endif // endof SPHERICAL_GAUSSIANS
