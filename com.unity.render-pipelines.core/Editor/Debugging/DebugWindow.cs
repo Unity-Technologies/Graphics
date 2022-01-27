@@ -422,7 +422,7 @@ namespace UnityEditor.Rendering
                         GUI.Toggle(elementRect, m_Settings.selectedPanel == i, panel.displayName, s_Styles.sectionElement);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            Undo.RegisterCompleteObjectUndo(m_Settings, "Debug Panel Selection");
+                            Undo.RegisterCompleteObjectUndo(m_Settings, $"Debug Panel '{panel.displayName}' Selection");
                             var previousPanel = m_Settings.selectedPanel >= 0 && m_Settings.selectedPanel < panels.Count
                                 ? panels[m_Settings.selectedPanel]
                                 : null;

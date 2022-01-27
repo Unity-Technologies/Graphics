@@ -18,7 +18,7 @@ using Object = UnityEngine.Object;
 using URPRenderingEditor = UnityEditor.Rendering.Universal;
 using URPRendering = UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Rendering.Universal.Converters
+namespace UnityEditor.Rendering.Universal
 {
     internal class PPv2Converter : RenderPipelineConverter
     {

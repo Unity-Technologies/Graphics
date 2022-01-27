@@ -18,8 +18,8 @@
 //-----------------------------------------------------------------------------
 // Texture and constant buffer declaration
 //-----------------------------------------------------------------------------
-TEXTURE2D_X_UINT4(_WaterGBufferTexture0);
-TEXTURE2D_X(_WaterGBufferTexture1);
+TEXTURE2D_X_UINT2(_WaterGBufferTexture0);
+TEXTURE2D_X_UINT4(_WaterGBufferTexture1);
 TEXTURE2D_X_UINT2(_WaterGBufferTexture2);
 StructuredBuffer<WaterSurfaceProfile> _WaterSurfaceProfiles;
 
@@ -124,61 +124,22 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 // conversion function for deferred
 
 // Layout of the water gbuffer
-// GBuffer0 R16G16B16A16 (64 bits)
-// - GBuffer0: Bits 64 -> 32: Diffuse color (11 11 10)
-// - GBuffer0: Bits 31 -> 16:  Caustics
-// - GBuffer0: Bits 15 -> 0: foam value
+// GBuffer0 R16G16 (32 bits)
+// - GBuffer0: Bits 31 -> 0: Diffuse color (11 11 10)
 
 // GBuffer1 R16G16B16A16 (64 bits)
-// - GBuffer1: Bits 63 -> 32: Complete Normal Surface Gradients
-// - GBuffer1: Bits 31 -> 0: Low frequency Normal Surface Gradients
+// - GBuffer1: Bits 63 -> 40: Compressed Complete Normal
+// - GBuffer1: Bits 39 -> 32: Discrete Perceptual Roughness (0 -> 255)
+// - GBuffer1: Bits 31 -> 8: Complete Normal Surface Gradients
+// - GBuffer1: Bits 7 -> 0: Discrete Foam Value (0 -> 255)
 
 // GBuffer2 R16G16
 // - GBuffer2: Bits 31 -> 16: Tip Thickness (Compressed)
-// - GBuffer2: Bits 15 -> 8: Discrete Perceptual Roughness (0 -> 255)
-// - GBuffer2: Bits 8 -> 4:  Empty
-// - GBuffer2: Bits 4 -> 0:  Surface Index
-
-uint PackToGbuffer2(float tipThickness, float perceptualRoughness, uint surfaceIndex)
-{
-    uint compressedRoughness = (uint)(perceptualRoughness * 255.0);
-    return f32tof16(tipThickness) << 16 | ((compressedRoughness & 0xFF) << 8 ) | surfaceIndex & 0xF;
-}
-
+// - GBuffer2: Bits 15 -> 4: Caustics
+// - GBuffer2: Bits 3 -> 0:  Surface Index
 uint2 SplitUInt32ToUInt16(uint input)
 {
     return uint2(input & 0xFFFF, (input >> 16) & 0xFFFF);
-}
-
-void EncodeIntoGBuffer( BSDFData bsdfData, BuiltinData builtinData
-                        , uint2 positionSS
-                        , out uint4 outGBuffer0
-                        , out float4 outGBuffer1
-                        , out uint2 outGBuffer2)
-{
-    // Compress the diffuse color to 11 11 10
-    uint diffuseCmp = PackToR11G11B10f(bsdfData.diffuseColor);
-    // Split the color into two uint16 values
-    uint2 splitedDiffuseColor = SplitUInt32ToUInt16(diffuseCmp);
-    // Compress the foam to an uint16
-    uint compressedFoam = f32tof16(bsdfData.foam);
-    // Compress the caustics to an uint16
-    uint compressedCaustics = f32tof16(bsdfData.caustics);
-    // Output to the Gbuffer0
-    outGBuffer0 = uint4(splitedDiffuseColor.x, splitedDiffuseColor.y, compressedCaustics, compressedFoam);
-
-    // Convert the pair of normals to surface gradients
-    float3 normalSurfaceGradient = SurfaceGradientFromPerturbedNormal(float3(0, 1, 0), bsdfData.normalWS);
-    float3 lowFrequencyNormalSurfaceGradient = SurfaceGradientFromPerturbedNormal(float3(0, 1, 0), bsdfData.lowFrequencyNormalWS);
-    // Output to the Gbuffer1
-    outGBuffer1 = float4(normalSurfaceGradient.xz, lowFrequencyNormalSurfaceGradient.xz);
-
-    // Pack the additional data
-    uint packedAdditionalData = PackToGbuffer2(bsdfData.tipThickness, bsdfData.perceptualRoughness, _SurfaceIndex);
-    // Split the additional data into two uint16 values
-    uint2 splitedAdditional = SplitUInt32ToUInt16(packedAdditionalData);
-    // Output to the Gbuffer2
-    outGBuffer2 = uint2(splitedAdditional.x, splitedAdditional.y);
 }
 
 uint MergeUInt16ToUInt32(uint2 input)
@@ -186,11 +147,100 @@ uint MergeUInt16ToUInt32(uint2 input)
     return (input.x & 0xFFFF) | ((input.y & 0xFFFF) << 16);
 }
 
-void UnpackTipThicknessAndSurfaceIndex(uint compressedData, out float tipThickness, out float perceptualRoughness, out uint surfaceIndex)
+uint3 CompressNormal(float3 normal)
 {
-    tipThickness = f16tof32(compressedData >> 16);
-    perceptualRoughness = ((compressedData >> 8) & 0xFF) / 255.0f;
-    surfaceIndex = compressedData & 0xF;
+    float2 octNormal = PackNormalOctQuadEncode(normal);
+    return PackFloat2To888UInt(saturate(octNormal * 0.5 + 0.5));
+}
+
+float3 DecompressNormal(uint3 cmpNormal)
+{
+    float2 octNormal = Unpack888UIntToFloat2(cmpNormal);
+    return UnpackNormalOctQuadEncode(octNormal * 2.0 - 1.0);
+}
+
+uint2 CompressGBuffer0(float3 diffuseColor)
+{
+    // Compress the diffuse color to 11 11 10 and split into two 16/16 uint values
+    return SplitUInt32ToUInt16(PackToR11G11B10f(diffuseColor));
+}
+
+void DecompressGBuffer0(uint2 gbuffer0, inout BSDFData bsdfData)
+{
+    // Merge the two 16/16 uints and unpack the 11 11 10 value
+    bsdfData.diffuseColor = UnpackFromR11G11B10f(MergeUInt16ToUInt32(gbuffer0));
+}
+
+uint4 CompressGBuffer1(float3 normalWS, float3 lowFrequencyNormalWS, float foam, float roughness)
+{
+    // Compress the normals (into pairs of 8x8x8 bits)
+    uint3 cmpNormal = CompressNormal(normalWS);
+    uint3 lfCmpNormal = CompressNormal(lowFrequencyNormalWS);
+
+    // Compress the foam and roughness to 8 bits
+    uint cmpRoughness = (uint)(roughness * 255.0);
+    // Foam value is more likely to be distributed between 0.0 and 0.5 so we compensate for it
+    uint cmpFoam = (uint)(saturate(foam * 2.0) * 255.0);
+
+    // Output to the 4 uints (16 bits each)
+    uint u0 = (cmpNormal.x & 0xff) << 8 | (cmpNormal.y & 0xff);
+    uint u1 = (cmpNormal.z & 0xff) << 8 | (cmpRoughness & 0xff);
+    uint u2 = (lfCmpNormal.x & 0xff) << 8 | (lfCmpNormal.y & 0xff);
+    uint u3 = (lfCmpNormal.z & 0xff) << 8 | (cmpFoam & 0xff);
+
+    return uint4(u0, u1, u2, u3);
+}
+
+void DecompressGBuffer1(uint4 gbuffer1, inout BSDFData bsdfData)
+{
+    // Decompress the normal vector
+    uint3 cmpNormal = uint3((gbuffer1.x >> 8) & 0xff, gbuffer1.x & 0xff, (gbuffer1.y >> 8) & 0xff);
+    bsdfData.normalWS = DecompressNormal(cmpNormal);
+
+    // Decompress the low frequency normal vector
+    uint3 lfCmpNormal = uint3((gbuffer1.z >> 8) & 0xff, gbuffer1.z & 0xff, (gbuffer1.w >> 8) & 0xff);
+    bsdfData.lowFrequencyNormalWS = DecompressNormal(lfCmpNormal);
+
+    // Compress the foam and roughness to 8 bits
+    uint cmpRoughness = gbuffer1.y & 0xff;
+    bsdfData.perceptualRoughness = cmpRoughness / 255.0;
+    uint cmpFoam = gbuffer1.w & 0xff;
+    bsdfData.foam = cmpFoam / 255.0 * 0.5;
+}
+
+uint2 CompressGBuffer2(float tipThickness, float caustics, uint surfaceIndex)
+{
+    // Compress the caustics to the [0, 1] interval before compression into the gbuffer
+    caustics = caustics / (1.0 + caustics);
+    uint cmpThickness = f32tof16(tipThickness);
+    uint cmpCaustics = (uint)(caustics * 4096.0);
+    uint cmpSurfaceIndex = surfaceIndex & 0xF;
+    return uint2(cmpThickness, ((cmpCaustics & 0xFFF) << 4) | surfaceIndex & 0xF);
+}
+
+void DecompressGBuffer2(uint2 gbuffer2, inout BSDFData bsdfData)
+{
+    bsdfData.tipThickness = f16tof32(gbuffer2.x);
+    bsdfData.caustics = ((gbuffer2.y >> 4) / 4096.0);
+    // Decompress the caustics from the [0, 1] interval after decompression into the gbuffer
+    bsdfData.caustics = bsdfData.caustics / (1.0 - bsdfData.caustics);
+    bsdfData.surfaceIndex = gbuffer2.y & 0xf;
+}
+
+void EncodeIntoGBuffer( BSDFData bsdfData, BuiltinData builtinData
+                        , uint2 positionSS
+                        , out uint2 outGBuffer0
+                        , out uint4 outGBuffer1
+                        , out uint2 outGBuffer2)
+{
+    // Output to the Gbuffer0
+    outGBuffer0 = CompressGBuffer0(bsdfData.diffuseColor);
+
+    // Output to the Gbuffer1
+    outGBuffer1 = CompressGBuffer1(bsdfData.normalWS, bsdfData.lowFrequencyNormalWS, bsdfData.foam, bsdfData.perceptualRoughness);
+
+    // Output to the Gbuffer2
+    outGBuffer2 = CompressGBuffer2(bsdfData.tipThickness, bsdfData.caustics, _SurfaceIndex);
 }
 
 void DecodeFromGBuffer(uint2 positionSS, out BSDFData bsdfData, out BuiltinData builtinData)
@@ -199,24 +249,23 @@ void DecodeFromGBuffer(uint2 positionSS, out BSDFData bsdfData, out BuiltinData 
     ZERO_INITIALIZE(BuiltinData, builtinData);
 
     // Read the gbuffer values
-    uint4 inGBuffer0 = LOAD_TEXTURE2D_X(_WaterGBufferTexture0, positionSS);
-    float4 inGBuffer1 = LOAD_TEXTURE2D_X(_WaterGBufferTexture1, positionSS);
+    uint2 inGBuffer0 = LOAD_TEXTURE2D_X(_WaterGBufferTexture0, positionSS);
+    uint4 inGBuffer1 = LOAD_TEXTURE2D_X(_WaterGBufferTexture1, positionSS);
     uint2 inGBuffer2 = LOAD_TEXTURE2D_X(_WaterGBufferTexture2, positionSS);
 
-    // Output the diffuse color and foam intensity
-    bsdfData.diffuseColor = UnpackFromR11G11B10f(MergeUInt16ToUInt32(inGBuffer0.xy));
-    bsdfData.caustics = f16tof32(inGBuffer0.z);
-    bsdfData.foam = f16tof32(inGBuffer0.w);
+    // Decompress the gbuffer 0
+    DecompressGBuffer0(inGBuffer0, bsdfData);
 
-    // Output the pair of normals
-    bsdfData.normalWS = SurfaceGradientResolveNormal(float3(0, 1, 0), float3(inGBuffer1.x, 0, inGBuffer1.y));
-    bsdfData.lowFrequencyNormalWS = SurfaceGradientResolveNormal(float3(0, 1, 0), float3(inGBuffer1.z, 0, inGBuffer1.w));
+    // Decompress the gbuffer 1
+    DecompressGBuffer1(inGBuffer1, bsdfData);
+
+    // Decompress the gbuffer 1
+    DecompressGBuffer2(inGBuffer2, bsdfData);
 
     // Recompute the water fresnel0
     bsdfData.fresnel0 = WATER_FRESNEL_ZERO;
 
     // Decompress the additional data of the gbuffer3
-    UnpackTipThicknessAndSurfaceIndex(MergeUInt16ToUInt32(inGBuffer2.xy), bsdfData.tipThickness, bsdfData.perceptualRoughness, bsdfData.surfaceIndex);
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
 
     // Fill the built in data
@@ -230,16 +279,15 @@ void DecodeFromGBuffer(uint2 positionSS, out BSDFData bsdfData, out BuiltinData 
 
 void DecodeWaterFromNormalBuffer(uint2 positionSS, out NormalData normalData)
 {
-    float4 inGBuffer1 = LOAD_TEXTURE2D_X(_WaterGBufferTexture1, positionSS);
-    uint2 inGBuffer2 = LOAD_TEXTURE2D_X(_WaterGBufferTexture2, positionSS);
+    uint4 inGBuffer1 = LOAD_TEXTURE2D_X(_WaterGBufferTexture1, positionSS);
 
-    // TODO: change when supporting non horizontal water surfaces
-    normalData.normalWS = SurfaceGradientResolveNormal(float3(0, 1, 0), float3(inGBuffer1.x, 0, inGBuffer1.y));
+    // Decompress the normal vector
+    uint3 cmpNormal = uint3((inGBuffer1.x >> 8) & 0xff, inGBuffer1.x & 0xff, (inGBuffer1.y >> 8) & 0xff);
+    normalData.normalWS = DecompressNormal(cmpNormal);
 
-    // Todo read the water normal
-    float tipThickness;
-    uint surfaceIndex;
-    UnpackTipThicknessAndSurfaceIndex(MergeUInt16ToUInt32(inGBuffer2.xy), tipThickness, normalData.perceptualRoughness, surfaceIndex);
+    // Compress the foam and roughness to 8 bits
+    uint cmpRoughness = inGBuffer1.y & 0xff;
+    normalData.perceptualRoughness = cmpRoughness / 255.0;
 }
 
 //-----------------------------------------------------------------------------

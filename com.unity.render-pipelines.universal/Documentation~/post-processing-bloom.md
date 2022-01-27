@@ -1,5 +1,11 @@
 # Bloom
 
+![Bloom](Images/post-proc/Bloom-off.png)
+<br/>_Scene with Bloom effect turned off._
+
+![Bloom](Images/post-proc/Bloom.png)
+<br/>_Scene with Bloom effect turned on._
+
 The Bloom effect creates fringes of light extending from the borders of bright areas in an image. This creates the illusion of extremely bright light overwhelming the Camera.
 
 The Bloom effect also has a **Lens Dirt** feature, which you can use to apply a full-screen layer of smudges or dust to diffract the Bloom effect.
@@ -31,6 +37,8 @@ To add **Bloom** to a Volume:
 | **Max Iterations**         | The amount of iterations is based upon the size of hte rendered image. In this setting you define the maximum number of iterations. Decreasing this value reduces processing load and increases performance, especially on mobile devices with high DPI screens. The default value is 6. |
 
 ### Lens Dirt
+
+![Lens Dirt](Images/post-proc/bloom-lens-dirt.png)
 
 | **Property**  | **Description**                                              |
 | ------------- | ------------------------------------------------------------ |
