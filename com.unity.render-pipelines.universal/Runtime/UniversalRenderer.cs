@@ -527,7 +527,7 @@ namespace UnityEngine.Rendering.Universal
             colorDescriptor.autoGenerateMips = false;
             colorDescriptor.depthBufferBits = (int)DepthBits.None;
             m_ColorBufferSystem.SetCameraSettings(cmd, colorDescriptor, FilterMode.Bilinear);
-            
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
@@ -573,7 +573,7 @@ namespace UnityEngine.Rendering.Universal
             if (rendererFeatures.Count != 0 && !isPreviewCamera)
                 ConfigureCameraColorTarget(m_ColorBufferSystem.PeekBackBuffer());
 
-            
+
 
             cameraData.renderer.useDepthPriming = useDepthPriming;
 
