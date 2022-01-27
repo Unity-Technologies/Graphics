@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.UIGen
         static DebugMenuIntegration.Parameters s_IntegrationParameters = new (
                 "DebugMenuWindow2",
                 "DebugMenu",
-                "IDebugMenuContext",
+                "DebugMenuContext",
                 "Window/Debug Menu",
                 "DebugMenu"
             );
@@ -93,8 +93,8 @@ namespace UnityEditor.Rendering.UIGen
             if (!DebugMenuIntegration.GenerateIntegration(s_IntegrationParameters, out var integrationDocuments, out error))
                 return false;
             //
-            // if (!integrationDocuments.WriteToDisk(s_GenerationTargetLocations, out error))
-            //     return false;
+            if (!integrationDocuments.WriteToDisk(s_GenerationTargetLocations, out error))
+                return false;
 
             // Save import report
             // if (!ImportReport.From(out var report, out error))

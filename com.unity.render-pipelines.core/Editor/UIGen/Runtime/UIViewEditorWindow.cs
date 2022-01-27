@@ -7,9 +7,9 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.UIGen
 {
-    class UIViewEditorWindow<TUIView, TContext> : EditorWindow
-        where TUIView: UIView<TUIView, TContext>
-        where TContext: class, new()
+    public class UIViewEditorWindow<TUIView, TIContext, TContext> : EditorWindow
+        where TUIView: UIView<TUIView, TIContext>
+        where TContext: class, TIContext, new()
     {
         static bool LoadDefaultVisualTreeAsset(
             [NotNullWhen(true)] out VisualTreeAsset vsTree,

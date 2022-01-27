@@ -107,12 +107,17 @@ namespace UnityEditor.Rendering.UIGen
                 return false;
 
             var syntaxTree = (CSharpSyntaxTree) SyntaxFactory.ParseSyntaxTree(
-                @$"public class {parameters.uiViewType}: UnityEngine.Rendering.UIGen.UIView<{parameters.uiViewType}, {parameters.uiViewContextType}>
+                @$"using System;
+using UnityEditor;
+using UnityEditor.Rendering.UIGen;
+using UnityEngine;
+
+public class {parameters.uiViewEditorType}: UIViewEditorWindow<{parameters.uiViewType}, I{parameters.uiViewContextType}, {parameters.uiViewContextType}>
 {{
     [MenuItem(""{parameters.editorMenuPath}"")]
-    static void Show()
+    static void ShowWindow()
     {{
-        var window = GetWindow<{parameters.uiViewType}>();
+        var window = GetWindow<{parameters.uiViewEditorType}>();
         window.titleContent = new GUIContent(""{parameters.editorWindowName}"");
     }}
 }}"
