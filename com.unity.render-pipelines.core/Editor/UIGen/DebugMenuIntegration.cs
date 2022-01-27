@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering.UIGen
 
                 try
                 {
+                    Directory.CreateDirectory(Path.GetDirectoryName(editorPath));
                     File.WriteAllText(editorPath, m_EditorWindowCode.ToString());
                 }
                 catch (Exception e)
@@ -59,13 +60,28 @@ namespace UnityEditor.Rendering.UIGen
             }
         }
 
-        public struct Parameters
+        public readonly struct Parameters
         {
-            public string uiViewEditorType;
-            public string uiViewType;
-            public string uiViewContextType;
-            public string editorMenuPath;
-            public string editorWindowName;
+            public readonly string uiViewEditorType;
+            public readonly string uiViewType;
+            public readonly string uiViewContextType;
+            public readonly string editorMenuPath;
+            public readonly string editorWindowName;
+
+            public Parameters(
+                [DisallowNull] string uiViewEditorType,
+                [DisallowNull] string uiViewType,
+                [DisallowNull] string uiViewContextType,
+                [DisallowNull] string editorMenuPath,
+                [DisallowNull] string editorWindowName
+            )
+            {
+                this.uiViewEditorType = uiViewEditorType;
+                this.uiViewType = uiViewType;
+                this.uiViewContextType = uiViewContextType;
+                this.editorMenuPath = editorMenuPath;
+                this.editorWindowName = editorWindowName;
+            }
         }
 
         /// <summary>

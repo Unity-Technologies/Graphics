@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.UIGen
     public struct GenerationTargetLocations
     {
         [MustUseReturnValue]
-        public static bool From(
+        public static bool TryFrom(
             [DisallowNull] string assetLocation,
             [DisallowNull] string runtimeCodeLocation,
             [DisallowNull] string editorCodeLocation,
@@ -22,6 +22,18 @@ namespace UnityEngine.Rendering.UIGen
             locations = new GenerationTargetLocations(assetLocation, runtimeCodeLocation, editorCodeLocation);
             error = default;
             return true;
+        }
+
+        public static GenerationTargetLocations From(
+            [DisallowNull] string assetLocation,
+            [DisallowNull] string runtimeCodeLocation,
+            [DisallowNull] string editorCodeLocation
+        )
+        {
+            if (!TryFrom(assetLocation, runtimeCodeLocation, editorCodeLocation, out var result, out var error))
+                throw error;
+
+            return result;
         }
 
         string m_AssetLocation;

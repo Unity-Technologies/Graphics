@@ -38,7 +38,19 @@ namespace UnityEditor.Rendering.UIGen
                 Debug.LogException(error);
         }
 
-        static GenerationTargetLocations s_GenerationTargetLocations;
+        static GenerationTargetLocations s_GenerationTargetLocations = GenerationTargetLocations.From(
+            "Assets/DebugMenu/",
+            "Assets/DebugMenu/",
+            "Assets/DebugMenu/Editor/"
+        );
+
+        static DebugMenuIntegration.Parameters s_IntegrationParameters = new (
+                "DebugMenuWindow2",
+                "DebugMenu",
+                "IDebugMenuContext",
+                "Window/Debug Menu",
+                "DebugMenu"
+            );
 
         static bool ImportDebugMenu(
             [NotNullWhen(false)]out Exception error
@@ -68,21 +80,21 @@ namespace UnityEditor.Rendering.UIGen
             if (!DebugMenuUIGenerator.GenerateDebugMenuBindableView(
                     definition,
                     context,
-                    new DebugMenuUIGenerator.Parameters(),
+                    DebugMenuUIGenerator.Parameters.Default(),
                     out var view,
                     out error))
                 return false;
 
-            // Write assets and C# generated library
-            if (!view.WriteToDisk(s_GenerationTargetLocations, out error))
-                return false;
-
+            // // Write assets and C# generated library
+            // if (!view.WriteToDisk(s_GenerationTargetLocations, out error))
+            //     return false;
+            //
             // TODO: may require additional arguments
-            if (!DebugMenuIntegration.GenerateIntegration(default, out var integrationDocuments, out error))
+            if (!DebugMenuIntegration.GenerateIntegration(s_IntegrationParameters, out var integrationDocuments, out error))
                 return false;
-
-            if (!integrationDocuments.WriteToDisk(s_GenerationTargetLocations, out error))
-                return false;
+            //
+            // if (!integrationDocuments.WriteToDisk(s_GenerationTargetLocations, out error))
+            //     return false;
 
             // Save import report
             // if (!ImportReport.From(out var report, out error))

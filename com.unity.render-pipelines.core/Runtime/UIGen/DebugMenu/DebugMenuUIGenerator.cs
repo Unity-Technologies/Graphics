@@ -277,7 +277,8 @@ namespace UnityEngine.Rendering.UIGen
         {unbindContextBodies}
     }}
 }}";
-            declaration = (TypeDeclarationSyntax) SyntaxFactory.ParseSyntaxTree(code).GetRoot();
+            var syntaxTree = SyntaxFactory.ParseSyntaxTree(code);
+            declaration = syntaxTree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>().First();
             return true;
         }
 
@@ -292,21 +293,21 @@ namespace UnityEngine.Rendering.UIGen
         {
             error = default;
 
-            interfaceDeclaration = (TypeDeclarationSyntax) SyntaxFactory.ParseSyntaxTree($@"public interface I{parameters.uiViewContextTypeName}
+            interfaceDeclaration = SyntaxFactory.ParseSyntaxTree($@"public interface I{parameters.uiViewContextTypeName}
 {{
     {uiContextDefinition.members
         .Select(member => $"{member.type} {member.name} {{get;}}")
         .AggregateStrings("\r\n")}
 }}
-").GetRoot();
+").GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>().First();
 
-            implementationDeclaration = (TypeDeclarationSyntax) SyntaxFactory.ParseSyntaxTree($@"public class {parameters.uiViewContextTypeName} : I{parameters.uiViewContextTypeName}
+            implementationDeclaration = SyntaxFactory.ParseSyntaxTree($@"public class {parameters.uiViewContextTypeName} : I{parameters.uiViewContextTypeName}
 {{
     {uiContextDefinition.members
         .Select(member => $"public {member.type} {member.name} => {member.type}.instance;")
         .AggregateStrings("\r\n")}
 }}
-").GetRoot();
+").GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>().First();
 
             return true;
         }

@@ -51,6 +51,9 @@ namespace UnityEngine.Rendering.UIGen
 
             try
             {
+                Directory.CreateDirectory(Path.GetDirectoryName(uxmlPath));
+                Directory.CreateDirectory(Path.GetDirectoryName(runtimeCodePath));
+
                 File.WriteAllText(uxmlPath, m_Uxml.OuterXml);
                 File.WriteAllText(runtimeCodePath, m_RuntimeCode.ToString());
             }
