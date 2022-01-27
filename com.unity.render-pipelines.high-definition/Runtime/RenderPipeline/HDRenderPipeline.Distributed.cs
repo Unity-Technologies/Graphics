@@ -181,16 +181,14 @@ namespace UnityEngine.Rendering.HighDefinition
                             using (new ProfilingScope(context.cmd, new ProfilingSampler($"Load Data {i}")))
                             {
                                 Datagram datagram = null;
-                                int dataLen = -1;
 #if SYNC
                                 while (frameData == null)
 #endif
-                                dataLen = SocketServer.Instance.ReceiveWithFrameID(i,
-                                    Datagram.DatagramType.VideoFrame, CurrentFrameID, out datagram);
+                                datagram = SocketServer.Instance.ReceiveReadyFrame(i);
                                 if (datagram == null)
                                     continue;
                                 context.cmd.SetComputeBufferData(data.receivedYUVDataBuffer, datagram.data,
-                                    0, 0, dataLen);
+                                    0, 0, datagram.length);
                                 SocketServer.Instance.AddReceiveRingBuffer(i, Datagram.DatagramType.VideoFrame,
                                     in datagram);
                             }
