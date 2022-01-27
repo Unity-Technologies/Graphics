@@ -97,6 +97,14 @@
 #define SPHERICAL_HARMONIC_COSINE_CONVOLVE_CONSTANT_7 (PI / 4.0)
 #define SPHERICAL_HARMONIC_COSINE_CONVOLVE_CONSTANT_8 (PI / 4.0)
 
+#define SPHERICAL_HARMONIC_DELTA_FUNCTION_L0 (1.0 / (2.0 * sqrt(PI)))
+#define SPHERICAL_HARMONIC_DELTA_FUNCTION_L1 (sqrt(3.0) / (2.0 * sqrt(PI)))
+#define SPHERICAL_HARMONIC_DELTA_FUNCTION_L2 (2.0 * sqrt(5.0) / (4.0 * sqrt(PI)))
+
+#define SPHERICAL_HARMONIC_DELTA_FUNCTION_INVERSE_L0 (2.0 * sqrt(PI))
+#define SPHERICAL_HARMONIC_DELTA_FUNCTION_INVERSE_L1 ((2.0 * sqrt(PI)) / sqrt(3.0))
+#define SPHERICAL_HARMONIC_DELTA_FUNCTION_INVERSE_L2 ((4.0 * sqrt(PI)) / (2.0 * sqrt(5.0)))
+
 // Identical to what the lightmapper invokes while accumulating SH terms from samples on the GPU.
 float SHEvaluateDirectionFromCoefficientIndex(float3 v, int coefficientIndex)
 {
@@ -903,7 +911,41 @@ SHIncomingIrradiance SHIncomingIrradianceComputeFromSHWindowAndRadiance(SHWindow
     return shIncomingIrradiance;
 }
 
-void SHIncomingIrradianceConvolveZHWindow(inout SHIncomingIrradiance shIncomingIrradiance, ZHWindow zhWindow, float3 zhDirection)
+void SHIncomingIrradianceConvolveZHWindow(inout SHIncomingIrradiance shIncomingIrradiance, ZHWindow zhWindow)
+{
+    shIncomingIrradiance.data[0] *= zhWindow.data[0];
+
+    shIncomingIrradiance.data[1] *= zhWindow.data[1];
+    shIncomingIrradiance.data[2] *= zhWindow.data[1];
+    shIncomingIrradiance.data[3] *= zhWindow.data[1];
+
+    shIncomingIrradiance.data[4] *= zhWindow.data[2];
+    shIncomingIrradiance.data[5] *= zhWindow.data[2];
+    shIncomingIrradiance.data[6] *= zhWindow.data[2];
+    shIncomingIrradiance.data[7] *= zhWindow.data[2];
+    shIncomingIrradiance.data[8] *= zhWindow.data[2];
+}
+
+void SHIncomingIrradianceConvolveZHWindowWithoutDeltaFunction(inout SHIncomingIrradiance shIncomingIrradiance, ZHWindow zhWindow)
+{
+    zhWindow.data[0] *= SPHERICAL_HARMONIC_DELTA_FUNCTION_INVERSE_L0;
+    zhWindow.data[1] *= SPHERICAL_HARMONIC_DELTA_FUNCTION_INVERSE_L1;
+    zhWindow.data[2] *= SPHERICAL_HARMONIC_DELTA_FUNCTION_INVERSE_L2;
+
+    shIncomingIrradiance.data[0] *= zhWindow.data[0];
+
+    shIncomingIrradiance.data[1] *= zhWindow.data[1];
+    shIncomingIrradiance.data[2] *= zhWindow.data[1];
+    shIncomingIrradiance.data[3] *= zhWindow.data[1];
+
+    shIncomingIrradiance.data[4] *= zhWindow.data[2];
+    shIncomingIrradiance.data[5] *= zhWindow.data[2];
+    shIncomingIrradiance.data[6] *= zhWindow.data[2];
+    shIncomingIrradiance.data[7] *= zhWindow.data[2];
+    shIncomingIrradiance.data[8] *= zhWindow.data[2];
+}
+
+void SHIncomingIrradianceConvolveDirectionalZHWindow(inout SHIncomingIrradiance shIncomingIrradiance, ZHWindow zhWindow, float3 zhDirection)
 {
     SHWindow shWindow = SHWindowComputeFromZHWindow(zhWindow, zhDirection);
 
@@ -1012,5 +1054,28 @@ void DecodeSH_L2(float3 l0, inout float4 l2_R, inout float4 l2_G, inout float4 l
     l2_C.b *= l0.b;
 }
 
+float ComputeZHNewWindowCoefficient(float g, float l)
+{
+    if (g < 1e-5) { return 1.0; }
+    float p = 1.0 + (0.8 - 1.0) * pow(g / 0.18, 4.0);
 
+    float w = 1.0 / max(1e-5, g);
+    
+    float numerator = sin(PI * pow(l, p) / (pow(2.0, p - 1.0) * w));
+    float denominator = PI * pow(l, p) / (pow(2.0, p - 1.0) * w);
+
+    return pow(numerator / denominator, 4.0);
+}
+
+float3 ComputeWindowFromManualDeringIntensity(float x)
+{
+    // New window function from:
+    // Mentioned in ghost of tsushima
+    // https://www.desmos.com/calculator/bopiih3uka
+    return float3(
+        ComputeZHNewWindowCoefficient(x * 0.18, 1.0),
+        ComputeZHNewWindowCoefficient(x * 0.18, 2.0),
+        ComputeZHNewWindowCoefficient(x * 0.18, 3.0)
+    );
+}
 #endif

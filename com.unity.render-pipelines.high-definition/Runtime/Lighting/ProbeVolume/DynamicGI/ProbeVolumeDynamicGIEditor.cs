@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void DebugDrawNeighborhood(ProbeVolumeHandle probeVolume, Camera camera)
         {
-            if (probeVolume.HasNeighbors()
+            if (probeVolume.HitNeighborAxisLength != 0
                 && probeVolume.GetProbeVolumeEngineDataIndex() >= 0)
             {
                 var material = GetDebugNeighborMaterial();
