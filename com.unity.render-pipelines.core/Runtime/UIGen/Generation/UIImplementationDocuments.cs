@@ -22,29 +22,13 @@ namespace UnityEngine.Rendering.UIGen
         }
     }
 
-    public static class BindableViewExtensions
+    public static partial class UIImplementationDocumentsExtensions
     {
-        public struct DiskLocation
-        {
-            string assetLocation;
-            string runtimeCodeLocation;
-            string editorCodeLocation;
-
-            public bool GetEditorPath(
-                [DisallowNull] string relativePath,
-                [NotNullWhen(true)] out string path,
-                [NotNullWhen(false)] out Exception error
-            )
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         // Consider async API?
         [MustUseReturnValue]
         public static bool WriteToDisk(
             [DisallowNull] this UIImplementationDocuments view,
-            DiskLocation location,
+            GenerationTarget location,
             [NotNullWhen(false)] out Exception error
         )
         {

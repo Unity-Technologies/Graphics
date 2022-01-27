@@ -150,33 +150,17 @@ namespace UnityEngine.Rendering.UIGen
             doc.DocumentElement.AppendChild(element);
 
             //debug purpose only
-            using (var tmp = new MemoryStream(1000))
-            {
-                doc.Save(tmp);
-                tmp.Position = 0;
-                using (var reader = new StreamReader(tmp))
-                {
-                    Debug.Log(reader.ReadToEnd());
-                }
-            }
+            Debug.Log(doc.OuterXml);
             //end debug
 
 
             if (!UIImplementationIntermediateDocuments.From(element, out var document, out error))
                 return false;
 
-            document.bindContextBody.AddStatements(SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression("int toto = 0;")));
+            document.bindContextBody = document.bindContextBody.AddStatements(SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression("int toto = 0;")));
 
             //debug purpose only
-            using (StreamWriter writer = File.CreateText("debug.txt"))
-            {
-                document.bindContextBody.WriteTo(writer);
-            }
-            using (StreamReader reader = File.OpenText("debug.txt"))
-            {
-                Debug.Log(reader.ReadToEnd());
-            }
-            File.Delete("debug.txt");
+            Debug.Log(document.bindContextBody.ToString());
             //end debug
 
             return true;
