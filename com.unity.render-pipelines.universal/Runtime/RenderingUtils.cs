@@ -168,6 +168,34 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal static void CoreBlit(CommandBuffer cmd,
+            RTHandle source,
+            RTHandle destination,
+            Material material,
+            int passIndex = 0,
+            bool useDrawProcedural = false,
+            RenderBufferLoadAction colorLoadAction = RenderBufferLoadAction.Load,
+            RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store,
+            RenderBufferLoadAction depthLoadAction = RenderBufferLoadAction.Load,
+            RenderBufferStoreAction depthStoreAction = RenderBufferStoreAction.Store)
+        {
+            // TODO: Blitter doesn't yet support load store
+            // Blitter.BlitCameraTexture(cmd, source, destination, material, passIndex);
+            cmd.SetGlobalTexture(Shader.PropertyToID("_BlitTexture"), source);
+            if (useDrawProcedural)
+            {
+                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
+                cmd.SetGlobalVector(Shader.PropertyToID("_BlitScaleBias"), scaleBias);
+                CoreUtils.SetRenderTarget(cmd, destination, colorLoadAction, colorStoreAction, ClearFlag.None, Color.clear);
+                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Triangles, 3, 1, null);
+            }
+            else
+            {
+                CoreUtils.SetRenderTarget(cmd, destination, colorLoadAction, colorStoreAction, ClearFlag.None, Color.clear);
+                cmd.Blit(source.nameID, BuiltinRenderTextureType.CurrentActive, material, passIndex);
+            }
+        }
+
         // This is used to render materials that contain built-in shader passes not compatible with URP.
         // It will render those legacy passes with error/pink shader.
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]

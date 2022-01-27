@@ -127,6 +127,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Materials used in URP Scriptable Render Passes
         Material m_BlitMaterial = null;
+        Material m_CoreBlitMaterial = null;
         Material m_CopyDepthMaterial = null;
         Material m_SamplingMaterial = null;
         Material m_StencilDeferredMaterial = null;
@@ -150,6 +151,7 @@ namespace UnityEngine.Rendering.Universal
             Blitter.Initialize(data.shaders.coreBlitPS, data.shaders.coreBlitColorAndDepthPS);
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
+            m_CoreBlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.coreBlitPS);
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
             m_StencilDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.stencilDeferredPS);
@@ -328,6 +330,7 @@ namespace UnityEngine.Rendering.Universal
             m_MotionVectorDepth?.Release();
 
             CoreUtils.Destroy(m_BlitMaterial);
+            CoreUtils.Destroy(m_CoreBlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
             CoreUtils.Destroy(m_StencilDeferredMaterial);
