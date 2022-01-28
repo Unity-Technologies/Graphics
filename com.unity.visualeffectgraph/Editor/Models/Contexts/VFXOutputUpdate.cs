@@ -235,6 +235,14 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override IEnumerable<VFXMapping> additionalMappings
+        {
+            get
+            {
+                yield return new VFXMapping("perOutputUpdate", 1);
+            }
+        }
+
         public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
         {
             get

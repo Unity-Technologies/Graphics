@@ -938,6 +938,10 @@ namespace UnityEditor.VFX
                 ref systemBufferMappings,
                 ref outBufferDescs);
 
+            bool hasAnyRaytraced = outputsSharingAABB.Any() || outputsOwningAABB.Any();
+            if (hasAnyRaytraced)
+                systemFlag |= VFXSystemFlag.SystemIsRayTraced;
+
 
             var taskDescs = new List<VFXEditorTaskDesc>();
             var bufferMappings = new List<VFXMapping>();
