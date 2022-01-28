@@ -659,6 +659,12 @@ namespace UnityEngine.Rendering.Universal
                     setViewProjectionMatrices = false;
 #endif
 
+                bool isRenderToBackBufferTarget = (m_Destination.nameID == BuiltinRenderTextureType.CameraTarget && !m_UseSwapBuffer) || (m_ResolveToScreen && m_UseSwapBuffer);
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                    isRenderToBackBufferTarget = cameraTargetHandle == cameraData.xr.renderTarget;
+#endif
+
                 if (setViewProjectionMatrices)
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
@@ -666,7 +672,6 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
                 {
-                    bool isRenderToBackBufferTarget = cameraTargetHandle == cameraData.xr.renderTarget;
                     if (isRenderToBackBufferTarget)
                         cmd.SetViewport(cameraData.pixelRect);
                     // We y-flip if
@@ -682,7 +687,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     cameraData.renderer.ConfigureCameraTarget(cameraTargetHandle, cameraTargetHandle);
 
-                    if ((m_Destination.nameID == BuiltinRenderTextureType.CameraTarget && !m_UseSwapBuffer) || (m_ResolveToScreen && m_UseSwapBuffer))
+                    if (isRenderToBackBufferTarget)
                         cmd.SetViewport(cameraData.pixelRect);
 
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
@@ -1620,6 +1625,12 @@ namespace UnityEngine.Rendering.Universal
                 setViewProjectionMatrices = false;
 #endif
 
+            bool isRenderToBackBufferTarget = true;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+                isRenderToBackBufferTarget = m_CameraTargetHandle == cameraData.xr.renderTarget;
+#endif
+
             if (setViewProjectionMatrices)
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
@@ -1627,8 +1638,6 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
-                //Blit(cmd, m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
-                bool isRenderToBackBufferTarget = m_CameraTargetHandle == cameraData.xr.renderTarget;
                 // We y-flip if
                 // 1) we are bliting from render texture to back buffer and
                 // 2) renderTexture starts UV at top
@@ -1636,14 +1645,16 @@ namespace UnityEngine.Rendering.Universal
 
                 Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
 
-                cmd.SetViewport(cameraData.pixelRect);
+                if (isRenderToBackBufferTarget)
+                    cmd.SetViewport(cameraData.pixelRect);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
                 cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Quads, 4, 1, null);
             }
             else
 #endif
             {
-                cmd.SetViewport(cameraData.pixelRect);
+                if (isRenderToBackBufferTarget)
+                    cmd.SetViewport(cameraData.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
                 cameraData.renderer.ConfigureCameraTarget(m_CameraTargetHandle, m_CameraTargetHandle);
             }
