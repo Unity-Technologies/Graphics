@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.UIGen
     }
 
     public struct Label {}
- 
+
     public class SampleDebugDataSet1
     {
         public static class UI

@@ -297,8 +297,6 @@ namespace UnityEditor.Rendering.UIGen
                         if (!featureParser.Parse(info, categorizedProperty.property, out errorWalk))
                             return false;
                     }
-
-                    return true;
                 }
 
                 // Find non-leaves types and recurse
