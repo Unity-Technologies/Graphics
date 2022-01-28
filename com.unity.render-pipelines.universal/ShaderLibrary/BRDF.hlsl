@@ -187,7 +187,7 @@ half DirectBRDFSpecular(BRDFData brdfData, half3 normalWS, half3 lightDirectionW
     float3 halfDir = SafeNormalize(lightDirectionWSFloat3 + float3(viewDirectionWS));
 
     float NoH = saturate(dot(float3(normalWS), halfDir));
-    float LoH = float(saturate(dot(lightDirectionWSFloat3, halfDir)));
+    half LoH = half(saturate(dot(lightDirectionWSFloat3, halfDir)));
 
     // GGX Distribution multiplied by combined approximation of Visibility and Fresnel
     // BRDFspec = (D * V * F) / 4.0
@@ -200,18 +200,18 @@ half DirectBRDFSpecular(BRDFData brdfData, half3 normalWS, half3 lightDirectionW
     // We further optimize a few light invariant terms
     // brdfData.normalizationTerm = (roughness + 0.5) * 4.0 rewritten as roughness * 4.0 + 2.0 to a fit a MAD.
     float d = NoH * NoH * brdfData.roughness2MinusOne + 1.00001f;
-    float d2 = float(d * d);
+    half d2 = half(d * d);
 
-    float LoH2 = LoH * LoH;
-    float specularTerm = brdfData.roughness2 / (d2 * max(half(0.1), LoH2) * brdfData.normalizationTerm);
+    half LoH2 = LoH * LoH;
+    half specularTerm = brdfData.roughness2 / (d2 * max(half(0.1), LoH2) * brdfData.normalizationTerm);
 
     // On platforms where half actually means something, the denominator has a risk of overflow
     // clamp below was added specifically to "fix" that, but dx compiler (we convert bytecode to metal/gles)
     // sees that specularTerm have only non-negative terms, so it skips max(0,..) in clamp (leaving only min(100,...))
-/*#if REAL_IS_HALF
+#if REAL_IS_HALF
     specularTerm = specularTerm - HALF_MIN;
     specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
-#endif*/
+#endif
 
     return specularTerm;
 }
