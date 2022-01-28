@@ -1,5 +1,7 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using JetBrains.Annotations;
 
 namespace UnityEngine.Rendering.UIGen
 {
@@ -29,7 +31,10 @@ namespace UnityEngine.Rendering.UIGen
         public Min(T value)
             => this.value = value;
 
-        public bool Mutate(UIDefinition.Property property, ref UIImplementationIntermediateDocuments result, out Exception error)
+         [MustUseReturnValue]
+         public bool Mutate([DisallowNull] UIDefinition.Property property,
+            [DisallowNull] ref UIImplementationIntermediateDocuments result,
+            [NotNullWhen(false)] out Exception error)
         {
             throw new NotImplementedException();
         }

@@ -29,6 +29,7 @@ namespace UnityEngine.Rendering.UIGen
         [DebugMenuProperty("Category A")]
         public void Button() { }
 
+        [Min(10)]
         [DebugMenuProperty("Category A")]
         public float dataSet1FloatValue;
         [DebugMenuProperty("Category B")]
