@@ -375,10 +375,22 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
     }
 
+    /// <summary>
+    /// Settings used for Post Processing.
+    /// </summary>
     public struct PostProcessingData
     {
+        /// <summary>
+        /// The <c>ColorGradingMode</c> to use.
+        /// </summary>
+        /// <seealso cref="ColorGradingMode"/>
         public ColorGradingMode gradingMode;
+
+        /// <summary>
+        /// The size of the Look Up Table (LUT)
+        /// </summary>
         public int lutSize;
+
         /// <summary>
         /// True if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
         /// </summary>

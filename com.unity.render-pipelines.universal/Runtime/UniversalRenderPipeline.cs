@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderPipeline : RenderPipeline
     {
-        public const string k_ShaderTagName = "UniversalPipeline";
+        internal const string k_ShaderTagName = "UniversalPipeline";
 
         private static class Profiling
         {
@@ -93,22 +93,33 @@ namespace UnityEngine.Rendering.Universal
             get => 10.0f;
         }
 
+        /// <summary>
+        /// The minimum value allowed for render scale.
+        /// </summary>
         public static float minRenderScale
         {
             get => 0.1f;
         }
 
+        /// <summary>
+        /// The maximum value allowed for render scale.
+        /// </summary>
         public static float maxRenderScale
         {
             get => 2.0f;
         }
 
+        /// <summary>
+        /// The max number of iterations allowed calculating enclosing sphere.
+        /// </summary>
         public static int maxNumIterationsEnclosingSphere
         {
             get => 1000;
         }
 
-        // Amount of Lights that can be shaded per object (in the for loop in the shader)
+        /// <summary>
+        /// The max number of lights that can be shaded per object (in the for loop in the shader).
+        /// </summary>
         public static int maxPerObjectLights
         {
             // No support to bitfield mask and int[] in gles2. Can't index fast more than 4 lights.
@@ -120,6 +131,10 @@ namespace UnityEngine.Rendering.Universal
         internal const int k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45 = 16;
         internal const int k_MaxVisibleAdditionalLightsMobile = 32;
         internal const int k_MaxVisibleAdditionalLightsNonMobile = 256;
+
+        /// <summary>
+        /// The max number of additional lights that can can affect each GameObject.
+        /// </summary>
         public static int maxVisibleAdditionalLights
         {
             get
@@ -148,6 +163,11 @@ namespace UnityEngine.Rendering.Universal
         // flag to keep track of depth buffer requirements by any of the cameras in the stack
         internal static bool cameraStackRequiresDepthForPostprocessing = false;
 
+        /// <summary>
+        /// Creates a new <c>UniversalRenderPipeline</c> instance.
+        /// </summary>
+        /// <param name="asset">The <c>UniversalRenderPipelineAsset</c> asset to initialize the pipeline.</param>
+        /// <seealso cref="RenderPassEvent"/>
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
 #if UNITY_EDITOR
@@ -193,6 +213,7 @@ namespace UnityEngine.Rendering.Universal
             m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             m_DebugDisplaySettingsUI.UnregisterDebug();
@@ -215,6 +236,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_2021_1_OR_NEWER
+        /// <inheritdoc/>
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             Render(renderContext, new List<Camera>(cameras));
@@ -223,8 +245,10 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
 #if UNITY_2021_1_OR_NEWER
+        /// <inheritdoc/>
         protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
 #else
+        /// <inheritdoc/>
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
 #endif
         {
