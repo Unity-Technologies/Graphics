@@ -526,7 +526,7 @@ namespace UnityEngine.Rendering.Universal
 
                         if (data == null || data.renderType != CameraRenderType.Overlay)
                         {
-                            Debug.LogWarning($"Stack can only contain Overlay cameras. {currCameraName} " +
+                            Debug.LogWarning($"Stack can only contain Overlay cameras. The camera: {currCameraName} " +
                                              $"has a type {data.renderType} that is not supported. Will skip rendering.");
                             continue;
                         }
