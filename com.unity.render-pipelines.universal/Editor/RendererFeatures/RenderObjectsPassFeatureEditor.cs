@@ -15,6 +15,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         {
             public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
             public static GUIContent callback = new GUIContent("Event", "Choose at which point this render pass is executed in the frame.");
+            public static GUIContent cameraTypeMask = new GUIContent("Camera Type Mask", "Only run the feature for cameras that match the given layer mask.");
 
             //Headers
             public static GUIContent filtersHeader = new GUIContent("Filters", "Settings that control which objects should be rendered.");
@@ -51,6 +52,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         // Serialized Properties
         private SerializedProperty m_Callback;
+        private SerializedProperty m_CameraTypeMask;
         private SerializedProperty m_PassTag;
         //Filter props
         private SerializedProperty m_FilterSettings;
@@ -99,6 +101,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
 
             m_Callback = property.FindPropertyRelative("Event");
+            m_CameraTypeMask = property.FindPropertyRelative("cameraTypeMask");
             m_PassTag = property.FindPropertyRelative("passTag");
 
             //Filter props
@@ -152,6 +155,10 @@ namespace UnityEditor.Experimental.Rendering.Universal
             int selectedValue = EditorGUI.IntPopup(rect, Styles.callback, m_Callback.intValue, m_EventOptionNames, m_EventOptionValues);
             if (EditorGUI.EndChangeCheck())
                 m_Callback.intValue = selectedValue;
+            rect.y += Styles.defaultLineSpace;
+
+            // Camera type mask
+            EditorGUI.PropertyField(rect, m_CameraTypeMask, Styles.cameraTypeMask);
             rect.y += Styles.defaultLineSpace;
 
             DoFilters(ref rect);

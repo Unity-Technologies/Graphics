@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 
@@ -20,6 +20,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             public string passTag = "RenderObjectsFeature";
             public RenderPassEvent Event = RenderPassEvent.AfterRenderingOpaques;
+            public CameraTypeMask cameraTypeMask = CameraTypeMaskUtility.allTypes;
 
             public FilterSettings filterSettings = new FilterSettings();
 
@@ -77,6 +78,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             renderObjectsPass = new RenderObjectsPass(settings.passTag, settings.Event, filter.PassNames,
                 filter.RenderQueueType, filter.LayerMask, settings.cameraSettings);
+
+            renderObjectsPass.cameraTypeMask = settings.cameraTypeMask;
 
             renderObjectsPass.overrideMaterial = settings.overrideMaterial;
             renderObjectsPass.overrideMaterialPassIndex = settings.overrideMaterialPassIndex;

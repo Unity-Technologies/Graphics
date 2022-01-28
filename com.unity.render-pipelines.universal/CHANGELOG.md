@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
 - Added batch mode support for the converters.
+- Depth Texture setting for Overlay Camera.
+- Render Objects now has an option to only run on certain camera types using a camera type mask.
 
 ### Changed
 - Re-added the menu button to be able to convert selected materials.

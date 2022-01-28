@@ -21,6 +21,7 @@ See also: [How to use the Render Objects Renderer Feature](renderer-features/how
 | **Filters** | Settings that let you configure which objects this Renderer Feature renders. |
 | Queue | Select whether the feature renders opaque or transparent objects. |
 | Layer Mask | The Renderer Feature renders objects from layers you select in this property. |
+| Camera Type Mask | Choose for which types of cameras the feature should run. |
 | **Pass Names** | If a Pass in a shader has the `LightMode` Pass Tag, this Renderer Feature processes only the shaders where the value of the `LightMode` Pass Tag equals one of the values in the Pass Names property. |
 | **Overrides** | Settings in this section let you configure overrides for certain properties when rendering with this Renderer Feature. |
 | Material | When rendering an object, Unity replaces the Material assigned to it with this Material. |
