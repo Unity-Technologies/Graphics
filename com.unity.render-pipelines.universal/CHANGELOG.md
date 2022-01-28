@@ -9,11 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
 - Added batch mode support for the converters.
+- Added Downscale and Max Iterations options for Bloom
 
 ### Changed
 - Re-added the menu button to be able to convert selected materials.
 - Reverted intermediate texture behavior.
 - Shader Variant Log Level moved from the URP Asset to URP Global Settings.
+- Removed skipIterations from Bloom settings. It has now been replaced with maxIterations.
 
 ### Fixed
 - Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]
