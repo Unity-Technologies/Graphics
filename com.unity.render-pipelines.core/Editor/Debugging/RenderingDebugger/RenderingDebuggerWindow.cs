@@ -98,6 +98,8 @@ namespace UnityEditor.Rendering
         private void OnReset()
         {
             this.rootVisualElement.Clear();
+            RenderingDebuggerState.instance.OnReset -= OnReset;
+            RenderingDebuggerState.instance.OnSelectedPanelChanged -= OnSelectedPanelChanged;
             CreateGUI();
         }
     }

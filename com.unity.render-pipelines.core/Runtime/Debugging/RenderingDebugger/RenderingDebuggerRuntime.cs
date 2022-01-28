@@ -21,7 +21,10 @@ namespace UnityEngine.Rendering
             var runtimeRenderingDebugger = FindObjectOfType<RenderingDebuggerRuntime>();
             if (runtimeRenderingDebugger != null)
             {
-                DestroyImmediate(runtimeRenderingDebugger.gameObject);
+                runtimeRenderingDebugger.GetComponent<UIDocument>().rootVisualElement.Clear();
+                RenderingDebuggerState.instance.OnSelectedPanelChanged -= runtimeRenderingDebugger.OnSelectedPanelChanged;
+                RenderingDebuggerState.instance.OnReset -= runtimeRenderingDebugger.OnReset;
+                CoreUtils.Destroy(runtimeRenderingDebugger.gameObject);
             }
 
             if (!Application.isPlaying)
@@ -91,7 +94,6 @@ namespace UnityEngine.Rendering
             }
 
             var firstFieldElement = currentTabContent.Q(className: "unity-base-field");
-            Debug.Log($"Focusing on {firstFieldElement?.name ?? "(null)"}");
             firstFieldElement?.Focus();
         }
 
