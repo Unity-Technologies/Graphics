@@ -173,7 +173,8 @@ namespace UnityEngine.Rendering.Universal
             albedoMaxLuminance = presetData.maxLuminance;
             albedoCompareColor = presetData.color;
 
-            SetElementHidden(nameof(albedoCompareColor), DebugDisplaySettingsMaterial.AlbedoDebugValidationPreset.Custom != newEnum);
+            // TODO not supported on runtime
+            //SetElementHidden(nameof(albedoCompareColor), DebugDisplaySettingsMaterial.AlbedoDebugValidationPreset.Custom != newEnum);
 
             bool isDefaultLuminance = DebugDisplaySettingsMaterial.AlbedoDebugValidationPreset.DefaultLuminance == newEnum;
             if (isDefaultLuminance)
