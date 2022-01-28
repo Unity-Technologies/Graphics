@@ -53,7 +53,7 @@
         },
         {
             "name": "com.unity.sensorsdk",
-            "expression": "1.0.0",
+            "expression": "2.0.0",
             "define": "ENABLE_SENSOR_SDK"
         }
     ],
