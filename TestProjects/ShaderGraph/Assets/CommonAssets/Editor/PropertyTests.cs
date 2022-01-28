@@ -107,15 +107,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 shaderInput.SetReferenceNameAndSanitizeForGraph(m_Graph, modifiedReferenceName);
 
                 Assert.IsTrue(shaderInput.referenceName != originalReferenceName);
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown);
-
-                // Needed so that the inspector gets triggered and the callbacks and triggers are initialized
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown);
-
-                // Wait a frame for the inspector updates to trigger
-                yield return null;
-
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp);
+                m_GraphEditorView.graphView.ClearSelection();
+                m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
 
                 // Wait a frame for the inspector updates to trigger
                 yield return null;
