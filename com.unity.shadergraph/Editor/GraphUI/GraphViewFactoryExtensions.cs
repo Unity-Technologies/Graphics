@@ -4,7 +4,7 @@ using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
 
-namespace UnityEditor.ShaderGraph.GraphUI.Factory
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     [GraphElementsExtensionMethodsCache(typeof(GraphView))]
     public static class ShaderGraphViewFactoryExtensions
