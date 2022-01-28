@@ -669,13 +669,15 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
                 CoreUtils.SetRenderTarget(cmd, cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
+
+                if (isRenderToBackBufferTarget)
+                    cmd.SetViewport(cameraData.pixelRect);
+
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
                 {
-                    if (isRenderToBackBufferTarget)
-                        cmd.SetViewport(cameraData.pixelRect);
                     // We y-flip if
-                    // 1) we are bliting from render texture to back buffer and
+                    // 1) we are blitting from render texture to back buffer and
                     // 2) renderTexture starts UV at top
                     bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
                     Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
@@ -686,10 +688,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
                 {
                     cameraData.renderer.ConfigureCameraTarget(cameraTargetHandle, cameraTargetHandle);
-
-                    if (isRenderToBackBufferTarget)
-                        cmd.SetViewport(cameraData.pixelRect);
-
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
                 }
 
@@ -1635,26 +1633,24 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
             CoreUtils.SetRenderTarget(cmd, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
+
+            if (isRenderToBackBufferTarget)
+                cmd.SetViewport(cameraData.pixelRect);
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
                 // We y-flip if
-                // 1) we are bliting from render texture to back buffer and
+                // 1) we are blitting from render texture to back buffer and
                 // 2) renderTexture starts UV at top
                 bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
-
                 Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
-
-                if (isRenderToBackBufferTarget)
-                    cmd.SetViewport(cameraData.pixelRect);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
                 cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Quads, 4, 1, null);
             }
             else
 #endif
             {
-                if (isRenderToBackBufferTarget)
-                    cmd.SetViewport(cameraData.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
                 cameraData.renderer.ConfigureCameraTarget(m_CameraTargetHandle, m_CameraTargetHandle);
             }
