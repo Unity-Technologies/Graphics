@@ -252,6 +252,8 @@ namespace UnityEditor.VFX
         {
             if (string.IsNullOrEmpty(filePath))
                 return false;
+            if (!System.IO.File.Exists(filePath))
+                return false;
             return filePath.EndsWith(VisualEffectResource.Extension, StringComparison.InvariantCultureIgnoreCase)
                 || filePath.EndsWith(VisualEffectSubgraphBlock.Extension, StringComparison.InvariantCultureIgnoreCase)
                 || filePath.EndsWith(VisualEffectSubgraphOperator.Extension, StringComparison.InvariantCultureIgnoreCase);
