@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.UIGen
             documents = default;
             error = default;
 
-            var element = XElement.Parse(@$"<FloatField value=""42"" binding-path=""{property.propertyPath}""/>");
+            var element = XElement.Parse(@$"<FloatField value=""42""/>");
             // Add namespace
             element.Name = UxmlConstants.ui + element.Name.LocalName;
 
