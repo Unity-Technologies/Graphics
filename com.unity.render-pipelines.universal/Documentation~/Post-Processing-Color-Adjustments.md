@@ -2,6 +2,12 @@
 
 Use this effect to tweak the overall tone, brightness, and contrast of the final rendered image.
 
+![Chromatic Aberration Off](Images/post-proc/color-adjustments-off.png)
+<br/>_Scene without Color Adjustments effect._
+
+![Chromatic Aberration On](Images/post-proc/color-adjustments.png)
+<br/>_Scene with Color Adjustments effect._
+
 ## Using Color Adjustments
 
 **Color Adjustments** uses the [Volume](Volumes.md) framework, so to enable and modify **Color Adjustments** properties, you must add a **Color Adjustments** override to a [Volume](Volumes.md) in your Scene. To add **Color Adjustments** to a Volume:

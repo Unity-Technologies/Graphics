@@ -61,6 +61,8 @@
 #define MAX_SKYBOX_VOLUMETRIC_CLOUDS_DISTANCE 200000.0f
 // Maximal size of a light step
 #define LIGHT_STEP_MAXIMAL_SIZE 1000.0f
+// Threshold at which the clouds are considered inexistant (Found experimentally)
+#define TRANSMITTANCE_DISCARD_THRESHOLD 0.992
 
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -1383,6 +1385,9 @@ void UPSAMPLE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     currentClouds.xyz = unapplyFastTonemapping(currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
 
+    // Due to numerical precision issues, upscaling a bunch of 1.0 can lead to a slightly lower number, this fixes it.
+    currentClouds.w = currentClouds.w > TRANSMITTANCE_DISCARD_THRESHOLD ? 1.0 : currentClouds.w;
+
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
     float cloudDepth = GetCloudDepth_LDS(groupThreadId, IndexToLocalOffsetCoords[closestNeighbor]);
 #else
@@ -1460,6 +1465,9 @@ void UPSAMPLE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID,
     currentClouds.xyz = unapplyFastTonemapping(currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
 
+    // Due to numerical precision issues, upscaling a bunch of 1.0 can lead to a slightly lower number, this fixes it.
+    currentClouds.w = currentClouds.w > TRANSMITTANCE_DISCARD_THRESHOLD ? 1.0 : currentClouds.w;
+
     // Store the upscaled result only, composite in later pass.
     _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
 }
@@ -1490,6 +1498,9 @@ void COMBINE_KERNEL(uint3 finalCoord : SV_DispatchThreadID,
     // De-tonemap the inscattering value
     currentClouds.xyz = unapplyFastTonemapping(currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
+
+    // Due to numerical precision issues, upscaling a bunch of 1.0 can lead to a slightly lower number, this fixes it.
+    currentClouds.w = currentClouds.w > TRANSMITTANCE_DISCARD_THRESHOLD ? 1.0 : currentClouds.w;
 
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
     float cloudsDepth = LOAD_TEXTURE2D_X(_DepthStatusTexture, finalCoord.xy).z;
@@ -1546,6 +1557,9 @@ void COMBINE_KERNEL_SKY(uint3 finalCoord : SV_DispatchThreadID)
     currentClouds.xyz = unapplyFastTonemapping(currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
 
+    // Due to numerical precision issues, upscaling a bunch of 1.0 can lead to a slightly lower number, this fixes it.
+    currentClouds.w = currentClouds.w > TRANSMITTANCE_DISCARD_THRESHOLD ? 1.0 : currentClouds.w;
+
     // Store the upscaled result only, composite in later pass.
     _VolumetricCloudsUpscaleTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)] = currentClouds;
 }
@@ -1573,7 +1587,7 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
 
     // Compute the position of the shadow plane
 #ifdef LOCAL_VOLUMETRIC_CLOUDS
-    float3 shadowCookieCenterWS = float3(_WorldSpaceShadowCenter.x, _ShadowPlaneOffset, _WorldSpaceShadowCenter.y) + t * _SunDirection.xyz;
+    float3 shadowCookieCenterWS = float3(_WorldSpaceShadowCenter.x, _ShadowPlaneOffset, _WorldSpaceShadowCenter.z) + t * _SunDirection.xyz;
 #else
     float3 shadowCookieCenterWS = t * _SunDirection.xyz;
 #endif
@@ -1612,6 +1626,10 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
             // Compute the cloud density
             CloudProperties cloudProperties;
             EvaluateCloudProperties(positionWS, 0.0, 0.0, true, true, cloudProperties);
+
+            // Apply the camera fade it to match the clouds perceived by the camera
+            cloudProperties.density = DensityFadeIn(cloudProperties.density, length(positionWS - _WorldSpaceShadowCenter.xyz));
+
             if (cloudProperties.density > CLOUD_DENSITY_TRESHOLD)
             {
                 // Apply the extinction

@@ -35,6 +35,11 @@
             "name": "com.unity.modules.nvidia",
             "expression": "1.0.0",
             "define": "ENABLE_NVIDIA_MODULE"
+        },
+        {
+            "name": "com.unity.sensorsdk",
+            "expression": "2.0.0",
+            "define": "ENABLE_SENSOR_SDK"
         }
     ]
 }

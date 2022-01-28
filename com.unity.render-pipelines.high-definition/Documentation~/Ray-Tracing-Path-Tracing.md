@@ -33,12 +33,13 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 ## Properties
 
-| Property              | Description                                                  |
-| --------------------- | ------------------------------------------------------------ |
-| **Maximum Samples**   | Set the number of frames to accumulate for the final image. There is a progress bar at the bottom of the Scene view which indicates the current accumulation with respect to this value. |
-| **Minimum Depth**     | Set the minimum number of light bounces in each path.        |
-| **Maximum Depth**     | Set the maximum number of light bounces in each path. You can not set this to be lower than Minimum Depth.<br /> **Note**: You can set this and Minimum Depth to 1 if you only want to direct lighting. You can set them both to 2 if you only want to visualize indirect lighting (which is only visible on the second bounce). |
-| **Maximum Intensity** | Set a value to clamp the intensity of the light value each bounce returns. This avoids very bright, isolated pixels in the final result.<br />**Note**: This property makes the final image dimmer, so if the result looks dark, increase the value of this property. |
+| Property                    | Description                                                  |
+| --------------------------- | ------------------------------------------------------------ |
+| **Maximum Samples**         | Set the number of frames to accumulate for the final image. There is a progress bar at the bottom of the Scene view which indicates the current accumulation with respect to this value. |
+| **Minimum Depth**           | Set the minimum number of light bounces in each path.        |
+| **Maximum Depth**           | Set the maximum number of light bounces in each path. You can not set this to be lower than Minimum Depth.<br /> **Note**: You can set this and Minimum Depth to 1 if you only want to direct lighting. You can set them both to 2 if you only want to visualize indirect lighting (which is only visible on the second bounce). |
+| **Maximum Intensity**       | Set a value to clamp the intensity of the light value each bounce returns. This avoids very bright, isolated pixels in the final result.<br />**Note**: This property can make the final image dimmer, so if the result looks dark, increase the value of this property. |
+| **Sky Importance Sampling** | Set the sky sampling mode. Importance sampling favors the brightest directions, which is beneficial when using a sky model with high contrast and very intense spots (like a sun, or street lights). On the other hand, it can be slightly detrimental when using a smooth, uniform sky. It is active by default for HDRI skies only, but can also be turned On and Off, regardless of the type of sky in use. |
 
 ![](Images/RayTracingPathTracing4.png)
 
@@ -54,7 +55,9 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 ## Setting path tracing parameters for Materials
 
+
 Path tracing in HDRP makes your scene appear more realistic. To do this, path tracing implements more precise light transport simulations than rasterization. The result is more realistic effects, especially for:
+
 
 - Light refraction in transmissive objects.
 - Light absorption in transmissive objects.

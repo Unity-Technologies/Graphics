@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         GUIContent m_SkyIntensityModeLabel = new UnityEngine.GUIContent("Intensity Mode");
+        GUIContent m_ExposureCompensationLabel = new GUIContent("Exposure Compensation", "Sets the exposure compensation of the sky in EV.");
 
         SerializedDataParameter m_SkyExposure;
         SerializedDataParameter m_SkyMultiplier;
@@ -92,7 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new IndentLevelScope())
                 {
                     if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Exposure)
-                        PropertyField(m_SkyExposure);
+                        PropertyField(m_SkyExposure, m_ExposureCompensationLabel);
                     else if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Multiplier)
                         PropertyField(m_SkyMultiplier);
                     else if (m_IntensityMode.value.GetEnumValue<SkyIntensityMode>() == SkyIntensityMode.Lux)
