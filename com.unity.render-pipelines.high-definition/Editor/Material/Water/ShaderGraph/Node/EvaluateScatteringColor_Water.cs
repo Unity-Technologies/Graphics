@@ -33,7 +33,10 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kHorizontalDisplacementInputSlotId = 3;
         const string kHorizontalDisplacementInputSlotName = "HorizontalDisplacement";
 
-        const int kScatteringColorOutputSlotId = 4;
+        const int kDeepFoamInputSlotId = 4;
+        const string kDeepFoamInputSlotName = "DeepFoam";
+
+        const int kScatteringColorOutputSlotId = 5;
         const string kScatteringColorOutputSlotName = "ScatteringColor";
 
         public override bool hasPreview { get { return false; } }
@@ -45,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AddSlot(new Vector1MaterialSlot(kLowFrequencyHeightInputSlotId, kLowFrequencyHeightInputSlotName, kLowFrequencyHeightInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kHorizontalDisplacementInputSlotId, kHorizontalDisplacementInputSlotName, kHorizontalDisplacementInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
             AddSlot(new Vector1MaterialSlot(kSSSMaskInputSlotId, kSSSMaskInputSlotName, kSSSMaskInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(kDeepFoamInputSlotId, kDeepFoamInputSlotName, kDeepFoamInputSlotName, SlotType.Input, 0, ShaderStageCapability.Fragment));
 
             // Output
             AddSlot(new Vector3MaterialSlot(kScatteringColorOutputSlotId, kScatteringColorOutputSlotName, kScatteringColorOutputSlotName, SlotType.Output, Vector3.zero));
@@ -56,6 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 kLowFrequencyHeightInputSlotId,
                 kHorizontalDisplacementInputSlotId,
                 kSSSMaskInputSlotId,
+                kDeepFoamInputSlotId,
 
                 // Output
                 kScatteringColorOutputSlotId,
@@ -67,11 +72,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (generationMode == GenerationMode.ForReals)
             {
                 // Evaluate the data
-                sb.AppendLine("$precision3 {4} = EvaluateScatteringColor({0}, {1}, {2}, {3});",
+                sb.AppendLine("$precision3 {5} = EvaluateScatteringColor({0}, {1}, {2}, {3}, {4});",
                     GetSlotValue(kSSSMaskInputSlotId, generationMode),
                     GetSlotValue(kLowFrequencyHeightInputSlotId, generationMode),
                     GetSlotValue(kHorizontalDisplacementInputSlotId, generationMode),
                     GetSlotValue(kAbsorptionTintInputSlotId, generationMode),
+                    GetSlotValue(kDeepFoamInputSlotId, generationMode),
                     GetVariableNameForSlot(kScatteringColorOutputSlotId));
             }
             else
