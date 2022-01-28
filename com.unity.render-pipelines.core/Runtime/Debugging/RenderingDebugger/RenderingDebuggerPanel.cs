@@ -25,10 +25,40 @@ namespace UnityEngine.Rendering
         public abstract bool TryGetScreenClearColor(ref Color color);
         private List<VisualElement> m_InstantiatedPanels = new List<VisualElement>();
 
+#if UNITY_EDITOR
+        private void ValidateNameAndBindings(VisualElement elementToValidate)
+        {
+            foreach (var element in elementToValidate.Children())
+            {
+                if (!string.IsNullOrEmpty(element.name) &&
+                    !element.name.Contains("unity-") &&
+                    element is BindableElement bindableElement &&
+                    element is not GroupBox &&
+                    element is not Foldout)
+                {
+                    if (string.IsNullOrEmpty(bindableElement.bindingPath))
+                    {
+                        Debug.LogWarning($"Element {element.name} doesn't contain a property binding-path");
+                    }
+                    else if (!element.name.Equals(bindableElement.bindingPath, StringComparison.InvariantCulture))
+                        Debug.LogWarning($"Element {element.name} contains a binding of {bindableElement.bindingPath} that doesn't match");
+                }
+
+                if (element.Children().Any())
+                    ValidateNameAndBindings(element);
+            }
+        }
+#endif
+
         protected VisualElement CreateVisualElement(VisualTreeAsset panelAsset)
         {
             // Create the content of the tab
             var panel = panelAsset.Instantiate();
+
+#if UNITY_EDITOR
+            ValidateNameAndBindings(panel);
+#endif
+
             m_InstantiatedPanels.Add(panel);
             return panel;
         }
