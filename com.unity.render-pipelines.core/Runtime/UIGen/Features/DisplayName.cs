@@ -10,5 +10,10 @@ namespace UnityEngine.Rendering.UIGen
         public DisplayName(UIDefinition.PropertyName name) {
             this.name = name;
         }
+
+        public bool Mutate(ref UIImplementationIntermediateDocuments result, out Exception error)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

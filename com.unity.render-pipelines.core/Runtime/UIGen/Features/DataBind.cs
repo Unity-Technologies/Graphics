@@ -7,5 +7,9 @@ namespace UnityEngine.Rendering.UIGen
         string bindingPath;
         //public readonly Func<T> get;
         //public readonly Action<T> set;
+        public bool Mutate(ref UIImplementationIntermediateDocuments result, out Exception error)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -8,5 +8,10 @@ namespace UnityEngine.Rendering.UIGen
         public Tooltip(UIDefinition.PropertyTooltip tooltip) {
             this.tooltip = tooltip;
         }
+
+        public bool Mutate(ref UIImplementationIntermediateDocuments result, out Exception error)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

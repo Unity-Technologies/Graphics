@@ -8,5 +8,10 @@ namespace UnityEngine.Rendering.UIGen
 
         public Max(T value)
             => this.value = value;
+
+        public bool Mutate(ref UIImplementationIntermediateDocuments result, out Exception error)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

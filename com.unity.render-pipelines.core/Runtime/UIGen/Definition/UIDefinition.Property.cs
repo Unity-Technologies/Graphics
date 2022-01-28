@@ -31,6 +31,8 @@ namespace UnityEngine.Rendering.UIGen
                 return $"{type.Name} {propertyPath}";
             }
 
+            public IEnumerable<IFeatureParameter> features => m_FeatureParametersPerFeatureType.Values;
+
             [MustUseReturnValue]
             public bool AddFeature<TFeature>(
                 [DisallowNull] in TFeature feature,
