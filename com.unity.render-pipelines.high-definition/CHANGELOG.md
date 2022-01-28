@@ -71,6 +71,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Normal Map assiignation when importing FBX Materials.
 - Fixed issue with HDRI Sky and shadow filtering quality set to high.
 - Fixed the default custom pass buffer format from R8G8B8A8_SNorm to R8G8B8A8_UNorm. Additionally, an option in the custom pass buffer format settings is available to use the old format.
+- Fixed artifacts on gpu light culling when the frustum near and far are very spread out (case 1386436)
+- Fixed missing unit in ray tracing related tooltips and docs (case 1397491).
+- Fixed errors spamming when in player mode due to ray tracing light cluster debug view (case 1390471).
+- Fixed warning upon deleting APV data assets.
 
 ## [14.0.0] - 2021-11-17
 
