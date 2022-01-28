@@ -1098,6 +1098,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public List<int> dependsOnRenderRequestIndices;
             public CameraSettings cameraSettings;
             public List<(HDProbe.RenderData, HDProbe)> viewDependentProbesData;
+            public bool cullingResultIsShared;
         }
 
         struct HDCullingResults
@@ -1116,6 +1117,423 @@ namespace UnityEngine.Rendering.HighDefinition
                     decalCullResults.Clear();
                 else
                     decalCullResults = GenericPool<DecalSystem.CullResult>.Get();
+            }
+        }
+
+        bool PrepareAndCullCamera(Camera camera, XRPass xrPass, bool cameraRequestedDynamicRes,
+            List<RenderRequest> renderRequests,
+            List<int> rootRenderRequestIndices,
+            ScriptableRenderContext renderContext,
+            out RenderRequest renderRequest)
+        {
+            renderRequest = default(RenderRequest);
+
+            // Try to compute the parameters of the request or skip the request
+            var skipRequest = !TryCalculateFrameParameters(
+                camera,
+                xrPass,
+                out var additionalCameraData,
+                out var hdCamera,
+                out var cullingParameters);
+
+            var cullingResults = UnsafeGenericPool<HDCullingResults>.Get();
+            cullingResults.Reset();
+
+            // Note: In case of a custom render, we have false here and 'TryCull' is not executed
+            bool cullingResultIsShared = false;
+            if (!skipRequest)
+            {
+
+                VFXCameraXRSettings cameraXRSettings;
+                cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
+                cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
+                cameraXRSettings.viewOffset = (uint)hdCamera.xr.multipassId;
+
+                VFXManager.PrepareCamera(camera, cameraXRSettings);
+
+                var needCulling = true;
+
+                // In XR multipass, culling results can be shared if the pass has the same culling id
+                if (xrPass.multipassId > 0)
+                {
+                    foreach (var req in renderRequests)
+                    {
+                        if (camera == req.hdCamera.camera && req.hdCamera.xr.cullingPassId == xrPass.cullingPassId)
+                        {
+                            UnsafeGenericPool<HDCullingResults>.Release(cullingResults);
+                            cullingResults = req.cullingResults;
+                            cullingResultIsShared = true;
+                            needCulling = false;
+                            m_SkyManager.UpdateCurrentSkySettings(hdCamera);
+                        }
+                    }
+                }
+
+                if (needCulling)
+                {
+                    skipRequest = !TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, ref cullingResults);
+                }
+            }
+
+            if (additionalCameraData.hasCustomRender && additionalCameraData.fullscreenPassthrough)
+            {
+                Debug.LogWarning("HDRP Camera custom render is not supported when Fullscreen Passthrough is enabled. Please either disable Fullscreen Passthrough in the camera settings or remove all customRender callbacks attached to this camera.");
+                return false;
+            }
+
+            if (additionalCameraData != null && additionalCameraData.hasCustomRender)
+            {
+                skipRequest = true;
+                // First prepare the global constant buffer for users (Only camera properties)
+                hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
+                ConstantBuffer.PushGlobal(m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+                // Execute custom render
+                BeginCameraRendering(renderContext, camera);
+                additionalCameraData.ExecuteCustomRender(renderContext, hdCamera);
+            }
+
+            if (skipRequest)
+            {
+                // Submit render context and free pooled resources for this request
+                renderContext.Submit();
+                UnsafeGenericPool<HDCullingResults>.Release(cullingResults);
+                UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, camera);
+                return false;
+            }
+
+            // Select render target
+            RenderTargetIdentifier targetId = camera.targetTexture ?? new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
+            if (camera.targetTexture != null)
+            {
+                camera.targetTexture.IncrementUpdateCount(); // Necessary if the texture is used as a cookie.
+            }
+
+            // Render directly to XR render target if active
+            if (hdCamera.xr.enabled && hdCamera.xr.renderTargetValid)
+                targetId = hdCamera.xr.renderTarget;
+
+            hdCamera.RequestDynamicResolution(cameraRequestedDynamicRes, DynamicResolutionHandler.instance);
+
+            // Add render request
+            renderRequest = new RenderRequest
+            {
+                hdCamera = hdCamera,
+                cullingResults = cullingResults,
+                target = new RenderRequest.Target
+                {
+                    id = targetId,
+                    face = CubemapFace.Unknown
+                },
+                dependsOnRenderRequestIndices = ListPool<int>.Get(),
+                index = renderRequests.Count,
+                cameraSettings = CameraSettings.From(hdCamera),
+                viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get(),
+                cullingResultIsShared = cullingResultIsShared
+                // TODO: store DecalCullResult
+            };
+            renderRequests.Add(renderRequest);
+            // This is a root render request
+            rootRenderRequestIndices.Add(renderRequest.index);
+
+            return true;
+        }
+
+        void DetermineVisibleProbes(in RenderRequest request, Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible)
+        {
+            var cullingResults = request.cullingResults;
+            // Add visible probes to list
+            // Reflection probes
+            for (var i = 0; i < cullingResults.cullingResults.visibleReflectionProbes.Length; ++i)
+            {
+                var visibleProbe = cullingResults.cullingResults.visibleReflectionProbes[i];
+
+                // TODO: The following fix is temporary.
+                // We should investigate why we got null cull result when we change scene
+                if (visibleProbe == null || visibleProbe.Equals(null) || visibleProbe.reflectionProbe == null || visibleProbe.reflectionProbe.Equals(null))
+                    continue;
+
+                HDAdditionalReflectionData additionalReflectionData;
+                if (!visibleProbe.reflectionProbe.TryGetComponent<HDAdditionalReflectionData>(out additionalReflectionData))
+                    additionalReflectionData = visibleProbe.reflectionProbe.gameObject.AddComponent<HDAdditionalReflectionData>();
+
+                AddVisibleProbeVisibleIndexIfUpdateIsRequired(additionalReflectionData, request, renderRequestIndicesWhereTheProbeIsVisible);
+            }
+
+            // Planar probes
+            for (var i = 0; i < cullingResults.hdProbeCullingResults.visibleProbes.Count; ++i)
+            {
+                AddVisibleProbeVisibleIndexIfUpdateIsRequired(cullingResults.hdProbeCullingResults.visibleProbes[i], request, renderRequestIndicesWhereTheProbeIsVisible);
+            }
+        }
+
+        void AddVisibleProbeVisibleIndexIfUpdateIsRequired(HDProbe probe, in RenderRequest request, Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible)
+        {
+            // Don't add it if it has already been updated this frame or not a real time probe
+            // TODO: discard probes that are baked once per frame and already baked this frame
+            if (!probe.requiresRealtimeUpdate)
+                return;
+
+            var viewerTransform = request.hdCamera.camera.transform;
+            float visibility = HDUtils.ComputeWeightedLinearFadeDistance(probe.transform.position, viewerTransform.position, probe.weight, probe.fadeDistance);
+
+            // Notify that we render the probe at this frame
+            // NOTE: If the probe was rendered on the very first frame, we could have some data that was used and it wasn't in a fully initialized state, which is fine on PC, but on console
+            // might lead to NaNs due to lack of complete initialization. To circumvent this, we force the probe to render again only if it was rendered on the first frame. Note that the problem
+            // doesn't apply if probe is enable any frame other than the very first. Also note that we are likely to be re-rendering the probe anyway due to the issue on sky ambient probe
+            // (see m_SkyManager.HasSetValidAmbientProbe in this function).
+            // Also, we need to set the probe as rendered only if we'll actually render it and this won't happen if visibility is not > 0.
+            if (m_FrameCount > 1 && visibility > 0.0f)
+                probe.SetIsRendered();
+
+            if (!renderRequestIndicesWhereTheProbeIsVisible.TryGetValue(probe, out var visibleInIndices))
+            {
+                visibleInIndices = ListPool<(int index, float weight)>.Get();
+                renderRequestIndicesWhereTheProbeIsVisible.Add(probe, visibleInIndices);
+            }
+
+            if (!visibleInIndices.Contains((request.index, visibility)))
+            {
+                visibleInIndices.Add((request.index, visibility));
+            }
+        }
+
+        void AddHDProbeRenderRequests(
+            HDProbe visibleProbe,
+            Transform viewerTransform,
+            List<(int index, float weight)> visibilities,
+            ulong overrideSceneCullingMask,
+            HDCamera hdParentCamera,
+            float referenceFieldOfView,
+            float referenceAspect,
+            ref List<HDProbe.RenderData> renderDatas,
+            List<CameraSettings> cameraSettings,
+            List<CameraPositionSettings> cameraPositionSettings,
+            List<RenderRequest> renderRequests,
+            ScriptableRenderContext renderContext
+        )
+        {
+            var position = ProbeCapturePositionSettings.ComputeFrom(visibleProbe, viewerTransform);
+            cameraSettings.Clear();
+            cameraPositionSettings.Clear();
+
+            HDRenderUtilities.GenerateRenderingSettingsFor(
+                visibleProbe.settings, position,
+                cameraSettings, cameraPositionSettings, overrideSceneCullingMask,
+                referenceFieldOfView: referenceFieldOfView,
+                referenceAspect: referenceAspect);
+
+            var probeFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
+
+            switch (visibleProbe.type)
+            {
+                case ProbeSettings.ProbeType.ReflectionProbe:
+                    int desiredProbeSize = (int)((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
+                    var desiredProbeFormat = ((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
+
+                    if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredProbeSize ||
+                        visibleProbe.realtimeTextureRTH.rt.graphicsFormat != probeFormat)
+                    {
+                        visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreateReflectionProbeRenderTarget(desiredProbeSize, probeFormat));
+                    }
+                    break;
+                case ProbeSettings.ProbeType.PlanarProbe:
+                    int desiredPlanarProbeSize = (int)visibleProbe.resolution;
+                    if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredPlanarProbeSize || visibleProbe.realtimeTextureRTH.rt.graphicsFormat != probeFormat)
+                    {
+                        visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeRenderTarget(desiredPlanarProbeSize, probeFormat));
+                    }
+                    if (visibleProbe.realtimeDepthTextureRTH == null || visibleProbe.realtimeDepthTextureRTH.rt.width != desiredPlanarProbeSize)
+                    {
+                        visibleProbe.SetDepthTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeDepthRenderTarget(desiredPlanarProbeSize));
+                    }
+                    // Set the viewer's camera as the default camera anchor
+                    for (var i = 0; i < cameraSettings.Count; ++i)
+                    {
+                        var v = cameraSettings[i];
+                        if (v.volumes.anchorOverride == null)
+                        {
+                            v.volumes.anchorOverride = viewerTransform;
+                            cameraSettings[i] = v;
+                        }
+                    }
+                    break;
+            }
+
+            for (int j = 0; j < cameraSettings.Count; ++j)
+            {
+                var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), Time.frameCount, CameraType.Reflection);
+
+                var settingsCopy = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
+                settingsCopy.forcedPercentage = 100.0f;
+                settingsCopy.forceResolution = true;
+                DynamicResolutionHandler.UpdateAndUseCamera(camera, settingsCopy);
+
+                foreach (var terrain in m_ActiveTerrains)
+                    terrain.SetKeepUnusedCameraRenderingResources(camera.GetInstanceID(), true);
+
+                if (!camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData))
+                {
+                    additionalCameraData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                }
+                additionalCameraData.hasPersistentHistory = true;
+
+                // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
+                camera.targetTexture = visibleProbe.realtimeTexture;
+                camera.gameObject.hideFlags = HideFlags.HideAndDontSave;
+                camera.gameObject.SetActive(false);
+
+                // Warning: accessing Object.name generate 48B of garbage at each frame here
+                // camera.name = HDUtils.ComputeProbeCameraName(visibleProbe.name, j, viewerTransform?.name);
+                // Non Alloc version of ComputeProbeCameraName but without the viewerTransform name part
+                camera.name = visibleProbe.probeName[j];
+
+                camera.ApplySettings(cameraSettings[j]);
+                camera.ApplySettings(cameraPositionSettings[j]);
+                camera.cameraType = CameraType.Reflection;
+                camera.pixelRect = new Rect(0, 0, visibleProbe.realtimeTexture.width, visibleProbe.realtimeTexture.height);
+
+                var _cullingResults = UnsafeGenericPool<HDCullingResults>.Get();
+                _cullingResults.Reset();
+
+                if (!(TryCalculateFrameParameters(
+                    camera,
+                    XRSystem.emptyPass,
+                    out _,
+                    out var hdCamera,
+                    out var cullingParameters
+                )
+                      && TryCull(
+                          camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset,
+                          ref _cullingResults
+                      )
+                ))
+                {
+                    // Skip request and free resources
+                    UnsafeGenericPool<HDCullingResults>.Release(_cullingResults);
+                    continue;
+                }
+
+                // HACK! We render the probe until we know the ambient probe for the associated sky context is ready.
+                // For one-off rendering the dynamic ambient probe will be set to black until they are not processed, leading to faulty rendering.
+                // So we enqueue another rendering and then we will not set the probe texture until we have rendered with valid ambient probe.
+                if (!m_SkyManager.HasSetValidAmbientProbe(hdCamera))
+                {
+                    visibleProbe.ForceRenderingNextUpdate();
+                }
+
+                bool useFetchedGpuExposure = false;
+                float fetchedGpuExposure = 1.0f;
+
+                if (visibleProbe.type == ProbeSettings.ProbeType.PlanarProbe)
+                {
+                    //cache the resolved settings. Otherwise if we use the internal probe settings, it will be the wrong resolved result.
+                    visibleProbe.ExposureControlEnabled = hdCamera.exposureControlFS;
+                    if (visibleProbe.ExposureControlEnabled)
+                    {
+                        RTHandle exposureTexture = GetExposureTexture(hdParentCamera);
+                        hdParentCamera.RequestGpuExposureValue(exposureTexture);
+                        fetchedGpuExposure = hdParentCamera.GpuExposureValue();
+                        visibleProbe.SetProbeExposureValue(fetchedGpuExposure);
+                        additionalCameraData.deExposureMultiplier = 1.0f;
+
+                        // If the planar is under exposure control, all the pixels will be de-exposed, for the other skies it is handeled in a shader.
+                        // For the clear color, we need to do it manually here.
+                        additionalCameraData.backgroundColorHDR = additionalCameraData.backgroundColorHDR * visibleProbe.ProbeExposureValue();
+                    }
+                    else
+                    {
+                        //the de-exposure multiplier must be used for anything rendering flatly, for example UI or Unlit.
+                        //this will cause them to blow up, but will match the standard nomralized exposure.
+                        hdParentCamera.RequestGpuDeExposureValue(GetExposureTextureHandle(hdParentCamera.currentExposureTextures.previous));
+                        visibleProbe.SetProbeExposureValue(fetchedGpuExposure);
+                        additionalCameraData.deExposureMultiplier = 1.0f / hdParentCamera.GpuDeExposureValue();
+                    }
+
+                    // Make sure that the volumetric cloud animation data is in sync with the parent camera.
+                    hdCamera.volumetricCloudsAnimationData = hdParentCamera.volumetricCloudsAnimationData;
+                    useFetchedGpuExposure = true;
+                }
+                else
+                {
+                    hdCamera.realtimeReflectionProbe = (visibleProbe.mode == ProbeSettings.Mode.Realtime);
+                }
+
+                hdCamera.SetParentCamera(hdParentCamera, useFetchedGpuExposure, fetchedGpuExposure); // Used to inherit the properties of the view
+
+                HDAdditionalCameraData hdCam;
+                camera.TryGetComponent<HDAdditionalCameraData>(out hdCam);
+                hdCam.flipYMode = visibleProbe.type == ProbeSettings.ProbeType.ReflectionProbe
+                    ? HDAdditionalCameraData.FlipYMode.ForceFlipY
+                    : HDAdditionalCameraData.FlipYMode.Automatic;
+
+                if (!visibleProbe.realtimeTexture.IsCreated())
+                    visibleProbe.realtimeTexture.Create();
+
+                var renderData = new HDProbe.RenderData(
+                    camera.worldToCameraMatrix,
+                    camera.projectionMatrix,
+                    camera.transform.position,
+                    camera.transform.rotation,
+                    cameraSettings[j].frustum.fieldOfView,
+                    cameraSettings[j].frustum.aspect
+                );
+
+                renderDatas.Add(renderData);
+
+                visibleProbe.SetRenderData(
+                    ProbeSettings.Mode.Realtime,
+                    renderData
+                );
+
+                // TODO: Assign the actual final target to render to.
+                //   Currently, we use a target for each probe, and then copy it into the cache before using it
+                //   during the lighting pass.
+                //   But what we actually want here, is to render directly into the cache (either CubeArray,
+                //   or Texture2DArray)
+                //   To do so, we need to first allocate in the cache the location of the target and then assign
+                //   it here.
+                var request = new RenderRequest
+                {
+                    hdCamera = hdCamera,
+                    cullingResults = _cullingResults,
+                    clearCameraSettings = true,
+                    dependsOnRenderRequestIndices = ListPool<int>.Get(),
+                    index = renderRequests.Count,
+                    cameraSettings = cameraSettings[j],
+                    viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get()
+                    // TODO: store DecalCullResult
+                };
+
+                if (m_SkyManager.HasSetValidAmbientProbe(hdCamera))
+                {
+                    // As we render realtime texture on GPU side, we must tag the texture so our texture array cache detect that something have change
+                    visibleProbe.realtimeTexture.IncrementUpdateCount();
+
+                    if (cameraSettings.Count > 1)
+                    {
+                        var face = (CubemapFace)j;
+                        request.target = new RenderRequest.Target
+                        {
+                            copyToTarget = visibleProbe.realtimeTextureRTH,
+                            face = face
+                        };
+                    }
+                    else
+                    {
+                        request.target = new RenderRequest.Target
+                        {
+                            id = visibleProbe.realtimeTextureRTH,
+                            targetDepth = visibleProbe.realtimeDepthTextureRTH,
+                            face = CubemapFace.Unknown
+                        };
+                    }
+                }
+
+                renderRequests.Add(request);
+
+
+                foreach (var visibility in visibilities)
+                    renderRequests[visibility.index].dependsOnRenderRequestIndices.Add(request.index);
             }
         }
 
@@ -1248,7 +1666,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
-            using (HashSetPool<int>.Get(out HashSet<int> skipClearCullingResults))
             using (DictionaryPool<HDProbe, List<(int index, float weight)>>.Get(out Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible))
             using (ListPool<CameraSettings>.Get(out List<CameraSettings> cameraSettings))
             using (ListPool<CameraPositionSettings>.Get(out List<CameraPositionSettings> cameraPositionSettings))
@@ -1324,167 +1741,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     RTHandles.SetHardwareDynamicResolutionState(dynResHandler.HardwareDynamicResIsEnabled());
 
-                    // Reset pooled variables
-                    cameraSettings.Clear();
-                    cameraPositionSettings.Clear();
-                    skipClearCullingResults.Clear();
-
-                    var cullingResults = UnsafeGenericPool<HDCullingResults>.Get();
-                    cullingResults.Reset();
-
-                    // Try to compute the parameters of the request or skip the request
-                    var skipRequest = !TryCalculateFrameParameters(
-                        camera,
-                        xrPass,
-                        out var additionalCameraData,
-                        out var hdCamera,
-                        out var cullingParameters);
-
-                    // Note: In case of a custom render, we have false here and 'TryCull' is not executed
-                    if (!skipRequest)
+                    if (PrepareAndCullCamera(camera, xrPass, cameraRequestedDynamicRes, renderRequests, rootRenderRequestIndices, renderContext, out var request))
                     {
-                        VFXCameraXRSettings cameraXRSettings;
-                        cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
-                        cameraXRSettings.viewCount = (uint)hdCamera.viewCount;
-                        cameraXRSettings.viewOffset = (uint)hdCamera.xr.multipassId;
-
-                        VFXManager.PrepareCamera(camera, cameraXRSettings);
-
-                        var needCulling = true;
-
-                        // In XR multipass, culling results can be shared if the pass has the same culling id
-                        if (xrPass.multipassId > 0)
-                        {
-                            foreach (var req in renderRequests)
-                            {
-                                if (camera == req.hdCamera.camera && req.hdCamera.xr.cullingPassId == xrPass.cullingPassId)
-                                {
-                                    UnsafeGenericPool<HDCullingResults>.Release(cullingResults);
-                                    cullingResults = req.cullingResults;
-                                    skipClearCullingResults.Add(req.index);
-                                    needCulling = false;
-                                    m_SkyManager.UpdateCurrentSkySettings(hdCamera);
-                                }
-                            }
-                        }
-
-                        if (needCulling)
-                        {
-                            skipRequest = !TryCull(camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset, ref cullingResults);
-                        }
-                    }
-
-                    if (additionalCameraData.hasCustomRender && additionalCameraData.fullscreenPassthrough)
-                    {
-                        Debug.LogWarning("HDRP Camera custom render is not supported when Fullscreen Passthrough is enabled. Please either disable Fullscreen Passthrough in the camera settings or remove all customRender callbacks attached to this camera.");
-                        continue;
-                    }
-
-                    if (additionalCameraData != null && additionalCameraData.hasCustomRender)
-                    {
-                        skipRequest = true;
-                        // First prepare the global constant buffer for users (Only camera properties)
-                        hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
-                        ConstantBuffer.PushGlobal(m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
-                        // Execute custom render
-                        BeginCameraRendering(renderContext, camera);
-                        additionalCameraData.ExecuteCustomRender(renderContext, hdCamera);
-                    }
-
-                    if (skipRequest)
-                    {
-                        // Submit render context and free pooled resources for this request
-                        renderContext.Submit();
-                        UnsafeGenericPool<HDCullingResults>.Release(cullingResults);
-                        UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, camera);
-                        continue;
-                    }
-
-                    // Select render target
-                    RenderTargetIdentifier targetId = camera.targetTexture ?? new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget);
-                    if (camera.targetTexture != null)
-                    {
-                        camera.targetTexture.IncrementUpdateCount(); // Necessary if the texture is used as a cookie.
-                    }
-
-                    // Render directly to XR render target if active
-                    if (hdCamera.xr.enabled && hdCamera.xr.renderTargetValid)
-                        targetId = hdCamera.xr.renderTarget;
-
-                    hdCamera.RequestDynamicResolution(cameraRequestedDynamicRes, dynResHandler);
-
-                    // Add render request
-                    var request = new RenderRequest
-                    {
-                        hdCamera = hdCamera,
-                        cullingResults = cullingResults,
-                        target = new RenderRequest.Target
-                        {
-                            id = targetId,
-                            face = CubemapFace.Unknown
-                        },
-                        dependsOnRenderRequestIndices = ListPool<int>.Get(),
-                        index = renderRequests.Count,
-                        cameraSettings = CameraSettings.From(hdCamera),
-                        viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get()
-                        // TODO: store DecalCullResult
-                    };
-                    renderRequests.Add(request);
-                    // This is a root render request
-                    rootRenderRequestIndices.Add(request.index);
-
-                    // Add visible probes to list
-                    for (var i = 0; i < cullingResults.cullingResults.visibleReflectionProbes.Length; ++i)
-                    {
-                        var visibleProbe = cullingResults.cullingResults.visibleReflectionProbes[i];
-
-                        // TODO: The following fix is temporary.
-                        // We should investigate why we got null cull result when we change scene
-                        if (visibleProbe == null || visibleProbe.Equals(null) || visibleProbe.reflectionProbe == null || visibleProbe.reflectionProbe.Equals(null))
-                            continue;
-
-                        HDAdditionalReflectionData additionalReflectionData;
-                        if (!visibleProbe.reflectionProbe.TryGetComponent<HDAdditionalReflectionData>(out additionalReflectionData))
-                            additionalReflectionData = visibleProbe.reflectionProbe.gameObject.AddComponent<HDAdditionalReflectionData>();
-
-                        AddVisibleProbeVisibleIndexIfUpdateIsRequired(additionalReflectionData, request.index);
-                    }
-                    for (var i = 0; i < cullingResults.hdProbeCullingResults.visibleProbes.Count; ++i)
-                        AddVisibleProbeVisibleIndexIfUpdateIsRequired(cullingResults.hdProbeCullingResults.visibleProbes[i], request.index);
-
-                    // local function to help insertion of visible probe
-                    void AddVisibleProbeVisibleIndexIfUpdateIsRequired(HDProbe probe, int visibleInIndex)
-                    {
-                        // Don't add it if it has already been updated this frame or not a real time probe
-                        // TODO: discard probes that are baked once per frame and already baked this frame
-                        if (!probe.requiresRealtimeUpdate)
-                            return;
-
-                        float visibility = ComputeVisibility(visibleInIndex, probe);
-
-                        // Notify that we render the probe at this frame
-                        // NOTE: If the probe was rendered on the very first frame, we could have some data that was used and it wasn't in a fully initialized state, which is fine on PC, but on console
-                        // might lead to NaNs due to lack of complete initialization. To circumvent this, we force the probe to render again only if it was rendered on the first frame. Note that the problem
-                        // doesn't apply if probe is enable any frame other than the very first. Also note that we are likely to be re-rendering the probe anyway due to the issue on sky ambient probe
-                        // (see m_SkyManager.HasSetValidAmbientProbe in this function).
-                        // Also, we need to set the probe as rendered only if we'll actually render it and this won't happen if visibility is not > 0.
-                        if (m_FrameCount > 1 && visibility > 0.0f)
-                            probe.SetIsRendered();
-
-                        if (!renderRequestIndicesWhereTheProbeIsVisible.TryGetValue(probe, out var visibleInIndices))
-                        {
-                            visibleInIndices = ListPool<(int index, float weight)>.Get();
-                            renderRequestIndicesWhereTheProbeIsVisible.Add(probe, visibleInIndices);
-                        }
-                        if (!visibleInIndices.Contains((visibleInIndex, visibility)))
-                            visibleInIndices.Add((visibleInIndex, visibility));
-                    }
-
-                    float ComputeVisibility(int visibleInIndex, HDProbe visibleProbe)
-                    {
-                        var visibleInRenderRequest = renderRequests[visibleInIndex];
-                        var viewerTransform = visibleInRenderRequest.hdCamera.camera.transform;
-                        return HDUtils.ComputeWeightedLinearFadeDistance(visibleProbe.transform.position, viewerTransform.position, visibleProbe.weight, visibleProbe.fadeDistance);
+                        DetermineVisibleProbes(request, renderRequestIndicesWhereTheProbeIsVisible);
                     }
                 }
 
@@ -1526,7 +1785,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 hdParentCamera,
                                 visibleInRenderRequest.hdCamera.camera.fieldOfView,
                                 visibleInRenderRequest.hdCamera.camera.aspect,
-                                ref renderDatas
+                                ref renderDatas, cameraSettings, cameraPositionSettings, renderRequests, renderContext
                             );
 
                             foreach (var renderData in renderDatas)
@@ -1551,254 +1810,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (visibleInOneViewer)
                         {
                             var renderDatas = ListPool<HDProbe.RenderData>.Get();
-                            AddHDProbeRenderRequests(visibleProbe, null, visibilities, 0, hdParentCamera, referenceFieldOfView: 90, referenceAspect: 1, ref renderDatas);
+                            AddHDProbeRenderRequests(visibleProbe, null, visibilities, 0, hdParentCamera, referenceFieldOfView: 90, referenceAspect: 1, ref renderDatas,
+                                cameraSettings, cameraPositionSettings, renderRequests, renderContext);
                             ListPool<HDProbe.RenderData>.Release(renderDatas);
                         }
                     }
                 }
+
                 foreach (var pair in renderRequestIndicesWhereTheProbeIsVisible)
                     ListPool<(int index, float weight)>.Release(pair.Value);
                 renderRequestIndicesWhereTheProbeIsVisible.Clear();
-
-                // Local function to share common code between view dependent and view independent requests
-                void AddHDProbeRenderRequests(
-                    HDProbe visibleProbe,
-                    Transform viewerTransform,
-                    List<(int index, float weight)> visibilities,
-                    ulong overrideSceneCullingMask,
-                    HDCamera hdParentCamera,
-                    float referenceFieldOfView,
-                    float referenceAspect,
-                    ref List<HDProbe.RenderData> renderDatas
-                )
-                {
-                    var position = ProbeCapturePositionSettings.ComputeFrom(
-                        visibleProbe,
-                        viewerTransform
-                    );
-                    cameraSettings.Clear();
-                    cameraPositionSettings.Clear();
-                    HDRenderUtilities.GenerateRenderingSettingsFor(
-                        visibleProbe.settings, position,
-                        cameraSettings, cameraPositionSettings, overrideSceneCullingMask,
-                        referenceFieldOfView: referenceFieldOfView,
-                        referenceAspect: referenceAspect
-                    );
-
-                    var probeFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
-
-                    switch (visibleProbe.type)
-                    {
-                        case ProbeSettings.ProbeType.ReflectionProbe:
-                            int desiredProbeSize = (int)((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
-                            var desiredProbeFormat = ((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
-
-                            if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredProbeSize ||
-                                visibleProbe.realtimeTextureRTH.rt.graphicsFormat != probeFormat)
-                            {
-                                visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreateReflectionProbeRenderTarget(desiredProbeSize, probeFormat));
-                            }
-                            break;
-                        case ProbeSettings.ProbeType.PlanarProbe:
-                            int desiredPlanarProbeSize = (int)visibleProbe.resolution;
-                            if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredPlanarProbeSize || visibleProbe.realtimeTextureRTH.rt.graphicsFormat != probeFormat)
-                            {
-                                visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeRenderTarget(desiredPlanarProbeSize, probeFormat));
-                            }
-                            if (visibleProbe.realtimeDepthTextureRTH == null || visibleProbe.realtimeDepthTextureRTH.rt.width != desiredPlanarProbeSize)
-                            {
-                                visibleProbe.SetDepthTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeDepthRenderTarget(desiredPlanarProbeSize));
-                            }
-                            // Set the viewer's camera as the default camera anchor
-                            for (var i = 0; i < cameraSettings.Count; ++i)
-                            {
-                                var v = cameraSettings[i];
-                                if (v.volumes.anchorOverride == null)
-                                {
-                                    v.volumes.anchorOverride = viewerTransform;
-                                    cameraSettings[i] = v;
-                                }
-                            }
-                            break;
-                    }
-
-                    for (int j = 0; j < cameraSettings.Count; ++j)
-                    {
-                        var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), Time.frameCount, CameraType.Reflection);
-
-                        var settingsCopy = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
-                        settingsCopy.forcedPercentage = 100.0f;
-                        settingsCopy.forceResolution = true;
-                        DynamicResolutionHandler.UpdateAndUseCamera(camera, settingsCopy);
-
-                        foreach (var terrain in m_ActiveTerrains)
-                            terrain.SetKeepUnusedCameraRenderingResources(camera.GetInstanceID(), true);
-
-                        if (!camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData))
-                        {
-                            additionalCameraData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
-                        }
-                        additionalCameraData.hasPersistentHistory = true;
-
-                        // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
-                        camera.targetTexture = visibleProbe.realtimeTexture;
-                        camera.gameObject.hideFlags = HideFlags.HideAndDontSave;
-                        camera.gameObject.SetActive(false);
-
-                        // Warning: accessing Object.name generate 48B of garbage at each frame here
-                        // camera.name = HDUtils.ComputeProbeCameraName(visibleProbe.name, j, viewerTransform?.name);
-                        // Non Alloc version of ComputeProbeCameraName but without the viewerTransform name part
-                        camera.name = visibleProbe.probeName[j];
-
-                        camera.ApplySettings(cameraSettings[j]);
-                        camera.ApplySettings(cameraPositionSettings[j]);
-                        camera.cameraType = CameraType.Reflection;
-                        camera.pixelRect = new Rect(0, 0, visibleProbe.realtimeTexture.width, visibleProbe.realtimeTexture.height);
-
-                        var _cullingResults = UnsafeGenericPool<HDCullingResults>.Get();
-                        _cullingResults.Reset();
-
-                        if (!(TryCalculateFrameParameters(
-                            camera,
-                            XRSystem.emptyPass,
-                            out _,
-                            out var hdCamera,
-                            out var cullingParameters
-                        )
-                              && TryCull(
-                                  camera, hdCamera, renderContext, m_SkyManager, cullingParameters, m_Asset,
-                                  ref _cullingResults
-                              )
-                        ))
-                        {
-                            // Skip request and free resources
-                            UnsafeGenericPool<HDCullingResults>.Release(_cullingResults);
-                            continue;
-                        }
-
-                        // HACK! We render the probe until we know the ambient probe for the associated sky context is ready.
-                        // For one-off rendering the dynamic ambient probe will be set to black until they are not processed, leading to faulty rendering.
-                        // So we enqueue another rendering and then we will not set the probe texture until we have rendered with valid ambient probe.
-                        if (!m_SkyManager.HasSetValidAmbientProbe(hdCamera))
-                        {
-                            visibleProbe.ForceRenderingNextUpdate();
-                        }
-
-                        bool useFetchedGpuExposure = false;
-                        float fetchedGpuExposure = 1.0f;
-
-                        if (visibleProbe.type == ProbeSettings.ProbeType.PlanarProbe)
-                        {
-                            //cache the resolved settings. Otherwise if we use the internal probe settings, it will be the wrong resolved result.
-                            visibleProbe.ExposureControlEnabled = hdCamera.exposureControlFS;
-                            if (visibleProbe.ExposureControlEnabled)
-                            {
-                                RTHandle exposureTexture = GetExposureTexture(hdParentCamera);
-                                hdParentCamera.RequestGpuExposureValue(exposureTexture);
-                                fetchedGpuExposure = hdParentCamera.GpuExposureValue();
-                                visibleProbe.SetProbeExposureValue(fetchedGpuExposure);
-                                additionalCameraData.deExposureMultiplier = 1.0f;
-
-                                // If the planar is under exposure control, all the pixels will be de-exposed, for the other skies it is handeled in a shader.
-                                // For the clear color, we need to do it manually here.
-                                additionalCameraData.backgroundColorHDR = additionalCameraData.backgroundColorHDR * visibleProbe.ProbeExposureValue();
-                            }
-                            else
-                            {
-                                //the de-exposure multiplier must be used for anything rendering flatly, for example UI or Unlit.
-                                //this will cause them to blow up, but will match the standard nomralized exposure.
-                                hdParentCamera.RequestGpuDeExposureValue(GetExposureTextureHandle(hdParentCamera.currentExposureTextures.previous));
-                                visibleProbe.SetProbeExposureValue(fetchedGpuExposure);
-                                additionalCameraData.deExposureMultiplier = 1.0f / hdParentCamera.GpuDeExposureValue();
-                            }
-
-                            // Make sure that the volumetric cloud animation data is in sync with the parent camera.
-                            hdCamera.volumetricCloudsAnimationData = hdParentCamera.volumetricCloudsAnimationData;
-                            useFetchedGpuExposure = true;
-                        }
-                        else
-                        {
-                            hdCamera.realtimeReflectionProbe = (visibleProbe.mode == ProbeSettings.Mode.Realtime);
-                        }
-
-                        hdCamera.SetParentCamera(hdParentCamera, useFetchedGpuExposure, fetchedGpuExposure); // Used to inherit the properties of the view
-
-                        HDAdditionalCameraData hdCam;
-                        camera.TryGetComponent<HDAdditionalCameraData>(out hdCam);
-                        hdCam.flipYMode = visibleProbe.type == ProbeSettings.ProbeType.ReflectionProbe
-                            ? HDAdditionalCameraData.FlipYMode.ForceFlipY
-                            : HDAdditionalCameraData.FlipYMode.Automatic;
-
-                        if (!visibleProbe.realtimeTexture.IsCreated())
-                            visibleProbe.realtimeTexture.Create();
-
-                        var renderData = new HDProbe.RenderData(
-                            camera.worldToCameraMatrix,
-                            camera.projectionMatrix,
-                            camera.transform.position,
-                            camera.transform.rotation,
-                            cameraSettings[j].frustum.fieldOfView,
-                            cameraSettings[j].frustum.aspect
-                        );
-
-                        renderDatas.Add(renderData);
-
-                        visibleProbe.SetRenderData(
-                            ProbeSettings.Mode.Realtime,
-                            renderData
-                        );
-
-                        // TODO: Assign the actual final target to render to.
-                        //   Currently, we use a target for each probe, and then copy it into the cache before using it
-                        //   during the lighting pass.
-                        //   But what we actually want here, is to render directly into the cache (either CubeArray,
-                        //   or Texture2DArray)
-                        //   To do so, we need to first allocate in the cache the location of the target and then assign
-                        //   it here.
-                        var request = new RenderRequest
-                        {
-                            hdCamera = hdCamera,
-                            cullingResults = _cullingResults,
-                            clearCameraSettings = true,
-                            dependsOnRenderRequestIndices = ListPool<int>.Get(),
-                            index = renderRequests.Count,
-                            cameraSettings = cameraSettings[j],
-                            viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get()
-                            // TODO: store DecalCullResult
-                        };
-
-                        if (m_SkyManager.HasSetValidAmbientProbe(hdCamera))
-                        {
-                            // As we render realtime texture on GPU side, we must tag the texture so our texture array cache detect that something have change
-                            visibleProbe.realtimeTexture.IncrementUpdateCount();
-
-                            if (cameraSettings.Count > 1)
-                            {
-                                var face = (CubemapFace)j;
-                                request.target = new RenderRequest.Target
-                                {
-                                    copyToTarget = visibleProbe.realtimeTextureRTH,
-                                    face = face
-                                };
-                            }
-                            else
-                            {
-                                request.target = new RenderRequest.Target
-                                {
-                                    id = visibleProbe.realtimeTextureRTH,
-                                    targetDepth = visibleProbe.realtimeDepthTextureRTH,
-                                    face = CubemapFace.Unknown
-                                };
-                            }
-                        }
-
-                        renderRequests.Add(request);
-
-
-                        foreach (var visibility in visibilities)
-                            renderRequests[visibility.index].dependsOnRenderRequestIndices.Add(request.index);
-                    }
-                }
 
                 // TODO: Refactor into a method. If possible remove the intermediate target
                 // Find max size for Cubemap face targets and resize/allocate if required the intermediate render target
@@ -1976,7 +1997,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 ListPool<(HDProbe.RenderData, HDProbe)>.Release(renderRequest.viewDependentProbesData);
 
                                 // Culling results can be shared between render requests: clear only when required
-                                if (!skipClearCullingResults.Contains(renderRequest.index))
+                                if (!renderRequest.cullingResultIsShared)
                                 {
                                     renderRequest.cullingResults.decalCullResults?.Clear();
                                     UnsafeGenericPool<HDCullingResults>.Release(renderRequest.cullingResults);
