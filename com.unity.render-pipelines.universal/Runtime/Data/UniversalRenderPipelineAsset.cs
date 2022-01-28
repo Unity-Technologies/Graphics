@@ -285,19 +285,19 @@ namespace UnityEngine.Rendering.Universal
     public enum UpscalingFilterSelection
     {
         /// <summary>
-        /// Use this to have URP handle upscaling automatically.
+        /// Indicates that URP will select an appropriate upscaling filter automatically.
         /// </summary>
         [InspectorName("Automatic")]
         Auto,
 
         /// <summary>
-        /// Use this to use Bilinear Filtering when performing upscaling.
+        /// Indicates that Bilinear filtering will be used when performing upscaling.
         /// </summary>
         [InspectorName("Bilinear")]
         Linear,
 
         /// <summary>
-        /// Use this to use Nearest-Neighbour filtering when performing upscaling.
+        /// Indicates that Nearest-Neighbour filtering will be used when performing upscaling.
         /// </summary>
         [InspectorName("Nearest-Neighbor")]
         Point,
