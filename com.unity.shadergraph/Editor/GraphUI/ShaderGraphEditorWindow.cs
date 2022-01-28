@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
+using UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver;
+using UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
@@ -10,6 +12,11 @@ namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class ShaderGraphEditorWindow : GraphViewEditorWindow
     {
+        // TODO (Sai):
+        // Figure out a more permanent place to store these that makes sense
+        GraphViewStateObserver m_GraphViewStateObserver;
+        PreviewManager m_PreviewManager;
+
 
         [InitializeOnLoadMethod]
         static void RegisterTool()
@@ -44,9 +51,15 @@ namespace UnityEditor.ShaderGraph.GraphUI
             var graphView = new ShaderGraphView(this, GraphTool, GraphTool.Name);
             GraphTool.Preferences.SetInitialSearcherSize(SearcherService.Usage.k_CreateNode, new Vector2(425, 100), 2.0f);
 
+            // TODO (Sai):
+            // Figure out a fitting place to initialize these
+            m_PreviewManager = new PreviewManager();
+            m_GraphViewStateObserver = new GraphViewStateObserver(GraphView.GraphViewState, m_PreviewManager);
+
+            graphView.GraphTool.ObserverManager.RegisterObserver(m_GraphViewStateObserver);
             // TODO (Brett) Command registration or state handler creation belongs here.
             // Example: graphView.RegisterCommandHandler<SetNumberOfInputPortCommand>(SetNumberOfInputPortCommand.DefaultCommandHandler);
-            // Other Example: new ShaderGraphState(GUID, prefs); 
+            // Other Example: new ShaderGraphState(GUID, prefs);
 
             return graphView;
         }

@@ -13,9 +13,9 @@ using PreviewRenderMode = HeadlessPreviewManager.PreviewRenderMode;
 	{
 		private HeadlessPreviewManager m_PreviewHandlerInstance;
 
-		public PreviewManager(HeadlessPreviewManager previewHandlerInstance)
+		public PreviewManager()
         {
-			m_PreviewHandlerInstance = previewHandlerInstance;
+			m_PreviewHandlerInstance = new HeadlessPreviewManager();
         }
 
 		public void OnPreviewExpansionChanged(string nodeName, bool newExpansionState)
@@ -45,7 +45,7 @@ using PreviewRenderMode = HeadlessPreviewManager.PreviewRenderMode;
 
         public void OnLocalPropertyChanged(string nodeName, string propertyName, object newValue)
         {
-            
+
         }
 	}
 }
