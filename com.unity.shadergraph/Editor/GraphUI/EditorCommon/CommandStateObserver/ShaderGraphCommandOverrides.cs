@@ -197,8 +197,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
         public static void HandleUpdateConstantValue(
             GraphViewStateComponent graphViewState,
             PreviewManager previewManager,
-            UpdateConstantValueCommand updateConstantValueCommand
-        )
+            UpdateConstantValueCommand updateConstantValueCommand)
         {
             // TODO: Handle Property values being changed when those come online
             // using var previewUpdater = graphPreviewState.UpdateScope;
