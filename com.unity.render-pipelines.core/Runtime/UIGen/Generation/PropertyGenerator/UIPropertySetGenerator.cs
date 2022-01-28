@@ -125,8 +125,6 @@ namespace UnityEngine.Rendering.UIGen
             if (!generator.Generate(categorizedProperty.property, out result, out error))
                 return false;
 
-            // TODO: [Fred] Add feature mutators here
-
             using (ListPool<UIDefinition.IFeatureParameter>.Get(out var features))
             {
                 features.AddRange(categorizedProperty.property.features);
@@ -135,7 +133,7 @@ namespace UnityEngine.Rendering.UIGen
 
                 foreach (var featureParameter in features)
                 {
-                    if (!featureParameter.Mutate(ref result, out error))
+                    if (!featureParameter.Mutate(categorizedProperty.property, ref result, out error))
                         return false;
                 }
             }

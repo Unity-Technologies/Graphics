@@ -9,7 +9,8 @@ namespace UnityEngine.Rendering.UIGen
         public interface IFeatureParameter
         {
             [MustUseReturnValue]
-            bool Mutate([DisallowNull] ref UIImplementationIntermediateDocuments result,
+            bool Mutate([DisallowNull] Property property,
+                [DisallowNull] ref UIImplementationIntermediateDocuments result,
                 [NotNullWhen(false)] out Exception error);
         }
     }

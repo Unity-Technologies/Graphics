@@ -19,10 +19,7 @@ namespace UnityEngine.Rendering.UIGen
             documents = default;
             error = default;
 
-            if (!GeneratorUtility.ExtractAndNicifyName((string)property.propertyPath, out var niceName, out error))
-                return false;
-
-            var element = XElement.Parse(@$"<FloatField label=""{niceName}"" value=""42"" name=""{property.propertyPath}"" binding-path=""{property.propertyPath}""/>");
+            var element = XElement.Parse(@$"<FloatField value=""42"" name=""{property.propertyPath}"" />");
             // Add namespace
             element.Name = UxmlConstants.ui + element.Name.LocalName;
 
