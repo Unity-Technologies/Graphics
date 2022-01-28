@@ -74,8 +74,7 @@ namespace UnityEngine.Rendering
                 }
 
                 tabsVisualElement.AddTab(panelHeader);
-                tabContentVisualElement.Add(panelVisualElement);
-                panel.BindTo(panelVisualElement);
+                panel.AttachChildToParentAndRegisterCallbacks(panelVisualElement, tabContentVisualElement);
             }
 
             var resetButtonElement = runtimeUIDocument.rootVisualElement.Q<Button>("ResetButton");

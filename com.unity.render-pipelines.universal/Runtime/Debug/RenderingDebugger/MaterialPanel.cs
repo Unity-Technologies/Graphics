@@ -149,10 +149,6 @@ namespace UnityEngine.Rendering.Universal
         {
             var panelVisualTreeAsset = Resources.Load<VisualTreeAsset>("MaterialPanel");
             VisualElement panel = CreateVisualElement(panelVisualTreeAsset);
-
-            RegisterCallback<Enum>(panel, nameof(materialValidationMode), materialValidationMode, OnMaterialValidationModeChanged);
-            RegisterCallback<Enum>(panel, nameof(albedoValidationPreset), albedoValidationPreset, OnMaterialAlbedoDebugValidationPresetChanged);
-
             return panel;
         }
 
@@ -164,6 +160,35 @@ namespace UnityEngine.Rendering.Universal
         public override bool IsLightingActive => !AreAnySettingsActive;
 
         public override bool TryGetScreenClearColor(ref Color color) => false;
+
+        protected override void RegisterCallbacks(VisualElement element)
+        {
+            RegisterCallback<Enum>(element, nameof(materialValidationMode), materialValidationMode, OnMaterialValidationModeChanged);
+            RegisterCallback<Enum>(element, nameof(albedoValidationPreset), albedoValidationPreset, OnMaterialAlbedoDebugValidationPresetChanged);
+        }
+
+#if !UNITY_EDITOR
+        protected override void BindToInternal(VisualElement targetElement)
+        {
+            // Material filters
+            RegisterChange<Enum>(targetElement, nameof(materialDebugMode), materialDebugMode, evt => materialDebugMode = (DebugMaterialMode)evt.newValue);
+            RegisterChange<Enum>(targetElement, nameof(vertexAttributeDebugMode), vertexAttributeDebugMode, evt => vertexAttributeDebugMode = (DebugVertexAttributeMode)evt.newValue);
+
+            // Material Validation
+            RegisterChange<Enum>(targetElement, nameof(materialValidationMode), materialValidationMode, evt => materialValidationMode = (DebugMaterialValidationMode)evt.newValue);
+
+            // Albedo
+            RegisterChange<Enum>(targetElement, nameof(albedoValidationPreset), albedoValidationPreset, evt => albedoValidationPreset = (DebugDisplaySettingsMaterial.AlbedoDebugValidationPreset)evt.newValue);
+            RegisterChange<float>(targetElement, nameof(albedoMinLuminance), albedoMinLuminance, evt => albedoMinLuminance = evt.newValue);
+            RegisterChange<float>(targetElement, nameof(albedoMaxLuminance), albedoMaxLuminance, evt => albedoMaxLuminance = evt.newValue);
+            RegisterChange<float>(targetElement, nameof(albedoHueTolerance), albedoHueTolerance, evt => albedoHueTolerance = evt.newValue);
+            RegisterChange<float>(targetElement, nameof(albedoSaturationTolerance), albedoSaturationTolerance, evt => albedoSaturationTolerance = evt.newValue);
+
+            // Metallic
+            RegisterChange<float>(targetElement, nameof(metallicMinValue), metallicMinValue, evt => metallicMinValue = evt.newValue);
+            RegisterChange<float>(targetElement, nameof(metallicMaxValue), metallicMaxValue, evt => metallicMaxValue = evt.newValue);
+        }
+#endif
 
         private void OnMaterialAlbedoDebugValidationPresetChanged(ChangeEvent<Enum> evt)
         {

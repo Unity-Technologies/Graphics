@@ -6,7 +6,7 @@
         <ui:Toggle label="HDR" name="enableHDR" binding-path="enableHDR" tooltip="Use the checkbox to disable High Dynamic Range in the scene." />
         <ui:Toggle label="MSAA" name="enableMsaa" tooltip="Use the checkbox to disable MSAA in the scene." binding-path="enableMsaa" />
         <ui:EnumField label="Post-processing" type="UnityEngine.Rendering.Universal.DebugPostProcessingMode, Unity.RenderPipeline.Universal.ShaderLibrary" value="Auto" binding-path="postProcessingDebugMode" name="postProcessingDebugMode" />
-        <ui:EnumField label="Additional Wireframe Modes" type="UnityEngine.Rendering.Universal.DebugWireframeMode, Unity.RenderPipelines.Universal.Runtime" binding-path="m_WireframeMode" name="m_WireframeMode" />
-        <ui:Toggle label="Overdraw" name="m_Overdraw" binding-path="m_Overdraw" />
+        <ui:EnumField label="Additional Wireframe Modes" type="UnityEngine.Rendering.Universal.DebugWireframeMode, Unity.RenderPipelines.Universal.Runtime" binding-path="wireframeMode" name="wireframeMode" />
+        <ui:Toggle label="Overdraw" name="overdraw" binding-path="overdraw" />
     </ui:GroupBox>
 </ui:UXML>

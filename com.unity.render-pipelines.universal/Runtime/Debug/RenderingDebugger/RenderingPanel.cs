@@ -12,11 +12,7 @@ namespace UnityEngine.Rendering.Universal
         public override VisualElement CreatePanel()
         {
             var panelVisualTreeAsset = Resources.Load<VisualTreeAsset>("RenderingPanel");
-            var panel = CreateVisualElement(panelVisualTreeAsset);
-
-            RegisterCallback<Enum>(panel, nameof(fullScreenDebugMode), fullScreenDebugMode, OnFullScreenDebugModeChanged);
-
-            return panel;
+            return CreateVisualElement(panelVisualTreeAsset);
         }
 
         public override bool AreAnySettingsActive =>
@@ -65,6 +61,25 @@ namespace UnityEngine.Rendering.Universal
             SetElementHidden(nameof(fullScreenDebugModeOutputSizeScreenPercent), (DebugFullScreenMode)evt.newValue == DebugFullScreenMode.None);
         }
 
+        private void UpdateDebugSceneOverrideMode()
+        {
+            switch (wireframeMode)
+            {
+                case DebugWireframeMode.Wireframe:
+                    sceneOverrideMode = DebugSceneOverrideMode.Wireframe;
+                    break;
+                case DebugWireframeMode.SolidWireframe:
+                    sceneOverrideMode = DebugSceneOverrideMode.SolidWireframe;
+                    break;
+                case DebugWireframeMode.ShadedWireframe:
+                    sceneOverrideMode = DebugSceneOverrideMode.ShadedWireframe;
+                    break;
+                default:
+                    sceneOverrideMode = overdraw ? DebugSceneOverrideMode.Overdraw : DebugSceneOverrideMode.None;
+                    break;
+            }
+        }
+
         /// <summary>
         /// Size of the debug fullscreen overlay, as percentage of the screen size.
         /// </summary>
@@ -88,59 +103,36 @@ namespace UnityEngine.Rendering.Universal
         // Under the hood, the implementation uses a single enum (DebugSceneOverrideMode). For UI & public API,
         // we have split this enum into WireframeMode and a separate Overdraw boolean.
 
-        // NOTE: Should be private, but must be public for data binding.
-        // TODO binding to this doesn't work because the property setter updating SceneOverrideMode never gets called. Need to rethink.
-        public DebugWireframeMode m_WireframeMode = DebugWireframeMode.None;
-
         /// <summary>
         /// Current debug wireframe mode.
         /// </summary>
-        public DebugWireframeMode wireframeMode
-        {
-            get => m_WireframeMode;
-            set
-            {
-                m_WireframeMode = value;
-                UpdateDebugSceneOverrideMode();
-            }
-        }
-
-        void UpdateDebugSceneOverrideMode()
-        {
-            switch (wireframeMode)
-            {
-                case DebugWireframeMode.Wireframe:
-                    sceneOverrideMode = DebugSceneOverrideMode.Wireframe;
-                    break;
-                case DebugWireframeMode.SolidWireframe:
-                    sceneOverrideMode = DebugSceneOverrideMode.SolidWireframe;
-                    break;
-                case DebugWireframeMode.ShadedWireframe:
-                    sceneOverrideMode = DebugSceneOverrideMode.ShadedWireframe;
-                    break;
-                default:
-                    sceneOverrideMode = overdraw ? DebugSceneOverrideMode.Overdraw : DebugSceneOverrideMode.None;
-                    break;
-            }
-        }
+        public DebugWireframeMode wireframeMode;
 
         internal DebugSceneOverrideMode sceneOverrideMode { get; set; } = DebugSceneOverrideMode.None;
-
-        // NOTE: Should be private, but must be public for data binding.
-        // TODO binding to this doesn't work because the property setter updating SceneOverrideMode never gets called. Need to rethink.
-        public bool m_Overdraw = false;
 
         /// <summary>
         /// Whether debug overdraw mode is active.
         /// </summary>
-        public bool overdraw
+        public bool overdraw;
+
+        protected override void RegisterCallbacks(VisualElement element)
         {
-            get => m_Overdraw;
-            set
-            {
-                m_Overdraw = value;
-                UpdateDebugSceneOverrideMode();
-            }
+            RegisterCallback<Enum>(element, nameof(fullScreenDebugMode), fullScreenDebugMode, OnFullScreenDebugModeChanged);
+            RegisterCallback<Enum>(element, nameof(wireframeMode), wireframeMode, _ => UpdateDebugSceneOverrideMode());
+            RegisterCallback<bool>(element, nameof(overdraw), overdraw, _ => UpdateDebugSceneOverrideMode());
         }
+
+#if !UNITY_EDITOR
+        protected override void BindToInternal(VisualElement targetElement)
+        {
+            RegisterChange<Enum>(targetElement, nameof(fullScreenDebugMode), fullScreenDebugMode, evt => fullScreenDebugMode = (DebugFullScreenMode)evt.newValue);
+            RegisterChange<Enum>(targetElement, nameof(postProcessingDebugMode), postProcessingDebugMode, evt => postProcessingDebugMode = (DebugPostProcessingMode)evt.newValue);
+            RegisterChange<Enum>(targetElement, nameof(wireframeMode), wireframeMode, evt => wireframeMode = (DebugWireframeMode)evt.newValue);
+            RegisterChange<bool>(targetElement, nameof(enableHDR), enableHDR, evt => enableHDR = evt.newValue);
+            RegisterChange<bool>(targetElement, nameof(enableMsaa), enableMsaa, evt => enableMsaa = evt.newValue);
+            RegisterChange<int>(targetElement, nameof(fullScreenDebugModeOutputSizeScreenPercent), fullScreenDebugModeOutputSizeScreenPercent, evt => fullScreenDebugModeOutputSizeScreenPercent = evt.newValue);
+        }
+#endif
+
     }
 }

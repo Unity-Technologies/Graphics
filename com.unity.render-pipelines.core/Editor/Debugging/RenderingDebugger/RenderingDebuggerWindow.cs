@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering
                 }
 
                 tabsVisualElement.Add(panelHeader);
-                tabContentVisualElement.Add(panelVisualElement);
+                panel.AttachChildToParentAndRegisterCallbacks(panelVisualElement, tabContentVisualElement);
             }
 
             controller = new(rootVisualElement);
@@ -75,24 +75,11 @@ namespace UnityEditor.Rendering
             RenderingDebuggerState.instance.OnReset += OnReset;
             var resetButtonElement = this.rootVisualElement.Q<Button>("ResetButton");
             resetButtonElement.clicked += () => RenderingDebuggerState.instance.Reset();
-
-            BindPanels();
         }
 
         void OnSelectedPanelChanged(string selectedPanel)
         {
             controller.OnLabelClick(rootVisualElement.Q<Label>(selectedPanel));
-        }
-
-        public void BindPanels()
-        {
-            foreach (var panelType in TypeCache.GetTypesDerivedFrom<RenderingDebuggerPanel>())
-            {
-                var panel = RenderingDebuggerState.instance.GetPanel(panelType);
-                var targetElement = this.rootVisualElement
-                    .Q<VisualElement>($"{panel.panelName}{TabbedMenuController.k_ContentNameSuffix}");
-                panel.BindTo(targetElement);
-            }
         }
 
         private void OnReset()

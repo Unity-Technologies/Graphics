@@ -50,6 +50,20 @@ namespace UnityEngine.Rendering
             }
         }
 
+        protected void RegisterChange<T>(VisualElement panel, string fieldElementName, T currentValue, EventCallback<ChangeEvent<T>> onFieldValueChanged)
+        {
+            if (onFieldValueChanged == null)
+                throw new ArgumentNullException(nameof(onFieldValueChanged));
+
+            var fieldElement = panel.Q(fieldElementName);
+            if (fieldElement == null)
+                throw new InvalidOperationException($"Element {fieldElementName} not found");
+
+            (fieldElement as BaseField<T>).value = currentValue;
+
+            fieldElement.RegisterCallback(onFieldValueChanged);
+        }
+
         protected void SetElementHidden(string elementName, bool hidden)
         {
             foreach (var panel in m_InstantiatedPanels)
@@ -70,14 +84,27 @@ namespace UnityEngine.Rendering
             m_InstantiatedPanels.Clear();
         }
 
-        public void BindTo(VisualElement targetElement)
+        public void AttachChildToParentAndRegisterCallbacks(VisualElement childVisualElement, VisualElement parentVisualElement)
         {
+            // Before binding or registering callback we need to add the child to the parent visual element
+            parentVisualElement.Add(childVisualElement);
+
+            // Sadly, the Bind function and all the bindings are not on runtime UI, do it manually for now
 #if UNITY_EDITOR
-            targetElement.Bind(new SerializedObject(this));
+            childVisualElement.Bind(new SerializedObject(this));
 #else
-            // TODO
+            BindToInternal(childVisualElement);
 #endif
+
+            // Register callback that will make sure the correct behaviour of the panel
+            RegisterCallbacks(childVisualElement);
         }
+
+        protected abstract void RegisterCallbacks(VisualElement element);
+
+#if !UNITY_EDITOR
+        protected abstract void BindToInternal(VisualElement targetElement);
+#endif
 
         public static List<Type> GetPanelTypes()
         {
