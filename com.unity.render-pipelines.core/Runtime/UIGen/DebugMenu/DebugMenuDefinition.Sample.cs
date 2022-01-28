@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace UnityEngine.Rendering.UIGen
@@ -7,14 +7,14 @@ namespace UnityEngine.Rendering.UIGen
     [DeriveDebugMenu]
     public class SampleDebugMenuData
     {
-        [DeriveDebugMenu]
+        //need to have instance (interface instead of attribute? )
         public static SampleDebugMenuData instance { get; } = new SampleDebugMenuData();
 
-        public SampleDebugDataSet1 dataSet1;
+        public SampleDebugDataSet1 dataSet1 = new SampleDebugDataSet1();
         public SampleDebugDataSet2 dataSet2 { get; } = new SampleDebugDataSet2();
     }
 
-    public struct Label {}
+    public struct Label { }
 
     public class SampleDebugDataSet1
     {
@@ -24,15 +24,25 @@ namespace UnityEngine.Rendering.UIGen
             public static Label label;
         }
 
-        public SampleDebugDataSet3 dataSet3;
+        public SampleDebugDataSet3 dataSet3 = new();
 
         [DebugMenuProperty("Category A")]
         public void Button() { }
 
         [DebugMenuProperty("Category A")]
         public float dataSet1FloatValue;
+
+        int m_DataSet1IntValue;
         [DebugMenuProperty("Category B")]
-        public int dataSet1IntValue { get; set; }
+        public int dataSet1IntValue
+        {
+            get => m_DataSet1IntValue;
+            set
+            {
+                m_DataSet1IntValue = value;
+                Debug.Log(value);
+            }
+        }
     }
 
     public class SampleDebugDataSet2
@@ -51,4 +61,3 @@ namespace UnityEngine.Rendering.UIGen
         public int dataSet3IntValue { get; set; }
     }
 }
-

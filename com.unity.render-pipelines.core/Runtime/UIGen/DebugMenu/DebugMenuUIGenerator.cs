@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.UIGen
             public string uiViewTypeName;
             public string uiViewContextTypeName;
 
-            public static Parameters Default() => new ()
+            public static Parameters Default() => new()
             {
                 uiViewTypeName = "DebugMenu",
                 uiViewContextTypeName = "DebugMenuContext",
@@ -231,9 +231,9 @@ namespace UnityEngine.Rendering.UIGen
                     SyntaxFactory.List(types)
                 );
 
-                compilationUnit = (CompilationUnitSyntax) Formatter.Format(compilationUnit, new AdhocWorkspace());
+                compilationUnit = (CompilationUnitSyntax)Formatter.Format(compilationUnit, new AdhocWorkspace());
 
-                runtimeCode = (CSharpSyntaxTree) SyntaxFactory.SyntaxTree(
+                runtimeCode = (CSharpSyntaxTree)SyntaxFactory.SyntaxTree(
                     compilationUnit
                 );
             }
@@ -271,17 +271,28 @@ namespace UnityEngine.Rendering.UIGen
                 }).ToString();
 
             usings.Add("System");
+            usings.Add("System.Collections.Generic");
             usings.Add("System.Diagnostics.CodeAnalysis");
             usings.Add("UnityEngine.UIElements");
             usings.Add("UnityEngine.Rendering.UIGen");
 
-            var code = $@"[UnityEditor.InitializeOnLoad]
+            var code = $@"// This file is Generated. Don't attempt to manually modify it
+
+[UnityEditor.InitializeOnLoad]
 public sealed class {parameters.uiViewTypeName} : UIView<{parameters.uiViewTypeName}, I{parameters.uiViewContextTypeName}>
 {{
     static {parameters.uiViewTypeName}()
     {{
         UIViewDefaults<{parameters.uiViewTypeName}>.DefaultTemplateAssetPath = ""{defaultAssetPath}"";
     }}
+
+    interface IBinding {{ }}
+    struct Binding<T> : IBinding
+    {{
+        public EventCallback<ChangeEvent<T>> callback;
+    }}
+
+    Dictionary<string, IBinding> m_Bindings = new();
 
     protected override bool BindContext(
         [DisallowNull] I{parameters.uiViewContextTypeName} context,
