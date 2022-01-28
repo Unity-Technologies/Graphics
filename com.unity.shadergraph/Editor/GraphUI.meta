@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:com.unity.shadergraph/Editor/GraphDeltaRegistry/PreviewManager.meta
+guid: 4e15735b436de9b40b8346f8f76cdb9a
+=======
 guid: 9a132d99c3cb74a3f8e6f4662535567c
+>>>>>>> sg2/staging-master:com.unity.shadergraph/Editor/GraphUI.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}
