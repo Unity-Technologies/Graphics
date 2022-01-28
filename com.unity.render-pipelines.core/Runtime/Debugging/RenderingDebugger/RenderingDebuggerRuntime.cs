@@ -1,9 +1,9 @@
-﻿using UnityEditor.Rendering.UI;
-using UnityEditor.UIElements;
+﻿//using UnityEditor.Rendering.UI;
+//using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
 #if UNITY_EDITOR
-using UnityEditor; // TODO: still required for TypeCache & bindings
+//using UnityEditor; // TODO: still required for TypeCache & bindings
 #endif
 
 namespace UnityEngine.Rendering
@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering
             tabsVisualElement.tabContentVisualElement = tabContentVisualElement;
 
             bool firstTabAdded = false;
-            foreach (var panelType in TypeCache.GetTypesDerivedFrom<RenderingDebuggerPanel>())
+            foreach (var panelType in RenderingDebuggerPanel.GetPanelTypes())
             {
                 RenderingDebuggerPanel panel = RenderingDebuggerState.instance.GetPanel(panelType);
 
@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering
 
                 tabsVisualElement.AddTab(panelHeader);
                 tabContentVisualElement.Add(panelVisualElement);
-                panelVisualElement.Bind(new SerializedObject(panel));
+                panel.BindTo(panelVisualElement);
             }
 
             var resetButtonElement = runtimeUIDocument.rootVisualElement.Q<Button>("ResetButton");

@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering
             var tabContentVisualElement = this.rootVisualElement.Q<VisualElement>("tabContent");
 
             bool firstTabAdded = false;
-            foreach (var panelType in TypeCache.GetTypesDerivedFrom<RenderingDebuggerPanel>())
+            foreach (var panelType in RenderingDebuggerPanel.GetPanelTypes())
             {
                 RenderingDebuggerPanel panel = RenderingDebuggerState.instance.GetPanel(panelType);
 
@@ -89,9 +89,9 @@ namespace UnityEditor.Rendering
             foreach (var panelType in TypeCache.GetTypesDerivedFrom<RenderingDebuggerPanel>())
             {
                 var panel = RenderingDebuggerState.instance.GetPanel(panelType);
-                this.rootVisualElement
-                    .Q<VisualElement>($"{panel.panelName}{TabbedMenuController.k_ContentNameSuffix}")
-                    .Bind(new SerializedObject(panel));
+                var targetElement = this.rootVisualElement
+                    .Q<VisualElement>($"{panel.panelName}{TabbedMenuController.k_ContentNameSuffix}");
+                panel.BindTo(targetElement);
             }
         }
 

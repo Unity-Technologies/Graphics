@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Rendering.UI
+namespace UnityEngine.Rendering
 {
     class TabbedMenuController
     {

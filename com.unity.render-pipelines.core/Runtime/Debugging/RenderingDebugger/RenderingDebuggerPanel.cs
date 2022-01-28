@@ -1,6 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine.UIElements;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.UIElements;
+#endif
 
 namespace UnityEngine.Rendering
 {
@@ -62,6 +68,42 @@ namespace UnityEngine.Rendering
         public void Reset()
         {
             m_InstantiatedPanels.Clear();
+        }
+
+        public void BindTo(VisualElement targetElement)
+        {
+#if UNITY_EDITOR
+            targetElement.Bind(new SerializedObject(this));
+#else
+            // TODO
+#endif
+        }
+
+        public static List<Type> GetPanelTypes()
+        {
+#if UNITY_EDITOR
+            return TypeCache.GetTypesDerivedFrom<RenderingDebuggerPanel>().ToList();
+#else
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            List<Type> types = new ();
+            foreach (var assembly in assemblies)
+            {
+                Type[] allAssemblyTypes;
+                try
+                {
+                    allAssemblyTypes = assembly.GetTypes();
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    allAssemblyTypes = e.Types;
+                }
+
+                var myTypes = allAssemblyTypes.Where(t =>!t.IsAbstract && typeof(RenderingDebuggerPanel).IsAssignableFrom(t));
+                types.AddRange(myTypes);
+            }
+
+            return types;
+#endif
         }
     }
 }
