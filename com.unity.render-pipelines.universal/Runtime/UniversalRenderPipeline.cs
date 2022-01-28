@@ -511,8 +511,8 @@ namespace UnityEngine.Rendering.Universal
                         if (currCameraRendererType != baseCameraRendererType)
                         {
                             Debug.LogWarning("Only cameras with compatible renderer types can be stacked. " +
-                                             $"The camera: {currCameraName} are using the renderer {currCameraRendererType}, " +
-                                             $"but the base camera: {baseCamera.name} are using {baseCameraRendererType}. Will skip rendering");
+                                             $"The camera: {currCameraName} are using the renderer {currCameraRendererType.Name}, " +
+                                             $"but the base camera: {baseCamera.name} are using {baseCameraRendererType.Name}. Will skip rendering");
                             continue;
                         }
 

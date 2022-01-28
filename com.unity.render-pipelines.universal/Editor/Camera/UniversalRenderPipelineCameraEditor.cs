@@ -121,9 +121,9 @@ namespace UnityEditor.Rendering.Universal
                     }
 
                     errorContent = EditorGUIUtility.TrTextContent("",
-                        $"Is using the renderer {renderer.GetType().Name} " +
-                        "which is not of the same type as the base camera's renderer " +
-                        $"{baseAdditionalData.scriptableRenderer.GetType().Name}", CoreEditorStyles.iconFail);
+                        $"Only cameras with compatible renderer types can be stacked. " +
+                        $"The camera: {cam.name} are using the renderer {renderer.GetType().Name}, " +
+                        $"but the base camera: {camera.name} are using {baseAdditionalData.scriptableRenderer.GetType().Name}. Will skip rendering", CoreEditorStyles.iconFail);
                 }
                 else if (m_IncompatibleCameras.Contains(cam))
                 {
@@ -142,7 +142,7 @@ namespace UnityEditor.Rendering.Universal
                     }
 
                     errorContent = EditorGUIUtility.TrTextContent("",
-                        $"This camera is using a renderer of type {renderer.GetType().Name} which does not support Overlay cameras in it's current state.", CoreEditorStyles.iconFail);
+                        $"The camera: {cam.name} is using a renderer of type {renderer.GetType().Name} which does not support Overlay cameras in it's current state.", CoreEditorStyles.iconFail);
                 }
                 else if (m_NotSupportedOverlayCameras.Contains(cam))
                 {
@@ -155,7 +155,8 @@ namespace UnityEditor.Rendering.Universal
                     {
                         m_TypeErrorCameras.Add(cam);
                     }
-                    errorContent = EditorGUIUtility.TrTextContent(type.GetName(), "Not a supported type",
+                    errorContent = EditorGUIUtility.TrTextContent(type.GetName(), $"Stack can only contain Overlay cameras. The camera: {cam.name} " +
+                                                                                    $"has a type {type} that is not supported. Will skip rendering.",
                         CoreEditorStyles.iconFail);
                 }
                 else if (m_TypeErrorCameras.Contains(cam))
