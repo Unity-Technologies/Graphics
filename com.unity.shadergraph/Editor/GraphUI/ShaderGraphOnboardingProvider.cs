@@ -4,7 +4,7 @@ using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows
+namespace UnityEditor.ShaderGraph.GraphUI
 {
     public class ShaderGraphOnboardingProvider : OnboardingProvider
     {

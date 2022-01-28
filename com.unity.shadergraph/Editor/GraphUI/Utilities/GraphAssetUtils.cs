@@ -1,6 +1,4 @@
-﻿using UnityEditor.ShaderGraph.GraphUI.GraphElements.Windows;
-using UnityEngine;
-using UnityEngine.Rendering;
+﻿using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph.GraphUI.Utilities
 {
