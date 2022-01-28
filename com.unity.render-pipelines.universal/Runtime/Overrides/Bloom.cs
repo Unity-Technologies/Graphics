@@ -2,8 +2,14 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
+    public enum BloomDownscaleMode
+    {
+        Half,
+        Quarter,
+    }
+
     [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Bloom", typeof(UniversalRenderPipeline))]
-    public sealed class Bloom : VolumeComponent, IPostProcessComponent
+    public sealed partial class Bloom : VolumeComponent, IPostProcessComponent
     {
         [Header("Bloom")]
         [Tooltip("Filters out pixels under this level of brightness. Value is in gamma-space.")]
@@ -24,8 +30,11 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Use bicubic sampling instead of bilinear sampling for the upsampling passes. This is slightly more expensive but helps getting smoother visuals.")]
         public BoolParameter highQualityFiltering = new BoolParameter(false);
 
-        [Tooltip("The number of final iterations to skip in the effect processing sequence.")]
-        public ClampedIntParameter skipIterations = new ClampedIntParameter(1, 0, 16);
+        [Tooltip("The starting resolution that this effect begins processing."), AdditionalProperty]
+        public DownscaleParameter downscale = new DownscaleParameter(BloomDownscaleMode.Half);
+
+        [Tooltip("The maximum number of iterations in the effect processing sequence."), AdditionalProperty]
+        public ClampedIntParameter maxIterations = new ClampedIntParameter(6, 2, 8);
 
         [Header("Lens Dirt")]
         [Tooltip("Dirtiness texture to add smudges or dust to the bloom effect.")]
@@ -40,4 +49,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public bool IsTileCompatible() => false;
     }
+
+    [Serializable]
+    public sealed class DownscaleParameter : VolumeParameter<BloomDownscaleMode> { public DownscaleParameter(BloomDownscaleMode value, bool overrideState = false) : base(value, overrideState) { } }
 }
