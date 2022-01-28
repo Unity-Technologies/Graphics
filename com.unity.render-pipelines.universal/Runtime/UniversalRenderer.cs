@@ -521,15 +521,11 @@ namespace UnityEngine.Rendering.Universal
                 createColorTexture |= createDepthTexture;
 
             //Set rt descriptors so preview camera's have access should it be needed
-            CommandBuffer cmd = CommandBufferPool.Get();
             var colorDescriptor = cameraTargetDescriptor;
             colorDescriptor.useMipMap = false;
             colorDescriptor.autoGenerateMips = false;
             colorDescriptor.depthBufferBits = (int)DepthBits.None;
-            m_ColorBufferSystem.SetCameraSettings(cmd, colorDescriptor, FilterMode.Bilinear);
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            m_ColorBufferSystem.SetCameraSettings(colorDescriptor, FilterMode.Bilinear);
 
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
@@ -643,7 +639,7 @@ namespace UnityEngine.Rendering.Universal
                 depthDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
                 RenderingUtils.ReAllocateIfNeeded(ref m_DepthTexture, depthDescriptor, FilterMode.Point, wrapMode: TextureWrapMode.Clamp, name: "_CameraDepthTexture");
 
-                cmd = CommandBufferPool.Get();
+                CommandBuffer cmd = CommandBufferPool.Get();
                 cmd.SetGlobalTexture(m_DepthTexture.name, m_DepthTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -675,7 +671,7 @@ namespace UnityEngine.Rendering.Universal
 
                 RenderingUtils.ReAllocateIfNeeded(ref normalsTexture, normalDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: normalsTextureName);
 
-                cmd = CommandBufferPool.Get();
+                CommandBuffer cmd = CommandBufferPool.Get();
                 cmd.SetGlobalTexture(normalsTexture.name, normalsTexture.nameID);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -1023,7 +1019,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void FinishRendering(CommandBuffer cmd)
         {
-            m_ColorBufferSystem.Clear(cmd);
+            m_ColorBufferSystem.Clear();
             m_ActiveCameraColorAttachment = null;
             m_ActiveCameraDepthAttachment = null;
         }
