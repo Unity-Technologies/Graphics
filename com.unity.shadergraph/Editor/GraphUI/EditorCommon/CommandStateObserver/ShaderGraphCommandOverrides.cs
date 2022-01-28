@@ -4,6 +4,7 @@ using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphDelta;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.Utilities;
+using UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
@@ -15,6 +16,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
         public static void HandleCreateEdge(
             UndoStateComponent undoState,
             GraphViewStateComponent graphViewState,
+            PreviewManager previewManager,
             Preferences preferences,
             CreateEdgeCommand command)
         {
@@ -53,12 +55,16 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             {
                 // Validation should have already happened in GraphModel.IsCompatiblePort.
                 Assert.IsTrue(shaderGraphModel.TryConnect(fromDataPort, toDataPort));
+
+                // Notify preview manager that this nodes connections have changed
+                previewManager.OnNodeFlowChanged(toDataPort.graphDataNodeModel.graphDataName);
             }
         }
 
         public static void HandleBypassNodes(
             UndoStateComponent undoState,
             GraphViewStateComponent graphViewState,
+            PreviewManager previewManager,
             BypassNodesCommand command)
         {
             BypassNodesCommand.DefaultCommandHandler(undoState, graphViewState, command);
@@ -69,6 +75,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             foreach (var graphData in command.Models.OfType<GraphDataNodeModel>())
             {
                 graphModel.GraphHandler.RemoveNode(graphData.graphDataName);
+
+                // Need to update downstream nodes previews of the bypassed node
+                previewManager.OnNodeFlowChanged(graphData.graphDataName);
             }
         }
 
@@ -76,7 +85,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
             UndoStateComponent undoState,
             GraphViewStateComponent graphViewState,
             SelectionStateComponent selectionState,
-            GraphPreviewStateComponent graphPreviewState,
+            PreviewManager previewManager,
             DeleteElementsCommand command)
         {
             if (!command.Models.Any())
@@ -157,79 +166,54 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
 
             graphUpdater.MarkDeleted(deletedModels);
 
-            using var previewUpdater = graphPreviewState.UpdateScope;
+            foreach (var nodeModel in command.Models)
             {
-                foreach (var nodeModel in command.Models)
-                {
-                    if(nodeModel is GraphDataNodeModel graphDataNodeModel)
-                        previewUpdater.GraphDataNodeRemoved(graphDataNodeModel);
-                }
-            }
-        }
-
-        // Currently this is unused because we don't take advantage of GTFs ability
-        // for models to be enabled/disabled.
-        public static void HandleNodeStateChanged(
-            GraphPreviewStateComponent graphPreviewState,
-            ChangeNodeStateCommand changeNodeStateCommand
-        )
-        {
-            using var previewUpdater = graphPreviewState.UpdateScope;
-            {
-                foreach (var nodeModel in changeNodeStateCommand.Models)
-                {
-                    previewUpdater.UpdateNodeState(nodeModel.Guid.ToString(), changeNodeStateCommand.Value);
-                }
+                if (nodeModel is GraphDataNodeModel graphDataNodeModel)
+                    previewManager.OnNodeFlowChanged(graphDataNodeModel.graphDataName);
             }
         }
 
         public static void HandleGraphElementRenamed(
             GraphViewStateComponent graphViewState,
-            GraphPreviewStateComponent graphPreviewState,
+            PreviewManager previewManager,
             RenameElementCommand renameElementCommand
         )
         {
-            using var previewUpdater = graphPreviewState.UpdateScope;
-            {
-                if (renameElementCommand.Model is IVariableDeclarationModel variableDeclarationModel)
-                {
-                    previewUpdater.MarkNodeNeedingRecompile(variableDeclarationModel.Guid.ToString(), null);
-
-                    // TODO: Handle this in a similar way to HandleUpdateConstantValue, but also accounting for recompiles
-
-                    // React to property being renamed by finding all linked property nodes and marking them as requiring recompile and also needing constant value update
-                    var graphNodes = graphViewState.GraphModel.NodeModels;
-                    foreach (var graphNode in graphNodes)
-                    {
-                        if (graphNode is IVariableNodeModel variableNodeModel && Equals(variableNodeModel.VariableDeclarationModel, variableDeclarationModel))
-                        {
-                            previewUpdater.MarkNodeNeedingRecompile(variableNodeModel.Guid.ToString(), null);
-                            previewUpdater.UpdateVariableConstantValue(variableDeclarationModel.InitializationModel.ObjectValue, variableNodeModel);
-                        }
-                    }
-                }
-            }
+            // TODO: Handle Properties being renamed when those come online
+            //if (renameElementCommand.Model is IVariableDeclarationModel variableDeclarationModel)
+            //{
+            //    // React to property being renamed by finding all linked property nodes and marking them as requiring recompile and also needing constant value update
+            //    var graphNodes = graphViewState.GraphModel.NodeModels;
+            //    foreach (var graphNode in graphNodes)
+            //    {
+            //        if (graphNode is IVariableNodeModel variableNodeModel && Equals(variableNodeModel.VariableDeclarationModel, variableDeclarationModel))
+            //        {
+            //            previewManager.NotifyNodeFlowChanged(variableNodeModel);
+            //        }
+            //    }
+            //}
         }
 
         public static void HandleUpdateConstantValue(
             GraphViewStateComponent graphViewState,
-            GraphPreviewStateComponent graphPreviewState,
+            PreviewManager previewManager,
             UpdateConstantValueCommand updateConstantValueCommand
         )
         {
-            using var previewUpdater = graphPreviewState.UpdateScope;
-            {
-                // Find all property nodes backed by this constant
-                var graphNodes = graphViewState.GraphModel.NodeModels;
-                foreach (var graphNode in graphNodes)
-                {
-                    if (graphNode is IVariableNodeModel variableNodeModel &&
-                        Equals(variableNodeModel.VariableDeclarationModel.InitializationModel, updateConstantValueCommand.Constant))
-                    {
-                        previewUpdater.UpdateVariableConstantValue(updateConstantValueCommand.Value, variableNodeModel);
-                    }
-                }
-            }
+            // TODO: Handle Property values being changed when those come online
+            // using var previewUpdater = graphPreviewState.UpdateScope;
+            // {
+            //     // Find all property nodes backed by this constant
+            //     var graphNodes = graphViewState.GraphModel.NodeModels;
+            //     foreach (var graphNode in graphNodes)
+            //     {
+            //         if (graphNode is IVariableNodeModel variableNodeModel &&
+            //             Equals(variableNodeModel.VariableDeclarationModel.InitializationModel, updateConstantValueCommand.Constant))
+            //         {
+            //             previewUpdater.UpdateVariableConstantValue(updateConstantValueCommand.Value, variableNodeModel);
+            //         }
+            //     }
+            // }
         }
     }
 }

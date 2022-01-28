@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
+using UnityEditor.ShaderGraph.GraphUI.EditorCommon.Preview;
 using UnityEngine;
 using UnityEngine.GraphToolsFoundation.CommandStateObserver;
 
@@ -12,9 +13,7 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
 
         public static void RegisterCommandHandlers(BaseGraphTool graphTool, GraphView graphView, Dispatcher dispatcher)
         {
-            // TODO (Brett) This assumes that the window for preview exists.
-            // TODO We should get preview state from somewhere else.
-            GraphPreviewStateComponent graphPreviewState = PersistedState.GetOrCreateViewStateComponent<GraphPreviewStateComponent>("Graph Preview State", m_previewStateWindowGUID);
+            PreviewManager previewManagerInstance = null;
 
             if (dispatcher is not CommandDispatcher commandDispatcher)
                 return;
@@ -39,18 +38,18 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
                 graphView.GraphViewState
             );
 
-            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, GraphPreviewStateComponent, ChangePreviewExpandedCommand>(
+            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, PreviewManager, ChangePreviewExpandedCommand>(
                 ChangePreviewExpandedCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
                 graphView.GraphViewState,
-                graphPreviewState
+                previewManagerInstance
             );
 
-            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, GraphPreviewStateComponent, ChangePreviewModeCommand>(
+            commandDispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, PreviewManager, ChangePreviewModeCommand>(
                 ChangePreviewModeCommand.DefaultCommandHandler,
                 graphTool.UndoStateComponent,
                 graphView.GraphViewState,
-                graphPreviewState
+                previewManagerInstance
             );
 
             //commandDispatcher.RegisterCommandHandler<GraphViewStateComponent, GraphWindowTickCommand>(
@@ -60,42 +59,39 @@ namespace UnityEditor.ShaderGraph.GraphUI.EditorCommon.CommandStateObserver
 
             // Overrides for default GTF commands
 
-            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, Preferences, CreateEdgeCommand>(
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, PreviewManager, Preferences, CreateEdgeCommand>(
                 ShaderGraphCommandOverrides.HandleCreateEdge,
                 graphTool.UndoStateComponent,
                 graphView.GraphViewState,
+                previewManagerInstance,
                 graphTool.Preferences
             );
 
-            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, SelectionStateComponent, GraphPreviewStateComponent, DeleteElementsCommand>(
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, SelectionStateComponent, PreviewManager, DeleteElementsCommand>(
                 ShaderGraphCommandOverrides.HandleDeleteElements,
                 graphTool.UndoStateComponent,
                 graphView.GraphViewState,
                 graphView.SelectionState,
-                graphPreviewState
+                previewManagerInstance
             );
 
-            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, BypassNodesCommand>(
+            dispatcher.RegisterCommandHandler<UndoStateComponent, GraphViewStateComponent, PreviewManager, BypassNodesCommand>(
                 ShaderGraphCommandOverrides.HandleBypassNodes,
                 graphTool.UndoStateComponent,
-                graphView.GraphViewState
+                graphView.GraphViewState,
+                previewManagerInstance
             );
 
-            dispatcher.RegisterCommandHandler<GraphViewStateComponent, GraphPreviewStateComponent, RenameElementCommand>(
+            dispatcher.RegisterCommandHandler<GraphViewStateComponent, PreviewManager, RenameElementCommand>(
                 ShaderGraphCommandOverrides.HandleGraphElementRenamed,
                 graphView.GraphViewState,
-                graphPreviewState
+                previewManagerInstance
             );
 
-            dispatcher.RegisterCommandHandler<GraphPreviewStateComponent, ChangeNodeStateCommand>(
-                ShaderGraphCommandOverrides.HandleNodeStateChanged,
-                graphPreviewState
-            );
-
-            dispatcher.RegisterCommandHandler<GraphViewStateComponent, GraphPreviewStateComponent, UpdateConstantValueCommand>(
+            dispatcher.RegisterCommandHandler<GraphViewStateComponent, PreviewManager, UpdateConstantValueCommand>(
                 ShaderGraphCommandOverrides.HandleUpdateConstantValue,
                 graphView.GraphViewState,
-                graphPreviewState
+                previewManagerInstance
             );
         }
     }
