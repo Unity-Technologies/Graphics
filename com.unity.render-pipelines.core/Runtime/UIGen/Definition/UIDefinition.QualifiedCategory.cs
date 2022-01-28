@@ -51,6 +51,13 @@ namespace UnityEngine.Rendering.UIGen
             {
                 return HashCode.Combine(primary, secondary);
             }
+
+            public override string ToString()
+            {
+                return secondary.HasValue && !string.IsNullOrEmpty((string) secondary.Value)
+                    ? $"{primary}.{secondary.Value}"
+                    : (string) primary;
+            }
         }
     }
 }

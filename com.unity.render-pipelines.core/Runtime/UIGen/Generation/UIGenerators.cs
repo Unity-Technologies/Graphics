@@ -99,13 +99,45 @@ namespace UnityEngine.Rendering.UIGen
 
             var element = XElement.Parse(@$"<IntegerField label=""{niceName}"" value=""42"" binding-path=""{property.propertyPath}"" xmlns=""ui""/>");
 
-            if (!UIImplementationIntermediateDocuments.From(element, out var document, out error))
+            if (!UIImplementationIntermediateDocuments.From(element, out documents, out error))
                 return false;
 
-            document.bindContextBody = document.bindContextBody.AddStatements(SyntaxFactory.ParseStatement("int toto = 0;"));
+            documents.bindContextBody = documents.bindContextBody.AddStatements(SyntaxFactory.ParseStatement("int toto = 0;"));
 
             //debug purpose only
-            Debug.Log(document.bindContextBody.ToString());
+            Debug.Log(documents.bindContextBody.ToString());
+            Debug.Log(element);
+            //end debug
+
+            return true;
+        }
+    }
+
+    [UIPropertyGeneratorSupports(typeof(DebugMenuUIGenerator.DebugMenu))]
+    [UIPropertyGenerator(typeof(float))]
+    public class FloatUIPropertyGenerator : UIPropertyGenerator
+    {
+        public override bool Generate(
+            [DisallowNull] in Property property,
+            [NotNullWhen(true)] out UIImplementationIntermediateDocuments documents,
+            [NotNullWhen(false)] out Exception error
+        )
+        {
+            documents = default;
+            error = default;
+
+            if (!GeneratorUtility.ExtractAndNicifyName((string)property.propertyPath, out var niceName, out error))
+                return false;
+
+            var element = XElement.Parse(@$"<FloatField label=""{niceName}"" value=""42"" binding-path=""{property.propertyPath}"" xmlns=""ui""/>");
+
+            if (!UIImplementationIntermediateDocuments.From(element, out documents, out error))
+                return false;
+
+            documents.bindContextBody = documents.bindContextBody.AddStatements(SyntaxFactory.ParseStatement("int toto = 0;"));
+
+            //debug purpose only
+            Debug.Log(documents.bindContextBody.ToString());
             Debug.Log(element);
             //end debug
 

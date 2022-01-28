@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.UIGen
                     return false;
                 }
 
-                if (typeof(UIPropertyGenerator).IsAssignableFrom(type))
+                if (type.IsAssignableFrom(typeof(UIPropertyGenerator)))
                 {
                     error = new ArgumentException($"Type {type.Name} is not a {nameof(UIPropertyGenerator)}").WithStackTrace();
                     return false;
@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering.UIGen
             result = new();
             foreach (var categorizedProperty in definition.categorizedProperties.list)
             {
-                if (GenerateIntermediateDocumentsFor(categorizedProperty, out var document, out error))
+                if (!GenerateIntermediateDocumentsFor(categorizedProperty, out var document, out error))
                     return false;
 
                 result.Add(categorizedProperty.property, document);

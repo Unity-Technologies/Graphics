@@ -26,6 +26,11 @@ namespace UnityEngine.Rendering.UIGen
                 this.type = type;
             }
 
+            public override string ToString()
+            {
+                return $"{type.Name} {propertyPath}";
+            }
+
             [MustUseReturnValue]
             public bool AddFeature<TFeature>(
                 [DisallowNull] in TFeature feature,

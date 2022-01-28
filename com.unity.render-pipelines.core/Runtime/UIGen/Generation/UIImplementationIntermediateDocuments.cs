@@ -5,8 +5,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using UnityEngine.Rendering.UIGen.UXML;
-
 namespace UnityEngine.Rendering.UIGen
 {
     public class UIImplementationIntermediateDocuments

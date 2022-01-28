@@ -30,6 +30,11 @@ namespace UnityEngine.Rendering.UIGen
                 this.category = category;
                 this.property = property;
             }
+
+            public override string ToString()
+            {
+                return $"{category}: {property}";
+            }
         }
 
         [MustUseReturnValue]
@@ -40,18 +45,28 @@ namespace UnityEngine.Rendering.UIGen
             PropertyTooltip tooltip,
             CategoryId primaryCategory,
             CategoryId? secondaryCategory,
-            [NotNullWhen(true)] out Property property,
+            [NotNullWhen(true)] out CategorizedProperty categorizedProperty,
             [NotNullWhen(false)] out Exception error
         )
         {
-            if (!Property.New(path, type, out property, out error))
+            categorizedProperty = default;
+
+            if (!Property.New(path, type, out var property, out error))
                 return false;
 
             if (!property.SetDisplayName(name, out error))
-                    return false;
+                return false;
 
             if (!property.SetTooltip(tooltip, out error))
                 return false;
+
+            if (!QualifiedCategory.From(primaryCategory, secondaryCategory, out var category, out error))
+                return false;
+
+            if (!CategorizedProperty.From(category, property, out categorizedProperty, out error))
+                return false;
+
+            categorizedProperties.list.Add(categorizedProperty);
 
             return true;
         }

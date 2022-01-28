@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.UIGen
         static DebugMenuImporter()
         {
             AssemblyReloadEvents.afterAssemblyReload += ImportDebugMenuCallback;
-            ImportDebugMenuCallback();
+            EditorApplication.delayCall += ImportDebugMenuCallback;
         }
 
         static void ImportDebugMenuCallback()

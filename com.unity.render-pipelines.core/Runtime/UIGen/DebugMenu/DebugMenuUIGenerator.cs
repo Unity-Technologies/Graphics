@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.UIGen
                 return;
             }
 
-            if (UIPropertySetGenerator.TryFromGeneratorTypes(generators, out k_DebugMenuUIPropertyGenerator, out error))
+            if (!UIPropertySetGenerator.TryFromGeneratorTypes(generators, out k_DebugMenuUIPropertyGenerator, out error))
             {
                 Debug.LogException(error);
                 return;
