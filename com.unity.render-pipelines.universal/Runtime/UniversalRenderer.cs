@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.Universal
 
             {
                 var postProcessParams = PostProcessParams.Create();
-                postProcessParams.blitMaterial = m_BlitMaterial;
+                postProcessParams.blitMaterial = m_CoreBlitMaterial;
                 postProcessParams.requestHDRFormat = GraphicsFormat.B10G11R11_UFloatPack32;
                 var asset = UniversalRenderPipeline.asset;
                 if (asset)
