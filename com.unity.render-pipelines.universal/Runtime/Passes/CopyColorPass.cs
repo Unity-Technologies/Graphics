@@ -127,9 +127,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 source = renderingData.cameraData.renderer.cameraColorTargetHandle;
             }
 
-            //using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
-            //TODOPAUL: Remove this !
-            using (new ProfilingScope(cmd, new ProfilingSampler("Copy_Color_" + destination.name)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyColor)))
             {
                 ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag,
                     clearColor);
