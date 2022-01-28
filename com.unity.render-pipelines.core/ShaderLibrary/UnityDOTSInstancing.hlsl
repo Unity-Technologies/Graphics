@@ -194,7 +194,6 @@ void SetupDOTSInstanceSelectMasks()
 {
     uint instanceIndex = GetDOTSInstanceIndex();
     uint offsetSingleChannel = instanceIndex << 2; // float: stride 4 bytes
-    uint offsetDoubleChannel = instanceIndex << 3; // float2: stride 8 bytes
 
     // x = 0 = 00
     // y = 1 = 01
@@ -205,11 +204,9 @@ void SetupDOTSInstanceSelectMasks()
     // Bits 29 and 28 give the channel index.
     unity_DOTSInstanceData_Select4_Mask0 = uint(int(offsetSingleChannel << 29) >> 31);
     unity_DOTSInstanceData_Select4_Mask1 = uint(int(offsetSingleChannel << 28) >> 31);
-
-    // Lowest 3 bits are zero, all accesses are aligned,
-    // and base addresses are aligned by 16.
-    // Bit 28 gives high or low channels.
-    unity_DOTSInstanceData_Select2_Mask = uint(int(offsetDoubleChannel << 28) >> 31);
+    // Select2 mask is the same as the low bit mask of select4, since
+    // (x << 3) << 28 == (x << 2) << 29
+    unity_DOTSInstanceData_Select2_Mask = unity_DOTSInstanceData_Select4_Mask0;
 }
 
 #else
