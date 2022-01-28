@@ -250,6 +250,13 @@ namespace UnityEditor.VFX
 
                 transientMaterial = material;
                 OnMaterialChange?.Invoke();
+
+                var properties = ShaderUtil.GetMaterialProperties(new[] { material });
+                foreach (var property in shaderGraph.properties)
+                {
+                    var orderedProperty = properties.Single(x => x.name == property.referenceName);
+                    property.order = Array.IndexOf(properties, orderedProperty);
+                }
             }
         }
 
@@ -473,12 +480,12 @@ namespace UnityEditor.VFX
                     foreach (var property in shaderGraph.properties
                              .Where(t => !t.hidden)
                              .Select(t => new { property = t, type = GetSGPropertyType(t) })
-                             .Where(t => t.type != null))
+                             .Where(t => t.type != null)
+                             .OrderBy(t => t.property.order))
                     {
                         if (property.property.propertyType == PropertyType.Float)
                         {
-                            var prop = property.property as Vector1ShaderProperty;
-                            if (prop != null)
+                            if (property.property is Vector1ShaderProperty prop)
                             {
                                 if (prop.floatType == FloatType.Slider)
                                     shaderGraphProperties.Add(new VFXPropertyWithValue(new VFXProperty(property.type, property.property.referenceName, new RangeAttribute(prop.rangeValues.x, prop.rangeValues.y)), GetSGPropertyValue(property.property)));
