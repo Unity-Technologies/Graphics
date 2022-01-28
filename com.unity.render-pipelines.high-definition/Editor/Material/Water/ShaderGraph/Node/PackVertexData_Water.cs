@@ -28,29 +28,23 @@ namespace UnityEditor.Rendering.HighDefinition
         const int kDisplacementInputSlotId = 1;
         const string kDisplacementInputSlotName = "Displacement";
 
-        const int kDisplacementNoChopinessInputSlotId = 2;
-        const string kDisplacementNoChopinessInputSlotName = "DisplacementNoChopiness";
-
-        const int kLowFrequencyHeightInputSlotId = 3;
+        const int kLowFrequencyHeightInputSlotId = 2;
         const string kLowFrequencyHeightInputSlotName = "LowFrequencyHeight";
 
-        const int kSSSMaskInputSlotId = 4;
+        const int kSSSMaskInputSlotId = 3;
         const string kSSSMaskInputSlotName = "SSSMask";
 
-        const int kCustomFoamInputSlotId = 5;
-        const string kCustomFoamInputSlotName = "CustomFoam";
-
         // Outputs
-        const int kPositionOSOutputSlotId = 6;
+        const int kPositionOSOutputSlotId = 4;
         const string kPositionOSOutputSlotName = "PositionOS";
 
-        const int kNormalOSOutputSlotId = 7;
+        const int kNormalOSOutputSlotId = 5;
         const string kNormalOSOutputSlotName = "NormalOS";
 
-        const int kUV0OutputSlotId = 8;
+        const int kUV0OutputSlotId = 6;
         const string kUV0OutputSlotName = "uv0";
 
-        const int kUV1OutputSlotId = 9;
+        const int kUV1OutputSlotId = 7;
         const string kUV1OutputSlotName = "uv1";
 
         public override bool hasPreview { get { return false; } }
@@ -60,10 +54,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // Inputs
             AddSlot(new Vector3MaterialSlot(kPositionWSInputSlotId, kPositionWSInputSlotName, kPositionWSInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Vertex));
             AddSlot(new Vector3MaterialSlot(kDisplacementInputSlotId, kDisplacementInputSlotName, kDisplacementInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Vertex));
-            AddSlot(new Vector3MaterialSlot(kDisplacementNoChopinessInputSlotId, kDisplacementNoChopinessInputSlotName, kDisplacementNoChopinessInputSlotName, SlotType.Input, Vector3.zero, ShaderStageCapability.Vertex));
             AddSlot(new Vector1MaterialSlot(kLowFrequencyHeightInputSlotId, kLowFrequencyHeightInputSlotName, kLowFrequencyHeightInputSlotName, SlotType.Input, 0, ShaderStageCapability.Vertex));
             AddSlot(new Vector1MaterialSlot(kSSSMaskInputSlotId, kSSSMaskInputSlotName, kSSSMaskInputSlotName, SlotType.Input, 0, ShaderStageCapability.Vertex));
-            AddSlot(new Vector1MaterialSlot(kCustomFoamInputSlotId, kCustomFoamInputSlotName, kCustomFoamInputSlotName, SlotType.Input, 0, ShaderStageCapability.Vertex));
 
             // Outputs
             AddSlot(new Vector3MaterialSlot(kPositionOSOutputSlotId, kPositionOSOutputSlotName, kPositionOSOutputSlotName, SlotType.Output, Vector3.zero));
@@ -75,10 +67,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 kPositionWSInputSlotId,
                 kDisplacementInputSlotId,
-                kDisplacementNoChopinessInputSlotId,
                 kLowFrequencyHeightInputSlotId,
                 kSSSMaskInputSlotId,
-                kCustomFoamInputSlotId,
 
                 kPositionOSOutputSlotId,
                 kNormalOSOutputSlotId,
@@ -96,17 +86,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 string positionWS = GetSlotValue(kPositionWSInputSlotId, generationMode);
                 string displacement = GetSlotValue(kDisplacementInputSlotId, generationMode);
-                string displacementNoChopiness = GetSlotValue(kDisplacementNoChopinessInputSlotId, generationMode);
                 string lowFrequencyHeight = GetSlotValue(kLowFrequencyHeightInputSlotId, generationMode);
-                string customFoam = GetSlotValue(kCustomFoamInputSlotId, generationMode);
                 string sssMask = GetSlotValue(kSSSMaskInputSlotId, generationMode);
 
-                sb.AppendLine("PackWaterVertexData({0}, {1}, {2}, {3}, {4}, {5}, packedWaterData);",
+                sb.AppendLine("PackWaterVertexData({0}, {1}, {2}, {3}, packedWaterData);",
                     positionWS,
                     displacement,
-                    displacementNoChopiness,
                     lowFrequencyHeight,
-                    customFoam,
                     sssMask
                 );
 

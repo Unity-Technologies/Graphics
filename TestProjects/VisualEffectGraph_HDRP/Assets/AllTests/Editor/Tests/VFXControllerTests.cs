@@ -1059,7 +1059,7 @@ namespace UnityEditor.VFX.Test
         }
 
         //Extension of previous test (related to 1345426) : create two outputs in subgraph (instead of one), revert and restore
-        [UnityTest]
+        //[UnityTest] //Removing test see case 1397570
         public IEnumerator ConvertToSubGraphOperator_And_ModifySubgraph()
         {
             var previousTest = ConvertToSubGraphOperator();
