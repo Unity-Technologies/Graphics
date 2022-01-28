@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.UIGen
     {
         public readonly bool showAlpha;
         public readonly bool hdr;
-        public bool Mutate(ref UIImplementationIntermediateDocuments result, out Exception error)
+        public bool Mutate(UIDefinition.Property property, ref UIImplementationIntermediateDocuments result, out Exception error)
         {
             throw new NotImplementedException();
         }

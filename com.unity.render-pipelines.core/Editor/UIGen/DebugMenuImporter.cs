@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
@@ -7,6 +8,7 @@ using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.Rendering.UIGen;
+using Debug = UnityEngine.Debug;
 
 namespace UnityEditor.Rendering.UIGen
 {
@@ -61,7 +63,12 @@ namespace UnityEditor.Rendering.UIGen
             if (!ValidateDataSources(dataSource, out error))
                 return false;
 
-            if (!GenerateDefinitions(dataSource, out var definition, out var context, out error))
+            using var featureParsersRef = ListPool<IFeatureParser>.Get(out var featureParsers);
+            if (!GetFeatureParsersFor<DebugMenuUIGenerator.DebugMenu>(featureParsers, out error))
+                return false;
+
+            // TODO: [Fred] Move to a generic parser
+            if (!GenerateDefinitions(dataSource, featureParsers, out var definition, out var context, out error))
                 return false;
 
             // TODO: [Fred] Compute hash later
@@ -107,6 +114,43 @@ namespace UnityEditor.Rendering.UIGen
         }
 
         [MustUseReturnValue]
+        static bool GetFeatureParsersFor<TExtensionTarget>(
+            [DisallowNull] ICollection<IFeatureParser> featureParsers,
+            [NotNullWhen(false)] out Exception error
+        )
+        {
+            foreach (var type in TypeCache.GetTypesWithAttribute(typeof(FeatureParserAttribute)))
+            {
+                var attribute = type.GetCustomAttribute<FeatureParserAttribute>();
+                if (attribute.attributeType == null)
+                {
+                    error = new InvalidOperationException($"Type {type} has a {nameof(FeatureParserAttribute)} attribute with a null type").WithStackTrace();
+                    return false;
+                }
+
+                if (!typeof(Attribute).IsAssignableFrom(attribute.attributeType))
+                {
+                    error = new InvalidOperationException($"Type {type} has a {nameof(FeatureParserAttribute)} attribute with a non attribute type {attribute.attributeType.Name}").WithStackTrace();
+                    return false;
+                }
+
+                var expectedBase = typeof(IFeatureParser<>).MakeGenericType(attribute.attributeType);
+                if (!expectedBase.IsAssignableFrom(type))
+                {
+                    error = new InvalidOperationException($"Type {type} has a {nameof(FeatureParserAttribute)} attribute but do not inherit from {expectedBase.Name}").WithStackTrace();
+                    return false;
+                }
+
+                // TODO: [Fred] Use TExtensionTarget to filter only supported types
+
+                featureParsers.Add((IFeatureParser) Activator.CreateInstance(type));
+            }
+
+            error = default;
+            return true;
+        }
+
+        [MustUseReturnValue]
         static bool ValidateDataSources<TList>(
             [DisallowNull] TList dataSource,
             [NotNullWhen(false)] out Exception error
@@ -131,12 +175,11 @@ namespace UnityEditor.Rendering.UIGen
         }
 
         [MustUseReturnValue]
-        static bool GenerateDefinitions<TList>(
-            [DisallowNull] TList dataSource,
+        static bool GenerateDefinitions<TList>([DisallowNull] TList dataSource,
+            [NotNullWhen(true)] IReadOnlyList<IFeatureParser> featureParsers,
             [NotNullWhen(true)] out UIDefinition uiDefinition,
             [NotNullWhen(true)] out UIContextDefinition uiContextDefinition,
-            [NotNullWhen(false)] out Exception error
-        )
+            [NotNullWhen(false)] out Exception error)
             where TList : IList<System.Type>
         {
             uiDefinition = default;
@@ -144,6 +187,7 @@ namespace UnityEditor.Rendering.UIGen
 
             if (!GenerateUIDefinitionForAllTypes(
                     dataSource,
+                    featureParsers,
                     out var uiDefinitions,
                     out var uiContextDefinitions,
                     out error
@@ -168,10 +212,10 @@ namespace UnityEditor.Rendering.UIGen
         [MustUseReturnValue]
         static bool GenerateUIDefinitionForAllTypes<TList>(
             [DisallowNull] TList dataSource,
+            [DisallowNull] IReadOnlyList<IFeatureParser> featureParsers,
             out PooledList<UIDefinition> uiDefinitions,
             out PooledList<UIContextDefinition> uiContextDefinitions,
-            [NotNullWhen(false)] out Exception error
-        )
+            [NotNullWhen(false)] out Exception error)
             where TList : IList<Type>
         {
             uiDefinitions = default;
@@ -183,7 +227,7 @@ namespace UnityEditor.Rendering.UIGen
             {
                 foreach (var type in dataSource)
                 {
-                    if (!GenerateUIDefinitionForType(type, out var uiDefinition, out var uiContextDefinition, out error))
+                    if (!GenerateUIDefinitionForType(type, featureParsers, out var uiDefinition, out var uiContextDefinition, out error))
                         return false;
 
                     uiDefinitionsTmp.Add(uiDefinition);
@@ -200,23 +244,23 @@ namespace UnityEditor.Rendering.UIGen
         }
 
         [MustUseReturnValue]
-        static bool GenerateUIDefinitionForType(
-            [DisallowNull] Type type,
+        static bool GenerateUIDefinitionForType([DisallowNull] Type type,
+            [DisallowNull] IReadOnlyList<IFeatureParser> featureParsers,
             [NotNullWhen(true)] out UIDefinition uiDefinition,
             [NotNullWhen(true)] out UIContextDefinition uiContextDefinition,
-            [NotNullWhen(false)] out Exception error
-        )
+            [NotNullWhen(false)] out Exception error)
         {
             [MustUseReturnValue]
             bool GenerateUIDefinitionRecursive(
                 [DisallowNull] Type typeWalk,
+                [DisallowNull] IReadOnlyList<IFeatureParser> featureParsersWalk,
                 [DisallowNull] UIDefinition uiDefinitionWalk,
                 [DisallowNull] string pathWalk,
                 [NotNullWhen(false)] out Exception errorWalk
             )
             {
                 // Find leaves
-                foreach (var (propertyPath, propertyType, propertyName, tooltip, primary, secondary)
+                foreach (var (propertyPath, propertyType, propertyName, tooltip, primary, secondary, info)
                          in typeWalk.GetFields(BindingFlags.Instance | BindingFlags.Public)
                              .Select(info => (type: info.FieldType, info: (MemberInfo)info))
                              .Union(typeWalk.GetProperties(BindingFlags.Instance | BindingFlags.Public)
@@ -231,7 +275,8 @@ namespace UnityEditor.Rendering.UIGen
                                      propertyName: UIDefinition.PropertyName.FromUnsafe(info.Item2.Name),
                                      tooltip: UIDefinition.PropertyTooltip.FromUnsafe(attribute.tooltip),
                                      primaryCategory: UIDefinition.CategoryId.FromUnsafe(attribute.primaryCategory),
-                                     secondaryCategory: UIDefinition.CategoryId.FromUnsafe(attribute.secondaryCategory)
+                                     secondaryCategory: UIDefinition.CategoryId.FromUnsafe(attribute.secondaryCategory),
+                                     info: info.Item2
                                 );
                              }))
                 {
@@ -242,10 +287,18 @@ namespace UnityEditor.Rendering.UIGen
                             tooltip,
                             primary,
                             secondary,
-                            out _,
+                            out var categorizedProperty,
                             out errorWalk
                         ))
                         return false;
+
+                    foreach (var featureParser in featureParsers)
+                    {
+                        if (!featureParser.Parse(info, categorizedProperty.property, out errorWalk))
+                            return false;
+                    }
+
+                    return true;
                 }
 
                 // Find non-leaves types and recurse
@@ -260,7 +313,7 @@ namespace UnityEditor.Rendering.UIGen
                                  childPath: $"{pathWalk}.{info.Item2.Name}"
                              )))
                 {
-                    if (!GenerateUIDefinitionRecursive(childType, uiDefinitionWalk, childPath, out errorWalk))
+                    if (!GenerateUIDefinitionRecursive(childType, featureParsersWalk, uiDefinitionWalk, childPath, out errorWalk))
                         return false;
                 }
 
@@ -272,7 +325,7 @@ namespace UnityEditor.Rendering.UIGen
             uiDefinition = new UIDefinition();
             // Note: the initial path must be the same as the context paths, see GenerateContextDefinition
             var path = type.Name;
-            if (!GenerateUIDefinitionRecursive(type, uiDefinition, path, out error))
+            if (!GenerateUIDefinitionRecursive(type, featureParsers, uiDefinition, path, out error))
                 return false;
 
             uiContextDefinition = new UIContextDefinition();
