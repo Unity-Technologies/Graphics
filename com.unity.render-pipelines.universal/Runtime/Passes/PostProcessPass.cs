@@ -32,6 +32,7 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_InternalLut;
         RTHandle m_CameraTargetHandle;
         RTHandle m_FullCoCTexture;
+        RTHandle m_HalfCoCTexture;
         RTHandle m_PingTexture;
         RTHandle m_PongTexture;
 
@@ -193,6 +194,7 @@ namespace UnityEngine.Rendering.Universal
             m_UpscaledTarget?.Release();
             m_CameraTargetHandle?.Release();
             m_FullCoCTexture?.Release();
+            m_HalfCoCTexture?.Release();
             m_PingTexture?.Release();
             m_PongTexture?.Release();
         }
@@ -835,10 +837,9 @@ namespace UnityEngine.Rendering.Universal
             material.SetVector(ShaderConstants._CoCParams, new Vector3(farStart, farEnd, maxRadius));
 
             RenderingUtils.ReAllocateIfNeeded(ref m_FullCoCTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_GaussianCoCFormat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_FullCoCTexture");
+            RenderingUtils.ReAllocateIfNeeded(ref m_HalfCoCTexture, GetCompatibleDescriptor(wh, hh, m_GaussianCoCFormat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_HalfCoCTexture");
             RenderingUtils.ReAllocateIfNeeded(ref m_PingTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PingTexture");
             RenderingUtils.ReAllocateIfNeeded(ref m_PongTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PongTexture");
-            // Temporary textures
-            cmd.GetTemporaryRT(ShaderConstants._HalfCoCTexture, GetCompatibleDescriptor(wh, hh, m_GaussianCoCFormat), FilterMode.Bilinear);
 
             PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
             cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
@@ -847,20 +848,20 @@ namespace UnityEngine.Rendering.Universal
             Blit(cmd, source, m_FullCoCTexture.nameID, material, 0);
 
             // Downscale & prefilter color + coc
-            m_MRT2[0] = ShaderConstants._HalfCoCTexture;
+            m_MRT2[0] = m_HalfCoCTexture.nameID;
             m_MRT2[1] = m_PingTexture.nameID;
 
             cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
             cmd.SetViewport(pixelRect);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, m_FullCoCTexture.nameID);
-            cmd.SetRenderTarget(m_MRT2, ShaderConstants._HalfCoCTexture, 0, CubemapFace.Unknown, -1);
+            cmd.SetRenderTarget(m_MRT2, m_HalfCoCTexture.nameID, 0, CubemapFace.Unknown, -1);
             DrawFullscreenMesh(cmd, material, 1);
 
             cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
 
             // Blur
-            cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, ShaderConstants._HalfCoCTexture);
+            cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, m_HalfCoCTexture.nameID);
             Blit(cmd, m_PingTexture.nameID, m_PongTexture.nameID, material, 2);
             Blit(cmd, m_PongTexture.nameID, BlitDstDiscardContent(cmd, m_PingTexture.nameID), material, 3);
 
