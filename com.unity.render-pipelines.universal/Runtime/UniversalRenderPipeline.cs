@@ -505,24 +505,33 @@ namespace UnityEngine.Rendering.Universal
                     {
                         currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var data);
 
+                        // Checking if the base and the overlay camera is of the same renderer type.
+                        var currCameraRendererType = data?.scriptableRenderer.GetType();
+                        var currCameraName = currCamera.name;
+                        if (currCameraRendererType != baseCameraRendererType)
+                        {
+                            Debug.LogWarning("Only cameras with compatible renderer types can be stacked. " +
+                                             $"The camera: {currCameraName} are using the renderer {currCameraRendererType}, " +
+                                             $"but the base camera: {baseCamera.name} are using {baseCameraRendererType}. Will skip rendering");
+                            continue;
+                        }
+
+                        var overlayRenderer = data.scriptableRenderer;
+                        // Checking if they are the same renderer type but just not supporting Overlay
+                        if ((overlayRenderer.SupportedCameraRenderTypes() & 1 << (int)CameraRenderType.Overlay) == 0)
+                        {
+                            Debug.LogWarning($"The camera: {currCameraName} is using a renderer of type {renderer.GetType().Name} which does not support Overlay cameras in it's current state.");
+                            continue;
+                        }
+
                         if (data == null || data.renderType != CameraRenderType.Overlay)
                         {
-                            Debug.LogWarning(string.Format("Stack can only contain Overlay cameras. {0} will skip rendering.", currCamera.name));
+                            Debug.LogWarning($"Stack can only contain Overlay cameras. {currCameraName} " +
+                                             $"has a type {data.renderType} that is not supported. Will skip rendering.");
                             continue;
                         }
 
                         cameraStackRequiresDepthForPostprocessing |= CheckPostProcessForDepth();
-
-                        var currCameraRendererType = data?.scriptableRenderer.GetType();
-                        if (currCameraRendererType != baseCameraRendererType)
-                        {
-                            var renderer2DType = typeof(Renderer2D);
-                            if (currCameraRendererType != renderer2DType && baseCameraRendererType != renderer2DType)
-                            {
-                                Debug.LogWarning(string.Format("Only cameras with compatible renderer types can be stacked. {0} will skip rendering", currCamera.name));
-                                continue;
-                            }
-                        }
 
                         anyPostProcessingEnabled |= data.renderPostProcessing;
                         lastActiveOverlayCameraIndex = i;

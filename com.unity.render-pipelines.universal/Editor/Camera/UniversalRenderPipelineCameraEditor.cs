@@ -122,7 +122,7 @@ namespace UnityEditor.Rendering.Universal
 
                     errorContent = EditorGUIUtility.TrTextContent("",
                         $"Is using the renderer {renderer.GetType().Name} " +
-                        "which is not of the same type as this cameras renderer " +
+                        "which is not of the same type as the base camera's renderer " +
                         $"{baseAdditionalData.scriptableRenderer.GetType().Name}", CoreEditorStyles.iconFail);
                 }
                 else if (m_IncompatibleCameras.Contains(cam))
