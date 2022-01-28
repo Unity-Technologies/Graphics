@@ -172,14 +172,62 @@ static const uint kAddressMask        = 0x7fffffff;
 
 static DOTSVisibleData unity_SampledDOTSVisibleData;
 
-void SetupDOTSVisibleInstancingData()
-{
-    unity_SampledDOTSVisibleData = unity_DOTSVisibleInstances[unity_InstanceID];
-}
-
 uint GetDOTSInstanceIndex()
 {
     return unity_SampledDOTSVisibleData.VisibleData.x;
+}
+
+#ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
+// In UBO mode we precompute our select masks based on our instance index.
+// All base addresses are aligned by 16, so we already know which offsets
+// the instance index will load (modulo 16).
+// All float1 loads will share the select4 masks, and all float2 loads
+// will share the select2 mask.
+// These variables are single assignment only, and should hopefully be well
+// optimizable and dead code eliminatable for the compiler.
+static uint unity_DOTSInstanceData_Select4_Mask0;
+static uint unity_DOTSInstanceData_Select4_Mask1;
+static uint unity_DOTSInstanceData_Select2_Mask;
+
+// The compiler should dead code eliminate the parts of this that are not used by the shader.
+void SetupDOTSInstanceSelectMasks()
+{
+    uint instanceIndex = GetDOTSInstanceIndex();
+    uint offsetSingleChannel = instanceIndex << 2; // float: stride 4 bytes
+    uint offsetDoubleChannel = instanceIndex << 3; // float2: stride 8 bytes
+
+    // x = 0 = 00
+    // y = 1 = 01
+    // z = 2 = 10
+    // w = 3 = 11
+    // Lowest 2 bits are zero, all accesses are aligned,
+    // and base addresses are aligned by 16.
+    // Bits 29 and 28 give the channel index.
+    unity_DOTSInstanceData_Select4_Mask0 = uint(int(offsetSingleChannel << 29) >> 31);
+    unity_DOTSInstanceData_Select4_Mask1 = uint(int(offsetSingleChannel << 28) >> 31);
+
+    // Lowest 3 bits are zero, all accesses are aligned,
+    // and base addresses are aligned by 16.
+    // Bit 28 gives high or low channels.
+    unity_DOTSInstanceData_Select2_Mask = uint(int(offsetDoubleChannel << 28) >> 31);
+}
+
+#else
+
+// This is a no-op in SSBO mode
+void SetupDOTSInstanceSelectMasks() {}
+
+#endif
+
+void SetDOTSVisibleData(DOTSVisibleData visibleData)
+{
+    unity_SampledDOTSVisibleData = visibleData;
+    SetupDOTSInstanceSelectMasks();
+}
+
+void SetupDOTSVisibleInstancingData()
+{
+    SetDOTSVisibleData(unity_DOTSVisibleInstances[unity_InstanceID]);
 }
 
 int GetDOTSInstanceCrossfadeSnorm8()
@@ -234,15 +282,8 @@ uint ComputeDOTSInstanceDataAddressOverridden(uint metadata, uint stride, out bo
 #ifdef UNITY_DOTS_INSTANCING_UNIFORM_BUFFER
 uint DOTSInstanceData_Select(uint addressOrOffset, uint4 v)
 {
-    // x = 0 = 00
-    // y = 1 = 01
-    // z = 2 = 10
-    // w = 3 = 11
-    // Lowest 2 bits are zero, all accesses are aligned,
-    // and base addresses are aligned by 16.
-    // Bits 29 and 28 give the channel index.
-    uint mask0 = uint(int(addressOrOffset << 29) >> 31);
-    uint mask1 = uint(int(addressOrOffset << 28) >> 31);
+    uint mask0 = unity_DOTSInstanceData_Select4_Mask0;
+    uint mask1 = unity_DOTSInstanceData_Select4_Mask1;
     return
         (((v.w & mask0) | (v.z & ~mask0)) & mask1) |
         (((v.y & mask0) | (v.x & ~mask0)) & ~mask1);
@@ -250,10 +291,7 @@ uint DOTSInstanceData_Select(uint addressOrOffset, uint4 v)
 
 uint2 DOTSInstanceData_Select2(uint addressOrOffset, uint4 v)
 {
-    // Lowest 3 bits are zero, all accesses are aligned,
-    // and base addresses are aligned by 16.
-    // Bit 28 gives high or low channels.
-    uint mask0 = uint(int(addressOrOffset << 28) >> 31);
+    uint mask0 = unity_DOTSInstanceData_Select2_Mask;
     return (v.zw & mask0) | (v.xy & ~mask0);
 }
 
