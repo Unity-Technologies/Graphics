@@ -1267,9 +1267,9 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalInt(ShaderPropertyId.lodCrossFadeType, (int)asset.lodCrossFadeType);
 
             if (asset.lodCrossFadeType == LODCrossFadeType.BayerMatrixDither)
-                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, asset.bayerMatrixTex);
+                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, asset.textures.bayerMatrixTex);
             else if (asset.lodCrossFadeType == LODCrossFadeType.BlueNoiseDither)
-                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, asset.blueNoise64LTex);
+                Shader.SetGlobalTexture(ShaderPropertyId.ditheringTexture, asset.textures.blueNoise64LTex);
         }
 
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)

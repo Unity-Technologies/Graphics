@@ -99,7 +99,7 @@ namespace UnityEditor.Rendering.Universal
 
         static bool ValidateCrossFadeDitheringTextures(UniversalRenderPipelineAsset pipelineAsset)
         {
-            return pipelineAsset.bayerMatrixTex && pipelineAsset.blueNoise64LTex;
+            return pipelineAsset.textures?.bayerMatrixTex && pipelineAsset.textures?.blueNoise64LTex;
         }
 
         static readonly ExpandedState<Expandable, UniversalRenderPipelineAsset> k_ExpandedState = new(Expandable.Rendering, "URP");

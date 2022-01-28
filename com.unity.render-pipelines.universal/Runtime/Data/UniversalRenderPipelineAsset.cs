@@ -248,12 +248,6 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
 
-        [Reload("Textures/BlueNoise64/L/LDR_LLL1_0.png")]
-        [SerializeField] Texture2D m_BlueNoise64LTex;
-
-        [Reload("Textures/BayerMatrix.png")]
-        [SerializeField] Texture2D m_BayerMatrixTex;
-
         // Note: A lut size of 16^3 is barely usable with the HDR grading mode. 32 should be the
         // minimum, the lut being encoded in log. Lower sizes would work better with an additional
         // 1D shaper lut but for now we'll keep it simple.
@@ -288,6 +282,8 @@ namespace UnityEngine.Rendering.Universal
 
             // Only enable for new URP assets by default
             instance.m_ConservativeEnclosingSphere = true;
+
+            ResourceReloader.ReloadAllNullIn(instance, packagePath);
 
             return instance;
         }
@@ -699,16 +695,6 @@ namespace UnityEngine.Rendering.Universal
         public LODCrossFadeType lodCrossFadeType
         {
             get { return m_LODCrossFadeType; }
-        }
-
-        public Texture2D blueNoise64LTex
-        {
-            get { return m_BlueNoise64LTex; }
-        }
-
-        public Texture2D bayerMatrixTex
-        {
-            get { return m_BayerMatrixTex; }
         }
 
         /// <summary>
@@ -1320,5 +1306,17 @@ namespace UnityEngine.Rendering.Universal
             if (index == -1) index = m_DefaultRendererIndex;
             return index < m_RendererDataList.Length ? m_RendererDataList[index] != null : false;
         }
+
+        [Serializable, ReloadGroup]
+        public sealed class TextureResources
+        {
+            [Reload("Textures/BlueNoise64/L/LDR_LLL1_0.png")]
+            public Texture2D blueNoise64LTex;
+
+            [Reload("Textures/BayerMatrix.png")]
+            public Texture2D bayerMatrixTex;
+        }
+
+        public TextureResources textures;
     }
 }
