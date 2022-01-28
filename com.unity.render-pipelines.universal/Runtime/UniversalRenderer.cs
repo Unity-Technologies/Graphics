@@ -92,6 +92,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+        //TODO: This approach is a prototype /!\
+        //I'm expecting an history buffer behavior already generalized in URP
+        //It's probably needed for a future integration of TAA
         CopyDepthPass m_VFXDepthCopy;
         CopyColorPass m_VFXColorCopy;
         RTHandle m_VFXDepthTexture;
