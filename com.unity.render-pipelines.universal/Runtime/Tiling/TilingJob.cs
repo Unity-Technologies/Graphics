@@ -230,9 +230,24 @@ namespace UnityEngine.Rendering.Universal
 
         static (float, float) IntersectEllipseLine(float a, float b, float3 line)
         {
-            var qa = 1f / pow2(a) + pow2(line.x) / (pow2(line.y) * pow2(b));
-            var qb = 2f * line.x * line.z / (pow2(line.y) * pow2(b));
-            var qc = line.z * line.z / (pow2(line.y) * pow2(b)) - 1f;
+            // The line is represented as a homogenous 2D line {u, v, w} such that ux + vy + w = 0.
+            // The ellipse is represented by the implicit equation x^2/a^2 + y^2/b^2 = 1.
+            // We solve the line equation for y:  y = (ux + w) / v
+            // We then substitute this into the ellipse equation and expand and re-arrange a bit:
+            //   x^2/a^2 + ((ux + w) / v)^2/b^2 = 1 =>
+            //   x^2/a^2 + ((ux + w)^2 / v^2)/b^2 = 1 =>
+            //   x^2/a^2 + (ux + w)^2/(v^2 b^2) = 1 =>
+            //   x^2/a^2 + (u^2 x^2 + w^2 + 2 u x w)/(v^2 b^2) = 1 =>
+            //   x^2/a^2 + x^2 u^2 / (v^2 b^2) + w^2/(v^2 b^2) + x 2 u w / (v^2 b^2) = 1 =>
+            //   x^2 (1/a^2 + u^2 / (v^2 b^2)) + x 2 u w / (v^2 b^2) + w^2 / (v^2 b^2) - 1 = 0
+            // We now have a quadratic equation with:
+            //   a = 1/a^2 + u^2 / (v^2 b^2)
+            //   b = 2 u w / (v^2 b^2)
+            //   c = w^2 / (v^2 b^2) - 1
+            var div = math.rcp(pow2(line.y) * pow2(b));
+            var qa = 1f / pow2(a) + pow2(line.x) * div;
+            var qb = 2f * line.x * line.z * div;
+            var qc = pow2(line.z) * div - 1f;
             var sqrtD = math.sqrt(qb * qb - 4f * qa * qc);
             var x1 = (-qb + sqrtD) / (2f * qa);
             var x2 = (-qb - sqrtD) / (2f * qa);
