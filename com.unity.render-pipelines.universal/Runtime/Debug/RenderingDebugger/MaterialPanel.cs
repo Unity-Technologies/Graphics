@@ -147,8 +147,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override VisualElement CreatePanel()
         {
-            VisualElement panel = CreateVisualElement(
-                "Packages/com.unity.render-pipelines.universal/Runtime/Debug/RenderingDebugger/MaterialPanel.uxml");
+            VisualElement panel = CreateVisualElement("MaterialPanel");
 
             RegisterCallback<Enum>(panel, nameof(materialValidationMode), materialValidationMode, OnMaterialValidationModeChanged);
             RegisterCallback<Enum>(panel, nameof(albedoValidationPreset), albedoValidationPreset, OnMaterialAlbedoDebugValidationPresetChanged);

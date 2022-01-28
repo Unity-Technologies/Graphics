@@ -1,9 +1,5 @@
-﻿#if UNITY_EDITOR
-using UnityEditor; // TODO fix this
-#endif
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine.UIElements;
 
 namespace UnityEngine.Rendering
@@ -23,11 +19,9 @@ namespace UnityEngine.Rendering
         public abstract bool TryGetScreenClearColor(ref Color color);
         private List<VisualElement> m_InstantiatedPanels = new List<VisualElement>();
 
-        protected VisualElement CreateVisualElement(string uiDocument)
+        protected VisualElement CreateVisualElement(string uiDocumentResourcesPath)
         {
-#if UNITY_EDITOR
-            // TODO fix - needs editor assembly, use Resources.Load instead?
-            var panelVisualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uiDocument);
+            var panelVisualTreeAsset = Resources.Load<VisualTreeAsset>(uiDocumentResourcesPath);
             if (panelVisualTreeAsset == null)
                 return null;
 
@@ -35,9 +29,6 @@ namespace UnityEngine.Rendering
             var panel = panelVisualTreeAsset.Instantiate();
             m_InstantiatedPanels.Add(panel);
             return panel;
-#else
-            throw new NotImplementedException();
-#endif
         }
 
         // Utility methods

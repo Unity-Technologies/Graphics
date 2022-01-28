@@ -1,15 +1,14 @@
-﻿using System;
-using UnityEditor.Rendering.UI;
+﻿using UnityEditor.Rendering.UI;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
 #if UNITY_EDITOR
-using UnityEditor;
+using UnityEditor; // TODO: still required for TypeCache & bindings
 #endif
 
 namespace UnityEngine.Rendering
 {
-    public class RenderingDebuggerRuntime : UnityEngine.MonoBehaviour
+    public class RenderingDebuggerRuntime : MonoBehaviour
     {
         public const string k_UnselectedContentClassName = "unselectedContent";
 
@@ -32,9 +31,9 @@ namespace UnityEngine.Rendering
             DontDestroyOnLoad(runtimeRenderingDebuggerGO);
             runtimeRenderingDebugger = runtimeRenderingDebuggerGO.AddComponent<RenderingDebuggerRuntime>();
             runtimeUIDocument = runtimeRenderingDebuggerGO.AddComponent<UIDocument>();
-            runtimeUIDocument.visualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/com.unity.render-pipelines.core/Runtime/Debugging/RenderingDebugger/RenderingDebuggerRuntimeContainer.uxml");
-            runtimeUIDocument.panelSettings = AssetDatabase.LoadAssetAtPath<PanelSettings>("Packages/com.unity.render-pipelines.core/Runtime/Debugging/RenderingDebugger/RenderingDebuggerPanelSettings.asset");
-            runtimeUIDocument.panelSettings.themeStyleSheet = AssetDatabase.LoadAssetAtPath<ThemeStyleSheet>("Assets/UI Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss");
+            runtimeUIDocument.visualTreeAsset = Resources.Load<VisualTreeAsset>("RenderingDebuggerRuntimeContainer");
+            runtimeUIDocument.panelSettings = Resources.Load<PanelSettings>("RenderingDebuggerPanelSettings");
+            runtimeUIDocument.panelSettings.themeStyleSheet = Resources.Load<ThemeStyleSheet>("Styles/UnityDefaultRuntimeTheme");
 
             var tabsVisualElement = runtimeUIDocument.rootVisualElement.Q<PanelTab>("tabs");
             var tabContentVisualElement = runtimeUIDocument.rootVisualElement.Q<VisualElement>("tabContent");
