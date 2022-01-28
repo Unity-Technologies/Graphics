@@ -8,7 +8,6 @@ using System.Reflection;
 
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.Graphing.Util;
 using UnityEditor.Toolbars;
 using UnityEditor.VersionControl;
 
@@ -17,7 +16,6 @@ using UnityEngine.VFX;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using UnityEngine.Profiling;
-
 using PositionType = UnityEngine.UIElements.Position;
 using Task = UnityEditor.VersionControl.Task;
 
@@ -2129,14 +2127,10 @@ namespace UnityEditor.VFX.UI
         public override void ClearSelection()
         {
             base.ClearSelection();
-            Selection.objects = controller != null && controller.model != null
-                ? new[] { controller.model.isSubgraph ? controller.model.subgraph : (VisualEffectObject)controller.model.asset }
-                : null;
-        }
-
-        public void ClearSelectionOnly()
-        {
-            base.ClearSelection();
+            if (Selection.activeObject is VFXObject)
+            {
+                Selection.activeObject = null;
+            }
         }
 
         VFXBlackboard m_Blackboard;
