@@ -32,6 +32,8 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_InternalLut;
         RTHandle m_CameraTargetHandle;
         RTHandle m_FullCoCTexture;
+        RTHandle m_PingTexture;
+        RTHandle m_PongTexture;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
@@ -191,6 +193,8 @@ namespace UnityEngine.Rendering.Universal
             m_UpscaledTarget?.Release();
             m_CameraTargetHandle?.Release();
             m_FullCoCTexture?.Release();
+            m_PingTexture?.Release();
+            m_PongTexture?.Release();
         }
 
         /// <summary>
@@ -831,11 +835,10 @@ namespace UnityEngine.Rendering.Universal
             material.SetVector(ShaderConstants._CoCParams, new Vector3(farStart, farEnd, maxRadius));
 
             RenderingUtils.ReAllocateIfNeeded(ref m_FullCoCTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_GaussianCoCFormat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_FullCoCTexture");
+            RenderingUtils.ReAllocateIfNeeded(ref m_PingTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PingTexture");
+            RenderingUtils.ReAllocateIfNeeded(ref m_PongTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PongTexture");
             // Temporary textures
             cmd.GetTemporaryRT(ShaderConstants._HalfCoCTexture, GetCompatibleDescriptor(wh, hh, m_GaussianCoCFormat), FilterMode.Bilinear);
-            cmd.GetTemporaryRT(ShaderConstants._PingTexture, GetCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
-            cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetCompatibleDescriptor(wh, hh, m_DefaultHDRFormat), FilterMode.Bilinear);
-            // Note: fresh temporary RTs don't require explicit RenderBufferLoadAction.DontCare, only when they are reused (such as PingTexture)
 
             PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
             cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
@@ -845,7 +848,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Downscale & prefilter color + coc
             m_MRT2[0] = ShaderConstants._HalfCoCTexture;
-            m_MRT2[1] = ShaderConstants._PingTexture;
+            m_MRT2[1] = m_PingTexture.nameID;
 
             cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
             cmd.SetViewport(pixelRect);
@@ -858,17 +861,13 @@ namespace UnityEngine.Rendering.Universal
 
             // Blur
             cmd.SetGlobalTexture(ShaderConstants._HalfCoCTexture, ShaderConstants._HalfCoCTexture);
-            Blit(cmd, ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
-            Blit(cmd, ShaderConstants._PongTexture, BlitDstDiscardContent(cmd, ShaderConstants._PingTexture), material, 3);
+            Blit(cmd, m_PingTexture.nameID, m_PongTexture.nameID, material, 2);
+            Blit(cmd, m_PongTexture.nameID, BlitDstDiscardContent(cmd, m_PingTexture.nameID), material, 3);
 
             // Composite
-            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, ShaderConstants._PingTexture);
+            cmd.SetGlobalTexture(ShaderConstants._ColorTexture, m_PingTexture.nameID);
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, m_FullCoCTexture.nameID);
             Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, 4);
-
-            // Cleanup
-            cmd.ReleaseTemporaryRT(ShaderConstants._PingTexture);
-            cmd.ReleaseTemporaryRT(ShaderConstants._PongTexture);
         }
 
         void PrepareBokehKernel(float maxRadius, float rcpAspect)
@@ -959,9 +958,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVectorArray(ShaderConstants._BokehKernel, m_BokehKernel);
 
             RenderingUtils.ReAllocateIfNeeded(ref m_FullCoCTexture, GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, GraphicsFormat.R8_UNorm), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_FullCoCTexture");
-            // Temporary textures
-            cmd.GetTemporaryRT(ShaderConstants._PingTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear);
-            cmd.GetTemporaryRT(ShaderConstants._PongTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear);
+            RenderingUtils.ReAllocateIfNeeded(ref m_PingTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PingTexture");
+            RenderingUtils.ReAllocateIfNeeded(ref m_PongTexture, GetCompatibleDescriptor(wh, hh, GraphicsFormat.R16G16B16A16_SFloat), FilterMode.Bilinear, TextureWrapMode.Clamp, name: "_PongTexture");
 
             PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
             cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
@@ -973,21 +971,17 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalTexture(ShaderConstants._FullCoCTexture, m_FullCoCTexture.nameID);
 
             // Downscale & prefilter color + coc
-            Blit(cmd, source, ShaderConstants._PingTexture, material, 1);
+            Blit(cmd, source, m_PingTexture.nameID, material, 1);
 
             // Bokeh blur
-            Blit(cmd, ShaderConstants._PingTexture, ShaderConstants._PongTexture, material, 2);
+            Blit(cmd, m_PingTexture.nameID, m_PongTexture.nameID, material, 2);
 
             // Post-filtering
-            Blit(cmd, ShaderConstants._PongTexture, BlitDstDiscardContent(cmd, ShaderConstants._PingTexture), material, 3);
+            Blit(cmd, m_PongTexture.nameID, BlitDstDiscardContent(cmd, m_PingTexture.nameID), material, 3);
 
             // Composite
-            cmd.SetGlobalTexture(ShaderConstants._DofTexture, ShaderConstants._PingTexture);
+            cmd.SetGlobalTexture(ShaderConstants._DofTexture, m_PingTexture.nameID);
             Blit(cmd, source, BlitDstDiscardContent(cmd, destination), material, 4);
-
-            // Cleanup
-            cmd.ReleaseTemporaryRT(ShaderConstants._PingTexture);
-            cmd.ReleaseTemporaryRT(ShaderConstants._PongTexture);
         }
 
         #endregion
