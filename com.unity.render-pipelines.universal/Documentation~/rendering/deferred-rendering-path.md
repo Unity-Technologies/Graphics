@@ -44,7 +44,7 @@ The Deferred Rendering Path has the following requirements and limitations on to
 
 * Minimum Shader Model: Shader Model 4.5.
 
-* Deferred Rendering Path does not support the OpenGL and OpenGL ES API.
+* Deferred Rendering Path does not support the OpenGL and OpenGL ES API.<br/>If a project with the Deferred Rendering Path is built for platforms using those API, the application falls back to the Forward Rendering Path.
 
 ## Implementation details
 
