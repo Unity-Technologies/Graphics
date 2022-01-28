@@ -257,7 +257,6 @@ uint2 DOTSInstanceData_Select2(uint addressOrOffset, uint4 v)
     return (v.zw & mask0) | (v.xy & ~mask0);
 }
 
-
 uint DOTSInstanceData_Load(bool secondary, uint address)
 {
     // NOTE: Indexing into a float4 is likely to generate bad code.
@@ -276,15 +275,6 @@ uint2 DOTSInstanceData_Load2(bool secondary, uint address)
         : unity_DOTSInstanceDataRaw[float4Index]);
     return DOTSInstanceData_Select2(address, raw);
 }
-uint3 DOTSInstanceData_Load3(bool secondary, uint address)
-{
-    // Float3s are packed as float4
-    uint float4Index = address >> 4;
-    uint4 raw = asuint(secondary
-        ? unity_DOTSInstanceDataRawSecondary[float4Index]
-        : unity_DOTSInstanceDataRaw[float4Index]);
-    return raw.xyz;
-}
 uint4 DOTSInstanceData_Load4(bool secondary, uint address)
 {
     uint float4Index = address >> 4;
@@ -292,6 +282,58 @@ uint4 DOTSInstanceData_Load4(bool secondary, uint address)
         secondary
         ? unity_DOTSInstanceDataRawSecondary[float4Index]
         : unity_DOTSInstanceDataRaw[float4Index]);
+}
+uint3 DOTSInstanceData_Load3(bool secondary, uint address)
+{
+    // This is likely to be slow, tightly packed float3s are tricky
+    switch (address & 0xf)
+    {
+    default:
+    case 0:
+        return DOTSInstanceData_Load4(secondary, address).xyz;
+    case 4:
+        return DOTSInstanceData_Load4(secondary, address).yzw;
+    case 8:
+        {
+            uint float4Index = address >> 4;
+            uint4 raw0;
+            uint4 raw1;
+            if (secondary)
+            {
+                raw0 = asuint(unity_DOTSInstanceDataRawSecondary[float4Index]);
+                raw1 = asuint(unity_DOTSInstanceDataRawSecondary[float4Index + 1]);
+            }
+            else
+            {
+                raw0 = asuint(unity_DOTSInstanceDataRaw[float4Index]);
+                raw1 = asuint(unity_DOTSInstanceDataRaw[float4Index + 1]);
+            }
+            uint3 v;
+            v.xy = raw0.zw;
+            v.z  = raw1.x;
+            return v;
+        }
+    case 12:
+        {
+            uint float4Index = address >> 4;
+            uint4 raw0;
+            uint4 raw1;
+            if (secondary)
+            {
+                raw0 = asuint(unity_DOTSInstanceDataRawSecondary[float4Index]);
+                raw1 = asuint(unity_DOTSInstanceDataRawSecondary[float4Index + 1]);
+            }
+            else
+            {
+                raw0 = asuint(unity_DOTSInstanceDataRaw[float4Index]);
+                raw1 = asuint(unity_DOTSInstanceDataRaw[float4Index + 1]);
+            }
+            uint3 v;
+            v.x  = raw0.w;
+            v.yz = raw1.xy;
+            return v;
+        }
+    }
 }
 #else
 uint DOTSInstanceData_Load(bool secondary_unused, uint address)
