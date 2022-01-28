@@ -130,5 +130,14 @@ namespace UnityEngine.Rendering.Universal
             get => m_LightCookieOffset;
             set => m_LightCookieOffset = value;
         }
+
+        [Tooltip("Controls the filtering quality of soft shadows. Higher quality has lower performance.")]
+        [SerializeField]
+        private SoftShadowQuality m_SoftShadowQuality = SoftShadowQuality.Medium;
+        public SoftShadowQuality softShadowQuality
+        {
+            get => m_SoftShadowQuality;
+            set => m_SoftShadowQuality = value;
+        }
     }
 }

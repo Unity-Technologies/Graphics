@@ -280,7 +280,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool isKeywordAdditionalLightShadowsEnabled;
         internal bool isKeywordSoftShadowsEnabled;
-        internal SoftShadowQuality softShadowQuality;
     }
 
     // Precomputed tile data.

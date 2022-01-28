@@ -204,6 +204,10 @@ namespace UnityEngine.Rendering.Universal
 
             if (shadowData.supportsSoftShadows && shadowLight.light.shadows == LightShadows.Soft)
             {
+                SoftShadowQuality softShadowQuality = SoftShadowQuality.Medium;
+                if (shadowLight.light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
+                    softShadowQuality = additionalLightData.softShadowQuality;
+
                 // TODO: depth and normal bias assume sample is no more than 1 texel away from shadowmap
                 // This is not true with PCF. Ideally we need to do either
                 // cone base bias (based on distance to center sample)
@@ -211,7 +215,7 @@ namespace UnityEngine.Rendering.Universal
                 // For now we scale it by the PCF kernel size of non-mobile platforms (5x5)
                 float kernelRadius = 2.5f;
 
-                switch (shadowData.softShadowQuality)
+                switch (softShadowQuality)
                 {
                     case SoftShadowQuality.High: kernelRadius = 3.5f; break; // 7x7
                     case SoftShadowQuality.Medium: kernelRadius = 2.5f; break; // 5x5

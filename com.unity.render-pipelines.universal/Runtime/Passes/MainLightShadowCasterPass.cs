@@ -243,7 +243,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
             float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
             float softShadowsProp = softShadows ? 1.0f : 0.0f;
-            softShadowsProp *= 1 + (int)shadowData.softShadowQuality;
+            if (light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
+                softShadowsProp *= 1 + (int)additionalLightData.softShadowQuality;
 
             ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
 

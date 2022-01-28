@@ -213,7 +213,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
-        [SerializeField] SoftShadowQuality m_SoftShadowQuality = SoftShadowQuality.Medium;
         [SerializeField] bool m_ConservativeEnclosingSphere = false;
         [SerializeField] int m_NumIterationsEnclosingSphere = 64;
 
@@ -883,15 +882,6 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_SoftShadowsSupported; }
             internal set { m_SoftShadowsSupported = value; }
-        }
-
-        /// <summary>
-        /// Controls the quality of soft shadow filtering.
-        /// </summary>
-        public SoftShadowQuality softShadowQuality
-        {
-            get { return m_SoftShadowQuality; }
-            internal set { m_SoftShadowQuality = value; }
         }
 
         public bool supportsDynamicBatching

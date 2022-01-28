@@ -1114,7 +1114,6 @@ namespace UnityEngine.Rendering.Universal
             shadowData.supportsAdditionalLightShadows = SystemInfo.supportsShadows && settings.supportsAdditionalLightShadows && additionalLightsCastShadows;
             shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = settings.additionalLightsShadowmapResolution;
             shadowData.supportsSoftShadows = settings.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
-            shadowData.softShadowQuality = settings.softShadowQuality;
             shadowData.shadowmapDepthBufferBits = 16;
 
             // This will be setup in AdditionalLightsShadowCasterPass.
