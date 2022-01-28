@@ -128,6 +128,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 cell.bricks = bricksData.GetSubArray(startCounts.bricksCount, counts.bricksCount);
                 cell.shL0L1Data = shL0L1Data.GetSubArray(startCounts.probesCount * kL0L1ScalarCoefficientsCount, counts.probesCount * kL0L1ScalarCoefficientsCount);
+                cell.validity = validityData.GetSubArray(startCounts.probesCount, counts.probesCount);
 
                 if (hasOptionalData)
                 {
@@ -137,7 +138,6 @@ namespace UnityEngine.Experimental.Rendering
                 if (hasSupportData)
                 {
                     cell.probePositions = positionsData.GetSubArray(startCounts.probesCount, counts.probesCount);
-                    cell.validity = validityData.GetSubArray(startCounts.probesCount, counts.probesCount);
                     cell.offsetVectors = offsetsData.GetSubArray(startCounts.offsetsCount, counts.offsetsCount);
                 }
 
