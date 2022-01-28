@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// This controls the size of the Light Cookie texture.
+    /// This controls the size of the Light Cookie atlas texture for additional lights (point, spot).
     /// </summary>
     public enum LightCookieResolution
     {
@@ -82,7 +82,8 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
-    /// Options for selecting the format for the Light Cookie texture.
+    /// Options for selecting the format for the Light Cookie atlas texture for additional lights (point, spot).
+    /// Low precision saves memory and bandwidth.
     /// </summary>
     public enum LightCookieFormat
     {
