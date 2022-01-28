@@ -126,10 +126,12 @@ namespace UnityEngine.Experimental.Rendering
             return true;
         }
 
-        internal bool ResolvePerStateCellData(TextAsset cellDataAsset, TextAsset cellOptionalDataAsset)
+        internal bool ResolvePerStateCellData(int index, TextAsset cellDataAsset, TextAsset cellOptionalDataAsset)
         {
             if (cellDataAsset == null)
                 return false;
+
+            bool hasTwoStates = (index == 1);
 
             var cellData = cellDataAsset.GetData<byte>();
             var shL0L1DataByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL0L1ScalarCoefficientsCount;
@@ -147,13 +149,16 @@ namespace UnityEngine.Experimental.Rendering
             var startCounts = new CellCounts();
             for (var i = 0; i < cells.Length; ++i)
             {
-                var cell = cells[i];
                 var counts = cellCounts[i];
+                var cellState = new ProbeReferenceVolume.Cell.PerStateData();
 
-                cell.shL0L1Data = shL0L1Data.GetSubArray(startCounts.probesCount * kL0L1ScalarCoefficientsCount, counts.probesCount * kL0L1ScalarCoefficientsCount);
-
+                cellState.shL0L1Data = shL0L1Data.GetSubArray(startCounts.probesCount * kL0L1ScalarCoefficientsCount, counts.probesCount * kL0L1ScalarCoefficientsCount);
                 if (hasOptionalData)
-                    cell.shL2Data = shL2Data.GetSubArray(startCounts.probesCount * kL2ScalarCoefficientsCount, counts.probesCount * kL2ScalarCoefficientsCount);
+                    cellState.shL2Data = shL2Data.GetSubArray(startCounts.probesCount * kL2ScalarCoefficientsCount, counts.probesCount * kL2ScalarCoefficientsCount);
+
+                cells[i].hasTwoStates = hasTwoStates;
+                if (index == 0) cells[i].state0 = cellState;
+                else            cells[i].state1 = cellState;
 
                 startCounts.Add(counts);
             }

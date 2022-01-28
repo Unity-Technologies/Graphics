@@ -113,7 +113,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 for (int i = 0; i < probeCount; ++i)
                 {
-                    dilatedProbes[i].FromSphericalHarmonicsShaderConstants(cell.shBands, cell.shL0L1Data, cell.shL2Data, i);
+                    dilatedProbes[i].FromSphericalHarmonicsShaderConstants(cell.shBands, cell.state0.shL0L1Data, cell.state0.shL2Data, i);
                     needDilating[i] = s_CustomDilationThresh.ContainsKey(i) ?
                         (cell.GetValidity(i) > s_CustomDilationThresh[i] ? 1 : 0) : (cell.GetValidity(i) > defaultThreshold ? 1 : 0);
                 }
@@ -130,7 +130,7 @@ namespace UnityEngine.Experimental.Rendering
                 int probeCount = cell.probePositions.Length;
                 for (int i = 0; i < probeCount; ++i)
                 {
-                    dilatedProbes[i].ToSphericalHarmonicsShaderConstants(cell.shBands, cell.shL0L1Data, cell.shL2Data, i);
+                    dilatedProbes[i].ToSphericalHarmonicsShaderConstants(cell.shBands, cell.state0.shL0L1Data, cell.state0.shL2Data, i);
                 }
             }
 

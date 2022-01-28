@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering
 
         internal Dictionary<string, PerStateData> states = new();
 
-        string currentState = null;
+        string currentState = null, transitionState = null;
 
         /// <summary>
         /// OnAfterDeserialize implementation.
@@ -142,9 +142,14 @@ namespace UnityEngine.Experimental.Rendering
         bool ResolveSharedCellData() => asset != null && asset.ResolveSharedCellData(cellSharedDataAsset, cellSupportDataAsset);
         bool ResolvePerStateCellData()
         {
-            if (currentState == null || !states.TryGetValue(currentState, out var data))
+            string state0 = transitionState != null ? transitionState : currentState;
+            string state1 = transitionState != null ? currentState    : null;
+            if (state0 == null || !states.TryGetValue(state0, out var data0))
                 return false;
-            return asset.ResolvePerStateCellData(data.cellDataAsset, data.cellOptionalDataAsset);
+            bool result = asset.ResolvePerStateCellData(0, data0.cellDataAsset, data0.cellOptionalDataAsset);
+            if (!(state1 == null || !states.TryGetValue(state1, out var data1)))
+                result = asset.ResolvePerStateCellData(1, data1.cellDataAsset, data1.cellOptionalDataAsset);
+            return result;
         }
 
         internal void QueueAssetLoading()
@@ -170,32 +175,42 @@ namespace UnityEngine.Experimental.Rendering
         {
             ProbeReferenceVolume.instance.RegisterPerSceneData(this);
 
-            ResolveSharedCellData();
             if (ProbeReferenceVolume.instance.sceneData != null)
-                SetBakingState(ProbeReferenceVolume.instance.bakingState);
+                Initialize();
             // otherwise baking state will be initialized in ProbeReferenceVolume.Initialize when sceneData is loaded
         }
 
         void OnDisable()
         {
-            OnDestroy();
+            QueueAssetRemoval();
+            currentState = transitionState = null;
             ProbeReferenceVolume.instance.UnregisterPerSceneData(this);
         }
 
-        void OnDestroy()
+        internal void Initialize()
         {
+            ResolveSharedCellData();
+
             QueueAssetRemoval();
-            currentState = null;
+            currentState = ProbeReferenceVolume.instance.sceneData.bakingState;
+            transitionState = null;
+            QueueAssetLoading();
         }
 
-        internal void SetBakingState(string state)
+        internal void UpdateBakingState(string state, string previousState)
         {
-            if (state == currentState)
+            if (asset == null)
                 return;
 
-            QueueAssetRemoval();
+            // if we just change state, don't need to queue anything
+            // Just load state cells from disk and wait for blending to stream updates to gpu
+            // When blending factor is < 0.5, streaming will upload cell from transition state
+            // After that, it will always upload cells from current state
+            // So gradually, all loaded cells, will be either blended towards new state, or replaced by streaming
+
             currentState = state;
-            QueueAssetLoading();
+            transitionState = previousState;
+            ResolvePerStateCellData();
         }
 
 #if UNITY_EDITOR
