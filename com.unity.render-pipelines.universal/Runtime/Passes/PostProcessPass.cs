@@ -668,21 +668,6 @@ namespace UnityEngine.Rendering.Universal
                     Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
                     cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
                     cmd.DrawProcedural(Matrix4x4.identity, m_Materials.uber, 0, MeshTopology.Quads, 4, 1, null);
-
-                    //TODO: Implement swapbuffer in 2DRenderer so we can remove this
-                    // For now, when render post - processing in the middle of the camera stack(not resolving to screen)
-                    // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
-                    // in the pipeline to avoid this extra blit.
-                    if (!m_ResolveToScreen && !m_UseSwapBuffer)
-                    {
-                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, cameraTargetHandle.nameID);
-                        cmd.SetRenderTarget(new RenderTargetIdentifier(m_Source, 0, CubemapFace.Unknown, -1),
-                            colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-
-                        scaleBias = new Vector4(1, 1, 0, 0);;
-                        cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                        cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4, 1, null);
-                    }
                 }
                 else
 #endif
@@ -694,12 +679,27 @@ namespace UnityEngine.Rendering.Universal
                         cmd.SetViewport(cameraData.pixelRect);
 
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Materials.uber);
+                }
 
-                    // TODO: Implement swapbuffer in 2DRenderer so we can remove this
-                    // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
-                    // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
-                    // in the pipeline to avoid this extra blit.
-                    if (!m_ResolveToScreen && !m_UseSwapBuffer)
+                // TODO: Implement swapbuffer in 2DRenderer so we can remove this
+                // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
+                // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
+                // in the pipeline to avoid this extra blit.
+                if (!m_ResolveToScreen && !m_UseSwapBuffer)
+                {
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    if (cameraData.xr.enabled)
+                    {
+                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, cameraTargetHandle.nameID);
+                        cmd.SetRenderTarget(new RenderTargetIdentifier(m_Source, 0, CubemapFace.Unknown, -1),
+                            colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+
+                        var scaleBias = new Vector4(1, 1, 0, 0);
+                        cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                        cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4, 1, null);
+                    }
+                    else
+#endif
                     {
                         cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, cameraTargetHandle.nameID);
                         cmd.SetRenderTarget(m_Source, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
