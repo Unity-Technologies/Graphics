@@ -675,14 +675,7 @@ namespace UnityEngine.Rendering.Universal
                 // we do an extra blit to ping pong results back to color texture. In future we should allow a Swap of the current active color texture
                 // in the pipeline to avoid this extra blit.
                 if (!m_ResolveToScreen && !m_UseSwapBuffer)
-                {
-                    bool useProcedural = false; // TODO(sandy): switch to graphics level >= 30
-#if ENABLE_VR && ENABLE_XR_MODULE
-                    if (cameraData.xr.enabled)
-                        useProcedural = true;
-#endif
-                    RenderingUtils.Blit(cmd, cameraTargetHandle, m_Source, m_BlitMaterial, 0, useProcedural, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-                }
+                    RenderingUtils.Blit(cmd, cameraTargetHandle, m_Source, m_BlitMaterial, 0, SystemInfo.graphicsShaderLevel >= 30, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 
                 if (m_UseSwapBuffer && !m_ResolveToScreen)
                 {
