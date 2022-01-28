@@ -455,6 +455,8 @@ namespace UnityEngine.Rendering.Universal
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || m_DepthPrimingMode == DepthPrimingMode.Forced;
 
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
+            //See https://docs.unity3d.com/ScriptReference/VFX.VFXManager.IsCameraBufferNeeded.html
+            //Queries which buffers the VFX Manager needs for the given Camera.
             var vfxBufferNeeded = VFXManager.IsCameraBufferNeeded(cameraData.camera);
             requiresDepthTexture = requiresDepthTexture || vfxBufferNeeded.HasFlag(VFXCameraBufferTypes.Depth);
             createColorTexture = createColorTexture || vfxBufferNeeded.HasFlag(VFXCameraBufferTypes.Color);
