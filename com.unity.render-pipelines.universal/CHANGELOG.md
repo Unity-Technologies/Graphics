@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed SHADER_API_MOBILE from shaders in cases where it affected quality.
 - Removed SHADER_HINT_NICE_QUALITY from shaders.
 - Removed low quality light fade for lighting consistency on both desktop and mobile.
-- Removed implicit SHADER_QUALITY_LOW. It now must be defined in .shader file to opt-in. SHADER_QUALITY_LOW affects particle, grass and nature view vector normalization, LOD crossfade, SH eval vertex/pixel.
+- Removed SHADER_QUALITY_LOW, SHADER_QUALITY_MEDIUM, SHADER_QUALITY_HIGH from shaders. Everything is now "SHADER_QUALITY_HIGH".
 
 ### Fixed
 - Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]

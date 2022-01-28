@@ -45,9 +45,7 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     inputData.positionWS = input.posWSShininess.xyz;
 
     half3 viewDirWS = input.viewDir;
-#if !_SHADER_QUALITY_LOW
     viewDirWS = SafeNormalize(viewDirWS);
-#endif
 
     inputData.normalWS = NormalizeNormalPerPixel(input.normal);
     inputData.viewDirectionWS = viewDirWS;
@@ -103,9 +101,7 @@ void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData
 
     vertData.viewDir = GetCameraPositionWS() - vertexInput.positionWS;
 
-#if _SHADER_QUALITY_LOW
     vertData.viewDir = SafeNormalize(vertData.viewDir);
-#endif
 
     vertData.normal = TransformObjectToWorldNormal(input.normal);
 

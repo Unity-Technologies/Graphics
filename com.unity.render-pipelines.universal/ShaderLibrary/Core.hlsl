@@ -18,21 +18,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl"
 
-// Opt-in lower shader quality.
-//#define _SHADER_QUALITY_LOW 1
-#ifndef _SHADER_QUALITY_LOW
-#define _SHADER_QUALITY_HIGH 1
-#endif
-
-#ifndef BUMP_SCALE_NOT_SUPPORTED
-    #ifdef _SHADER_QUALITY_HIGH
-        #define BUMP_SCALE_NOT_SUPPORTED 0
-    #else
-        #define BUMP_SCALE_NOT_SUPPORTED 1
-    #endif
-#endif
-
-
 #if UNITY_REVERSED_Z
     // TODO: workaround. There's a bug where SHADER_API_GL_CORE gets erroneously defined on switch.
     #if (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)

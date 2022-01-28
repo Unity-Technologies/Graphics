@@ -7,18 +7,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
 
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
-// We might do it fully or partially in vertex to save shader ALU
-#if !defined(LIGHTMAP_ON)
-    // TODO: LOW == defined(SHADER_API_GLES) || !defined(_NORMALMAP)
-    #if _SHADER_QUALITY_LOW
-        // Evaluates SH fully in vertex
-        #define EVALUATE_SH_VERTEX
-    #elif _SHADER_QUALITY_MEDIUM
-        // Evaluates L2 SH in vertex and L0L1 in pixel
-        #define EVALUATE_SH_MIXED
-    #endif
-        // Otherwise evaluate SH fully per-pixel
-#endif
 
 // Renamed -> LIGHTMAP_SHADOW_MIXING
 #if !defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK)

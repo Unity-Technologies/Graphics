@@ -128,7 +128,6 @@ inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmooth
     outBRDFData.roughness2MinusOne  = outBRDFData.roughness2 - half(1.0);
     outBRDFData.grazingTerm         = saturate(clearCoatSmoothness + kDielectricSpec.x);
 
-#if !_SHADER_QUALITY_LOW
     // Modify Roughness of base layer using coat IOR
     half ieta                        = lerp(1.0h, CLEAR_COAT_IETA, clearCoatMask);
     half coatRoughnessScale          = Sq(ieta);
@@ -141,7 +140,6 @@ inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmooth
     baseBRDFData.roughness2         = max(baseBRDFData.roughness * baseBRDFData.roughness, HALF_MIN);
     baseBRDFData.normalizationTerm  = baseBRDFData.roughness * 4.0h + 2.0h;
     baseBRDFData.roughness2MinusOne = baseBRDFData.roughness2 - 1.0h;
-#endif
 
     // Darken/saturate base layer using coat to surface reflectance (vs. air to surface)
     baseBRDFData.specular = lerp(baseBRDFData.specular, ConvertF0ForClearCoat15(baseBRDFData.specular), clearCoatMask);
