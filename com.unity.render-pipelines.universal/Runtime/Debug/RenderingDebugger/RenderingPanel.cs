@@ -11,7 +11,8 @@ namespace UnityEngine.Rendering.Universal
 
         public override VisualElement CreatePanel()
         {
-            var panel = CreateVisualElement("RenderingPanel");
+            var panelVisualTreeAsset = Resources.Load<VisualTreeAsset>("RenderingPanel");
+            var panel = CreateVisualElement(panelVisualTreeAsset);
 
             RegisterCallback<Enum>(panel, nameof(fullScreenDebugMode), fullScreenDebugMode, OnFullScreenDebugModeChanged);
 

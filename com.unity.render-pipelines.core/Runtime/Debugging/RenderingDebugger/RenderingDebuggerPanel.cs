@@ -19,14 +19,10 @@ namespace UnityEngine.Rendering
         public abstract bool TryGetScreenClearColor(ref Color color);
         private List<VisualElement> m_InstantiatedPanels = new List<VisualElement>();
 
-        protected VisualElement CreateVisualElement(string uiDocumentResourcesPath)
+        protected VisualElement CreateVisualElement(VisualTreeAsset panelAsset)
         {
-            var panelVisualTreeAsset = Resources.Load<VisualTreeAsset>(uiDocumentResourcesPath);
-            if (panelVisualTreeAsset == null)
-                return null;
-
             // Create the content of the tab
-            var panel = panelVisualTreeAsset.Instantiate();
+            var panel = panelAsset.Instantiate();
             m_InstantiatedPanels.Add(panel);
             return panel;
         }
