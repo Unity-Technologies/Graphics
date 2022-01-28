@@ -60,8 +60,6 @@ MonoBehaviour:
     - {fileID: 2800000, guid: fa042edbfc40fbd4bad0ab9d505b1223, type: 3}
     - {fileID: 2800000, guid: 896d9004736809c4fb5973b7c12eb8b9, type: 3}
     - {fileID: 2800000, guid: 179f794063d2a66478e6e726f84a65bc, type: 3}
-    blueNoise64LTex: {fileID: 2800000, guid: e3d24661c1e055f45a7560c033dbb837, type: 3}
-    bayerMatrixTex: {fileID: 2800000, guid: f9ee4ed84c1d10c49aabb9b210b0fc44, type: 3}
     filmGrainTex:
     - {fileID: 2800000, guid: 654c582f7f8a5a14dbd7d119cbde215d, type: 3}
     - {fileID: 2800000, guid: dd77ffd079630404e879388999033049, type: 3}
