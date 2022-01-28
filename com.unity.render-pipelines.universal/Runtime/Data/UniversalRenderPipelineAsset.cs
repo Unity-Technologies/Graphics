@@ -133,8 +133,11 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public enum LODCrossFadeType
     {
+        /// <summary>Unity uses Bayer Matrix Texture to compute LOD CrossFade dithering.</summary>
         BayerMatrixDither,
+        /// <summary>Unity uses precomputed Blue Noise Texture to compute LOD CrossFade dithering.</summary>
         BlueNoiseDither,
+        /// <summary>Unity uses a Hash function to compute LOD CrossFade dithering.</summary>
         HashDither
     }
 
