@@ -6,7 +6,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, ReloadGroup]
+    [Serializable]
     public class PostProcessData : ScriptableObject
     {
 #if UNITY_EDITOR
@@ -71,6 +71,9 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/PostProcessing/ScalingSetup.shader")]
             public Shader scalingSetupPS;
+
+            [Reload("Shaders/PostProcessing/EdgeAdaptiveSpatialUpsampling.shader")]
+            public Shader easuPS;
 
             [Reload("Shaders/PostProcessing/UberPost.shader")]
             public Shader uberPostPS;
