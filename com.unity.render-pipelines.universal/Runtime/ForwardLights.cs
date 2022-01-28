@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <summary>
-        /// Creates a new <c>ForwardLights"</c> instance.
+        /// Creates a new <c>ForwardLights</c> instance.
         /// </summary>
         public ForwardLights() : this(InitParams.GetDefault()) { }
 

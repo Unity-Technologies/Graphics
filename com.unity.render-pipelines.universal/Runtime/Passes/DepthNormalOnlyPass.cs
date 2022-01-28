@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static readonly List<ShaderTagId> k_DepthNormals = new List<ShaderTagId> { new ShaderTagId("DepthNormals"), new ShaderTagId("DepthNormalsOnly") };
 
         /// <summary>
-        /// Creates a new <c>DepthNormalOnlyPass"</c> instance.
+        /// Creates a new <c>DepthNormalOnlyPass</c> instance.
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
         /// <param name="renderQueueRange">The <c>RenderQueueRange</c> to use for creating filtering settings that control what objects get rendered.</param>

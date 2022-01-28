@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         Material m_BlitMaterial;
 
         /// <summary>
-        /// Creates a new <c>PostProcessPass"</c> instance.
+        /// Creates a new <c>PostProcessPass</c> instance.
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
         /// <param name="data">The <c>PostProcessData</c> resources to use.</param>

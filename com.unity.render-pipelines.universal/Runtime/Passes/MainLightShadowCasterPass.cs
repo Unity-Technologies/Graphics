@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         ProfilingSampler m_ProfilingSetupSampler = new ProfilingSampler("Setup Main Shadowmap");
 
         /// <summary>
-        /// Creates a new <c>MainLightShadowCasterPass"</c> instance.
+        /// Creates a new <c>MainLightShadowCasterPass</c> instance.
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
         /// <seealso cref="RenderPassEvent"/>

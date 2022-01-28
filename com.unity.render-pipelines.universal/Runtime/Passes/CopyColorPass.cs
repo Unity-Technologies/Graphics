@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private int destinationID { get; set; }
 
         /// <summary>
-        /// Creates a new <c>CopyColorPass"</c> instance.
+        /// Creates a new <c>CopyColorPass</c> instance.
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
         /// <param name="samplingMaterial">The <c>Material</c> to use for downsampling quarter-resolution image with box filtering.</param>

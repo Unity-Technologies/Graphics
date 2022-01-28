@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <summary>
-        /// Creates a new <c>AdditionalLightsShadowCasterPass"</c> instance.
+        /// Creates a new <c>AdditionalLightsShadowCasterPass</c> instance.
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
         /// <seealso cref="RenderPassEvent"/>

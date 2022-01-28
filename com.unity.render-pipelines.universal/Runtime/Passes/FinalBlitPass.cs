@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         Material m_BlitMaterial;
 
         /// <summary>
-        /// Creates a new <c>FinalBlitPass"</c> instance.
+        /// Creates a new <c>FinalBlitPass</c> instance.
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
         /// <param name="blitMaterial">The <c>Material</c> to use for copying the executing the final blit.</param>

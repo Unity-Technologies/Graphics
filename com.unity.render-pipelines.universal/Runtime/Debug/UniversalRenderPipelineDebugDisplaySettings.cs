@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.Universal
         #endregion
 
         /// <summary>
-        /// Creates a new <c>UniversalRenderPipelineDebugDisplaySettings"</c> instance.
+        /// Creates a new <c>UniversalRenderPipelineDebugDisplaySettings</c> instance.
         /// </summary>
         public UniversalRenderPipelineDebugDisplaySettings()
         {

@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         FilteringSettings m_FilteringSettings;
 
         /// <summary>
-        /// Creates a new <c>DepthOnlyPass"</c> instance.
+        /// Creates a new <c>DepthOnlyPass</c> instance.
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
         /// <param name="renderQueueRange">The <c>RenderQueueRange</c> to use for creating filtering settings that control what objects get rendered.</param>

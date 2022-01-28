@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.Universal
     public class DrawSkyboxPass : ScriptableRenderPass
     {
         /// <summary>
-        /// Creates a new <c>DrawSkyboxPass"</c> instance.
+        /// Creates a new <c>DrawSkyboxPass</c> instance.
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
         /// <seealso cref="RenderPassEvent"/>

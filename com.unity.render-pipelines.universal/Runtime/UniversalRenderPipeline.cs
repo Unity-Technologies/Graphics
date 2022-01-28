@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering.Universal
         internal static bool cameraStackRequiresDepthForPostprocessing = false;
 
         /// <summary>
-        /// Creates a new <c>UniversalRenderPipeline"</c> instance.
+        /// Creates a new <c>UniversalRenderPipeline</c> instance.
         /// </summary>
         /// <param name="asset">The <c>UniversalRenderPipelineAsset</c> asset to initialize the pipeline.</param>
         /// <seealso cref="RenderPassEvent"/>

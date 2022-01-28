@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_AllowColorGradingACESHDR = true;
 
         /// <summary>
-        /// Creates a new <c>ColorGradingLutPass"</c> instance.
+        /// Creates a new <c>ColorGradingLutPass</c> instance.
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
         /// <param name="data">The <c>PostProcessData</c> resources to use.</param>

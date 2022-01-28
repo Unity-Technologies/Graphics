@@ -140,7 +140,9 @@ namespace UnityEngine.Rendering.Universal
         _8x = 8
     }
 
-    // Options for selecting downsampling.
+    /// <summary>
+    /// Options for selecting downsampling.
+    /// </summary>
     public enum Downsampling
     {
         /// <summary>

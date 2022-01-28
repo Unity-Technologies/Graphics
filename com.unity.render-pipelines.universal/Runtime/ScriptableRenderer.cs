@@ -559,7 +559,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool stripAdditionalLightOffVariants { get; set; } = false;
 
         /// <summary>
-        /// Creates a new <c>ScriptableRenderer"</c> instance.
+        /// Creates a new <c>ScriptableRenderer</c> instance.
         /// </summary>
         /// <param name="data">The <c>ScriptableRendererData</c> data to initialize the renderer.</param>
         /// <seealso cref="ScriptableRendererData"/>

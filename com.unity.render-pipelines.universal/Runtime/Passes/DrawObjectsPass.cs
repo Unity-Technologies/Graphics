@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         static readonly int s_DrawObjectPassDataPropID = Shader.PropertyToID("_DrawObjectPassData");
 
         /// <summary>
-        /// Creates a new <c>DrawObjectsPass"</c> instance.
+        /// Creates a new <c>DrawObjectsPass</c> instance.
         /// </summary>
         /// <param name="profilerTag"></param>
         /// <param name="shaderTagIds"></param>
@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <summary>
-        /// Creates a new <c>DrawObjectsPass"</c> instance.
+        /// Creates a new <c>DrawObjectsPass</c> instance.
         /// </summary>
         /// <param name="profilerTag"></param>
         /// <param name="opaque"></param>

@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool m_ShouldClear;
 
         /// <summary>
-        /// Creates a new <c>CopyDepthPass"</c> instance.
+        /// Creates a new <c>CopyDepthPass</c> instance.
         /// </summary>
         /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
         /// <param name="copyDepthMaterial">The <c>Material</c> to use for copying the depth.</param>
