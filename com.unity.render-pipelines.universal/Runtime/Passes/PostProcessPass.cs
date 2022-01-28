@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_Destination;
         RTHandle m_Depth;
         RTHandle m_InternalLut;
+        RTHandle m_CameraTargetHandle;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
@@ -187,6 +188,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_ScalingSetupTarget?.Release();
             m_UpscaledTarget?.Release();
+            m_CameraTargetHandle?.Release();
         }
 
         /// <summary>
@@ -597,7 +599,7 @@ namespace UnityEngine.Rendering.Universal
                 if (m_Destination == k_CameraTarget && !cameraData.isDefaultViewport)
                     colorLoadAction = RenderBufferLoadAction.Load;
 
-                RenderTargetIdentifier targetDestination = m_UseSwapBuffer ? destination : m_Destination.nameID;
+                RTHandle targetDestination = m_UseSwapBuffer ? destination : m_Destination;
 
                 // Note: We rendering to "camera target" we need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
                 // Overlay cameras need to output to the target described in the base camera while doing camera stack.
@@ -607,25 +609,31 @@ namespace UnityEngine.Rendering.Universal
                     cameraTargetID = cameraData.xr.renderTarget;
 #endif
                 RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null && !cameraData.xr.enabled) ? new RenderTargetIdentifier(cameraData.targetTexture) : cameraTargetID;
+                // Create RTHandle alias to use RTHandle apis
+                if (m_CameraTargetHandle != cameraTarget)
+                {
+                    m_CameraTargetHandle?.Release();
+                    m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
+                }
 
                 // With camera stacking we not always resolve post to final screen as we might run post-processing in the middle of the stack.
+                RTHandle cameraTargetHandle;
                 if (m_UseSwapBuffer)
                 {
-                    cameraTarget = (m_ResolveToScreen) ? cameraTarget : targetDestination;
+                    cameraTargetHandle = m_ResolveToScreen ? m_CameraTargetHandle : targetDestination;
                 }
                 else
                 {
-                    cameraTarget = (m_Destination.nameID == BuiltinRenderTextureType.CameraTarget) ? cameraTarget : m_Destination.nameID;
+                    cameraTargetHandle = (m_Destination.nameID == BuiltinRenderTextureType.CameraTarget) ? m_CameraTargetHandle : m_Destination;
                     m_ResolveToScreen = cameraData.resolveFinalTarget || (m_Destination.nameID == cameraTargetID || m_HasFinalPass == true);
                 }
 
+
+                CoreUtils.SetRenderTarget(cmd, cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
                 {
-                    cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
-                        colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-
-                    bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget;
+                    bool isRenderToBackBufferTarget = cameraTargetHandle == cameraData.xr.renderTarget;
                     if (isRenderToBackBufferTarget)
                         cmd.SetViewport(cameraData.pixelRect);
                     // We y-flip if
@@ -642,7 +650,7 @@ namespace UnityEngine.Rendering.Universal
                     // in the pipeline to avoid this extra blit.
                     if (!m_ResolveToScreen && !m_UseSwapBuffer)
                     {
-                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, cameraTarget);
+                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, cameraTargetHandle.nameID);
                         cmd.SetRenderTarget(new RenderTargetIdentifier(m_Source, 0, CubemapFace.Unknown, -1),
                             colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
@@ -654,10 +662,7 @@ namespace UnityEngine.Rendering.Universal
                 else
 #endif
                 {
-                    cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-#pragma warning disable 0618 // Obsolete usage: RenderTargetIdentifiers required here because of use of RenderTexture cameraData.targetTexture which is not managed by RTHandles
-                    cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
-#pragma warning restore 0618
+                    cameraData.renderer.ConfigureCameraTarget(cameraTargetHandle, cameraTargetHandle);
                     cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
                     if ((m_Destination.nameID == BuiltinRenderTextureType.CameraTarget && !m_UseSwapBuffer) || (m_ResolveToScreen && m_UseSwapBuffer))
@@ -671,7 +676,7 @@ namespace UnityEngine.Rendering.Universal
                     // in the pipeline to avoid this extra blit.
                     if (!m_ResolveToScreen && !m_UseSwapBuffer)
                     {
-                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, cameraTarget);
+                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, cameraTargetHandle.nameID);
                         cmd.SetRenderTarget(m_Source, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                     }
@@ -1595,13 +1600,28 @@ namespace UnityEngine.Rendering.Universal
                 // In unscaled renders, FXAA can be safely performed in the FinalPost shader
                 material.EnableKeyword(ShaderKeywordStrings.Fxaa);
             }
+
+
+            // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
+            // Overlay cameras need to output to the target described in the base camera while doing camera stack.
+            RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+                cameraTarget = cameraData.xr.renderTarget;
+#endif
+            // Create RTHandle alias to use RTHandle apis
+            if (m_CameraTargetHandle != cameraTarget)
+            {
+                m_CameraTargetHandle?.Release();
+                m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
+            }
+
+            CoreUtils.SetRenderTarget(cmd, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
-                RenderTargetIdentifier cameraTarget = cameraData.xr.renderTarget;
-
                 //Blit(cmd, m_Source.Identifier(), BuiltinRenderTextureType.CurrentActive, material);
-                bool isRenderToBackBufferTarget = cameraTarget == cameraData.xr.renderTarget;
+                bool isRenderToBackBufferTarget = m_CameraTargetHandle == cameraData.xr.renderTarget;
                 // We y-flip if
                 // 1) we are bliting from render texture to back buffer and
                 // 2) renderTexture starts UV at top
@@ -1609,8 +1629,6 @@ namespace UnityEngine.Rendering.Universal
 
                 Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
 
-                cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
-                    colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                 cmd.SetViewport(cameraData.pixelRect);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
                 cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Quads, 4, 1, null);
@@ -1618,18 +1636,11 @@ namespace UnityEngine.Rendering.Universal
             else
 #endif
             {
-                // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
-                // Overlay cameras need to output to the target described in the base camera while doing camera stack.
-                RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
-
-                cmd.SetRenderTarget(cameraTarget, colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(cameraData.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
                 cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
-#pragma warning disable 0618 // Obsolete usage: RenderTargetIdentifiers required here because of use of RenderTexture cameraData.targetTexture which is not managed by RTHandles
-                cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
-#pragma warning restore 0618
+                cameraData.renderer.ConfigureCameraTarget(m_CameraTargetHandle, m_CameraTargetHandle);
             }
         }
 
