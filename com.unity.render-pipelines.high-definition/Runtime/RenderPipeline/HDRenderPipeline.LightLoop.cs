@@ -1364,8 +1364,18 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 if (!data.validColorPyramid)
                                 {
-                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccum, ClearFlag.Color, Color.clear);
-                                    CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
+                                    {
+                                        ctx.cmd.SetComputeTextureParam(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDShaderIDs._Buffer2D, data.ssrAccum);
+                                        ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._ClearValue, Color.clear);
+                                        ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._BufferSize, new Vector4((float)data.width, (float)data.height, 0.0f, 0.0f));
+                                        ctx.cmd.DispatchCompute(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
+                                    }
+                                    {
+                                        ctx.cmd.SetComputeTextureParam(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDShaderIDs._Buffer2D, data.ssrAccumPrev);
+                                        ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._ClearValue, Color.clear);
+                                        ctx.cmd.SetComputeVectorParam(data.clearBuffer2DCS, HDShaderIDs._BufferSize, new Vector4((float)data.width, (float)data.height, 0.0f, 0.0f));
+                                        ctx.cmd.DispatchCompute(data.clearBuffer2DCS, data.clearBuffer2DKernel, HDUtils.DivRoundUp(data.width, 8), HDUtils.DivRoundUp(data.height, 8), data.viewCount);
+                                    }
                                 }
                                 else
                                 {
