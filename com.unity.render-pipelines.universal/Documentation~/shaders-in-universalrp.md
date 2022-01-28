@@ -31,7 +31,7 @@ The Universal Render Pipeline implements Physically Based Rendering (PBR).
 
 The pipeline provides pre-built shaders that can simulate real world materials.
 
-When using PBR shaders, Materials behave consistently under different lighting conditions. PBR materials provide a set of parameters that let artists achieve consistency across hardware in Scenes with different material types.
+PBR materials provide a set of parameters that let artists achieve consistency between different material types and under different lighting conditions.
 
 The URP [Lit shader](lit-shader.md) is suitable for modeling most of the real world materials. The [Complex Lit shader](shader-complex-lit.md) is suitable for simulating advanced materials that require more complex lighting evaluation, such as the clear coat effect.
 
