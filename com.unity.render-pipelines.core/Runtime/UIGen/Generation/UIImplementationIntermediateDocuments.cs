@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,11 +11,11 @@ namespace UnityEngine.Rendering.UIGen
 {
     public class UIImplementationIntermediateDocuments
     {
-        UxmlElement m_PropertyUxml;
+        XElement m_PropertyUxml;
         BlockSyntax m_BindContextBody;
         BlockSyntax m_UnbindContextBody;
 
-        UIImplementationIntermediateDocuments([DisallowNull] UxmlElement element)
+        UIImplementationIntermediateDocuments([DisallowNull] XElement element)
         {
             m_BindContextBody = SyntaxFactory.Block(Enumerable.Empty<StatementSyntax>());
             m_UnbindContextBody = SyntaxFactory.Block(Enumerable.Empty<StatementSyntax>());
@@ -24,7 +23,7 @@ namespace UnityEngine.Rendering.UIGen
         }
 
         public static bool From(
-            [DisallowNull] UxmlElement element,
+            [DisallowNull] XElement element,
             [NotNullWhen(true)] out UIImplementationIntermediateDocuments documents,
             [NotNullWhen(false)] out Exception error
         )
@@ -35,7 +34,7 @@ namespace UnityEngine.Rendering.UIGen
         }
 
         [DisallowNull]
-        public UxmlElement propertyUxml
+        public XElement propertyUxml
         {
             get => m_PropertyUxml;
             set => m_PropertyUxml = value;

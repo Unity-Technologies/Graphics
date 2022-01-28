@@ -86,6 +86,8 @@ public struct <#+ Write(decl.name); #> : IEquatable<<#+ Write(decl.name); #>>
         return (m_Name != null ? m_Name.GetHashCode() : 0);
     }
 
+    public override string ToString() => m_Name;
+
     public static bool operator ==(in <#+ Write(decl.name); #> l, in <#+ Write(decl.name); #> r) => r.Equals(l);
     public static bool operator !=(in <#+ Write(decl.name); #> l, in <#+ Write(decl.name); #> r) => !r.Equals(l);
     public static explicit operator string(in <#+ Write(decl.name); #> v) => v.m_Name;

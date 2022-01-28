@@ -97,10 +97,7 @@ namespace UnityEngine.Rendering.UIGen
             if (!GeneratorUtility.ExtractAndNicifyName((string)property.propertyPath, out var niceName, out error))
                 return false;
 
-            UxmlElement element = UxmlElement.Create<IntergerField>();
-            element.SetAttribute("label", niceName);
-            element.SetAttribute("value", 42);
-            element.SetAttribute("binding-path", (string)property.propertyPath);
+            var element = XElement.Parse(@$"<IntegerField label=""{niceName}"" value=""42"" binding-path=""{property.propertyPath}"" xmlns=""ui""/>");
 
             if (!UIImplementationIntermediateDocuments.From(element, out var document, out error))
                 return false;
@@ -109,7 +106,7 @@ namespace UnityEngine.Rendering.UIGen
 
             //debug purpose only
             Debug.Log(document.bindContextBody.ToString());
-            Debug.Log(element.ToString());
+            Debug.Log(element);
             //end debug
 
             return true;
