@@ -1238,7 +1238,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        void DetermineVisibleProbes(in RenderRequest request, Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible)
+        void DetermineVisibleProbesForRequest(in RenderRequest request, Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible)
         {
             var cullingResults = request.cullingResults;
             // Add visible probes to list
@@ -1537,6 +1537,178 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void GenerateProbeRenderRequests(
+            Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible,
+            List<RenderRequest> renderRequests,
+            List<CameraSettings> cameraSettings,
+            List<CameraPositionSettings> cameraPositionSettings,
+            ScriptableRenderContext renderContext)
+        {
+            foreach (var probeToRenderAndDependencies in renderRequestIndicesWhereTheProbeIsVisible)
+            {
+                var visibleProbe = probeToRenderAndDependencies.Key;
+                var visibilities = probeToRenderAndDependencies.Value;
+
+                // Two cases:
+                //   - If the probe is view independent, we add only one render request per face that is
+                //      a dependency for all its 'visibleIn' render requests
+                //   - If the probe is view dependent, we add one render request per face per 'visibleIn'
+                //      render requests
+                var isViewDependent = visibleProbe.type == ProbeSettings.ProbeType.PlanarProbe;
+
+                HDCamera hdParentCamera;
+
+                if (isViewDependent)
+                {
+                    for (int i = 0; i < visibilities.Count; ++i)
+                    {
+                        var visibility = visibilities[i];
+                        if (visibility.weight <= 0f)
+                            continue;
+
+                        var visibleInIndex = visibility.index;
+                        var visibleInRenderRequest = renderRequests[visibleInIndex];
+                        var viewerTransform = visibleInRenderRequest.hdCamera.camera.transform;
+
+                        hdParentCamera = visibleInRenderRequest.hdCamera;
+
+                        var renderDatas = ListPool<HDProbe.RenderData>.Get();
+
+                        AddHDProbeRenderRequests(
+                            visibleProbe,
+                            viewerTransform,
+                            new List<(int index, float weight)> { visibility },
+                            HDUtils.GetSceneCullingMaskFromCamera(visibleInRenderRequest.hdCamera.camera),
+                            hdParentCamera,
+                            visibleInRenderRequest.hdCamera.camera.fieldOfView,
+                            visibleInRenderRequest.hdCamera.camera.aspect,
+                            ref renderDatas, cameraSettings, cameraPositionSettings, renderRequests, renderContext
+                        );
+
+                        foreach (var renderData in renderDatas)
+                        {
+                            visibleInRenderRequest.viewDependentProbesData.Add((renderData, visibleProbe));
+                        }
+
+                        ListPool<HDProbe.RenderData>.Release(renderDatas);
+                    }
+                }
+                else
+                {
+                    // No single parent camera for view independent probes.
+                    hdParentCamera = null;
+
+                    bool visibleInOneViewer = false;
+                    for (int i = 0; i < visibilities.Count && !visibleInOneViewer; ++i)
+                    {
+                        if (visibilities[i].weight > 0f)
+                            visibleInOneViewer = true;
+                    }
+
+                    if (visibleInOneViewer)
+                    {
+                        var renderDatas = ListPool<HDProbe.RenderData>.Get();
+                        AddHDProbeRenderRequests(visibleProbe, null, visibilities, 0, hdParentCamera, referenceFieldOfView: 90, referenceAspect: 1, ref renderDatas,
+                            cameraSettings, cameraPositionSettings, renderRequests, renderContext);
+                        ListPool<HDProbe.RenderData>.Release(renderDatas);
+                    }
+                }
+            }
+        }
+
+        void UpdateTemporaryTargetForCubemap(List<RenderRequest> renderRequests)
+        {
+            var size = Vector2Int.zero;
+            for (int i = 0; i < renderRequests.Count; ++i)
+            {
+                var renderRequest = renderRequests[i];
+                var isCubemapFaceTarget = renderRequest.target.face != CubemapFace.Unknown;
+                if (!isCubemapFaceTarget)
+                    continue;
+
+                var width = renderRequest.hdCamera.actualWidth;
+                var height = renderRequest.hdCamera.actualHeight;
+                size.x = Mathf.Max(width, size.x);
+                size.y = Mathf.Max(height, size.y);
+            }
+
+            if (size != Vector2.zero)
+            {
+                var probeFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
+                if (m_TemporaryTargetForCubemaps != null)
+                {
+                    if (m_TemporaryTargetForCubemaps.width != size.x
+                        || m_TemporaryTargetForCubemaps.height != size.y
+                        || m_TemporaryTargetForCubemaps.graphicsFormat != probeFormat)
+                    {
+                        m_TemporaryTargetForCubemaps.Release();
+                        m_TemporaryTargetForCubemaps = null;
+                    }
+                }
+                if (m_TemporaryTargetForCubemaps == null)
+                {
+                    m_TemporaryTargetForCubemaps = new RenderTexture(
+                        size.x, size.y, 1, probeFormat
+                    )
+                    {
+                        autoGenerateMips = false,
+                        useMipMap = false,
+                        name = "Temporary Target For Cubemap Face",
+                        volumeDepth = 1,
+                        useDynamicScale = false
+                    };
+                }
+            }
+        }
+
+        void ExecuteAOVRenderRequests(in RenderRequest renderRequest, CommandBuffer cmd, ScriptableRenderContext renderContext)
+        {
+            // var aovRequestIndex = 0;
+            foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderAOV)))
+                {
+                    // Before rendering the AOV, bind the correct history buffers
+                    var aovHistory = renderRequest.hdCamera.GetHistoryRTHandleSystem(aovRequest);
+                    renderRequest.hdCamera.BindHistoryRTHandleSystem(aovHistory);
+                    cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
+                    ExecuteRenderRequest(renderRequest, renderContext, cmd, aovRequest);
+                    cmd.SetInvertCulling(false);
+                }
+                renderContext.ExecuteCommandBuffer(cmd);
+                renderContext.Submit();
+                cmd.Clear();
+            }
+        }
+
+        void EndRenderRequest(in RenderRequest renderRequest, CommandBuffer cmd)
+        {
+            var target = renderRequest.target;
+            // Handle the copy if requested
+            if (target.copyToTarget != null)
+            {
+                cmd.CopyTexture(
+                    target.id, 0, 0, 0, 0, renderRequest.hdCamera.actualWidth, renderRequest.hdCamera.actualHeight,
+                    target.copyToTarget, (int)target.face, 0, 0, 0
+                );
+            }
+
+            // release reference because the RenderTexture might be destroyed before the camera
+            if (renderRequest.clearCameraSettings)
+                renderRequest.hdCamera.camera.targetTexture = null;
+
+            ListPool<int>.Release(renderRequest.dependsOnRenderRequestIndices);
+            ListPool<(HDProbe.RenderData, HDProbe)>.Release(renderRequest.viewDependentProbesData);
+
+            // Culling results can be shared between render requests: clear only when required
+            if (!renderRequest.cullingResultIsShared)
+            {
+                renderRequest.cullingResults.decalCullResults?.Clear();
+                UnsafeGenericPool<HDCullingResults>.Release(renderRequest.cullingResults);
+            }
+        }
+
+
 #if UNITY_2021_1_OR_NEWER
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
@@ -1741,131 +1913,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     RTHandles.SetHardwareDynamicResolutionState(dynResHandler.HardwareDynamicResIsEnabled());
 
+                    // Start culling for all main cameras, setup RenderRequests for them and determine the list of visible realtime probes.
                     if (PrepareAndCullCamera(camera, xrPass, cameraRequestedDynamicRes, renderRequests, rootRenderRequestIndices, renderContext, out var request))
                     {
-                        DetermineVisibleProbes(request, renderRequestIndicesWhereTheProbeIsVisible);
+                        DetermineVisibleProbesForRequest(request, renderRequestIndicesWhereTheProbeIsVisible);
                     }
                 }
 
-                foreach (var probeToRenderAndDependencies in renderRequestIndicesWhereTheProbeIsVisible)
-                {
-                    var visibleProbe = probeToRenderAndDependencies.Key;
-                    var visibilities = probeToRenderAndDependencies.Value;
-
-                    // Two cases:
-                    //   - If the probe is view independent, we add only one render request per face that is
-                    //      a dependency for all its 'visibleIn' render requests
-                    //   - If the probe is view dependent, we add one render request per face per 'visibleIn'
-                    //      render requests
-                    var isViewDependent = visibleProbe.type == ProbeSettings.ProbeType.PlanarProbe;
-
-                    HDCamera hdParentCamera;
-
-                    if (isViewDependent)
-                    {
-                        for (int i = 0; i < visibilities.Count; ++i)
-                        {
-                            var visibility = visibilities[i];
-                            if (visibility.weight <= 0f)
-                                continue;
-
-                            var visibleInIndex = visibility.index;
-                            var visibleInRenderRequest = renderRequests[visibleInIndex];
-                            var viewerTransform = visibleInRenderRequest.hdCamera.camera.transform;
-
-                            hdParentCamera = visibleInRenderRequest.hdCamera;
-
-                            var renderDatas = ListPool<HDProbe.RenderData>.Get();
-
-                            AddHDProbeRenderRequests(
-                                visibleProbe,
-                                viewerTransform,
-                                new List<(int index, float weight)> { visibility },
-                                HDUtils.GetSceneCullingMaskFromCamera(visibleInRenderRequest.hdCamera.camera),
-                                hdParentCamera,
-                                visibleInRenderRequest.hdCamera.camera.fieldOfView,
-                                visibleInRenderRequest.hdCamera.camera.aspect,
-                                ref renderDatas, cameraSettings, cameraPositionSettings, renderRequests, renderContext
-                            );
-
-                            foreach (var renderData in renderDatas)
-                            {
-                                visibleInRenderRequest.viewDependentProbesData.Add((renderData, visibleProbe));
-                            }
-
-                            ListPool<HDProbe.RenderData>.Release(renderDatas);
-                        }
-                    }
-                    else
-                    {
-                        // No single parent camera for view dependent probes.
-                        hdParentCamera = null;
-
-                        bool visibleInOneViewer = false;
-                        for (int i = 0; i < visibilities.Count && !visibleInOneViewer; ++i)
-                        {
-                            if (visibilities[i].weight > 0f)
-                                visibleInOneViewer = true;
-                        }
-                        if (visibleInOneViewer)
-                        {
-                            var renderDatas = ListPool<HDProbe.RenderData>.Get();
-                            AddHDProbeRenderRequests(visibleProbe, null, visibilities, 0, hdParentCamera, referenceFieldOfView: 90, referenceAspect: 1, ref renderDatas,
-                                cameraSettings, cameraPositionSettings, renderRequests, renderContext);
-                            ListPool<HDProbe.RenderData>.Release(renderDatas);
-                        }
-                    }
-                }
+                // Generate RenderRequests for all visible probes
+                GenerateProbeRenderRequests(renderRequestIndicesWhereTheProbeIsVisible, renderRequests, cameraSettings, cameraPositionSettings, renderContext);
 
                 foreach (var pair in renderRequestIndicesWhereTheProbeIsVisible)
                     ListPool<(int index, float weight)>.Release(pair.Value);
                 renderRequestIndicesWhereTheProbeIsVisible.Clear();
 
-                // TODO: Refactor into a method. If possible remove the intermediate target
+                // TODO: If possible remove the intermediate target
                 // Find max size for Cubemap face targets and resize/allocate if required the intermediate render target
-                {
-                    var size = Vector2Int.zero;
-                    for (int i = 0; i < renderRequests.Count; ++i)
-                    {
-                        var renderRequest = renderRequests[i];
-                        var isCubemapFaceTarget = renderRequest.target.face != CubemapFace.Unknown;
-                        if (!isCubemapFaceTarget)
-                            continue;
+                UpdateTemporaryTargetForCubemap(renderRequests);
 
-                        var width = renderRequest.hdCamera.actualWidth;
-                        var height = renderRequest.hdCamera.actualHeight;
-                        size.x = Mathf.Max(width, size.x);
-                        size.y = Mathf.Max(height, size.y);
-                    }
-
-                    if (size != Vector2.zero)
-                    {
-                        var probeFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
-                        if (m_TemporaryTargetForCubemaps != null)
-                        {
-                            if (m_TemporaryTargetForCubemaps.width != size.x
-                                || m_TemporaryTargetForCubemaps.height != size.y
-                                || m_TemporaryTargetForCubemaps.graphicsFormat != probeFormat)
-                            {
-                                m_TemporaryTargetForCubemaps.Release();
-                                m_TemporaryTargetForCubemaps = null;
-                            }
-                        }
-                        if (m_TemporaryTargetForCubemaps == null)
-                        {
-                            m_TemporaryTargetForCubemaps = new RenderTexture(
-                                size.x, size.y, 1, probeFormat
-                            )
-                            {
-                                autoGenerateMips = false,
-                                useMipMap = false,
-                                name = "Temporary Target For Cubemap Face",
-                                volumeDepth = 1,
-                                useDynamicScale = false
-                            };
-                        }
-                    }
-                }
 
                 using (ListPool<int>.Get(out List<int> renderRequestIndicesToRender))
                 {
@@ -1949,22 +2014,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Save the camera history before rendering the AOVs
                             var cameraHistory = renderRequest.hdCamera.GetHistoryRTHandleSystem();
 
-                            // var aovRequestIndex = 0;
-                            foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
-                            {
-                                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderAOV)))
-                                {
-                                    // Before rendering the AOV, bind the correct history buffers
-                                    var aovHistory = renderRequest.hdCamera.GetHistoryRTHandleSystem(aovRequest);
-                                    renderRequest.hdCamera.BindHistoryRTHandleSystem(aovHistory);
-                                    cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
-                                    ExecuteRenderRequest(renderRequest, renderContext, cmd, aovRequest);
-                                    cmd.SetInvertCulling(false);
-                                }
-                                renderContext.ExecuteCommandBuffer(cmd);
-                                renderContext.Submit();
-                                cmd.Clear();
-                            }
+                            ExecuteAOVRenderRequests(renderRequest, cmd, renderContext);
 
                             // We are now going to render the main camera, so bind the correct HistoryRTHandleSystem (in case we previously render an AOV)
                             renderRequest.hdCamera.BindHistoryRTHandleSystem(cameraHistory);
@@ -1979,30 +2029,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             //  EndCameraRendering callback should be executed outside of any profiling scope in case user code submits the renderContext
                             EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
 
-                            {
-                                var target = renderRequest.target;
-                                // Handle the copy if requested
-                                if (target.copyToTarget != null)
-                                {
-                                    cmd.CopyTexture(
-                                        target.id, 0, 0, 0, 0, renderRequest.hdCamera.actualWidth, renderRequest.hdCamera.actualHeight,
-                                        target.copyToTarget, (int)target.face, 0, 0, 0
-                                    );
-                                }
-                                if (renderRequest.clearCameraSettings)
-                                    // release reference because the RenderTexture might be destroyed before the camera
-                                    renderRequest.hdCamera.camera.targetTexture = null;
-
-                                ListPool<int>.Release(renderRequest.dependsOnRenderRequestIndices);
-                                ListPool<(HDProbe.RenderData, HDProbe)>.Release(renderRequest.viewDependentProbesData);
-
-                                // Culling results can be shared between render requests: clear only when required
-                                if (!renderRequest.cullingResultIsShared)
-                                {
-                                    renderRequest.cullingResults.decalCullResults?.Clear();
-                                    UnsafeGenericPool<HDCullingResults>.Release(renderRequest.cullingResults);
-                                }
-                            }
+                            EndRenderRequest(renderRequest, cmd);
 
                             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.clearPlanarReflectionProbeAtlas)
                             {
