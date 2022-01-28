@@ -653,6 +653,14 @@ namespace UnityEngine.Rendering.Universal
                     m_ResolveToScreen = cameraData.resolveFinalTarget || (m_Destination.nameID == cameraTargetID || m_HasFinalPass == true);
                 }
 
+                bool setViewProjectionMatrices = true;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                    setViewProjectionMatrices = false;
+#endif
+
+                if (setViewProjectionMatrices)
+                    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
                 CoreUtils.SetRenderTarget(cmd, cameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -673,7 +681,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
                 {
                     cameraData.renderer.ConfigureCameraTarget(cameraTargetHandle, cameraTargetHandle);
-                    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
                     if ((m_Destination.nameID == BuiltinRenderTextureType.CameraTarget && !m_UseSwapBuffer) || (m_ResolveToScreen && m_UseSwapBuffer))
                         cmd.SetViewport(cameraData.pixelRect);
@@ -705,8 +712,6 @@ namespace UnityEngine.Rendering.Universal
                         cmd.SetRenderTarget(m_Source, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                     }
-
-                    cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
                 }
 
                 if (m_UseSwapBuffer && !m_ResolveToScreen)
@@ -715,6 +720,9 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Cleanup
+                if (setViewProjectionMatrices)
+                    cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
+
                 if (tempTargetUsed)
                     cmd.ReleaseTemporaryRT(ShaderConstants._TempTarget);
 
@@ -1606,6 +1614,15 @@ namespace UnityEngine.Rendering.Universal
                 m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
             }
 
+            bool setViewProjectionMatrices = true;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+                setViewProjectionMatrices = false;
+#endif
+
+            if (setViewProjectionMatrices)
+                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+
             CoreUtils.SetRenderTarget(cmd, m_CameraTargetHandle, colorLoadAction, RenderBufferStoreAction.Store, ClearFlag.None, Color.clear);
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
@@ -1626,12 +1643,14 @@ namespace UnityEngine.Rendering.Universal
             else
 #endif
             {
-                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(cameraData.pixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
-                cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
                 cameraData.renderer.ConfigureCameraTarget(m_CameraTargetHandle, m_CameraTargetHandle);
             }
+
+            // Cleanup
+            if (setViewProjectionMatrices)
+                cmd.SetViewProjectionMatrices(cameraData.camera.worldToCameraMatrix, cameraData.camera.projectionMatrix);
         }
 
         #endregion
