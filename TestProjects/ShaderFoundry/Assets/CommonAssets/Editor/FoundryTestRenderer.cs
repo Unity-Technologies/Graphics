@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
-using UnityEditor.ShaderGraph.Drawing; // PreviewSceneResources
 using NUnit.Framework;
 
 public class FoundryTestRenderer
@@ -33,19 +32,6 @@ public class FoundryTestRenderer
             Assert.That(false, $"{wrongImageCount} images failed, worst was: {mostWrongString}");
         }
     }
-
-    /*
-    internal GraphData LoadShaderGraph(string graphPath)
-    {
-        List<PropertyCollector.TextureInfo> lti;
-        var assetCollection = new AssetCollection();
-        ShaderGraphImporter.GetShaderText(graphPath, out lti, assetCollection, out var graph);
-        Assert.NotNull(graph, $"Invalid graph data found for {graphPath}");
-        graph.OnEnable();
-        graph.ValidateGraph();
-        return graph;
-    }
-    */
 
     // we apply a transform to the test setup, so that the transform matrices are non-trivial
     internal Vector3 testPosition = new Vector3(0.24699998f, 0.51900005f, 0.328999996f);
