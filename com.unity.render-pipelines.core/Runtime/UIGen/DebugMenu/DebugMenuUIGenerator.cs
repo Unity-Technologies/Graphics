@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using UIGen.Generation;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -176,16 +177,17 @@ namespace UnityEngine.Rendering.UIGen
             [NotNullWhen(false)] out Exception error
         )
         {
-            var document = XDocument.Parse(@"<?xml version=""1.0"" encoding=""utf-8""?>
-                <engine:UXML
-            xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-            xmlns:engine=""UnityEngine.UIElements""
-            xmlns:editor=""UnityEditor.UIElements""
-            xsi:noNamespaceSchemaLocation=""../../UIElementsSchema/UIElements.xsd""
-                >
+            var root = new XElement(UxmlConstants.ui + "UXML",
+                new XAttribute(XNamespace.Xmlns + "ui", UxmlConstants.ui),
+                new XAttribute(XNamespace.Xmlns + "uie", UxmlConstants.uie),
+                new XAttribute(XNamespace.Xmlns + "xsi", UxmlConstants.xsi),
+                new XAttribute(UxmlConstants.xsi + "noNamespaceSchemaLocation", UxmlConstants.xsiNoNamespaceSchemaLocation)
+            );
 
-                </engine:UXML>");
-            visualTreeAsset =document;
+            root.Add(intermediateDocuments
+                .Select(pair => pair.Value.propertyUxml));
+
+            visualTreeAsset = new XDocument(root);
             error = default;
             return true;
         }

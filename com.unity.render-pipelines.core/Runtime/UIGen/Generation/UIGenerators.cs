@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using JetBrains.Annotations;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using UIGen.Generation;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -73,6 +74,8 @@ namespace UnityEngine.Rendering.UIGen
 
     public abstract class UIPropertyGenerator : IUIPropertyGenerator
     {
+
+
         [MustUseReturnValue]
         public abstract bool Generate(
             [DisallowNull] in Property property,
@@ -97,17 +100,14 @@ namespace UnityEngine.Rendering.UIGen
             if (!GeneratorUtility.ExtractAndNicifyName((string)property.propertyPath, out var niceName, out error))
                 return false;
 
-            var element = XElement.Parse(@$"<IntegerField label=""{niceName}"" value=""42"" binding-path=""{property.propertyPath}"" xmlns=""ui""/>");
+            var element = XElement.Parse(@$"<IntegerField label=""{niceName}"" value=""42"" binding-path=""{property.propertyPath}""/>");
+            // Add namespace
+            element.Name = UxmlConstants.ui + element.Name.LocalName;
 
             if (!UIImplementationIntermediateDocuments.From(element, out documents, out error))
                 return false;
 
             documents.bindContextBody = documents.bindContextBody.AddStatements(SyntaxFactory.ParseStatement("int toto = 0;"));
-
-            //debug purpose only
-            Debug.Log(documents.bindContextBody.ToString());
-            Debug.Log(element);
-            //end debug
 
             return true;
         }
@@ -129,17 +129,14 @@ namespace UnityEngine.Rendering.UIGen
             if (!GeneratorUtility.ExtractAndNicifyName((string)property.propertyPath, out var niceName, out error))
                 return false;
 
-            var element = XElement.Parse(@$"<FloatField label=""{niceName}"" value=""42"" binding-path=""{property.propertyPath}"" xmlns=""ui""/>");
+            var element = XElement.Parse(@$"<FloatField label=""{niceName}"" value=""42"" binding-path=""{property.propertyPath}""/>");
+            // Add namespace
+            element.Name = UxmlConstants.ui + element.Name.LocalName;
 
             if (!UIImplementationIntermediateDocuments.From(element, out documents, out error))
                 return false;
 
             documents.bindContextBody = documents.bindContextBody.AddStatements(SyntaxFactory.ParseStatement("int toto = 0;"));
-
-            //debug purpose only
-            Debug.Log(documents.bindContextBody.ToString());
-            Debug.Log(element);
-            //end debug
 
             return true;
         }
