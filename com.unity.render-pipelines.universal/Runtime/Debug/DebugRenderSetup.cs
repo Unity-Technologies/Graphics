@@ -82,7 +82,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal DrawingSettings CreateDrawingSettings(DrawingSettings drawingSettings)
         {
-            bool usesReplacementMaterial = (MaterialSettings.vertexAttributeDebugMode != DebugVertexAttributeMode.None);
+            var materialDebugState = RenderingDebuggerState.instance.GetPanel<MaterialPanel>();
+            bool usesReplacementMaterial = (materialDebugState.vertexAttributeDebugMode != DebugVertexAttributeMode.None);
 
             if (usesReplacementMaterial)
             {

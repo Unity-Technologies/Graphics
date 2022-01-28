@@ -156,10 +156,9 @@ namespace UnityEngine.Rendering.Universal
             return panel;
         }
 
-        public override bool AreAnySettingsActive => (materialDebugMode != DebugMaterialMode.None);
-                // || // TODO
-                //    (vertexAttributeDebugMode != DebugVertexAttributeMode.None) ||
-                //    (materialValidationMode != DebugMaterialValidationMode.None);
+        public override bool AreAnySettingsActive => (materialDebugMode != DebugMaterialMode.None) ||
+                (vertexAttributeDebugMode != DebugVertexAttributeMode.None) ||
+                (materialValidationMode != DebugMaterialValidationMode.None);
 
         public override bool IsPostProcessingAllowed => !AreAnySettingsActive;
         public override bool IsLightingActive => !AreAnySettingsActive;

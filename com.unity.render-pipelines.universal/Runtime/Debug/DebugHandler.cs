@@ -73,8 +73,8 @@ namespace UnityEngine.Rendering.Universal
             m_DebugDisplaySettings.lightingSettings.lightingFeatureFlags != DebugLightingFeatureFlags.None ||
             RenderingDebuggerState.instance.GetPanel<RenderingPanel>().sceneOverrideMode != DebugSceneOverrideMode.None ||
             RenderingDebuggerState.instance.GetPanel<MaterialPanel>().materialDebugMode != DebugMaterialMode.None ||
-            m_DebugDisplaySettings.materialSettings.vertexAttributeDebugMode != DebugVertexAttributeMode.None ||
-            m_DebugDisplaySettings.materialSettings.materialValidationMode != DebugMaterialValidationMode.None;
+            RenderingDebuggerState.instance.GetPanel<MaterialPanel>().vertexAttributeDebugMode != DebugVertexAttributeMode.None ||
+            RenderingDebuggerState.instance.GetPanel<MaterialPanel>().materialValidationMode != DebugMaterialValidationMode.None;
 
         public bool TryGetScreenClearColor(ref Color color)
         {
@@ -185,19 +185,21 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            switch (MaterialSettings.materialValidationMode)
+
+            var materialDebugState = RenderingDebuggerState.instance.GetPanel<MaterialPanel>();
+            switch (materialDebugState.materialValidationMode)
             {
                 case DebugMaterialValidationMode.Albedo:
-                    cmd.SetGlobalFloat(k_DebugValidateAlbedoMinLuminanceId, MaterialSettings.albedoMinLuminance);
-                    cmd.SetGlobalFloat(k_DebugValidateAlbedoMaxLuminanceId, MaterialSettings.albedoMaxLuminance);
-                    cmd.SetGlobalFloat(k_DebugValidateAlbedoSaturationToleranceId, MaterialSettings.albedoSaturationTolerance);
-                    cmd.SetGlobalFloat(k_DebugValidateAlbedoHueToleranceId, MaterialSettings.albedoHueTolerance);
-                    cmd.SetGlobalColor(k_DebugValidateAlbedoCompareColorId, MaterialSettings.albedoCompareColor.linear);
+                    cmd.SetGlobalFloat(k_DebugValidateAlbedoMinLuminanceId, materialDebugState.albedoMinLuminance);
+                    cmd.SetGlobalFloat(k_DebugValidateAlbedoMaxLuminanceId, materialDebugState.albedoMaxLuminance);
+                    cmd.SetGlobalFloat(k_DebugValidateAlbedoSaturationToleranceId, materialDebugState.albedoSaturationTolerance);
+                    cmd.SetGlobalFloat(k_DebugValidateAlbedoHueToleranceId, materialDebugState.albedoHueTolerance);
+                    cmd.SetGlobalColor(k_DebugValidateAlbedoCompareColorId, materialDebugState.albedoCompareColor.linear);
                     break;
 
                 case DebugMaterialValidationMode.Metallic:
-                    cmd.SetGlobalFloat(k_DebugValidateMetallicMinValueId, MaterialSettings.metallicMinValue);
-                    cmd.SetGlobalFloat(k_DebugValidateMetallicMaxValueId, MaterialSettings.metallicMaxValue);
+                    cmd.SetGlobalFloat(k_DebugValidateMetallicMinValueId, materialDebugState.metallicMinValue);
+                    cmd.SetGlobalFloat(k_DebugValidateMetallicMaxValueId, materialDebugState.metallicMaxValue);
                     break;
             }
         }
@@ -265,9 +267,9 @@ namespace UnityEngine.Rendering.Universal
 
                 // Material settings...
                 cmd.SetGlobalFloat(k_DebugMaterialModeId, (int)materialDebugState.materialDebugMode);
-                cmd.SetGlobalFloat(k_DebugVertexAttributeModeId, (int)MaterialSettings.vertexAttributeDebugMode);
+                cmd.SetGlobalFloat(k_DebugVertexAttributeModeId, (int)materialDebugState.vertexAttributeDebugMode);
 
-                cmd.SetGlobalInteger(k_DebugMaterialValidationModeId, (int)MaterialSettings.materialValidationMode);
+                cmd.SetGlobalInteger(k_DebugMaterialValidationModeId, (int)materialDebugState.materialValidationMode);
 
                 // Rendering settings...
                 cmd.SetGlobalInteger(k_DebugMipInfoModeId, (int)RenderingSettings.mipInfoMode);
