@@ -676,24 +676,12 @@ namespace UnityEngine.Rendering.Universal
                 // in the pipeline to avoid this extra blit.
                 if (!m_ResolveToScreen && !m_UseSwapBuffer)
                 {
+                    bool useProcedural = false; // TODO(sandy): switch to graphics level >= 30
 #if ENABLE_VR && ENABLE_XR_MODULE
                     if (cameraData.xr.enabled)
-                    {
-                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, cameraTargetHandle.nameID);
-                        cmd.SetRenderTarget(new RenderTargetIdentifier(m_Source, 0, CubemapFace.Unknown, -1),
-                            colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-
-                        var scaleBias = new Vector4(1, 1, 0, 0);
-                        cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                        cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4, 1, null);
-                    }
-                    else
+                        useProcedural = true;
 #endif
-                    {
-                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, cameraTargetHandle.nameID);
-                        cmd.SetRenderTarget(m_Source, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
-                    }
+                    RenderingUtils.Blit(cmd, cameraTargetHandle, m_Source, m_BlitMaterial, 0, useProcedural, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                 }
 
                 if (m_UseSwapBuffer && !m_ResolveToScreen)
