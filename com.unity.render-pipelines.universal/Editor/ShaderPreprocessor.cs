@@ -664,7 +664,7 @@ namespace UnityEditor.Rendering.Universal
             float percentageCurrent = (float)currVariantsCount / (float)prevVariantsCount * 100f;
             float percentageTotal = (float)m_TotalVariantsOutputCount / (float)m_TotalVariantsInputCount * 100f;
 
-            string result = string.Format("STRIPPING: {0} ({1} pass) ({2}) -" +
+            string result = string.Format("URP STRIPPING: {0} ({1} pass) ({2}) -" +
                 " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}% TimeMs={9}",
                 shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
                 prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
@@ -672,66 +672,85 @@ namespace UnityEditor.Rendering.Universal
             Debug.Log(result);
         }
 
+        private readonly Lazy<bool> m_Active = new (CheckIfStripperIsActive);
+        private bool active => m_Active.Value;
+
+        static bool CheckIfStripperIsActive()
+        {
+            UniversalRenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
+            if (urpAsset == null)
+                return false;
+
+            return true;
+        }
+
+        private bool IsShaderProcessed(Shader shader, ShaderSnippetData snippet)
+        {
+            return shader.TryGetRenderPipelineTag(snippet, out string renderPipelineTag) &&
+                   renderPipelineTag.Equals(UniversalRenderPipeline.k_ShaderTagName);
+        }
+
+        private bool CanRemoveVariant(Shader shader, ShaderSnippetData snippetData, ShaderCompilerData input)
+        {
+            // Remove the input by default, until we find a
+            bool removeInput = true;
+
+            foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesList)
+            {
+                if (!StripUnused(supportedFeatures, shader, snippetData, input))
+                {
+                    removeInput = false;
+                    break;
+                }
+            }
+
+            if (UniversalRenderPipelineGlobalSettings.instance?.stripUnusedPostProcessingVariants == true)
+            {
+                if (!removeInput && StripVolumeFeatures(ShaderBuildPreprocessor.volumeFeatures, shader, snippetData, input))
+                {
+                    removeInput = true;
+                }
+            }
+
+            return removeInput;
+        }
+
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
 #if PROFILE_BUILD
             Profiler.BeginSample(k_ProcessShaderTag);
 #endif
-
-            UniversalRenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
-            if (urpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
+            if (compilerDataList == null || compilerDataList.Count == 0)
                 return;
+
+            int prevVariantCount = compilerDataList.Count;
+            var outputVariantCount = prevVariantCount;
+
+            if (!active)
+            {
+                if (!IsShaderProcessed(shader, snippetData))
+                    return;
+
+                outputVariantCount = 0;
+            }
 
             m_stripTimer.Start();
 
             InitializeLocalShaderKeywords(shader);
 
-            int prevVariantCount = compilerDataList.Count;
-            var inputShaderVariantCount = compilerDataList.Count;
-
-            // Check the Render Pipeline tag
-            if (shader.TryGetRenderPipelineTag(snippetData, out string renderPipelineTag))
+            for (int i = 0; i < outputVariantCount;)
             {
-                // If it is a shader from a pipeline and it doesn't belong to URP, strip completely the variants
-                if (!renderPipelineTag.Equals(UniversalRenderPipeline.k_ShaderTagName))
-                {
-                    inputShaderVariantCount = 0;
-                }
-            }
-
-            for (int i = 0; i < inputShaderVariantCount;)
-            {
-                bool removeInput = true;
-
-                foreach (var supportedFeatures in ShaderBuildPreprocessor.supportedFeaturesList)
-                {
-                    if (!StripUnused(supportedFeatures, shader, snippetData, compilerDataList[i]))
-                    {
-                        removeInput = false;
-                        break;
-                    }
-                }
-
-                if (UniversalRenderPipelineGlobalSettings.instance?.stripUnusedPostProcessingVariants == true)
-                {
-                    if (!removeInput && StripVolumeFeatures(ShaderBuildPreprocessor.volumeFeatures, shader, snippetData, compilerDataList[i]))
-                    {
-                        removeInput = true;
-                    }
-                }
-
-                // Remove at swap back
-                if (removeInput)
-                    compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
+                if (CanRemoveVariant(shader, snippetData, compilerDataList[i]))
+                    compilerDataList[i] = compilerDataList[--outputVariantCount];
                 else
                     ++i;
             }
 
             if (compilerDataList is List<ShaderCompilerData> inputDataList)
-                inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
+                inputDataList.RemoveRange(outputVariantCount, inputDataList.Count - outputVariantCount);
             else
             {
-                for (int i = compilerDataList.Count - 1; i >= inputShaderVariantCount; --i)
+                for (int i = compilerDataList.Count - 1; i >= outputVariantCount; --i)
                     compilerDataList.RemoveAt(i);
             }
 
