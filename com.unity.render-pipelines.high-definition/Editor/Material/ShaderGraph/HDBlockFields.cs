@@ -86,6 +86,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(1.0f), ShaderStage.Fragment);
 
             // --------------------------------------------------
+            // SensorSDK
+
+            public static BlockFieldDescriptor ObjectID = new BlockFieldDescriptor(SurfaceDescription.name, "ObjectID", "ObjectID", "SURFACEDESCRIPTION_OBJECTID",
+                new FloatControl(0.0f), ShaderStage.Fragment);
+
+            // --------------------------------------------------
             // Decal
 
             public static BlockFieldDescriptor NormalAlpha = new BlockFieldDescriptor(SurfaceDescription.name, "NormalAlpha", "Normal Alpha", "SURFACEDESCRIPTION_NORMALALPHA",

@@ -34,4 +34,14 @@ void ClearBeamData(inout PathIntersection payload)
     SetBeamDirection(payload, 0.0);
 }
 
+void SetObjectID(inout PathIntersection payload, float ObjectID)
+{
+    payload.maxRoughness = ObjectID;
+}
+
+float GetObjectID(inout PathIntersection payload)
+{
+    return payload.maxRoughness;
+}
+
 #endif // UNITY_SENSOR_INTERSECTION_INCLUDED

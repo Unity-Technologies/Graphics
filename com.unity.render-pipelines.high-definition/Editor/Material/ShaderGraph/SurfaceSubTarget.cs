@@ -280,6 +280,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             context.AddBlock(HDBlockFields.VertexDescription.TessellationFactor, systemData.tessellation);
             context.AddBlock(HDBlockFields.VertexDescription.TessellationDisplacement, systemData.tessellation);
+            context.AddBlock(HDBlockFields.SurfaceDescription.ObjectID, true);
         }
 
         protected void AddDistortionBlocks(ref TargetActiveBlockContext context)

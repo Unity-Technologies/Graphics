@@ -124,6 +124,9 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     SurfaceData surfaceData;
     BuiltinData builtinData;
     bool isVisible;
+
+    SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInput, -WorldRayDirection());
+    SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
     GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, pathIntersection.cone, isVisible);
 
     // Compute the bsdf data
@@ -166,5 +169,6 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 
         // Copy the last beam radius and depth to the payload
         pathIntersection.value.yz = value.yz;
+        SetObjectID(pathIntersection, surfaceDescription.ObjectID);
     }
 }
