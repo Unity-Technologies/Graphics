@@ -307,9 +307,9 @@ half ComputeCascadeIndex(float3 positionWS)
 float4 TransformWorldToShadowCoord(float3 positionWS)
 {
 #ifdef _MAIN_LIGHT_SHADOWS_CASCADE
-    half cascadeIndex = ComputeCascadeIndex(positionWS);
+    float cascadeIndex = ComputeCascadeIndex(positionWS);
 #else
-    half cascadeIndex = half(0.0);
+    float cascadeIndex = half(0.0);
 #endif
 
     float4 shadowCoord = mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
@@ -332,7 +332,7 @@ half MainLightRealtimeShadow(float4 shadowCoord)
 
 // returns 0.0 if position is in light's shadow
 // returns 1.0 if position is in light
-half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection)
+float AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection)
 {
 #if !defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
     return half(1.0);
@@ -365,25 +365,25 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
     return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
 }
 
-half GetMainLightShadowFade(float3 positionWS)
+float GetMainLightShadowFade(float3 positionWS)
 {
     float3 camToPixel = positionWS - _WorldSpaceCameraPos;
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
     float fade = saturate(distanceCamToPixel2 * float(_MainLightShadowParams.z) + float(_MainLightShadowParams.w));
-    return half(fade);
+    return fade;
 }
 
-half GetAdditionalLightShadowFade(float3 positionWS)
+float GetAdditionalLightShadowFade(float3 positionWS)
 {
     float3 camToPixel = positionWS - _WorldSpaceCameraPos;
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
     float fade = saturate(distanceCamToPixel2 * float(_AdditionalShadowFadeParams.x) + float(_AdditionalShadowFadeParams.y));
-    return half(fade);
+    return fade;
 }
 
-half MixRealtimeAndBakedShadows(half realtimeShadow, half bakedShadow, half shadowFade)
+float MixRealtimeAndBakedShadows(half realtimeShadow, half bakedShadow, half shadowFade)
 {
 #if defined(LIGHTMAP_SHADOW_MIXING)
     return min(lerp(realtimeShadow, 1, shadowFade), bakedShadow);
@@ -398,43 +398,43 @@ half BakedShadow(half4 shadowMask, half4 occlusionProbeChannels)
     // If occlusionProbeChannels all components are zero we use default baked shadow value 1.0
     // This code is optimized for mobile platforms:
     // half bakedShadow = any(occlusionProbeChannels) ? dot(shadowMask, occlusionProbeChannels) : 1.0h;
-    half bakedShadow = half(1.0) + dot(shadowMask - half(1.0), occlusionProbeChannels);
+    float bakedShadow = half(1.0) + dot(shadowMask - half(1.0), occlusionProbeChannels);
     return bakedShadow;
 }
 
-half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels)
+float MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels)
 {
-    half realtimeShadow = MainLightRealtimeShadow(shadowCoord);
+    float realtimeShadow = MainLightRealtimeShadow(shadowCoord);
 
 #ifdef CALCULATE_BAKED_SHADOWS
-    half bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels);
+    float bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels);
 #else
-    half bakedShadow = half(1.0);
+    float bakedShadow = half(1.0);
 #endif
 
 #ifdef MAIN_LIGHT_CALCULATE_SHADOWS
-    half shadowFade = GetMainLightShadowFade(positionWS);
+    float shadowFade = GetMainLightShadowFade(positionWS);
 #else
-    half shadowFade = half(1.0);
+    float shadowFade = half(1.0);
 #endif
 
     return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
 }
 
-half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels)
+float AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels)
 {
-    half realtimeShadow = AdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection);
+    float realtimeShadow = AdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection);
 
 #ifdef CALCULATE_BAKED_SHADOWS
-    half bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels);
+    float bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels);
 #else
-    half bakedShadow = half(1.0);
+    float bakedShadow = half(1.0);
 #endif
 
 #ifdef ADDITIONAL_LIGHT_CALCULATE_SHADOWS
-    half shadowFade = GetAdditionalLightShadowFade(positionWS);
+    float shadowFade = GetAdditionalLightShadowFade(positionWS);
 #else
-    half shadowFade = half(1.0);
+    float shadowFade = half(1.0);
 #endif
 
     return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
