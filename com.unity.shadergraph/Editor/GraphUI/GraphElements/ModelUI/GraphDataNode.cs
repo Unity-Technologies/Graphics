@@ -14,28 +14,9 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
         {
             base.BuildPartList();
 
-            /*PartList.InsertPartAfter(titleIconContainerPartName, new DebugStringPart("registry-key", Model, this,
-                ussClassName,
-                m =>
-                {
-                    try
-                    {
-                        return ((GraphDataNodeModel) NodeModel).registryKey.ToString();
-                    }
-                    catch
-                    {
-                        return "Invalid key";
-                    }
-                }));
-
-            /*PartList.InsertPartAfter(titleIconContainerPartName, new DebugStringPart("graph-data-path", Model, this,
-                ussClassName, m => ((GraphDataNodeModel) m).graphDataName));*/
-
-            if (/*m_GraphDataNodeModel.HasPreview*/ true)
-            {
-                m_NodePreviewPart = new NodePreviewPart("node-preview", Model, this, ussClassName);
-                PartList.AppendPart(m_NodePreviewPart);
-            }
+            // TODO (Brett) This should only happen if m_GraphDataNodeMode.HasPreview
+            m_NodePreviewPart = new NodePreviewPart("node-preview", Model, this, ussClassName);
+            PartList.AppendPart(m_NodePreviewPart);
 
             // TODO: Build out fields from node definition
         }
@@ -53,6 +34,12 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
             evt.menu.AppendAction("Preview/Collapse", action =>
             {
                 GraphView.Dispatch(new ChangePreviewExpandedCommand(false, new [] {m_GraphDataNodeModel}));
+            });
+
+            evt.menu.AppendAction("Get Shader Code", action =>
+            {
+                // TODO (Brett) Get the shader code from the PreviewManager once it is implemented.
+                // https://jira.unity3d.com/browse/GSG-780
             });
 
             // TODO: Add preview mode 2D/3D change submenu options to menu
