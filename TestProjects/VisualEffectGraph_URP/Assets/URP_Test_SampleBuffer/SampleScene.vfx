@@ -20,7 +20,7 @@ MonoBehaviour:
     x: -744
     y: -190
     width: 2643
-    height: 1704
+    height: 1720
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -515,7 +515,7 @@ MonoBehaviour:
       slotIndex: 0
   m_OutputFlowSlot:
   - link: []
-  blendMode: 3
+  blendMode: 1
   useAlphaClipping: 0
   generateMotionVector: 0
   excludeFromTAA: 0
