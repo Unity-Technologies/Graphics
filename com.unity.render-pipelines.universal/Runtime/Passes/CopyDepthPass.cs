@@ -25,6 +25,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool m_CopyResolvedDepth;
         internal bool m_ShouldClear;
 
+        /// <summary>
+        /// Creates a new <c>CopyDepthPass</c> instance.
+        /// </summary>
+        /// <param name="evt">The <c>RenderPassEvent</c> to use.</param>
+        /// <param name="copyDepthMaterial">The <c>Material</c> to use for copying the depth.</param>
+        /// <param name="shouldClear">Controls whether it should do a clear before copying the depth.</param>
+        /// <seealso cref="RenderPassEvent"/>
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial, bool shouldClear = false)
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
