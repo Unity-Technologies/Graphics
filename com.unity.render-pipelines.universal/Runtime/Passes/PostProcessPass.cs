@@ -151,11 +151,16 @@ namespace UnityEngine.Rendering.Universal
             // unfortunately need to allocate strings
             ShaderConstants._BloomMipUp = new int[k_MaxPyramidSize];
             ShaderConstants._BloomMipDown = new int[k_MaxPyramidSize];
+            m_BloomMipUp = new RTHandle[k_MaxPyramidSize];
+            m_BloomMipDown = new RTHandle[k_MaxPyramidSize];
 
             for (int i = 0; i < k_MaxPyramidSize; i++)
             {
                 ShaderConstants._BloomMipUp[i] = Shader.PropertyToID("_BloomMipUp" + i);
                 ShaderConstants._BloomMipDown[i] = Shader.PropertyToID("_BloomMipDown" + i);
+                // Get name, will get Allocated with descriptor later
+                m_BloomMipUp[i] = RTHandles.Alloc(ShaderConstants._BloomMipUp[i], name: "_BloomMipUp" + i);
+                m_BloomMipDown[i] = RTHandles.Alloc(ShaderConstants._BloomMipDown[i], name: "_BloomMipDown" + i);
             }
 
             m_MRT2 = new RenderTargetIdentifier[2];
@@ -195,6 +200,10 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public void Dispose()
         {
+            foreach (var handle in m_BloomMipDown)
+                handle?.Release();
+            foreach (var handle in m_BloomMipUp)
+                handle?.Release();
             m_ScalingSetupTarget?.Release();
             m_UpscaledTarget?.Release();
             m_CameraTargetHandle?.Release();
@@ -706,9 +715,6 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 // Cleanup
-                if (bloomActive)
-                    cmd.ReleaseTemporaryRT(ShaderConstants._BloomMipUp[0]);
-
                 if (tempTargetUsed)
                     cmd.ReleaseTemporaryRT(ShaderConstants._TempTarget);
 
@@ -1209,50 +1215,38 @@ namespace UnityEngine.Rendering.Universal
 
             // Prefilter
             var desc = GetCompatibleDescriptor(tw, th, m_DefaultHDRFormat);
-            cmd.GetTemporaryRT(ShaderConstants._BloomMipDown[0], desc, FilterMode.Bilinear);
-            cmd.GetTemporaryRT(ShaderConstants._BloomMipUp[0], desc, FilterMode.Bilinear);
-            Blit(cmd, source, ShaderConstants._BloomMipDown[0], bloomMaterial, 0);
+            for (int i = 0; i < mipCount; i++)
+            {
+                RenderingUtils.ReAllocateIfNeeded(ref m_BloomMipUp[i], desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: m_BloomMipUp[i].name);
+                RenderingUtils.ReAllocateIfNeeded(ref m_BloomMipDown[i], desc, FilterMode.Bilinear, TextureWrapMode.Clamp, name: m_BloomMipDown[i].name);
+                desc.width = Mathf.Max(1, desc.width >> 1);
+                desc.height = Mathf.Max(1, desc.height >> 1);
+            }
+
+            Blit(cmd, source, m_BloomMipDown[0], bloomMaterial, 0);
 
             // Downsample - gaussian pyramid
-            int lastDown = ShaderConstants._BloomMipDown[0];
+            var lastDown = m_BloomMipDown[0];
             for (int i = 1; i < mipCount; i++)
             {
-                tw = Mathf.Max(1, tw >> 1);
-                th = Mathf.Max(1, th >> 1);
-                int mipDown = ShaderConstants._BloomMipDown[i];
-                int mipUp = ShaderConstants._BloomMipUp[i];
-
-                desc.width = tw;
-                desc.height = th;
-
-                cmd.GetTemporaryRT(mipDown, desc, FilterMode.Bilinear);
-                cmd.GetTemporaryRT(mipUp, desc, FilterMode.Bilinear);
-
                 // Classic two pass gaussian blur - use mipUp as a temporary target
                 //   First pass does 2x downsampling + 9-tap gaussian
                 //   Second pass does 9-tap gaussian using a 5-tap filter + bilinear filtering
-                Blit(cmd, lastDown, mipUp, bloomMaterial, 1);
-                Blit(cmd, mipUp, mipDown, bloomMaterial, 2);
+                Blit(cmd, lastDown, m_BloomMipUp[i], bloomMaterial, 1);
+                Blit(cmd, m_BloomMipUp[i], m_BloomMipDown[i], bloomMaterial, 2);
 
-                lastDown = mipDown;
+                lastDown = m_BloomMipDown[i];
             }
 
             // Upsample (bilinear by default, HQ filtering does bicubic instead
             for (int i = mipCount - 2; i >= 0; i--)
             {
-                int lowMip = (i == mipCount - 2) ? ShaderConstants._BloomMipDown[i + 1] : ShaderConstants._BloomMipUp[i + 1];
-                int highMip = ShaderConstants._BloomMipDown[i];
-                int dst = ShaderConstants._BloomMipUp[i];
+                var lowMip = (i == mipCount - 2) ? m_BloomMipDown[i + 1] : m_BloomMipUp[i + 1];
+                var highMip = m_BloomMipDown[i];
+                var dst = m_BloomMipUp[i];
 
                 cmd.SetGlobalTexture(ShaderConstants._SourceTexLowMip, lowMip);
                 Blit(cmd, highMip, BlitDstDiscardContent(cmd, dst), bloomMaterial, 3);
-            }
-
-            // Cleanup
-            for (int i = 0; i < mipCount; i++)
-            {
-                cmd.ReleaseTemporaryRT(ShaderConstants._BloomMipDown[i]);
-                if (i > 0) cmd.ReleaseTemporaryRT(ShaderConstants._BloomMipUp[i]);
             }
 
             // Setup bloom on uber
@@ -1264,7 +1258,7 @@ namespace UnityEngine.Rendering.Universal
             uberMaterial.SetVector(ShaderConstants._Bloom_Params, bloomParams);
             uberMaterial.SetFloat(ShaderConstants._Bloom_RGBM, m_UseRGBM ? 1f : 0f);
 
-            cmd.SetGlobalTexture(ShaderConstants._Bloom_Texture, ShaderConstants._BloomMipUp[0]);
+            cmd.SetGlobalTexture(ShaderConstants._Bloom_Texture, m_BloomMipUp[0]);
 
             // Setup lens dirtiness on uber
             // Keep the aspect ratio correct & center the dirt texture, we don't want it to be
