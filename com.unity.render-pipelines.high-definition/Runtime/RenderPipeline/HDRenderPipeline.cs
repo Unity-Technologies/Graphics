@@ -609,23 +609,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowManager.InitializeNonRenderGraphResources();
 
             EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
-
-#if SYNC
-            if (GetDistributedMode() != DistributedMode.None)
-            {
-                if (Application.isPlaying && clientToController == null)
-                {
-                    clientToController = new SocketClient();
-                    clientToController.Init(Const.IP, Const.CONTROLLER_PORT);
-                    //while (true)
-                    //{
-                    //    clientToController.GetReceived(Datagram.DatagramType.StartFrame, out byte[] data);
-                    //    if (data != null)
-                    //        break;
-                    //}
-                }
-            }
-#endif
         }
 
 #if UNITY_EDITOR
@@ -1640,39 +1623,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 return;
 
-#if SYNC
-            if (GetDistributedMode() == DistributedMode.Renderer || GetDistributedMode() == DistributedMode.Merger)
-            {
-                if (Application.isPlaying)
-                {
-                    while (true)
-                    {
-                        clientToController.GetReceived(Datagram.DatagramType.StartFrame, out byte[] data);
-                        if (data != null)
-                        {
-                            frameID = BitConverter.ToInt32(data, 0);
-                            //Debug.Log($"Start frame {frameID}");
-                            break;
-                        }
-
-                        clientToController.GetReceived(Datagram.DatagramType.Error, out byte[] err);
-                        if (err != null)
-                        {
-            #if UNITY_EDITOR
-                            UnityEditor.EditorApplication.isPlaying = false;
-            #elif UNITY_WEBPLAYER
-                            Application.OpenURL(webplayerQuitURL);
-            #else
-                            Application.Quit();
-            #endif
-                            clientToController.CloseSocket();
-                            return;
-                        }
-                        //return;
-                    }
-                }
-            }
-#endif
             GetOrCreateDefaultVolume();
             GetOrCreateDebugTextures();
 
@@ -2424,19 +2374,6 @@ namespace UnityEngine.Rendering.HighDefinition
             EndContextRendering(renderContext, cameras);
 #else
             EndFrameRendering(renderContext, cameras);
-#endif
-#if SYNC
-            if (GetDistributedMode() == DistributedMode.Renderer || GetDistributedMode() == DistributedMode.Merger)
-            {
-                if (Application.isPlaying)
-                {
-                    byte[] sendTata = new byte[8];
-                    BitConverter.GetBytes(frameID).CopyTo(sendTata, 0);
-                    BitConverter.GetBytes(4).CopyTo(sendTata, Const.controlID);
-                    clientToController.Set(Datagram.DatagramType.EndFrame, sendTata);
-                    //Debug.Log($"End frame {frameID}");
-                }
-            }
 #endif
         }
 

@@ -181,9 +181,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             using (new ProfilingScope(context.cmd, new ProfilingSampler($"Load Data {i}")))
                             {
                                 Datagram datagram = null;
-#if SYNC
-                                while (frameData == null)
-#endif
                                 datagram = SocketServer.Instance.ReceiveReadyFrame(i);
                                 if (datagram == null)
                                     continue;
