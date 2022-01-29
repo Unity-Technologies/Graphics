@@ -1,0 +1,26 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement style="flex-direction: row;">
+        <ui:VisualElement name="Colors" style="flex-grow: 1;">
+            <ui:VisualElement name="Red" style="flex-direction: row; width: auto; min-width: auto;">
+                <ui:Label name="RedLabel" text="Red" display-tooltip-when-elided="true" style="-unity-text-align: middle-left; width: 20%;" />
+                <ui:Slider name="RedSlider" picking-mode="Ignore" value="42" high-value="1" style="flex-grow: 1;" />
+                <ui:FloatField name="RedFloatField" value="42.2" style="width: 20%;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="Green" style="flex-direction: row;">
+                <ui:Label name="GreenLabel" text="Green" display-tooltip-when-elided="true" style="-unity-text-align: middle-left; width: 20%;" />
+                <ui:Slider name="GreenSlider" picking-mode="Ignore" value="42" high-value="1" style="flex-grow: 1;" />
+                <ui:FloatField name="GreenFloatField" value="42.2" style="width: 20%;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="Blue" style="flex-direction: row;">
+                <ui:Label name="BlueLabel" text="Blue" display-tooltip-when-elided="true" style="-unity-text-align: middle-left; width: 20%;" />
+                <ui:Slider name="BlueSlider" picking-mode="Ignore" value="42" high-value="1" style="flex-grow: 1; justify-content: center;" />
+                <ui:FloatField name="BlueFloatField" value="42.2" style="width: 20%;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="Alpha" style="flex-direction: row;">
+                <ui:Label name="AlphaLabel" text="Alpha" display-tooltip-when-elided="true" style="-unity-text-align: middle-left; width: 20%;" />
+                <ui:Slider name="AlphaSlider" picking-mode="Ignore" value="0" high-value="1" style="flex-grow: 1; justify-content: center;" />
+                <ui:FloatField name="AlphaFloatField" value="42.2" style="width: 20%;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
