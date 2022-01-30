@@ -150,15 +150,18 @@ namespace UnityEditor.Rendering
         public override void SetValue(object value, DebugUI.IValueField field)
         {
             m_EnumField = field as DebugUI.EnumField;
-            this.value = (int)field.ValidateValue(value);
+            base.SetValue(value, field);
         }
 
         void UpdateValue()
         {
             if (m_EnumField != null)
             {
-                m_EnumField.SetValue(value);
-                m_EnumField.setIndex?.Invoke(value);
+                base.SetValue(value, m_EnumField);
+                // There might be cases that the value does not map the index, look for the correct index
+                var newCurrentIndex = Array.IndexOf(m_EnumField.enumValues, value);
+                if (m_EnumField.currentIndex != newCurrentIndex)
+                    m_EnumField.currentIndex = newCurrentIndex;
             }
         }
 
