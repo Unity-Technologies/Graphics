@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with HDRI Sky and shadow filtering quality set to high.
 - Fixed the default custom pass buffer format from R8G8B8A8_SNorm to R8G8B8A8_UNorm. Additionally, an option in the custom pass buffer format settings is available to use the old format.
 - Fixed cached directional light shadows disappearing without reappearing when the going outside of the range of shadow validity.
+- Fixed an issue where sometimes full screen debug would cause render graph errors.
 
 ## [14.0.0] - 2021-11-17
 
