@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using UnityEditor.Rendering.HighDefinition;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 using UnityEditor.ShaderGraph;
@@ -111,12 +112,12 @@ namespace UnityEditor.VFX.HDRP
         }
 
         // List of shader properties that currently are not supported for exposure in VFX shaders (for HDRP).
-        private static readonly Dictionary<Type, string> s_UnsupportedHDRPShaderPropertyTypes = new Dictionary<Type, string>()
+        private static readonly List<(Type type, string name, bool error)> s_UnsupportedHDRPShaderPropertyTypes = new List<(Type, string, bool)>()
         {
-            { typeof(DiffusionProfileShaderProperty), "Diffusion Profile" },
+            ( typeof(DiffusionProfileShaderProperty), "Diffusion Profile", true ),
         };
 
-        public override IEnumerable<KeyValuePair<Type, string>> GetUnsupportedShaderPropertyType()
+        public override IEnumerable<(Type type, string name, bool error)> GetUnsupportedShaderPropertyType()
         {
             return base.GetUnsupportedShaderPropertyType().Concat(s_UnsupportedHDRPShaderPropertyTypes);
         }

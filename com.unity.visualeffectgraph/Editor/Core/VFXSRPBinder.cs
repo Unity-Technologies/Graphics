@@ -51,47 +51,45 @@ namespace UnityEditor.VFX
         public virtual string GetShaderName(ShaderGraphVfxAsset shaderGraph) => string.Empty;
 
         // List of shader properties that currently are not supported for exposure in VFX shaders (for all pipeline).
-        private static readonly Dictionary<Type, string> s_BaseUnsupportedShaderPropertyTypes = new Dictionary<Type, string>()
+        private static readonly List<(Type type, string name, bool error)> s_BaseUnsupportedShaderPropertyTypes = new List<(Type type, string name, bool error)>()
         {
-            { typeof(VirtualTextureShaderProperty),   "Virtual Texture"   },
-            { typeof(GradientShaderProperty),         "Gradient"          }
+            (typeof(VirtualTextureShaderProperty), "Virtual Texture", true),
+            (typeof(GradientShaderProperty), "Gradient", false)
         };
 
-        public virtual IEnumerable<KeyValuePair<Type, string>> GetUnsupportedShaderPropertyType()
+        public virtual IEnumerable<(Type type, string name, bool error)> GetUnsupportedShaderPropertyType()
         {
             return s_BaseUnsupportedShaderPropertyTypes;
         }
 
         public bool CheckGraphDataValid(GraphData graph, VFXContext refContext)
         {
-            HashSet<string> unsupportedType = new HashSet<string>();
-            unsupportedType.Clear();
+            bool valid = true;
 
             // Filter property list for any unsupported exposed shader properties.
             foreach (var property in graph.properties.Where(o => o.isExposed))
             {
-                var invalid = GetUnsupportedShaderPropertyType().FirstOrDefault(o => o.Key == property.GetType());
-                if (invalid.Key != null)
+                var unsupported = GetUnsupportedShaderPropertyType().FirstOrDefault(o => o.type == property.GetType());
+                if (unsupported.type != null)
                 {
-                    unsupportedType.Add(invalid.Value);
+                    valid = valid && !unsupported.error;
+                    refContext.RegisterCompilationError(
+                        "SGUnsupportedExposedType_" + unsupported.name.Replace(" ", string.Empty)
+                        , unsupported.error ? VFXErrorType.Error : VFXErrorType.Warning
+                        , unsupported.name + " blackboard properties in Shader Graph are currently not supported in Visual Effect shaders.");
                 }
             }
 
             // VFX currently does not support the concept of exposed per-particle keywords.
             if (graph.keywords.Any(o => o.isExposed))
             {
-                unsupportedType.Add("Keyword");
-            }
-
-            foreach (var unsupported in unsupportedType)
-            {
                 refContext.RegisterCompilationError(
-                    "SGUnsupportedExposedType_" + unsupported.Replace(" ", string.Empty)
+                    "SGUnsupportedExposedType_Keword"
                     , VFXErrorType.Warning
-                    , unsupported + " blackboard properties in Shader Graph are currently not supported in Visual Effect shaders.");
+                    , "Exposed Keyword properties in Shader Graph are currently not supported in Visual Effect shaders.");
             }
 
-            return true; //Not any critical issue which is preventing compilation
+            return valid;
         }
 
         public virtual ShaderGraphBinder GetShaderGraphDescriptor(VFXContext context, VFXContextCompiledData data)

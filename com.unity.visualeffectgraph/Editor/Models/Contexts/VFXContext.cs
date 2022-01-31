@@ -214,14 +214,20 @@ namespace UnityEditor.VFX
             {
                 var errorLog = new StringBuilder();
                 var assetPath = AssetDatabase.GetAssetPath(this);
+                bool critical = false;
                 errorLog.Append($"The compilation of {assetPath} has generated errors");
                 errorLog.AppendLine();
-                foreach (var (_, _, description) in m_CompilationErrors)
+                foreach (var (_, type, description) in m_CompilationErrors)
                 {
+                    critical = critical || type == VFXErrorType.Error;
                     errorLog.Append(description);
                     errorLog.AppendLine();
                 }
-                Debug.LogWarning(errorLog.ToString());
+
+                if (critical)
+                    Debug.LogError(errorLog.ToString());
+                else
+                    Debug.LogWarning(errorLog.ToString());
             }
         }
 

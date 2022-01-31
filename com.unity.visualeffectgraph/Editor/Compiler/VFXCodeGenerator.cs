@@ -532,13 +532,9 @@ namespace UnityEditor.VFX
                 VFXViewPreference.generateOutputContextWithShaderGraph)
             {
                 var result = TryBuildFromShaderGraph(shaderGraphContext, contextData);
-
-                // If the ShaderGraph generation path was successful, use the result, otherwise fall back to the VFX generation path.
-                if (result != null)
-                {
-                    context.EndCompilation();
-                    return result;
-                }
+                // If the ShaderGraph generation path was successful, use the result, otherwise fails the code generation and skip the output, returning null
+                context.EndCompilation();
+                return result;
             }
 
             var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines, dependencies);
@@ -756,7 +752,8 @@ namespace UnityEditor.VFX
             if (VFXLibrary.currentSRPBinder == null)
                 return null;
 
-            VFXLibrary.currentSRPBinder.CheckGraphDataValid(graph, context);
+            if (!VFXLibrary.currentSRPBinder.CheckGraphDataValid(graph, context))
+                return null;
 
             var target = graph.activeTargets.Where(o =>
             {
