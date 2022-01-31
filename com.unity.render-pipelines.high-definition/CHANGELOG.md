@@ -76,6 +76,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue in the instance ID management for tesselation shaders.
 - Fixed warning when an APV baking set is renamed.
 - Fixed issue where scene list was not refreshed upon deleting an APV baking set.
+- Fixed a null ref exception in Volume Explorer
 
 ## [14.0.0] - 2021-11-17
 
