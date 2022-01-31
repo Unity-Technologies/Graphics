@@ -47,4 +47,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/URP_InstancingTest.unity
     guid: 4229d44b837011e48b0f123903ea0ea5
+  - enabled: 1
+    path: Assets/Scenes/Refract_and_Fresnel.unity
+    guid: 88673d3037ade164680a1fce99a2119e
   m_configObjects: {}
