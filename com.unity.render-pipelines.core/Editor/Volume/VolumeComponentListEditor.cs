@@ -123,7 +123,9 @@ namespace UnityEditor.Rendering
                 if (componentType.GetCustomAttributes(typeof(VolumeComponentMenuForRenderPipeline), true)
                     .FirstOrDefault() is VolumeComponentMenuForRenderPipeline volumeComponentMenuForRenderPipeline
                              && !volumeComponentMenuForRenderPipeline.pipelineTypes.Contains(RenderPipelineManager.currentPipeline.GetType()))
+                { 
                     return;
+                }
             }
 
             var editor = (VolumeComponentEditor)Editor.CreateEditor(component);
