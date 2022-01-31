@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.Tests
             bool Property(VolumeComponentType[] types)
             {
                 var database = VolumeComponentDatabase.FromTypes(types);
-                var archetype = VolumeComponentArchetype.FromFilter(new EverythingVolumeComponentFilter(), database);
+                var archetype = VolumeComponentArchetype.FromFilterCached(new EverythingVolumeComponentFilter(), database);
 
                 using (HashSetPool<VolumeComponentType>.Get(out var expectedTypes))
                 {
@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.Tests
             bool Property(VolumeComponentType supportTarget, VolumeComponentType[] types)
             {
                 var database = VolumeComponentDatabase.FromTypes(types);
-                var archetype = VolumeComponentArchetype.FromFilter(
+                var archetype = VolumeComponentArchetype.FromFilterCached(
                     IsExplicitlySupportedVolumeComponentFilter.FromType(supportTarget.AsType()), database);
 
                 using (HashSetPool<VolumeComponentType>.Get(out var expectedTypes))

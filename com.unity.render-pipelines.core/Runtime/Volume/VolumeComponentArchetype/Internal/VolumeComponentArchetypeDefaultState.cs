@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace UnityEngine.Rendering
 {
@@ -11,7 +12,7 @@ namespace UnityEngine.Rendering
     {
         public struct Factory : IVolumeComponentArchetypeExtensionFactory<VolumeComponentArchetypeDefaultState>
         {
-            [return: NotNull]
+            [return: System.Diagnostics.CodeAnalysis.NotNull]
             public VolumeComponentArchetypeDefaultState Create([DisallowNull] VolumeComponentArchetype volumeComponentArchetype)
             {
                 var componentsDefaultState = volumeComponentArchetype.AsArray()
@@ -25,6 +26,28 @@ namespace UnityEngine.Rendering
         VolumeComponentArchetypeDefaultState(VolumeComponent[] componentsDefaultState)
         {
             this.componentsDefaultState = componentsDefaultState;
+        }
+
+        [MustUseReturnValue]
+        public bool GetDefaultStateOf(
+            [DisallowNull] VolumeComponentType type,
+            [NotNullWhen(true)] out VolumeComponent instance,
+            [NotNullWhen(false)] out Exception error
+        )
+        {
+            foreach (var volumeComponent in componentsDefaultState)
+            {
+                if (volumeComponent.GetType() == type.AsType())
+                {
+                    instance = volumeComponent;
+                    error = default;
+                    return true;
+                }
+            }
+
+            instance = default;
+            error = new ArgumentException($"Type was not found in archetype {type.AsType().Name}");
+            return false;
         }
 
         // Faster version of OverrideData to force replace values in the global state

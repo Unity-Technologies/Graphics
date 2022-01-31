@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.Assertions;
 
 #if UNITY_EDITOR
@@ -56,7 +57,7 @@ namespace UnityEngine.Rendering
                         {
                             path = attrMenu.menu;
                             if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
-                                skipComponent |= !supportedOn.pipelineTypes.Contains(currentPipelineType);
+                                skipComponent |= Array.IndexOf(supportedOn.pipelineTypes, currentPipelineType) == -1;
                             break;
                         }
                         case HideInInspector attrHide:
@@ -99,17 +100,6 @@ namespace UnityEngine.Rendering
 
         // Holds all the registered volumes
         readonly List<Volume> m_Volumes;
-
-        internal VolumeComponent GetDefaultVolumeComponent(Type volumeComponentType)
-        {
-            foreach (VolumeComponent component in m_ComponentsDefaultState)
-            {
-                if (component.GetType() == volumeComponentType)
-                    return component;
-            }
-
-            return null;
-        }
 
         // Keep track of sorting states for layer masks
         readonly Dictionary<int, bool> m_SortNeeded;

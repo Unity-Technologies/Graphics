@@ -23,6 +23,9 @@ namespace UnityEngine.Rendering
         {
             public static readonly Dictionary<VolumeComponentDatabase, Dictionary<IFilter<VolumeComponentType>, VolumeComponentArchetype>> cacheByDatabaseByFilter
                 = new Dictionary<VolumeComponentDatabase, Dictionary<IFilter<VolumeComponentType>, VolumeComponentArchetype>>();
+
+            public static readonly Dictionary<HashSet<VolumeComponentType>, VolumeComponentArchetype> cacheByTypeSet =
+                new Dictionary<HashSet<VolumeComponentType>, VolumeComponentArchetype>();
         }
 
         VolumeComponentType[] typeArray { get; }
@@ -41,11 +44,27 @@ namespace UnityEngine.Rendering
         public static VolumeComponentArchetype FromTypes([DisallowNull] params VolumeComponentType[] types)
             => new VolumeComponentArchetype(types);
 
+        [return: NotNull]
+        public static VolumeComponentArchetype FromTypesCached([DisallowNull] params VolumeComponentType[] types)
+        {
+            using (HashSetPool<VolumeComponentType>.Get(out var typeSet))
+            {
+                typeSet.UnionWith(types);
+                if (!StaticMembers.cacheByTypeSet.TryGetValue(typeSet, out var instance))
+                {
+                    instance = FromTypes(types);
+                    StaticMembers.cacheByTypeSet.Add(new HashSet<VolumeComponentType>(typeSet), instance);
+                }
+
+                return instance;
+            }
+        }
+
         [NotNull]
         public static VolumeComponentArchetype Empty { get; } = new VolumeComponentArchetype();
 
         [return: NotNull]
-        public static VolumeComponentArchetype FromFilter<TFilter>([DisallowNull] in TFilter filter, [AllowNull] VolumeComponentDatabase database = null)
+        public static VolumeComponentArchetype FromFilterCached<TFilter>([DisallowNull] in TFilter filter, [AllowNull] VolumeComponentDatabase database = null)
             where TFilter : IFilter<VolumeComponentType>
         {
             database ??= VolumeComponentDatabase.memoryDatabase;

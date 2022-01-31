@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering
         [ExcludeFromCodeCoverage] // trivial
         public VolumeComponentContext()
         {
-            AddExcludeArchetype(VolumeComponentArchetype.FromFilter(IsVisibleVolumeComponentFilter.FromIsVisible(false)));
+            AddExcludeArchetype(VolumeComponentArchetype.FromFilterCached(IsVisibleVolumeComponentFilter.FromIsVisible(false)));
         }
 
         [ExcludeFromCodeCoverage] // trivial wraps of `VolumeComponentArchetype.FromIncludeExclude`
