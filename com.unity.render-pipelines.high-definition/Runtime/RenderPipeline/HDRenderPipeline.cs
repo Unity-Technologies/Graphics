@@ -67,8 +67,6 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly List<RenderPipelineMaterial> m_MaterialList = new List<RenderPipelineMaterial>();
 
 
-        readonly XRSystem m_XRSystem;
-
         // Keep track of previous Graphic and QualitySettings value to reset when switching to another pipeline
         bool m_PreviousLightsUseLinearIntensity;
         bool m_PreviousLightsUseColorTemperature;
@@ -377,7 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
             RTHandles.Initialize(Screen.width, Screen.height);
 
-            m_XRSystem = new XRSystem(asset.renderPipelineResources.shaders);
+            XRSystem.Initialize(XRPass.CreateDefault, asset.renderPipelineResources.shaders.xrOcclusionMeshPS, asset.renderPipelineResources.shaders.xrMirrorViewPS);
 
             m_MipGenerator = new MipGenerator(defaultResources);
             m_BlueNoise = new BlueNoise(defaultResources);
@@ -794,7 +792,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
             CoreUtils.Destroy(m_FinalBlitWithOETF);
 
-            m_XRSystem.Cleanup();
+            XRSystem.Dispose();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
 
@@ -989,7 +987,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateShaderVariablesXRCB(HDCamera hdCamera, CommandBuffer cmd)
         {
-            hdCamera.xr.UpdateBuiltinStereoMatrices(cmd, hdCamera);
+            XRBuiltinShaderConstants.Update(hdCamera.xr, cmd, true);
             hdCamera.UpdateShaderVariablesXRCB(ref m_ShaderVariablesXRCB);
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesXRCB, HDShaderIDs._ShaderVariablesXR);
         }
@@ -1245,6 +1243,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 
+            XRSystem.singlePassAllowed = m_Asset.currentPlatformRenderPipelineSettings.xrSettings.singlePass;
+            var xrLayout = XRSystem.NewLayout();
+
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
@@ -1254,7 +1255,8 @@ namespace UnityEngine.Rendering.HighDefinition
             using (ListPool<CameraPositionSettings>.Get(out List<CameraPositionSettings> cameraPositionSettings))
             {
                 // With XR multi-pass enabled, each camera can be rendered multiple times with different parameters
-                var multipassCameras = m_XRSystem.SetupFrame(cameras, m_Asset.currentPlatformRenderPipelineSettings.xrSettings.singlePass, m_DebugDisplaySettings.data.xrSinglePassTestMode);
+                foreach (var c in cameras)
+                    xrLayout.AddCamera(c, HDUtils.TryGetAdditionalCameraDataOrDefault(c).xrRendering);
 
 #if UNITY_EDITOR
                 // See comment below about the preview camera workaround
@@ -1270,7 +1272,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
                 // Culling loop
-                foreach ((Camera camera, XRPass xrPass) in multipassCameras)
+                foreach ((Camera camera, XRPass xrPass) in xrLayout.GetActivePasses())
                 {
                     if (camera == null)
                         continue;
@@ -1423,7 +1425,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // Render directly to XR render target if active
-                    if (hdCamera.xr.enabled && hdCamera.xr.renderTargetValid)
+                    if (hdCamera.xr.enabled)
                         targetId = hdCamera.xr.renderTarget;
 
                     hdCamera.RequestDynamicResolution(cameraRequestedDynamicRes, dynResHandler);
@@ -2008,7 +2010,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 if (HDUtils.TryGetAdditionalCameraDataOrDefault(renderRequest.hdCamera.camera).xrRendering)
                                 {
-                                    m_XRSystem.RenderMirrorView(cmd);
+                                    XRSystem.RenderMirrorView(cmd, renderRequest.hdCamera.camera);
                                 }
                             }
 
@@ -2026,7 +2028,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DynamicResolutionHandler.ClearSelectedCamera();
 
             m_RenderGraph.EndFrame();
-            m_XRSystem.ReleaseFrame();
+            XRSystem.EndLayout();
 
 #if UNITY_2021_1_OR_NEWER
             EndContextRendering(renderContext, cameras);
