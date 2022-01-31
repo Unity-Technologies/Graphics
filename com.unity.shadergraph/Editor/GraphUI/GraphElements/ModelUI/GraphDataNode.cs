@@ -1,3 +1,4 @@
+using Debug = UnityEngine.Debug;
 using UnityEditor.GraphToolsFoundation.Overdrive;
 using UnityEditor.ShaderGraph.GraphUI.DataModel;
 using UnityEditor.ShaderGraph.GraphUI.GraphElements.CommandDispatch;
@@ -36,13 +37,29 @@ namespace UnityEditor.ShaderGraph.GraphUI.GraphElements
                 GraphView.Dispatch(new ChangePreviewExpandedCommand(false, new [] {m_GraphDataNodeModel}));
             });
 
-            evt.menu.AppendAction("Get Shader Code", action =>
+            evt.menu.AppendAction("Copy Shader", action =>
             {
+                Debug.LogWarning("UNIMPLEMENTED in GraphDataNode");
+            });
+
+            evt.menu.AppendAction("Show Generated Shader", action =>
+            {
+                Debug.LogWarning("UNIMPLEMENTED in GraphDataNode");
                 // TODO (Brett) Get the shader code from the PreviewManager once it is implemented.
                 // https://jira.unity3d.com/browse/GSG-780
             });
 
-            // TODO: Add preview mode 2D/3D change submenu options to menu
+            evt.menu.AppendAction("Show Preview Code", action =>
+            {
+                Debug.LogWarning("UNIMPLEMENTED in GraphDataNode");
+                // TODO (Brett) Get the shader code from the PreviewManager once it is implemented.
+                // https://jira.unity3d.com/browse/GSG-780
+            });
+
+            evt.menu.AppendAction("Disconnect All", action =>
+            {
+                Debug.LogWarning("UNIMPLEMENTED in GraphDataNode");
+            });
 
             base.BuildContextualMenu(evt);
         }
