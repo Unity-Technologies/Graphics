@@ -263,7 +263,25 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_ProbeVolumesL1 = new ShaderKeyword("PROBE_VOLUMES_L1");
         protected ShaderKeyword m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
 
-        public int callbackOrder { get { return 0; } }
+        public int callbackOrder => 0;
+
+        private readonly Lazy<bool> m_Active = new (CheckIfStripperIsActive);
+        private bool active => m_Active.Value;
+
+        static bool CheckIfStripperIsActive()
+        {
+            if (HDRenderPipeline.currentAsset == null)
+                return false;
+
+            if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
+                return false;
+
+            // TODO: Grab correct configuration/quality asset.
+            if (ShaderBuildPreprocessor.hdrpAssets.Count == 0)
+                return false;
+
+            return true;
+        }
 
         void LogShaderVariants(ComputeShader shader, string kernelName, uint prevVariantsCount, uint currVariantsCount)
         {
@@ -329,12 +347,23 @@ namespace UnityEditor.Rendering.HighDefinition
             return false;
         }
 
+        private bool CanRemoveVariant(ComputeShader shader, string kernelName, ShaderCompilerData input)
+        {
+            bool removeInput = true;
+            foreach (var hdAsset in ShaderBuildPreprocessor.hdrpAssets)
+            {
+                if (!StripShader(hdAsset, shader, kernelName, input))
+                {
+                    removeInput = false;
+                    break;
+                }
+            }
+            return removeInput;
+        }
+
         public void OnProcessComputeShader(ComputeShader shader, string kernelName, IList<ShaderCompilerData> inputData)
         {
-            if (HDRenderPipeline.currentAsset == null)
-                return;
-
-            if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
+            if (!active)
                 return;
 
             // Discard any compute shader use for raytracing if none of the RP asset required it
@@ -348,28 +377,11 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new ExportComputeShaderStrip("Temp/compute-shader-strip.json", shader, kernelName, inputData, this))
             {
                 var inputShaderVariantCount = inputData.Count;
-                var hdPipelineAssets = ShaderBuildPreprocessor.hdrpAssets;
-
-                if (hdPipelineAssets.Count == 0)
-                    return;
-
                 uint preStrippingCount = (uint)inputData.Count;
 
                 for (int i = 0; i < inputShaderVariantCount;)
                 {
-                    ShaderCompilerData input = inputData[i];
-
-                    bool removeInput = true;
-                    foreach (var hdAsset in hdPipelineAssets)
-                    {
-                        if (!StripShader(hdAsset, shader, kernelName, input))
-                        {
-                            removeInput = false;
-                            break;
-                        }
-                    }
-
-                    if (removeInput)
+                    if (CanRemoveVariant(shader, kernelName, inputData[i]))
                         inputData[i] = inputData[--inputShaderVariantCount];
                     else
                         ++i;
@@ -726,27 +738,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 _hdrpAssets.AddRange(uniques);
             }
 
-            // Prompt a warning if we find 0 HDRP Assets.
+            // Take the opportunity to know if we need raytracing at runtime
+            foreach (var hdrpAsset in _hdrpAssets)
+            {
+                if (hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
+                    s_PlayerNeedRaytracing = true;
+            }
+
             if (_hdrpAssets.Count == 0)
             {
-                if (!Application.isBatchMode)
-                {
-                    if (EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead to VERY long compilation time.", "Ok", "Cancel"))
-                        throw new UnityEditor.Build.BuildFailedException("Build canceled");
-                }
-                else
-                {
-                    Debug.LogWarning("There is no HDRP Asset provided in GraphicsSettings. Build time can be extremely long without it.");
-                }
-            }
-            else
-            {
-                // Take the opportunity to know if we need raytracing at runtime
-                foreach (var hdrpAsset in _hdrpAssets)
-                {
-                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
-                        s_PlayerNeedRaytracing = true;
-                }
+                Debug.Log($"There is no HDRP Asset provided in GraphicsSettings or Quality Settings. All Shaders that target {HDRenderPipeline.k_ShaderTagName} will be stripped");
             }
 
             /*
