@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing unit in ray tracing related tooltips and docs (case 1397491).
 - Fixed errors spamming when in player mode due to ray tracing light cluster debug view (case 1390471).
 - Fixed warning upon deleting APV data assets.
+- Fixed an issue in the instance ID management for tesselation shaders.
 - Fixed APV loading data outside of the relevant area containing probes.
 
 ## [14.0.0] - 2021-11-17
