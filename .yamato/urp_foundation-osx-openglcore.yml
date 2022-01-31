@@ -30,7 +30,7 @@ URP_Foundation_OSX_OpenGLCore_playmode_mono_Linear_trunk:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
+                ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation
          retries: 2
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
@@ -66,7 +66,7 @@ URP_Foundation_OSX_OpenGLCore_editmode_mono_Linear_trunk:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
+                ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation
          retries: 2
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
@@ -102,7 +102,7 @@ URP_Foundation_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
+                ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation
          retries: 2
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
@@ -138,7 +138,7 @@ URP_Foundation_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --zero-tests-are-ok=1
+                ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation
          retries: 2
     after:
       -  command: pip3 install ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
