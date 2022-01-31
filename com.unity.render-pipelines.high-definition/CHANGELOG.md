@@ -78,6 +78,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue where scene list was not refreshed upon deleting an APV baking set.
 - Fixed a null ref exception in Volume Explorer
 - Fixed one frame flicker on hardware DRS - (case 1398085)
+- Fixed using the wrong coordinate to compute the sampling direction for the screen space global illumination.
 
 ## [14.0.0] - 2021-11-17
 
