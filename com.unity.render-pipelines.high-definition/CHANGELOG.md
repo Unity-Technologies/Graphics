@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with accumulation motion blur and depth of field when path tracing is enabled.
 - Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
 - Fixed volumetric clouds in lens flares sample indoor scene by disabling it.
+- Fixed one frame flicker on hardware DRS - (case 1398085)
 
 ## [12.1.4] - 2021-12-07
 
