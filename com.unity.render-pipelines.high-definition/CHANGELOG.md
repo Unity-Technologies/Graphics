@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing unit in ray tracing related tooltips and docs (case 1397491).
 - Fixed errors spamming when in player mode due to ray tracing light cluster debug view (case 1390471).
 - Fixed warning upon deleting APV data assets.
+- Fixed using the wrong coordinate to compute the sampling direction for the screen space global illumination.
 
 ## [14.0.0] - 2021-11-17
 
