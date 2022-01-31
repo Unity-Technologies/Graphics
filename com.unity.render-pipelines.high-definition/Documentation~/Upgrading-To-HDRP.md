@@ -10,9 +10,9 @@ Firstly, to install HDRP, add the High Definition RP package to your Unity Proje
 
 3. Open your Unity project.
 2. Open the __Package Manager__ window (__Window > Package Manager__).
-3. In the __Package Manager__ window, in the **Packages** field, select **Unity Registry**.
+3. In the __Package Manager__ window, in the **Packages:** field, select **Unity Registry**.
 4. Select **High Definition RP** from the list of packages.
-5. In the bottom right corner of the Package Manager window, select __Install__. Unity installs URP into your Project.
+5. In the bottom right corner of the Package Manager window, select __Install__. Unity installs HDRP into your Project.
 
 
 HDRP is now available to use in your Project. Note that when you install HDRP, Unity automatically attaches two HDRP-specific components to GameObjects in your Scene. It attaches the **HD Additional Light Data** component to Lights, and the **HD Additional Camera Data** component to Cameras. If you don't set your Project to use HDRP, and any HDRP component is present in your Scene, Unity throws errors. To fix these errors, see the following instructions on how to set up HDRP in your Project.

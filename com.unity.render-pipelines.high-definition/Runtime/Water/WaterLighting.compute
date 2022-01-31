@@ -3,6 +3,7 @@
 
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
 #define HAS_LIGHTLOOP
+#define SCREEN_SPACE_INDIRECT_DIFFUSE_DISABLED
 #define USE_CLUSTERED_LIGHTLIST
 #define HAS_REFRACTION 1
 

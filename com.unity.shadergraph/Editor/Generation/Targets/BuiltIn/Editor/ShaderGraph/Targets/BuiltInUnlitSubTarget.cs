@@ -27,8 +27,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-            if (!context.HasCustomEditorForRenderPipeline(null))
-                context.customEditorForRenderPipelines.Add((typeof(BuiltInUnlitGUI).FullName, ""));
+
+            if (!context.HasCustomEditorForRenderPipeline(""))
+                context.AddCustomEditorForRenderPipeline(typeof(BuiltInUnlitGUI).FullName, "");
 
             // Process SubShaders
             context.AddSubShader(SubShaders.Unlit(target, target.renderType, target.renderQueue));
