@@ -57,6 +57,8 @@ namespace UnityEngine.Experimental.Rendering
         // Allow to get a mapping to subdiv level with the unique positions. It stores the minimum subdiv level found for a given position.
         // Can be probably done cleaner.
         public Dictionary<Vector3, int> uniqueBrickSubdiv = new Dictionary<Vector3, int>();
+        // Mapping for explicit invalidation, whether it comes from the auto finding of occluders or from the touch up volumes
+        public Dictionary<Vector3, bool> invalidatedPositions = new Dictionary<Vector3, bool>();
 
         private BakingBatch() { }
 
@@ -92,6 +94,10 @@ namespace UnityEngine.Experimental.Rendering
 
         static Dictionary<Vector3Int, int> m_CellPosToIndex = new Dictionary<Vector3Int, int>();
         static Dictionary<int, BakingCell> m_BakedCells = new Dictionary<int, BakingCell>();
+
+        // TODO_FCC: Can we do better?
+        static Dictionary<Vector3, Bounds> s_ForceInvalidatedProbesAndTouchupVols = new Dictionary<Vector3, Bounds>();
+        static HashSet<Vector3> s_PositionOfForceInvalidatedProbes = new HashSet<Vector3>();
 
         static ProbeGIBaking()
         {
@@ -441,6 +447,8 @@ namespace UnityEngine.Experimental.Rendering
             using var pm = new ProfilerMarker("OnAdditionalProbesBakeCompleted").Auto();
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
+            s_PositionOfForceInvalidatedProbes.Clear();
+            s_ForceInvalidatedProbesAndTouchupVols.Clear();
 
             var probeRefVolume = ProbeReferenceVolume.instance;
             var bakingCells = m_BakingBatch.cells;
@@ -479,6 +487,15 @@ namespace UnityEngine.Experimental.Rendering
             var dilationSettings = m_BakingSettings.dilationSettings;
             var virtualOffsets = m_BakingBatch.virtualOffsets;
 
+            // This is slow, but we should have very little amount of touchup volumes.
+            var touchupVolumes = GameObject.FindObjectsOfType<ProbeTouchupVolume>();
+            var touchupVolumesBounds = new List<Bounds>(touchupVolumes.Length);
+            foreach (var touchup in touchupVolumes)
+            {
+                if (touchup.isActiveAndEnabled && touchup.invalidateProbes)
+                    touchupVolumesBounds.Add(touchup.GetBounds());
+            }
+
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
             {
@@ -508,6 +525,33 @@ namespace UnityEngine.Experimental.Rendering
 
                     int brickIdx = i / 64;
                     cell.minSubdiv = Mathf.Min(cell.minSubdiv, cell.bricks[brickIdx].subdivisionLevel);
+
+                    bool invalidatedProbe = false;
+                    foreach (var touchupBound in touchupVolumesBounds)
+                    {
+                        if (touchupBound.Contains(cell.probePositions[i]))
+                        {
+                            invalidatedProbe = true;
+                            if (Vector3.Distance(cell.probePositions[i], new Vector3(-63.0f, 4.0f, -69.0f)) < 0.1f)
+                            {
+                                Debug.Log("Adding tester... ");
+                            }
+                            if (validity[j] < 0.05f) // We need to check if was already invalid.
+                            {
+                                s_PositionOfForceInvalidatedProbes.Add(cell.probePositions[i]);
+                                s_ForceInvalidatedProbesAndTouchupVols[cell.probePositions[i]] = touchupBound;
+                            }
+                            break;
+                        }
+                    }
+
+                    if (validity[j] < 0.05f && m_BakingBatch.invalidatedPositions.ContainsKey(cell.probePositions[i]) && m_BakingBatch.invalidatedPositions[cell.probePositions[i]])
+                    {
+                        if (!s_ForceInvalidatedProbesAndTouchupVols.ContainsKey(cell.probePositions[i]))
+                            s_ForceInvalidatedProbesAndTouchupVols.Add(cell.probePositions[i], new Bounds());
+
+                        invalidatedProbe = true;
+                    }
 
                     // Compress the range of all coefficients but the DC component to [0..1]
                     // Upper bounds taken from http://ppsloan.org/publications/Sig20_Advances.pptx
@@ -561,7 +605,9 @@ namespace UnityEngine.Experimental.Rendering
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 7, new Vector3(shv[0, 7], shv[1, 7], shv[2, 7]));
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(shv[0, 8], shv[1, 8], shv[2, 8]));
 
-                    cell.validity[i] = ProbeReferenceVolume.Cell.PackValidityAndMask(validity[j], 255);
+                    float currValidity = invalidatedProbe ? 1.0f : validity[j];
+                    byte currValidityNeighbourMask = 255;
+                    cell.validity[i] = ProbeReferenceVolume.Cell.PackValidityAndMask(currValidity, currValidityNeighbourMask);
                 }
 
                 cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
