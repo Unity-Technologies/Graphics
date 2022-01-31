@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved more internals of the sky manager to proper Render Graph passes.
 - Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
 - Renamed the Exposure field to Exposure Compensation in sky volume overrides (case 1392530).
+- Disabled the volumetric clouds for the indoor template scenes (normal and DXR) (case 1381761).
 
 ### Fixed
 - Fixed build warnings due to the exception in burst code (case 1382827).
@@ -72,6 +73,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing unit in ray tracing related tooltips and docs (case 1397491).
 - Fixed errors spamming when in player mode due to ray tracing light cluster debug view (case 1390471).
 - Fixed warning upon deleting APV data assets.
+- Fixed an issue in the instance ID management for tesselation shaders.
 - Fixed using the wrong coordinate to compute the sampling direction for the screen space global illumination.
 
 ## [14.0.0] - 2021-11-17

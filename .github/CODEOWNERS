@@ -21,6 +21,9 @@
 # Shader Graph
 /com.unity.shadergraph/ @Unity-Technologies/shader-graph
 
+# XR
+/com.unity.render-pipelines.core/Runtime/XR @Unity-Technologies/xr-graphics
+
 # Test systems
 /.github/ @Unity-Technologies/gfx-sdets
 /.yamato/ @Unity-Technologies/gfx-sdets
