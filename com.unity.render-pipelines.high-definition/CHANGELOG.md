@@ -81,6 +81,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed using the wrong coordinate to compute the sampling direction for the screen space global illumination.
 - Fixed an issue where forced sky update (like PBR sky amortized updated) would not update ambient probe.
 - Fixed static lighting sky update when using an HDRI sky with a render texture in parameter.
+- Fixed sky jittering when TAA is enabled.
+- Fixed Normal Map assiignation when importing FBX Materials.
+- Fixed issue with HDRI Sky and shadow filtering quality set to high.
+- Fixed the default custom pass buffer format from R8G8B8A8_SNorm to R8G8B8A8_UNorm. Additionally, an option in the custom pass buffer format settings is available to use the old format.
+- Fixed cached directional light shadows disappearing without reappearing when the going outside of the range of shadow validity.
+- Fixed an issue where sometimes full screen debug would cause render graph errors.
+- Fixed a nullref exception when creating a new scene while LightExplorer is open.
+- Fixed issue that caused the uber post process to run even if nothing is to be done, leading to different results when disabling every post process manually vs disabling the whole post-processing pipeline.
+- Fixed issue that placed an OnDemand shadow in the atlas before it was ever rendered.
+- Fixed issue at edge of screen on some platforms when SSAO is on.
 
 ## [14.0.0] - 2021-11-17
 
