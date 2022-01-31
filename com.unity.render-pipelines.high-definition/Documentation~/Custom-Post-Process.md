@@ -2,7 +2,7 @@
 
 The High Definition Render Pipeline (HDRP) allows you to write your own post-processing effects that automatically integrate into [Volumes](Volumes.md). A custom effect needs two files:
 * A **C# Custom Post Process**(C# file)
-* An associated **FullScreen Shader** (HLSL file). 
+* An associated **FullScreen Shader** (HLSL file).
 
 You can generate a template of each file:
 
@@ -16,7 +16,7 @@ You can generate a template of each file:
 
 This example shows you how to create a **grayscale** effect. To get started:
 
-1. Create a **C# Custom Post Process** file (right click in the Assets folder: **Create** > **Rendering** > **HDRP C# Post Process Volume**) and call it **GrayScale**. 
+1. Create a **C# Custom Post Process** file (right click in the Assets folder: **Create** > **Rendering** > **HDRP C# Post Process Volume**) and call it **GrayScale**.
 
 **Note**: Because of how serialization works in Unity, the file name and the class name must be identical or Unity doesn't serialize it properly.
 
@@ -114,7 +114,7 @@ In the `Render` function, you have access to a [CommandBuffer](https://docs.unit
 
 ### GrayScale Shader
 
-HDRP gives you total control over the vertex and fragment Shader so you can edit both of them to suit your needs. 
+HDRP gives you total control over the vertex and fragment Shader so you can edit both of them to suit your needs.
 
 There are several utility functions in [Common.hlsl](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl) and [Color.hlsl](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl) that the Shader includes by default. This means that you have access to these utility functions in your effect. For example, the GrayScale Shader uses the `Luminance()` function to convert a linear RGB value to its luminance equivalent.
 

@@ -61,7 +61,7 @@ class ColorUIBlock : MaterialUIBlock
 ```
 
 
-This code sample fetches the `_MyColor` property in the shader and displays it. 
+This code sample fetches the `_MyColor` property in the shader and displays it.
 
 **Note**: If the Custom Material Inspector is for a Shader Graph, for the UI block to find the property, you must set the correct reference name in the Shader Graph's Node Settings. To do this:
 

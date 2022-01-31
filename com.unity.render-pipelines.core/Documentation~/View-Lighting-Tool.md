@@ -8,7 +8,7 @@ To use the Light Anchor, you must set the Tag of at least one Camera to "MainCam
 
 Use the **Orbit** and **Elevation** to control the orientation of the light, in degrees, relative to the main Camera's and Anchor's positions. If the Light has a Cookie or an IES Profile, use the **Roll** to change their orientation. Use the **Distance** to control how far from the anchor, in meters, you want to place the Light.
 
-Using the **Anchor Position Override**, you can provide a custom GameObject as an anchor point for the light. This is useful if you want the light to follow a specific GameObject in the Scene. 
+Using the **Anchor Position Override**, you can provide a custom GameObject as an anchor point for the light. This is useful if you want the light to follow a specific GameObject in the Scene.
 
 You can set a **Position Offset** for this custom Anchor. This is useful if the Transform position of the custom Anchor isn't centered appropriately for the light to orbit correctly around the custom Anchor.
 
