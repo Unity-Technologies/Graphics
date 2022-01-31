@@ -342,9 +342,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                // XR mirror view and blit do device
-                EndCameraXR(m_RenderGraph, hdCamera);
-
                 SendColorGraphicsBuffer(m_RenderGraph, hdCamera);
 
                 SetFinalTarget(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, backBuffer);
@@ -1315,7 +1312,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderTransparentDepthPrepass(renderGraph, hdCamera, prepassOutput, cullingResults);
 
             // Render the water gbuffer (and prepare for the transparent SSR pass)
-            var waterGBuffer = RenderWaterGBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, currentColorPyramid);
+            var waterGBuffer = RenderWaterGBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.normalBuffer, currentColorPyramid, prepassOutput.depthPyramidTexture);
 
             // Render the transparent SSR lighting
             var ssrLightingBuffer = RenderSSR(renderGraph, hdCamera, ref prepassOutput, renderGraph.defaultResources.blackTextureXR, rayCountTexture, skyTexture, transparent: true);
