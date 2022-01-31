@@ -46,8 +46,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ReceiveDecal = 1 << 9,
             /// <summary>Displays the show after post process field.</summary>
             ShowAfterPostProcessPass = 1 << 10,
-            /// <summary>Displays the alpha to mask field.</summary>
-            AlphaToMask = 1 << 11,
             /// <summary>Displays the show pre pass and post pass fields.</summary>
             ShowPrePassAndPostPass = 1 << 12,
             /// <summary>Displays the depth offset field.</summary>
@@ -55,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
             /// <summary>Displays the preserve specular lighting field.</summary>
             PreserveSpecularLighting = 1 << 14,
             /// <summary>Displays all the Unlit Surface Option fields.</summary>
-            Unlit = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold | AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
+            Unlit = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
             /// <summary>Displays all the Lit Surface Option fields field.</summary>
             Lit = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
             /// <summary>Displays all the fields.</summary>
@@ -87,7 +85,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent alphaCutoffShadowText = new GUIContent("Shadow Threshold", "Controls the threshold for shadow pass alpha clipping.");
             public static GUIContent alphaCutoffPrepassText = new GUIContent("Prepass Threshold", "Controls the threshold for transparent depth prepass alpha clipping.");
             public static GUIContent alphaCutoffPostpassText = new GUIContent("Postpass Threshold", "Controls the threshold for transparent depth postpass alpha clipping.");
-            public static GUIContent alphaToMaskText = new GUIContent("Alpha To Mask", "When enabled and using MSAA, HDRP enables alpha to coverage during the depth prepass.");
             public static GUIContent transparentDepthPostpassEnableText = new GUIContent("Transparent Depth Postpass", "When enabled, HDRP renders a depth postpass for transparent objects. This improves post-processing effects like depth of field.");
             public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Transparent Depth Prepass", "When enabled, HDRP renders a depth prepass for transparent GameObjects. This improves sorting.");
             public static GUIContent transparentBackfaceEnableText = new GUIContent("Back Then Front Rendering", "When enabled, HDRP renders the back face and then the front face, in two separate draw calls, to better sort transparent meshes.");
@@ -161,8 +158,6 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty alphaCutoffShadow = null;
         MaterialProperty alphaCutoffPrepass = null;
         MaterialProperty alphaCutoffPostpass = null;
-        MaterialProperty alphaToMask = null;
-        const string kAlphaToMask = kAlphaToMaskInspector;
         MaterialProperty transparentDepthPrepassEnable = null;
         MaterialProperty transparentDepthPostpassEnable = null;
         MaterialProperty transparentBackfaceEnable = null;
@@ -220,6 +215,8 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty transparentCullMode = null;
         MaterialProperty opaqueCullMode = null;
         MaterialProperty rayTracing = null;
+
+        SerializedProperty renderQueueProperty = null;
 
         SurfaceType defaultSurfaceType { get { return SurfaceType.Opaque; } }
 
@@ -291,7 +288,6 @@ namespace UnityEditor.Rendering.HighDefinition
             alphaCutoffShadow = FindProperty(kAlphaCutoffShadow);
             alphaCutoffPrepass = FindProperty(kAlphaCutoffPrepass);
             alphaCutoffPostpass = FindProperty(kAlphaCutoffPostpass);
-            alphaToMask = FindProperty(kAlphaToMask);
             transparentDepthPrepassEnable = FindProperty(kTransparentDepthPrepassEnable);
             transparentDepthPostpassEnable = FindProperty(kTransparentDepthPostpassEnable);
 
@@ -364,6 +360,8 @@ namespace UnityEditor.Rendering.HighDefinition
             rayTracing = FindProperty(kRayTracing);
 
             refractionModel = FindProperty(kRefractionModel);
+
+            renderQueueProperty = materialEditor.serializedObject.FindProperty("m_CustomRenderQueue");
         }
 
         /// <summary>
@@ -434,12 +432,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         materialEditor.ShaderProperty(alphaCutoffShadow, Styles.alphaCutoffShadowText);
                         EditorGUI.indentLevel--;
                     }
-                }
-
-                if (showAlphaClipThreshold && (m_Features & Features.AlphaToMask) != 0)
-                {
-                    if (alphaToMask != null)
-                        materialEditor.ShaderProperty(alphaToMask, Styles.alphaToMaskText);
                 }
 
                 // With transparent object and few specific materials like Hair, we need more control on the cutoff to apply
@@ -541,7 +533,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (shaderHasBackThenFrontPass && transparentBackfaceEnable != null)
                     materialEditor.ShaderProperty(transparentBackfaceEnable, Styles.transparentBackfaceEnableText);
 
-                if ((m_Features & Features.ShowPrePassAndPostPass) != 0)
+                if ((m_Features & Features.ShowPrePassAndPostPass) != 0 && !HDRenderQueue.k_RenderQueue_LowTransparent.Contains(renderQueue))
                 {
                     bool shaderHasDepthPrePass = materials.All(m => m.FindPass(HDShaderPassNames.s_TransparentDepthPrepassStr) != -1);
                     if (shaderHasDepthPrePass && transparentDepthPrepassEnable != null)
@@ -552,10 +544,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         materialEditor.ShaderProperty(transparentDepthPostpassEnable, Styles.transparentDepthPostpassEnableText);
                 }
 
-                if (transparentWritingMotionVec != null)
+                if (transparentWritingMotionVec != null && !HDRenderQueue.k_RenderQueue_LowTransparent.Contains(renderQueue))
                     materialEditor.ShaderProperty(transparentWritingMotionVec, Styles.transparentWritingMotionVecText);
 
-                if (transparentZWrite != null)
+                if (transparentZWrite != null && !HDRenderQueue.k_RenderQueue_LowTransparent.Contains(renderQueue))
                     materialEditor.ShaderProperty(transparentZWrite, Styles.zWriteEnableText);
 
                 if (zTest != null)
@@ -632,6 +624,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox(Styles.transparentSSSErrorMessage, MessageType.Error);
             }
 
+            MaterialEditor.BeginProperty(renderQueueProperty);
             switch (mode)
             {
                 case SurfaceType.Opaque:
@@ -667,6 +660,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 default:
                     throw new ArgumentException("Unknown SurfaceType");
             }
+            MaterialEditor.EndProperty();
+
             --EditorGUI.indentLevel;
             EditorGUI.showMixedValue = false;
 
@@ -754,7 +749,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(supportDecals, Styles.supportDecalsText);
             }
 
-            if (receivesSSR != null && receivesSSRTransparent != null)
+            if (receivesSSR != null && receivesSSRTransparent != null && !HDRenderQueue.k_RenderQueue_LowTransparent.Contains(renderQueue))
             {
                 // Based on the surface type, display the right recieveSSR option
                 if (surfaceTypeValue == SurfaceType.Transparent)
@@ -837,6 +832,7 @@ namespace UnityEditor.Rendering.HighDefinition
             int mode = (int)GetFilteredDisplacementMode(prop);
             bool mixed = HasMixedDisplacementMode(prop);
 
+            MaterialEditor.BeginProperty(prop);
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = mixed;
             int newMode = EditorGUILayout.IntPopup(label, mode, displayedOptions, optionValues);
@@ -846,6 +842,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.RegisterPropertyChangeUndo(label.text);
                 prop.floatValue = newMode;
             }
+            MaterialEditor.EndProperty();
 
             return (DisplacementMode)newMode;
         }

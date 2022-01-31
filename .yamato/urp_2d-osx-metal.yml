@@ -23,7 +23,7 @@ URP_2D_OSX_Metal_Standalone_mono_Linear_trunk:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  command: rsync -aq -e 'ssh -i ~/.ssh/id_rsa_macmini' --append --timeout=30 $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -31,9 +31,10 @@ URP_2D_OSX_Metal_Standalone_mono_Linear_trunk:
          retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
+      -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP ".Editor/Unity.app/Contents/MacOS/Unity -version"
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates;  ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D --timeout=2400 --zero-tests-are-ok=1 "
+                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates;  ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D --timeout=2400 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D
                 exit $UTR_RESULT
@@ -64,7 +65,7 @@ URP_2D_OSX_Metal_playmode_mono_Linear_trunk:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  command: rsync -aq -e 'ssh -i ~/.ssh/id_rsa_macmini' --append --timeout=30 $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -72,9 +73,10 @@ URP_2D_OSX_Metal_playmode_mono_Linear_trunk:
          retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
+      -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP ".Editor/Unity.app/Contents/MacOS/Unity -version"
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates;  ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1 "
+                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates;  ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D
                 exit $UTR_RESULT
@@ -105,7 +107,7 @@ URP_2D_OSX_Metal_playmode_XR_mono_Linear_trunk:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  command: rsync -aq -e 'ssh -i ~/.ssh/id_rsa_macmini' --append --timeout=30 $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -113,9 +115,10 @@ URP_2D_OSX_Metal_playmode_XR_mono_Linear_trunk:
          retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
+      -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP ".Editor/Unity.app/Contents/MacOS/Unity -version"
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates;  ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1 "
+                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates;  ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D
                 exit $UTR_RESULT
@@ -146,7 +149,7 @@ URP_2D_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  command: rsync -aq -e 'ssh -i ~/.ssh/id_rsa_macmini' --append --timeout=30 $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -154,9 +157,10 @@ URP_2D_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
+      -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP ".Editor/Unity.app/Contents/MacOS/Unity -version"
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates;  ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D --timeout=2400 --zero-tests-are-ok=1 "
+                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates;  ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D --timeout=2400 "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D
                 exit $UTR_RESULT
@@ -187,7 +191,7 @@ URP_2D_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  command: rsync -aq -e 'ssh -i ~/.ssh/id_rsa_macmini' --append --timeout=30 $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -195,9 +199,10 @@ URP_2D_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
+      -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP ".Editor/Unity.app/Contents/MacOS/Unity -version"
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates;  ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1 "
+                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates;  ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D
                 exit $UTR_RESULT
@@ -228,7 +233,7 @@ URP_2D_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  chmod +x utr
-      -  command: scp -i ~/.ssh/id_rsa_macmini -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  command: rsync -aq -e 'ssh -i ~/.ssh/id_rsa_macmini' --append --timeout=30 $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
          retries: 2
       -  command: scp -i ~/.ssh/id_rsa_macmini ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
          retries: 2
@@ -236,9 +241,10 @@ URP_2D_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
+      -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP ".Editor/Unity.app/Contents/MacOS/Unity -version"
       -  command: |5-
                 export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates;  ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1 "
+                ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates;  ~/Graphics/utr  --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D "
                 UTR_RESULT=$?
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest_2D/test-results/ TestProjects/UniversalGraphicsTest_2D
                 exit $UTR_RESULT

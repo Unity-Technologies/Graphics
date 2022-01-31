@@ -8,7 +8,7 @@ using UnityEditor.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [VolumeComponentEditor(typeof(VisualEnvironment))]
+    [CustomEditor(typeof(VisualEnvironment))]
     class VisualEnvironmentEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_SkyType;
@@ -152,10 +152,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
     sealed class LocalWindParameterDrawer
     {
-        public static readonly string[] modeNames = Enum.GetNames(typeof(WindParameter.WindOverrideMode));
-        public static readonly int popupWidth = 70;
+        static readonly string[] modeNames = Enum.GetNames(typeof(WindParameter.WindOverrideMode));
+        static readonly string[] modeNamesNoMultiply = { WindParameter.WindOverrideMode.Custom.ToString(), WindParameter.WindOverrideMode.Global.ToString(), WindParameter.WindOverrideMode.Additive.ToString() };
+        static readonly int popupWidth = 70;
 
-        public static bool BeginGUI(out Rect rect, GUIContent title, SerializedDataParameter parameter, SerializedProperty mode)
+        public static bool BeginGUI(out Rect rect, GUIContent title, SerializedDataParameter parameter, SerializedProperty mode, bool excludeMultiply)
         {
             rect = EditorGUILayout.GetControlRect();
             rect.xMax -= popupWidth + 2;
@@ -163,7 +164,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var popupRect = rect;
             popupRect.x = rect.xMax + 2;
             popupRect.width = popupWidth;
-            mode.intValue = EditorGUI.Popup(popupRect, mode.intValue, modeNames);
+            mode.intValue = EditorGUI.Popup(popupRect, mode.intValue, excludeMultiply ? modeNamesNoMultiply : modeNames);
 
             if (mode.intValue == (int)WindParameter.WindOverrideMode.Additive)
             {
@@ -203,7 +204,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override bool OnGUI(SerializedDataParameter parameter, GUIContent title)
         {
             var mode = parameter.value.FindPropertyRelative("mode");
-            if (!LocalWindParameterDrawer.BeginGUI(out var rect, title, parameter, mode))
+            if (!LocalWindParameterDrawer.BeginGUI(out var rect, title, parameter, mode, true))
             {
                 var value = parameter.value.FindPropertyRelative("customValue");
                 value.floatValue = EditorGUI.Slider(rect, title, value.floatValue, 0.0f, 360.0f);
@@ -220,7 +221,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override bool OnGUI(SerializedDataParameter parameter, GUIContent title)
         {
             var mode = parameter.value.FindPropertyRelative("mode");
-            if (!LocalWindParameterDrawer.BeginGUI(out var rect, title, parameter, mode))
+            if (!LocalWindParameterDrawer.BeginGUI(out var rect, title, parameter, mode, false))
             {
                 var value = parameter.value.FindPropertyRelative("customValue");
                 value.floatValue = EditorGUI.FloatField(rect, title, value.floatValue);

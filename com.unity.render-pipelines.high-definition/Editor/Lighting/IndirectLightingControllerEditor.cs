@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(IndirectLightingController))]
+    [CustomEditor(typeof(IndirectLightingController))]
     class IndirectLightingControllerEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_IndirectDiffuseLightingMultiplier;

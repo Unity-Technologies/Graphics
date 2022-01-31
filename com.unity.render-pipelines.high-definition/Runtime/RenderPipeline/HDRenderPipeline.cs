@@ -67,8 +67,6 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly List<RenderPipelineMaterial> m_MaterialList = new List<RenderPipelineMaterial>();
 
 
-        readonly XRSystem m_XRSystem;
-
         // Keep track of previous Graphic and QualitySettings value to reset when switching to another pipeline
         bool m_PreviousLightsUseLinearIntensity;
         bool m_PreviousLightsUseColorTemperature;
@@ -89,7 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="rayValues">Specifes which ray count value should be returned.</param>
         /// <returns>The approximated ray count for a frame</returns>
-        public uint GetRaysPerFrame(RayCountValues rayValues) { return m_RayCountManager.GetRaysPerFrame(rayValues); }
+        public uint GetRaysPerFrame(RayCountValues rayValues) { return m_RayCountManager != null ? m_RayCountManager.GetRaysPerFrame(rayValues) : 0; }
 
         // Renderer Bake configuration can vary depends on if shadow mask is enabled or no
         PerObjectData m_CurrentRendererConfigurationBakedLighting = HDUtils.k_RendererConfigurationBakedLighting;
@@ -104,7 +102,25 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader m_ScreenSpaceReflectionsCS { get { return defaultResources.shaders.screenSpaceReflectionsCS; } }
         int m_SsrTracingKernel = -1;
         int m_SsrReprojectionKernel = -1;
-        int m_SsrAccumulateKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionBothKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionSurfaceKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionHitKernel = -1;
+        int m_SsrAccumulateHardThresholdSpeedRejectionBothKernel = -1;
+        int m_SsrAccumulateHardThresholdSpeedRejectionSurfaceKernel = -1;
+        int m_SsrAccumulateHardThresholdSpeedRejectionHitKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionBothKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionSurfaceKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionHitKernel = -1;
+
+        int m_SsrAccumulateNoWorldSpeedRejectionBothDebugKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionSurfaceDebugKernel = -1;
+        int m_SsrAccumulateNoWorldSpeedRejectionHitDebugKernel = -1;
+        int m_SsrAccumulateHardThresholdSpeedRejectionBothDebugKernel = -1;
+        int m_SsrAccumulateHardThresholdSpeedRejectionSurfaceDebugKernel = -1;
+        int m_SsrAccumulateHardThresholdSpeedRejectionHitDebugKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionBothDebugKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel = -1;
+        int m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel = -1;
 
         Material m_ApplyDistortionMaterial;
         Material m_FinalBlitWithOETF;
@@ -359,7 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
             RTHandles.Initialize(Screen.width, Screen.height);
 
-            m_XRSystem = new XRSystem(asset.renderPipelineResources.shaders);
+            XRSystem.Initialize(XRPass.CreateDefault, asset.renderPipelineResources.shaders.xrOcclusionMeshPS, asset.renderPipelineResources.shaders.xrMirrorViewPS);
 
             m_MipGenerator = new MipGenerator(defaultResources);
             m_BlueNoise = new BlueNoise(defaultResources);
@@ -374,7 +390,25 @@ namespace UnityEngine.Rendering.HighDefinition
             // Initialize various compute shader resources
             m_SsrTracingKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
             m_SsrReprojectionKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsReprojection");
-            m_SsrAccumulateKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulate");
+            m_SsrAccumulateNoWorldSpeedRejectionBothKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBoth");
+            m_SsrAccumulateNoWorldSpeedRejectionSurfaceKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnly");
+            m_SsrAccumulateNoWorldSpeedRejectionHitKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnly");
+            m_SsrAccumulateHardThresholdSpeedRejectionBothKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBoth");
+            m_SsrAccumulateHardThresholdSpeedRejectionSurfaceKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnly");
+            m_SsrAccumulateHardThresholdSpeedRejectionHitKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnly");
+            m_SsrAccumulateSmoothSpeedRejectionBothKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBoth");
+            m_SsrAccumulateSmoothSpeedRejectionSurfaceKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnly");
+            m_SsrAccumulateSmoothSpeedRejectionHitKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnly");
+
+            m_SsrAccumulateNoWorldSpeedRejectionBothDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionBothDebug");
+            m_SsrAccumulateNoWorldSpeedRejectionSurfaceDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionSourceOnlyDebug");
+            m_SsrAccumulateNoWorldSpeedRejectionHitDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateNoWorldSpeedRejectionTargetOnlyDebug");
+            m_SsrAccumulateHardThresholdSpeedRejectionBothDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionBothDebug");
+            m_SsrAccumulateHardThresholdSpeedRejectionSurfaceDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionSourceOnlyDebug");
+            m_SsrAccumulateHardThresholdSpeedRejectionHitDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateHardThresholdSpeedRejectionTargetOnlyDebug");
+            m_SsrAccumulateSmoothSpeedRejectionBothDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionBothDebug");
+            m_SsrAccumulateSmoothSpeedRejectionSurfaceDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionSourceOnlyDebug");
+            m_SsrAccumulateSmoothSpeedRejectionHitDebugKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsAccumulateSmoothSpeedRejectionTargetOnlyDebug");
 
             m_CopyDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyDepthBufferPS);
             m_UpsampleTransparency = CoreUtils.CreateEngineMaterial(defaultResources.shaders.upsampleTransparentPS);
@@ -410,13 +444,16 @@ namespace UnityEngine.Rendering.HighDefinition
             if (IsAPVEnabled())
             {
                 var pvr = ProbeReferenceVolume.instance;
-                ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters()
+                ProbeReferenceVolume.instance.Initialize(new ProbeVolumeSystemParameters
                 {
                     memoryBudget = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget,
                     probeDebugMesh = defaultResources.assets.probeDebugSphere,
                     probeDebugShader = defaultResources.shaders.probeVolumeDebugShader,
+                    offsetDebugMesh = defaultResources.assets.pyramidMesh,
+                    offsetDebugShader = defaultResources.shaders.probeVolumeOffsetDebugShader,
                     sceneData = m_GlobalSettings.GetOrCreateAPVSceneData(),
                     shBands = m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands,
+                    supportsRuntimeDebug = Application.isEditor || m_GlobalSettings.supportRuntimeDebugDisplay,
                     supportStreaming = m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolumeStreaming
                 });
                 RegisterRetrieveOfProbeVolumeExtraDataAction();
@@ -427,8 +464,10 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeVolumetricLighting();
             InitializeVolumetricClouds();
             InitializeSubsurfaceScattering();
+            InitializeWaterSystem();
 
             m_DebugDisplaySettings.RegisterDebug();
+            m_DebugDisplaySettingsUI.RegisterDebug(HDDebugDisplaySettings.Instance);
 #if UNITY_EDITOR
             // We don't need the debug of Scene View at runtime (each camera have its own debug settings)
             // All scene view will share the same FrameSettings for now as sometimes Dispose is called after
@@ -459,7 +498,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 InitRayTracedIndirectDiffuse();
                 InitRaytracingDeferred();
                 InitRecursiveRenderer();
-                InitPathTracing(m_RenderGraph);
+                InitPathTracing();
                 InitRayTracingAmbientOcclusion();
             }
 
@@ -586,7 +625,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (UnityEditor.PlayerSettings.colorSpace == ColorSpace.Gamma)
             {
-                Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode (HDRP isn't set up properly. Go to Windows > RenderPipeline > HDRP Wizard to fix your settings).");
+                Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode (HDRP isn't set up properly. Go to Window > Rendering > HDRP Wizard to fix your settings).");
             }
 #endif
 
@@ -723,12 +762,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             ReleaseRayTracingManager();
+            m_DebugDisplaySettingsUI.UnregisterDebug();
             m_DebugDisplaySettings.UnregisterDebug();
 
             CleanupLightLoop();
 
             ReleaseVolumetricClouds();
             CleanupSubsurfaceScattering();
+            ReleaseWaterSystem();
 
             // For debugging
             MousePositionDebug.instance.Cleanup();
@@ -751,7 +792,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
             CoreUtils.Destroy(m_FinalBlitWithOETF);
 
-            m_XRSystem.Cleanup();
+            XRSystem.Dispose();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
 
@@ -946,7 +987,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateShaderVariablesXRCB(HDCamera hdCamera, CommandBuffer cmd)
         {
-            hdCamera.xr.UpdateBuiltinStereoMatrices(cmd, hdCamera);
+            XRBuiltinShaderConstants.Update(hdCamera.xr, cmd, true);
             hdCamera.UpdateShaderVariablesXRCB(ref m_ShaderVariablesXRCB);
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesXRCB, HDShaderIDs._ShaderVariablesXR);
         }
@@ -1113,6 +1154,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 #endif
 
+            // When HDR is active we render UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
+            // for performance reasons otherwise we render UI overlay after all camera
+            SupportedRenderingFeatures.active.rendersUIOverlay = HDROutputIsActive();
+
 #if UNITY_2021_1_OR_NEWER
             if (!m_ValidAPI || cameras.Count == 0)
 #else
@@ -1173,6 +1218,18 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_FrameCount = newCount;
                 HDCamera.CleanUnused();
+
+            }
+
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportWater)
+            {
+                // Update the water surfaces
+                var commandBuffer = CommandBufferPool.Get("");
+                UpdateWaterSurfaces(commandBuffer);
+                renderContext.ExecuteCommandBuffer(commandBuffer);
+                renderContext.Submit();
+                commandBuffer.Clear();
+                CommandBufferPool.Release(commandBuffer);
             }
 
 #if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
@@ -1186,6 +1243,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 
+            XRSystem.singlePassAllowed = m_Asset.currentPlatformRenderPipelineSettings.xrSettings.singlePass;
+            var xrLayout = XRSystem.NewLayout();
+
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
@@ -1195,7 +1255,8 @@ namespace UnityEngine.Rendering.HighDefinition
             using (ListPool<CameraPositionSettings>.Get(out List<CameraPositionSettings> cameraPositionSettings))
             {
                 // With XR multi-pass enabled, each camera can be rendered multiple times with different parameters
-                var multipassCameras = m_XRSystem.SetupFrame(cameras, m_Asset.currentPlatformRenderPipelineSettings.xrSettings.singlePass, m_DebugDisplaySettings.data.xrSinglePassTestMode);
+                foreach (var c in cameras)
+                    xrLayout.AddCamera(c, HDUtils.TryGetAdditionalCameraDataOrDefault(c).xrRendering);
 
 #if UNITY_EDITOR
                 // See comment below about the preview camera workaround
@@ -1211,7 +1272,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
                 // Culling loop
-                foreach ((Camera camera, XRPass xrPass) in multipassCameras)
+                foreach ((Camera camera, XRPass xrPass) in xrLayout.GetActivePasses())
                 {
                     if (camera == null)
                         continue;
@@ -1349,7 +1410,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // Render directly to XR render target if active
-                    if (hdCamera.xr.enabled && hdCamera.xr.renderTargetValid)
+                    if (hdCamera.xr.enabled)
                         targetId = hdCamera.xr.renderTarget;
 
                     hdCamera.RequestDynamicResolution(cameraRequestedDynamicRes, dynResHandler);
@@ -1934,7 +1995,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 if (HDUtils.TryGetAdditionalCameraDataOrDefault(renderRequest.hdCamera.camera).xrRendering)
                                 {
-                                    m_XRSystem.RenderMirrorView(cmd);
+                                    XRSystem.RenderMirrorView(cmd, renderRequest.hdCamera.camera);
                                 }
                             }
 
@@ -1952,7 +2013,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DynamicResolutionHandler.ClearSelectedCamera();
 
             m_RenderGraph.EndFrame();
-            m_XRSystem.ReleaseFrame();
+            XRSystem.EndLayout();
 
 #if UNITY_2021_1_OR_NEWER
             EndContextRendering(renderContext, cameras);
@@ -2098,13 +2159,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Configure all the keywords
                 ConfigureKeywords(enableBakeShadowMask, hdCamera, cmd);
-
-                // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
-                // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
-                if (!m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
-                    UpdateSkyEnvironment(hdCamera, renderContext, cmd);
-                else
-                    cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, CoreUtils.magentaCubeTextureArray);
 
                 VFXCameraXRSettings cameraXRSettings;
                 cameraXRSettings.viewTotal = hdCamera.xr.enabled ? 2U : 1U;
@@ -2594,11 +2648,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void UpdateSkyEnvironment(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            m_SkyManager.UpdateEnvironment(hdCamera, renderContext, GetMainLight(), cmd);
-        }
-
         /// <summary>
         /// Request an update of the environment lighting.
         /// </summary>
@@ -2624,7 +2673,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static bool NeedMotionVectorForTransparent(FrameSettings frameSettings)
         {
-            return frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
+            return frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector);
         }
 
         /// <summary>

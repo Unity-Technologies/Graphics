@@ -10,6 +10,73 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
+        class GenerateMipmapsPassData
+        {
+            public TextureHandle texture;
+        }
+
+        internal static void GenerateMipmaps(RenderGraph renderGraph, TextureHandle texture)
+        {
+            using (var builder = renderGraph.AddRenderPass<GenerateMipmapsPassData>("Generate Mipmaps", out var passData))
+            {
+                passData.texture = builder.ReadWriteTexture(texture);
+
+                builder.SetRenderFunc(
+                    (GenerateMipmapsPassData data, RenderGraphContext context) =>
+                    {
+                        RTHandle tex = data.texture;
+                        Debug.Assert(tex.rt.autoGenerateMips == false);
+                        context.cmd.GenerateMips(tex);
+                    });
+            }
+        }
+
+        class SetGlobalTexturePassData
+        {
+            public int shaderID;
+            public Texture texture;
+        }
+
+        internal static void SetGlobalTexture(RenderGraph renderGraph, int shaderID, Texture texture)
+        {
+            using (var builder = renderGraph.AddRenderPass<SetGlobalTexturePassData>("SetGlobalTexture", out var passData))
+            {
+                builder.AllowPassCulling(false);
+
+                passData.shaderID = shaderID;
+                passData.texture = texture;
+
+                builder.SetRenderFunc(
+                    (SetGlobalTexturePassData data, RenderGraphContext context) =>
+                    {
+                        context.cmd.SetGlobalTexture(data.shaderID, data.texture);
+                    });
+            }
+        }
+
+        class SetGlobalBufferPassData
+        {
+            public int shaderID;
+            public ComputeBuffer buffer;
+        }
+
+        internal static void SetGlobalBuffer(RenderGraph renderGraph, int shaderID, ComputeBuffer buffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<SetGlobalBufferPassData>("SetGlobalBuffer", out var passData))
+            {
+                builder.AllowPassCulling(false);
+
+                passData.shaderID = shaderID;
+                passData.buffer = buffer;
+
+                builder.SetRenderFunc(
+                    (SetGlobalBufferPassData data, RenderGraphContext context) =>
+                    {
+                        context.cmd.SetGlobalBuffer(data.shaderID, data.buffer);
+                    });
+            }
+        }
+
         static void DrawOpaqueRendererList(in RenderGraphContext context, in FrameSettings frameSettings, in RendererList rendererList)
         {
             DrawOpaqueRendererList(context.renderContext, context.cmd, frameSettings, rendererList);
@@ -120,28 +187,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class EndCameraXRPassData
-        {
-            public HDCamera hdCamera;
-        }
-
-        void EndCameraXR(RenderGraph renderGraph, HDCamera hdCamera)
-        {
-            if (hdCamera.xr.enabled)
-            {
-                using (var builder = renderGraph.AddRenderPass<EndCameraXRPassData>("End Camera", out var passData))
-                {
-                    passData.hdCamera = hdCamera;
-
-                    builder.SetRenderFunc(
-                        (EndCameraXRPassData data, RenderGraphContext ctx) =>
-                        {
-                            data.hdCamera.xr.EndCamera(ctx.cmd, data.hdCamera);
-                        });
-                }
-            }
-        }
-
         class RenderOcclusionMeshesPassData
         {
             public HDCamera hdCamera;
@@ -164,7 +209,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                         (RenderOcclusionMeshesPassData data, RenderGraphContext ctx) =>
                         {
-                            data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, data.clearColor, data.colorBuffer, data.depthBuffer);
+                            CoreUtils.SetRenderTarget(ctx.cmd, data.colorBuffer, data.depthBuffer, ClearFlag.None, data.clearColor, 0, CubemapFace.Unknown, -1);
+
+                            ctx.cmd.SetGlobalVector(HDShaderIDs._ClearColor, data.clearColor);
+
+                            data.hdCamera.xr.RenderOcclusionMesh(ctx.cmd);
                         });
                 }
             }
