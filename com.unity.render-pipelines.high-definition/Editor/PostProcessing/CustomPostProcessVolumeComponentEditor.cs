@@ -11,6 +11,11 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(CustomPostProcessVolumeComponent))]
     public class CustomPostProcessVolumeComponentEditor : VolumeComponentEditor
     {
+        internal static class Styles
+        {
+            public static readonly string customPostProcessNotInGlobalSettingsText = "The custom post process is not registered in the Global Settings.";
+        }
+
         /// <summary>
         /// Unity calls this method each time it re-draws the Inspector.
         /// </summary>
@@ -23,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (!HDRenderPipelineGlobalSettings.instance?.IsCustomPostProcessRegistered(target.GetType()) ?? false)
             {
-                HDEditorUtils.GlobalSettingsHelpBox("The custom post process is not registered in the Global Settings.",
+                HDEditorUtils.GlobalSettingsHelpBox(Styles.customPostProcessNotInGlobalSettingsText,
                     MessageType.Error, HDRenderPipelineGlobalSettingsUI.Styles.customPostProcessOrderLabel.text);
                 return;
             }
