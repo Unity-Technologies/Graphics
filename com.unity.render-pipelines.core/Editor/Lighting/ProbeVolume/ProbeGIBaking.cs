@@ -87,6 +87,8 @@ namespace UnityEngine.Experimental.Rendering
 
         static Bounds globalBounds = new Bounds();
         static bool hasFoundBounds = false;
+        static Vector3Int minCellPosition = Vector3Int.one * int.MaxValue;
+        static Vector3Int maxCellPosition = Vector3Int.one * int.MinValue;
 
         static bool onAdditionalProbesBakeCompletedCalled = false;
 
@@ -276,6 +278,9 @@ namespace UnityEngine.Experimental.Rendering
             if (hasFoundInvalidSetup) return;
 
             SetBakingContext(sceneDataList);
+
+            // Get min/max
+            CellCountInDirections(out minCellPosition, out maxCellPosition, m_BakingProfile.cellSizeInMeters);
 
             RunPlacement();
         }
@@ -665,9 +670,15 @@ namespace UnityEngine.Experimental.Rendering
             // Reset index
             UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(m_BakingBatch.index, null);
 
+            // Extract baking cell if we are baking only active scene.
+            if (isBakingOnlyActiveScene)
+            {
+                ExtractBakingCells();
+            }
+
             // Map from each scene to its per scene data, and create a new asset for each scene
             var scene2Data = new Dictionary<Scene, ProbeVolumePerSceneData>();
-            foreach (var data in bakingSceneDataList)
+            foreach (var data in fullSceneDataList)
             {
                 data.Clear();
                 data.asset = ProbeVolumeAsset.CreateAsset(data);
@@ -692,7 +703,8 @@ namespace UnityEngine.Experimental.Rendering
                         var asset = data.asset;
                         var profile = probeRefVolume.sceneData.GetProfileForScene(scene);
                         asset.StoreProfileData(profile);
-                        CellCountInDirections(out asset.minCellPosition, out asset.maxCellPosition, profile.cellSizeInMeters);
+                        asset.minCellPosition = minCellPosition;
+                        asset.maxCellPosition = maxCellPosition;
                         asset.globalBounds = globalBounds;
 
                         EditorUtility.SetDirty(asset);
@@ -709,14 +721,12 @@ namespace UnityEngine.Experimental.Rendering
                 // TODO: Explicitly add an option for storing L2 data to bake sets. Freely mixing cells with different bands
                 //       availability is already supported by runtime.
                 //
-                if (isBakingOnlyActiveScene && data != activeData) continue;
-
                 data.asset.bands = ProbeVolumeSHBands.SphericalHarmonicsL2;
                 WriteBakingCells(data, bakingCellsList);
                 data.ResolveCells();
             }
 
-            foreach (var data in bakingSceneDataList)
+            foreach (var data in fullSceneDataList)
             {
                 if (Lightmapping.giWorkflowMode != Lightmapping.GIWorkflowMode.Iterative)
                 {
@@ -737,7 +747,7 @@ namespace UnityEngine.Experimental.Rendering
 
             m_BakingBatch = null;
 
-            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+            foreach (var data in fullSceneDataList)
                 data.QueueAssetLoading();
 
             // ---- Perform dilation ---
@@ -789,6 +799,68 @@ namespace UnityEngine.Experimental.Rendering
             sh[0, 8] = shaderCoeffsL2[offset + 12]; sh[1, 8] = shaderCoeffsL2[offset + 13]; sh[2, 8] = shaderCoeffsL2[offset + 14];
         }
 
+        static void ReadFullFromShaderCoeffsL0L1L2(ref SphericalHarmonicsL2 sh, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, int probeIdx)
+        {
+            ReadFromShaderCoeffsL0L1(ref sh, shL0L1Data, probeIdx * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
+            ReadFromShaderCoeffsL2(ref sh, shL2Data, probeIdx * ProbeVolumeAsset.kL2ScalarCoefficientsCount);
+
+        }
+
+        static void ExtractBakingCells()
+        {
+            List<BakingCell> outCells = new List<BakingCell>();
+
+            // Keep list of the "new" one, we won't need to push them
+            HashSet<int> existingIndices = new HashSet<int>();
+            foreach (var cellIndex in m_BakedCells.Keys)
+            {
+                existingIndices.Add(cellIndex);
+            }
+
+            foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
+            {
+                var asset = data.asset;
+                var numberOfCells = asset.cells.Length;
+
+                for (int i = 0; i < numberOfCells; ++i)
+                {
+                    var cell = asset.cells[i];
+
+                    if (existingIndices.Contains(cell.index)) continue; // we have a more up to data thing
+
+                    BakingCell bc = new BakingCell
+                    {
+                        position = cell.position,
+                        index = cell.index,
+                        bricks = cell.bricks.ToArray(),
+                        probePositions = cell.probePositions.ToArray(),
+                        validity = cell.validity.ToArray(),
+                        offsetVectors = cell.offsetVectors.ToArray(),
+                        minSubdiv = cell.minSubdiv,
+                        indexChunkCount = cell.indexChunkCount,
+                        shChunkCount = cell.shChunkCount,
+                        probeIndices = null, // Not needed for this conversion.
+                    };
+
+                    // Need to unpack the sh
+                    int numberOfProbes = bc.probePositions.Length;
+                    bc.sh = new SphericalHarmonicsL2[numberOfProbes];
+                    for (int probe = 0; probe < numberOfProbes; ++probe)
+                    {
+                        ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probe], cell.shL0L1Data, cell.shL2Data, probe);
+                    }
+                    outCells.Add(bc);
+
+                    if (!m_BakingBatch.cellIndex2SceneReferences.ContainsKey(cell.index))
+                    {
+                        m_BakingBatch.cellIndex2SceneReferences.Add(cell.index, new List<Scene>());
+                    }
+                    m_BakingBatch.cellIndex2SceneReferences[cell.index].Add(data.gameObject.scene);
+                    m_BakedCells[cell.index] = bc;
+                }
+            }
+        }
+
         /// <summary>
         /// This method converts a list of baking cells into 5 separate assets:
         ///  2 assets per baking state:
@@ -801,6 +873,8 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         static void WriteBakingCells(ProbeVolumePerSceneData data, List<BakingCell> bakingCells)
         {
+            data.GetBlobFileNames(out var cellDataFilename, out var cellOptionalDataFilename, out var cellSharedDataFilename, out var cellSupportDataFilename);
+
             var asset = data.asset;
             asset.cells = new Cell[bakingCells.Count];
             asset.cellCounts = new ProbeVolumeAsset.CellCounts[bakingCells.Count];
@@ -882,8 +956,6 @@ namespace UnityEngine.Experimental.Rendering
             // Need to save here because the forced import below discards the changes.
             EditorUtility.SetDirty(asset);
             AssetDatabase.SaveAssets();
-
-            data.GetBlobFileNames(out var cellDataFilename, out var cellOptionalDataFilename, out var cellSharedDataFilename, out var cellSupportDataFilename);
 
             unsafe
             {
@@ -1166,6 +1238,16 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        static int PosToIndex(Vector3Int pos)
+        {
+            Vector3Int cellCount = new Vector3Int(Mathf.Abs(maxCellPosition.x - minCellPosition.x),
+                Mathf.Abs(maxCellPosition.y - minCellPosition.y),
+                Mathf.Abs(maxCellPosition.z - minCellPosition.z));
+            Vector3Int normalizedPos = pos - minCellPosition;
+
+            return normalizedPos.z * (cellCount.x * cellCount.y) + normalizedPos.y * cellCount.x + normalizedPos.x;
+        }
+
         public static void ApplySubdivisionResults(ProbeSubdivisionResult results, Matrix4x4 refToWS)
         {
             int index = 0;
@@ -1183,7 +1265,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 BakingCell cell = new BakingCell();
                 cell.position = cellPos;
-                cell.index = index++;
+                cell.index = PosToIndex(cellPos);
 
                 // Convert bricks to positions
                 var probePositionsArr = new Vector3[bricks.Count * ProbeBrickPool.kBrickProbeCountTotal];
