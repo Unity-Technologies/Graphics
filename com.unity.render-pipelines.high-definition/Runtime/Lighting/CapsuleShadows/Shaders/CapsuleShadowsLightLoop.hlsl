@@ -174,7 +174,7 @@ float EvaluateCapsuleAmbientOcclusion(PositionInputs posInput, float3 normalWS)
             float capsuleBoundaryDistance = sphereDistance - s_capsuleData.radius;
 
             // apply range-based falloff
-            float occlusion = smoothstep(1.0f, 0.75f, capsuleBoundaryDistance/_CapsuleAmbientOcclusionRange);
+            float occlusion = smoothstep(1.0f, 0.75f, capsuleBoundaryDistance/(s_capsuleData.radius*_CapsuleAmbientOcclusionRangeFactor));
             if (occlusion > 0.f)
             {
                 // compute AO from this closest interior sphere

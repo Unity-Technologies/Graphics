@@ -23,9 +23,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter enableAmbientOcclusion = new BoolParameter(true);
 
         /// <summary>
-        /// Controls the range of ambient occlusion from capsules.
+        /// Controls the range of ambient occlusion from capsules, in multiples of the capsule radius.
         /// </summary>
-        public FloatParameter ambientOcclusionRange = new MinFloatParameter(1.0f, 0.0f);
+        public FloatParameter ambientOcclusionRangeFactor = new MinFloatParameter(4.0f, 0.0f);
 
         /// <summary>
         /// Controls the method used to apply ambient occlusion from capsules.

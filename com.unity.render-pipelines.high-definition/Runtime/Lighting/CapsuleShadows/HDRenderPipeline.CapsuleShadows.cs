@@ -108,8 +108,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
                 bool enableDirectShadows = capsuleShadows.enable.value;
-                bool enableIndirectShadows = capsuleShadows.enableAmbientOcclusion.value;
-                float ambientOcclusionRange = capsuleShadows.ambientOcclusionRange.value;
+                float ambientOcclusionRangeFactor = capsuleShadows.ambientOcclusionRangeFactor.value;
+                bool enableIndirectShadows = capsuleShadows.enableAmbientOcclusion.value && ambientOcclusionRangeFactor > 0.0f;
                 if (enableDirectShadows || enableIndirectShadows)
                 {
                     bool scalePenumbraAlongX = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleShadowMethod == CapsuleShadowMethod.Ellipsoid;
@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         if (enableIndirectShadows && m_CapsuleOccluders.TotalCount() < k_MaxVisibleCapsuleOccluders)
                         {
-                            float length = 2.0f * (data.offset + data.radius + ambientOcclusionRange);
+                            float length = 2.0f * (data.offset + data.radius*(1.0f + ambientOcclusionRangeFactor));
                             OrientedBBox bounds = new OrientedBBox(
                                  Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
                             if (GeometryUtils.Overlap(bounds, hdCamera.frustum, 6, 8))
@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
             cb._CapsuleDirectShadowCount = (uint)m_CapsuleOccluders.directCount;
             cb._CapsuleIndirectShadowCountAndFlags = (uint)m_CapsuleOccluders.indirectCount | ((uint)capsuleShadows.ambientOcclusionMethod.value << 24);
-            cb._CapsuleAmbientOcclusionRange = capsuleShadows.ambientOcclusionRange.value;
+            cb._CapsuleAmbientOcclusionRangeFactor = capsuleShadows.ambientOcclusionRangeFactor.value;
         }
 
         internal void BindGlobalCapsuleShadowBuffers(CommandBuffer cmd)
