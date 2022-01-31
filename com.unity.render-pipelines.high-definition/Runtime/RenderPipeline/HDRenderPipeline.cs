@@ -1300,16 +1300,26 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDAdditionalCameraData hdCam = null;
                     var drsSettings = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
 
+                    #region DRS Setup
+                    ////////////////////////////////
+                    // setup of DRS in the camera //
+                    ////////////////////////////////
+                    // First step we tell the DRS handler that we will be using the scaler set by the user. Note DLSS can set a system slot in case it wants to provide
+                    // the scale.
                     DynamicResolutionHandler.SetActiveDynamicScalerSlot(DynamicResScalerSlot.User);
                     if (camera.TryGetComponent<HDAdditionalCameraData>(out hdCam))
                     {
                         cameraRequestedDynamicRes = hdCam.allowDynamicResolution && camera.cameraType == CameraType.Game;
                     }
 
+                    // We now setup DLSS if its enabled. DLSS can override the drsSettings (i.e. setting a System scaler slot, and providing quality settings).
                     SetupDLSSForCameraDataAndDynamicResHandler(hdCam, camera, xrPass, cameraRequestedDynamicRes, ref drsSettings);
-                    DynamicResolutionHandler.UpdateAndUseCamera(camera, drsSettings);
 
+                    // only select the current instance for this camera. We dont pass the settings set to prevent an update.
+                    // This will set a new instance in DynamicResolutionHandler.instance that is specific to this camera.
+                    DynamicResolutionHandler.UpdateAndUseCamera(camera);
                     var dynResHandler = DynamicResolutionHandler.instance;
+
                     if (hdCam != null)
                     {
                         // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
@@ -1321,11 +1331,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
 
+                    // Notify the hanlder if this camera requests DRS.
                     dynResHandler.SetCurrentCameraRequest(cameraRequestedDynamicRes);
                     dynResHandler.runUpscalerFilterOnFullResolution = (hdCam != null && hdCam.cameraCanRenderDLSS) || DynamicResolutionHandler.instance.filter == DynamicResUpscaleFilter.TAAU;
 
+                    // Finally, our configuration is prepared. Push it to the drs handler
+                    dynResHandler.Update(drsSettings);
+
                     RTHandles.SetHardwareDynamicResolutionState(dynResHandler.HardwareDynamicResIsEnabled());
 
+                    #endregion
                     // Reset pooled variables
                     cameraSettings.Clear();
                     cameraPositionSettings.Clear();
@@ -2055,6 +2070,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var decalCullingResults = renderRequest.cullingResults.decalCullResults;
             var target = renderRequest.target;
 
+            m_FullScreenDebugPushed = false;
+
             // Updates RTHandle
             hdCamera.BeginRender(cmd);
 
@@ -2673,7 +2690,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static bool NeedMotionVectorForTransparent(FrameSettings frameSettings)
         {
-            return frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector);
+            // IMPORTANT NOTE: This is not checking for Transparent Motion Vectors because we need to explicitly write camera motion vectors
+            // for transparent objects too, otherwise the transparent objects will look completely broken upon motion if Transparent Motion Vectors is off.
+            return frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
         }
 
         /// <summary>
