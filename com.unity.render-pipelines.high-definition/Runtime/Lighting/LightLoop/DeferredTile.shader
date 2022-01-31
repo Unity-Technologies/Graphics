@@ -175,6 +175,7 @@ Shader "Hidden/HDRP/DeferredTile"
             #endif
 
             #ifndef SHADER_STAGE_FRAGMENT
+            #undef  VARIANT // Prevent the chance of redefinition (1372256).
             #define VARIANT 28
             #endif
 

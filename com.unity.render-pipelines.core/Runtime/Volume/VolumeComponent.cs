@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
 
 namespace UnityEngine.Rendering
 {
@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering
     /// </code>
     /// </example>
     [Serializable]
-    public class VolumeComponent : ScriptableObject
+    public partial class VolumeComponent : ScriptableObject
     {
         /// <summary>
         /// Local attribute for VolumeComponent fields only.
@@ -147,7 +147,10 @@ namespace UnityEngine.Rendering
                 if (field.FieldType.IsSubclassOf(typeof(VolumeParameter)))
                 {
                     if (filter?.Invoke(field) ?? true)
-                        parameters.Add((VolumeParameter)field.GetValue(o));
+                    {
+                        VolumeParameter volumeParameter = (VolumeParameter)field.GetValue(o);
+                        parameters.Add(volumeParameter);
+                    }
                 }
                 else if (!field.FieldType.IsArray && field.FieldType.IsClass)
                     FindParameters(field.GetValue(o), parameters, filter);
@@ -295,6 +298,19 @@ namespace UnityEngine.Rendering
 
                 return hash;
             }
+        }
+
+        /// <summary>
+        /// Returns true if any of the volume properites has been overridden.
+        /// </summary>
+        /// <returns>True if any of the volume properites has been overridden.</returns>
+        public bool AnyPropertiesIsOverridden()
+        {
+            for (int i = 0; i < parameters.Count; ++i)
+            {
+                if (parameters[i].overrideState) return true;
+            }
+            return false;
         }
 
         /// <summary>

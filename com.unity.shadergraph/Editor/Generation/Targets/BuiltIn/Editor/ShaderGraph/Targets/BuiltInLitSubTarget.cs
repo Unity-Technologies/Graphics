@@ -45,8 +45,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-            if (!context.HasCustomEditorForRenderPipeline(null))
-                context.customEditorForRenderPipelines.Add((typeof(BuiltInLitGUI).FullName, ""));
+
+            if (!context.HasCustomEditorForRenderPipeline(""))
+                context.AddCustomEditorForRenderPipeline(typeof(BuiltInLitGUI).FullName, "");
 
             // Process SubShaders
             context.AddSubShader(SubShaders.Lit(target, target.renderType, target.renderQueue));
@@ -481,7 +482,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,                        // needed for vertex lighting
-                StructFields.Varyings.viewDirectionWS,
                 BuiltInStructFields.Varyings.lightmapUV,
                 BuiltInStructFields.Varyings.sh,
                 BuiltInStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
@@ -494,7 +494,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 StructFields.Varyings.positionWS,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,                        // needed for vertex lighting
-                StructFields.Varyings.viewDirectionWS,
                 BuiltInStructFields.Varyings.lightmapUV,
                 BuiltInStructFields.Varyings.sh,
                 BuiltInStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency

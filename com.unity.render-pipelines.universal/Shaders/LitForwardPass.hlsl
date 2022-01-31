@@ -33,7 +33,7 @@ struct Varyings
     float3 positionWS               : TEXCOORD1;
 #endif
 
-    half3 normalWS                 : TEXCOORD2;
+    float3 normalWS                 : TEXCOORD2;
 #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
     half4 tangentWS                : TEXCOORD3;    // xyz: tangent, w: sign
 #endif
@@ -220,7 +220,6 @@ half4 LitPassFragment(Varyings input) : SV_Target
 #endif
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
-
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, _Surface);
 

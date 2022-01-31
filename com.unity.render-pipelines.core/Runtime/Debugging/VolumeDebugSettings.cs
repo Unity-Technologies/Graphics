@@ -8,9 +8,10 @@ using UnityEditor;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// Volume debug settings.
+    /// The volume settings
     /// </summary>
-    public abstract class VolumeDebugSettings<T> : IVolumeDebugSettings
+    /// <typeparam name="T">A <see cref="MonoBehaviour"/> with <see cref="IAdditionalData"/></typeparam>
+    public abstract partial class VolumeDebugSettings<T> : IVolumeDebugSettings2
         where T : MonoBehaviour, IAdditionalData
     {
         /// <summary>Current volume component to debug.</summary>
@@ -19,6 +20,9 @@ namespace UnityEngine.Rendering
         [NotNull]
         public abstract VolumeComponentArchetype archetype { get; }
 
+        /// <summary>
+        /// The current selected camera index
+        /// </summary>
         protected int m_SelectedCameraIndex = 0;
 
         /// <summary>Selected camera index.</summary>
@@ -91,21 +95,19 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Specifies the render pipeline for this volume settings
+        /// </summary>
+        public abstract Type targetRenderPipeline { get; }
+
         /// <summary>List of Volume component types.</summary>
-        [Obsolete]
-        static public List<Type> componentTypes => null;
+        public List<(string, Type)> volumeComponentsPathAndType => s_ComponentPathAndType ??= VolumeManager.GetSupportedVolumeComponents(targetRenderPipeline);
 
-        /// <summary>Returns the name of a component from its VolumeComponentMenuForRenderPipeline.</summary>
-        /// <param name="component">A volume component.</param>
-        /// <returns>The component display name.</returns>
-        public static string ComponentDisplayName(VolumeComponentType component)
-        {
-            if (component.AsType().GetCustomAttribute(typeof(VolumeComponentMenu), false) is VolumeComponentMenu volumeComponentMenu)
-                return volumeComponentMenu.menu;
+        static List<(string, Type)> s_ComponentPathAndType;
 
-            return component.AsType().Name;
-        }
-
+        /// <summary>
+        /// The list of the additional camera datas
+        /// </summary>
         protected static List<T> additionalCameraDatas { get; private set; } = new List<T>();
 
         /// <summary>
@@ -153,6 +155,8 @@ namespace UnityEngine.Rendering
         float[] weights = null;
         float ComputeWeight(Volume volume, Vector3 triggerPos)
         {
+            if (volume == null) return 0;
+
             var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
 
             if (!volume.gameObject.activeInHierarchy) return 0;

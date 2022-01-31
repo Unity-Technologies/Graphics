@@ -44,6 +44,7 @@ ScrollView {
 }
 
 .InspectorView > .mainContainer > #content > #header {
+    overflow: hidden;
     flex-direction: row;
     justify-content: space-between;
     background-color: #393939;

@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Rendering
 {
     using UnityObject = UnityEngine.Object;
@@ -19,6 +23,74 @@ namespace UnityEngine.Rendering
         /// </summary>
         public static VolumeManager instance => s_Instance.Value;
 
+        internal static List<(string, Type)> GetSupportedVolumeComponents(Type currentPipelineType)
+        {
+            if (s_SupportedVolumeComponentsForRenderPipeline.TryGetValue(currentPipelineType,
+                out var supportedVolumeComponents))
+                return supportedVolumeComponents;
+
+            supportedVolumeComponents = FilterVolumeComponentTypes(
+                VolumeManager.instance.baseComponentTypeArray, currentPipelineType);
+            s_SupportedVolumeComponentsForRenderPipeline[currentPipelineType] = supportedVolumeComponents;
+
+            return supportedVolumeComponents;
+        }
+
+        static List<(string, Type)> FilterVolumeComponentTypes(Type[] types, Type currentPipelineType)
+        {
+            var volumes = new List<(string, Type)>();
+            foreach (var t in types)
+            {
+                string path = string.Empty;
+
+                var attrs = t.GetCustomAttributes(false);
+
+                bool skipComponent = false;
+
+                // Look for the attributes of this volume component and decide how is added and if it needs to be skipped
+                foreach (var attr in attrs)
+                {
+                    switch (attr)
+                    {
+                        case VolumeComponentMenu attrMenu:
+                        {
+                            path = attrMenu.menu;
+                            if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
+                                skipComponent |= !supportedOn.pipelineTypes.Contains(currentPipelineType);
+                            break;
+                        }
+                        case HideInInspector attrHide:
+                        case ObsoleteAttribute attrDeprecated:
+                            skipComponent = true;
+                            break;
+                    }
+                }
+
+                if (skipComponent)
+                    continue;
+
+                // If no attribute or in case something went wrong when grabbing it, fallback to a
+                // beautified class name
+                if (string.IsNullOrEmpty(path))
+                {
+#if UNITY_EDITOR
+                    path = ObjectNames.NicifyVariableName(t.Name);
+#else
+                    path = t.Name;
+#endif
+                }
+
+
+                volumes.Add((path, t));
+            }
+
+            return volumes
+                .OrderBy(i => i.Item1)
+                .ToList();
+        }
+
+        static readonly Dictionary<Type, List<(string, Type)>> s_SupportedVolumeComponentsForRenderPipeline = new();
+
         // Max amount of layers available in Unity
         const int k_MaxLayerCount = 32;
 
@@ -27,6 +99,17 @@ namespace UnityEngine.Rendering
 
         // Holds all the registered volumes
         readonly List<Volume> m_Volumes;
+
+        internal VolumeComponent GetDefaultVolumeComponent(Type volumeComponentType)
+        {
+            foreach (VolumeComponent component in m_ComponentsDefaultState)
+            {
+                if (component.GetType() == volumeComponentType)
+                    return component;
+            }
+
+            return null;
+        }
 
         // Keep track of sorting states for layer masks
         readonly Dictionary<int, bool> m_SortNeeded;

@@ -16,7 +16,7 @@ internal class CaptureMotionVectorsRendererFeature : ScriptableRendererFeature
         if (renderingData.cameraData.cameraType == CameraType.Game)
         {
             m_RenderPass.ConfigureInput(ScriptableRenderPassInput.Motion);
-            m_RenderPass.SetTarget(renderer.cameraColorTarget, m_Intensity);
+            m_RenderPass.SetIntensity(m_Intensity);
             renderer.EnqueuePass(m_RenderPass);
         }
     }

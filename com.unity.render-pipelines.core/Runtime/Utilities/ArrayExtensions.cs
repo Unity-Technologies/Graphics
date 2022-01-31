@@ -13,9 +13,10 @@ namespace UnityEngine.Rendering
     {
         /// <summary>
         /// Resizes a native array. If an empty native array is passed, it will create a new one.
+        /// </summary>
+        /// <typeparam name="T">The type of the array</typeparam>
         /// <param name="array">Target array to resize</param>
         /// <param name="capacity">New size of native array to resize</param>
-        /// </summary>
         public static void ResizeArray<T>(this ref NativeArray<T> array, int capacity) where T : struct
         {
             var newArray = new NativeArray<T>(capacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
@@ -29,9 +30,9 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Resizes a transform access array.
+        /// </summary>
         /// <param name="array">Target array to resize</param>
         /// <param name="capacity">New size of transform access array to resize</param>
-        /// </summary>
         public static void ResizeArray(this ref TransformAccessArray array, int capacity)
         {
             var newArray = new TransformAccessArray(capacity);
@@ -47,9 +48,10 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Resizes an array. If a null reference is passed, it will allocate the desired array.
+        /// </summary>
+        /// <typeparam name="T">The type of the array</typeparam>
         /// <param name="array">Target array to resize</param>
         /// <param name="capacity">New size of array to resize</param>
-        /// </summary>
         public static void ResizeArray<T>(ref T[] array, int capacity)
         {
             if (array == null)

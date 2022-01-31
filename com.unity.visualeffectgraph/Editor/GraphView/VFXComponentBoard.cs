@@ -5,8 +5,8 @@ using System.Globalization;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.SceneManagement;
-using UnityEditor.UIElements;
 
+using UnityEditor.VFX.UIElements;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEngine.UIElements;
@@ -355,13 +355,14 @@ namespace UnityEditor.VFX.UI
             if (m_BoundsRecorder != null)
             {
                 m_BoundsRecorder.isRecording = false;
+                m_BoundsRecorder.CleanUp();
                 m_BoundsRecorder = null;
             }
         }
 
         void UpdateBoundsRecorder()
         {
-            if (m_AttachedComponent != null)
+            if (m_AttachedComponent != null && m_View.controller.graph != null)
             {
                 controller.RecompileExpressionGraphIfNeeded();
                 bool wasRecording = false;
@@ -500,7 +501,9 @@ namespace UnityEditor.VFX.UI
                 m_EventsContainer.Clear();
             m_Events.Clear();
             if (m_DebugUI != null)
-                m_DebugUI.Clear();
+            {
+                m_DebugUI.SetDebugMode(VFXUIDebug.Modes.None, this, true);
+            }
 
             DeleteBoundsRecorder();
             RefreshInitializeErrors();
@@ -522,6 +525,16 @@ namespace UnityEditor.VFX.UI
             {
                 context.controller.model.RefreshErrors(m_View.controller.graph);
             }
+        }
+
+        public void LockUI()
+        {
+            m_BoundsToolContainer.SetEnabled(false);
+        }
+
+        public void UnlockUI()
+        {
+            m_BoundsToolContainer.SetEnabled(true);
         }
 
         public bool Attach(VisualEffect effect = null)
@@ -603,7 +616,7 @@ namespace UnityEditor.VFX.UI
                 current = current.parent;
             }
 
-            if (EditorSceneManager.loadedSceneCount > 1)
+            if (UnityEngine.SceneManagement.SceneManager.loadedSceneCount > 1)
             {
                 path = m_AttachedComponent.gameObject.scene.name + " : " + path;
             }
@@ -624,7 +637,6 @@ namespace UnityEditor.VFX.UI
             UpdatePlayRate();
             UpdatePlayButton();
             UpdateBoundsModes();
-            m_ApplyBoundsButton.SetEnabled(m_BoundsRecorder.bounds.Any() && m_View.IsAssetEditable());
             UpdateRecordingButton();
         }
 
@@ -932,10 +944,7 @@ namespace UnityEditor.VFX.UI
             var initContextUI = m_BoundsRecorder.GetInitContextController(m_SystemName);
             m_SystemNameButton.Setup(initContextUI, m_BoundsRecorder.view);
             m_SystemNameButton.text = m_SystemName;
-            m_BoundsMode = this.Query<Button>("bounds-mode");
-            m_BoundsMode.AddStyleSheetPathWithSkinVariant("VFXControls");
-            m_BoundsMode.clickable.clicked += OnBoundsModeMenu;
-            m_BoundsMode.text = m_BoundsRecorder.GetSystemBoundsSettingMode(systemName).ToString();
+            InitBoundsModeElement();
             m_Colors = new Dictionary<string, StyleColor>()
             {
                 {"included", m_SystemNameButton.style.color},
@@ -952,23 +961,22 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private List<string> m_BoundsModes = new List<string> { "Manual", "Recorded", "Automatic" };
-
-        void OnBoundsModeMenu()
+        void InitBoundsModeElement()
         {
-            GenericMenu menu = new GenericMenu();
-            foreach (var mode in Enum.GetValues(typeof(BoundsSettingMode)))
-            {
-                bool IsOn = (BoundsSettingMode)mode == m_CurrentMode;
-                menu.AddItem(BoundsSystemContents.modesContent[(BoundsSettingMode)mode], IsOn, SetSystemBoundMode, mode);
-            }
-            menu.DropDown(m_BoundsMode.worldBound);
+            m_BoundsMode = new VFXEnumField(s_EmptyEnumLabel, typeof(BoundsSettingMode));
+            m_BoundsMode.OnValueChanged += OnValueChanged;
+            m_BoundsMode.SetValue((int)m_CurrentMode);
+            m_BoundsMode.AddToClassList("bounds-mode");
+            Add(m_BoundsMode);
         }
+
+        private List<string> m_BoundsModes = new List<string> { "Manual", "Recorded", "Automatic" };
 
         public void UpdateLabel()
         {
             m_CurrentMode = m_BoundsRecorder.GetSystemBoundsSettingMode(m_SystemName);
-            m_BoundsMode.text = m_CurrentMode.ToString();
+            m_BoundsMode.SetValue((int)m_CurrentMode);
+            OnValueChanged();
             if (!m_BoundsRecorder.NeedsToBeRecorded(m_SystemName, out VFXBoundsRecorder.ExclusionCause cause))
             {
                 m_SystemNameButton.text = $"{m_SystemName} {VFXBoundsRecorder.exclusionCauseString[cause]}";
@@ -994,8 +1002,17 @@ namespace UnityEditor.VFX.UI
         void SetSystemBoundMode(object mode)
         {
             m_CurrentMode = (BoundsSettingMode)mode;
-            m_BoundsMode.text = mode.ToString();
+            m_BoundsMode.SetValue((int)mode);
             m_BoundsRecorder.ModifyMode(m_SystemName, (BoundsSettingMode)mode);
+        }
+
+        void OnValueChanged()
+        {
+            if (m_CurrentMode != (BoundsSettingMode)m_BoundsMode.value)
+            {
+                m_CurrentMode = (BoundsSettingMode)m_BoundsMode.value;
+                m_BoundsRecorder.ModifyMode(m_SystemName, m_CurrentMode);
+            }
         }
 
         public void ReleaseBoundsRecorder()
@@ -1011,10 +1028,11 @@ namespace UnityEditor.VFX.UI
 
         string m_SystemName;
         VFXBoundsRecorderField m_SystemNameButton;
-        Button m_BoundsMode;
+        VFXEnumField m_BoundsMode;
         BoundsSettingMode m_CurrentMode;
         VFXBoundsRecorder m_BoundsRecorder;
         Dictionary<string, StyleColor> m_Colors;
+        private static Label s_EmptyEnumLabel = new Label();
 
         static class BoundsSystemContents
         {

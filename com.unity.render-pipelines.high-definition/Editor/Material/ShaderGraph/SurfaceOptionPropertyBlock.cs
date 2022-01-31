@@ -69,13 +69,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddProperty(blendModeText, () => systemData.blendMode, (newValue) => systemData.blendMode = newValue);
                 AddProperty(enableTransparentFogText, () => builtinData.transparencyFog, (newValue) => builtinData.transparencyFog = newValue);
                 AddProperty(transparentZTestText, () => systemData.zTest, (newValue) => systemData.zTest = newValue);
-                AddProperty(zWriteEnableText, () => systemData.transparentZWrite, (newValue) => systemData.transparentZWrite = newValue);
+                if (renderingPassValue != HDRenderQueue.RenderQueueType.LowTransparent)
+                    AddProperty(zWriteEnableText, () => systemData.transparentZWrite, (newValue) => systemData.transparentZWrite = newValue);
                 AddProperty(transparentCullModeText, () => systemData.transparentCullMode, (newValue) => systemData.transparentCullMode = newValue);
                 AddProperty(transparentSortPriorityText, () => systemData.sortPriority, (newValue) => systemData.sortPriority = HDRenderQueue.ClampsTransparentRangePriority(newValue));
                 AddProperty(transparentBackfaceEnableText, () => builtinData.backThenFrontRendering, (newValue) => builtinData.backThenFrontRendering = newValue);
-                AddProperty(transparentDepthPrepassEnableText, () => builtinData.transparentDepthPrepass, (newValue) => builtinData.transparentDepthPrepass = newValue);
-                AddProperty(transparentDepthPostpassEnableText, () => builtinData.transparentDepthPostpass, (newValue) => builtinData.transparentDepthPostpass = newValue);
-                AddProperty(transparentWritingMotionVecText, () => builtinData.transparentWritesMotionVec, (newValue) => builtinData.transparentWritesMotionVec = newValue);
+                if (renderingPassValue != HDRenderQueue.RenderQueueType.LowTransparent)
+                {
+                    AddProperty(transparentDepthPrepassEnableText, () => builtinData.transparentDepthPrepass, (newValue) => builtinData.transparentDepthPrepass = newValue);
+                    AddProperty(transparentDepthPostpassEnableText, () => builtinData.transparentDepthPostpass, (newValue) => builtinData.transparentDepthPostpass = newValue);
+                    AddProperty(transparentWritingMotionVecText, () => builtinData.transparentWritesMotionVec, (newValue) => builtinData.transparentWritesMotionVec = newValue);
+                }
 
                 if (lightingData != null)
                     AddProperty(enableBlendModePreserveSpecularLightingText, () => lightingData.blendPreserveSpecular, (newValue) => lightingData.blendPreserveSpecular = newValue);
@@ -87,13 +91,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.globalIndentLevel--;
 
             // Alpha Test
-            // TODO: AlphaTest is in SystemData but Alpha to Mask is in BuiltinData?
             AddProperty(alphaCutoffEnableText, () => systemData.alphaTest, (newValue) => systemData.alphaTest = newValue);
             if (systemData.alphaTest)
             {
                 context.globalIndentLevel++;
                 AddProperty(useShadowThresholdText, () => builtinData.alphaTestShadow, (newValue) => builtinData.alphaTestShadow = newValue);
-                AddProperty(alphaToMaskText, () => builtinData.alphaToMask, (newValue) => builtinData.alphaToMask = newValue);
                 context.globalIndentLevel--;
             }
 
@@ -110,7 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 AddProperty(supportDecalsText, () => lightingData.receiveDecals, (newValue) => lightingData.receiveDecals = newValue);
 
-                if (systemData.surfaceType == SurfaceType.Transparent)
+                if (systemData.surfaceType == SurfaceType.Transparent && renderingPassValue != HDRenderQueue.RenderQueueType.LowTransparent)
                     AddProperty(receivesSSRTransparentText, () => lightingData.receiveSSRTransparent, (newValue) => lightingData.receiveSSRTransparent = newValue);
                 else
                     AddProperty(receivesSSRText, () => lightingData.receiveSSR, (newValue) => lightingData.receiveSSR = newValue);
