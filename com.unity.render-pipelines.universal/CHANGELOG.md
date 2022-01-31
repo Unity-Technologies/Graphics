@@ -6,9 +6,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [13.1.6] - 2022-01-14
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
 ### Fixed
 - Fixed max light count cpu/gpu mismatch in Editor with Android target. [case 1392965](https://issuetracker.unity3d.com/product/unity/issues/guid/1392965/)
 
@@ -16,8 +13,6 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
 - Fixed a depth non-clear in XR due to wrong depth slice being checked.
-
-## Fixed
 - Fixed decal compilation issue on mac.
 
 ## [13.1.4] - 2021-12-04
@@ -31,8 +26,6 @@ The version number for this package has increased due to a version update of a r
 
 ### Changed
 - Removed the name input for the SSAO and Screen Space Shadows renderer features.
-
-### Changed
 - Re-added the menu button to be able to convert selected materials.
 
 ### Fixed
