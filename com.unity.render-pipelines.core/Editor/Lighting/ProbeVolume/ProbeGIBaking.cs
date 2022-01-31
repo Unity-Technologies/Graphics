@@ -526,14 +526,6 @@ namespace UnityEngine.Experimental.Rendering
             var numCells = bakingCells.Count;
 
             var fullSceneDataList = ProbeReferenceVolume.instance.perSceneDataList;
-            var bakingSceneDataList = GetPerSceneDataList();
-            ProbeVolumePerSceneData activeData = null;
-            if (isBakingOnlyActiveScene)
-            {
-                Debug.Assert(bakingSceneDataList.Count <= 1); // We have max one per scene data as we only consider one scene here.
-                activeData = bakingSceneDataList.Count > 0 ? bakingSceneDataList[0] : null;
-            }
-
             int numUniqueProbes = m_BakingBatch.uniqueProbeCount;
 
             var sh = new NativeArray<SphericalHarmonicsL2>(numUniqueProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
