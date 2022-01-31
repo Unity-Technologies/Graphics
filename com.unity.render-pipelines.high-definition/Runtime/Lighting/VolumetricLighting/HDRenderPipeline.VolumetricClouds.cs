@@ -476,9 +476,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._CameraPrevViewProjection_NO = prevVpNonOblique;
             }
 
-            // Evaluate the ambient probe data
-            SetPreconvolvedAmbientLightProbe(ref cb, settings);
-
             if (shadowPass)
             {
                 // Resolution of the cloud shadow

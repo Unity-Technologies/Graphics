@@ -52,8 +52,6 @@ CBUFFER_START(ShaderVariablesClouds)
     float _FadeInDistance;
     int _LowResolutionEvaluation;
     int _EnableIntegration;
-    float4 _AmbientProbeTop;
-    float4 _AmbientProbeBottom;
     float4 _SunRight;
     float4 _SunUp;
     float _ShadowIntensity;

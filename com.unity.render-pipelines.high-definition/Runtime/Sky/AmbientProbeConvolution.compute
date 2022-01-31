@@ -15,7 +15,7 @@
 #pragma kernel AmbientProbeConvolutionDiffuseVolumetric KERNEL_NAME=AmbientProbeConvolutionDiffuseVolumetric OUTPUT_VOLUMETRIC OUTPUT_DIFFUSE
 // Ambient probe convolution for clouds.
 // Does not output diffuse and volumetric buffer and does not use input texture mips.
-#pragma kernel AmbientProbeConvolutionClouds KERNEL_NAME=AmbientProbeConvolutionClouds NO_MIPS
+#pragma kernel AmbientProbeConvolutionClouds KERNEL_NAME=AmbientProbeConvolutionClouds NO_MIPS OUTPUT_CLOUDS
 
 // Input Cubemap
 TEXTURECUBE(_AmbientProbeInputCubemap);
@@ -212,11 +212,13 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
             outputSHCoeffs[i] = outputSHCoeffs[i] * kSHBasisCoef[i % 9] * weight;
         }
 
+#if !defined(OUTPUT_CLOUDS)
         for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
             // ClampedCosine * SH Coefficient used in Decode
             _AmbientProbeOutputBuffer[i] = outputSHCoeffs[i] * kClampedCosineCoefs[i % 9] * kSHBasisCoef[i % 9];
         }
+#endif
 
 #if OUTPUT_DIFFUSE
         for (i = 0; i < SH_COEFF_COUNT; ++i)
@@ -228,13 +230,13 @@ void KERNEL_NAME(uint dispatchThreadId : SV_DispatchThreadID)
         PackSHFromScratchBuffer(_DiffuseAmbientProbeOutputBuffer);
 #endif
 
-#if OUTPUT_VOLUMETRIC
+#if OUTPUT_VOLUMETRIC || OUTPUT_CLOUDS
 
         // Note: Code below could be optimize (lot of constant multiplication), but compiler may figure it out and this path is rarely executed, so prefer clean code.
         // Apply FogDimmer
         for (i = 0; i < SH_COEFF_COUNT; ++i)
         {
-            _ScratchBuffer[i] = asuint(outputSHCoeffs[i] *_FogDimmer);
+            _ScratchBuffer[i] = asuint(outputSHCoeffs[i] * _FogDimmer);
         }
 
         // Apply CornetteShank phase function
