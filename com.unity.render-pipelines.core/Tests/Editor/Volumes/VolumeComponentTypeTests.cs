@@ -1,6 +1,7 @@
 using System;
 using FsCheck;
 using NUnit.Framework;
+using UnityEngine.Tests;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -27,7 +28,7 @@ namespace UnityEngine.Rendering.Tests
                 return mustBeValid && isValid || !mustBeValid && isInvalid;
             }
 
-            Prop.ForAll(ArbX.CreateTypeArbitrary(), Property).QuickCheckThrowOnFailure();
+            Prop.ForAll(ArbX.CreateTypeArbitrary(), Property).ContextualQuickCheckThrowOnFailure();
         }
 
         [Test]
@@ -38,7 +39,7 @@ namespace UnityEngine.Rendering.Tests
                 return type.AsType() == (Type)type;
             }
 
-            Prop.ForAll<VolumeComponentType>(Property).QuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType>(Property).ContextualQuickCheckThrowOnFailure();
         }
     }
 }

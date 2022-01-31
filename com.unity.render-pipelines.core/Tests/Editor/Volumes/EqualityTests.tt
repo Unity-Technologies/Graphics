@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using FsCheck;
 using NUnit.Framework;
+using UnityEngine.Tests;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -69,7 +70,7 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
 
-            Prop.ForAll<<#= test.buildFromType #>, <#= test.buildFromType #>>(Property).QuickCheckThrowOnFailure();
+            Prop.ForAll<<#= test.buildFromType #>, <#= test.buildFromType #>>(Property).ContextualQuickCheckThrowOnFailure();
 
             // Enforce testing equality
             var value = Arb.Generate<<#= test.buildFromType #>>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using FsCheck;
 using NUnit.Framework;
+using UnityEngine.Tests;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -51,7 +52,7 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
 
-            Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).QuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).ContextualQuickCheckThrowOnFailure();
 
             // Enforce testing equality
             var value = Arb.Generate<VolumeComponentType>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
@@ -93,7 +94,7 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
 
-            Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).QuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).ContextualQuickCheckThrowOnFailure();
 
             // Enforce testing equality
             var value = Arb.Generate<VolumeComponentType>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
@@ -133,7 +134,7 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
 
-            Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).QuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).ContextualQuickCheckThrowOnFailure();
 
             // Enforce testing equality
             var value = Arb.Generate<VolumeComponentType>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
@@ -175,7 +176,7 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
 
-            Prop.ForAll<bool, bool>(Property).QuickCheckThrowOnFailure();
+            Prop.ForAll<bool, bool>(Property).ContextualQuickCheckThrowOnFailure();
 
             // Enforce testing equality
             var value = Arb.Generate<bool>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
@@ -217,7 +218,7 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
 
-            Prop.ForAll<VolumeComponentType[], VolumeComponentType[]>(Property).QuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType[], VolumeComponentType[]>(Property).ContextualQuickCheckThrowOnFailure();
 
             // Enforce testing equality
             var value = Arb.Generate<VolumeComponentType[]>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));
@@ -259,7 +260,7 @@ namespace UnityEngine.Rendering.Tests
                 return result;
             }
 
-            Prop.ForAll<(string name, VolumeComponentType type), (string name, VolumeComponentType type)>(Property).QuickCheckThrowOnFailure();
+            Prop.ForAll<(string name, VolumeComponentType type), (string name, VolumeComponentType type)>(Property).ContextualQuickCheckThrowOnFailure();
 
             // Enforce testing equality
             var value = Arb.Generate<(string name, VolumeComponentType type)>().Eval(1, FsCheck.Random.StdGen.NewStdGen(0, 0));

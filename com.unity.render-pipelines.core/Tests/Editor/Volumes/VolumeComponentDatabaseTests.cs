@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using FsCheck;
 using NUnit.Framework;
+using UnityEngine.Tests;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -29,7 +30,7 @@ namespace UnityEngine.Rendering.Tests
                 }
             }
 
-            Prop.ForAll<VolumeComponentType[]>(Property).QuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType[]>(Property).ContextualQuickCheckThrowOnFailure();
         }
 
         [Test]
