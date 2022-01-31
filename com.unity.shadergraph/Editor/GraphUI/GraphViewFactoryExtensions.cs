@@ -7,7 +7,7 @@ using UnityEditor.ShaderGraph.GraphUI.GraphElements.Views;
 namespace UnityEditor.ShaderGraph.GraphUI
 {
     [GraphElementsExtensionMethodsCache(typeof(GraphView))]
-    public static class ShaderGraphViewFactoryExtensions
+    public static class GraphViewFactoryExtensions
     {
         public static IModelUI CreateNode(
             this ElementBuilder elementBuilder,
