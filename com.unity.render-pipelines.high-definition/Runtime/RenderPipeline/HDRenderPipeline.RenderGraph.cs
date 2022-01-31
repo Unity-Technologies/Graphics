@@ -342,9 +342,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                // XR mirror view and blit do device
-                EndCameraXR(m_RenderGraph, hdCamera);
-
                 SendColorGraphicsBuffer(m_RenderGraph, hdCamera);
 
                 SetFinalTarget(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, backBuffer);

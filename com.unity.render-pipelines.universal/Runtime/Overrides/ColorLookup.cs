@@ -3,12 +3,21 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// A volume component that holds settings for the color lookup effect.
+    /// </summary>
     [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Color Lookup", typeof(UniversalRenderPipeline))]
     public sealed class ColorLookup : VolumeComponent, IPostProcessComponent
     {
+        /// <summary>
+        /// A 2D Lookup Texture (LUT) to use for color grading.
+        /// </summary>
         [Tooltip("A 2D Lookup Texture (LUT) to use for color grading.")]
         public TextureParameter texture = new TextureParameter(null);
 
+        /// <summary>
+        /// Controls how much of the lookup texture will contribute to the color grading effect.
+        /// </summary>
         [Tooltip("How much of the lookup texture will contribute to the color grading effect.")]
         public ClampedFloatParameter contribution = new ClampedFloatParameter(1f, 0f, 1f);
 
@@ -18,6 +27,10 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public bool IsTileCompatible() => true;
 
+        /// <summary>
+        /// Validates the lookup texture assigned to the volume component.
+        /// </summary>
+        /// <returns>True if the texture is valid, false otherwise.</returns>
         public bool ValidateLUT()
         {
             var asset = UniversalRenderPipeline.asset;
