@@ -79,6 +79,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cached directional light shadows disappearing without reappearing when the going outside of the range of shadow validity.
 - Fixed an issue where sometimes full screen debug would cause render graph errors.
 - Fixed a nullref exception when creating a new scene while LightExplorer is open.
+- Fixed issue that caused the uber post process to run even if nothing is to be done, leading to different results when disabling every post process manually vs disabling the whole post-processing pipeline.
 
 ## [14.0.0] - 2021-11-17
 
