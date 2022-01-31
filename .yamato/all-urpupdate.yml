@@ -14,7 +14,7 @@ PR_URPUpdate_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
-        TEMPLATE_UPDATE_PROJECT_REVISION: 84b55bcf7d483bb727f3a368e3ef88a4d8233ffe
+        TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_mono_Linear_trunk
@@ -28,7 +28,7 @@ Extra_URPUpdate_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
-        TEMPLATE_UPDATE_PROJECT_REVISION: 84b55bcf7d483bb727f3a368e3ef88a4d8233ffe
+        TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
         CACHE_ARGS: '{{cache.flags}}'
     dependencies: []
 URPUpdate_trunk:
@@ -38,7 +38,7 @@ URPUpdate_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
-        TEMPLATE_UPDATE_PROJECT_REVISION: 84b55bcf7d483bb727f3a368e3ef88a4d8233ffe
+        TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_trunk
@@ -52,7 +52,7 @@ PR_URPUpdate_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
-        TEMPLATE_UPDATE_PROJECT_REVISION: 84b55bcf7d483bb727f3a368e3ef88a4d8233ffe
+        TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
@@ -66,7 +66,7 @@ Extra_URPUpdate_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
-        TEMPLATE_UPDATE_PROJECT_REVISION: 84b55bcf7d483bb727f3a368e3ef88a4d8233ffe
+        TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
         CACHE_ARGS: '{{cache.flags}}'
     dependencies: []
 URPUpdate_CUSTOM-REVISION:
@@ -76,7 +76,7 @@ URPUpdate_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         TEMPLATE_UPDATE_PROJECT_BRANCH: master
-        TEMPLATE_UPDATE_PROJECT_REVISION: 84b55bcf7d483bb727f3a368e3ef88a4d8233ffe
+        TEMPLATE_UPDATE_PROJECT_REVISION: 8eac84d6206a902ebc4b731c4aef01ef3911392a
         CACHE_ARGS: '{{cache.flags}}'
     dependencies:
       -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_CUSTOM-REVISION
