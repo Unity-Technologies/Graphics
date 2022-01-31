@@ -1953,6 +1953,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var decalCullingResults = renderRequest.cullingResults.decalCullResults;
             var target = renderRequest.target;
 
+            m_FullScreenDebugPushed = false;
+
             // Updates RTHandle
             hdCamera.BeginRender(cmd);
 
@@ -2589,7 +2591,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static bool NeedMotionVectorForTransparent(FrameSettings frameSettings)
         {
-            return frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector);
+            // IMPORTANT NOTE: This is not checking for Transparent Motion Vectors because we need to explicitly write camera motion vectors
+            // for transparent objects too, otherwise the transparent objects will look completely broken upon motion if Transparent Motion Vectors is off.
+            return frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
         }
 
         /// <summary>

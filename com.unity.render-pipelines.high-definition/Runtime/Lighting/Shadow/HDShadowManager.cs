@@ -355,7 +355,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
             HDShadowAtlas.HDShadowAtlasInitParameters dirAtlasInitParams = punctualAtlasInitParams;
-            dirAtlasInitParams.useSharedTexture = false;
+            dirAtlasInitParams.useSharedTexture = true;
             dirAtlasInitParams.width = 1;
             dirAtlasInitParams.height = 1;
             dirAtlasInitParams.atlasShaderID = HDShaderIDs._ShadowmapCascadeAtlas;
