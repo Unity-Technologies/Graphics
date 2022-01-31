@@ -792,8 +792,6 @@ namespace UnityEngine.Experimental.Rendering
 
         static void ExtractBakingCells()
         {
-            List<BakingCell> outCells = new List<BakingCell>();
-
             // Keep list of the "new" one, we won't need to push them
             foreach (var cellIndex in m_BakedCells.Keys)
             {
@@ -832,7 +830,6 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         ReadFullFromShaderCoeffsL0L1L2(ref bc.sh[probe], cell.shL0L1Data, cell.shL2Data, probe);
                     }
-                    outCells.Add(bc);
 
                     if (!m_BakingBatch.cellIndex2SceneReferences.ContainsKey(cell.index))
                     {
