@@ -147,7 +147,20 @@ namespace UnityEditor.Rendering
             Type editorType;
 
             if (!m_EditorTypes.TryGetValue(componentType, out editorType))
-                editorType = typeof(VolumeComponentEditor);
+            {
+                // When there is no editor for the specified component type, we can check if there is one for it's parents
+                Type parentType = componentType.BaseType;
+                while (parentType != null)
+                {
+                    if (m_EditorTypes.TryGetValue(parentType, out editorType))
+                        break;
+                    parentType = parentType.BaseType;
+                }
+
+                // If we failed to find any editor inside the inheritance list, we fallback on the default editor.
+                if (editorType == null)
+                    editorType = typeof(VolumeComponentEditor);
+            }
 
             var editor = (VolumeComponentEditor)Activator.CreateInstance(editorType);
             editor.Init(component, m_BaseEditor);
