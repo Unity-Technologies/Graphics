@@ -163,6 +163,9 @@ namespace UnityEngine.Experimental.Rendering
                         AssetDatabase.DeleteAsset(pathToDelete);
                     Undo.RegisterCompleteObjectUndo(sceneData.parentAsset, "Deleted baking set");
                     ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                    // A new set will be selected automatically, so we perform the same operations as if we did the selection explicitly.
+                    OnBakingSetSelected(m_BakingSets);
+
                 }
             };
 
