@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Utility", "High Definition Render Pipeline", "Water", "ComputeVertexPosition_Water (Preview)")]
-    class ComputeVertexPosition_Water : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireVertexID, IMayRequirePosition
+    class ComputeVertexPosition_Water : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition
     {
         public ComputeVertexPosition_Water()
         {
@@ -40,16 +40,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (generationMode == GenerationMode.ForReals)
             {
-                sb.AppendLine("#if defined(WATER_PROCEDURAL_GEOMETRY)");
-                sb.AppendLine("$precision3 {0} = GetVertexPositionFromVertexID(IN.{1});",
+                sb.AppendLine("$precision3 {0} = GetWaterVertexPosition(IN.WorldSpacePosition);",
                   GetVariableNameForSlot(kPositionWSOutputSlotId),
-                  ShaderGeneratorNames.VertexID);
-                sb.AppendLine("#else");
-                sb.AppendLine("$precision3 {0} = GetVertexPositionFromVertexID(IN.{1}, IN.{2});",
-                  GetVariableNameForSlot(kPositionWSOutputSlotId),
-                  ShaderGeneratorNames.VertexID,
                   CoordinateSpace.Object.ToVariableName(InterpolatorType.Position));
-                sb.AppendLine("#endif");
             }
             else
             {
@@ -58,14 +51,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public bool RequiresVertexID(ShaderStageCapability stageCapability = ShaderStageCapability.Vertex)
-        {
-            return true;
-        }
-
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability = ShaderStageCapability.Vertex)
         {
-            return NeededCoordinateSpace.Object;
+            return NeededCoordinateSpace.World;
         }
     }
 }

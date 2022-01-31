@@ -2053,6 +2053,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var decalCullingResults = renderRequest.cullingResults.decalCullResults;
             var target = renderRequest.target;
 
+            m_FullScreenDebugPushed = false;
+
             // Updates RTHandle
             hdCamera.BeginRender(cmd);
 
