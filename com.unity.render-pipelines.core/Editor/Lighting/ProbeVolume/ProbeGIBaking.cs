@@ -665,7 +665,6 @@ namespace UnityEngine.Experimental.Rendering
             var scene2Data = new Dictionary<Scene, ProbeVolumePerSceneData>();
             foreach (var data in fullSceneDataList)
             {
-                data.Clear();
                 data.asset = ProbeVolumeAsset.CreateAsset(data);
                 data.states.TryAdd(ProbeReferenceVolume.instance.bakingState, default);
                 scene2Data[data.gameObject.scene] = data;
@@ -1234,7 +1233,6 @@ namespace UnityEngine.Experimental.Rendering
 
         public static void ApplySubdivisionResults(ProbeSubdivisionResult results, Matrix4x4 refToWS)
         {
-            int index = 0;
             // For now we just have one baking batch. Later we'll have more than one for a set of scenes.
             // All probes need to be baked only once for the whole batch and not once per cell
             // The reason is that the baker is not deterministic so the same probe position baked in two different cells may have different values causing seams artefacts.
