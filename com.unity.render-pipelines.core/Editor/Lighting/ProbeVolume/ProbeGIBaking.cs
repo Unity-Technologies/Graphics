@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering
         public Brick[] bricks;
         public Vector3[] probePositions;
         public SphericalHarmonicsL2[] sh;
-        public float[] validity;
+        public uint[] validity;
         public Vector3[] offsetVectors;
 
         public int minSubdiv;
@@ -493,7 +493,7 @@ namespace UnityEngine.Experimental.Rendering
                 Debug.Assert(numProbes > 0);
 
                 cell.sh = new SphericalHarmonicsL2[numProbes];
-                cell.validity = new float[numProbes];
+                cell.validity = new uint[numProbes];
                 cell.offsetVectors = new Vector3[virtualOffsets != null ? numProbes : 0];
                 cell.minSubdiv = probeRefVolume.GetMaxSubdivision();
 
@@ -561,7 +561,7 @@ namespace UnityEngine.Experimental.Rendering
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 7, new Vector3(shv[0, 7], shv[1, 7], shv[2, 7]));
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(shv[0, 8], shv[1, 8], shv[2, 8]));
 
-                    cell.validity[i] = validity[j];
+                    cell.validity[i] = ProbeReferenceVolume.Cell.PackValidityAndMask(validity[j], 255);
                 }
 
                 cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
@@ -736,7 +736,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // CellData
             using var probesL0L1 = new NativeArray<float>(asset.totalCellCounts.probesCount * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var validity = new NativeArray<float>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var validity = new NativeArray<uint>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // CellOptionalData
             var probesL2ScalarPaddedCount = asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2 ? asset.totalCellCounts.probesCount * ProbeVolumeAsset.kL2ScalarCoefficientsCount + 3 : 0;
@@ -798,7 +798,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     fs.Write(new ReadOnlySpan<byte>(probesL0L1.GetUnsafeReadOnlyPtr(), probesL0L1.Length * UnsafeUtility.SizeOf<float>()));
                     fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(validity.GetUnsafeReadOnlyPtr(), validity.Length * UnsafeUtility.SizeOf<float>()));
+                    fs.Write(new ReadOnlySpan<byte>(validity.GetUnsafeReadOnlyPtr(), validity.Length * UnsafeUtility.SizeOf<uint>()));
 
                 }
                 if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)

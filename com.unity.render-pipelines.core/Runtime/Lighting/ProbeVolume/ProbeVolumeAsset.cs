@@ -94,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering
             if ((shL0L1DataByteCount + validityByteCount) != cellData.Length)
                 return false;
             var shL0L1Data = cellData.GetSubArray(0, shL0L1DataByteCount).Reinterpret<float>(1);
-            var validityData = cellData.GetSubArray(validityByteStart, validityByteCount).Reinterpret<float>(1);
+            var validityData = cellData.GetSubArray(validityByteStart, validityByteCount).Reinterpret<uint>(1);
 
 
             var cellOptionalData = cellOptionalDataAsset ? cellOptionalDataAsset.GetData<byte>() : default;

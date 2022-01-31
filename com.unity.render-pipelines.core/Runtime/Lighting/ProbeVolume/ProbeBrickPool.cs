@@ -416,7 +416,7 @@ namespace UnityEngine.Experimental.Rendering
             return new Vector3Int(i & 1, (i >> 1) & 1, (i >> 2) & 1);
         }
 
-        internal static unsafe void FillDataLocation(ref DataLocation loc, ProbeVolumeSHBands srcBands, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, NativeArray<float> validity, int startIndex, int count, ProbeVolumeSHBands dstBands)
+        internal static unsafe void FillDataLocation(ref DataLocation loc, ProbeVolumeSHBands srcBands, NativeArray<float> shL0L1Data, NativeArray<float> shL2Data, NativeArray<uint> validity, int startIndex, int count, ProbeVolumeSHBands dstBands)
         {
             // NOTE: The SH data arrays passed to this method should be pre-swizzled to the format expected by shader code.
             // TODO: The next step here would be to store de-interleaved, pre-quantized brick data that can be memcopied directly into texture pixeldata
@@ -433,7 +433,7 @@ namespace UnityEngine.Experimental.Rendering
             ValidateTemporaryBuffers(loc, dstBands);
 
             var shL0L1Ptr = (float*)shL0L1Data.GetUnsafeReadOnlyPtr();
-            var validityPtr = (float*)validity.GetUnsafeReadOnlyPtr();
+            var validityPtr = (uint*)validity.GetUnsafeReadOnlyPtr();
             var shL2Ptr = (float*)(shL2Data.IsCreated ? shL2Data.GetUnsafeReadOnlyPtr() : default);
 
             for (int brickIdx = startIndex; brickIdx < (startIndex + count); brickIdx += kBrickProbeCountTotal)
@@ -474,7 +474,7 @@ namespace UnityEngine.Experimental.Rendering
                                 SetPixel(s_L0L1Rx_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[0]);
                                 SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[1]);
                                 SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[2]);
-                                SetPixel(s_Validity_locData, ix, iy, iz, loc.width, loc.height, validityPtr[shidx]);
+                                SetPixel(s_Validity_locData, ix, iy, iz, loc.width, loc.height, ProbeReferenceVolume.Cell.GetValidityFromPacked(validityPtr[shidx]));
 
                                 if (dstBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                 {
