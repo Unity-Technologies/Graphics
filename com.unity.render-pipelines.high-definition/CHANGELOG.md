@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where forced sky update (like PBR sky amortized updated) would not update ambient probe.
 - Fixed a null ref exception in Volume Explorer
 - Fixed static lighting sky update when using an HDRI sky with a render texture in parameter.
+- Fixed the volumetric clouds for the indoor template scenes by disabling them (normal and DXR) (case 1381761).
 
 ## [12.1.4] - 2021-12-07
 
