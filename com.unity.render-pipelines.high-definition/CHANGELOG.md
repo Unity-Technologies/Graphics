@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that caused the uber post process to run even if nothing is to be done, leading to different results when disabling every post process manually vs disabling the whole post-processing pipeline.
 - Fixed issue that placed an OnDemand shadow in the atlas before it was ever rendered.
 - Fixed issue at edge of screen on some platforms when SSAO is on.
+- Fixed warning when an APV baking set is renamed.
 
 ## [12.1.4] - 2021-12-07
 
