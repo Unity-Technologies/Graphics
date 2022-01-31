@@ -93,8 +93,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void SetCameraSettings(RenderTextureDescriptor desc, FilterMode filterMode)
         {
-            Clear();
-
             desc.depthBufferBits = 0;
             m_Desc = desc;
             m_FilterMode = filterMode;
