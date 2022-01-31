@@ -286,6 +286,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool reflectionProbeBaking { get; set; }
 
+        // List of camera schedules for a render to cubemap.
+        List<(Camera camera, RenderTexture output)> m_ScheduledRenderToCubemap = new List<(Camera camera, RenderTexture output)>();
+        CameraCache<(Camera, CubemapFace)> m_RenderToCubemapCameraPool = new CameraCache<(Camera, CubemapFace)>();
+        Matrix4x4[] m_CubemapFaceMatrices;
+
         /// <summary>
         /// HDRenderPipeline constructor.
         /// </summary>
@@ -731,6 +736,30 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
+        void DisposeProbeCameraPool()
+        {
+#if UNITY_EDITOR
+                // Special case here: when the HDRP asset is modified in the Editor,
+                //   it is disposed during an `OnValidate` call.
+                //   But during `OnValidate` call, game object must not be destroyed.
+                //   So, only when this method was called during an `OnValidate` call, the destruction of the
+                //   pool is delayed, otherwise, it is destroyed as usual with `CoreUtils.Destroy`
+                var isInOnValidate = false;
+                isInOnValidate = new StackTrace().ToString().Contains("OnValidate");
+                if (isInOnValidate)
+                {
+                    var pool = m_ProbeCameraCache;
+                    UnityEditor.EditorApplication.delayCall += () => pool.Dispose();
+                    m_ProbeCameraCache = null;
+                }
+                else
+#endif
+            {
+                m_ProbeCameraCache.Dispose();
+                m_ProbeCameraCache = null;
+            }
+        }
+
         /// <summary>
         /// Disposable pattern implementation.
         /// </summary>
@@ -839,38 +868,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Not always in that order.
 #endif
 
-            // Dispose m_ProbeCameraPool properly
-            void DisposeProbeCameraPool()
-            {
-#if UNITY_EDITOR
-                // Special case here: when the HDRP asset is modified in the Editor,
-                //   it is disposed during an `OnValidate` call.
-                //   But during `OnValidate` call, game object must not be destroyed.
-                //   So, only when this method was called during an `OnValidate` call, the destruction of the
-                //   pool is delayed, otherwise, it is destroyed as usual with `CoreUtils.Destroy`
-                var isInOnValidate = false;
-                isInOnValidate = new StackTrace().ToString().Contains("OnValidate");
-                if (isInOnValidate)
-                {
-                    var pool = m_ProbeCameraCache;
-                    UnityEditor.EditorApplication.delayCall += () => pool.Dispose();
-                    m_ProbeCameraCache = null;
-                }
-                else
-                {
-#endif
-                m_ProbeCameraCache.Dispose();
-                m_ProbeCameraCache = null;
-#if UNITY_EDITOR
-            }
-
-#endif
-            }
-
             if (IsAPVEnabled())
             {
                 ProbeReferenceVolume.instance.Cleanup();
             }
+
+            m_RenderToCubemapCameraPool.Dispose();
 
             CleanupRenderGraph();
 
@@ -1124,7 +1127,8 @@ namespace UnityEngine.Rendering.HighDefinition
             List<RenderRequest> renderRequests,
             List<int> rootRenderRequestIndices,
             ScriptableRenderContext renderContext,
-            out RenderRequest renderRequest)
+            out RenderRequest renderRequest,
+            CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             renderRequest = default(RenderRequest);
 
@@ -1222,7 +1226,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 target = new RenderRequest.Target
                 {
                     id = targetId,
-                    face = CubemapFace.Unknown
+                    face = cubemapFace
                 },
                 dependsOnRenderRequestIndices = ListPool<int>.Get(),
                 index = renderRequests.Count,
@@ -1708,6 +1712,67 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void GenerateRenderToCubemapRequests(
+            List<RenderRequest> renderRequests,
+            List<int> rootRenderRequestIndices,
+            Dictionary<HDProbe, List<(int index, float weight)>> renderRequestIndicesWhereTheProbeIsVisible,
+            ScriptableRenderContext renderContext)
+        {
+            CubemapFace[] cubemapFaces = { CubemapFace.PositiveX, CubemapFace.NegativeX, CubemapFace.PositiveY, CubemapFace.NegativeY, CubemapFace.PositiveZ, CubemapFace.NegativeZ };
+
+            if (m_CubemapFaceMatrices == null)
+            {
+                m_CubemapFaceMatrices = new Matrix4x4[6];
+                for (int i = 0; i < 6; ++i)
+                {
+                    m_CubemapFaceMatrices[i] = Matrix4x4.LookAt(Vector3.zero, CoreUtils.lookAtList[i], CoreUtils.upVectorList[i]);
+                }
+            }
+
+            foreach (var cubemapRequest in m_ScheduledRenderToCubemap)
+            {
+                var camera = cubemapRequest.camera;
+                var output = cubemapRequest.output;
+
+                HDAdditionalCameraData additionalCameraData = null;
+                camera.TryGetComponent(out additionalCameraData);
+
+                var projMatrix = Matrix4x4.Perspective(Mathf.PI * 0.5f, 1.0f, camera.nearClipPlane, camera.farClipPlane);
+
+                for (int i = 0; i < 6; i++)
+                {
+                    var faceCamera = m_RenderToCubemapCameraPool.GetOrCreate((camera, cubemapFaces[i]), m_FrameCount);
+
+                    // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
+                    faceCamera.targetTexture = output;
+                    faceCamera.gameObject.hideFlags = HideFlags.HideAndDontSave;
+                    faceCamera.gameObject.SetActive(false);
+                    faceCamera.cameraType = CameraType.Game;
+
+                    //// Warning: accessing Object.name generate 48B of garbage at each frame here
+                    //// camera.name = HDUtils.ComputeProbeCameraName(visibleProbe.name, j, viewerTransform?.name);
+                    //// Non Alloc version of ComputeProbeCameraName but without the viewerTransform name part
+                    //faceCamera.name = visibleProbe.probeName[j];
+
+                    HDAdditionalCameraData faceAdditionalData = null;
+                    if (!faceCamera.TryGetComponent(out faceAdditionalData))
+                        faceAdditionalData = faceCamera.gameObject.AddComponent<HDAdditionalCameraData>();
+
+                    if (additionalCameraData != null)
+                        additionalCameraData.CopyTo(faceAdditionalData);
+
+                    faceCamera.worldToCameraMatrix = m_CubemapFaceMatrices[i];
+                    faceCamera.projectionMatrix = projMatrix;
+
+                    if (PrepareAndCullCamera(faceCamera, XRSystem.emptyPass, false, renderRequests, rootRenderRequestIndices, renderContext, out var request, cubemapFaces[i]))
+                    {
+                        DetermineVisibleProbesForRequest(request, renderRequestIndicesWhereTheProbeIsVisible);
+                    }
+                }
+            }
+
+            m_ScheduledRenderToCubemap.Clear();
+        }
 
 #if UNITY_2021_1_OR_NEWER
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
@@ -1835,6 +1900,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Terrain.GetActiveTerrains(m_ActiveTerrains);
 
+            m_RenderToCubemapCameraPool.ClearCamerasUnusedFor(5, m_FrameCount);
+
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
@@ -1920,6 +1987,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
+                GenerateRenderToCubemapRequests(renderRequests, rootRenderRequestIndices, renderRequestIndicesWhereTheProbeIsVisible, renderContext);
+
                 // Generate RenderRequests for all visible probes
                 GenerateProbeRenderRequests(renderRequestIndicesWhereTheProbeIsVisible, renderRequests, cameraSettings, cameraPositionSettings, renderContext);
 
@@ -1930,7 +1999,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO: If possible remove the intermediate target
                 // Find max size for Cubemap face targets and resize/allocate if required the intermediate render target
                 UpdateTemporaryTargetForCubemap(renderRequests);
-
 
                 using (ListPool<int>.Get(out List<int> renderRequestIndicesToRender))
                 {
@@ -1993,12 +2061,14 @@ namespace UnityEngine.Rendering.HighDefinition
                             //  So we use an intermediate RT to perform a CommandBuffer.CopyTexture in the target Cubemap face
                             if (renderRequest.target.face != CubemapFace.Unknown)
                             {
-                                if (!m_TemporaryTargetForCubemaps.IsCreated())
-                                    m_TemporaryTargetForCubemaps.Create();
+                                if (renderRequest.target.copyToTarget != null)
+                                {
+                                    if (!m_TemporaryTargetForCubemaps.IsCreated())
+                                        m_TemporaryTargetForCubemaps.Create();
 
-                                var hdCamera = renderRequest.hdCamera;
-                                ref var target = ref renderRequest.target;
-                                target.id = m_TemporaryTargetForCubemaps;
+                                    ref var target = ref renderRequest.target;
+                                    target.id = m_TemporaryTargetForCubemaps;
+                                }
                             }
 
                             // The HDProbe store only one RenderData per probe, however RenderData can be view dependent (e.g. planar probes).
@@ -2730,6 +2800,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public void ReleasePersistentShadowAtlases()
         {
             m_ShadowManager.ReleaseSharedShadowAtlases(m_RenderGraph);
+        }
+
+        /// <summary>
+        /// Schedule a render into a cubemap
+        /// </summary>
+        /// <param name="camera">CAmera used for rendering into the cubemap.</param>
+        /// <param name="output">Output render texture.</param>
+        public void ScheduleRenderToCubemap(Camera camera, RenderTexture output)
+        {
+            if (output.dimension != TextureDimension.Cube)
+                throw new ArgumentException("The output texture must be a cubemap.");
+
+            m_ScheduledRenderToCubemap.Add((camera, output));
         }
     }
 }
