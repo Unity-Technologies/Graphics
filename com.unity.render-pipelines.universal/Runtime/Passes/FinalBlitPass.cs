@@ -82,6 +82,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.nameID);
 
+                bool useOutputAlphaOverride = renderingData.cameraData.outputAlphaOverride != null;
+                CoreUtils.SetKeyword(m_BlitMaterial, ShaderKeywordStrings._OVERRIDE_ALPHA, useOutputAlphaOverride);
+                if (useOutputAlphaOverride)
+                    m_BlitMaterial.SetTexture(ShaderPropertyId.alphaOverrideTex, renderingData.cameraData.outputAlphaOverride);
+
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
                 {

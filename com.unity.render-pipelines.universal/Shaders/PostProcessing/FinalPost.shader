@@ -7,6 +7,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #pragma multi_compile_local_fragment _ _FILM_GRAIN
         #pragma multi_compile_local_fragment _ _DITHERING
         #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
+        #pragma multi_compile_local_fragment _ _OVERRIDE_ALPHA
         #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
         #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
@@ -17,6 +18,10 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
         TEXTURE2D_X(_SourceTex);
+
+        #if _OVERRIDE_ALPHA
+        TEXTURE2D_X(_AlphaOverrideTexture);
+        #endif
 
         TEXTURE2D(_Grain_Texture);
         TEXTURE2D(_BlueNoise_Texture);
@@ -95,6 +100,10 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             {
                 return debugColor;
             }
+            #endif
+
+            #if _OVERRIDE_ALPHA
+            finalColor.a = SAMPLE_TEXTURE2D_X(_AlphaOverrideTexture, sampler_PointClamp, uv).x;
             #endif
 
             return finalColor;

@@ -1480,6 +1480,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             bool isFxaaEnabled = (cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing);
 
+            bool useOutputAlphaOverride = renderingData.cameraData.outputAlphaOverride != null;
+            CoreUtils.SetKeyword(material, ShaderKeywordStrings._OVERRIDE_ALPHA, useOutputAlphaOverride);
+            if (useOutputAlphaOverride)
+                material.SetTexture(ShaderPropertyId.alphaOverrideTex, renderingData.cameraData.outputAlphaOverride);
+
             if (cameraData.imageScalingMode != ImageScalingMode.None)
             {
                 // FSR is only considered "enabled" when we're performing upscaling. (downscaling uses a linear filter unconditionally)

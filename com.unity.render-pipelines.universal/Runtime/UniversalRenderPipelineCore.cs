@@ -152,6 +152,11 @@ namespace UnityEngine.Rendering.Universal
         public bool requiresOpaqueTexture;
 
         /// <summary>
+        /// Allow to override the alpha channel with this texture at the end of the frame
+        /// </summary>
+        public Texture outputAlphaOverride;
+
+        /// <summary>
         /// Returns true if post processing passes require depth texture.
         /// </summary>
         public bool postProcessingRequiresDepthTexture;
@@ -367,6 +372,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int scaleBias = Shader.PropertyToID("_ScaleBias");
         public static readonly int scaleBiasRt = Shader.PropertyToID("_ScaleBiasRt");
 
+        public static readonly int alphaOverrideTex = Shader.PropertyToID("_AlphaOverrideTexture");
+
         // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
         public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
     }
@@ -484,6 +491,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _NORMALMAP = "_NORMALMAP";
 
         public static readonly string EDITOR_VISUALIZATION = "EDITOR_VISUALIZATION";
+
+        public static readonly string _OVERRIDE_ALPHA = "_OVERRIDE_ALPHA";
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
