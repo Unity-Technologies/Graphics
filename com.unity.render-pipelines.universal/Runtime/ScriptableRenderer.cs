@@ -1072,12 +1072,13 @@ namespace UnityEngine.Rendering.Universal
             cmd.Clear();
 
             if (IsRenderPassEnabled(renderPass) && cameraData.isRenderPassSupportedCamera)
-                ExecuteNativeRenderPass(context, renderPass, cameraData, ref renderingData);
+                ExecuteNativeRenderPass(context, renderPass, cameraData, ref renderingData); // cmdBuffer is executed inside
             else
+            {
                 renderPass.Execute(context, ref renderingData);
-
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled && cameraData.xr.hasMarkedLateLatch)
