@@ -1,8 +1,0 @@
-{
-  "Exceptions": [
-    {
-      "ValidationTest": "API Updater Configuration Validation",
-      "PackageVersion": "14.0.1"
-    }
-  ]
-}
