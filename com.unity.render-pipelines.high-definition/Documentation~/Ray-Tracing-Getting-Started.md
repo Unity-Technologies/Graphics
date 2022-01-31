@@ -283,8 +283,8 @@ HDRP ray tracing in Unity has the following limitations:
 
 ### Unsupported shader graph nodes for ray tracing
 
-When building your custom shaders using shader graph, some nodes are incompatible with ray tracing. You need either to avoid using them or provide an alternative behavior using the ray tracing shader node. Here is the list of the incompatible nodes:
-- DDX, DDY and DDXY nodes.
+When building your custom shaders using shader graph, some nodes are incompatible with ray tracing. You need either to avoid using them or provide an alternative behavior using the [ray tracing shader node](SGNode-Raytracing-Quality). Here is the list of the incompatible nodes:
+- DDX, DDY and DDXY nodes, and NormalFromHeight nodes.
 - All the nodes under **Inputs** > **Geometry** (Position, View Direction, Normal, etc.) in View Space mode.
 Furthermore, Shader Graphs that use [Custom Interpolators](../../com.unity.shadergraph/Documentation~/Custom-Interpolators.md) aren't supported in ray tracing.
 
