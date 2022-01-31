@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a null ref exception in Volume Explorer
 - Fixed static lighting sky update when using an HDRI sky with a render texture in parameter.
 - Fixed the volumetric clouds for the indoor template scenes by disabling them (normal and DXR) (case 1381761).
+- Fixed using the wrong coordinate to compute the sampling direction for the screen space global illumination.
 
 ## [12.1.4] - 2021-12-07
 
