@@ -17,24 +17,6 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
     ColorSpace: 1
-    BuildPlatform: 5
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Failing
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
-    ColorSpace: 1
-    BuildPlatform: 24
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Failing
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 5028fc98db6fe304c90852113dca5b00, type: 3}
-    ColorSpace: 1
     BuildPlatform: 31
     GraphicsDevice: 13
     XrSdk: 
