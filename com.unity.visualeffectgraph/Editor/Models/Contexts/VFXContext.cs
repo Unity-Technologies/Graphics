@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 using UnityEditor.VFX;
 using UnityEngine.VFX;
@@ -193,9 +194,48 @@ namespace UnityEditor.VFX
             }
         }
 
-        public virtual bool SetupCompilation() { return true; }
-        public virtual void EndCompilation() { }
+        private List<(string error, VFXErrorType type, string description)> m_CompilationErrors;
 
+        public virtual bool SetupCompilation()
+        {
+            m_CompilationErrors?.Clear();
+            return true;
+        }
+
+        public void RegisterCompilationError(string error, VFXErrorType type, string description)
+        {
+            m_CompilationErrors ??= new List<(string error, VFXErrorType type, string description)>();
+            m_CompilationErrors.Add((error, type, description));
+        }
+
+        public virtual void EndCompilation()
+        {
+            if (m_CompilationErrors != null && m_CompilationErrors.Any())
+            {
+                var errorLog = new StringBuilder();
+                var assetPath = AssetDatabase.GetAssetPath(this);
+                errorLog.Append($"The compilation of {assetPath} has generated errors");
+                errorLog.AppendLine();
+                foreach (var (_, _, description) in m_CompilationErrors)
+                {
+                    errorLog.Append(description);
+                    errorLog.AppendLine();
+                }
+                Debug.LogWarning(errorLog.ToString());
+            }
+        }
+
+        protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            base.GenerateErrors(manager);
+            if (m_CompilationErrors != null && m_CompilationErrors.Any())
+            {
+                foreach (var (error, type, description) in m_CompilationErrors)
+                {
+                    manager.RegisterError(error, type, description);
+                }
+            }
+        }
 
         public void DetachAllInputFlowSlots(bool notify = true)
         {

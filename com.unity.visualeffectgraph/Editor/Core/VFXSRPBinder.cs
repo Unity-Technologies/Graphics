@@ -62,33 +62,36 @@ namespace UnityEditor.VFX
             return s_BaseUnsupportedShaderPropertyTypes;
         }
 
-        public bool CheckGraphDataValid(GraphData graph)
+        public bool CheckGraphDataValid(GraphData graph, VFXContext refContext)
         {
-            var valid = true;
-            var warnings = new List<string>();
+            HashSet<string> unsupportedType = new HashSet<string>();
+            unsupportedType.Clear();
 
-            var unsupportedShaderPropertyTypes = GetUnsupportedShaderPropertyType().ToDictionary(a => a.Key, b => b.Value);
-            // Filter property list for any unsupported shader properties.
-            foreach (var property in graph.properties)
+            // Filter property list for any unsupported exposed shader properties.
+            foreach (var property in graph.properties.Where(o => o.isExposed))
             {
-                if (unsupportedShaderPropertyTypes.ContainsKey(property.GetType()))
+                var invalid = GetUnsupportedShaderPropertyType().FirstOrDefault(o => o.Key == property.GetType());
+                if (invalid.Key != null)
                 {
-                    warnings.Add(unsupportedShaderPropertyTypes[property.GetType()]);
-                    valid = false;
+                    unsupportedType.Add(invalid.Value);
                 }
             }
 
-            // VFX currently does not support the concept of per-particle keywords.
-            if (graph.keywords.Any())
+            // VFX currently does not support the concept of exposed per-particle keywords.
+            if (graph.keywords.Any(o => o.isExposed))
             {
-                warnings.Add("Keyword");
-                valid = false;
+                unsupportedType.Add("Keyword");
             }
 
-            if (!valid)
-                Debug.LogWarning($"({String.Join(", ", warnings)}) blackboard properties in Shader Graph are currently not supported in Visual Effect shaders. Falling back to default generation path.");
+            foreach (var unsupported in unsupportedType)
+            {
+                refContext.RegisterCompilationError(
+                    "SGUnsupportedExposedType_" + unsupported.Replace(" ", string.Empty)
+                    , VFXErrorType.Warning
+                    , unsupported + " blackboard properties in Shader Graph are currently not supported in Visual Effect shaders.");
+            }
 
-            return valid;
+            return true; //Not any critical issue which is preventing compilation
         }
 
         public virtual ShaderGraphBinder GetShaderGraphDescriptor(VFXContext context, VFXContextCompiledData data)

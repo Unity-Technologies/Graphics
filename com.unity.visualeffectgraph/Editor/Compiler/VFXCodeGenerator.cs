@@ -756,7 +756,7 @@ namespace UnityEditor.VFX
             if (VFXLibrary.currentSRPBinder == null)
                 return null;
 
-            VFXLibrary.currentSRPBinder.CheckGraphDataValid(graph);
+            VFXLibrary.currentSRPBinder.CheckGraphDataValid(graph, context);
 
             var target = graph.activeTargets.Where(o =>
             {
