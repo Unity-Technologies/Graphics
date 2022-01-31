@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 using UnityEngine;
@@ -17,12 +16,13 @@ namespace UnityEditor.Rendering.Universal
         ReorderableList m_LayerList;
 
         public Camera camera => target as Camera;
+        static Camera selectedCameraInStack;
 
         List<Camera> validCameras = new List<Camera>();
         List<Camera> m_TypeErrorCameras = new List<Camera>();
         List<Camera> m_NotSupportedOverlayCameras = new List<Camera>();
         List<Camera> m_IncompatibleCameras = new List<Camera>();
-        List<Camera> m_OutputWarningCameras = new List<Camera>();
+        List<(Camera, UniversalRenderPipelineSerializedCamera)> m_OutputWarningCameras = new();
 
         UniversalRenderPipelineSerializedCamera m_SerializedCamera;
 
@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.Universal
         {
             base.OnEnable();
             settings.OnEnable();
-
+            selectedCameraInStack = null;
             m_SerializedCamera = new UniversalRenderPipelineSerializedCamera(serializedObject, settings);
 
             validCameras.Clear();
@@ -82,13 +82,13 @@ namespace UnityEditor.Rendering.Universal
         void SelectElement(ReorderableList list)
         {
             var element = m_SerializedCamera.cameras.GetArrayElementAtIndex(list.index);
-            var cam = element.objectReferenceValue as Camera;
+            selectedCameraInStack = element.objectReferenceValue as Camera;
             if (Event.current.clickCount == 2)
             {
-                Selection.activeObject = cam;
+                Selection.activeObject = selectedCameraInStack;
             }
 
-            EditorGUIUtility.PingObject(cam);
+            EditorGUIUtility.PingObject(selectedCameraInStack);
         }
 
         void DrawElementCallback(Rect rect, int index, bool isActive, bool isFocused)
@@ -167,14 +167,15 @@ namespace UnityEditor.Rendering.Universal
                 if (IsStackCameraOutputDirty(cam, overlayCamera.serializedCamera))
                 {
                     outputWarning = true;
-                    if (!m_OutputWarningCameras.Contains(cam))
+                    if (!m_OutputWarningCameras.Exists(c => c.Item1 == cam))
                     {
-                        m_OutputWarningCameras.Add(cam);
+                        m_OutputWarningCameras.Add((cam, overlayCamera.serializedCamera));
                     }
                 }
-                else if (m_OutputWarningCameras.Contains(cam))
+                else
                 {
-                    m_OutputWarningCameras.Remove(cam);
+
+                    m_OutputWarningCameras.RemoveAll(c => c.Item1 == cam);
                 }
 
 
@@ -262,13 +263,16 @@ namespace UnityEditor.Rendering.Universal
         {
             // Need to do clear the list here otherwise the menu just fills up with more and more entries
             validCameras.Clear();
+            // Need to get the base renderer here first
+            var renderer = camera.GetComponent<UniversalAdditionalCameraData>().scriptableRenderer.GetType();
             var allCameras = FindCamerasToReference(camera.gameObject);
             foreach (var camera in allCameras)
             {
                 var component = camera.gameObject.GetComponent<UniversalAdditionalCameraData>();
                 if (component != null)
                 {
-                    if (component.renderType == CameraRenderType.Overlay)
+                    if (component.renderType == CameraRenderType.Overlay &&
+                        component.scriptableRenderer.GetType() == renderer)
                     {
                         validCameras.Add(camera);
                     }
@@ -339,38 +343,17 @@ namespace UnityEditor.Rendering.Universal
             m_SerializedCamera.Apply();
         }
 
-        private void UpdateStackCamerasToOverlay()
+        private void UpdateStackCameraToOverlay()
         {
-            int cameraCount = m_SerializedCamera.cameras.arraySize;
-            for (int i = 0; i < cameraCount; ++i)
+            var additionalCameraData = selectedCameraInStack.GetComponent<UniversalAdditionalCameraData>();
+            if (additionalCameraData == null)
+                return;
+
+            if (additionalCameraData.renderType == CameraRenderType.Base)
             {
-                SerializedProperty cameraProperty = m_SerializedCamera.cameras.GetArrayElementAtIndex(i);
-
-                var camera = cameraProperty.objectReferenceValue as Camera;
-                if (camera == null)
-                    continue;
-
-                var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
-                if (additionalCameraData == null)
-                    continue;
-
-                Undo.RecordObject(camera, Styles.inspectorOverlayCameraText);
-                if (additionalCameraData.renderType == CameraRenderType.Base)
-                {
-                    additionalCameraData.renderType = CameraRenderType.Overlay;
-                    EditorUtility.SetDirty(camera);
-                }
-            }
-        }
-
-        private void UpdateStackCamerasOutput()
-        {
-            int cameraCount = m_SerializedCamera.cameras.arraySize;
-            for (int i = 0; i < cameraCount; ++i)
-            {
-                (Camera camera, UniversalRenderPipelineSerializedCamera serializedCamera) overlayCamera = m_SerializedCamera[i];
-                if (overlayCamera.camera != null)
-                    UpdateStackCameraOutput(overlayCamera.camera, overlayCamera.serializedCamera);
+                Undo.RecordObject(additionalCameraData, Styles.inspectorOverlayCameraText);
+                additionalCameraData.renderType = CameraRenderType.Overlay;
+                EditorUtility.SetDirty(additionalCameraData);
             }
         }
 
@@ -381,8 +364,6 @@ namespace UnityEditor.Rendering.Universal
 
             serializedCamera.Update();
             Undo.RecordObject(camera, Styles.inspectorOverlayCameraText);
-
-            var serializedCameraSettings = serializedCamera.baseCameraSettings;
 
             bool isChanged = false;
 
@@ -526,57 +507,54 @@ namespace UnityEditor.Rendering.Universal
             bool oldRichTextSupport = EditorStyles.helpBox.richText;
             EditorStyles.helpBox.richText = true;
 
-            if (m_IncompatibleCameras.Any())
+            if (selectedCameraInStack != null)
             {
-                var message = new StringBuilder();
-                message.Append("The following cameras do not use the same type of renderer as the Base camera. ");
-                foreach (var cam in m_IncompatibleCameras)
+                if (m_IncompatibleCameras.Any())
                 {
-                    message.Append($"<b>{cam.name}</b>");
-                    message.Append(cam != m_IncompatibleCameras.Last() ? ", " : ".");
+                    if (m_IncompatibleCameras.Contains(selectedCameraInStack))
+                    {
+                        var message = "The following camera do not use the same type of renderer as the Base camera.";
+                        EditorGUILayout.HelpBox(message, MessageType.Error);
+                    }
                 }
 
-                EditorGUILayout.HelpBox(message.ToString(), MessageType.Error);
-            }
-
-            if (m_NotSupportedOverlayCameras.Any())
-            {
-                var message = new StringBuilder();
-                message.Append("The following cameras uses a renderer which does not support Overlays in it's current state. ");
-                foreach (var cam in m_NotSupportedOverlayCameras)
+                if (m_NotSupportedOverlayCameras.Any())
                 {
-                    message.Append($"<b>{cam.name}</b>");
-                    message.Append(cam != m_NotSupportedOverlayCameras.Last() ? ", " : ".");
+                    if (m_NotSupportedOverlayCameras.Contains(selectedCameraInStack))
+                    {
+                        var message = "The following camera uses a renderer which does not support Overlays in it's current state.";
+                        EditorGUILayout.HelpBox(message, MessageType.Error);
+                    }
                 }
 
-                EditorGUILayout.HelpBox(message.ToString(), MessageType.Error);
-            }
-
-            if (m_TypeErrorCameras.Any())
-            {
-                var message = new StringBuilder();
-                message.Append("The type of the following Cameras must be Overlay render type: ");
-                foreach (var cam in m_TypeErrorCameras)
+                if (m_TypeErrorCameras.Any())
                 {
-                    message.Append($"<b>{cam.name}</b>");
-                    message.Append(cam != m_TypeErrorCameras.Last() ? ", " : ".");
+                    if (m_TypeErrorCameras.Contains(selectedCameraInStack))
+                    {
+                        var message = "The type of the following Camera must be Overlay render type.";
+                        CoreEditorUtils.DrawFixMeBox(message, MessageType.Error, UpdateStackCameraToOverlay);
+                    }
                 }
 
-                CoreEditorUtils.DrawFixMeBox(message.ToString(), MessageType.Error, UpdateStackCamerasToOverlay);
-            }
-
-            if (m_OutputWarningCameras.Any())
-            {
-                var message = new StringBuilder();
-                message.Append("The output properties of this Camera do not match the output properties of the following Cameras: ");
-                foreach (var cam in m_OutputWarningCameras)
+                if (m_OutputWarningCameras.Any())
                 {
-                    message.Append($"<b>{cam.name}</b>");
-                    message.Append(cam != m_OutputWarningCameras.Last() ? ", " : ".");
+                    var camIndex = m_OutputWarningCameras.FindIndex(c => c.Item1 == selectedCameraInStack);
+                    if (camIndex != -1)
+                    {
+                        var message = "The output properties of this Camera do not match the output properties.";
+                        if ((CameraRenderType)m_OutputWarningCameras[camIndex].Item2.cameraType.intValue == CameraRenderType.Base)
+                        {
+                            EditorGUILayout.HelpBox(message, MessageType.Warning);
+                        }
+                        else
+                        {
+                            CoreEditorUtils.DrawFixMeBox(message, MessageType.Warning,
+                                () => UpdateStackCameraOutput(m_OutputWarningCameras[camIndex].Item1, m_OutputWarningCameras[camIndex].Item2));
+                        }
+                    }
                 }
-
-                CoreEditorUtils.DrawFixMeBox(message.ToString(), MessageType.Warning, () => UpdateStackCamerasOutput());
             }
+
             EditorStyles.helpBox.richText = oldRichTextSupport;
             EditorGUI.indentLevel++;
 
