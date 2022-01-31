@@ -1,6 +1,6 @@
 # Converting a Project from the Built-in Renderer to the High Definition Render Pipeline
 
-The High Definition Render Pipeline (HDRP) uses a new set of [Shaders](https://docs.unity3d.com/Manual/class-Shader.html) and [lighting units](Physical-Light-Units.md), both of which are incompatible with the Built-in Renderer. To upgrade a Unity Project to HDRP, you must first convert all of your [Materials](#MaterialConversion) and Shaders, then adjust individual [Light](#LightAdjustment) settings accordingly.
+The High Definition Render Pipeline (HDRP) uses a new set of [Shaders](https://docs.unity3d.com/Manual/class-Shader.html) and [lighting units](Physical-Light-Units.md), both of which are incompatible with the Built-in Renderer. To upgrade a Unity Project to HDRP, you must first convert all your [Materials](#MaterialConversion) and Shaders, then adjust individual [Light](#LightAdjustment) settings accordingly.
 
 This document explains how to convert the **3D With Extras** template Project to HDRP, but you can use the same workflow to convert your own Project. To follow this document and upgrade the **3D With Extras** Project, create a Project that uses the **3D With Extras** template. To do this:
 
@@ -24,12 +24,12 @@ Firstly, to install HDRP, add the High Definition RP package to your Unity Proje
 
 3. Open a Unity project.
 2. Open the __Package Manager__ window (__Window > Package Manager__).
-3. In the __Package Manager__ window, in the **Packages** field, select **Unity Registry**.
+3. In the __Package Manager__ window, in the **Packages:** field, select **Unity Registry**.
 4. Select **High Definition RP** from the list of packages.
-5. In the bottom right corner of the Package Manager window, select __Install__. Unity installs URP into your Project.
+5. In the bottom right corner of the Package Manager window, select __Install__. Unity installs HDRP into your Project.
 
 
-HDRP is now available to use in your Project. Note that when you install HDRP, Unity automatically attaches two HDRP-specific components to GameObjects in your Scene. It attaches the **HD Additional Light Data** component to Lights, and the **HD Additional Camera Data** component to Cameras. If you do not set your Project to use HDRP, and any HDRP component is present in your Scene, Unity throws errors. To fix these errors, see the following instructions on how to set up HDRP in your Project.
+HDRP is now available to use in your Project. Note that when you install HDRP, Unity automatically attaches two HDRP-specific components to GameObjects in your Scene. It attaches the **HD Additional Light Data** component to Lights, and the **HD Additional Camera Data** component to Cameras. If you don't set your Project to use HDRP, and any HDRP component is present in your Scene, Unity throws errors. To fix these errors, see the following instructions on how to set up HDRP in your Project.
 
 To set up HDRP, use the [HDRP Wizard](Render-Pipeline-Wizard.md).
 
@@ -37,7 +37,7 @@ To set up HDRP, use the [HDRP Wizard](Render-Pipeline-Wizard.md).
 
 2. In the **Configuration Checking** section, go to the **HDRP** tab and click **Fix All**. This fixes every HDRP configuration issue with your Project.
 
-HDRP is now set up inside your Project, but your Scene does not render correctly and uses the magenta error Shader to display GameObjects. This is because GameObjects in the Scene still use Shaders made for the Built-in Renderer. To find out how to upgrade Built-in Shaders to HDRP Shaders, see the [Upgrading Materials](#MaterialConversion) section.
+HDRP is now set up inside your Project, but your Scene doesn't render correctly and uses the magenta error Shader to display GameObjects. This is because GameObjects in the Scene still use Shaders made for the Built-in Renderer. To find out how to upgrade Built-in Shaders to HDRP Shaders, see the [Upgrading Materials](#MaterialConversion) section.
 
 HDRP includes its own [implementation for post-processing](Post-Processing-Main.md) and no longer supports the Post Processing package. If you are converting the **3D With Extras** Project, or if your own Project uses the Post Processing package, remove the Post Processing package from the Project. To do this:
 
@@ -65,9 +65,9 @@ You can find these options in either:
 
 * The Render Pipeline Wizard window, inside the **Project Migration Quick-links** section.
 
-This process cannot automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion). Also, since HDRP supports more height map displacement techniques and decompression options, this processes cannot upgrade heightmap related properties correctly. This means your height mapped materials may look incorrect. If you upgrade a Material that uses a heightmap, modify the Material's **Amplitude** and **Base** properties until the result more closely matches the Built-in Renderer version.
+This process can't automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion). Also, since HDRP supports more height map displacement techniques and decompression options, this processes can't upgrade heightmap related properties correctly. This means your height mapped materials may look incorrect. If you upgrade a Material that uses a heightmap, modify the Material's **Amplitude** and **Base** properties until the result more closely matches the Built-in Renderer version.
 
-This process also cannot upgrade particle shaders. Even though HDRP does not support particle shaders, it does provide some Shader Graphs that are compatible with the [Built-in Particle System](https://docs.unity3d.com/Manual/Built-inParticleSystem.html). These Shader Graphs work in a similar way to the built-in particle shaders. To use these Shader Graphs, import the **Particle System Shader Samples** sample:
+This process also can't upgrade particle shaders. Even though HDRP doesn't support particle shaders, it does provide some Shader Graphs that are compatible with the [Built-in Particle System](https://docs.unity3d.com/Manual/Built-inParticleSystem.html). These Shader Graphs work in a similar way to the built-in particle shaders. To use these Shader Graphs, import the **Particle System Shader Samples** sample:
 
 1. Open the Package Manager window (menu: **Window > Package Manager**).
 2. Find and click the **High Definition RP** entry.
@@ -91,7 +91,7 @@ The Built-in Shader to HDRP Shader conversion process combines the different det
 
 ## Adjusting lighting
 
-HDRP uses [physical Light units](Physical-Light-Units.md) to control the intensity of Lights. These units do not match the arbitrary units that the Built-in render pipeline uses.
+HDRP uses [physical Light units](Physical-Light-Units.md) to control the intensity of Lights. These units don't match the arbitrary units that the Built-in render pipeline uses.
 
 For light intensity units, directional Lights use [Lux](Physical-Light-Units.md#Lux) and all other Lights can use [Lumen](Physical-Light-Units.md#Lumen), [Candela](Physical-Light-Units.md#Candela), [EV](Physical-Light-Units.md#EV), or simulate Lux at a certain distance.
 
@@ -149,7 +149,7 @@ HDRP no longer supports the **Post Processing** package and instead includes its
 2. Create a new **Global Volume** GameObject (menu: **GameObject > Volume > Global Volume**) and name it "**Post-processes**". You can find all the post processes in the **Post-processing** sub-menu when you select **Add Override** in the Volume Inspector.
 3. Add a **Tonemapping** override to the Volume (**Add Override > Post-processing > Tonemapping**) then enable **Mode** and set it to **ACES**.
 4. Add a **Bloom** override to the Volume (**Add Override > Post-processing > Bloom**) then enable **Intensity** and set it to **0.2**.
-    Note that the result of the bloom is not the same as the one in the Post Processing package. This is because HDRP's bloom effect is physically accurate, and mimics the quality of a camera lens.
+    Note that the result of the bloom isn't the same as the one in the Post Processing package. This is because HDRP's bloom effect is physically accurate, and mimics the quality of a camera lens.
 5. Add a **Motion Blur** override to the Volume (**Add Override > Post-processing > Motion Blur**) then enable **Intensity** and set it to **0.1**.
 
 6. Add a **Vignette** override to the Volume (**Add Override > Post-processing > Vignette**) then set the following property values.
