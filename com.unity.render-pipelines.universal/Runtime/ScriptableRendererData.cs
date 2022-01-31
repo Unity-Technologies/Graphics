@@ -14,8 +14,9 @@ namespace UnityEngine.Rendering.Universal
     public abstract class ScriptableRendererData
     {
         public string name;
-
-        internal int index;
+#if UNITY_EDITOR
+        [SerializeField] internal int index;
+#endif
         internal bool isInvalidated { get; set; }
 
         /// <summary>
@@ -55,6 +56,8 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRendererData()
         {
             name = this.GetType().Name;
+            Awake();
+            OnEnable();
         }
 
         /// <summary>
@@ -63,7 +66,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public new void SetDirty()
         {
-            //isInvalidated = true;
+            isInvalidated = true;
         }
 
         internal ScriptableRenderer InternalCreateRenderer()
@@ -72,15 +75,26 @@ namespace UnityEngine.Rendering.Universal
             return Create();
         }
 
-        protected virtual void OnValidate()
+        public virtual void OnValidate()
         {
             SetDirty();
         }
 
-        protected virtual void OnEnable()
+        public virtual void Awake() { }
+
+        public virtual void OnEnable()
         {
             SetDirty();
         }
+
+        public virtual void OnDisable() { }
+
+        public virtual void OnEnableInEditor() { }
+        public virtual void OnDisableInEditor() { }
+
+        public virtual void OnBeforeSerialize() { }
+
+        public virtual void OnAfterDeserialize() { }
 
         /// <summary>
         /// Returns true if contains renderer feature with specified type.

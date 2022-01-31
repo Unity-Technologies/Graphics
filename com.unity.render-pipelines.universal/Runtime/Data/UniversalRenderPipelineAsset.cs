@@ -64,7 +64,6 @@ namespace UnityEngine.Rendering.Universal
         UsePipelineSettings = 2,
     }
 
-    [ExcludeFromPreset]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
@@ -80,7 +79,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeReference] internal ScriptableRendererData m_RendererData = null;
 
         // Renderer settings
-        [SerializeReference] internal ScriptableRendererData[] m_RendererDataList = new ScriptableRendererData[1];
+        [SerializeReference] internal ScriptableRendererData[] m_RendererDataList = { new UniversalRendererData() };
         [SerializeField] internal int m_DefaultRendererIndex = 0;
 
         // Quality settings
@@ -114,9 +113,11 @@ namespace UnityEngine.Rendering.Universal
             // Create Universal RP Asset
             var instance = CreateInstance<UniversalRenderPipelineAsset>();
             if (rendererData != null)
+            {
                 instance.m_RendererDataList[0] = rendererData;
-            else
-                instance.m_RendererDataList[0] = new UniversalRendererData();
+                instance.m_RendererDataList[0].Awake();
+                instance.m_RendererDataList[0].OnEnable();
+            }
 
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
@@ -130,7 +131,7 @@ namespace UnityEngine.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 //Create asset
-                AssetDatabase.CreateAsset(Create(CreateRendererAsset(pathName, RendererType.UniversalRenderer)), pathName);
+                AssetDatabase.CreateAsset(Create(CreateRendererData(RendererType.UniversalRenderer)), pathName);
             }
         }
 
@@ -141,21 +142,7 @@ namespace UnityEngine.Rendering.Universal
                 "New Universal Render Pipeline Asset.asset", null, null);
         }
 
-        internal static ScriptableRendererData CreateRendererAsset(string path, RendererType type, bool relativePath = true, string suffix = "Renderer")
-        {
-            ScriptableRendererData data = CreateRendererData(type);
-            string dataPath;
-            if (relativePath)
-                dataPath =
-                    $"{Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path))}_{suffix}{Path.GetExtension(path)}";
-            else
-                dataPath = path;
-            //AssetDatabase.CreateAsset(data, dataPath);
-            ResourceReloader.ReloadAllNullIn(data, packagePath);
-            return data;
-        }
-
-        static ScriptableRendererData CreateRendererData(RendererType type)
+        internal static ScriptableRendererData CreateRendererData(RendererType type)
         {
             switch (type)
             {
@@ -165,6 +152,7 @@ namespace UnityEngine.Rendering.Universal
                     var rendererData = new UniversalRendererData();
                     if (UniversalRenderPipelineGlobalSettings.instance.postProcessData == null)
                         UniversalRenderPipelineGlobalSettings.instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
+                    ResourceReloader.ReloadAllNullIn(rendererData, packagePath);
                     return rendererData;
                 }
                 // 2D renderer is experimental
@@ -173,6 +161,7 @@ namespace UnityEngine.Rendering.Universal
                     var rendererData = new Renderer2DData();
                     if (UniversalRenderPipelineGlobalSettings.instance.postProcessData == null)
                         UniversalRenderPipelineGlobalSettings.instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
+                    ResourceReloader.ReloadAllNullIn(rendererData, packagePath);
                     return rendererData;
                     // Universal Renderer is the fallback renderer that works on all platforms
                 }
@@ -259,8 +248,15 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        void Awake()
+        {
+            foreach (var renderer in m_RendererDataList)
+                renderer.Awake();
+        }
         protected override void OnValidate()
         {
+            foreach (var renderer in m_RendererDataList)
+                renderer.OnValidate();
             DestroyRenderers();
 
             // This will call RenderPipelineManager.CleanupRenderPipeline that in turn disposes the render pipeline instance and
@@ -268,8 +264,16 @@ namespace UnityEngine.Rendering.Universal
             base.OnValidate();
         }
 
+        void OnEnable()
+        {
+            foreach (var renderer in m_RendererDataList)
+                renderer.OnEnable();
+        }
+
         protected override void OnDisable()
         {
+            foreach (var renderer in m_RendererDataList)
+                renderer.OnDisable();
             DestroyRenderers();
 
             // This will call RenderPipelineManager.CleanupRenderPipeline that in turn disposes the render pipeline instance and
@@ -617,10 +621,15 @@ namespace UnityEngine.Rendering.Universal
 
         public void OnBeforeSerialize()
         {
+            foreach (var renderer in m_RendererDataList)
+                renderer.OnBeforeSerialize();
         }
 
         public void OnAfterDeserialize()
         {
+            foreach (var renderer in m_RendererDataList)
+                renderer.OnAfterDeserialize();
+            // TODO fix the upgrade.
             if (k_AssetVersion < 3)
             {
                 //m_SoftShadowsSupported = (m_ShadowType == ShadowQuality.SoftShadows);

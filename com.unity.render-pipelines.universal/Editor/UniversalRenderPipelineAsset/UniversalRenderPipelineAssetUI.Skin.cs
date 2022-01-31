@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.Universal
         public static class Styles
         {
             // Groups
-            public static GUIContent renderersSettingsText = EditorGUIUtility.TrTextContent("Renderers", "Settings that control the list of renderers used by the Render pipeline.");
+            public static GUIContent renderersSettingsText = EditorGUIUtility.TrTextContent("Renderer List", "Settings that control the list of renderers used by the Render pipeline.");
             public static GUIContent qualitySettingsText = EditorGUIUtility.TrTextContent("Quality", "Settings that control the quality level of the Render pipeline, improving performance and graphics quality.");
             public static GUIContent postProcessingSettingsText = EditorGUIUtility.TrTextContent("Post-processing", "Settings that allow for fine tuning of post-processing effects in the Scene when this Render Pipeline Asset is in use.");
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.Universal
             // Rendering
             public static GUIContent rendererHeaderText = EditorGUIUtility.TrTextContent("Renderer List", "Lists all the renderers available to this Render Pipeline Asset.");
             public static GUIContent rendererAddMessage = EditorGUIUtility.TrTextContent("Add Renderer", "Lists all the renderers available to add for this Render Pipeline Asset.");
-            public static GUIContent rendererDefaultText = EditorGUIUtility.TrTextContent("Default", "This renderer is currently the default for the render pipeline.");
+            public static GUIContent rendererDefaultText = EditorGUIUtility.TrTextContent("Default Renderer", "This renderer is currently the default for the render pipeline.");
             public static GUIContent rendererSetDefaultText = EditorGUIUtility.TrTextContent("Set Default", "Makes this renderer the default for the render pipeline.");
             public static GUIContent rendererSettingsText = EditorGUIUtility.TrIconContent("_Menu", "Opens settings for this renderer.");
             public static GUIContent rendererMissingText = EditorGUIUtility.TrIconContent("console.warnicon.sml", "Renderer missing. Click this to select a new renderer.");

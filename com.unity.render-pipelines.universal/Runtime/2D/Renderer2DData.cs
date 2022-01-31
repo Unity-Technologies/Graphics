@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// OnEnable implementation.
         /// </summary>
-        protected override void OnEnable()
+        public override void OnEnable()
         {
             base.OnEnable();
 

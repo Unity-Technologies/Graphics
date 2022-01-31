@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -29,11 +30,13 @@ namespace UnityEditor.Rendering.Universal
         internal static void RegisterEditor(UniversalRenderPipelineAssetEditor editor)
         {
             k_AdditionalPropertiesState.RegisterEditor(editor);
+            RenderersFoldoutStates.GetAdditionalRenderersShowState().RegisterEditor(editor);
         }
 
         internal static void UnregisterEditor(UniversalRenderPipelineAssetEditor editor)
         {
             k_AdditionalPropertiesState.UnregisterEditor(editor);
+            RenderersFoldoutStates.GetAdditionalRenderersShowState().UnregisterEditor(editor);
         }
 
         [SetAdditionalPropertiesVisibility]
@@ -48,20 +51,33 @@ namespace UnityEditor.Rendering.Universal
 
 
         static readonly ExpandedState<Expandable, UniversalRenderPipelineAsset> k_ExpandedState = new(Expandable.Rendering, "URP");
-        readonly static AdditionalPropertiesState<ExpandableAdditional, Light> k_AdditionalPropertiesState = new(0, "URP");
+        static readonly AdditionalPropertiesState<ExpandableAdditional, Light> k_AdditionalPropertiesState = new(0, "URP");
 
         public static readonly CED.IDrawer Inspector = CED.Group(
             CED.AdditionalPropertiesFoldoutGroup(Styles.qualitySettingsText, Expandable.Quality, k_ExpandedState, ExpandableAdditional.Quality, k_AdditionalPropertiesState, DrawQuality, DrawQualityAdditional),
-            CED.FoldoutGroup(Styles.renderersSettingsText, Expandable.Rendering, k_ExpandedState, FoldoutOption.NoSpaceAtEnd, RendererOptionMenu, DrawRenderers)
+            CED.FoldoutGroup(Styles.renderersSettingsText, Expandable.Rendering, k_ExpandedState, FoldoutOption.NoSpaceAtEnd, DrawRenderers)
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             , CED.FoldoutGroup(Styles.adaptivePerformanceText, Expandable.AdaptivePerformance, k_ExpandedState, CED.Group(DrawAdaptivePerformance))
 #endif
         );
 
+
         static void DrawRenderers(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
             if (ownerEditor is UniversalRenderPipelineAssetEditor urpAssetEditor)
             {
+                //Default renderer
+                var rendererNames = new GUIContent[serialized.rendererDataProp.arraySize];
+                for (int i = 0; i < serialized.rendererDataProp.arraySize; i++)
+                {
+                    var rendererProp = serialized.rendererDataProp.GetArrayElementAtIndex(i);
+                    rendererNames[i] = new GUIContent($"{i} - {rendererProp.FindPropertyRelative(nameof(ScriptableRendererData.name)).stringValue}");
+                }
+                EditorGUILayout.Space();
+                serialized.defaultRendererProp.intValue = EditorGUILayout.Popup(Styles.rendererDefaultText, serialized.defaultRendererProp.intValue, rendererNames);
+                EditorGUILayout.Space();
+
+                //Draw Renderers
                 for (int i = 0; i < serialized.rendererDataProp.arraySize; i++)
                 {
                     EditorGUILayout.PropertyField(serialized.rendererDataProp.GetArrayElementAtIndex(i));
@@ -75,6 +91,7 @@ namespace UnityEditor.Rendering.Universal
                 else if (!ValidateRendererGraphicsAPIs(serialized.asset, out var unsupportedGraphicsApisMessage))
                     EditorGUILayout.HelpBox(Styles.rendererUnsupportedAPIMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
 
+                EditorGUILayout.Space();
                 if (GUILayout.Button(Styles.rendererAddMessage))
                 {
                     GenericMenu menu = new GenericMenu();
@@ -94,16 +111,6 @@ namespace UnityEditor.Rendering.Universal
             serialized.rendererDataProp.arraySize++;
             serialized.rendererDataProp.GetArrayElementAtIndex(index).managedReferenceValue = (ScriptableRendererData)Activator.CreateInstance(rendererType);
             serialized.serializedObject.ApplyModifiedProperties();
-        }
-
-        static void RendererOptionMenu(Vector2 position)
-        {
-            GenericMenu menu = new GenericMenu();
-
-            menu.AddItem(EditorGUIUtility.TrTextContent("Copy Settings"), false, () => { });
-            menu.AddItem(EditorGUIUtility.TrTextContent("Paste Settings"), false, () => { });
-
-            menu.DropDown(new Rect(position, Vector2.zero));
         }
 
         static void DrawQuality(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)

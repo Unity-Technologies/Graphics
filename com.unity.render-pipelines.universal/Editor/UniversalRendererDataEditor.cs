@@ -4,7 +4,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    using CED = CoreEditorDrawer<SerializedUniversalRendererData>;
+    using CED = CoreEditorDrawer<CachedUniversalRendererDataEditor>;
 
     enum ShowUIUniversalRendererData
     {
@@ -14,12 +14,8 @@ namespace UnityEditor.Rendering.Universal
         Shadow = 1 << 3,
         RendererFeatures = 1 << 4,
     }
-    enum ShowAdditionalUIUniversalRendererData
-    {
-        Show = 1 << 0,
-    }
 
-    class SerializedUniversalRendererData
+    class CachedUniversalRendererDataEditor : CachedScriptableRendererDataEditor
     {
         public SerializedProperty opaqueLayerMask;
         public SerializedProperty transparentLayerMask;
@@ -34,8 +30,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty shadowTransparentReceiveProp;
         public SerializedProperty intermediateTextureMode;
 
-
-        public SerializedProperty name { get; }
         public SerializedProperty mainLightRenderingModeProp { get; }
         public SerializedProperty mainLightShadowsSupportedProp { get; }
         public SerializedProperty mainLightShadowmapResolutionProp { get; }
@@ -71,19 +65,12 @@ namespace UnityEditor.Rendering.Universal
         public static bool s_EnableClusteredUI => false;
 #endif
 
+        public EditorPrefBoolFlags<EditorUtils.Unit> state;
 
 
-        public SerializedProperty serializedProperty;
-        public UniversalRendererData data;
-        public ScriptableRendererFeatureEditor rendererFeatureEditor;
-
-
-        public SerializedUniversalRendererData(SerializedProperty serializedProperty)
+        public CachedUniversalRendererDataEditor(SerializedProperty serializedProperty)
+            : base(serializedProperty)
         {
-            this.serializedProperty = serializedProperty;
-            data = (UniversalRendererData)serializedProperty.managedReferenceValue;
-
-            name = serializedProperty.FindPropertyRelative(nameof(ScriptableRendererData.name));
             opaqueLayerMask = serializedProperty.FindPropertyRelative("m_OpaqueLayerMask");
             transparentLayerMask = serializedProperty.FindPropertyRelative("m_TransparentLayerMask");
             renderingMode = serializedProperty.FindPropertyRelative("m_RenderingMode");
@@ -132,11 +119,8 @@ namespace UnityEditor.Rendering.Universal
             mixedLightingSupportedProp = serializedProperty.FindPropertyRelative("m_MixedLightingSupported");
             supportsLightLayers = serializedProperty.FindPropertyRelative("m_SupportsLightLayers");
 
-            //state = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
-            //k_showUI = new(ShowUIUniversalRendererData.General, $"{index}_URP");
-            //k_showUIAdditional = new(0, $"{index}_URP");
-
-            rendererFeatureEditor = new ScriptableRendererFeatureEditor(serializedProperty.FindPropertyRelative(nameof(ScriptableRendererData.m_RendererFeatures)));
+            string Key = "Universal_Shadow_Setting_Unit:UI_State";
+            state = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
         }
     }
 
@@ -217,134 +201,99 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent conservativeEnclosingSphere = EditorGUIUtility.TrTextContent("Conservative Enclosing Sphere", "Enable this option to improve shadow frustum culling and prevent Unity from excessively culling shadows in the corners of the shadow cascades. Disable this option only for compatibility purposes of existing projects created in previous Unity versions.");
         }
 
-        const string Key = "Universal_Shadow_Setting_Unit:UI_State";
-        static EditorPrefBoolFlags<EditorUtils.Unit> state = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
-        static ExpandedState<ShowUIUniversalRendererData, UniversalRendererData> k_showUI = new(ShowUIUniversalRendererData.General, $"_URP");
-        static AdditionalPropertiesState<ShowAdditionalUIUniversalRendererData, UniversalRendererData> k_showUIAdditional = new(0, $"_URP");
-
-        SerializedUniversalRendererData serialized;
-        private void Init(SerializedProperty property)
+        protected override CachedScriptableRendererDataEditor Init(SerializedProperty property)
         {
-            int hash = property.GetHashCode();
-            //if (serialized != null && property != serialized.serializedProperty )
-            //{
-            serialized = new SerializedUniversalRendererData(property);//ObjectPool<SerializedUniversalRendererData>((SerializedUniversalRendererData serialized) => SerializedUniversalRendererData.Init(serialized));
-            //}
+            return new CachedUniversalRendererDataEditor(property);
         }
 
 
 
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        protected override void OnGUI(CachedScriptableRendererDataEditor cachedEditorData, SerializedProperty property)
         {
-            Init(property);
-            DrawGUI(position);
+            DrawHeader(
+                cachedEditorData as CachedUniversalRendererDataEditor,
+                DrawRenderer, DrawRendererAdditional);
         }
 
-
-        public void DrawGUI(Rect position)
+        static void DrawRenderer(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
         {
-            EditorGUI.BeginProperty(position, new GUIContent(serialized.name.stringValue), serialized.serializedProperty);
-            CED.AdditionalPropertiesFoldoutGroup(new GUIContent(serialized.name.stringValue),
-                ShowUIUniversalRendererData.All, k_showUI, ShowAdditionalUIUniversalRendererData.Show, k_showUIAdditional,
-                DrawRenderer, DrawRendererAdditional, FoldoutOption.NoSpaceAtEnd).Draw(serialized, null);
-            EditorGUI.EndProperty();
-        }
-
-        static void DrawRenderer(SerializedUniversalRendererData serialized, Editor ownerEditor)
-        {
-            EditorGUI.indentLevel++;
+            int index = cachedEditorData.index.intValue;
+            var rendererState = RenderersFoldoutStates.GetRendererState(index);
+            var rendererAdditionalShowState = RenderersFoldoutStates.GetAdditionalRenderersShowState();
+            EditorGUILayout.PropertyField(cachedEditorData.name);
             CED.Group(
                 CED.FoldoutGroup(Styles.generalSettingsText,
-                    ShowUIUniversalRendererData.General, k_showUI,
-                    FoldoutOption.SubFoldout, DrawGeneral),
+                    (int)ShowUIUniversalRendererData.General, rendererState,
+                    FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawGeneral),
                 CED.AdditionalPropertiesFoldoutGroup(Styles.lightingSettingsText,
-                    ShowUIUniversalRendererData.Lighting, k_showUI,
-                    (ShowAdditionalUIUniversalRendererData)0, k_showUIAdditional,
-                    DrawLighting, DrawLightingAdditional, FoldoutOption.SubFoldout),
+                    (int)ShowUIUniversalRendererData.Lighting, rendererState,
+                    1 << cachedEditorData.index.intValue, rendererAdditionalShowState,
+                    DrawLighting, DrawLightingAdditional, FoldoutOption.SubFoldout | FoldoutOption.Indent),
                 CED.AdditionalPropertiesFoldoutGroup(Styles.shadowSettingsText,
-                    ShowUIUniversalRendererData.Shadow, k_showUI,
-                    (ShowAdditionalUIUniversalRendererData)0, k_showUIAdditional,
-                    DrawShadows, DrawShadowsAdditional, FoldoutOption.SubFoldout),
+                    (int)ShowUIUniversalRendererData.Shadow, rendererState,
+                    1 << cachedEditorData.index.intValue, rendererAdditionalShowState,
+                    DrawShadows, DrawShadowsAdditional, FoldoutOption.SubFoldout | FoldoutOption.Indent),
                 CED.FoldoutGroup(Styles.rendererFeatureSettingsText,
-                    ShowUIUniversalRendererData.RendererFeatures, k_showUI,
-                    FoldoutOption.SubFoldout, DrawRendererFeatures)
-            ).Draw(serialized, ownerEditor);
-
-            // Add a "Reload All" button in inspector when we are in developer's mode
-            if (EditorPrefs.GetBool("DeveloperMode"))
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(serialized.shaders, true);
-                if (serialized.shaders.isExpanded)
-                {
-                    if (GUILayout.Button("Reload All"))
-                    {
-                        serialized.data.shaders = null;
-                        ResourceReloader.ReloadAllNullIn(serialized.data, UniversalRenderPipelineAsset.packagePath);
-                    }
-                }
-                EditorGUI.indentLevel--;
-            }
-            EditorGUI.indentLevel--;
-
+                    (int)ShowUIUniversalRendererData.RendererFeatures, rendererState,
+                    FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawRendererFeatures)
+            ).Draw(cachedEditorData, ownerEditor);
         }
-        static void DrawRendererAdditional(SerializedUniversalRendererData serialized, Editor ownerEditor) { }
-        static void DrawGeneral(SerializedUniversalRendererData serialized, Editor ownerEditor)
+        static void DrawRendererAdditional(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor) { }
+        static void DrawGeneral(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
         {
-            EditorGUI.indentLevel += 2;
             EditorGUILayout.LabelField(Styles.FilteringSectionLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(serialized.opaqueLayerMask, Styles.OpaqueMask);
-            EditorGUILayout.PropertyField(serialized.transparentLayerMask, Styles.TransparentMask);
+            EditorGUILayout.PropertyField(cachedEditorData.opaqueLayerMask, Styles.OpaqueMask);
+            EditorGUILayout.PropertyField(cachedEditorData.transparentLayerMask, Styles.TransparentMask);
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
             EditorGUILayout.LabelField(Styles.RenderingSectionLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(serialized.renderingMode, Styles.RenderingModeLabel);
-            if (serialized.renderingMode.intValue == (int)RenderingMode.Deferred)
+            EditorGUILayout.PropertyField(cachedEditorData.renderingMode, Styles.RenderingModeLabel);
+            if (cachedEditorData.renderingMode.intValue == (int)RenderingMode.Deferred)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(serialized.accurateGbufferNormals, Styles.accurateGbufferNormalsLabel, true);
+                EditorGUILayout.PropertyField(cachedEditorData.accurateGbufferNormals, Styles.accurateGbufferNormalsLabel, true);
                 EditorGUI.indentLevel--;
             }
 
-            if (serialized.renderingMode.intValue == (int)RenderingMode.Forward)
+            if (cachedEditorData.renderingMode.intValue == (int)RenderingMode.Forward)
             {
                 EditorGUI.indentLevel++;
 
-                if (SerializedUniversalRendererData.s_EnableClusteredUI)
+                if (CachedUniversalRendererDataEditor.s_EnableClusteredUI)
                 {
-                    EditorGUILayout.PropertyField(serialized.clusteredRendering, Styles.clusteredRenderingLabel);
-                    EditorGUI.BeginDisabledGroup(!serialized.clusteredRendering.boolValue);
-                    EditorGUILayout.PropertyField(serialized.tileSize);
+                    EditorGUILayout.PropertyField(cachedEditorData.clusteredRendering, Styles.clusteredRenderingLabel);
+                    EditorGUI.BeginDisabledGroup(!cachedEditorData.clusteredRendering.boolValue);
+                    EditorGUILayout.PropertyField(cachedEditorData.tileSize);
                     EditorGUI.EndDisabledGroup();
                 }
 
-                EditorGUILayout.PropertyField(serialized.depthPrimingMode, Styles.DepthPrimingModeLabel);
-                if (serialized.depthPrimingMode.intValue != (int)DepthPrimingMode.Disabled)
+                EditorGUILayout.PropertyField(cachedEditorData.depthPrimingMode, Styles.DepthPrimingModeLabel);
+                if (cachedEditorData.depthPrimingMode.intValue != (int)DepthPrimingMode.Disabled)
                 {
                     EditorGUILayout.HelpBox(Styles.DepthPrimingModeInfo.text, MessageType.Info);
                 }
 
                 EditorGUI.indentLevel--;
             }
-            EditorGUILayout.PropertyField(serialized.copyDepthMode, Styles.CopyDepthModeLabel);
+            EditorGUILayout.PropertyField(cachedEditorData.copyDepthMode, Styles.CopyDepthModeLabel);
             EditorGUI.indentLevel--;
 
 
 
             EditorGUILayout.LabelField(Styles.OverridesSectionLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(serialized.defaultStencilState, Styles.defaultStencilStateLabel, true);
-            SerializedProperty overrideStencil = serialized.defaultStencilState.FindPropertyRelative("overrideStencilState");
+            EditorGUILayout.PropertyField(cachedEditorData.defaultStencilState, Styles.defaultStencilStateLabel, true);
+            SerializedProperty overrideStencil = cachedEditorData.defaultStencilState.FindPropertyRelative("overrideStencilState");
 
-            if (overrideStencil.boolValue && serialized.renderingMode.intValue == (int)RenderingMode.Deferred)
+            if (overrideStencil.boolValue && cachedEditorData.renderingMode.intValue == (int)RenderingMode.Deferred)
             {
-                CompareFunction stencilFunction = (CompareFunction)serialized.defaultStencilState.FindPropertyRelative("stencilCompareFunction").enumValueIndex;
-                StencilOp stencilPass = (StencilOp)serialized.defaultStencilState.FindPropertyRelative("passOperation").enumValueIndex;
-                StencilOp stencilFail = (StencilOp)serialized.defaultStencilState.FindPropertyRelative("failOperation").enumValueIndex;
-                StencilOp stencilZFail = (StencilOp)serialized.defaultStencilState.FindPropertyRelative("zFailOperation").enumValueIndex;
+                CompareFunction stencilFunction = (CompareFunction)cachedEditorData.defaultStencilState.FindPropertyRelative("stencilCompareFunction").enumValueIndex;
+                StencilOp stencilPass = (StencilOp)cachedEditorData.defaultStencilState.FindPropertyRelative("passOperation").enumValueIndex;
+                StencilOp stencilFail = (StencilOp)cachedEditorData.defaultStencilState.FindPropertyRelative("failOperation").enumValueIndex;
+                StencilOp stencilZFail = (StencilOp)cachedEditorData.defaultStencilState.FindPropertyRelative("zFailOperation").enumValueIndex;
                 bool invalidFunction = stencilFunction == CompareFunction.Disabled || stencilFunction == CompareFunction.Never;
                 bool invalidOp = stencilPass != StencilOp.Replace && stencilFail != StencilOp.Replace && stencilZFail != StencilOp.Replace;
 
@@ -358,64 +307,81 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.LabelField("Compatibility", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             {
-                EditorGUILayout.PropertyField(serialized.intermediateTextureMode, Styles.intermediateTextureMode);
+                EditorGUILayout.PropertyField(cachedEditorData.intermediateTextureMode, Styles.intermediateTextureMode);
             }
             EditorGUI.indentLevel--;
-            EditorGUI.indentLevel -= 2;
+            EditorGUI.indentLevel++;
+
+            // Add a "Reload All" button in inspector when we are in developer's mode
+            if (EditorPrefs.GetBool("DeveloperMode"))
+            {
+                EditorGUILayout.PropertyField(cachedEditorData.shaders, true);
+                if (cachedEditorData.shaders.isExpanded)
+                {
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Space(EditorGUIUtility.fieldWidth);
+                    if (GUILayout.Button("Reload All"))
+                    {
+                        cachedEditorData.shaders = null;
+                        ResourceReloader.ReloadAllNullIn(cachedEditorData.data, UniversalRenderPipelineAsset.packagePath);
+                    }
+                    GUILayout.EndHorizontal();
+                }
+            }
+            EditorGUI.indentLevel--;
         }
-        static void DrawLighting(SerializedUniversalRendererData serialized, Editor ownerEditor)
+        static void DrawLighting(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
         {
-            EditorGUI.indentLevel += 2;
             // Main Light
             bool disableGroup = false;
             EditorGUI.BeginDisabledGroup(disableGroup);
-            CoreEditorUtils.DrawPopup(Styles.mainLightRenderingModeText, serialized.mainLightRenderingModeProp, Styles.mainLightOptions);
+            CoreEditorUtils.DrawPopup(Styles.mainLightRenderingModeText, cachedEditorData.mainLightRenderingModeProp, Styles.mainLightOptions);
             EditorGUI.EndDisabledGroup();
 
             EditorGUI.indentLevel++;
-            disableGroup |= !serialized.mainLightRenderingModeProp.boolValue;
+            disableGroup |= !cachedEditorData.mainLightRenderingModeProp.boolValue;
 
             EditorGUI.BeginDisabledGroup(disableGroup);
-            EditorGUILayout.PropertyField(serialized.mainLightShadowsSupportedProp, Styles.supportsMainLightShadowsText);
+            EditorGUILayout.PropertyField(cachedEditorData.mainLightShadowsSupportedProp, Styles.supportsMainLightShadowsText);
             EditorGUI.EndDisabledGroup();
 
-            disableGroup |= !serialized.mainLightShadowsSupportedProp.boolValue;
+            disableGroup |= !cachedEditorData.mainLightShadowsSupportedProp.boolValue;
             EditorGUI.BeginDisabledGroup(disableGroup);
-            EditorGUILayout.PropertyField(serialized.mainLightShadowmapResolutionProp, Styles.mainLightShadowmapResolutionText);
+            EditorGUILayout.PropertyField(cachedEditorData.mainLightShadowmapResolutionProp, Styles.mainLightShadowmapResolutionText);
             EditorGUI.EndDisabledGroup();
 
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
             // Additional light
-            EditorGUILayout.PropertyField(serialized.additionalLightsRenderingModeProp, Styles.addditionalLightsRenderingModeText);
+            EditorGUILayout.PropertyField(cachedEditorData.additionalLightsRenderingModeProp, Styles.addditionalLightsRenderingModeText);
             EditorGUI.indentLevel++;
 
-            disableGroup = serialized.additionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
+            disableGroup = cachedEditorData.additionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
             EditorGUI.BeginDisabledGroup(disableGroup);
-            serialized.additionalLightsPerObjectLimitProp.intValue = EditorGUILayout.IntSlider(Styles.perObjectLimit, serialized.additionalLightsPerObjectLimitProp.intValue, 0, UniversalRenderPipeline.maxPerObjectLights);
+            cachedEditorData.additionalLightsPerObjectLimitProp.intValue = EditorGUILayout.IntSlider(Styles.perObjectLimit, cachedEditorData.additionalLightsPerObjectLimitProp.intValue, 0, UniversalRenderPipeline.maxPerObjectLights);
             EditorGUI.EndDisabledGroup();
 
-            disableGroup |= (serialized.additionalLightsPerObjectLimitProp.intValue == 0 || serialized.additionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.PerPixel);
+            disableGroup |= (cachedEditorData.additionalLightsPerObjectLimitProp.intValue == 0 || cachedEditorData.additionalLightsRenderingModeProp.intValue != (int)LightRenderingMode.PerPixel);
             EditorGUI.BeginDisabledGroup(disableGroup);
-            EditorGUILayout.PropertyField(serialized.additionalLightShadowsSupportedProp, Styles.supportsAdditionalShadowsText);
+            EditorGUILayout.PropertyField(cachedEditorData.additionalLightShadowsSupportedProp, Styles.supportsAdditionalShadowsText);
             EditorGUI.EndDisabledGroup();
 
-            disableGroup |= !serialized.additionalLightShadowsSupportedProp.boolValue;
+            disableGroup |= !cachedEditorData.additionalLightShadowsSupportedProp.boolValue;
             EditorGUI.BeginDisabledGroup(disableGroup);
-            EditorGUILayout.PropertyField(serialized.additionalLightShadowmapResolutionProp, Styles.additionalLightsShadowmapResolution);
-            DrawShadowResolutionTierSettings(serialized, ownerEditor);
+            EditorGUILayout.PropertyField(cachedEditorData.additionalLightShadowmapResolutionProp, Styles.additionalLightsShadowmapResolution);
+            DrawShadowResolutionTierSettings(cachedEditorData, ownerEditor);
             EditorGUI.EndDisabledGroup();
 
             EditorGUILayout.Space();
-            disableGroup = serialized.additionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
+            disableGroup = cachedEditorData.additionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
 
             EditorGUI.BeginDisabledGroup(disableGroup);
-            EditorGUILayout.PropertyField(serialized.additionalLightCookieResolutionProp, Styles.additionalLightsCookieResolution);
+            EditorGUILayout.PropertyField(cachedEditorData.additionalLightCookieResolutionProp, Styles.additionalLightsCookieResolution);
             EditorGUI.EndDisabledGroup();
 
             EditorGUI.BeginDisabledGroup(disableGroup);
-            EditorGUILayout.PropertyField(serialized.additionalLightCookieFormatProp, Styles.additionalLightsCookieFormat);
+            EditorGUILayout.PropertyField(cachedEditorData.additionalLightCookieFormatProp, Styles.additionalLightsCookieFormat);
             EditorGUI.EndDisabledGroup();
 
             EditorGUI.indentLevel--;
@@ -424,24 +390,21 @@ namespace UnityEditor.Rendering.Universal
             // Reflection Probes
             EditorGUILayout.LabelField(Styles.reflectionProbesSettingsText);
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(serialized.reflectionProbeBlendingProp, Styles.reflectionProbeBlendingText);
-            EditorGUILayout.PropertyField(serialized.reflectionProbeBoxProjectionProp, Styles.reflectionProbeBoxProjectionText);
+            EditorGUILayout.PropertyField(cachedEditorData.reflectionProbeBlendingProp, Styles.reflectionProbeBlendingText);
+            EditorGUILayout.PropertyField(cachedEditorData.reflectionProbeBoxProjectionProp, Styles.reflectionProbeBoxProjectionText);
             EditorGUI.indentLevel--;
-            EditorGUI.indentLevel -= 2;
         }
 
-        static void DrawLightingAdditional(SerializedUniversalRendererData serialized, Editor ownerEditor)
+        static void DrawLightingAdditional(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
         {
-            EditorGUI.indentLevel += 2;
-            EditorGUILayout.PropertyField(serialized.mixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
-            EditorGUILayout.PropertyField(serialized.supportsLightLayers, Styles.supportsLightLayers);
+            EditorGUILayout.PropertyField(cachedEditorData.mixedLightingSupportedProp, Styles.mixedLightingSupportLabel);
+            EditorGUILayout.PropertyField(cachedEditorData.supportsLightLayers, Styles.supportsLightLayers);
 
-            if (serialized.supportsLightLayers.boolValue && !ValidateRendererGraphicsAPIsForLightLayers(out var unsupportedGraphicsApisMessage))
+            if (cachedEditorData.supportsLightLayers.boolValue && !ValidateRendererGraphicsAPIsForLightLayers(out var unsupportedGraphicsApisMessage))
                 EditorGUILayout.HelpBox(Styles.lightlayersUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
-            EditorGUI.indentLevel -= 2;
         }
 
-        static void DrawShadowResolutionTierSettings(SerializedUniversalRendererData serialized, Editor ownerEditor)
+        static void DrawShadowResolutionTierSettings(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
         {
             // UI code adapted from HDRP U.I logic implemented in com.unity.render-pipelines.high-definition/Editor/RenderPipeline/Settings/SerializedScalableSetting.cs )
 
@@ -451,7 +414,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginChangeCheck();
 
             const int k_ShadowResolutionTiersCount = 3;
-            var values = new[] { serialized.additionalLightsShadowResolutionTierLowProp, serialized.additionalLightsShadowResolutionTierMediumProp, serialized.additionalLightsShadowResolutionTierHighProp };
+            var values = new[] { cachedEditorData.additionalLightsShadowResolutionTierLowProp, cachedEditorData.additionalLightsShadowResolutionTierMediumProp, cachedEditorData.additionalLightsShadowResolutionTierHighProp };
 
             var num = contentRect.width / (float)k_ShadowResolutionTiersCount;  // space allocated for every field including the label
 
@@ -479,61 +442,57 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.EndChangeCheck();
         }
 
-        static void DrawShadows(SerializedUniversalRendererData serialized, Editor ownerEditor)
+        static void DrawShadows(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
         {
-            EditorGUI.indentLevel += 2;
-            EditorGUILayout.PropertyField(serialized.shadowTransparentReceiveProp, Styles.shadowTransparentReceiveLabel);
-            serialized.shadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, serialized.shadowDistanceProp.floatValue));
+            EditorGUILayout.PropertyField(cachedEditorData.shadowTransparentReceiveProp, Styles.shadowTransparentReceiveLabel);
+            cachedEditorData.shadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, cachedEditorData.shadowDistanceProp.floatValue));
             EditorUtils.Unit unit = EditorUtils.Unit.Metric;
-            if (serialized.shadowCascadeCountProp.intValue != 0)
+            if (cachedEditorData.shadowCascadeCountProp.intValue != 0)
             {
                 EditorGUI.BeginChangeCheck();
-                unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(Styles.shadowWorkingUnitText, state.value);
+                unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(Styles.shadowWorkingUnitText, cachedEditorData.state.value);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    state.value = unit;
+                    cachedEditorData.state.value = unit;
                 }
             }
 
-            EditorGUILayout.IntSlider(serialized.shadowCascadeCountProp, UniversalRendererData.k_ShadowCascadeMinCount, UniversalRendererData.k_ShadowCascadeMaxCount, Styles.shadowCascadesText);
+            EditorGUILayout.IntSlider(cachedEditorData.shadowCascadeCountProp, UniversalRendererData.k_ShadowCascadeMinCount, UniversalRendererData.k_ShadowCascadeMaxCount, Styles.shadowCascadesText);
 
-            int cascadeCount = serialized.shadowCascadeCountProp.intValue;
+            int cascadeCount = cachedEditorData.shadowCascadeCountProp.intValue;
             EditorGUI.indentLevel++;
 
             bool useMetric = unit == EditorUtils.Unit.Metric;
-            float baseMetric = serialized.shadowDistanceProp.floatValue;
+            float baseMetric = cachedEditorData.shadowDistanceProp.floatValue;
             int cascadeSplitCount = cascadeCount - 1;
 
-            DrawCascadeSliders(serialized, cascadeSplitCount, useMetric, baseMetric);
+            DrawCascadeSliders(cachedEditorData, cascadeSplitCount, useMetric, baseMetric);
 
             EditorGUI.indentLevel--;
-            DrawCascades(serialized, cascadeCount, useMetric, baseMetric);
+            DrawCascades(cachedEditorData, cascadeCount, useMetric, baseMetric);
             EditorGUI.indentLevel++;
 
-            serialized.shadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, serialized.shadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
-            serialized.shadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, serialized.shadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
-            EditorGUILayout.PropertyField(serialized.softShadowsSupportedProp, Styles.supportsSoftShadows);
+            cachedEditorData.shadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, cachedEditorData.shadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
+            cachedEditorData.shadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, cachedEditorData.shadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
+            EditorGUILayout.PropertyField(cachedEditorData.softShadowsSupportedProp, Styles.supportsSoftShadows);
 
             EditorGUI.indentLevel--;
-            EditorGUI.indentLevel -= 2;
         }
 
-        static void DrawShadowsAdditional(SerializedUniversalRendererData serialized, Editor ownerEditor)
+        static void DrawShadowsAdditional(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
         {
-            EditorGUI.indentLevel += 2;
-            EditorGUILayout.PropertyField(serialized.conservativeEnclosingSphereProp, Styles.conservativeEnclosingSphere);
-            EditorGUI.indentLevel -= 2;
+            EditorGUILayout.PropertyField(cachedEditorData.conservativeEnclosingSphereProp, Styles.conservativeEnclosingSphere);
         }
 
-        static void DrawCascadeSliders(SerializedUniversalRendererData serialized, int splitCount, bool useMetric, float baseMetric)
+        static void DrawCascadeSliders(CachedUniversalRendererDataEditor cachedEditorData, int splitCount, bool useMetric, float baseMetric)
         {
             Vector4 shadowCascadeSplit = Vector4.one;
             if (splitCount == 3)
-                shadowCascadeSplit = new Vector4(serialized.shadowCascade4SplitProp.vector3Value.x, serialized.shadowCascade4SplitProp.vector3Value.y, serialized.shadowCascade4SplitProp.vector3Value.z, 1);
+                shadowCascadeSplit = new Vector4(cachedEditorData.shadowCascade4SplitProp.vector3Value.x, cachedEditorData.shadowCascade4SplitProp.vector3Value.y, cachedEditorData.shadowCascade4SplitProp.vector3Value.z, 1);
             else if (splitCount == 2)
-                shadowCascadeSplit = new Vector4(serialized.shadowCascade3SplitProp.vector2Value.x, serialized.shadowCascade3SplitProp.vector2Value.y, 1, 0);
+                shadowCascadeSplit = new Vector4(cachedEditorData.shadowCascade3SplitProp.vector2Value.x, cachedEditorData.shadowCascade3SplitProp.vector2Value.y, 1, 0);
             else if (splitCount == 1)
-                shadowCascadeSplit = new Vector4(serialized.shadowCascade2SplitProp.floatValue, 1, 0, 0);
+                shadowCascadeSplit = new Vector4(cachedEditorData.shadowCascade2SplitProp.floatValue, 1, 0, 0);
 
             float splitBias = 0.001f;
             float invBaseMetric = baseMetric == 0 ? 0 : 1f / baseMetric;
@@ -573,18 +532,18 @@ namespace UnityEditor.Rendering.Universal
                 switch (splitCount)
                 {
                     case 3:
-                        serialized.shadowCascade4SplitProp.vector3Value = shadowCascadeSplit;
+                        cachedEditorData.shadowCascade4SplitProp.vector3Value = shadowCascadeSplit;
                         break;
                     case 2:
-                        serialized.shadowCascade3SplitProp.vector2Value = shadowCascadeSplit;
+                        cachedEditorData.shadowCascade3SplitProp.vector2Value = shadowCascadeSplit;
                         break;
                     case 1:
-                        serialized.shadowCascade2SplitProp.floatValue = shadowCascadeSplit.x;
+                        cachedEditorData.shadowCascade2SplitProp.floatValue = shadowCascadeSplit.x;
                         break;
                 }
             }
 
-            var borderValue = serialized.shadowCascadeBorderProp.floatValue;
+            var borderValue = cachedEditorData.shadowCascadeBorderProp.floatValue;
 
             EditorGUI.BeginChangeCheck();
             if (useMetric)
@@ -606,23 +565,23 @@ namespace UnityEditor.Rendering.Universal
 
             if (EditorGUI.EndChangeCheck())
             {
-                serialized.shadowCascadeBorderProp.floatValue = borderValue;
+                cachedEditorData.shadowCascadeBorderProp.floatValue = borderValue;
             }
         }
 
-        static void DrawCascades(SerializedUniversalRendererData serialized, int cascadeCount, bool useMetric, float baseMetric)
+        static void DrawCascades(CachedUniversalRendererDataEditor cachedEditorData, int cascadeCount, bool useMetric, float baseMetric)
         {
             var cascades = new ShadowCascadeGUI.Cascade[cascadeCount];
 
             Vector3 shadowCascadeSplit = Vector3.zero;
             if (cascadeCount == 4)
-                shadowCascadeSplit = serialized.shadowCascade4SplitProp.vector3Value;
+                shadowCascadeSplit = cachedEditorData.shadowCascade4SplitProp.vector3Value;
             else if (cascadeCount == 3)
-                shadowCascadeSplit = serialized.shadowCascade3SplitProp.vector2Value;
+                shadowCascadeSplit = cachedEditorData.shadowCascade3SplitProp.vector2Value;
             else if (cascadeCount == 2)
-                shadowCascadeSplit.x = serialized.shadowCascade2SplitProp.floatValue;
+                shadowCascadeSplit.x = cachedEditorData.shadowCascade2SplitProp.floatValue;
             else
-                shadowCascadeSplit.x = serialized.shadowCascade2SplitProp.floatValue;
+                shadowCascadeSplit.x = cachedEditorData.shadowCascade2SplitProp.floatValue;
 
             float lastCascadePartitionSplit = 0;
             for (int i = 0; i < cascadeCount - 1; ++i)
@@ -642,7 +601,7 @@ namespace UnityEditor.Rendering.Universal
             cascades[lastCascade] = new ShadowCascadeGUI.Cascade()
             {
                 size = lastCascade == 0 ? 1.0f : 1 - shadowCascadeSplit[lastCascade - 1], // Calculate the size of cascade
-                borderSize = serialized.shadowCascadeBorderProp.floatValue,
+                borderSize = cachedEditorData.shadowCascadeBorderProp.floatValue,
                 cascadeHandleState = ShadowCascadeGUI.HandleState.Hidden,
                 borderHandleState = ShadowCascadeGUI.HandleState.Enabled,
             };
@@ -652,20 +611,20 @@ namespace UnityEditor.Rendering.Universal
             if (EditorGUI.EndChangeCheck())
             {
                 if (cascadeCount == 4)
-                    serialized.shadowCascade4SplitProp.vector3Value = new Vector3(
+                    cachedEditorData.shadowCascade4SplitProp.vector3Value = new Vector3(
                         cascades[0].size,
                         cascades[0].size + cascades[1].size,
                         cascades[0].size + cascades[1].size + cascades[2].size
                     );
                 else if (cascadeCount == 3)
-                    serialized.shadowCascade3SplitProp.vector2Value = new Vector2(
+                    cachedEditorData.shadowCascade3SplitProp.vector2Value = new Vector2(
                         cascades[0].size,
                         cascades[0].size + cascades[1].size
                     );
                 else if (cascadeCount == 2)
-                    serialized.shadowCascade2SplitProp.floatValue = cascades[0].size;
+                    cachedEditorData.shadowCascade2SplitProp.floatValue = cascades[0].size;
 
-                serialized.shadowCascadeBorderProp.floatValue = cascades[lastCascade].borderSize;
+                cachedEditorData.shadowCascadeBorderProp.floatValue = cascades[lastCascade].borderSize;
             }
         }
         static bool ValidateRendererGraphicsAPIsForLightLayers(out string unsupportedGraphicsApisMessage)
@@ -691,9 +650,9 @@ namespace UnityEditor.Rendering.Universal
             return unsupportedGraphicsApisMessage == null;
         }
 
-        static void DrawRendererFeatures(SerializedUniversalRendererData serialized, Editor ownerEditor)
+        static void DrawRendererFeatures(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
         {
-            serialized.rendererFeatureEditor.DrawRendererFeatures();
+            cachedEditorData.rendererFeatureEditor.DrawRendererFeatures();
         }
     }
 }

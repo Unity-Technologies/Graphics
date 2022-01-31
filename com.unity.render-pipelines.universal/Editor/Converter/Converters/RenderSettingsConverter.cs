@@ -173,7 +173,7 @@ namespace UnityEditor.Rendering.Universal.Converters
             string fileName)
         {
             var rendererAsset =
-                UniversalRenderPipelineAsset.CreateRendererAsset(assetPath, RendererType.UniversalRenderer, true, fileName)
+                UniversalRenderPipelineAsset.CreateRendererData(RendererType.UniversalRenderer)
                 as UniversalRendererData;
             //Missing API to set deferred or forward
             rendererAsset.renderingMode =

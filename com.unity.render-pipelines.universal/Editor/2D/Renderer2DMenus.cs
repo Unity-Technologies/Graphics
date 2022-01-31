@@ -148,7 +148,7 @@ namespace UnityEditor.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 //Create asset
-                AssetDatabase.CreateAsset(UniversalRenderPipelineAsset.Create(UniversalRenderPipelineAsset.CreateRendererAsset(pathName, RendererType._2DRenderer)), pathName);
+                AssetDatabase.CreateAsset(UniversalRenderPipelineAsset.Create(UniversalRenderPipelineAsset.CreateRendererData(RendererType._2DRenderer)), pathName);
             }
         }
 

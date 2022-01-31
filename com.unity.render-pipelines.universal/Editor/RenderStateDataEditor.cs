@@ -56,7 +56,8 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
         {
-            if (!m_properties.Contains(property.serializedObject))
+            int index = m_properties.IndexOf(property.serializedObject);
+            if (index == -1 || m_properties[index].FindProperty(property.propertyPath) != property)
                 Init(property);
 
             rect.height = EditorGUIUtility.singleLineHeight;

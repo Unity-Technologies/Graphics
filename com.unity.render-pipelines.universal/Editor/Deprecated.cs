@@ -6,7 +6,11 @@ namespace UnityEditor.Rendering.Universal
     [Obsolete("ForwardRendererDataEditor has been deprecated. Use UniversalRendererDataEditor instead (UnityUpgradable) -> UniversalRendererDataEditor", true)]
     public class ForwardRendererDataEditor : ScriptableRendererDataEditor
     {
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        protected override CachedScriptableRendererDataEditor Init(SerializedProperty property)
+        {
+            throw new NotSupportedException("ForwardRendererDataEditor has been deprecated. Use UniversalRendererDataEditor instead");
+        }
+        protected override void OnGUI(CachedScriptableRendererDataEditor cachedData, SerializedProperty property)
         {
             throw new NotSupportedException("ForwardRendererDataEditor has been deprecated. Use UniversalRendererDataEditor instead");
         }

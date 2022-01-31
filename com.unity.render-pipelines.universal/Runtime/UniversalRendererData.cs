@@ -547,7 +547,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        protected override void OnValidate()
+        public override void OnValidate()
         {
             base.OnValidate();
             if (!m_TileSize.IsValid())
@@ -556,7 +556,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        protected override void OnEnable()
+        public override void OnEnable()
         {
             base.OnEnable();
 
@@ -580,13 +580,14 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        public override void OnBeforeSerialize()
         {
             m_AssetVersion = k_LatestAssetVersion;
         }
 
-        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        public override void OnAfterDeserialize()
         {
+            //TODO: fix the upgrade.
             if (m_AssetVersion <= 0)
             {
                 var anyNonUrpRendererFeatures = false;

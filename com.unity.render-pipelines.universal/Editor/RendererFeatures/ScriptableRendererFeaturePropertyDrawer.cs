@@ -69,19 +69,7 @@ namespace UnityEditor.Rendering.Universal
 
         public sealed override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            if (property.isExpanded)
-            {
-                Rect position = new Rect();
-                using (new EditorGUI.DisabledScope(true))
-                {
-                    OnGUIHelper(ref position, property, label);
-                }
-                return position.y;
-            }
-            else
-            {
-                return EditorGUIUtility.singleLineHeight + 2;
-            }
+            return EditorGUI.GetPropertyHeight(property, label);
         }
 
         protected static void DrawProperty(ref Rect position, SerializedProperty property, GUIContent content)

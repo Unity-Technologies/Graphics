@@ -10,7 +10,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    internal class ScriptableRendererFeatureEditor
+    public class ScriptableRendererFeatureEditor
     {
         private class Styles
         {
@@ -39,7 +39,13 @@ namespace UnityEditor.Rendering.Universal
             m_rendererFeaturesList = new ReorderableList(m_rendererFeatures.serializedObject, m_rendererFeatures, true, true, true, true)
             {
                 drawElementCallback = OnDrawElement,
-                drawHeaderCallback = (Rect rect) => { EditorGUI.LabelField(rect, Styles.RendererFeatureOrder); },
+                drawHeaderCallback = (Rect rect) =>
+                {
+                    int indentLevel = EditorGUI.indentLevel;
+                    EditorGUI.indentLevel = 0;
+                    EditorGUI.LabelField(rect, Styles.RendererFeatureOrder);
+                    EditorGUI.indentLevel = indentLevel;
+                },
                 onAddDropdownCallback = OnAddDropdownCallback,
                 onRemoveCallback = OnRemoveElement,
                 elementHeightCallback = ElementHeightCallback,
