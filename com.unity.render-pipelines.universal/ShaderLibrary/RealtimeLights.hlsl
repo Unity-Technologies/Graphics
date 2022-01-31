@@ -27,7 +27,7 @@ struct Light
 {
     half3   direction;
     half3   color;
-    float   distanceAttenuation;
+    half    distanceAttenuation;
     half    shadowAttenuation;
     uint    layerMask;
 };
@@ -189,7 +189,7 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
 
     half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
-    float attenuation = DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy) * AngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw);
+    half attenuation = half(DistanceAttenuation(distanceSqr, distanceAndSpotAttenuation.xy) * AngleAttenuation(spotDirection.xyz, lightDirection, distanceAndSpotAttenuation.zw));
 
     Light light;
     light.direction = lightDirection;
