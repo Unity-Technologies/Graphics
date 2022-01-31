@@ -6,7 +6,11 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable, ReloadGroup]
+    /// <summary>
+    /// Class containing shader resources needed in URP for XR.
+    /// </summary>
+    /// <seealso cref="Shader"/>
+    [Serializable]
     public class XRSystemData : ScriptableObject
     {
 #if UNITY_EDITOR
@@ -30,16 +34,28 @@ namespace UnityEngine.Rendering.Universal
 
 #endif
 
+        /// <summary>
+        /// Class containing shader resources used in URP for XR.
+        /// </summary>
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
         {
+            /// <summary>
+            /// XR Occlusion mesh shader.
+            /// </summary>
             [Reload("Shaders/XR/XROcclusionMesh.shader")]
             public Shader xrOcclusionMeshPS;
 
+            /// <summary>
+            /// XR Mirror View shader.
+            /// </summary>
             [Reload("Shaders/XR/XRMirrorView.shader")]
             public Shader xrMirrorViewPS;
         }
 
+        /// <summary>
+        /// Shader resources used in URP for XR.
+        /// </summary>
         public ShaderResources shaders;
     }
 }

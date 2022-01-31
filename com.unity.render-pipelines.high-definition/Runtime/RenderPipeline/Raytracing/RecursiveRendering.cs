@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedIntParameter maxDepth = new ClampedIntParameter(4, 1, 10);
 
         /// <summary>
-        /// This defines the maximal travel distance of rays.
+        /// This defines the maximal travel distance of rays in meters.
         /// </summary>
         public MinFloatParameter rayLength = new MinFloatParameter(10.0f, 0.0f);
 

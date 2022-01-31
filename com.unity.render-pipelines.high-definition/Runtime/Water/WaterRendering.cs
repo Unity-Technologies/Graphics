@@ -47,12 +47,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter enable = new BoolParameter(false);
 
         /// <summary>
-        /// Specifies the maximum resolution at which the water surface patches are rendered.
-        /// </summary>
-        [Tooltip("Specifies the maximum resolution at which the water surface patches are rendered.")]
-        public WaterGridResolutionParameter gridResolution = new WaterGridResolutionParameter(WaterGridResolution.Medium512);
-
-        /// <summary>
         /// Sets the size of the water grids in meters.
         /// </summary>
         [Tooltip("Sets the size of the water grids in meters.")]
@@ -62,7 +56,28 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Controls the number of LOD patches that are rendered.
         /// </summary>
         [Tooltip("Controls the number of LOD patches that are rendered.")]
-        public ClampedIntParameter numLevelOfDetails = new ClampedIntParameter(2, 1, 4);
+        public ClampedIntParameter numLevelOfDetails = new ClampedIntParameter(2, 1, 3);
+
+        /// <summary>
+        /// Sets the maximum tessellation factor for the water surface.
+        /// </summary>
+        [Tooltip("Sets the maximum tessellation factor for the water surface.")]
+        [AdditionalProperty]
+        public ClampedFloatParameter maxTessellationFactor = new ClampedFloatParameter(10.0f, 0.0f, 15.0f);
+
+        /// <summary>
+        /// Sets the distance at which the tessellation factor start to lower.
+        /// </summary>
+        [Tooltip(" Sets the distance at which the tessellation factor start to lower.")]
+        [AdditionalProperty]
+        public MinFloatParameter tessellationFactorFadeStart = new MinFloatParameter(150.0f, 0.0f);
+
+        /// <summary>
+        /// Sets the range at which the tessellation factor reaches zero.
+        /// </summary>
+        [Tooltip("Sets the range at which the tessellation factor reaches zero.")]
+        [AdditionalProperty]
+        public MinFloatParameter tessellationFactorFadeRange = new MinFloatParameter(1850.0f, 10.0f);
 
         /// <summary>
         /// Controls the influence of the ambient light probe on the water surfaces.
