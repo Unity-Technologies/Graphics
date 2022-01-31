@@ -79,6 +79,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a null ref exception in Volume Explorer
 - Fixed one frame flicker on hardware DRS - (case 1398085)
 - Fixed using the wrong coordinate to compute the sampling direction for the screen space global illumination.
+- Fixed an issue where forced sky update (like PBR sky amortized updated) would not update ambient probe.
 
 ## [14.0.0] - 2021-11-17
 
