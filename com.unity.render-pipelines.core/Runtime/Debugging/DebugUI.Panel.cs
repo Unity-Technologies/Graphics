@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering
             {
                 int numChildren = children.Count;
                 for (int i = 0; i < numChildren; i++)
-                    children[i].GenerateQueryPath();
+                    children[i]?.GenerateQueryPath();
 
                 onSetDirty(this);
             }

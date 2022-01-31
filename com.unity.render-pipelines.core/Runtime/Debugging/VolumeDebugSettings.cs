@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering
     /// The volume settings
     /// </summary>
     /// <typeparam name="T">A <see cref="MonoBehaviour"/> with <see cref="IAdditionalData"/></typeparam>
-    public abstract partial class VolumeDebugSettings<T> : IVolumeDebugSettings2
+    public abstract partial class VolumeDebugSettings<T> : IVolumeDebugSettings
         where T : MonoBehaviour, IAdditionalData
     {
         /// <summary>Current volume component to debug.</summary>
@@ -99,11 +99,6 @@ namespace UnityEngine.Rendering
         /// Specifies the render pipeline for this volume settings
         /// </summary>
         public abstract Type targetRenderPipeline { get; }
-
-        /// <summary>List of Volume component types.</summary>
-        public List<(string, Type)> volumeComponentsPathAndType => s_ComponentPathAndType ??= VolumeManager.GetSupportedVolumeComponents(targetRenderPipeline);
-
-        static List<(string, Type)> s_ComponentPathAndType;
 
         /// <summary>
         /// The list of the additional camera datas
