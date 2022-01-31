@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!HDRenderPipelineGlobalSettings.instance?.IsCustomPostProcessRegistered(target.GetType()) ?? false)
             {
                 HDEditorUtils.GlobalSettingsHelpBox("The custom post process is not registered in the Global Settings.",
-                    MessageType.Error, HDGlobalSettingsPanelIMGUI.Styles.customPostProcessOrderLabel.text);
+                    MessageType.Error, HDRenderPipelineGlobalSettingsUI.Styles.customPostProcessOrderLabel.text);
                 return;
             }
 

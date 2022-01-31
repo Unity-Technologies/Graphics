@@ -28,13 +28,14 @@ namespace UnityEditor.Rendering.HighDefinition
         [FormerlySerializedAs("supportVolumetric")]
         public SerializedProperty supportVolumetrics;
         public SerializedProperty supportVolumetricClouds;
+        public SerializedProperty supportWater;
+        public SerializedProperty waterSimulationResolution;
         public SerializedProperty supportLightLayers;
         public SerializedProperty supportedLitShaderMode;
         public SerializedProperty colorBufferFormat;
         public SerializedProperty supportCustomPass;
         public SerializedProperty customBufferFormat;
         public SerializedScalableSetting planarReflectionResolution;
-
         public SerializedProperty supportDecals;
         public SerializedProperty supportDecalLayers;
         public SerializedProperty supportSurfaceGradient;
@@ -55,7 +56,6 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty probeVolumeTextureSize;
         internal SerializedProperty supportProbeVolumeStreaming;
         internal SerializedProperty probeVolumeSHBands;
-
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedHDShadowInitParameters hdShadowInitParams;
@@ -89,6 +89,8 @@ namespace UnityEditor.Rendering.HighDefinition
             sssSampleBudget = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.sssSampleBudget));
             supportVolumetrics = root.Find((RenderPipelineSettings s) => s.supportVolumetrics);
             supportVolumetricClouds = root.Find((RenderPipelineSettings s) => s.supportVolumetricClouds);
+            supportWater = root.Find((RenderPipelineSettings s) => s.supportWater);
+            waterSimulationResolution = root.Find((RenderPipelineSettings s) => s.waterSimulationResolution);
             supportLightLayers = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
             colorBufferFormat = root.Find((RenderPipelineSettings s) => s.colorBufferFormat);
             customBufferFormat = root.Find((RenderPipelineSettings s) => s.customBufferFormat);
@@ -113,7 +115,6 @@ namespace UnityEditor.Rendering.HighDefinition
             probeVolumeTextureSize = root.Find((RenderPipelineSettings s) => s.probeVolumeMemoryBudget);
             supportProbeVolumeStreaming = root.Find((RenderPipelineSettings s) => s.supportProbeVolumeStreaming);
             probeVolumeSHBands = root.Find((RenderPipelineSettings s) => s.probeVolumeSHBands);
-
             supportRayTracing = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
             supportedRayTracingMode = root.Find((RenderPipelineSettings s) => s.supportedRayTracingMode);
 

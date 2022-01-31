@@ -13,9 +13,13 @@ namespace UnityEditor.VFX.UI
 
         public Vector2 WindowSize { get; } = new Vector2(250, 50);
 
+        public void SetView(VFXView view)
+        {
+            m_VFXView = view;
+        }
+
         protected void CreateGUI()
         {
-            m_VFXView = VFXViewWindow.currentWindow.graphView;
             rootVisualElement.styleSheets.Add(VFXView.LoadStyleSheet("VFXAttachPanel"));
 
             var tpl = VFXView.LoadUXML("VFXAttachPanel");
@@ -54,7 +58,7 @@ namespace UnityEditor.VFX.UI
         {
             if (vfx != null)
             {
-                m_VFXView.TryAttachTo(vfx);
+                m_VFXView.TryAttachTo(vfx, true);
             }
             else
             {

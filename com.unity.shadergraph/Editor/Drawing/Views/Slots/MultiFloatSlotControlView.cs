@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using UnityEditor.Graphing;
 using UnityEngine;
-using UnityEditor.UIElements;
+
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Slots
@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
                 // Dont record Undo again until input field is unfocused
                 m_UndoGroup++;
                 this.MarkDirtyRepaint();
-            });
+            }, TrickleDown.TrickleDown);
             // Called after KeyDownEvent
             field.RegisterValueChangedCallback(evt =>
             {
@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
             {
                 m_Node.owner.owner.isDirty = true;
                 m_UndoGroup = -1;
-            });
+            }, TrickleDown.TrickleDown);
             Add(field);
         }
     }

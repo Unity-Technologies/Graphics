@@ -382,6 +382,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             m_Resources.Cleanup();
             m_DefaultResources.Cleanup();
+            m_RenderGraphPool.Cleanup();
 
             s_RegisteredGraphs.Remove(this);
             onGraphUnregistered?.Invoke(this);
@@ -489,6 +490,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 throw new InvalidOperationException("A shared texture can only be created outside of render graph execution.");
 
             return m_Resources.CreateSharedTexture(desc, explicitRelease);
+        }
+
+        /// <summary>
+        /// Refresh a shared texture with a new descriptor.
+        /// </summary>
+        /// <param name="handle">Shared texture that needs to be updated.</param>
+        /// <param name="desc">New Descriptor for the texture.</param>
+        public void RefreshSharedTextureDesc(TextureHandle handle, in TextureDesc desc)
+        {
+            m_Resources.RefreshSharedTextureDesc(handle, desc);
         }
 
         /// <summary>
@@ -633,11 +644,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </code>
         /// </example>
         /// <seealso cref="RenderGraphExecution"/>
+        /// <returns><see cref="RenderGraphExecution"/></returns>
         public RenderGraphExecution RecordAndExecute(in RenderGraphParameters parameters)
         {
             m_CurrentFrameIndex = parameters.currentFrameIndex;
-            m_CurrentExecutionName = parameters.executionName;
+            m_CurrentExecutionName = parameters.executionName != null ? parameters.executionName : "RenderGraphExecution";
             m_HasRenderGraphBegun = true;
+            m_RendererListCulling = parameters.rendererListCulling;
 
             m_Resources.BeginRenderGraph(m_ExecutionCount++);
 
