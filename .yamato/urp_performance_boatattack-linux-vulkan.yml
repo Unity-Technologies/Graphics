@@ -7,8 +7,8 @@
 
 ---
 
-URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_2020.3:
-    name: URP_Performance_LostCrypt on Linux_Vulkan_performance_playmode_runtime_mono_Linear on version 2020.3
+URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear_2020.3:
+    name: URP_Performance_BoatAttack on Linux_Vulkan_performance_playmode_runtime_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -16,8 +16,8 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{2020_3.changeset.id}}'
-        LOST_CRYPT_BRANCH: 21.2/urp-perf-test
-        LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -25,21 +25,21 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/2d-sara/Logs/*.log"
+              -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Linux
          rerun: on_new_revision
-      -  path: .yamato/urp_performance_lostcrypt-linux-vulkan.yml#Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_2020.3
+      -  path: .yamato/urp_performance_boatattack-linux-vulkan.yml#Build_URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear_2020.3
          rerun: on_new_revision
-Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_2020.3:
-    name: Build URP_Performance_LostCrypt on Linux_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version 2020.3
+Build_URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear_2020.3:
+    name: Build URP_Performance_BoatAttack on Linux_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version 2020.3
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -47,21 +47,21 @@ Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_L
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{2020_3.changeset.id}}'
-        LOST_CRYPT_BRANCH: 21.2/urp-perf-test
-        LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
          retries: 3
-      -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install -y unity-config
-      -  unity-config settings project-path TestProjects/2d-sara
+      -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
@@ -95,22 +95,22 @@ Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_L
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/2d-sara --timeout=1200
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/2d-sara --timeout=1200
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/2d-sara --timeout=1200
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=1200
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=1200
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/2d-sara/Logs/*.log"
+              -  "TestProjects/BoatAttack/Logs/*.log"
         players:
             paths:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Linux
          rerun: on_new_revision
-URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_2020.3:
-    name: URP_Performance_LostCrypt on Linux_Vulkan_performance_playmode_editor_mono_Linear on version 2020.3
+URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_editor_mono_Linear_2020.3:
+    name: URP_Performance_BoatAttack on Linux_Vulkan_performance_playmode_editor_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -118,21 +118,21 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_2
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{2020_3.changeset.id}}'
-        LOST_CRYPT_BRANCH: 21.2/urp-perf-test
-        LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
          retries: 3
-      -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install -y unity-config
-      -  unity-config settings project-path TestProjects/2d-sara
+      -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
@@ -166,18 +166,18 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_2
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/2d-sara/Logs/*.log"
+              -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Linux
          rerun: on_new_revision
-URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_2020.3:
-    name: URP_Performance_LostCrypt on Linux_Vulkan_performance_build_editmode_mono_Linear on version 2020.3
+URP_Performance_BoatAttack_Linux_Vulkan_performance_build_editmode_mono_Linear_2020.3:
+    name: URP_Performance_BoatAttack on Linux_Vulkan_performance_build_editmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -185,21 +185,21 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_20
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: '{{2020_3.changeset.id}}'
-        LOST_CRYPT_BRANCH: 21.2/urp-perf-test
-        LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
          retries: 3
-      -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install -y unity-config
-      -  unity-config settings project-path TestProjects/2d-sara
+      -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
@@ -233,18 +233,18 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_20
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/2d-sara/Logs/*.log"
+              -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2020.3:Linux
          rerun: on_new_revision
-URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
-    name: URP_Performance_LostCrypt on Linux_Vulkan_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Linux_Vulkan_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -252,8 +252,8 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        LOST_CRYPT_BRANCH: 21.2/urp-perf-test
-        LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -261,21 +261,21 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_
       -  command: curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
          retries: 2
       -  command: chmod +x utr
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/2d-sara/Logs/*.log"
+              -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
          rerun: on_new_revision
-      -  path: .yamato/urp_performance_lostcrypt-linux-vulkan.yml#Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-linux-vulkan.yml#Build_URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
-Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
-    name: Build URP_Performance_LostCrypt on Linux_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
+Build_URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance_BoatAttack on Linux_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -283,21 +283,21 @@ Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_L
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        LOST_CRYPT_BRANCH: 21.2/urp-perf-test
-        LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
          retries: 3
-      -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install -y unity-config
-      -  unity-config settings project-path TestProjects/2d-sara
+      -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
@@ -331,22 +331,22 @@ Build_URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_runtime_mono_L
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/2d-sara --timeout=1200
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/2d-sara --timeout=1200
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/2d-sara --timeout=1200
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --timeout=1200
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --timeout=1200
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneLinux64 --player-save-path=playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/BoatAttack --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/2d-sara/Logs/*.log"
+              -  "TestProjects/BoatAttack/Logs/*.log"
         players:
             paths:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
          rerun: on_new_revision
-URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_CUSTOM-REVISION:
-    name: URP_Performance_LostCrypt on Linux_Vulkan_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_editor_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Linux_Vulkan_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -354,21 +354,21 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_C
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        LOST_CRYPT_BRANCH: 21.2/urp-perf-test
-        LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
          retries: 3
-      -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install -y unity-config
-      -  unity-config settings project-path TestProjects/2d-sara
+      -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
@@ -402,18 +402,18 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_playmode_editor_mono_Linear_C
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/2d-sara/Logs/*.log"
+              -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
          rerun: on_new_revision
-URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION:
-    name: URP_Performance_LostCrypt on Linux_Vulkan_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Linux_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Linux_Vulkan_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -421,21 +421,21 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_CU
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        LOST_CRYPT_BRANCH: 21.2/urp-perf-test
-        LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: d07745c0d9bc97cde5fc4ae86186d6c2f0c2a16c
         CACHE_ARGS: '{{cache.flags}}'
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
-      -  command: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
+      -  command: git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
          retries: 3
-      -  cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/{nodesource,teamviewer,deadsnakes-ubuntu-ppa-}*
       -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install -y unity-config
-      -  unity-config settings project-path TestProjects/2d-sara
+      -  unity-config settings project-path TestProjects/BoatAttack
       -  unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core"
       -  unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal"
       -  unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph"
@@ -469,13 +469,13 @@ URP_Performance_LostCrypt_Linux_Vulkan_performance_build_editmode_mono_Linear_CU
          retries: 2
       -  command: sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
          retries: 2
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
-      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/2d-sara/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=LostCrypt --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/2d-sara --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
+      -  command: DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/BoatAttack --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/2d-sara/Logs/*.log"
+              -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
          rerun: on_new_revision
