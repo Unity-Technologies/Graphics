@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.Universal
             CreateShadowRenderTexture(pass, m_RenderTargetIds[shadowIndex], renderingData, cmdBuffer);
         }
 
-        public static void PrerenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, int shadowIndex, float shadowIntensity)
+        public static bool PrerenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, int shadowIndex, float shadowIntensity)
         {
             var colorChannel = shadowIndex % 4;
             var textureIndex = shadowIndex / 4;
@@ -138,15 +138,11 @@ namespace UnityEngine.Rendering.Universal
             if (colorChannel == 0)
                 ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmdBuffer, textureIndex);
 
-            //RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].Identifier(), colorChannel);
-            //m_LightInputTextures[textureIndex] = m_RenderTargets[textureIndex].Identifier();
+            bool hadShadowsToRender = RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].nameID, colorChannel);
 
+            m_LightInputTextures[textureIndex] = m_RenderTargets[textureIndex].nameID;
 
-            // Render the shadows for this light
-            if (RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].nameID, colorChannel))
-                m_LightInputTextures[textureIndex] = m_RenderTargets[textureIndex].nameID;
-            else
-                m_LightInputTextures[textureIndex] = Texture2D.blackTexture;
+            return hadShadowsToRender;
         }
 
         public static void SetGlobalShadowTexture(CommandBuffer cmdBuffer, Light2D light, int shadowIndex)
