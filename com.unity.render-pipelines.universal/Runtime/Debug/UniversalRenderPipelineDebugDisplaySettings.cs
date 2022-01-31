@@ -72,11 +72,15 @@ namespace UnityEngine.Rendering.Universal
         }
         #endregion
 
+        /// <summary>
+        /// Creates a new <c>UniversalRenderPipelineDebugDisplaySettings</c> instance.
+        /// </summary>
         public UniversalRenderPipelineDebugDisplaySettings()
         {
             Reset();
         }
 
+        /// <inheritdoc/>
         public override void Reset()
         {
             m_Settings.Clear();

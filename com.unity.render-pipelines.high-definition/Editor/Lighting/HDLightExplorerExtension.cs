@@ -839,7 +839,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.Enabled, "m_Enabled", 60),                                      // 0: Enabled
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Name, HDStyles.Name, null, 200),                                                   // 1: Name
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.VolumeMode, "isGlobal", 75, (r, prop, dep) =>                     // 2: Is Global
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.VolumeMode, "m_IsGlobal", 75, (r, prop, dep) =>                       // 2: Is Global
                 {
                     if (!TryGetAdditionalVolumeData(prop, out var volumeData))
                     {
