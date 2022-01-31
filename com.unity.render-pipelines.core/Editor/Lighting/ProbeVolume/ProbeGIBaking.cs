@@ -736,7 +736,6 @@ namespace UnityEngine.Experimental.Rendering
 
             // CellData
             using var probesL0L1 = new NativeArray<float>(asset.totalCellCounts.probesCount * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-            using var validity = new NativeArray<float>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // CellOptionalData
             var probesL2ScalarPaddedCount = asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2 ? asset.totalCellCounts.probesCount * ProbeVolumeAsset.kL2ScalarCoefficientsCount + 3 : 0;
@@ -744,6 +743,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // CellSharedData
             using var bricks = new NativeArray<Brick>(asset.totalCellCounts.bricksCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+            using var validity = new NativeArray<float>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
 
             // CellSupportData
             using var positions = new NativeArray<Vector3>(asset.totalCellCounts.probesCount, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
@@ -757,7 +757,6 @@ namespace UnityEngine.Experimental.Rendering
                 var cellCounts = asset.cellCounts[i];
 
                 sceneStateHash = sceneStateHash * 23 + bakingCell.GetBakingHashCode();
-                bricks.GetSubArray(startCounts.bricksCount, cellCounts.bricksCount).CopyFrom(bakingCell.bricks);
 
                 var probesTargetL0L1 = probesL0L1.GetSubArray(startCounts.probesCount * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount, cellCounts.probesCount * ProbeVolumeAsset.kL0L1ScalarCoefficientsCount);
                 for (int j = 0, k = 0; j < cellCounts.probesCount; ++j, k += ProbeVolumeAsset.kL0L1ScalarCoefficientsCount)
@@ -765,8 +764,6 @@ namespace UnityEngine.Experimental.Rendering
                     ref var sh = ref bakingCell.sh[j];
                     WriteToShaderCoeffsL0L1(ref sh, probesTargetL0L1, k);
                 }
-                validity.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.validity);
-
 
                 if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 {
@@ -777,6 +774,9 @@ namespace UnityEngine.Experimental.Rendering
                         WriteToShaderCoeffsL2(ref sh, probesTargetL2, k);
                     }
                 }
+
+                bricks.GetSubArray(startCounts.bricksCount, cellCounts.bricksCount).CopyFrom(bakingCell.bricks);
+                validity.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.validity);
 
                 positions.GetSubArray(startCounts.probesCount, cellCounts.probesCount).CopyFrom(bakingCell.probePositions);
                 offsets.GetSubArray(startCounts.offsetsCount, cellCounts.offsetsCount).CopyFrom(bakingCell.offsetVectors);
@@ -795,19 +795,18 @@ namespace UnityEngine.Experimental.Rendering
                 static long AlignRemainder16(long count) => count % 16L;
 
                 using (var fs = new System.IO.FileStream(cellDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
-                {
                     fs.Write(new ReadOnlySpan<byte>(probesL0L1.GetUnsafeReadOnlyPtr(), probesL0L1.Length * UnsafeUtility.SizeOf<float>()));
-                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
-                    fs.Write(new ReadOnlySpan<byte>(validity.GetUnsafeReadOnlyPtr(), validity.Length * UnsafeUtility.SizeOf<float>()));
-
-                }
                 if (asset.bands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                 {
                     using (var fs = new System.IO.FileStream(cellOptionalDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                         fs.Write(new ReadOnlySpan<byte>(probesL2.GetUnsafeReadOnlyPtr(), probesL2.Length * UnsafeUtility.SizeOf<float>()));
                 }
                 using (var fs = new System.IO.FileStream(cellSharedDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
+                {
                     fs.Write(new ReadOnlySpan<byte>(bricks.GetUnsafeReadOnlyPtr(), bricks.Length * UnsafeUtility.SizeOf<Brick>()));
+                    fs.Write(new byte[AlignRemainder16(fs.Position)]);
+                    fs.Write(new ReadOnlySpan<byte>(validity.GetUnsafeReadOnlyPtr(), validity.Length * UnsafeUtility.SizeOf<float>()));
+                }
                 using (var fs = new System.IO.FileStream(cellSupportDataFilename, System.IO.FileMode.Create, System.IO.FileAccess.Write))
                 {
                     fs.Write(new ReadOnlySpan<byte>(positions.GetUnsafeReadOnlyPtr(), positions.Length * UnsafeUtility.SizeOf<Vector3>()));

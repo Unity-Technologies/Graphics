@@ -88,9 +88,12 @@ namespace UnityEngine.Experimental.Rendering
 
             var cellSharedData = cellSharedDataAsset.GetData<byte>();
             var bricksByteCount = totalCellCounts.bricksCount * UnsafeUtility.SizeOf<ProbeBrickIndex.Brick>();
-            if (bricksByteCount != cellSharedData.Length)
+            var validityByteStart = AlignUp16(bricksByteCount);
+            var validityByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();
+            if ((validityByteStart + validityByteCount) != cellSharedData.Length)
                 return false;
             var bricksData = cellSharedData.GetSubArray(0, bricksByteCount).Reinterpret<ProbeBrickIndex.Brick>(1);
+            var validityData = cellSharedData.GetSubArray(validityByteStart, validityByteCount).Reinterpret<float>(1);
 
             var cellSupportData = cellSupportDataAsset ? cellSupportDataAsset.GetData<byte>() : default;
             var hasSupportData = cellSupportData.IsCreated;
@@ -109,6 +112,7 @@ namespace UnityEngine.Experimental.Rendering
                 var counts = cellCounts[i];
 
                 cell.bricks = bricksData.GetSubArray(startCounts.bricksCount, counts.bricksCount);
+                cell.validity = validityData.GetSubArray(startCounts.probesCount, counts.probesCount);
 
                 if (hasSupportData)
                 {
@@ -129,12 +133,9 @@ namespace UnityEngine.Experimental.Rendering
 
             var cellData = cellDataAsset.GetData<byte>();
             var shL0L1DataByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>() * kL0L1ScalarCoefficientsCount;
-            var validityByteStart = AlignUp16(shL0L1DataByteCount);
-            var validityByteCount = totalCellCounts.probesCount * UnsafeUtility.SizeOf<float>();
-            if ((shL0L1DataByteCount + validityByteCount) != cellData.Length)
+            if (shL0L1DataByteCount != cellData.Length)
                 return false;
             var shL0L1Data = cellData.GetSubArray(0, shL0L1DataByteCount).Reinterpret<float>(1);
-            var validityData = cellData.GetSubArray(validityByteStart, validityByteCount).Reinterpret<float>(1);
 
             var cellOptionalData = cellOptionalDataAsset ? cellOptionalDataAsset.GetData<byte>() : default;
             var hasOptionalData = cellOptionalData.IsCreated;
@@ -150,7 +151,6 @@ namespace UnityEngine.Experimental.Rendering
                 var counts = cellCounts[i];
 
                 cell.shL0L1Data = shL0L1Data.GetSubArray(startCounts.probesCount * kL0L1ScalarCoefficientsCount, counts.probesCount * kL0L1ScalarCoefficientsCount);
-                cell.validity = validityData.GetSubArray(startCounts.probesCount, counts.probesCount);
 
                 if (hasOptionalData)
                     cell.shL2Data = shL2Data.GetSubArray(startCounts.probesCount * kL2ScalarCoefficientsCount, counts.probesCount * kL2ScalarCoefficientsCount);

@@ -31,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         [SerializeField] internal ProbeVolumeAsset asset;
-        [SerializeField] internal TextAsset cellSharedDataAsset; // Contains bricks data
+        [SerializeField] internal TextAsset cellSharedDataAsset; // Contains bricks and validity data
         [SerializeField] internal TextAsset cellSupportDataAsset; // Contains debug data
         [SerializeField] List<SerializablePerStateDataItem> serializedStates = new();
 
