@@ -126,7 +126,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     else
                     {
-                        float length = 2.0f * maxRange;
+                        // max distance from *surface* of capsule
+                        float length = 2.0f * (data.offset + data.radius + maxRange);
                         bbox = new OrientedBBox(
                             Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
                     }
@@ -150,9 +151,14 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
-        internal void UpdateShaderVariablesGlobalCapsuleShadows(ref ShaderVariablesGlobal cb)
+        internal void UpdateShaderVariablesGlobalCapsuleShadows(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
+            CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
             cb._CapsuleOccluderCount = (uint)m_VisibleCapsuleOccluderData.Count;
+            cb._EnableCapsuleAmbientOcclusion = (capsuleShadows.enableAmbientOcclusion.value && capsuleShadows.ambientOcclusionRange.value > 0.0f)
+                ? (1 + (uint)capsuleShadows.ambientOcclusionMethod.value)
+                : 0;
+            cb._CapsuleAmbientOcclusionRange = capsuleShadows.ambientOcclusionRange.value;
         }
 
         internal void BindGlobalCapsuleShadowBuffers(CommandBuffer cmd)

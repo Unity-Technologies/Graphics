@@ -670,6 +670,9 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
+    // combine capsule ambient occlusion to with the BSDF term
+    bsdfData.ambientOcclusion = min(bsdfData.ambientOcclusion, EvaluateCapsuleAmbientOcclusion(posInput, bsdfData.normalWS));
+
     ApplyDebugToLighting(context, builtinData, aggregateLighting);
 
     // Note: We can't apply the IndirectDiffuseMultiplier here as with GBuffer, Emissive is part of the bakeDiffuseLighting.

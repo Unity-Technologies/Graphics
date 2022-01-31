@@ -11,6 +11,12 @@
 #define CAPSULESHADOWMETHOD_CLOSEST_SPHERE (1)
 #define CAPSULESHADOWMETHOD_ELLIPSOID (2)
 
+//
+// UnityEngine.Rendering.HighDefinition.CapsuleAmbientOcclusionMethod:  static fields
+//
+#define CAPSULEAMBIENTOCCLUSIONMETHOD_CLOSEST_SPHERE (0)
+#define CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_INTEGRAL (1)
+
 // Generated from UnityEngine.Rendering.HighDefinition.CapsuleOccluderData
 // PackingRules = Exact
 struct CapsuleOccluderData

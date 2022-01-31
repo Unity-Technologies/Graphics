@@ -89,22 +89,30 @@ float EvaluateCapsuleOcclusion(
     float3 capsuleAxisDirWS,
     float capsuleOffset,
     float capsuleRadius,
+    float shadowRange,
     float3 normalWS)
 {
     float occlusion = 1.f;
+    {
+        // apply falloff based on the max range of the shadow effect
+        float closestT = RayClosestPoint(surfaceToCapsuleVec, capsuleAxisDirWS, float3(0.f, 0.f, 0.f));
+        float clampedClosestT = clamp(closestT, -capsuleOffset, capsuleOffset);
+        float3 surfaceToSphereVec = surfaceToCapsuleVec + clampedClosestT*capsuleAxisDirWS;
+        float sphereDistance = length(surfaceToSphereVec);
+        float capsuleBoundaryDistance = sphereDistance - capsuleRadius;
+        occlusion = smoothstep(1.0f, 0.75f, capsuleBoundaryDistance/shadowRange);
 
-    // apply falloff to avoid self-shadowing
-    // (adjusts where in the interior to fade in the shadow based on the local normal)
-    if (featureBits & CAPSULE_SHADOW_FEATURE_FADE_SELF_SHADOW) {
-        float t = RayClosestPoint(surfaceToCapsuleVec, capsuleAxisDirWS, float3(0.f, 0.f, 0.f));
-        float3 closestCenter = surfaceToCapsuleVec + clamp(t, -capsuleOffset, capsuleOffset)*capsuleAxisDirWS;
-        float closestDistance = length(closestCenter);
-        float3 closestDir = closestCenter/closestDistance;
-        float fadeCoord
-            = closestDistance/capsuleRadius     // 0 in interior, 1 on surface
-            + 0.5f*dot(normalWS, closestDir);   // -1 facing out of capsule, +1 facing into capsule
-        occlusion *= smoothstep(0.6f, 0.8f, fadeCoord);
+        // apply falloff to avoid self-shadowing
+        // (adjusts where in the interior to fade in the shadow based on the local normal)
+        if (featureBits & CAPSULE_SHADOW_FEATURE_FADE_SELF_SHADOW) {
+            float interiorTerm = sphereDistance/capsuleRadius;                      // 0 in interior, 1 on surface
+            float facingTerm = dot(normalWS, surfaceToSphereVec)/sphereDistance;    // -1 facing out of capsule, +1 facing into capsule
+            occlusion *= smoothstep(0.6f, 0.8f, interiorTerm + 0.5f*facingTerm);
+        }
     }
+    // early out before more intersection tests
+    if (occlusion == 0.f)
+        return 0.f;
 
     // test the occluder shape vs the light
     if (featureBits & CAPSULE_SHADOW_FEATURE_ELLIPSOID) {
@@ -197,6 +205,65 @@ float EvaluateCapsuleOcclusion(
     }
 
     return occlusion;
+}
+
+float LineDiffuseOcclusion(float3 p0, float3 wt, float t1, float t2, float3 n)
+{
+    /*
+        Computes the amount of cosine-weighted occlusion for a surface at the
+        origin with normal n, for a "thin" line.  The return value can be
+        multiplied by the actual thickness for an approximation of the ambient
+        occlusion from that thick line.
+
+        parameters:
+            p0: closet point to origin on infinite line
+            wt: direction of the line
+            t1, t2: the line endpoints, t1 <= t2
+            n: the normal of the surface at the origin
+
+        reference: Linear-Light Shading with Linearly Transformed Cosines
+
+        optimisations applied to the approach from the paper:
+            * project the out line so that p0 is at distance 1
+                (if we scale the thickness and distance at the same time, the
+                occlusion remains the same, so apply the same sacle to the
+                return value)
+            * combine the two arctan into a single one using:
+                tan(a - b) = (tan(a) - tan(b))/(1 + tan(a)*tan(b))
+    */
+
+    // check horizon
+    float p0DotN = dot(p0, n);
+    float wtDotN = dot(wt, n);
+    float h1 = p0DotN + t1*wtDotN;
+    float h2 = p0DotN + t2*wtDotN;
+    if (h1 <= 0.f && h2 <= 0.f)
+        return 0.f;
+
+    // clamp to horizon
+    if (h1 < 0.f)
+        t1 -= h1/wtDotN;
+    if (h2 < 0.f)
+        t2 -= h2/wtDotN;
+
+    // project to distance 1
+    float s = 1.f/length(p0);
+    p0DotN *= s;
+    t1 *= s;
+    t2 *= s;
+
+    // combine the two arctan terms into a single one
+    float tanAngle = max(t2 - t1, 0.f)/(1.f + t2*t1);
+    float absAngle = FastATanPos(abs(tanAngle));
+    float angle = (tanAngle < 0.f) ? (PI - absAngle) : absAngle;
+
+    // occlusion term with d=1
+    float m1 = t1/(1.f + t1*t1);
+    float m2 = t2/(1.f + t2*t2);
+    float I = (m2 - m1 + angle)*p0DotN + (t2*m2 - t1*m1)*wtDotN;
+
+    // account for the projection in the output
+    return I*s/PI;
 }
 
 #endif

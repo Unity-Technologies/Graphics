@@ -11,6 +11,13 @@ namespace UnityEngine.Rendering.HighDefinition
         Ellipsoid
     }
 
+    [GenerateHLSL]
+    public enum CapsuleAmbientOcclusionMethod
+    {
+        ClosestSphere,
+        LineIntegral,
+    }
+
     [GenerateHLSL(needAccessors = false)]
     internal struct CapsuleOccluderData
     {

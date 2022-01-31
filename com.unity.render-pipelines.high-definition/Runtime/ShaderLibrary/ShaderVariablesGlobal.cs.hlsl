@@ -137,9 +137,9 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _EnableDecals;
     uint _DecalCount;
     uint _CapsuleOccluderCount;
+    uint _EnableCapsuleAmbientOcclusion;
+    float _CapsuleAmbientOcclusionRange;
     uint _CapsuleShadowPad0;
-    uint _CapsuleShadowPad1;
-    uint _CapsuleShadowPad2;
     float _OffScreenDownsampleFactor;
     uint _OffScreenRendering;
     uint _XRViewCount;
