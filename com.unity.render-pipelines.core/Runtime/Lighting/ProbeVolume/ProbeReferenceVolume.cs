@@ -825,8 +825,6 @@ namespace UnityEngine.Experimental.Rendering
             // Streaming might have never loaded the cell in the first place
             if (cellInfo.loaded)
             {
-                Debug.Log("Unloading " + cellInfo.cell.position);
-
                 if (cellInfo.flatIdxInCellIndices >= 0)
                     m_CellIndices.MarkCellAsUnloaded(cellInfo.flatIdxInCellIndices);
 
@@ -879,8 +877,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             if (GetCellIndexUpdate(cellInfo.cell, out var cellUpdateInfo)) // Allocate indices
             {
-                Debug.Log("Loading " + cellInfo.cell.position);
-
                 return AddBricks(cellInfo, cellUpdateInfo);
             }
             else

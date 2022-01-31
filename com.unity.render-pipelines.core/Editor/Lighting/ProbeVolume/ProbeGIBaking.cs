@@ -96,6 +96,8 @@ namespace UnityEngine.Experimental.Rendering
         static Dictionary<int, BakingCell> m_BakedCells = new Dictionary<int, BakingCell>();
 
         internal static bool isBakingOnlyActiveScene = false;
+        // This is needed only for isBakingOnlyActiveScene when we have some cells extracted from assets into m_BakedCells
+        static HashSet<int> m_NewlyBakedCells = new HashSet<int>();
 
         static List<ProbeVolumePerSceneData> GetPerSceneDataList()
         {
@@ -353,15 +355,6 @@ namespace UnityEngine.Experimental.Rendering
             var perSceneDataList = ProbeReferenceVolume.instance.perSceneDataList;
             if (perSceneDataList.Count == 0) return;
 
-            var bakingSceneDataList = GetPerSceneDataList();
-            var activeSceneAssetID = -1;
-            if (isBakingOnlyActiveScene)
-            {
-                Debug.Assert(bakingSceneDataList.Count <= 1); // We have max one per scene data as we only consider one scene here.
-                activeSceneAssetID = bakingSceneDataList.Count > 0 ? bakingSceneDataList[0].asset.GetInstanceID() : -1;
-            }
-
-
             Dictionary<int, List<string>> cell2Assets = new Dictionary<int, List<string>>();
             List<CellInfo> tempLoadedCells = new List<CellInfo>();
 
@@ -416,7 +409,7 @@ namespace UnityEngine.Experimental.Rendering
                         foreach (var cellInfo in prv.cells.Values)
                         {
                             var cell = cellInfo.cell;
-                            if (isBakingOnlyActiveScene && cellInfo.sourceAssetInstanceID != activeSceneAssetID)
+                            if (isBakingOnlyActiveScene && !m_NewlyBakedCells.Contains(cell.index))
                             {
                                 dilatedCells.Add(cell);
                             }
@@ -462,7 +455,7 @@ namespace UnityEngine.Experimental.Rendering
                                         }
                                     }
 
-                            if (isBakingOnlyActiveScene && cellInfo.sourceAssetInstanceID != activeSceneAssetID)
+                            if (isBakingOnlyActiveScene && !m_NewlyBakedCells.Contains(cell.index))
                             {
                                 dilatedCells.Add(cell);
                             }
@@ -811,10 +804,9 @@ namespace UnityEngine.Experimental.Rendering
             List<BakingCell> outCells = new List<BakingCell>();
 
             // Keep list of the "new" one, we won't need to push them
-            HashSet<int> existingIndices = new HashSet<int>();
             foreach (var cellIndex in m_BakedCells.Keys)
             {
-                existingIndices.Add(cellIndex);
+                m_NewlyBakedCells.Add(cellIndex);
             }
 
             foreach (var data in ProbeReferenceVolume.instance.perSceneDataList)
@@ -826,7 +818,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     var cell = asset.cells[i];
 
-                    if (existingIndices.Contains(cell.index)) continue; // we have a more up to data thing
+                    if (m_NewlyBakedCells.Contains(cell.index)) continue; // we have a more up to data thing
 
                     BakingCell bc = new BakingCell
                     {
