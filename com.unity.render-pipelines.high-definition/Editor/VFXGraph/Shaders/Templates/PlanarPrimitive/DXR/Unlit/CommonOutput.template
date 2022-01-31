@@ -4,6 +4,8 @@ ${VFXBegin:VFXGetColorRT}
         ${VFXLoadParameter:{invFlipBookSize}}
         ${VFXLoadParameter:{flipBookSize}}
         VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, attributeData.barycentrics, attributes.texIndex);
+    #else
+        VFXUVData uvData = GetUVData(attributeData.barycentrics);
     #endif
 
     float3 color = attributes.color;

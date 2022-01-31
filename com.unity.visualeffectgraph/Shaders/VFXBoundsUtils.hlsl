@@ -6,7 +6,6 @@
 
 #if VFX_USE_BOUNDS_UTILS
 
-
 float4x4 GetElementToVFX(VFXAttributes attributes, float3 size3)
 {
     return GetElementToVFXMatrix(

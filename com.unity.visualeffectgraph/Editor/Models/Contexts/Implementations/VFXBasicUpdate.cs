@@ -281,7 +281,14 @@ namespace UnityEditor.VFX
             }
             return mapper;
         }
-
+        public override IEnumerable<VFXMapping> additionalMappings
+        {
+            get
+            {
+                if ((GetData() as VFXDataParticle).NeedsSharedAabbBuffer())
+                    yield return new VFXMapping("contextComputesAabb", 1);
+            }
+        }
         public override IEnumerable<string> additionalDefines
         {
             get
@@ -301,7 +308,6 @@ namespace UnityEditor.VFX
                     if (rayTracingDecimationFactor == UInt32.MaxValue)
                         throw new InvalidOperationException(
                             "AABB Buffer is generated but Decimation Factor hasn't been set.");
-                    yield return "VFX_COMPUTE_AABBS";
                     yield return "VFX_RT_DECIMATION_FACTOR " + rayTracingDecimationFactor;
                 }
 

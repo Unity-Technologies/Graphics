@@ -630,13 +630,18 @@ namespace UnityEditor.VFX
 
         private void PrepareAABBBuffers(out List<VFXAbstractParticleOutput> outputsSharingAABB,
             out Dictionary<VFXAbstractParticleOutput, int> outputsOwningAABB,
+            out Dictionary<VFXAbstractParticleOutput, uint> outputAabbSize,
             out int sharedAabbBufferIndex,
+            out uint sharedAabbSize,
             ref List<VFXMapping> systemBufferMappings,
             ref List<VFXGPUBufferDesc> outBufferDescs)
         {
             outputsSharingAABB = new List<VFXAbstractParticleOutput>();
             outputsOwningAABB = new Dictionary<VFXAbstractParticleOutput, int>();
+            outputAabbSize = new Dictionary<VFXAbstractParticleOutput, uint>();
             List<VFXAbstractParticleOutput> listOutputsOwningAABB = new List<VFXAbstractParticleOutput>();
+            sharedAabbSize = 0u;
+
 
             sharedAabbBufferIndex = -1;
             var rayTracedOutputs = compilableOwners.OfType<VFXAbstractParticleOutput>().Where(o => o.IsRaytraced()).ToArray();
@@ -656,8 +661,9 @@ namespace UnityEditor.VFX
                 uint sharedDecimationFactor = outputsSharingAABB[0].GetRaytracingDecimationFactor();
                 uint aabbBufferSize = (capacity + sharedDecimationFactor - 1) / sharedDecimationFactor;
                 sharedAabbBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = aabbBufferSize, stride = 24 });
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = 0u, stride = 24 });
                 systemBufferMappings.Add(new VFXMapping("aabbBuffer", sharedAabbBufferIndex));
+                sharedAabbSize = aabbBufferSize;
             }
 
             int outputId = 0;
@@ -666,7 +672,8 @@ namespace UnityEditor.VFX
                 uint aabbBufferSize = (capacity + output.GetRaytracingDecimationFactor() - 1) / output.GetRaytracingDecimationFactor();
                 int bufferIndex = outBufferDescs.Count;
                 outputsOwningAABB.Add(output, bufferIndex);
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = aabbBufferSize, stride = 24 });
+                outputAabbSize.Add(output, aabbBufferSize);
+                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = 0u, stride = 24 });
                 systemBufferMappings.Add(new VFXMapping("aabbBuffer" + outputId++, bufferIndex));
             }
         }
@@ -934,7 +941,9 @@ namespace UnityEditor.VFX
 
             PrepareAABBBuffers(out List<VFXAbstractParticleOutput> outputsSharingAABB,
                 out Dictionary<VFXAbstractParticleOutput, int> outputsOwningAABB,
+                out Dictionary<VFXAbstractParticleOutput, uint> outputAabbSize,
                 out int sharedAabbBufferIndex,
+                out uint sharedAabbSize,
                 ref systemBufferMappings,
                 ref outBufferDescs);
 
@@ -973,6 +982,7 @@ namespace UnityEditor.VFX
                     if (update.HasFeature(VFXOutputUpdate.Features.FillRaytracingAABB) && outputsOwningAABB.ContainsKey(update.output))
                     {
                         bufferMappings.Add(new VFXMapping("aabbBuffer", outputsOwningAABB[update.output]));
+                        additionalParameters.Add(new VFXMapping("aabbBufferSize", (int)outputAabbSize[update.output]));
                     }
                 }
                 else if (context.contextType == VFXContextType.Output && (context is IVFXSubRenderer) && (context as IVFXSubRenderer).hasMotionVector)
@@ -1003,7 +1013,7 @@ namespace UnityEditor.VFX
                                                     outputsSharingAABB.Contains(context)))
                 {
                     bufferMappings.Add(new VFXMapping("aabbBuffer", sharedAabbBufferIndex));
-                    additionalParameters.Add(new VFXMapping("sharesAabbBuffer", 1));
+                    additionalParameters.Add(new VFXMapping("aabbBufferSize", (int)sharedAabbSize));
                 }
 
                 if (context is VFXAbstractParticleOutput output && outputsOwningAABB.ContainsKey(output))

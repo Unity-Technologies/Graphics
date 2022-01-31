@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
+using UnityEngine.VFX;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -538,8 +539,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If the camera does not have a ray tracing frame setting or it is a preview camera (due to the fact that the sphere does not exist as a game object we can't create the RTAS) we do not want to build a RTAS
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+            {
                 return;
-
+            }
+            VFXManager.SetRayTracingEnabled(true);
             // Collect the lights
             CollectLightsForRayTracing(hdCamera, ref m_RTASManager.transformsDirty);
 

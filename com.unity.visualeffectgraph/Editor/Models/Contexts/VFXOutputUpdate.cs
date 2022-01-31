@@ -227,9 +227,8 @@ namespace UnityEditor.VFX
                     yield return "VFX_FEATURE_FRUSTUM_CULL";
                 if (output.HasStrips(false))
                     yield return "HAS_STRIPS";
-                if (HasFeature(Features.FillRaytracingAABB)) //TODO : helper to check all positional attributes
+                if (HasFeature(Features.FillRaytracingAABB))
                 {
-                    yield return "VFX_COMPUTE_AABBS";
                     yield return "VFX_RT_DECIMATION_FACTOR " + output.GetRaytracingDecimationFactor();
                 }
             }
@@ -240,6 +239,8 @@ namespace UnityEditor.VFX
             get
             {
                 yield return new VFXMapping("perOutputUpdate", 1);
+                if (HasFeature(Features.FillRaytracingAABB))
+                    yield return new VFXMapping("contextComputesAabb", 1);
             }
         }
 
