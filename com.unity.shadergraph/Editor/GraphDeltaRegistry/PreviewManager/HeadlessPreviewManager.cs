@@ -208,6 +208,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 return impactedNodes;
             }
 
+            Debug.Log("HeadlessPreviewManager: Node not recognized!");
+
             // Currently any change to any node needs to also dirty the master node as we don't actually have ability to traverse to master node, though in future it will and this can be removed
             m_MasterPreviewData.isShaderOutOfDate = true;
 
@@ -251,6 +253,8 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                     }
                 }
             }
+
+            Debug.Log("HeadlessPreviewManager: Node not recognized!");
 
             return impactedNodes;
         }
@@ -374,7 +378,7 @@ namespace UnityEditor.ShaderGraph.GraphDelta
                 previewData.isPreviewEnabled = shouldPreviewUpdate;
             }
 
-            Debug.Log("Node not recognized!");
+            Debug.Log("HeadlessPreviewManager: Node not recognized!");
         }
 
         /// <summary>
