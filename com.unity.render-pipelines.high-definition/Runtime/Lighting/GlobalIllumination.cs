@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedIntParameter textureLodBias = new ClampedIntParameter(7, 0, 7);
 
         /// <summary>
-        /// Controls the length of GI rays.
+        /// Controls the length of GI rays in meters.
         /// </summary>
         public float rayLength
         {

@@ -2,7 +2,7 @@
 
 Path tracing is a ray tracing algorithm that sends rays from the Camera and, when a ray hits a reflective or refractive surface, recurses the process until it reaches a light source. The series of rays from the Camera to the Light form a "path".
 
-It enables HDRP to compute many different effects (such as hard or soft shadows, mirror or glossy reflections and refractions, and indirect illumination) in one single unified process.
+It enables HDRP to compute many effects (such as hard or soft shadows, mirror or glossy reflections and refractions, and indirect illumination) in a single unified process.
 
 A notable downside to path tracing is noise. However, noise vanishes as more paths accumulate, and eventually converges toward a clean image. For more information about path tracing limitations in HDRP, see [Unsupported features of path tracing](Ray-Tracing-Getting-Started.md#unsupported-features-of-path-tracing).
 
@@ -33,12 +33,13 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 ## Properties
 
-| Property              | Description                                                  |
-| --------------------- | ------------------------------------------------------------ |
-| **Maximum Samples**   | Set the number of frames to accumulate for the final image. There is a progress bar at the bottom of the Scene view which indicates the current accumulation with respect to this value. |
-| **Minimum Depth**     | Set the minimum number of light bounces in each path.        |
-| **Maximum Depth**     | Set the maximum number of light bounces in each path. You can not set this to be lower than Minimum Depth.<br /> **Note**: You can set this and Minimum Depth to 1 if you only want to direct lighting. You can set them both to 2 if you only want to visualize indirect lighting (which is only visible on the second bounce). |
-| **Maximum Intensity** | Set a value to clamp the intensity of the light value each bounce returns. This avoids very bright, isolated pixels in the final result.<br />**Note**: This property makes the final image dimmer, so if the result looks dark, increase the value of this property. |
+| Property                    | Description                                                  |
+| --------------------------- | ------------------------------------------------------------ |
+| **Maximum Samples**         | Set the number of frames to accumulate for the final image. There is a progress bar at the bottom of the Scene view which indicates the current accumulation with respect to this value. |
+| **Minimum Depth**           | Set the minimum number of light bounces in each path.        |
+| **Maximum Depth**           | Set the maximum number of light bounces in each path. You can not set this to be lower than Minimum Depth.<br /> **Note**: You can set this and Minimum Depth to 1 if you only want to direct lighting. You can set them both to 2 if you only want to visualize indirect lighting (which is only visible on the second bounce). |
+| **Maximum Intensity**       | Set a value to clamp the intensity of the light value each bounce returns. This avoids very bright, isolated pixels in the final result.<br />**Note**: This property can make the final image dimmer, so if the result looks dark, increase the value of this property. |
+| **Sky Importance Sampling** | Set the sky sampling mode. Importance sampling favors the brightest directions, which is beneficial when using a sky model with high contrast and very intense spots (like a sun, or street lights). On the other hand, it can be slightly detrimental when using a smooth, uniform sky. It is active by default for HDRI skies only, but can also be turned On and Off, regardless of the type of sky in use. |
 
 ![](Images/RayTracingPathTracing4.png)
 
@@ -54,13 +55,23 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 
 ## Materials parameterization
 
-Some phenomena like refraction, absorption in transmissive objects, or subsurface scattering, can be expressed more naturally in a path tracing setting than in its rasterized counterpart, and as such require less material parameters (e.g. additional thickness information, expected shape of the refractive object, ...). For that reason, some parameters have no effect in path tracing, while others bear a slightly different meaning.
+Some light phenomena can be expressed more naturally in path tracing than in rasterization, for instance:
+
+- Light refraction in transmissive objects.
+- Light absorption in transmissive objects.
+- Subsurface scattering.
+
+Rasterization uses various methods to approximate complex lighting effects, with each of those methods relying on dedicated Material parameters. Path tracing computes those same effects all at once, without the need for as many parameters.
+
+For that reason, some parameters have no effect in path tracing, while others bear a slightly different meaning.
 
 ### Refraction model
 
 In the Lit family of materials, when the surface type is set to *Transparent*, you can select between *None*, *Box*, *Sphere* or *Thin* refraction models.
 
-For path tracing, the distinction between *Box* or *Sphere* makes no sense (as rays can intersect the real objects in the scene), and both effectively carry the common meaning of a *thick* mode, to be used on solid objects represented by a closed surface. On the other hand, *Thin* conveys the same idea as its rasterized version, and *None* is a special case of thin refractive surface, hardcoded to be fully smooth to simulate alpha blending. Additionally, transparent surfaces should be *Double-Sided*, so that they get intersected from both sides, and normal mode should be selected appropriately for each situation, as described right below.
+For path tracing, the distinction between *Box* or *Sphere* is irrelevant (as rays can intersect the real objects in the scene), and both effectively carry the common meaning of a *thick* mode, to be used on solid objects represented by a closed surface. On the other hand, *Thin* conveys the same idea as its rasterized version, and *None* is a special case of thin refractive surface, simulating alpha blending.
+
+Additionally, transparent surfaces should be *Double-Sided*, so that they get intersected from both sides, and normal mode should be selected appropriately for each situation, as described right below.
 
 | Refraction model  | Path tracing meaning                              | Surface sidedness                                 |
 |-------------------|---------------------------------------------------|---------------------------------------------------|

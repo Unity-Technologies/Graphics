@@ -1,0 +1,16 @@
+project:
+  name: BatchRendererGroup
+
+jobs:
+  - name: <PROJECT_NAME>
+    dependencies:
+      - <PROJECT_ALL_YML_FILE>#PR_<PROJECT_NAME>_<TRACK>
+      - <PROJECT_ALL_YML_FILE>#Extra_<PROJECT_NAME>_<TRACK>
+  - name: PR <PROJECT_NAME>
+    dependencies:
+      - .yamato/all-universal_batchrenderergroup.yml#PR_Universal_BatchRendererGroup_<TRACK>
+      - .yamato/all-hdrp_batchrenderergroup.yml#PR_HDRP_BatchRendererGroup_<TRACK>
+  - name: Extra <PROJECT_NAME>
+    dependencies:
+      - .yamato/all-universal_batchrenderergroup.yml#Extra_Universal_BatchRendererGroup_<TRACK>
+      - .yamato/all-hdrp_batchrenderergroup.yml#Extra_HDRP_BatchRendererGroup_<TRACK>

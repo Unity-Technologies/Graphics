@@ -89,7 +89,7 @@ namespace UnityEditor.VFX
             {
                 if (data.boundsMode == BoundsSettingMode.Recorded)
                 {
-                    if (VFXViewWindow.GetWindow(GetGraph())?.graphView?.attachedComponent == null ||
+                    if (VFXViewWindow.GetWindow(GetGraph(), false, false)?.graphView?.attachedComponent == null ||
                         !BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.componentBoard, false))
                     {
                         manager.RegisterError("NeedsRecording", VFXErrorType.Warning,
@@ -201,6 +201,21 @@ namespace UnityEditor.VFX
         public override IEnumerable<VFXSetting> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags)
         {
             return GetData().GetSettings(listHidden, flags); // Just a bridge on data
+        }
+
+        protected override IEnumerable<VFXBlock> implicitPreBlock
+        {
+            get
+            {
+                var data = GetData();
+                if (hasGPUSpawner)
+                {
+                    // Force "alive" attribute when a system can spawn particles from GPU, because we are updating the entire capacity
+                    var block = VFXBlock.CreateImplicitBlock<Block.SetAttribute>(data);
+                    block.SetSettingValue(nameof(Block.SetAttribute.attribute), VFXAttribute.Alive.name);
+                    yield return block;
+                }
+            }
         }
     }
 }

@@ -79,10 +79,13 @@ Once you have completed one of these, move onto [Final setup](#final-setup).
 
 You can use the [Render Pipeline Wizard](Render-Pipeline-Wizard.md) to set up ray tracing in your HDRP Project.
 
-1. To open the HDRP Wizard, go to Window > Rendering > HDRP Wizard.
-2. Select the HDRP + DXR tab.
-3. Click the Fix All button.
-4. (Optional) Enable the HDRP asset features that are required for the ray tracing effects.
+1. To open the HDRP Wizard, go to **Window** > **Render pipeline** > **HD Render Pipeline Wizard**.
+
+2. Select the **HDRP + DXR** tab.
+
+3. Click the **Fix All** button.
+
+To enable ray tracing for specific effects, enable the ray tracing features in the [HDRP Asset](#ManualSetup-EnableAssetFeatures).
 
 Your HDRP Project now supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#final-setup).
 
@@ -102,13 +105,15 @@ To set up ray tracing manually, you need to:
 
 #### Upgrading to DirectX 12
 
-1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the Player tab.
-2. Select the Other Settings fold-out, and in the Rendering section, disable Auto Graphics API for Windows. This exposes the Graphics APIs for Windows section.
-3. In the Graphics APIs for Windows section, click the plus (+) button and select Direct3d12.
-4. Unity uses Direct3d11 by default. To make Unity use Direct3d12, move Direct3d12 (Experimental) to the top of the list.
+HDRP enables DirextX12 by default. To enable DirectX 12 manually:
+
+1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the **Player** tab.
+2. Select the **Other Settings** drop-down, and in the **Rendering** section, disable Auto Graphics API for Windows. This exposes the Graphics APIs for Windows section.
+3. In the **Graphics APIs for Windows** section, click the plus (**+**) button and select **Direct3d12**.
+4. Unity uses Direct3d11 by default. To make Unity use Direct3d12, move **Direct3d12 (Experimental)** to the top of the list.
 5. To apply the changes, you may need to restart the Unity Editor. If a window prompt appears telling you to restart the Editor, click **Restart Editor** in the window.
 
-The Unity Editor window should now include the &lt;DX12&gt; tag in the title bar like so:
+The Unity Editor window should now include the &lt;DX12&gt; tag in the title bar:
 
 ![](Images/RayTracingGettingStarted1.png)
 
@@ -119,7 +124,7 @@ The Unity Editor window should now include the &lt;DX12&gt; tag in the title bar
 Next, you need to disable static batching, because HDRP does not support this feature with ray tracing in **Play Mode**. To do this:
 
 1. Open the Project Settings window (menu:  **Edit > Project Settings**), then select the **Player** tab.
-2. Select the **Other Settings** fold-out, then in the **Rendering** section, disable **Static Batching**.
+2. Select the **Other Settings** drop-down, then in the **Rendering** section, disable **Static Batching**.
 
 <a name="ManualSetup-EnablingRayTracing"></a>
 
@@ -128,7 +133,7 @@ Next, you need to disable static batching, because HDRP does not support this fe
 Now that Unity is running in DirectX 12, and you have disabled [static batching](https://docs.unity3d.com/Manual/DrawCallBatching.html), enable and configure ray tracing in your [HDRP Asset](HDRP-Asset.md). The previous steps configured Unity to support ray tracing; the following step enables it in your HDRP Unity Project.
 
 1. Click on your HDRP Asset in the Project window to view it in the Inspector.
-2. In the Rendering section, enable Realtime Ray Tracing. This triggers a recompilation, which makes ray tracing available in your HDRP Project.
+2. In the **Rendering** section, enable **Realtime Ray Tracing**. This triggers a recompilation, which makes ray tracing available in your HDRP Project.
 
 <a name="ManualSetup-RayTracingResources"></a>
 
@@ -136,8 +141,8 @@ Now that Unity is running in DirectX 12, and you have disabled [static batching]
 
 To verify that HDRP has properly assigned ray tracing resources:
 
-1. Open the Project Settings window (menu: **Edit > Project Settings**), then select the HDRP Default Settings tab.
-2. Make sure there is a Render Pipeline Resources Asset assigned to the Render Pipeline Resources field.
+1. Open the Project Settings window (menu: **Edit** > **Project Settings**), then select the **HDRP Default Settings** tab.
+2. Find the **Render Pipeline Resources** field and make sure there is a Render Pipeline Resources Asset assigned to it.
 
 <a name="ManualSetup-EnableAssetFeatures"></a>
 
@@ -153,10 +158,10 @@ HDRP uses ray tracing to replace certain rasterized effects. In order to use a r
 To enable the above effects in your HDRP Unity Project:
 
 1. Click on your HDRP Asset in the Project window to view it in the Inspector.
-2. Go to **Lighting > Reflections** and enable **Screen Space Reflection**.
-3. After enabling **Screen Space Reflections**, go to **Lighting > Reflections** and enable **Transparent Screen Space Reflection**.
-4. Go to **Lighting > Shadows** and enable **Screen Space Shadows**.
-5. Go to **Lighting > Lighting** and enable **Screen Space Global Illumination**.
+2. Go to **Lighting** > **Reflections** and enable **Screen Space Reflection**.
+3. After enabling **Screen Space Reflections**, go to **Lighting** > **Reflections** and enable **Transparent Screen Space Reflection**.
+4. Go to **Lighting** > **Shadows** and enable **Screen Space Shadows**.
+5. Go to **Lighting** > **Lighting** and enable **Screen Space Global Illumination**.
 
 Your HDRP Project now fully supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#final-setup).
 
@@ -195,7 +200,7 @@ To build your Project to a Unity Player, ray tracing requires that the build use
 #### Scene validation
 
 To check whether it is possible to use ray tracing in a Scene, HDRP includes a menu option that validates each GameObject in the Scene. If you do not setup GameObjects correctly, this process throws warnings in the Console window. For the list of things this option checks for, see [Menu items](Menu-Items.md#other). To use it:
-1. Click **Edit > Rendering > Check Scene Content for HDRP Ray Tracing**.
+1. Click **Edit** > **Render Pipeline** > **HD Render Pipeline**  > **Check Scene Content for Ray Tracing**.
 2. In the Console window (menu: **Window > General > Console**), check if there are any warnings.
 
 <a name="RayTracingEffectsOverview"></a>
@@ -235,14 +240,14 @@ HDRP includes two ray tracing modes that define how it evaluates certain ray-tra
 * **Performance**: This mode targets real-time applications. If you select this mode, ray-traced effects include presets that you can change to balance performance with quality.
 * **Quality**: This mode targets technical demos and applications that want the best quality results.
 
-Depending on which ray tracing mode you select, HDRP may expose different properties for some ray-traced effects.
+HDRP exposes different properties for some ray-traced effects based on the ray tracing mode you use..
 
-You can change which ray tracing mode HDRP uses on either a Project level or effect level. To change it for your entire Project:
+You can change which ray tracing mode HDRP uses on either a Project level or effect level. To change the ray tracing mode for your entire Project:
 
-1. Click on your HDRP Asset in the Project window to view it in the Inspector.
-2. In the Rendering section, select a ray tracing mode from the **Supported Ray Tracing Mode** drop-down.
+1. Click on your [HDRP Asset](HDRP-Asset.md) in the Project window to view it in the Inspector.
+2. In the **Rendering** section, enable the **Realtime Raytracing** checkbox, open the **Supported Ray Tracing Mode** drop-down and select a ray tracing mode from open.
 
-If you select **Both**, you can change the ray tracing mode for each ray-traced effect. To do this:
+If you select the **Both** option, you can change the ray tracing mode for each ray-traced effect. To do this:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component that includes a ray-traced effect.
 2. In the Inspector for the ray-traced effect, change the **Mode** property to use the ray tracing mode you want the effect to use. This changes the properties available in the Inspector.
@@ -250,8 +255,7 @@ If you select **Both**, you can change the ray tracing mode for each ray-traced 
 
 ## Ray tracing project
 
-You can find a small ray tracing project that contains all the effects mentioned above here:
-https://github.com/Unity-Technologies/SmallOfficeRayTracing
+You can find a ray tracing project that contains all the effects mentioned above in the [Small Office Ray Tracing sample project](https://github.com/Unity-Technologies/SmallOfficeRayTracing).
 This Project is already set up with ray tracing support.
 
 ## Limitations
