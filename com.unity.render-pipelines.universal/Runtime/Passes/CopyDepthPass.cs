@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // 1) we are bliting from render texture to back buffer and
                     // 2) renderTexture starts UV at top
                     // XRTODO: handle scalebias and scalebiasRt for src and dst separately
-                    bool isRenderToBackBufferTarget = destination.nameID == cameraData.xr.renderTarget && !cameraData.xr.renderTargetIsRenderTexture;
+                    bool isRenderToBackBufferTarget = destination.nameID == cameraData.xr.renderTarget;
                     bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
                     float flipSign = (yflip) ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
