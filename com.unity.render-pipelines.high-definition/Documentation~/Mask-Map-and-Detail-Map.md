@@ -15,12 +15,12 @@ To create a mask map:
 
 ## Mask map
 
-The mask map contains four grayscale textures, one in each color channel. The default expected value of each channel is 0.5. HDRP uses the mask map to store the metallic map, occlusion map, detail mask, and smoothness map for the material. The mask map stores these textures in the following channels:
+The mask map contains four grayscale textures, one in each color channel. The default expected value of each channel is 0.5. HDRP uses the mask map to store the metallic map, ambient occlusion map, detail mask, and smoothness map for the material. The mask map stores these textures in the following channels:
 
 | **Color channel** | **Map**     |
 | ----------------- | ----------- |
 | **Red**           | Metallic    |
-| **Green**         | Occlusion   |
+| **Green**         | Ambient Occlusion|
 | **Blue**          | Detail mask |
 | **Alpha**         | Smoothness  |
 
