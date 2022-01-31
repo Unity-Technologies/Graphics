@@ -699,7 +699,9 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
 
     bool frontFace = dot(wo, normal) > 0.0f;
 
-    float3 startPosWS = posInputTransparent.positionWS - 0.1f * normal;
+    float3 startPosWS = posInputTransparent.positionWS + 0.125f * normal;
+    //float3 startPosWS = posInputTransparent.positionWS * (1 - 0.001 * rcp(max(dot(normal, wo), FLT_EPS)));
+    //float3 startPosWS = posInputTransparent.positionWS;
 
     //float3 camPosWS = GetCurrentViewPosition();
     //float3 dir = wt;
@@ -710,7 +712,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     float stepDepthLinear = LinearEyeDepth(stepWS, GetWorldToViewMatrix());
     //stepDepthLinear = (stepDepthLinear - _ProjectionParams.y) / (_ProjectionParams.z - _ProjectionParams.y);
 
-    float3 step = float3(stepNDC.xy * _ScreenSize.xy, stepDepthLinear);
+    float3 step = float3((stepNDC.xy * _ScreenSize.xy), stepDepthLinear);
 
     //float3 startNDC = ComputeNormalizedDeviceCoordinatesWithZ(startPosWS, UNITY_MATRIX_VP);
     float startDepthLinear = LinearEyeDepth(startPosWS, GetWorldToViewMatrix());
@@ -751,7 +753,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     for (k = 0; k < 512; ++k)
     {
         previous = p;
-        previous.xy = round(p.xy);
+        previous.xy = (p.xy);
 
         // Paranoid loop
         UNITY_LOOP
@@ -763,14 +765,15 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
                 break;
             }
         }
+        //p.xy = round(p.xy) + 0.5f;
 
         distance += length(previous - p);
 
-        if (distance > far)
-        {
-            curTransparentHit == 0;
-            break;
-        }
+        //if (distance > far)
+        //{
+        //    curTransparentHit == 0;
+        //    break;
+        //}
 
         float opaqueDeviceDepth_k = LOAD_TEXTURE2D_X(_DepthTexture, p.xy).r;
         float3 opaquePositionWS_k = ComputeWorldSpacePosition(p.xy * _ScreenSize.zw, opaqueDeviceDepth_k, UNITY_MATRIX_I_VP);
@@ -782,7 +785,9 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
             break;
         }
 
-        uint pixelOffset_k = (uint)p.y * _ScreenSize.x + (uint)p.x;
+        //uint pixelOffset_k = (uint)p.y * _ScreenSize.x + (uint)p.x;
+        //uint pixelOffset_k = round(p.y) * _ScreenSize.x + round(p.x);
+        uint pixelOffset_k = round(p.y * _ScreenSize.x + p.x);
         uint listCount_k, listOffset_k;
         VisibilityOIT::GetPixelList(pixelOffset_k, listCount_k, listOffset_k);
 
@@ -912,11 +917,12 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
                 frontFace = !frontFace;
                 hitTransparent = false;
                 ++curTransparentHit;
-                //hitOpaqueOrFar = true;
-                //break;
             }
         }
     }
+
+    if (k == 512)
+        return;
 
     //if (curTransparentHit > 0)
     //{
@@ -930,26 +936,25 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
     //}
     //return;
 
-    if (curTransparentHit == 0 && hitOpaqueOrFar)
-    {
-        //ComputeNormalizedDeviceCoordinatesWithZ(positionWS, UNITY_MATRIX_VP).z;
-        //ComputeWorldSpacePosition(posInputTransparent.positionNDC, firstDeviceDepth, UNITY_MATRIX_I_VP);
-        //float finalDeviceDepth = DeviceDepthFromLinearEye(previous.z * (_ProjectionParams.z - _ProjectionParams.y) + _ProjectionParams.y, _ZBufferParams);
-        //float3 ended = 0.5f * (p + previous);
-        float3 ended = p;
-        float finalDeviceDepth = DeviceDepthFromLinearEye(ended.z, _ZBufferParams);
-        float3 finalPositionWS = ComputeWorldSpacePosition(ended.xy * _ScreenSize.zw, finalDeviceDepth, UNITY_MATRIX_I_VP);
-        //float3 opaqueHit = LOAD_TEXTURE2D_X(_VisOITOpaqueColorPyramid, ended.xy).rgb * exp( -absorptionCoefficient * length(posInputTransparent.positionWS - finalPositionWS) );
-        //float3 opaqueHit = LOAD_TEXTURE2D_X(_VisOITOpaqueColorPyramid, ended.xy).rgb;
-        //_SsrColorPyramidMaxMip
-        float perceptualRoughness = RoughnessToPerceptualRoughness(roughness);
-        float3 opaqueHit = SAMPLE_TEXTURE2D_X_LOD(_VisOITOpaqueColorPyramid, s_trilinear_clamp_sampler, ended.xy * _ScreenSize.zw, perceptualRoughness * 8).rgb;
-        _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(opaqueHit, 1.0);
-        return;
-    }
-    else
-
-    if (curTransparentHit > 0)// && hitOpaqueOrFar)
+    //if (curTransparentHit == 0 && hitOpaqueOrFar)
+    //{
+    //    //ComputeNormalizedDeviceCoordinatesWithZ(positionWS, UNITY_MATRIX_VP).z;
+    //    //ComputeWorldSpacePosition(posInputTransparent.positionNDC, firstDeviceDepth, UNITY_MATRIX_I_VP);
+    //    //float finalDeviceDepth = DeviceDepthFromLinearEye(previous.z * (_ProjectionParams.z - _ProjectionParams.y) + _ProjectionParams.y, _ZBufferParams);
+    //    //float3 ended = 0.5f * (p + previous);
+    //    float3 ended = p;
+    //    float finalDeviceDepth = DeviceDepthFromLinearEye(ended.z, _ZBufferParams);
+    //    float3 finalPositionWS = ComputeWorldSpacePosition(ended.xy * _ScreenSize.zw, finalDeviceDepth, UNITY_MATRIX_I_VP);
+    //    //float3 opaqueHit = LOAD_TEXTURE2D_X(_VisOITOpaqueColorPyramid, ended.xy).rgb * exp( -absorptionCoefficient * length(posInputTransparent.positionWS - finalPositionWS) );
+    //    //float3 opaqueHit = LOAD_TEXTURE2D_X(_VisOITOpaqueColorPyramid, ended.xy).rgb;
+    //    //_SsrColorPyramidMaxMip
+    //    float perceptualRoughness = RoughnessToPerceptualRoughness(roughness);
+    //    float3 opaqueHit = SAMPLE_TEXTURE2D_X_LOD(_VisOITOpaqueColorPyramid, s_trilinear_clamp_sampler, ended.xy * _ScreenSize.zw, perceptualRoughness * 8).rgb;
+    //    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(opaqueHit, 1.0);
+    //    return;
+    //}
+    //else
+    //if (curTransparentHit > 0)// && hitOpaqueOrFar)
     {
         float3 ended = p;
         float perceptualRoughness = RoughnessToPerceptualRoughness(infos[curTransparentHit - 1].w);
@@ -962,7 +967,7 @@ void MainResolveOffscreenLighting(int3 dispatchThreadId : SV_DispatchThreadID)
         _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(results / ((float)(curTransparentHit + 1)), 1.0);
         return;
     }
-    else
+    //else
     {
         _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4(1.0, 0, 0, 1.0);
         return;
