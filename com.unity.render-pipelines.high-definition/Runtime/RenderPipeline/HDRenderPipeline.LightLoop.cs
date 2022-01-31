@@ -453,10 +453,20 @@ namespace UnityEngine.Rendering.HighDefinition
             cb.g_isOrthographic = camera.orthographic ? 1u : 0u;
             cb.g_BaseFeatureFlags = 0; // Filled for each individual pass.
             cb.g_iNumSamplesMSAA = (int)hdCamera.msaaSamples;
-            cb._EnvLightIndexShift = (uint)m_GpuLightsBuilder.lightsCount;
-            cb._DecalIndexShift = (uint)(m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count);
-            cb._LocalVolumetricFogIndexShift = (uint)(m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount);
-            cb._CapsuleOccluderIndexShift = (uint)(m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount + m_LocalVolumetricFogCount);
+
+            int nextIndexShift = 0;
+            Func<int, uint> advanceIndexShift = count =>
+            {
+                var indexShift = nextIndexShift;
+                nextIndexShift += count;
+                return (uint)indexShift;
+            };
+            advanceIndexShift(m_GpuLightsBuilder.lightsCount); // punctual index shift is 0
+            cb._EnvLightIndexShift = advanceIndexShift(m_lightList.envLights.Count);
+            cb._DecalIndexShift = advanceIndexShift(decalDatasCount);
+            cb._LocalVolumetricFogIndexShift = advanceIndexShift(m_LocalVolumetricFogCount);
+            cb._CapsuleDirectShadowIndexShift = advanceIndexShift(m_CapsuleDirectShadowCount);
+            cb._CapsuleIndirectShadowIndexShift = advanceIndexShift(m_CapsuleIndirectShadowCount);
 
             // Copy the constant buffer into the parameter struct.
             passData.lightListCB = cb;

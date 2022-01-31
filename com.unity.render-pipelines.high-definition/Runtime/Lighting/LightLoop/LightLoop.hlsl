@@ -670,8 +670,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
-    // combine capsule ambient occlusion to with the BSDF term
-    bsdfData.ambientOcclusion = min(bsdfData.ambientOcclusion, EvaluateCapsuleAmbientOcclusion(posInput, bsdfData.normalWS));
+    aggregateLighting.indirect.shadow = 1.f - EvaluateCapsuleAmbientOcclusion(posInput, bsdfData.normalWS);
 
     ApplyDebugToLighting(context, builtinData, aggregateLighting);
 

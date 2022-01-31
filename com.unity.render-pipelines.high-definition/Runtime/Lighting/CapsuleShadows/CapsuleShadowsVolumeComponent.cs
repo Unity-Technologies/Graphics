@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the method used to apply ambient occlusion from capsules.
         /// </summary>
-        public CapsuleAmbientOcclusionMethodParameter ambientOcclusionMethod = new CapsuleAmbientOcclusionMethodParameter(CapsuleAmbientOcclusionMethod.ClosestSphere);
+        public CapsuleAmbientOcclusionMethodParameter ambientOcclusionMethod = new CapsuleAmbientOcclusionMethodParameter(CapsuleAmbientOcclusionMethod.LineIntegral);
 
         CapsuleShadowsVolumeComponent()
         {

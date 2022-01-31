@@ -136,8 +136,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float2 _DecalAtlasResolution;
     uint _EnableDecals;
     uint _DecalCount;
-    uint _CapsuleOccluderCount;
-    uint _EnableCapsuleAmbientOcclusion;
+    uint _CapsuleDirectShadowCount;
+    uint _CapsuleIndirectShadowCountAndFlags;
     float _CapsuleAmbientOcclusionRange;
     uint _CapsuleShadowPad0;
     float _OffScreenDownsampleFactor;

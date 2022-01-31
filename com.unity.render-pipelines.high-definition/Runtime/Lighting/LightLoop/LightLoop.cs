@@ -67,7 +67,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Area,
         Env,
         Decal,
-        CapsuleOccluder,
+        CapsuleDirectShadow,
+        CapsuleIndirectShadow,
         LocalVolumetricFog, // WARNING: Currently lightlistbuild.compute assumes Local Volumetric Fog is the last element in the LightCategory enum. Do not append new LightCategory types after LocalVolumetricFog. TODO: Fix .compute code.
         Count
     }
@@ -235,8 +236,10 @@ namespace UnityEngine.Rendering.HighDefinition
         EnvironmentAndAreaAndPunctual = Environment | Area | Punctual,
         /// <summary>Decals.</summary>
         Decal = (1 << LightCategory.Decal),
-        /// <summary>Capsule Occluders.</summary>
-        CapsuleOccluder = (1 << LightCategory.CapsuleOccluder),
+        /// <summary>Capsule direct shadows.</summary>
+        CapsuleDirectShadow = (1 << LightCategory.CapsuleDirectShadow),
+        /// <summary>Capsule indirect shadows.</summary>
+        CapsuleIndirectShadow = (1 << LightCategory.CapsuleIndirectShadow),
         /// <summary>Local Volumetric Fog.</summary>
         LocalVolumetricFog = (1 << LightCategory.LocalVolumetricFog),
         /// <summary>Local Volumetric Fog.</summary>
@@ -268,10 +271,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint _EnvLightIndexShift;
         public uint _DecalIndexShift;
 
+        public uint _CapsuleDirectShadowIndexShift;
+        public uint _CapsuleIndirectShadowIndexShift;
         public uint _LocalVolumetricFogIndexShift;
-        public uint _CapsuleOccluderIndexShift;
         public uint _Pad0_SVLL;
-        public uint _Pad1_SVLL;
     }
 
     internal struct ProcessedProbeData
@@ -511,7 +514,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int m_TotalLightCount = 0;
         int m_LocalVolumetricFogCount = 0;
-        int m_CapsuleOccluderCount = 0;
+        int m_CapsuleDirectShadowCount = 0;
+        int m_CapsuleIndirectShadowCount = 0;
         bool m_EnableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
 
         ComputeShader buildScreenAABBShader { get { return defaultResources.shaders.buildScreenAABBCS; } }
@@ -1908,7 +1912,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Inject Local Volumetric Fog into the clustered data structure for efficient look up.
                 m_LocalVolumetricFogCount = localVolumetricFogList.bounds != null ? localVolumetricFogList.bounds.Count : 0;
-                m_CapsuleOccluderCount = capsuleOccluderList.bounds != null ? capsuleOccluderList.bounds.Count : 0;
+                m_CapsuleDirectShadowCount = capsuleOccluderList.directCount;
+                m_CapsuleIndirectShadowCount = capsuleOccluderList.indirectCount;
 
                 m_GpuLightsBuilder.NewFrame(
                     hdCamera,
@@ -1972,31 +1977,40 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
                     }
 
-                    if (capsuleOccluderList.useSphereBounds)
+                    if (capsuleOccluderList.directUsesSphereBounds)
                     {
-                        for (int i = 0, n = m_CapsuleOccluderCount; i < n; i++)
+                        for (int i = 0, n = capsuleOccluderList.directCount; i < n; i++)
                         {
                             // Capsule Occluders volumes are not lights and therefore should not affect light classification.
                             LightFeatureFlags featureFlags = 0;
-                            CreateSphereVolumeDataAndBound(capsuleOccluderList.bounds[i], LightCategory.CapsuleOccluder, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                            CreateSphereVolumeDataAndBound(capsuleOccluderList.bounds[i], LightCategory.CapsuleDirectShadow, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
 
                             m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
                         }
                     }
                     else
                     {
-                        for (int i = 0, n = m_CapsuleOccluderCount; i < n; i++)
+                        for (int i = 0, n = capsuleOccluderList.directCount; i < n; i++)
                         {
                             // Capsule Occluders volumes are not lights and therefore should not affect light classification.
                             LightFeatureFlags featureFlags = 0;
-                            CreateBoxVolumeDataAndBound(capsuleOccluderList.bounds[i], LightCategory.CapsuleOccluder, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                            CreateBoxVolumeDataAndBound(capsuleOccluderList.bounds[i], LightCategory.CapsuleDirectShadow, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
 
                             m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
                         }
                     }
+
+                    for (int i = 0, offset = capsuleOccluderList.directCount, n = capsuleOccluderList.indirectCount; i < n; i++)
+                    {
+                        // Capsule Occluders volumes are not lights and therefore should not affect light classification.
+                        LightFeatureFlags featureFlags = 0;
+                        CreateSphereVolumeDataAndBound(capsuleOccluderList.bounds[offset + i], LightCategory.CapsuleIndirectShadow, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+
+                        m_GpuLightsBuilder.AddLightBounds(viewIndex, bound, volumeData);
+                    }
                 }
 
-                m_TotalLightCount = m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount + m_LocalVolumetricFogCount + m_CapsuleOccluderCount;
+                m_TotalLightCount = m_GpuLightsBuilder.lightsCount + m_lightList.envLights.Count + decalDatasCount + m_LocalVolumetricFogCount + m_CapsuleDirectShadowCount + m_CapsuleIndirectShadowCount;
 
                 Debug.Assert(m_TotalLightCount == m_GpuLightsBuilder.lightsPerView[0].boundsCount);
 

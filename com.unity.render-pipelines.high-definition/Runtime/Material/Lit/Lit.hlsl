@@ -2093,6 +2093,9 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
                         out LightLoopOutput lightLoopOutput)
 {
+    // combine capsule ambient occlusion to with the BSDF term
+    bsdfData.ambientOcclusion = min(bsdfData.ambientOcclusion, 1.f - lighting.indirect.shadow);
+
     AmbientOcclusionFactor aoFactor;
     // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the baseColor)
 #if 0

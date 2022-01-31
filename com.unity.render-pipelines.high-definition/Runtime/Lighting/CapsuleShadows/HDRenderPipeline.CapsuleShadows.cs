@@ -6,33 +6,54 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    internal struct CapsuleOccluderList
+    internal struct CapsuleShadowList
     {
-        public bool useSphereBounds;
         public List<OrientedBBox> bounds;
         public List<CapsuleOccluderData> occluders;
+    }
+
+    internal struct CapsuleOccluderList
+    {
+        public List<OrientedBBox> bounds;
+        public List<CapsuleOccluderData> occluders;
+        public bool directUsesSphereBounds;
+        public int directCount;
+        public int indirectCount;
+
+        public void Clear()
+        {
+            bounds.Clear();
+            occluders.Clear();
+            directUsesSphereBounds = false;
+            directCount = 0;
+            indirectCount = 0;
+        }
+
+        public int TotalCount()
+        {
+            return directCount + indirectCount;
+        }
     };
 
     public partial class HDRenderPipeline
     {
         private const int k_MaxVisibleCapsuleOccluders = 256;
 
-        List<OrientedBBox> m_VisibleCapsuleOccluderBounds = null;
-        List<CapsuleOccluderData> m_VisibleCapsuleOccluderData = null;
-        ComputeBuffer m_VisibleCapsuleOccluderDataBuffer = null;
+        CapsuleOccluderList m_CapsuleOccluders;
+        ComputeBuffer m_CapsuleOccluderDataBuffer;
 
         internal void InitializeCapsuleShadows()
         {
-            m_VisibleCapsuleOccluderBounds = new List<OrientedBBox>();
-            m_VisibleCapsuleOccluderData = new List<CapsuleOccluderData>();
-            m_VisibleCapsuleOccluderDataBuffer = new ComputeBuffer(k_MaxVisibleCapsuleOccluders, Marshal.SizeOf(typeof(CapsuleOccluderData)));
+            m_CapsuleOccluders.bounds = new List<OrientedBBox>();
+            m_CapsuleOccluders.occluders = new List<CapsuleOccluderData>();
+            m_CapsuleOccluderDataBuffer = new ComputeBuffer(k_MaxVisibleCapsuleOccluders, Marshal.SizeOf(typeof(CapsuleOccluderData)));
         }
 
         internal void CleanupCapsuleShadows()
         {
-            CoreUtils.SafeRelease(m_VisibleCapsuleOccluderDataBuffer);
-            m_VisibleCapsuleOccluderData = null;
-            m_VisibleCapsuleOccluderBounds = null;
+            CoreUtils.SafeRelease(m_CapsuleOccluderDataBuffer);
+            m_CapsuleOccluders.occluders = null;
+            m_CapsuleOccluders.bounds = null;
         }
 
         internal CapsuleOccluderList PrepareVisibleCapsuleOccludersList(HDCamera hdCamera, CommandBuffer cmd, CullingResults cullResults)
@@ -79,91 +100,109 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            m_VisibleCapsuleOccluderBounds.Clear();
-            m_VisibleCapsuleOccluderData.Clear();
+            m_CapsuleOccluders.Clear();
+            m_CapsuleOccluders.directUsesSphereBounds = !optimiseBoundsForLight;
 
-            CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
-            if (capsuleShadows.enable.value)
+            using (ListPool<OrientedBBox>.Get(out List<OrientedBBox> indirectBounds))
+            using (ListPool<CapsuleOccluderData>.Get(out List<CapsuleOccluderData> indirectOccluders))
             {
-                bool scalePenumbraAlongX = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleShadowMethod == CapsuleShadowMethod.Ellipsoid;
-                var occluders = CapsuleOccluderManager.instance.occluders;
-                foreach (CapsuleOccluder occluder in occluders)
+                CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
+                bool enableDirectShadows = capsuleShadows.enable.value;
+                bool enableIndirectShadows = capsuleShadows.enableAmbientOcclusion.value;
+                float ambientOcclusionRange = capsuleShadows.ambientOcclusionRange.value;
+                if (enableDirectShadows || enableIndirectShadows)
                 {
-                    if (m_VisibleCapsuleOccluderData.Count >= k_MaxVisibleCapsuleOccluders)
+                    bool scalePenumbraAlongX = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleShadowMethod == CapsuleShadowMethod.Ellipsoid;
+                    var occluders = CapsuleOccluderManager.instance.occluders;
+                    foreach (CapsuleOccluder occluder in occluders)
                     {
-                        break;
-                    }
+                        if (m_CapsuleOccluders.TotalCount() >= k_MaxVisibleCapsuleOccluders)
+                            break;
 
-                    CapsuleOccluderData data = occluder.GetOccluderData(originWS);
+                        CapsuleOccluderData data = occluder.GetOccluderData(originWS);
 
-                    OrientedBBox bbox;
-                    if (optimiseBoundsForLight)
-                    {
-                        // align local X with the capsule axis
-                        Vector3 localZ = lightDirection;
-                        Vector3 localY = Vector3.Cross(localZ, data.axisDirWS).normalized;
-                        Vector3 localX = Vector3.Cross(localY, localZ);
+                        if (enableDirectShadows)
+                        {
+                            OrientedBBox bounds;
+                            if (optimiseBoundsForLight)
+                            {
+                                // align local X with the capsule axis
+                                Vector3 localZ = lightDirection;
+                                Vector3 localY = Vector3.Cross(localZ, data.axisDirWS).normalized;
+                                Vector3 localX = Vector3.Cross(localY, localZ);
 
-                        // capsule bounds, extended along light direction
-                        Vector3 centerRWS = data.centerRWS;
-                        Vector3 halfExtentLS = new Vector3(
-                            Mathf.Abs(Vector3.Dot(data.axisDirWS, localX)) * data.offset + data.radius,
-                            Mathf.Abs(Vector3.Dot(data.axisDirWS, localY)) * data.offset + data.radius,
-                            Mathf.Abs(Vector3.Dot(data.axisDirWS, localZ)) * data.offset + data.radius);
-                        halfExtentLS.z += 0.5f * maxRange;
-                        centerRWS += (0.5f * maxRange) * localZ;
+                                // capsule bounds, extended along light direction
+                                Vector3 centerRWS = data.centerRWS;
+                                Vector3 halfExtentLS = new Vector3(
+                                    Mathf.Abs(Vector3.Dot(data.axisDirWS, localX)) * data.offset + data.radius,
+                                    Mathf.Abs(Vector3.Dot(data.axisDirWS, localY)) * data.offset + data.radius,
+                                    Mathf.Abs(Vector3.Dot(data.axisDirWS, localZ)) * data.offset + data.radius);
+                                halfExtentLS.z += 0.5f * maxRange;
+                                centerRWS += (0.5f * maxRange) * localZ;
 
-                        // expand by max penumbra
-                        float penumbraSize = Mathf.Tan(lightHalfAngle) * maxRange;
-                        halfExtentLS.x += scalePenumbraAlongX ? (penumbraSize*(data.offset + data.radius)/data.radius) : penumbraSize;
-                        halfExtentLS.y += penumbraSize;
+                                // expand by max penumbra
+                                float penumbraSize = Mathf.Tan(lightHalfAngle) * maxRange;
+                                halfExtentLS.x += scalePenumbraAlongX ? (penumbraSize*(data.offset + data.radius)/data.radius) : penumbraSize;
+                                halfExtentLS.y += penumbraSize;
 
-                        bbox = new OrientedBBox(new Matrix4x4(
-                            2.0f * halfExtentLS.x * localX,
-                            2.0f * halfExtentLS.y * localY,
-                            2.0f * halfExtentLS.z * localZ,
-                            centerRWS));
-                    }
-                    else
-                    {
-                        // max distance from *surface* of capsule
-                        float length = 2.0f * (data.offset + data.radius + maxRange);
-                        bbox = new OrientedBBox(
-                            Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
-                    }
+                                bounds = new OrientedBBox(new Matrix4x4(
+                                    2.0f * halfExtentLS.x * localX,
+                                    2.0f * halfExtentLS.y * localY,
+                                    2.0f * halfExtentLS.z * localZ,
+                                    centerRWS));
+                            }
+                            else
+                            {
+                                // max distance from *surface* of capsule
+                                float length = 2.0f * (data.offset + data.radius + maxRange);
+                                bounds = new OrientedBBox(
+                                    Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
+                            }
 
-                    // Frustum cull on the CPU for now.
-                    if (GeometryUtils.Overlap(bbox, hdCamera.frustum, 6, 8))
-                    {
-                        m_VisibleCapsuleOccluderBounds.Add(bbox);
-                        m_VisibleCapsuleOccluderData.Add(data);
+                            // Frustum cull on the CPU for now.
+                            if (GeometryUtils.Overlap(bounds, hdCamera.frustum, 6, 8))
+                            {
+                                m_CapsuleOccluders.bounds.Add(bounds);
+                                m_CapsuleOccluders.occluders.Add(data);
+                                m_CapsuleOccluders.directCount += 1;
+                            }
+                        }
+
+                        if (enableIndirectShadows && m_CapsuleOccluders.TotalCount() < k_MaxVisibleCapsuleOccluders)
+                        {
+                            float length = 2.0f * (data.offset + data.radius + ambientOcclusionRange);
+                            OrientedBBox bounds = new OrientedBBox(
+                                 Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
+                            if (GeometryUtils.Overlap(bounds, hdCamera.frustum, 6, 8))
+                            {
+                                indirectBounds.Add(bounds);
+                                indirectOccluders.Add(data);
+                                m_CapsuleOccluders.indirectCount += 1;
+                            }    
+                        }
                     }
                 }
+
+                m_CapsuleOccluders.bounds.AddRange(indirectBounds);
+                m_CapsuleOccluders.occluders.AddRange(indirectOccluders);
             }
 
-            m_VisibleCapsuleOccluderDataBuffer.SetData(m_VisibleCapsuleOccluderData);
+            m_CapsuleOccluderDataBuffer.SetData(m_CapsuleOccluders.occluders);
 
-            return new CapsuleOccluderList
-            {
-                useSphereBounds = !optimiseBoundsForLight,
-                bounds = m_VisibleCapsuleOccluderBounds,
-                occluders = m_VisibleCapsuleOccluderData,
-            };
+            return m_CapsuleOccluders;
         }
 
         internal void UpdateShaderVariablesGlobalCapsuleShadows(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
             CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
-            cb._CapsuleOccluderCount = (uint)m_VisibleCapsuleOccluderData.Count;
-            cb._EnableCapsuleAmbientOcclusion = (capsuleShadows.enableAmbientOcclusion.value && capsuleShadows.ambientOcclusionRange.value > 0.0f)
-                ? (1 + (uint)capsuleShadows.ambientOcclusionMethod.value)
-                : 0;
+            cb._CapsuleDirectShadowCount = (uint)m_CapsuleOccluders.directCount;
+            cb._CapsuleIndirectShadowCountAndFlags = (uint)m_CapsuleOccluders.indirectCount | ((uint)capsuleShadows.ambientOcclusionMethod.value << 24);
             cb._CapsuleAmbientOcclusionRange = capsuleShadows.ambientOcclusionRange.value;
         }
 
         internal void BindGlobalCapsuleShadowBuffers(CommandBuffer cmd)
         {
-            cmd.SetGlobalBuffer(HDShaderIDs._CapsuleOccluderDatas, m_VisibleCapsuleOccluderDataBuffer);
+            cmd.SetGlobalBuffer(HDShaderIDs._CapsuleOccluderDatas, m_CapsuleOccluderDataBuffer);
         }
     }
 }
