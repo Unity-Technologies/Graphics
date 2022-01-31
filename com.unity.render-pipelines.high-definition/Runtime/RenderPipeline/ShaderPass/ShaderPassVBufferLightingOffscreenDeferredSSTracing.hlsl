@@ -123,7 +123,7 @@ void Frag(Varyings packedInput, out uint4 outGBuffer0Texture : SV_Target0, out u
 #if HAS_REFRACTION
     float ior = surfaceData.ior;
 #else
-#if 0
+#if 1
     float3 f03 = lerp(DEFAULT_SPECULAR_VALUE.xxx, surfaceData.baseColor.rgb, surfaceData.metallic);
     float f0 = max(f03.x, max(f03.y, f03.z));
     float ior = Fresnel0ToIor(f0);

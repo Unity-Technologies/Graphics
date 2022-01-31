@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         GraphicsFormat GetDeferredSSTracingHiZFormat()
         {
-            return GraphicsFormat.R16G16_SFloat;
+            return GraphicsFormat.R16G16B16A16_SFloat;
         }
 
         int GetOITVisibilityBufferSize()
@@ -1072,6 +1072,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle sortMemoryBuffer;
             public TextureHandle oitTileHiZTexture;
             public TextureHandle outputColor;
+            public TextureHandle oitDebugSSTracing;
             public int maxMipHiZ;
             public ComputeBuffer depthPyramidMipLevelOffsetsBuffer;
             public BlueNoise blueNoise;
@@ -1113,6 +1114,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 passData.outputColor = builder.WriteTexture(colorBuffer);
 
+                passData.oitDebugSSTracing = builder.ReadWriteTexture(renderGraph.CreateTexture(
+                    new TextureDesc(hdCamera.actualWidth, hdCamera.actualHeight, false, false)
+                    {
+                        enableRandomWrite = true,
+                        useMipMap = false,
+                        colorFormat = GraphicsFormat.R32G32B32A32_SFloat,
+                        bindTextureMS = false,
+                        clearBuffer = true,
+                        clearColor = Color.black,
+                        name = "_OITDebugSSTracing"
+                    }));
+
                 float offscreenWidthAsFloat; unsafe { int offscreenWidthInt = offscreenLightingSize.x; offscreenWidthAsFloat = *((float*)&offscreenWidthInt); }
                 passData.packedArgs = new Vector4(offscreenWidthAsFloat, 0.0f, 0.0f, 0.0f);
                 passData.depthEncodeParams = vbufferOIT.depthEncodeParams;
@@ -1144,6 +1157,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._VisOITOffscreenLighting, data.offscreenDirectReflectionLightingTexture);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                         context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OutputTexture, data.outputColor);
+                        context.cmd.SetComputeTextureParam(data.cs, kernel, HDShaderIDs._OITDebugSSTracing, data.oitDebugSSTracing);
 
                         data.blueNoise.BindDitheredRNGData1SPP(context.cmd);
 
@@ -1152,6 +1166,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         context.cmd.DispatchCompute(data.cs, kernel, HDUtils.DivRoundUp(data.screenSize.x, 8), HDUtils.DivRoundUp(data.screenSize.y, 8), 1);
                     });
+
+                PushFullScreenDebugTexture(renderGraph, passData.oitDebugSSTracing, FullScreenDebugMode.VisibilityOITDebugSSTracing);
             }
         }
 

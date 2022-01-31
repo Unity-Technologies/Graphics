@@ -27,9 +27,9 @@ RWStructuredBuffer<uint> _OITSortMemoryBuffer;
 #endif
 
 #if defined(USE_TEXTURE2D_X_AS_ARRAY)
-Texture2DArray<float2> _OITTileHiZ;
+Texture2DArray<float4> _OITTileHiZ;
 #else
-Texture2D<float2> _OITTileHiZ;
+Texture2D<float4> _OITTileHiZ;
 #endif
 
 TEXTURE2D_X(_VisOITOpaqueColorPyramid);
@@ -130,17 +130,19 @@ void GetVisibilitySampleWithLinearDepth(uint i, uint listOffset, out Visibility:
 {
     GetVisibilitySample(i, listOffset, data, texelCoordinate, deviceDepthValue);
 
-    PositionInputs posInput = GetPositionInput(texelCoordinate, _ScreenSize.zw);
+    PositionInputs posInput = GetPositionInput((float2)texelCoordinate + 0.5f, _ScreenSize.zw);
     posInput.positionWS = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepthValue, UNITY_MATRIX_I_VP);
-    linearDepthValue = LinearEyeDepth(posInput.positionWS, GetWorldToViewMatrix());
-    linearDepthValue = ((linearDepthValue - _ProjectionParams.y) / (_ProjectionParams.z - _ProjectionParams.y));
+    linearDepthValue = posInput.positionWS.z;
+    //linearDepthValue = LinearEyeDepth(posInput.positionWS, GetWorldToViewMatrix());
+    //linearDepthValue = ((linearDepthValue - _ProjectionParams.y) / (_ProjectionParams.z - _ProjectionParams.y));
 }
 
 void PackOITGBufferData(float3 normal, float roughness, float3 baseColor, float metalness, float3 absorptionCoefficient, float ior, out uint4 packedData0, out uint2 packedData1)
 {
     float2 oct = saturate(PackNormalOctQuadEncode(normal) * 0.5f + 0.5f);
 
-    packedData0.r = PackFloatToUInt(oct.x, 0, 16);// | PackFloatToUInt(oct.y, 16, 16);
+    packedData0.r = PackFloatToUInt(oct.x, 0, 31);// | PackFloatToUInt(oct.y, 16, 16);
+    packedData0.a = PackFloatToUInt(oct.y, 0, 31);
     //
     packedData0.g = PackFloatToUInt(absorptionCoefficient.r,  0, 8)
                   | PackFloatToUInt(absorptionCoefficient.g,  8, 8)
@@ -150,7 +152,6 @@ void PackOITGBufferData(float3 normal, float roughness, float3 baseColor, float 
                   | PackFloatToUInt(baseColor.g, 8, 8)
                   | PackFloatToUInt(baseColor.b, 16, 8)
                   | PackFloatToUInt(roughness, 24, 7);
-    packedData0.a = PackFloatToUInt(oct.y, 0, 16);
     packedData1.r = 255.0 * clamp(ior, 0.0f, 4.0f) / 4.0f;
         //PackFloatToUInt(clamp(ior, 0.0f, 4.0f)/4.0f, 0, 8);
     packedData1.g = 0;
@@ -160,8 +161,8 @@ void PackOITGBufferData(float3 normal, float roughness, float3 baseColor, float 
 void UnpackOITNormalFromGBufferData0(uint4 packedData0, out float3 normal)
 {
     float2 oct;
-    oct.x = UnpackUIntToFloat(packedData0.r, 0, 16);
-    oct.y = UnpackUIntToFloat(packedData0.a, 0, 16);
+    oct.x = UnpackUIntToFloat(packedData0.r, 0, 31);
+    oct.y = UnpackUIntToFloat(packedData0.a, 0, 31);
 
     normal = normalize(UnpackNormalOctQuadEncode(oct * 2.0f - 1.0f));
 }
@@ -223,7 +224,7 @@ namespace GeomHelper
     // Assumption: pixelSize == 1x1
     float2 GetPixelMinMax(float linearDepth, float3 normal)//, out float radiusSq)
     {
-        return linearDepth;
+        return linearDepth.xx;
 
         const float3 zero = float3(0.0f, 0.0f, 0.0f);
 

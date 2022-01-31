@@ -1155,6 +1155,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _VisOITOffscreenGBuffer0 = Shader.PropertyToID("_VisOITOffscreenGBuffer0");
         public static readonly int _VisOITOffscreenGBuffer1 = Shader.PropertyToID("_VisOITOffscreenGBuffer1");
         public static readonly int _VisOITOpaqueColorPyramid = Shader.PropertyToID("_VisOITOpaqueColorPyramid");
+        public static readonly int _OITDebugSSTracing = Shader.PropertyToID("_OITDebugSSTracing");
         public static readonly int _VisOITOffscreenDirectReflectionLighting = Shader.PropertyToID("_VisOITOffscreenDirectReflectionLighting");
         public static readonly int _VisOITOffscreenPhotonRadianceLighting = Shader.PropertyToID("_VisOITOffscreenPhotonRadianceLighting");
         public static readonly int _VisOITOutputPhotonBuffer = Shader.PropertyToID("_VisOITOutputPhotonBuffer");

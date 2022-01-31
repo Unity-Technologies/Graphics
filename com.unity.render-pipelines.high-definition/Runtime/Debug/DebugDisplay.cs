@@ -159,6 +159,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VisibilityOITPixelHash,
         /// <summary>OIT GBuffer.</summary>
         VisibilityOITGBuffer,
+        /// <summary>OIT Debug SS Tracing.</summary>
+        VisibilityOITDebugSSTracing,
         /// <summary>Maximum Full Screen Rendering debug mode value (used internally).</summary>
         MaxRenderingFullScreenDebug,
 
