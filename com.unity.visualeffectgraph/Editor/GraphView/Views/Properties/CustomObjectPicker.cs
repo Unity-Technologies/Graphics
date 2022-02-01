@@ -62,7 +62,7 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var r in request)
                 {
-                    if (r?.ToObject<ShaderGraphVfxAsset>() == null)
+                    if (r != null && r.ToObject<ShaderGraphVfxAsset>() == null)
                     {
                         var shader = r.ToObject<Shader>();
                         var path = AssetDatabase.GetAssetPath(shader);
