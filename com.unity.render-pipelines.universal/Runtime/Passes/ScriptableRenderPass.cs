@@ -278,13 +278,6 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool useNativeRenderPass { get; set; }
 
-        internal int renderTargetWidth { get; set; }
-        internal int renderTargetHeight { get; set; }
-        internal int renderTargetSampleCount { get; set; }
-
-        internal bool depthOnly { get; set; }
-        // this flag is updated each frame to keep track of which pass is the last for the current camera
-        internal bool isLastPass { get; set; }
         // index to track the position in the current frame
         internal int renderPassQueueIndex { get; set; }
 
@@ -337,16 +330,12 @@ namespace UnityEngine.Rendering.Universal
             isBlitRenderPass = false;
             profilingSampler = new ProfilingSampler($"Unnamed_{nameof(ScriptableRenderPass)}");
             useNativeRenderPass = true;
-            renderTargetWidth = -1;
-            renderTargetHeight = -1;
-            renderTargetSampleCount = -1;
             renderPassQueueIndex = -1;
             renderTargetFormat = new GraphicsFormat[]
             {
                 GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None,
                 GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None
             };
-            depthOnly = false;
         }
 
         /// <summary>
@@ -401,12 +390,6 @@ namespace UnityEngine.Rendering.Universal
             m_InputAttachmentIsTransient[0] = isTransient;
         }
 
-        [Obsolete("Use RTHandle for input")]
-        internal void ConfigureInputAttachments(RenderTargetIdentifier input)
-        {
-            m_InputAttachments[0] = RTHandles.Alloc(input);
-        }
-
         internal void ConfigureInputAttachments(RTHandle[] inputs)
         {
             m_InputAttachments = inputs;
@@ -426,25 +409,6 @@ namespace UnityEngine.Rendering.Universal
         internal bool IsInputAttachmentTransient(int idx)
         {
             return m_InputAttachmentIsTransient[idx];
-        }
-
-        [Obsolete("Use RTHandles for inputs")]
-        internal void ConfigureInputAttachments(RenderTargetIdentifier[] inputs)
-        {
-            for (int i = 0; i < inputs.Length; ++i)
-            {
-                if (m_InputAttachments[i] == null || m_InputAttachments[i].nameID != inputs[i])
-                {
-                    m_InputAttachments[i]?.Release();
-                    m_InputAttachments[i] = RTHandles.Alloc(inputs[i]);
-                }
-            }
-
-            for (int i = inputs.Length; i < m_InputAttachments.Length; ++i)
-            {
-                m_InputAttachments[i]?.Release();
-                m_InputAttachments[i] = null;
-            }
         }
 
         /// <summary>
@@ -474,21 +438,6 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachment = depthAttachment;
             m_DepthAttachmentId = m_DepthAttachment.nameID;
             ConfigureTarget(colorAttachment);
-        }
-
-        [Obsolete("Use RTHandles for colorAttachment and depthAttachment")]
-        internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, GraphicsFormat format)
-        {
-            m_DepthAttachment = null;
-            m_DepthAttachmentId = depthAttachment;
-            ConfigureTarget(colorAttachment, format);
-        }
-
-        internal void ConfigureTarget(RTHandle colorAttachment, RTHandle depthAttachment, GraphicsFormat format)
-        {
-            m_DepthAttachment = depthAttachment;
-            m_DepthAttachmentId = m_DepthAttachment.nameID;
-            ConfigureTarget(colorAttachment, format);
         }
 
         /// <summary>
@@ -537,14 +486,6 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachment = depthAttachment;
         }
 
-        [Obsolete("Use RTHandles for colorAttachments and depthAttachment")]
-        internal void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment, GraphicsFormat[] formats)
-        {
-            ConfigureTarget(colorAttachments, depthAttachment);
-            for (int i = 0; i < formats.Length; ++i)
-                renderTargetFormat[i] = formats[i];
-        }
-
         internal void ConfigureTarget(RTHandle[] colorAttachments, RTHandle depthAttachment, GraphicsFormat[] formats)
         {
             ConfigureTarget(colorAttachments, depthAttachment);
@@ -589,44 +530,6 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [Obsolete("Use RTHandle for colorAttachment")]
-        internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, GraphicsFormat format, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
-        {
-            ConfigureTarget(colorAttachment);
-            for (int i = 1; i < m_ColorAttachments.Length; ++i)
-                renderTargetFormat[i] = GraphicsFormat.None;
-
-            if (depth == true && !GraphicsFormatUtility.IsDepthFormat(format))
-                throw new ArgumentException("When configuring a depth only target the passed in format must be a depth format.");
-
-            renderTargetWidth = width;
-            renderTargetHeight = height;
-            renderTargetSampleCount = sampleCount;
-            depthOnly = depth;
-            renderTargetFormat[0] = format;
-        }
-
-        internal void ConfigureTarget(RTHandle colorAttachment, GraphicsFormat format, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
-        {
-            ConfigureTarget(colorAttachment);
-            for (int i = 1; i < m_ColorAttachments.Length; ++i)
-                renderTargetFormat[i] = GraphicsFormat.None;
-
-            if (depth == true && !GraphicsFormatUtility.IsDepthFormat(format))
-                throw new ArgumentException("When configuring a depth only target the passed in format must be a depth format.");
-
-            renderTargetWidth = width;
-            renderTargetHeight = height;
-            renderTargetSampleCount = sampleCount;
-            depthOnly = depth;
-            renderTargetFormat[0] = format;
-        }
-        internal void ConfigureTarget(RTHandle colorAttachment, RTHandle depthAttachment, GraphicsFormat format, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
-        {
-            ConfigureTarget(colorAttachment, format, width, height, sampleCount, depth);
-            m_DepthAttachment = depthAttachment;
-
-        }
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
