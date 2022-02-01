@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
 //
 
 #ifndef DISSOLVEOCCLUDERSDATA_CS_HLSL
@@ -33,4 +33,5 @@ float GetPositionWSY(DissolveOccludersCylinder value)
 {
     return value.positionWSY;
 }
+
 #endif

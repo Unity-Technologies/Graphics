@@ -262,6 +262,10 @@ namespace UnityEditor.VFX
 
                 if (skipZeroDeltaUpdate)
                     yield return "VFX_UPDATE_SKIP_ZERO_DELTA_TIME";
+
+#if ENABLE_COMPUTE_DEFORMATIONS && ENABLE_HYBRID_RENDERER_V2
+                yield return "DOTS_INSTANCING_ON";
+#endif
             }
         }
     }
