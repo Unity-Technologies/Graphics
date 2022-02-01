@@ -4,6 +4,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
 
         #pragma exclude_renderers gles
         #pragma multi_compile_local _ _TONEMAP_ACES _TONEMAP_NEUTRAL
+        #pragma editor_sync_compilation
 
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"

@@ -2,6 +2,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 {
     HLSLINCLUDE
         #pragma exclude_renderers gles
+        #pragma editor_sync_compilation
 
         #pragma multi_compile_vertex _ _USE_DRAW_PROCEDURAL
 
