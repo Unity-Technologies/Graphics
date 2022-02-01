@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed warning when an APV baking set is renamed.
 - Fixed the Exposure field name to Exposure Compensation name in sky volume overrides (case 1392530).
 - Fixed issue where scene list was not refreshed upon deleting an APV baking set.
+- Fixed Post Process not editable in the default frame settings.
 
 ## [12.1.4] - 2021-12-07
 
