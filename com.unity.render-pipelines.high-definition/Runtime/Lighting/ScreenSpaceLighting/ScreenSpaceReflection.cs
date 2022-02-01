@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedIntParameter textureLodBias = new ClampedIntParameter(1, 0, 7);
 
         /// <summary>
-        /// Controls the length of reflection rays.
+        /// Controls the length of reflection rays in meters.
         /// </summary>
         public float rayLength
         {

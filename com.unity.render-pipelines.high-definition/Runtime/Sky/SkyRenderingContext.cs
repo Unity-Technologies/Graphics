@@ -15,7 +15,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportsConvolution { get; private set; } = false;
 
         internal bool ambientProbeIsReady = false;
-        public bool computeAmbientProbeRequested = false;
 
         public SkyRenderingContext(int resolution, int bsdfCount, bool supportsConvolution, SphericalHarmonicsL2 ambientProbe, string name)
         {
@@ -44,7 +43,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Reset()
         {
             ambientProbeIsReady = false;
-            computeAmbientProbeRequested = false;
         }
 
         public void Cleanup()
