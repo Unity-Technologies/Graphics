@@ -858,7 +858,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         out LightLoopOutput lightLoopOutput)
 {
     // combine capsule ambient occlusion to with the BSDF term
-    bsdfData.ambientOcclusion = min(bsdfData.ambientOcclusion, EvaluateCapsuleAmbientOcclusion(posInput, bsdfData.normalWS));
+    bsdfData.ambientOcclusion = min(bsdfData.ambientOcclusion, 1.f - lighting.indirect.shadow);
 
     AmbientOcclusionFactor aoFactor;
     GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.ambientOcclusion, bsdfData.specularOcclusion, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
