@@ -51,7 +51,7 @@ Shader "Hidden/HDRP/UpsampleTransparent"
             float2 fullResTexelSize = _ScreenSize.zw;
             float2 halfResTexelSize = 2.0f * fullResTexelSize;
 
-            float2 lowScreenUV = lowScreenPos * 2.0f * _ScreenSize.zw + 0.5f * halfResTexelSize;
+            float2 lowScreenUV = lowScreenPos * 2.0f * _ScreenSize.zw;
 
         #ifdef NEAREST_DEPTH
 
