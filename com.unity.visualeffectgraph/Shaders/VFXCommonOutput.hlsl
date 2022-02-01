@@ -265,6 +265,7 @@ float4x4 VFXGetPreviousElementToVFX(uint elementToVFXBaseIndex)
     float4x4 previousElementToVFX = (float4x4)0;
     previousElementToVFX[3] = float4(0, 0, 0, 1);
 #if VFX_FEATURE_MOTION_VECTORS && !defined(VFX_FEATURE_MOTION_VECTORS_VERTS)
+    UNITY_UNROLL
     for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
     {
         uint4 read = elementToVFXBufferPrevious.Load4((elementToVFXBaseIndex + itIndexMatrixRow * 4) << 2);
