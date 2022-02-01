@@ -6,7 +6,6 @@ struct DeformedVertexData
     float3 Tangent;
 };
 
-int _HybridDeformedVertexStreamIndex;
 uniform StructuredBuffer<DeformedVertexData> _DeformedMeshData;
 uniform StructuredBuffer<DeformedVertexData> _PreviousFrameDeformedMeshData;
 
@@ -48,22 +47,20 @@ void FetchComputeVertexPosNrm(inout float3 pos, inout float3 nrm, in uint vertex
     }
 }
 
-void FetchComputeVertexNormal(inout float3 normal, in uint vertexID)
+void FetchComputeVertexNormal(inout float3 normal, in int4 deformProperty, in uint vertexID)
 {
-    const int4 deformProperty = asint(unity_DOTSDeformationParams);
     const int doSkinning = deformProperty.z;
     if (doSkinning == 1)
     {
         const int streamIndex = _HybridDeformedVertexStreamIndex;
         const int startIndex = deformProperty[streamIndex];
-    
+
         normal = _DeformedMeshData[startIndex + vertexID].Normal;
     }
 }
 
-void FetchComputeVertexPosition(inout float3 position, in uint vertexID)
+void FetchComputeVertexPosition(inout float3 position, in int4 deformProperty, in uint vertexID)
 {
-    const int4 deformProperty = asint(unity_DOTSDeformationParams);
     const int doSkinning = deformProperty.z;
     if (doSkinning == 1)
     {
@@ -72,6 +69,30 @@ void FetchComputeVertexPosition(inout float3 position, in uint vertexID)
 
         position = _DeformedMeshData[startIndex + vertexID].Position;
     }
+}
+
+void FetchComputeVertexTangent(inout float3 tangent, in int4 deformProperty, in uint vertexID)
+{
+    const int doSkinning = deformProperty.z;
+    if (doSkinning == 1)
+    {
+        const int streamIndex = _HybridDeformedVertexStreamIndex;
+        const int startIndex = deformProperty[streamIndex];
+
+        tangent = _DeformedMeshData[startIndex + vertexID].Tangent;
+    }
+}
+
+void FetchComputeVertexNormal(inout float3 normal, in uint vertexID)
+{
+    const int4 deformProperty = asint(unity_DOTSDeformationParams);
+    FetchComputeVertexNormal(normal, deformProperty, vertexID);
+}
+
+void FetchComputeVertexPosition(inout float3 position, in uint vertexID)
+{
+    const int4 deformProperty = asint(unity_DOTSDeformationParams);
+    FetchComputeVertexPosition(position, deformProperty, vertexID);
 }
 
 void FetchComputeVertexPosition(inout float4 position, in uint vertexID)
