@@ -537,10 +537,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 processedLightEntity.isBakedShadowMask = HDRenderPipeline.IsBakedShadowMaskLight(lightComponent);
 
                 // Build a visible light
-                Color finalColor = lightComponent.color.linear * lightComponent.intensity;
-                if (additionalLightData.useColorTemperature)
-                    finalColor *= Mathf.CorrelatedColorTemperatureToRGB(lightComponent.colorTemperature);
-                visibleLight.finalColor = finalColor;
+                visibleLight.finalColor = LightUtils.EvaluateLightColor(lightComponent, additionalLightData);
                 visibleLight.range = lightComponent.range;
                 // This should be done explicitly, localToWorld matrix doesn't work here
                 localToWorldMatrix.SetColumn(3, lightComponent.gameObject.transform.position);

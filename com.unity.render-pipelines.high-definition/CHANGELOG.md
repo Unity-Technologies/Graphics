@@ -94,6 +94,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that placed an OnDemand shadow in the atlas before it was ever rendered.
 - Fixed issue at edge of screen on some platforms when SSAO is on.
 - Fixed reflection probe rendering order when visible in multiple cameras.
+- Fixed using the wrong directional light data for clouds and the definition of current Sun when the shadow pass is culled (case 1399000).
 
 ## [14.0.0] - 2021-11-17
 
