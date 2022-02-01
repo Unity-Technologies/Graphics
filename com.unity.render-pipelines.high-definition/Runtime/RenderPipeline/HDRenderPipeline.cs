@@ -1372,6 +1372,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Finally, our configuration is prepared. Push it to the drs handler
                     dynResHandler.Update(drsSettings);
+                    #endregion
                     // Reset pooled variables
                     cameraSettings.Clear();
                     cameraPositionSettings.Clear();
