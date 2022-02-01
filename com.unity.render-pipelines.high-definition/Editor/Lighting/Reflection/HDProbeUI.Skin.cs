@@ -22,6 +22,8 @@ namespace UnityEditor.Rendering.HighDefinition
             "If it is enabled then baking is automatic otherwise manual bake is needed (use the bake button below). \n" +
             "'Custom' can be used if a custom capture is wanted. \n" +
             "'Realtime' can be used to dynamically re-render the capture during runtime (every frame).");
+        internal static readonly GUIContent k_TimeSlicingContent = EditorGUIUtility.TrTextContent("Time Slicing",
+            "Enable time slicing to distribute realtime updates over 7 frames (one for each cubemap face then one to process the result) instead of fully updating in a single frame.");
         internal static readonly GUIContent k_CustomTextureContent = EditorGUIUtility.TrTextContent("Texture");
 
         static readonly Dictionary<ToolBar, GUIContent> k_ToolbarContents = new Dictionary<ToolBar, GUIContent>

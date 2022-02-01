@@ -196,7 +196,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         EditorGUILayout.PropertyField(serialized.probeSettings.realtimeMode);
                         if ((ProbeSettings.ProbeType)serialized.probeSettings.type.intValue == ProbeSettings.ProbeType.ReflectionProbe)
-                            EditorGUILayout.PropertyField(serialized.probeSettings.timeSlicing);
+                            EditorGUILayout.PropertyField(serialized.probeSettings.timeSlicing, k_TimeSlicingContent);
                         break;
                     }
                     case ProbeSettings.Mode.Custom:
