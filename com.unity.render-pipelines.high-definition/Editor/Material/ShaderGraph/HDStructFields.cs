@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static FieldDescriptor color = new FieldDescriptor(VaryingsMeshToDS.name, "color", "VARYINGS_DS_NEED_COLOR", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToDS.name, "instanceID", "", ShaderValueType.Uint,
-                "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
+                "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED");
         }
 
         public struct FragInputs

@@ -27,6 +27,8 @@ MonoBehaviour:
     debugViewVirtualTexturingBlit: {fileID: 4800000, guid: 55d195396b03b804eb78c92d468e3c8e, type: 3}
     materialError: {fileID: 4800000, guid: 79a966a5200a456188dec0d48d805614, type: 3}
     probeVolumeDebugShader: {fileID: 4800000, guid: 3b21275fd12d65f49babb5286f040f2d, type: 3}
+    probeVolumeOffsetDebugShader: {fileID: 4800000, guid: db8bd7436dc2c5f4c92655307d198381,
+      type: 3}
     clearDebugBufferCS: {fileID: 7200000, guid: 7fc6041d5cf70004aa33bb1ac64e3c06, type: 3}
     deferredPS: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
     colorPyramidPS: {fileID: 4800000, guid: 2fcfb8d92f45e4549b3f0bad5d0654bf, type: 3}
@@ -258,7 +260,7 @@ MonoBehaviour:
     worleyNoise128RGBA: {fileID: 11700000, guid: 1fe54a721d0e2504e89f121c723404a8, type: 3}
     worleyNoise32RGB: {fileID: 11700000, guid: ec156c314a242914dbb706f73ad78cf2, type: 3}
     perlinNoise32RGB: {fileID: 11700000, guid: d1aae012f8a4f23478471851f17ff915, type: 3}
-    foamSurface: {fileID: 2800000, guid: cf230499e750f8f4fbc5bcb6209d9918, type: 3}
+    foamSurface: {fileID: 2800000, guid: bebd18275f6180c42a61a4365589d43a, type: 3}
     filmGrainTex:
     - {fileID: 2800000, guid: 284a1ac236869fa4eacf377d73c7dff8, type: 3}
     - {fileID: 2800000, guid: bd74961b009b93145a998ae93a5fc186, type: 3}
@@ -282,4 +284,5 @@ MonoBehaviour:
     emissiveQuadMesh: {fileID: 4300000, guid: 1d5a8595286f94f4bb54171d49f473c3, type: 3}
     sphereMesh: {fileID: 4300000, guid: 9e0af751bc36ea146940ba245193e28c, type: 3}
     probeDebugSphere: {fileID: 532591105809680800, guid: b979359990531a2489ebd7a0ef0f9f01, type: 3}
+    pyramidMesh: {fileID: 10213, guid: 0000000000000000e000000000000000, type: 0}
   m_Version: 4

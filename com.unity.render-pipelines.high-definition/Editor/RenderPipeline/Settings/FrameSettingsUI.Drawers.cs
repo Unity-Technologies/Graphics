@@ -175,13 +175,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 hasMixedValues: serialized.msaaMode.hasMultipleDifferentValues
             );
 
-            area.AmmendInfo(FrameSettingsField.AlphaToMask, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.DecalLayers, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.TransparentsWriteMotionVector, ignoreDependencies: true);
-
-            var isEditingCamera = owner is HDCameraEditor;
-            area.AmmendInfo(FrameSettingsField.Postprocess, overrideable: () => isEditingCamera);
 
             var hdrpAsset = GetHDRPAssetFor(owner);
             RenderPipelineSettings qualityLevelSettings = hdrpAsset?.currentPlatformRenderPipelineSettings ?? default;

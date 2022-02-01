@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 5467.5522, g: 8188.2773, b: 13648.002, a: 1}
+  m_IndirectSpecularColor: {r: 5467.552, g: 8188.2773, b: 13648.002, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -332,14 +332,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 203134000}
-  m_LocalRotation: {x: 0.08715578, y: 0, z: 0, w: 0.9961947}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: 10, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &720309072
 GameObject:
   m_ObjectHideFlags: 0
@@ -376,30 +376,31 @@ MonoBehaviour:
   waterMaxPatchSize: 500
   highBandCount: 1
   amplitude: {x: 1, y: 1, z: 1, w: 1}
-  choppiness: 3
+  choppiness: 2
   timeMultiplier: 0
-  material: {fileID: 0}
+  customMaterial: {fileID: 0}
   waterSmoothness: 0.95
   refractionColor: {r: 0, g: 0.45, b: 0.65, a: 1}
   maxRefractionDistance: 1
   maxAbsorptionDistance: 5
   scatteringColor: {r: 0, g: 0.12, b: 0.25, a: 1}
-  scatteringFactor: 0.5
   heightScattering: 0.5
   displacementScattering: 0.5
   directLightTipScattering: 0.5
   directLightBodyScattering: 0.5
+  caustics: 1
   causticsIntensity: 0
-  causticsDispersionAmount: 0.5
+  causticsPlaneOffset: 0
+  causticsPlaneBlendDistance: 1
+  causticsAlgorithm: 0
+  causticsResolution: 512
+  causticsBand: 1
+  virtualPlaneDistance: 5
   causticsTiling: 1.5
   causticsSpeed: 0
-  causticsPlaneOffset: 0
-  surfaceFoamSmoothness: 0.3
-  surfaceFoamIntensity: 0
-  surfaceFoamAmount: 0.5
-  surfaceFoamTiling: 3
-  deepFoam: 0
-  deepFoamColor: {r: 1, g: 1, b: 1, a: 1}
+  simulationFoamAmount: 1
+  simulationFoamDrag: 0.5
+  simulationFoamSmoothness: 0
   foamMask: {fileID: 0}
   foamMaskExtent: {x: 100, y: 100}
   foamMaskOffset: {x: 0, y: 0}
@@ -407,7 +408,7 @@ MonoBehaviour:
   waterMaskExtent: {x: 100, y: 100}
   waterMaskOffset: {x: 0, y: 0}
   windOrientation: 0
-  windSpeed: 50
+  windSpeed: 80
   windAffectCurrent: 0.2
   windFoamCurve:
     serializedVersion: 2
@@ -451,6 +452,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  decalLayerMask: 1
+  lightLayerMask: 1
 --- !u!4 &720309074
 Transform:
   m_ObjectHideFlags: 0
@@ -534,7 +537,7 @@ MeshRenderer:
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
+  - {fileID: 2100000, guid: f954e41b985341b4b8ab3ffb37cb23b0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -586,7 +589,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 20
+      value: 25
       objectReference: {fileID: 0}
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalPosition.z
@@ -602,15 +605,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.9902681
+      value: -0.9816273
       objectReference: {fileID: 0}
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.13917309
+      value: 0.19080894
       objectReference: {fileID: 0}
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 16
+      value: 22
       objectReference: {fileID: 0}
     - target: {fileID: 4209882255362944, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
@@ -682,33 +685,34 @@ MonoBehaviour:
   earthRadius: 6371000
   geometryType: 0
   geometry: {fileID: 0}
-  waterMaxPatchSize: 20
+  waterMaxPatchSize: 25
   highBandCount: 0
   amplitude: {x: 1, y: 1, z: 1, w: 1}
   choppiness: 1
   timeMultiplier: 0
-  material: {fileID: 0}
+  customMaterial: {fileID: 0}
   waterSmoothness: 0.95
   refractionColor: {r: 0, g: 0.45, b: 0.65, a: 1}
   maxRefractionDistance: 1
   maxAbsorptionDistance: 10
   scatteringColor: {r: 0.7490196, g: 0.06462872, b: 0, a: 1}
-  scatteringFactor: 0.321
   heightScattering: 0.5
   displacementScattering: 0.5
   directLightTipScattering: 0.5
   directLightBodyScattering: 0.5
-  causticsIntensity: 0
-  causticsDispersionAmount: 0.5
+  caustics: 1
+  causticsIntensity: 1
+  causticsPlaneOffset: 0.5
+  causticsPlaneBlendDistance: 1
+  causticsAlgorithm: 0
+  causticsResolution: 512
+  causticsBand: 0
+  virtualPlaneDistance: 20
   causticsTiling: 1.5
   causticsSpeed: 0
-  causticsPlaneOffset: 0.5
-  surfaceFoamSmoothness: 0.3
-  surfaceFoamIntensity: 0
-  surfaceFoamAmount: 0.5
-  surfaceFoamTiling: 1
-  deepFoam: 0
-  deepFoamColor: {r: 1, g: 1, b: 1, a: 1}
+  simulationFoamAmount: 0.5
+  simulationFoamDrag: 0.5
+  simulationFoamSmoothness: 0.3
   foamMask: {fileID: 0}
   foamMaskExtent: {x: 100, y: 100}
   foamMaskOffset: {x: 0, y: 0}
@@ -760,6 +764,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  decalLayerMask: 1
+  lightLayerMask: 1
 --- !u!4 &1271837818
 Transform:
   m_ObjectHideFlags: 0
@@ -925,7 +931,7 @@ MeshRenderer:
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
+  - {fileID: 2100000, guid: f954e41b985341b4b8ab3ffb37cb23b0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

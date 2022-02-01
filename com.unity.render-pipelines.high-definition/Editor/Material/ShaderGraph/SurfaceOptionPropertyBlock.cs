@@ -91,13 +91,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.globalIndentLevel--;
 
             // Alpha Test
-            // TODO: AlphaTest is in SystemData but Alpha to Mask is in BuiltinData?
             AddProperty(alphaCutoffEnableText, () => systemData.alphaTest, (newValue) => systemData.alphaTest = newValue);
             if (systemData.alphaTest)
             {
                 context.globalIndentLevel++;
                 AddProperty(useShadowThresholdText, () => builtinData.alphaTestShadow, (newValue) => builtinData.alphaTestShadow = newValue);
-                AddProperty(alphaToMaskText, () => builtinData.alphaToMask, (newValue) => builtinData.alphaToMask = newValue);
                 context.globalIndentLevel--;
             }
 
