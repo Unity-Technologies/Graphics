@@ -10,7 +10,7 @@ You can choose whether a Custom Pass Volume affects every camera in the scene or
 
 1. Go to the Inspector window for your Custom Pass.
 2. Go to **Custom Pass Volume (Script)** > **Mode**
-    * To create a Custom Pass Volume that affects every camera in the scene, set the **Mode** to **Global**. 
+    * To create a Custom Pass Volume that affects every camera in the scene, set the **Mode** to **Global**.
     * To create a Custom Pass Volume that only affects cameras within the boundaries of the Volume, set the **Mode** to **Local**.
 
 You can use the **Priority** field to determine the execution order of multiple Custom Pass Volumes in your scene. If two Custom Pass Volumes have the same priority, Unity executes them in one of the following ways:

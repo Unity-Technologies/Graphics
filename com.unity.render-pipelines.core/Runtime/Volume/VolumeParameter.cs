@@ -1461,7 +1461,7 @@ namespace UnityEngine.Rendering
                 if (value != null)
                     hash = 23 * CoreUtils.GetTextureHash(value);
             }
-            
+
             return hash;
         }
     }
@@ -1493,7 +1493,7 @@ namespace UnityEngine.Rendering
                 if (value != null)
                     hash = 23 * CoreUtils.GetTextureHash(value);
             }
-            
+
             return hash;
         }
     }
@@ -1525,7 +1525,7 @@ namespace UnityEngine.Rendering
                 if (value != null)
                     hash = 23 * CoreUtils.GetTextureHash(value);
             }
-            
+
             return hash;
         }
     }
@@ -1557,7 +1557,7 @@ namespace UnityEngine.Rendering
                 if (value != null)
                     hash = 23 * CoreUtils.GetTextureHash(value);
             }
-            
+
             return hash;
         }
     }
@@ -1591,7 +1591,7 @@ namespace UnityEngine.Rendering
                 if (value != null)
                     hash = 23 * CoreUtils.GetTextureHash(value);
             }
-            
+
             return hash;
         }
     }
@@ -1623,7 +1623,7 @@ namespace UnityEngine.Rendering
                 if (value != null)
                     hash = 23 * CoreUtils.GetTextureHash(value);
             }
-            
+
             return hash;
         }
     }
@@ -1656,7 +1656,7 @@ namespace UnityEngine.Rendering
                 if (value != null)
                     hash = 23 * CoreUtils.GetTextureHash(value);
             }
-            
+
             return hash;
         }
     }
@@ -1688,7 +1688,7 @@ namespace UnityEngine.Rendering
                 if (value != null)
                     hash = 23 * CoreUtils.GetTextureHash(value);
             }
-            
+
             return hash;
         }
     }

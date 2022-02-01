@@ -70,7 +70,7 @@ The **Decals** panel has tools that you can use to debug [decals](Decal-Shader.m
 
 The **display stats** panel is only visible in play mode. You can use it to debug performance issues in your project.
 
-<table>    
+<table>
   <thead>
     <tr>
       <th colspan="1"><strong>Debug Option</strong></th>
@@ -145,7 +145,7 @@ The **display stats** panel is only visible in play mode. You can use it to debu
 
 The **Material** panel has tools that you can use to visualize different Material properties.
 
-<table>    
+<table>
   <thead>
     <tr>
       <th colspan="1"><strong>Debug Option</strong></th>
@@ -224,7 +224,7 @@ If the geometry or the shading normal is denormalized, the view renders the targ
 The **Lighting** panel has tools that you can use to visualize various components of the lighting system in your Scene, like, shadowing and direct/indirect lighting.
 
 
-<table>    
+<table>
   <thead>
     <tr>
       <th colspan="1"><strong>Shadow Debug Option</strong></th>

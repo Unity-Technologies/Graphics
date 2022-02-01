@@ -93,6 +93,6 @@ Here are some tips that can help you improve the performance of applications tha
 * Reduce the number of Sub-Layers in the Render Schedule. Every Sub-layer is internally using a unique camera. This is true even when you assign the same source camera to multiple Sub-layers in the UI.
 * For Sub-layers that render simple objects:
     1. Select the source camera.
-    2. In the Inspector select the **Custom Frame Settings**. 
+    2. In the Inspector select the **Custom Frame Settings**.
     3. Disable as many HDRP features as possible. For example you can disable the support for Screen Space Reflections (SSR) if you know that you aren't going to need SSR for this Sub-layer.
 * Reduce the resolution of specific Composition Layers, while keeping the visually important elements in separate Layers at full resolution. This will affect all Sub-layers that are stacked on this Layer.

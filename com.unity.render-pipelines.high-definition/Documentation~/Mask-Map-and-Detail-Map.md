@@ -9,7 +9,7 @@ To create a mask map:
 1. Open image editing software that supports channel editing (such as Adobe Photoshop).
 2. Import your grayscale textures onto separate layers.
 3. Make only one of the layers visble.
-4. Under **Adjustments**, select **Curves**. 
+4. Under **Adjustments**, select **Curves**.
 5. Leaving only the color channel you want that texture to be in, set the outputs of the other channels to 0 and the inputs to 4. For information about which texture belongs in which channel, see [mask map](#MaskMap) and [detail map](#DetailMap).<br />![](Images/MaskMapAndDetailMap1.png)
 6. Merge the curve with layer you've just worked on.
 7. Repeat steps 3 to 6 for your other layers.
