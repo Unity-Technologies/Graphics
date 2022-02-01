@@ -42,6 +42,10 @@ namespace UnityEditor.VFX
 
                 if (ownedType == VFXDataType.ParticleStrip)
                     yield return "HAS_STRIPS";
+
+#if ENABLE_COMPUTE_DEFORMATIONS && ENABLE_HYBRID_RENDERER_V2
+                yield return "DOTS_INSTANCING_ON";
+#endif
             }
         }
 

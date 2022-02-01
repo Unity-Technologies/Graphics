@@ -427,6 +427,47 @@ float4 SampleMeshColor(ByteAddressBuffer vertices, uint vertexIndex, uint channe
     return r;
 }
 
+#if defined(DOTS_INSTANCING_ON)
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DotsDeformation.hlsl"
+
+float3 SampleDOTSDeformationMeshPosition(in int4 deformProperty, in uint vertexID)
+{
+    float3 position;
+    FetchComputeVertexPosition(position, deformProperty, vertexID);
+    return position;
+}
+
+float3 SampleDOTSDeformationMeshNormal(in int4 deformProperty, in uint vertexID)
+{
+    float3 normal;
+    FetchComputeVertexNormal(normal, deformProperty, vertexID);
+    return normal;
+}
+
+float3 SampleDOTSDeformationMeshTangent(in int4 deformProperty, in uint vertexID)
+{
+    float3 tangent;
+    FetchComputeVertexTangent(tangent, deformProperty, vertexID);
+    return tangent;
+}
+#else
+float3 SampleDOTSDeformationMeshPosition(in uint vertexID)
+{
+    return float3(0.0f,0.0f,0.0f);
+}
+
+float3 SampleDOTSDeformationMeshNormal(in uint vertexID)
+{
+    return float3(0.0f,0.0f,0.0f);
+}
+
+float3 SampleDOTSDeformationMeshTangent(in uint vertexID)
+{
+    return float3(0.0f,0.0f,0.0f);
+}
+#endif
+
 ///////////////////////////
 // Color transformations //
 ///////////////////////////

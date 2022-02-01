@@ -26,7 +26,7 @@
 #define PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH (2)
 
 //
-// UnityEngine.Rendering.HighDefinition.ProbeVolumesBilateralFilteringModes:  static fields
+// UnityEngine.Rendering.HighDefinition.ProbeVolumesBilateralFilteringSampleModes:  static fields
 //
 #define PROBEVOLUMESBILATERALFILTERINGSAMPLEMODES_APPROXIMATE_SAMPLE (0)
 #define PROBEVOLUMESBILATERALFILTERINGSAMPLEMODES_PRECISE_LOAD (1)
