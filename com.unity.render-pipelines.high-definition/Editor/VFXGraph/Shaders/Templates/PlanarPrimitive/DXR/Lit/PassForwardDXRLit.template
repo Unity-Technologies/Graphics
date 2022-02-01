@@ -53,6 +53,9 @@
             // Graph functions
             ${VFXGeneratedBlockFunction}
 
+            // Include to evaluate the material data
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/EvaluateMaterialData.template")}
+
             [shader("closesthit")]
             void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
             {
@@ -64,57 +67,18 @@
                 // Evaluate the position
                 float3 positionRWS = WorldRayOrigin() + rayIntersection.t * WorldRayDirection();
 
-                // Index needs to be available in the context for the attribute load to work
-                ${VFXGetIndexFromRTPrimitiveIndex}
-
-                // Attributes of the paticle
-                VFXAttributes attributes;
-                ZERO_INITIALIZE(VFXAttributes, attributes);
-
-                // Load the VFX attributes that we need for this
-                ${VFXLoadAttributes}
-                ${VFXProcessBlocks}
-                ${VFXLoadSize}
-
-                // Build the "varying" input
-                rt_input o;
-                ZERO_INITIALIZE(rt_input, o);
-
-                // Fill the attributes
-                ${VFXVertexCommonProcess}
-                ${VFXHDRPLitFillVaryings}
-
-                o.VFX_VARYING_UV.xy = attributeData.barycentrics;
-                #ifdef VFX_VARYING_BENTFACTORS
-	                ${VFXLoadParameter:{normalBendingFactor}}
-	                #define BENT_FACTOR_MULTIPLIER 1.41421353816986083984375f
-	                o.VFX_VARYING_BENTFACTORS = (o.VFX_VARYING_UV.xy - 0.5f) * normalBendingFactor * BENT_FACTOR_MULTIPLIER;
-	            #endif
-                {
-                ${VFXVertexSetFlipbooksInterpolants}
-                }
-
-                rt_input i = o;
-                i.VFX_VARYING_NORMAL = normalize(-WorldToPrimitive(attributes, size3)[2].xyz);
-#ifdef VFX_VARYING_TANGENT
-                i.VFX_VARYING_TANGENT = normalize(WorldToPrimitive(attributes, size3)[0].xyz);
-#endif
-
-                bool frontFace = dot(WorldRayDirection(), i.VFX_VARYING_NORMAL) < 0;
-                ${VFXComputeNormalWS}
+                // Evaluate the position input
+                PositionInputs posInput = GetPositionInput(rayIntersection.pixelCoord, _ScreenSize.zw, positionRWS);
 
                 // Output structures
                 SurfaceData surfaceData = (SurfaceData)0;
                 BuiltinData builtinData = (BuiltinData)0;
                 BSDFData bsdfData = (BSDFData)0;
                 PreLightData preLightData = (PreLightData)0;
+                float velocity = 0.0f;
 
-
-                // Evaluate the position input
-                PositionInputs posInput = GetPositionInput(rayIntersection.pixelCoord, _ScreenSize.zw, positionRWS);
-
-                // Evaluate the input data
-                VFXGetHDRPLitData(surfaceData, builtinData, bsdfData, preLightData, i, normalWS, posInput, uvData, 0);
+                // Evaluate all the required material data
+                EvaluateLitMaterialData(posInput, attributeData, surfaceData, builtinData, bsdfData, preLightData, velocity);
 
                 // Evaluate the view direction
                 float3 viewWS = -WorldRayDirection();

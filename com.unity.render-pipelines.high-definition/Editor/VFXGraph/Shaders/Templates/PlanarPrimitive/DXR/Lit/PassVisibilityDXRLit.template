@@ -8,7 +8,7 @@
             #pragma target 4.5
             #pragma only_renderers d3d11 ps5
             #pragma raytracing surface_shader
-            #pragma multi_compile _ MULTI_BOUNCE_INDIRECT
+            #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
 
             // Global includes
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -27,7 +27,8 @@
             // VFX includes
             ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Common/RayTracingInputStructure.template")}
             ${VFXPerPassInclude}
-            
+            ${VFXIncludeRP("VFXLit.template")}
+
             // Needs to be included after the VFX includes
             ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/IntersectionFunctions.template")}
 
@@ -59,6 +60,56 @@
 
                 ${VFXVertexComputeDisplacement}
                 rayIntersection.velocity = displacement;
+            }
+
+            // Include to evaluate the material data
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Lit/EvaluateMaterialData.template")}
+
+            [shader("anyhit")]
+            void AnyHitVisibility(inout RayIntersectionVisibility rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+            {
+                UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
+
+                // Compute the distance of the ray
+                rayIntersection.t = RayTCurrent();
+
+                // Evaluate the view direction
+                float3 viewWS = -WorldRayDirection();
+
+                // Evaluate the position
+                float3 positionRWS = WorldRayOrigin() + rayIntersection.t * WorldRayDirection();
+
+                // Evaluate the position input
+                PositionInputs posInput = GetPositionInput(0, _ScreenSize.zw, positionRWS);
+
+                // Output structures
+                SurfaceData surfaceData = (SurfaceData)0;
+                BuiltinData builtinData = (BuiltinData)0;
+                BSDFData bsdfData = (BSDFData)0;
+                PreLightData preLightData = (PreLightData)0;
+                float velocity = 0.0f;
+
+                // Evaluate all the required material data
+                EvaluateLitMaterialData(posInput, attributeData, surfaceData, builtinData, bsdfData, preLightData, velocity);
+
+            #if defined(TRANSPARENT_COLOR_SHADOW) && defined(_SURFACE_TYPE_TRANSPARENT)
+                // Override the veloctity for this value
+                rayIntersection.velocity = velocity;
+
+                // Adjust the color based on the transmittance or opacity
+                #if HAS_REFRACTION
+                    rayIntersection.color *= lerp(surfaceData.transmittanceColor, float3(0.0, 0.0, 0.0), 1.0 - surfaceData.transmittanceMask);
+                #else
+                    rayIntersection.color *= (1.0 - builtinData.opacity);
+                #endif
+
+                // Ignore to move to the following intersections
+                IgnoreHit();
+            #else
+                // If this fella is opaque, then we need to stop
+                rayIntersection.color = float3(0.0, 0.0, 0.0);
+                AcceptHitAndEndSearch();
+            #endif
             }
 
             // Inject the intersection shader

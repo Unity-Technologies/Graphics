@@ -44,24 +44,21 @@
             // Graph functions
             ${VFXGeneratedBlockFunction}
 
+            // Include to evaluate the material data
+            ${VFXIncludeRP("Templates/PlanarPrimitive/DXR/Unlit/EvaluateMaterialData.template")}
+
             [shader("closesthit")]
             void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
             {
                 UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
 
-                VFXAttributes attributes;
-                ZERO_INITIALIZE(VFXAttributes, attributes);
-
                 // Compute the distance of the ray
                 rayIntersection.t = RayTCurrent();
 
-                // Index needs to be available in the context for the attribute load to work
-                ${VFXGetIndexFromRTPrimitiveIndex}
-
-                // Load the VFX attributes that we need for this
-                ${VFXLoadAttributes}
-                ${VFXProcessBlocks}
-                ${VFXGetColorRT}
+                // Read the material data
+                float4 color = 0.0;
+                float velocity = 0.0;
+                EvaluateUnlitMaterialData(attributeData, color, velocity);
 
                 // Given that we will be multiplying the final color by the current exposure multiplier outside of this function, we need to make sure that
                 // the unlit color is not impacted by that. Thus, we multiply it by the inverse of the current exposure multiplier.
