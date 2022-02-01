@@ -87,6 +87,12 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
 
+            /// <summary>
+            /// Fallback loading shader.
+            /// </summary>
+            [Reload("Shaders/Utils/FallbackLoading.shader")]
+            public Shader fallbackLoadingPS;
+
             // Core blitter shaders, adapted from HDRP
             // TODO: move to core and share with HDRP
             [Reload("Shaders/Utils/CoreBlit.shader"), SerializeField]
