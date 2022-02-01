@@ -302,6 +302,9 @@
     "m_Datas": [
         {
             "m_Id": "a281e25b4dbe47f6bfffc42ac0349284"
+        },
+        {
+            "m_Id": "a4fbf9b8dc96403d9946bdd48648a98b"
         }
     ],
     "m_CustomEditorGUI": "",
@@ -446,6 +449,13 @@
     "m_depthWriteMode": 0,
     "m_AllowMaterialOverride": false,
     "m_DepthTestMode": 0
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.Rendering.HighDefinition.ShaderGraph.HDFullscreenData",
+    "m_ObjectId": "a4fbf9b8dc96403d9946bdd48648a98b",
+    "m_ShowOnlyHDStencilBits": true
 }
 
 {
