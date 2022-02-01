@@ -1,0 +1,55 @@
+﻿<#@ template language="C#" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+using System.Diagnostics.CodeAnalysis;
+
+namespace UnityEngine.Rendering
+{
+<#
+    var extensions = new VolumeComponentTypeSetExtension[]
+    {
+        new VolumeComponentTypeSetExtension("DefaultState"),
+        new VolumeComponentTypeSetExtension("PathAndType"),
+        new VolumeComponentTypeSetExtension("TreeProvider"),
+    };
+
+    Write(extensions);
+#>
+}
+<#+
+    public struct VolumeComponentTypeSetExtension
+    {
+        public readonly string name;
+
+        public VolumeComponentTypeSetExtension(string name)
+        {
+            this.name = name;
+        }
+    }
+
+    public void Write(VolumeComponentTypeSetExtension extension)
+    {
+#>
+    static class VolumeComponentTypeSet<#+ Write(extension.name); #>Extension
+    {
+        public static bool GetOrAdd<#+ Write(extension.name); #>(
+            [DisallowNull] this VolumeComponentArchetype archetype,
+            [NotNullWhen(true)] out VolumeComponentArchetype<#+ Write(extension.name); #> extension)
+            => archetype.GetOrAddExtension<VolumeComponentArchetype<#+ Write(extension.name); #>, VolumeComponentArchetype<#+ Write(extension.name); #>.Factory>(out extension);
+
+        public static bool Get<#+ Write(extension.name); #>(
+            [DisallowNull] this VolumeComponentArchetype archetype,
+            [NotNullWhen(true)] out VolumeComponentArchetype<#+ Write(extension.name); #> extension)
+            => archetype.GetExtension<VolumeComponentArchetype<#+ Write(extension.name); #>, VolumeComponentArchetype<#+ Write(extension.name); #>.Factory>(out extension);
+    }
+<#+
+    }
+
+    public void Write(params VolumeComponentTypeSetExtension[] extensions)
+    {
+        foreach (var extension in extensions)
+        {
+            Write(extension);
+        }
+    }
+#>

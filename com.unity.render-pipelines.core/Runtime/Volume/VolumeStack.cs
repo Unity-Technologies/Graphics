@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace UnityEngine.Rendering
 {
@@ -11,24 +13,59 @@ namespace UnityEngine.Rendering
     /// </summary>
     public sealed class VolumeStack : IDisposable
     {
+        // Owner
         // Holds the state of _all_ component types you can possibly add on volumes
         internal Dictionary<Type, VolumeComponent> components;
+        internal VolumeComponentArchetype archetype { get; }
 
-        internal VolumeStack()
+        [return: NotNull]
+        public static VolumeStack FromArchetype([DisallowNull] VolumeComponentArchetype archetype) => new VolumeStack(archetype);
+
+        VolumeStack([DisallowNull] VolumeComponentArchetype archetype)
         {
+            this.archetype = archetype;
+            components = new Dictionary<Type, VolumeComponent>();
+
+            Reload();
         }
 
-        internal void Reload(Type[] baseTypes)
+        /// <summary>
+        /// Checks the state of a given stack. This is only used in the editor to handle entering
+        /// and exiting of play mode and domain reload.
+        /// </summary>
+        /// <param name="stack">The stack to check.</param>
+        [Conditional("UNITY_EDITOR")]
+        public void CheckStack()
+        {
+            // The editor doesn't reload the domain when exiting play mode but still kills every
+            // object created while in play mode, like stacks' component states
+            if (components == null)
+            {
+                Reload();
+                return;
+            }
+
+            foreach (var kvp in components)
+            {
+                if (kvp.Key == null || kvp.Value == null)
+                {
+                    Reload();
+                    return;
+                }
+            }
+        }
+
+        internal void Reload()
         {
             if (components == null)
                 components = new Dictionary<Type, VolumeComponent>();
             else
                 components.Clear();
 
-            foreach (var type in baseTypes)
+            foreach (var type in archetype.AsArray())
             {
-                var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
-                components.Add(type, inst);
+                var inst = (VolumeComponent)ScriptableObject.CreateInstance(type.AsType());
+                components.Add(type.AsType(), inst);
             }
         }
 

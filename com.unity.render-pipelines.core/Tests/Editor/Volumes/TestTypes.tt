@@ -1,0 +1,90 @@
+<#@ template language="C#" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+using System;
+
+namespace UnityEngine.Rendering.Tests
+{
+    public partial class TestTypes
+    {
+        public static Type[] AllVolumeComponents = new Type[] {
+<#
+    const uint Entries = 1000;
+    for (var i = 0; i < Entries; ++i)
+    {
+#>
+            typeof(TestVolumeComponent<#= i.ToString("0000") #>),
+<#
+    }
+#>
+        };
+
+<#
+    var random = new RandomStream(652423453u, 3575452435u);
+    var allowedChars = "abcdefghijklmnopqrstuvwxzABCDEFGHIJKLMNOPQRSTUVWXYZ _/";
+    for (var i = 0u; i < 1000; ++i)
+    {
+        // Randomized uint
+        var numberOfSupportedOn = random.Next() % 3;
+
+        for (var j = 0u; j < numberOfSupportedOn; ++j)
+        {
+            var offset = random.Next() & 0xFF; // mod 256
+            var dependOnIndex = (i + offset + 1) % Entries;
+            WriteLine($"[SupportedOn(typeof(TestVolumeComponent{dependOnIndex:0000}))]");
+        }
+
+        if ((random.Next() & 0xff) < 20)
+        {
+            WriteLine("[Obsolete]");
+            WriteLine("[HideInInspector]");
+        }
+        else if ((random.Next() & 0xff) < 50)
+            WriteLine("[HideInInspector]");
+        else if ((random.Next() & 0xff) < 50)
+            WriteLine("[Obsolete]");
+
+        if ((random.Next() & 0xff) < 50)
+        {
+            var sb = new StringBuilder();
+            var c = (random.Next() & 0xff);
+            // Create a random string for the menu
+            for (var j = 0; j < c; ++j)
+            {
+                sb.Append(allowedChars[(int) (random.Next() % allowedChars.Length)]);
+            }
+            WriteLine($"[VolumeComponentMenu(\"{sb}\")]");
+        }
+#>
+        public class TestVolumeComponent<#= i.ToString("0000") #> : VolumeComponent
+        {
+<#
+        var type = (random.Next() & 1) == 1 ? "IntParameter" : "FloatParameter";
+#>
+            public <#= type #> parameter = new <#= type #>(<#= random.Next() >> 1 #>);
+        }
+<#
+    }
+#>
+    }
+}
+<#+
+    class RandomStream
+    {
+        uint m_Value;
+        uint m_Seed;
+
+        public RandomStream(uint value, uint seed)
+        {
+            m_Value = value;
+            m_Seed = seed;
+        }
+
+        public uint Next()
+        {
+            m_Value *= m_Seed;
+            m_Value ^= m_Seed;
+            return m_Value;
+        }
+    }
+#>

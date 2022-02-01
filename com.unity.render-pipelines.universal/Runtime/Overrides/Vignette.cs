@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// A volume component that holds settings for the Vignette effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Vignette", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Post-processing/Vignette"), SupportedOn(typeof(UniversalRenderPipeline))]
     public sealed class Vignette : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

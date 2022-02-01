@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// A volume component that holds settings for the Bloom effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Bloom", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Post-processing/Bloom"), SupportedOn(typeof(UniversalRenderPipeline))]
     public sealed partial class Bloom : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

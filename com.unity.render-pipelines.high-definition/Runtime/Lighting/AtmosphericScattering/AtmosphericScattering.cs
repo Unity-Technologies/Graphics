@@ -4,6 +4,7 @@ using System.Diagnostics;
 namespace UnityEngine.Rendering.HighDefinition
 {
     // Deprecated, kept for migration
+    [SupportedOn(typeof(HDRenderPipeline))]
     abstract class AtmosphericScattering : VolumeComponent
     {
         // Fog Color

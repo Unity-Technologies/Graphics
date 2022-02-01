@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Cloud Layer Volume Component.
     /// This component setups the Cloud Layer for rendering.
     /// </summary>
-    [VolumeComponentMenuForRenderPipeline("Sky/Cloud Layer", typeof(HDRenderPipeline))]
+    [VolumeComponentMenu("Sky/Cloud Layer"), SupportedOn(typeof(HDRenderPipeline))]
     [CloudUniqueID((int)CloudType.CloudLayer)]
     [HDRPHelpURLAttribute("Override-Cloud-Layer")]
     public class CloudLayer : CloudSettings
@@ -330,13 +330,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>CloudLayerRenderer type.</returns>
         public override Type GetCloudRendererType() { return typeof(CloudLayerRenderer); }
 
-        /// <summary>
-        /// Called though reflection by the VolumeManager.
-        /// </summary>
-        static void Init()
+        [RuntimeInitializeOnLoadMethod]
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoadMethod]
+#endif
+        static void InitVolume()
         {
             var globalSettings = HDRenderPipelineGlobalSettings.instance;
-            if (globalSettings != null)
+            if (globalSettings != null && CloudMap.s_DefaultTexture == null)
                 CloudMap.s_DefaultTexture = globalSettings.renderPipelineResources?.textures.defaultCloudMap;
         }
     }

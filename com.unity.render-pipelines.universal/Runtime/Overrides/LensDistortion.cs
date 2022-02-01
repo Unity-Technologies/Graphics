@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// A volume component that holds settings for the Lens Distortion effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Lens Distortion", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Post-processing/Lens Distortion"), SupportedOn(typeof(UniversalRenderPipeline))]
     public sealed class LensDistortion : VolumeComponent, IPostProcessComponent
     {
         /// <summary>

@@ -710,7 +710,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             frustumPlaneEquations = new Vector4[6];
 
-            volumeStack = VolumeManager.instance.CreateStack();
+            volumeStack = VolumeStack.FromArchetype(HDUtils.hdVolumeArchetype);
 
             m_DepthBufferMipChainInfo.Allocate();
 

@@ -11,14 +11,14 @@ namespace UnityEngine.Rendering.Tests
     public class VolumeComponentEditorTests
     {
         [HideInInspector]
-        [VolumeComponentMenuForRenderPipeline("Tests/No Additional", typeof(RenderPipeline))]
+        [VolumeComponentMenu("Tests/No Additional"), SupportedOn(typeof(RenderPipeline))]
         class VolumeComponentNoAdditionalAttributes : VolumeComponent
         {
             public MinFloatParameter parameter = new MinFloatParameter(0f, 0f);
         }
 
         [HideInInspector]
-        [VolumeComponentMenuForRenderPipeline("Tests/All Additional", typeof(RenderPipeline))]
+        [VolumeComponentMenu("Tests/All Additional"), SupportedOn(typeof(RenderPipeline))]
         class VolumeComponentAllAdditionalAttributes : VolumeComponent
         {
             [AdditionalProperty]
@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [HideInInspector]
-        [VolumeComponentMenuForRenderPipeline("Tests/Mixed Additional", typeof(RenderPipeline))]
+        [VolumeComponentMenu("Tests/Mixed Additional"), SupportedOn(typeof(RenderPipeline))]
         class VolumeComponentMixedAdditionalAttributes : VolumeComponent
         {
             public MinFloatParameter parameter1 = new MinFloatParameter(0f, 0f);
@@ -141,54 +141,6 @@ namespace UnityEngine.Rendering.Tests
             ("Color", string.Empty),
             ("Size and occurrence", "Increase to make patches SMALLER, and frequent")
         };
-
-        [Test]
-        public void TestHandleParameterDecorators()
-        {
-            VolumeComponent component = null;
-            VolumeComponentEditor editor = null;
-            CreateEditorAndComponent(typeof(VolumeComponentDecorators), ref component, ref editor);
-
-            var parameters =
-                editor.GetField("m_Parameters") as List<(GUIContent displayName, int displayOrder,
-                    SerializedDataParameter param)>;
-
-            Assert.True(parameters != null && parameters.Count() == k_ExpectedResults.Count());
-
-            for (int i = 0; i < k_ExpectedResults.Count(); ++i)
-            {
-                var property = parameters[i].param;
-                var title = new GUIContent(parameters[i].displayName);
-
-                editor.Invoke("HandleDecorators", property, title);
-
-                Assert.True(k_ExpectedResults[i].displayName == title.text);
-                Assert.True(k_ExpectedResults[i].tooltip == title.tooltip);
-            }
-
-            ScriptableObject.DestroyImmediate(component);
-        }
-
-        #endregion
-
-        [Test]
-        public void TestSupportedOnAvoidedIfHideInInspector()
-        {
-            Type[] types = new[]
-            {
-                typeof(VolumeComponentNoAdditionalAttributes),
-                typeof(VolumeComponentAllAdditionalAttributes),
-                typeof(VolumeComponentMixedAdditionalAttributes)
-            };
-
-            Type volumeComponentProvider = ReflectionUtils.FindTypeByName("UnityEngine.Rendering.VolumeManager");
-            var volumeComponents = volumeComponentProvider.InvokeStatic("FilterVolumeComponentTypes",
-                types, typeof(RenderPipeline)) as List<(string, Type)>;
-
-
-            Assert.NotNull(volumeComponents);
-            Assert.False(volumeComponents.Any());
-        }
 
         static private bool TestAnimationCurveInterp(AnimationCurve lhsCurve, AnimationCurve rhsCurve, float t, float startTime, float endTime, int numSteps, float eps, bool debugPrint)
         {
@@ -309,5 +261,34 @@ namespace UnityEngine.Rendering.Tests
             }
             Assert.IsTrue(success);
         }
+
+        [Test]
+        public void TestHandleParameterDecorators()
+        {
+            VolumeComponent component = null;
+            VolumeComponentEditor editor = null;
+            CreateEditorAndComponent(typeof(VolumeComponentDecorators), ref component, ref editor);
+
+            var parameters =
+                editor.GetField("m_Parameters") as List<(GUIContent displayName, int displayOrder,
+                    SerializedDataParameter param)>;
+
+            Assert.True(parameters != null && parameters.Count() == k_ExpectedResults.Count());
+
+            for (int i = 0; i < k_ExpectedResults.Count(); ++i)
+            {
+                var property = parameters[i].param;
+                var title = new GUIContent(parameters[i].displayName);
+
+                editor.Invoke("HandleDecorators", property, title);
+
+                Assert.True(k_ExpectedResults[i].displayName == title.text);
+                Assert.True(k_ExpectedResults[i].tooltip == title.tooltip);
+            }
+
+            ScriptableObject.DestroyImmediate(component);
+        }
+
+        #endregion
     }
 }

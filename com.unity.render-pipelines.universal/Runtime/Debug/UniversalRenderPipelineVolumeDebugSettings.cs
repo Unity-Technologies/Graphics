@@ -7,6 +7,8 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public class UniversalRenderPipelineVolumeDebugSettings : VolumeDebugSettings<UniversalAdditionalCameraData>
     {
+        public override VolumeComponentArchetype archetype => RenderingUtils.volumeArchetype;
+
         /// <summary>
         /// Specifies the render pipeline for this volume settings
         /// </summary>

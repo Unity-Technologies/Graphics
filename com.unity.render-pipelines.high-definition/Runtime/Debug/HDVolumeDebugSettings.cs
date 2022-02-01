@@ -1,5 +1,4 @@
 using System;
-
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
@@ -11,6 +10,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the render pipeline for this volume settings
         /// </summary>
         public override Type targetRenderPipeline => typeof(HDRenderPipeline);
+        static VolumeStack s_DefaultStack = VolumeStack.FromArchetype(HDUtils.hdVolumeArchetype);
+
+        public override VolumeComponentArchetype archetype => HDUtils.hdVolumeArchetype;
 
         /// <summary>Selected camera volume stack.</summary>
         public override VolumeStack selectedCameraVolumeStack
@@ -23,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var stack = HDCamera.GetOrCreate(cam).volumeStack;
                 if (stack != null)
                     return stack;
-                return VolumeManager.instance.stack;
+                return s_DefaultStack;
             }
         }
 

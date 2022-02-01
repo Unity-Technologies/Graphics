@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _ColorPickerMode; // Match enum ColorPickerDebugMode
 
         public Vector4 _DebugViewportSize; //Frame viewport size used during rendering.
+
         public Vector4 _DebugLightingAlbedo; // x == bool override, yzw = albedo for diffuse
         public Vector4 _DebugLightingSmoothness; // x == bool override, y == override value
         public Vector4 _DebugLightingNormal; // x == bool override
@@ -314,6 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool countRays = false;
             /// <summary>Display Show Lens Flare Data Driven Only.</summary>
             public bool showLensFlareDataDrivenOnly = false;
+
             /// <summary>Index of the camera to freeze for visibility.</summary>
             public int debugCameraToFreeze = 0;
             internal RTASDebugView rtasDebugView = RTASDebugView.Shadows;
@@ -852,7 +854,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.lightingDebugSettings.hdrDebugMode = value;
         }
 
-
         /// <summary>
         /// Set the current Mip Map Debug Mode.
         /// </summary>
@@ -994,11 +995,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     displayName = sampler.name,
                     values = new[]
-                {
+                    {
                         CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.CPU),
                         CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.InlineCPU),
                         CreateWidgetForSampler(samplerId, sampler, DebugProfilingType.GPU),
-                }
+                    }
                 });
             }
 

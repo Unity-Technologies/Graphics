@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Assertions;
 
@@ -16,7 +15,7 @@ namespace UnityEngine.Rendering
     /// A global manager that tracks all the Volumes in the currently loaded Scenes and does all the
     /// interpolation work.
     /// </summary>
-    public sealed class VolumeManager
+    public sealed partial class VolumeManager
     {
         static readonly Lazy<VolumeManager> s_Instance = new Lazy<VolumeManager>(() => new VolumeManager());
 
@@ -24,24 +23,6 @@ namespace UnityEngine.Rendering
         /// The current singleton instance of <see cref="VolumeManager"/>.
         /// </summary>
         public static VolumeManager instance => s_Instance.Value;
-
-        /// <summary>
-        /// A reference to the main <see cref="VolumeStack"/>.
-        /// </summary>
-        /// <seealso cref="VolumeStack"/>
-        public VolumeStack stack { get; set; }
-
-        /// <summary>
-        /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
-        /// </summary>
-        [Obsolete("Please use baseComponentTypeArray instead.")]
-        public IEnumerable<Type> baseComponentTypes
-        {
-            get => baseComponentTypeArray;
-            private set => baseComponentTypeArray = value.ToArray();
-        }
-
-        static readonly Dictionary<Type, List<(string, Type)>> s_SupportedVolumeComponentsForRenderPipeline = new();
 
         internal static List<(string, Type)> GetSupportedVolumeComponents(Type currentPipelineType)
         {
@@ -76,7 +57,7 @@ namespace UnityEngine.Rendering
                         {
                             path = attrMenu.menu;
                             if (attrMenu is VolumeComponentMenuForRenderPipeline supportedOn)
-                                skipComponent |= !supportedOn.pipelineTypes.Contains(currentPipelineType);
+                                skipComponent |= Array.IndexOf(supportedOn.pipelineTypes, currentPipelineType) == -1;
                             break;
                         }
                         case HideInInspector attrHide:
@@ -109,10 +90,7 @@ namespace UnityEngine.Rendering
                 .ToList();
         }
 
-        /// <summary>
-        /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
-        /// </summary>
-        public Type[] baseComponentTypeArray { get; private set; }
+        static readonly Dictionary<Type, List<(string, Type)>> s_SupportedVolumeComponentsForRenderPipeline = new();
 
         // Max amount of layers available in Unity
         const int k_MaxLayerCount = 32;
@@ -126,29 +104,8 @@ namespace UnityEngine.Rendering
         // Keep track of sorting states for layer masks
         readonly Dictionary<int, bool> m_SortNeeded;
 
-        // Internal list of default state for each component type - this is used to reset component
-        // states on update instead of having to implement a Reset method on all components (which
-        // would be error-prone)
-        readonly List<VolumeComponent> m_ComponentsDefaultState;
-
-        internal VolumeComponent GetDefaultVolumeComponent(Type volumeComponentType)
-        {
-            foreach (VolumeComponent component in m_ComponentsDefaultState)
-            {
-                if (component.GetType() == volumeComponentType)
-                    return component;
-            }
-
-            return null;
-        }
-
         // Recycled list used for volume traversal
         readonly List<Collider> m_TempColliders;
-
-        // The default stack the volume manager uses.
-        // We cache this as users able to change the stack through code and
-        // we want to be able to switch to the default one through the ResetMainStack() function.
-        VolumeStack m_DefaultStack = null;
 
         VolumeManager()
         {
@@ -156,65 +113,6 @@ namespace UnityEngine.Rendering
             m_Volumes = new List<Volume>();
             m_SortNeeded = new Dictionary<int, bool>();
             m_TempColliders = new List<Collider>(8);
-            m_ComponentsDefaultState = new List<VolumeComponent>();
-
-            ReloadBaseTypes();
-
-            m_DefaultStack = CreateStack();
-            stack = m_DefaultStack;
-        }
-
-        /// <summary>
-        /// Creates and returns a new <see cref="VolumeStack"/> to use when you need to store
-        /// the result of the Volume blending pass in a separate stack.
-        /// </summary>
-        /// <returns></returns>
-        /// <seealso cref="VolumeStack"/>
-        /// <seealso cref="Update(VolumeStack,Transform,LayerMask)"/>
-        public VolumeStack CreateStack()
-        {
-            var stack = new VolumeStack();
-            stack.Reload(baseComponentTypeArray);
-            return stack;
-        }
-
-        /// <summary>
-        /// Resets the main stack to be the default one.
-        /// Call this function if you've assigned the main stack to something other than the default one.
-        /// </summary>
-        public void ResetMainStack()
-        {
-            stack = m_DefaultStack;
-        }
-
-        /// <summary>
-        /// Destroy a Volume Stack
-        /// </summary>
-        /// <param name="stack">Volume Stack that needs to be destroyed.</param>
-        public void DestroyStack(VolumeStack stack)
-        {
-            stack.Dispose();
-        }
-
-        // This will be called only once at runtime and everytime script reload kicks-in in the
-        // editor as we need to keep track of any compatible component in the project
-        void ReloadBaseTypes()
-        {
-            m_ComponentsDefaultState.Clear();
-
-            // Grab all the component types we can find
-            baseComponentTypeArray = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
-                .Where(t => !t.IsAbstract).ToArray();
-
-            var flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
-            // Keep an instance of each type to be used in a virtual lowest priority global volume
-            // so that we have a default state to fallback to when exiting volumes
-            foreach (var type in baseComponentTypeArray)
-            {
-                type.GetMethod("Init", flags)?.Invoke(null, null);
-                var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
-                m_ComponentsDefaultState.Add(inst);
-            }
         }
 
         /// <summary>
@@ -320,81 +218,12 @@ namespace UnityEngine.Rendering
                 if (!component.active)
                     continue;
 
+                if (!stack.archetype.ContainsType(VolumeComponentType.FromTypeUnsafe(component.GetType())))
+                    continue;
+
                 var state = stack.GetComponent(component.GetType());
                 component.Override(state, interpFactor);
             }
-        }
-
-        // Faster version of OverrideData to force replace values in the global state
-        void ReplaceData(VolumeStack stack, List<VolumeComponent> components)
-        {
-            foreach (var component in components)
-            {
-                var target = stack.GetComponent(component.GetType());
-                int count = component.parameters.Count;
-
-                for (int i = 0; i < count; i++)
-                {
-                    if (target.parameters[i] != null)
-                    {
-                        target.parameters[i].overrideState = false;
-                        target.parameters[i].SetValue(component.parameters[i]);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Checks the state of the base type library. This is only used in the editor to handle
-        /// entering and exiting of play mode and domain reload.
-        /// </summary>
-        [Conditional("UNITY_EDITOR")]
-        public void CheckBaseTypes()
-        {
-            // Editor specific hack to work around serialization doing funky things when exiting
-            if (m_ComponentsDefaultState == null || (m_ComponentsDefaultState.Count > 0 && m_ComponentsDefaultState[0] == null))
-                ReloadBaseTypes();
-        }
-
-        /// <summary>
-        /// Checks the state of a given stack. This is only used in the editor to handle entering
-        /// and exiting of play mode and domain reload.
-        /// </summary>
-        /// <param name="stack">The stack to check.</param>
-        [Conditional("UNITY_EDITOR")]
-        public void CheckStack(VolumeStack stack)
-        {
-            // The editor doesn't reload the domain when exiting play mode but still kills every
-            // object created while in play mode, like stacks' component states
-            var components = stack.components;
-
-            if (components == null)
-            {
-                stack.Reload(baseComponentTypeArray);
-                return;
-            }
-
-            foreach (var kvp in components)
-            {
-                if (kvp.Key == null || kvp.Value == null)
-                {
-                    stack.Reload(baseComponentTypeArray);
-                    return;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Updates the global state of the Volume manager. Unity usually calls this once per Camera
-        /// in the Update loop before rendering happens.
-        /// </summary>
-        /// <param name="trigger">A reference Transform to consider for positional Volume blending
-        /// </param>
-        /// <param name="layerMask">The LayerMask that the Volume manager uses to filter Volumes that it should consider
-        /// for blending.</param>
-        public void Update(Transform trigger, LayerMask layerMask)
-        {
-            Update(stack, trigger, layerMask);
         }
 
         /// <summary>
@@ -410,11 +239,11 @@ namespace UnityEngine.Rendering
         {
             Assert.IsNotNull(stack);
 
-            CheckBaseTypes();
-            CheckStack(stack);
+            stack.CheckStack();
 
-            // Start by resetting the global state to default values
-            ReplaceData(stack, m_ComponentsDefaultState);
+            if (stack.archetype.GetOrAddDefaultState(out var defaultState))
+                // Start by resetting the global state to default values
+                defaultState.ReplaceData(stack);
 
             bool onlyGlobal = trigger == null;
             var triggerPos = onlyGlobal ? Vector3.zero : trigger.position;
@@ -570,23 +399,5 @@ namespace UnityEngine.Rendering
             return true;
 #endif
         }
-    }
-
-    /// <summary>
-    /// A scope in which a Camera filters a Volume.
-    /// </summary>
-    [Obsolete("VolumeIsolationScope is deprecated, it does not have any effect anymore.")]
-    public struct VolumeIsolationScope : IDisposable
-    {
-        /// <summary>
-        /// Constructs a scope in which a Camera filters a Volume.
-        /// </summary>
-        /// <param name="unused">Unused parameter.</param>
-        public VolumeIsolationScope(bool unused) { }
-
-        /// <summary>
-        /// Stops the Camera from filtering a Volume.
-        /// </summary>
-        void IDisposable.Dispose() { }
     }
 }

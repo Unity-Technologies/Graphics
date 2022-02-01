@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the ambient occlusion.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Lighting/Ambient Occlusion", typeof(HDRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Lighting/Ambient Occlusion"), SupportedOn(typeof(HDRenderPipeline))]
     [HDRPHelpURLAttribute("Override-Ambient-Occlusion")]
     public sealed class AmbientOcclusion : VolumeComponentWithQuality
     {

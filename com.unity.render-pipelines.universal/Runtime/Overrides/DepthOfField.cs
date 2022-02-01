@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// A volume component that holds settings for the Depth Of Field effect.
     /// </summary>
-    [Serializable, VolumeComponentMenuForRenderPipeline("Post-processing/Depth Of Field", typeof(UniversalRenderPipeline))]
+    [Serializable, VolumeComponentMenu("Post-processing/Depth Of Field"), SupportedOn(typeof(UniversalRenderPipeline))]
     public sealed class DepthOfField : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -114,11 +114,11 @@ namespace UnityEngine.Rendering.Universal
     [Serializable]
     public sealed class DepthOfFieldModeParameter : VolumeParameter<DepthOfFieldMode>
     {
-        /// <summary>
-        /// Creates a new <see cref="DepthOfFieldModeParameter"/> instance.
-        /// </summary>
-        /// <param name="value">The initial value to store in the parameter.</param>
-        /// <param name="overrideState">The initial override state for the parameter.</param>
-        public DepthOfFieldModeParameter(DepthOfFieldMode value, bool overrideState = false) : base(value, overrideState) { }
+/// <summary>
+/// Creates a new <see cref="DepthOfFieldModeParameter"/> instance.
+/// </summary>
+/// <param name="value">The initial value to store in the parameter.</param>
+/// <param name="overrideState">The initial override state for the parameter.</param>
+public DepthOfFieldModeParameter(DepthOfFieldMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 }

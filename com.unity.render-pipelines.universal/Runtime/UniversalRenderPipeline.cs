@@ -154,6 +154,10 @@ namespace UnityEngine.Rendering.Universal
         // flag to keep track of depth buffer requirements by any of the cameras in the stack
         internal static bool cameraStackRequiresDepthForPostprocessing = false;
 
+        internal static VolumeStack defaultVolumeStack = VolumeStack.FromArchetype(RenderingUtils.volumeArchetype);
+        internal static VolumeStack overrideVolumeStack;
+        internal static VolumeStack currentVolumeStack => overrideVolumeStack ?? defaultVolumeStack;
+
         /// <summary>
         /// Creates a new <c>UniversalRenderPipeline</c> instance.
         /// </summary>
@@ -284,6 +288,7 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < cameras.Length; ++i)
 #endif
             {
+                overrideVolumeStack = null;
                 var camera = cameras[i];
                 if (IsGameCamera(camera))
                 {
@@ -379,6 +384,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="anyPostProcessingEnabled">True if at least one camera has post-processing enabled in the stack, false otherwise.</param>
         static void RenderSingleCamera(ScriptableRenderContext context, CameraData cameraData, bool anyPostProcessingEnabled)
         {
+            overrideVolumeStack = null;
             Camera camera = cameraData.camera;
             var renderer = cameraData.renderer;
             if (renderer == null)
@@ -722,7 +728,7 @@ namespace UnityEngine.Rendering.Universal
                     camera.UpdateVolumeStack(additionalCameraData);
                 }
 
-                VolumeManager.instance.stack = additionalCameraData.volumeStack;
+                overrideVolumeStack = additionalCameraData.volumeStack;
                 return;
             }
 
@@ -737,8 +743,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Get the mask + trigger and update the stack
             camera.GetVolumeLayerMaskAndTrigger(additionalCameraData, out LayerMask layerMask, out Transform trigger);
-            VolumeManager.instance.ResetMainStack();
-            VolumeManager.instance.Update(trigger, layerMask);
+            VolumeManager.instance.Update(currentVolumeStack, trigger, layerMask);
         }
 
         static bool CheckPostProcessForDepth(in CameraData cameraData)
@@ -754,12 +759,10 @@ namespace UnityEngine.Rendering.Universal
 
         static bool CheckPostProcessForDepth()
         {
-            var stack = VolumeManager.instance.stack;
-
-            if (stack.GetComponent<DepthOfField>().IsActive())
+            if (currentVolumeStack.GetComponent<DepthOfField>().IsActive())
                 return true;
 
-            if (stack.GetComponent<MotionBlur>().IsActive())
+            if (currentVolumeStack.GetComponent<MotionBlur>().IsActive())
                 return true;
 
             return false;

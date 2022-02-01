@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using JetBrains.Annotations;
 using UnityEditor;
 
 namespace UnityEngine.Rendering
@@ -10,11 +11,14 @@ namespace UnityEngine.Rendering
     /// The volume settings
     /// </summary>
     /// <typeparam name="T">A <see cref="MonoBehaviour"/> with <see cref="IAdditionalData"/></typeparam>
-    public abstract partial class VolumeDebugSettings<T> : IVolumeDebugSettings2
+    public abstract partial class VolumeDebugSettings<T> : IVolumeDebugSettings
         where T : MonoBehaviour, IAdditionalData
     {
         /// <summary>Current volume component to debug.</summary>
         public int selectedComponent { get; set; } = 0;
+
+        [NotNull]
+        public abstract VolumeComponentArchetype archetype { get; }
 
         /// <summary>
         /// The current selected camera index
@@ -82,29 +86,24 @@ namespace UnityEngine.Rendering
         /// <summary>Type of the current component to debug.</summary>
         public Type selectedComponentType
         {
-            get => volumeComponentsPathAndType[selectedComponent - 1].Item2;
+            get => archetype?.AsArray()[selectedComponent - 1].AsType();
             set
             {
-                var index = volumeComponentsPathAndType.FindIndex(t => t.Item2 == value);
+                var index = Array.FindIndex(archetype.AsArray(), t => t.AsType() == value);
                 if (index != -1)
                     selectedComponent = index + 1;
             }
         }
 
-        static List<(string, Type)> s_ComponentPathAndType;
-
-        /// <summary>List of Volume component types.</summary>
-        public List<(string, Type)> volumeComponentsPathAndType => s_ComponentPathAndType ??= VolumeManager.GetSupportedVolumeComponents(targetRenderPipeline);
+        /// <summary>
+        /// Specifies the render pipeline for this volume settings
+        /// </summary>
+        public abstract Type targetRenderPipeline { get; }
 
         /// <summary>
         /// The list of the additional camera datas
         /// </summary>
         protected static List<T> additionalCameraDatas { get; private set; } = new List<T>();
-
-        /// <summary>
-        /// Specifies the render pipeline for this volume settings
-        /// </summary>
-        public abstract Type targetRenderPipeline { get; }
 
         /// <summary>
         /// Register the camera for the Volume Debug.

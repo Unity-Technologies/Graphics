@@ -3,7 +3,7 @@ using System;
 namespace UnityEngine.Rendering.HighDefinition
 {
     // Deprecated, kept for migration
-    [Obsolete()]
+    [Obsolete(), SupportedOn(typeof(HDRenderPipeline))]
     class ExponentialFog : AtmosphericScattering
     {
         private readonly static int m_ExpFogParam = Shader.PropertyToID("_ExpFogParameters");
