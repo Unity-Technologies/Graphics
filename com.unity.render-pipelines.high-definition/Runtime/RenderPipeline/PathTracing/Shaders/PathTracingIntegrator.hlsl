@@ -331,8 +331,9 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     // Skip this code if getting out of a SSS random walk (currentDepth < 0)
     if (currentDepth >= 0)
     {
+        // FIXME : need to be added again, with separation between thoughput and value for this depth
         // Apply volumetric attenuation
-        ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
+        //ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
 
         // Apply the volume/surface pdf
         pathIntersection.value /= pdf;
