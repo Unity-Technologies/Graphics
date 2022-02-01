@@ -819,6 +819,10 @@ namespace UnityEngine.Rendering.HighDefinition
             using (var builder = renderGraph.AddRenderPass<UpsampleTransparentPassData>("Upsample Low Res Transparency", out var passData, ProfilingSampler.Get(HDProfileId.UpsampleLowResTransparent)))
             {
                 var settings = m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings;
+                m_UpsampleTransparency.EnableKeyword("BILINEAR");
+
+                //Disable lowres nearest depth upsample type Since its broken for DRS.
+                /*
                 if (settings.upsampleType == LowResTransparentUpsample.Bilinear)
                 {
                     m_UpsampleTransparency.EnableKeyword("BILINEAR");
@@ -827,6 +831,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     m_UpsampleTransparency.EnableKeyword("NEAREST_DEPTH");
                 }
+                */
 
                 passData.upsampleMaterial = m_UpsampleTransparency;
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);

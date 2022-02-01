@@ -45,13 +45,8 @@ Shader "Hidden/HDRP/UpsampleTransparent"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = input.texcoord;
 
-            float2 screenPos = floor(input.positionCS.xy);
-            float2 lowScreenPos = floor(screenPos * 0.5f);
-
             float2 fullResTexelSize = _ScreenSize.zw;
             float2 halfResTexelSize = 2.0f * fullResTexelSize;
-
-            float2 lowScreenUV = lowScreenPos * 2.0f * _ScreenSize.zw;
 
         #ifdef NEAREST_DEPTH
 
@@ -60,7 +55,7 @@ Shader "Hidden/HDRP/UpsampleTransparent"
             float4 lowResDepths = GATHER_RED_TEXTURE2D_X(_LowResDepthTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv, halfResTexelSize));
 
             // Gather UVs
-            float2 topLeftUV = lowScreenUV - 0.5 * halfResTexelSize;
+            float2 topLeftUV = uv - 0.5f * halfResTexelSize;
             float2 UVs[NEIGHBOUR_SEARCH] = {
               topLeftUV + float2(0.0f,             halfResTexelSize.y),
               topLeftUV + float2(halfResTexelSize.x, halfResTexelSize.y),
@@ -74,7 +69,7 @@ Shader "Hidden/HDRP/UpsampleTransparent"
             float minDiff = 1e12f;
             float relativeDepthThresh = 0.1f * linearFullResDepth;
 
-            float2 nearestUV = UVs[0];
+            float2 nearestUV;
             int countBelowThresh = 0;
 
             [unroll]
