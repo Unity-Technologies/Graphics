@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             CoreUtils.Destroy(m_BlitMaterial);
+            m_FinalBlitPass.Dispose();
         }
     }
 }

@@ -76,6 +76,7 @@ namespace UnityEngine.Rendering.Universal
             m_ColorTextureHandle?.Release();
             m_DepthTextureHandle?.Release();
             m_UpscalePass.Dispose();
+            m_FinalBlitPass?.Dispose();
         }
 
         public Renderer2DData GetRenderer2DData()
