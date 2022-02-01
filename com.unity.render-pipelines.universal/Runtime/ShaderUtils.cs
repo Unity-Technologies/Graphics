@@ -3,22 +3,72 @@ using System.Linq;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Options to get a shader path to URP shaders when calling ShaderUtils.GetShaderGUID();
+    /// <see cref="ShaderUtils"/>.
+    /// </summary>
     public enum ShaderPathID
     {
+        /// <summary>
+        /// Use this for URP Lit shader.
+        /// </summary>
         Lit,
+
+        /// <summary>
+        /// Use this for URP Simple Lit shader.
+        /// </summary>
         SimpleLit,
+
+        /// <summary>
+        /// Use this for URP Unlit shader.
+        /// </summary>
         Unlit,
+
+        /// <summary>
+        /// Use this for URP Terrain Lit shader.
+        /// </summary>
         TerrainLit,
+
+        /// <summary>
+        /// Use this for URP Particles Lit shader.
+        /// </summary>
         ParticlesLit,
+
+        /// <summary>
+        /// Use this for URP Particles Simple Lit shader.
+        /// </summary>
         ParticlesSimpleLit,
+
+        /// <summary>
+        /// Use this for URP Particles Simple Unlit shader.
+        /// </summary>
         ParticlesUnlit,
+
+        /// <summary>
+        /// Use this for URP Baked Lit shader.
+        /// </summary>
         BakedLit,
+
+        /// <summary>
+        /// Use this for URP SpeedTree 7 shader.
+        /// </summary>
         SpeedTree7,
+
+        /// <summary>
+        /// Use this for URP SpeedTree 7 Billboard shader.
+        /// </summary>
         SpeedTree7Billboard,
+
+        /// <summary>
+        /// Use this for URP SpeedTree 8 shader.
+        /// </summary>
         SpeedTree8,
         // If you add a value here, also add it to ShaderID in Editor/ShaderUtils.cs
     }
 
+    /// <summary>
+    /// Various utility functions for shaders in URP.
+    /// </summary>
     public static class ShaderUtils
     {
         static readonly string[] s_ShaderPaths =
@@ -36,6 +86,11 @@ namespace UnityEngine.Rendering.Universal
             "Universal Render Pipeline/Nature/SpeedTree8_PBRLit",
         };
 
+        /// <summary>
+        /// Retrieves a shader path for the given URP Shader Path ID.
+        /// </summary>
+        /// <param name="id">The URP Shader Path ID.</param>
+        /// <returns>The path to the URP shader.</returns>
         public static string GetShaderPath(ShaderPathID id)
         {
             int index = (int)id;
@@ -47,12 +102,22 @@ namespace UnityEngine.Rendering.Universal
             return "";
         }
 
+        /// <summary>
+        /// Retrieves a URP Shader Path ID from a path given.
+        /// </summary>
+        /// <param name="path">The path to the shader.</param>
+        /// <returns>The URP Shader Path ID.</returns>
         public static ShaderPathID GetEnumFromPath(string path)
         {
             var index = Array.FindIndex(s_ShaderPaths, m => m == path);
             return (ShaderPathID)index;
         }
 
+        /// <summary>
+        /// Checks if a given shader is a URP shader or not.
+        /// </summary>
+        /// <param name="shader">The shader.</param>
+        /// <returns>True or false if it's a URP shader or not.</returns>
         public static bool IsLWShader(Shader shader)
         {
             return s_ShaderPaths.Contains(shader.name);
@@ -75,10 +140,10 @@ namespace UnityEngine.Rendering.Universal
         };
 
         /// <summary>
-        /// Returns shader from shader path id.
+        /// Returns a GUID for a URP shader from Shader Path ID.
         /// </summary>
-        /// <param name="id">Id of shader path.</param>
-        /// <returns></returns>
+        /// <param name="id">ID of shader path.</param>
+        /// <returns>GUID for the shader.</returns>
         public static string GetShaderGUID(ShaderPathID id)
         {
             int index = (int)id;
