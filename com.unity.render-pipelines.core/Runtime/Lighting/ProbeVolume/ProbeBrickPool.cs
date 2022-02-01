@@ -238,7 +238,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        static Vector3Int ProbeCountToDataLocSize(int numProbes)
+        internal static Vector3Int ProbeCountToDataLocSize(int numProbes)
         {
             Debug.Assert(numProbes != 0);
             Debug.Assert(numProbes % kBrickProbeCountTotal == 0);
@@ -475,6 +475,7 @@ namespace UnityEngine.Experimental.Rendering
                                 SetPixel(s_L1GL1Ry_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[1]);
                                 SetPixel(s_L1BL1Rz_locData, ix, iy, iz, loc.width, loc.height, shL0L1ColorPtr[2]);
                                 SetPixel(s_Validity_locData, ix, iy, iz, loc.width, loc.height, ProbeReferenceVolume.Cell.GetValidityFromPacked(validityPtr[shidx]));
+                                SetPixel(s_PackedValidity_locData, ix, iy, iz, loc.width, loc.height, ProbeReferenceVolume.Cell.GetValidityNeighMaskFromPacked(validityPtr[shidx]));
 
                                 if (dstBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                                 {
@@ -516,28 +517,28 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // This can be optimized later.
-            for (int x = 0; x < loc.width; ++x)
-            {
-                for (int y = 0; y < loc.height; ++y)
-                {
-                    for (int z = 0; z < loc.depth; ++z)
-                    {
+            //for (int x = 0; x < loc.width; ++x)
+            //{
+            //    for (int y = 0; y < loc.height; ++y)
+            //    {
+            //        for (int z = 0; z < loc.depth; ++z)
+            //        {
 
-                        float[] validities = new float[8];
-                        for (int o = 0; o < 8; ++o)
-                        {
-                            Vector3Int off = GetSampleOffset(o);
-                            Vector3Int samplePos = new Vector3Int(Mathf.Clamp(x + off.x, 0, loc.width - 1),
-                                                                  Mathf.Clamp(y + off.y, 0, loc.height - 1),
-                                                                  Mathf.Clamp(z + off.z, 0, kBrickProbeCountPerDim - 1));
-                            validities[o] = GetData(s_Validity_locData, samplePos.x, samplePos.y, samplePos.z, loc.width, loc.height);
-                        }
+            //            float[] validities = new float[8];
+            //            for (int o = 0; o < 8; ++o)
+            //            {
+            //                Vector3Int off = GetSampleOffset(o);
+            //                Vector3Int samplePos = new Vector3Int(Mathf.Clamp(x + off.x, 0, loc.width - 1),
+            //                                                      Mathf.Clamp(y + off.y, 0, loc.height - 1),
+            //                                                      Mathf.Clamp(z + off.z, 0, kBrickProbeCountPerDim - 1));
+            //                validities[o] = GetData(s_Validity_locData, samplePos.x, samplePos.y, samplePos.z, loc.width, loc.height);
+            //            }
 
-                        int packedData = PackValidity(validities);
-                        SetPixel(s_PackedValidity_locData, x, y, z, loc.width, loc.height, Convert.ToByte(packedData));
-                    }
-                }
-            }
+            //            int packedData = PackValidity(validities);
+            //            SetPixel(s_PackedValidity_locData, x, y, z, loc.width, loc.height, Convert.ToByte(packedData));
+            //        }
+            //    }
+            //}
 
             loc.TexL0_L1rx.SetPixels(s_L0L1Rx_locData);
             loc.TexL0_L1rx.Apply(false);

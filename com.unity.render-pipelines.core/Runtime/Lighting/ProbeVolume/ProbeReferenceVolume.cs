@@ -373,7 +373,7 @@ namespace UnityEngine.Experimental.Rendering
     /// </summary>
     public partial class ProbeReferenceVolume
     {
-        const int kTemporaryDataLocChunkCount = 8;
+        internal const int kTemporaryDataLocChunkCount = 8;
 
         [Serializable]
         internal class Cell
@@ -410,21 +410,24 @@ namespace UnityEngine.Experimental.Rendering
             internal float GetValidity(int probeIdx)
             {
                 Debug.Assert(probeIdx < validity.Length);
-                return validity[probeIdx];
+                return GetValidityFromPacked(validity[probeIdx]);
             }
 
             internal static float GetValidityFromPacked(uint packedValidity)
             {
-                // TODO_FCC: TMP.
-                //packedValidity
                 uint extractionMask = (1 << 24) - 1;
                 return ((packedValidity >> 8) & extractionMask) / (float)(extractionMask);
+            }
+
+            internal static byte GetValidityNeighMaskFromPacked(uint packedValidity)
+            {
+                return Convert.ToByte(packedValidity & 255);
             }
 
             internal byte GetNeighbourhoodValidityMask(int probeIdx)
             {
                 Debug.Assert(probeIdx < validity.Length);
-                return 255; // TODO_FCC: TMP.
+                return GetValidityNeighMaskFromPacked(validity[probeIdx]); // TODO_FCC: TMP.
             }
 
         }

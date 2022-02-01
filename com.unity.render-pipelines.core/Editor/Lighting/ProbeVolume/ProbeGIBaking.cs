@@ -95,10 +95,6 @@ namespace UnityEngine.Experimental.Rendering
         static Dictionary<Vector3Int, int> m_CellPosToIndex = new Dictionary<Vector3Int, int>();
         static Dictionary<int, BakingCell> m_BakedCells = new Dictionary<int, BakingCell>();
 
-        // TODO_FCC: Can we do better?
-        static Dictionary<Vector3, Bounds> s_ForceInvalidatedProbesAndTouchupVols = new Dictionary<Vector3, Bounds>();
-        static HashSet<Vector3> s_PositionOfForceInvalidatedProbes = new HashSet<Vector3>();
-
         static ProbeGIBaking()
         {
             Init();
@@ -612,6 +608,12 @@ namespace UnityEngine.Experimental.Rendering
 
                 cell.indexChunkCount = probeRefVolume.GetNumberOfBricksAtSubdiv(cell.position, cell.minSubdiv, out _, out _) / ProbeBrickIndex.kIndexChunkSize;
                 cell.shChunkCount = ProbeBrickPool.GetChunkCount(cell.bricks.Length);
+
+
+                // TODO_FCC: Move somewhere else?
+                AddOccluders();
+                ComputeValidityMasks(cell);
+                CleanupOccluders();
 
                 m_BakedCells[cell.index] = cell;
             }
