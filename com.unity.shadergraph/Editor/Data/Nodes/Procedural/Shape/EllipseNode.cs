@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
 @"
 {
 #if defined(SHADER_STAGE_RAY_TRACING)
-    Out = saturate((1.0 - length((UV * 2 - 1) / $precision2(Width, Height))) * FLT_MAX);
+    Out = saturate((1.0 - length((UV * 2 - 1) / $precision2(Width, Height))) * 1e7);
 #else
     $precision d = length((UV * 2 - 1) / $precision2(Width, Height));
     Out = saturate((1 - d) / fwidth(d));

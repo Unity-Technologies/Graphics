@@ -76,8 +76,30 @@ namespace UnityEngine.Rendering.Universal
         TwoCascades,
         FourCascades,
     }
+
+    [Obsolete("This is obsolete, UnityEngine.Rendering.ShaderVariantLogLevel instead.", false)]
+    public enum ShaderVariantLogLevel
+    {
+        Disabled,
+        [InspectorName("Only URP Shaders")]
+        OnlyUniversalRPShaders,
+        [InspectorName("All Shaders")]
+        AllShaders
+    }
+
     public partial class UniversalRenderPipelineAsset
     {
+        [SerializeField] int m_ShaderVariantLogLevel;
+
+#pragma warning disable 618 // Obsolete warning
+        [Obsolete("Use UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel", false)]
+        public ShaderVariantLogLevel shaderVariantLogLevel
+        {
+            get { return (ShaderVariantLogLevel)UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel; }
+            set { UniversalRenderPipelineGlobalSettings.instance.shaderVariantLogLevel = (Rendering.ShaderVariantLogLevel)value; }
+        }
+#pragma warning restore 618 // Obsolete warning
+
 #pragma warning disable 618 // Obsolete warning
         [Obsolete("This is obsolete, please use shadowCascadeCount instead.", false)]
         [SerializeField] ShadowCascadesOption m_ShadowCascades = ShadowCascadesOption.NoCascades;
@@ -126,5 +148,12 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_CameraDepthTarget.nameID;
         }
+    }
+
+    public sealed partial class Bloom : VolumeComponent, IPostProcessComponent
+    {
+        // Deprecated in 13.x.x
+        [Obsolete("This is obsolete, please use maxIterations instead.", false)]
+        public ClampedIntParameter skipIterations = new ClampedIntParameter(1, 0, 16);
     }
 }

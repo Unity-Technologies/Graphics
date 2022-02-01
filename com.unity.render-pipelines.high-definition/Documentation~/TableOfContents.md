@@ -163,7 +163,7 @@
     * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve.md)
   * [Propagating NaNs](Post-Processing-Propagating-NaNs.md)
 * UI
-  * [UI Best Pratices](UI-Best-Practices.md)
+  * [UI Best Practices](UI-Best-Practices.md)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started.md)
   * Effects and Volume Overrides
@@ -213,7 +213,7 @@
   * [Custom Material Inspector](hdrp-custom-material-inspector.md)
   * [Creating and Editing Lights at Runtime](creating-and-editing-lights-at-runtime.md)
   * [Creating a Decal Projector at Runtime](creating-a-decal-projector-at-runtime.md)
-  * [Editing materials at Runtime](Material-API.md)
+  * [Editing Materials at Runtime](Material-API.md)
   * [Editing Frame Settings at Runtime](Frame-Settings-API.md)
   * [Editing Volumes at Runtime](Volumes-API.md)
   * [Render Graph](render-graph.md)

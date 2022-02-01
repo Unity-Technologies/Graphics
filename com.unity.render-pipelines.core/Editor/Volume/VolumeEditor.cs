@@ -13,11 +13,7 @@ namespace UnityEditor.Rendering
         static class Styles
         {
             public static readonly GUIContent mode = EditorGUIUtility.TrTextContent("Mode", "This property defines whether the Volume is Global or Local. Global: Volumes affect the Camera everywhere in the Scene. Local: Volumes affect the Camera if the Camera is within the bounds of the Collider.");
-            public static readonly GUIContent[] modes =
-            {
-                EditorGUIUtility.TrTextContent("Global"),
-                EditorGUIUtility.TrTextContent("Local")
-            };
+            public static readonly GUIContent[] modes = { EditorGUIUtility.TrTextContent("Global"), EditorGUIUtility.TrTextContent("Local") };
 
             public static readonly GUIContent addBoxCollider = EditorGUIUtility.TrTextContent("Add a Box Collider");
             public static readonly GUIContent sphereBoxCollider = EditorGUIUtility.TrTextContent("Add a Sphere Collider");
@@ -71,10 +67,11 @@ namespace UnityEditor.Rendering
         {
             m_ComponentList.Clear();
 
-            asset.Sanitize();
-
             if (asset != null)
+            {
+                asset.Sanitize();
                 m_ComponentList.Init(asset, new SerializedObject(asset));
+            }
         }
 
         private void AddOverride()
@@ -218,9 +215,11 @@ namespace UnityEditor.Rendering
                     var path = AssetDatabase.GetAssetPath(m_Profile.objectReferenceValue);
 
                     path = IsAssetInReadOnlyPackage(path)
+
                         // We may be in a read only package, in that case we need to clone the volume profile in an
                         // editable area, such as the root of the project.
                         ? AssetDatabase.GenerateUniqueAssetPath(Path.Combine("Assets", Path.GetFileName(path)))
+
                         // Otherwise, duplicate next to original asset.
                         : AssetDatabase.GenerateUniqueAssetPath(path);
 

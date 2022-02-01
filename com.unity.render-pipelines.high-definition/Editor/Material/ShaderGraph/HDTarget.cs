@@ -425,6 +425,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     #region StructCollections
     static class CoreStructCollections
     {
+        public static StructCollection BasicProcedural = new StructCollection
+        {
+            { HDStructs.AttributesMeshProcedural },
+            { HDStructs.VaryingsMeshToPS },
+            { HDStructs.VertexDescriptionInputsProcedural },
+            { Structs.SurfaceDescriptionInputs },
+        };
+
         public static StructCollection Basic = new StructCollection
         {
             { HDStructs.AttributesMesh },
@@ -442,6 +450,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { HDStructs.VaryingsMeshToDS },
             { HDStructs.VaryingsMeshToPS },
             { Structs.VertexDescriptionInputs },
+            { Structs.SurfaceDescriptionInputs },
+        };
+
+        public static StructCollection BasicProceduralTessellation = new StructCollection
+        {
+            { HDStructs.AttributesMeshProcedural },
+            { HDStructs.VaryingsMeshToDS },
+            { HDStructs.VaryingsMeshToPS },
+            { HDStructs.VertexDescriptionInputsProcedural },
             { Structs.SurfaceDescriptionInputs },
         };
 
@@ -692,7 +709,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static readonly string dstBlend = "[_DstBlend]";
             public static readonly string alphaSrcBlend = "[_AlphaSrcBlend]";
             public static readonly string alphaDstBlend = "[_AlphaDstBlend]";
-            public static readonly string alphaToMask = "[_AlphaToMask]";
+            public static readonly string alphaCutoffEnable = "[_AlphaCutoffEnable]";
             public static readonly string cullMode = "[_CullMode]";
             public static readonly string cullModeForward = "[_CullModeForward]";
             public static readonly string zTestDepthEqualForOpaque = "[_ZTestDepthEqualForOpaque]";
@@ -748,7 +765,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.AlphaToMask(Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
+            { RenderState.AlphaToMask(Uniforms.alphaCutoffEnable), new FieldCondition(Fields.AlphaToMask, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMaskDepth,
@@ -762,7 +779,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.AlphaToMask(Uniforms.alphaToMask), new FieldCondition(Fields.AlphaToMask, true) },
+            { RenderState.AlphaToMask(Uniforms.alphaCutoffEnable), new FieldCondition(Fields.AlphaToMask, true) },
             { RenderState.Stencil(new StencilDescriptor()
             {
                 WriteMask = Uniforms.stencilWriteMaskMV,
@@ -1128,6 +1145,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Global,
         };
 
+        public static KeywordDescriptor ProceduralInstancing = new KeywordDescriptor()
+        {
+            displayName = "Procedural Instancing",
+            referenceName = "PROCEDURAL_INSTANCING_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor StereoInstancing = new KeywordDescriptor()
+        {
+            displayName = "Stereo Instancing",
+            referenceName = "STEREO_INSTANCING_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
         public static KeywordDescriptor Lightmap = new KeywordDescriptor()
         {
             displayName = "Lightmap",
@@ -1409,15 +1444,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local
-        };
-
-        public static KeywordDescriptor AlphaToMask = new KeywordDescriptor()
-        {
-            displayName = "Alpha To Mask",
-            referenceName = "_ALPHATOMASK_ON",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
         };
 
         public static KeywordDescriptor TransparentColorShadow = new KeywordDescriptor()

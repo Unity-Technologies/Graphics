@@ -30,10 +30,13 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_trunk:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  rsync -az .Editor/ bokken@$BOKKEN_DEVICE_IP:~/Graphics/.Editor
       -  |5-
-               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics; ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests --timeout=1200 --zero-tests-are-ok=1"
+               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics; ./utr --architecture=ARM64 --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests --timeout=1200"
                UTR_RESULT=$?
                scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests/test-results/ TestProjects/HDRP_RuntimeTests
                exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:
@@ -65,10 +68,13 @@ HDRP_OSX_Apple_Silicon_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  rsync -az .Editor/ bokken@$BOKKEN_DEVICE_IP:~/Graphics/.Editor
       -  |5-
-               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics; ./utr $CACHE_ARGS --architecture=ARM64 --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests --timeout=1200 --zero-tests-are-ok=1"
+               ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; cd ~/Graphics; ./utr --architecture=ARM64 --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests/test-results --editor-location=.Editor --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests --timeout=1200"
                UTR_RESULT=$?
                scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_RuntimeTests/test-results/ TestProjects/HDRP_RuntimeTests
                exit $UTR_RESULT
+    after:
+      -  command: pip3 install requests ant_instability_detection --index-url https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade || exit 0
+      -  command: find_instabilities || exit 0
     artifacts:
         logs:
             paths:

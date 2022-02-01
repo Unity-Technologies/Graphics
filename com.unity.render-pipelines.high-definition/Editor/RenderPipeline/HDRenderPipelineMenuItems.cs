@@ -300,7 +300,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Reset All Project and Scene High Definition Materials Keywords")]
         static void ResetAllMaterialKeywordsInProjectAndScenes()
         {
-            var openedScenes = new string[EditorSceneManager.loadedSceneCount];
+            var openedScenes = new string[SceneManager.loadedSceneCount];
             for (var i = 0; i < openedScenes.Length; ++i)
                 openedScenes[i] = SceneManager.GetSceneAt(i).path;
 
