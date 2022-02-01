@@ -302,8 +302,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
 
+        private void InitPathTracingSettingsCache()
+        {
+            m_CacheMaxIteration = (uint)m_PathTracingSettings.maximumSamples.value;
+#if ENABLE_UNITY_DENOISING_PLUGIN
+            m_CachedDenoiserType = m_PathTracingSettings.denoising.value;
+#endif
+        }
+
         private void OnSceneEdit()
         {
+            bool doPathTracingReset = true;
+            
             // If we just change the sample count, we don't necessarily want to reset iteration
             if (m_PathTracingSettings && m_CacheMaxIteration != m_PathTracingSettings.maximumSamples.value)
             {
@@ -315,16 +325,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 // We have to reset the status of any active denoisers so the denoiser will run again when we have max samples
                 m_SubFrameManager.ResetDenoisingStatus();
 #endif
+                doPathTracingReset = false;
             }
+            
 #if ENABLE_UNITY_DENOISING_PLUGIN
             // If we just change the denoiser type, we don't necessarily want to reset iteration
-            else if (m_PathTracingSettings && m_CachedDenoiserType != m_PathTracingSettings.denoising.value)
+            if (m_PathTracingSettings && m_CachedDenoiserType != m_PathTracingSettings.denoising.value)
             {
                 m_CachedDenoiserType = m_PathTracingSettings.denoising.value;
                 m_SubFrameManager.ResetDenoisingStatus();
+                doPathTracingReset = false;
             }
 #endif
-            else
+
+            if (doPathTracingReset)
                 ResetPathTracing();
         }
 
@@ -634,7 +648,15 @@ namespace UnityEngine.Rendering.HighDefinition
         // This is the method to call from the main render loop
         TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
         {
-            m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
+#if UNITY_EDITOR
+            if (m_PathTracingSettings == null)
+            {
+                m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
+                InitPathTracingSettingsCache();
+            }
+            else
+#endif
+                m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
             // Check the validity of the state before moving on with the computation
             if (!m_GlobalSettings.renderPipelineRayTracingResources.pathTracingRT || !m_PathTracingSettings.enable.value)
