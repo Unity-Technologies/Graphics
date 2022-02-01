@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
 - Renamed the Exposure field to Exposure Compensation in sky volume overrides (case 1392530).
 - Disabled the volumetric clouds for the indoor template scenes (normal and DXR) (case 1381761).
+- Post Process can now be edited in the default frame settings.
 
 ### Fixed
 - Fixed build warnings due to the exception in burst code (case 1382827).
