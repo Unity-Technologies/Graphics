@@ -43,6 +43,11 @@ public class HDRP_TestSettings : GraphicsTestSettings
             quitDebug.AppendLine($"{SceneManager.GetActiveScene().name} RP asset change: {((currentRP == null) ? "null" : currentRP.name)} => {renderPipelineAsset.name}");
 
             GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
+
+            // Render pipeline is only reconstructed when a frame is renderer
+            // If scene requires lightmap baking, we have to force it
+            if (!Application.isPlaying)
+                Camera.main.Render();
         }
     }
 
