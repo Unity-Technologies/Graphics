@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed using the wrong coordinate to compute the sampling direction for the screen space global illumination.
 - Fixed error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
 - Fixed NullReferenceException when opening a Volume Component with a Diffusion Profile with any inspector.
+- Fixed cached directional light shadows disappearing without reappearing when the going outside of the range of shadow validity.
 
 ### Changed
 - Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
