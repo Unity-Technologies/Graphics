@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using UnityEditor.Experimental.GraphView;
 
 namespace UnityEngine.Rendering.Tests

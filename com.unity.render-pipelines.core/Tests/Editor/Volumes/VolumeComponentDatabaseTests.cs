@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.Tests
         public void CallStaticInitOnComponents()
         {
             var initCount = VolumeComponentWithStaticInit.initCount;
-            VolumeComponentDatabase.StaticInitializeComponents(new []
+            VolumeComponentDatabase.StaticInitializeComponents(new[]
             {
                 VolumeComponentType.FromTypeUnsafe(typeof(VolumeComponentWithStaticInit))
             });

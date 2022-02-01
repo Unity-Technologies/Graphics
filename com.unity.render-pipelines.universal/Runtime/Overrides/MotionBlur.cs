@@ -83,12 +83,12 @@ namespace UnityEngine.Rendering.Universal
     [Serializable]
     public sealed class MotionBlurModeParameter : VolumeParameter<MotionBlurMode>
     {
-/// <summary>
-/// Creates a new <see cref="MotionBlurModeParameter"/> instance.
-/// </summary>
-/// <param name="value">The initial value to store in the parameter.</param>
-/// <param name="overrideState">The initial override state for the parameter.</param>
-public MotionBlurModeParameter(MotionBlurMode value, bool overrideState = false) : base(value, overrideState) { }
+        /// <summary>
+        /// Creates a new <see cref="MotionBlurModeParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public MotionBlurModeParameter(MotionBlurMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 
     /// <summary>
@@ -97,11 +97,11 @@ public MotionBlurModeParameter(MotionBlurMode value, bool overrideState = false)
     [Serializable]
     public sealed class MotionBlurQualityParameter : VolumeParameter<MotionBlurQuality>
     {
-/// <summary>
-/// Creates a new <see cref="MotionBlurQualityParameter"/> instance.
-/// </summary>
-/// <param name="value">The initial value to store in the parameter.</param>
-/// <param name="overrideState">The initial override state for the parameter.</param>
-public MotionBlurQualityParameter(MotionBlurQuality value, bool overrideState = false) : base(value, overrideState) { }
+        /// <summary>
+        /// Creates a new <see cref="MotionBlurQualityParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public MotionBlurQualityParameter(MotionBlurQuality value, bool overrideState = false) : base(value, overrideState) { }
     }
 }

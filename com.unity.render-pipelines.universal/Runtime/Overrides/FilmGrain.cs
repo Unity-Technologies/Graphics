@@ -107,11 +107,11 @@ namespace UnityEngine.Rendering.Universal
     [Serializable]
     public sealed class FilmGrainLookupParameter : VolumeParameter<FilmGrainLookup>
     {
-/// <summary>
-/// Creates a new <see cref="FilmGrainLookupParameter"/> instance.
-/// </summary>
-/// <param name="value">The initial value to store in the parameter.</param>
-/// <param name="overrideState">The initial override state for the parameter.</param>
-public FilmGrainLookupParameter(FilmGrainLookup value, bool overrideState = false) : base(value, overrideState) { }
+        /// <summary>
+        /// Creates a new <see cref="FilmGrainLookupParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public FilmGrainLookupParameter(FilmGrainLookup value, bool overrideState = false) : base(value, overrideState) { }
     }
 }

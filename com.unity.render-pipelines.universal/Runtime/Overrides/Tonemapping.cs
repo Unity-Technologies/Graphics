@@ -51,11 +51,11 @@ namespace UnityEngine.Rendering.Universal
     [Serializable]
     public sealed class TonemappingModeParameter : VolumeParameter<TonemappingMode>
     {
-/// <summary>
-/// Creates a new <see cref="TonemappingModeParameter"/> instance.
-/// </summary>
-/// <param name="value">The initial value to store in the parameter.</param>
-/// <param name="overrideState">The initial override state for the parameter.</param>
-public TonemappingModeParameter(TonemappingMode value, bool overrideState = false) : base(value, overrideState) { }
+        /// <summary>
+        /// Creates a new <see cref="TonemappingModeParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public TonemappingModeParameter(TonemappingMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 }
