@@ -151,7 +151,7 @@ PackedVaryingsType MotionVectorVS(VaryingsType varyingsType, AttributesMesh inpu
         if (_TransparentCameraOnlyMotionVectors > 0)
         {
             previousPositionRWS = varyingsType.vmesh.positionRWS.xyz;
-            output.vpass.previousPositionCS = mul(UNITY_MATRIX_PREV_VP, float4(previousPositionRWS, 1.0));
+            varyingsType.vpass.previousPositionCS = mul(UNITY_MATRIX_PREV_VP, float4(previousPositionRWS, 1.0));
             previousPositionCSComputed = true;
         }
 #endif
