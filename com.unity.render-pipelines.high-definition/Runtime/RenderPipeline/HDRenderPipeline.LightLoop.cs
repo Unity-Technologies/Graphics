@@ -1075,7 +1075,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDCamera hdCamera;
         }
 
-        void UpdateSSRConstantBuffer(HDCamera hdCamera, ScreenSpaceReflection settings, ref ShaderVariablesScreenSpaceReflection cb)
+        void UpdateSSRConstantBuffer(HDCamera hdCamera, ScreenSpaceReflection settings, bool isTransparent, ref ShaderVariablesScreenSpaceReflection cb)
         {
             float n = hdCamera.camera.nearClipPlane;
             float f = hdCamera.camera.farClipPlane;
@@ -1084,7 +1084,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._SsrThicknessScale = 1.0f / (1.0f + thickness);
             cb._SsrThicknessBias = -n / (f - n) * (thickness * cb._SsrThicknessScale);
             cb._SsrIterLimit = settings.rayMaxIterations;
-            cb._SsrReflectsSky = settings.reflectSky.value ? 1 : 0;
+            cb._SsrReflectsSky = isTransparent ? 0 : (settings.reflectSky.value ? 1 : 0);
             cb._SsrStencilBit = (int)StencilUsage.TraceReflectionRay;
             float roughnessFadeStart = 1 - settings.smoothnessFadeStart;
             cb._SsrRoughnessFadeEnd = 1 - settings.minSmoothness;
@@ -1156,7 +1156,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var colorPyramid = renderGraph.ImportTexture(colorPyramidRT);
                     var volumeSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
 
-                    UpdateSSRConstantBuffer(hdCamera, volumeSettings, ref passData.cb);
+                    UpdateSSRConstantBuffer(hdCamera, volumeSettings, transparent, ref passData.cb);
 
                     passData.hdCamera = hdCamera;
                     passData.blueNoise = GetBlueNoiseManager();
