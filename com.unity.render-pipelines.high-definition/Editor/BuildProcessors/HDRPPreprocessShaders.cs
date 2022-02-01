@@ -500,7 +500,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        private readonly Lazy<bool> m_Active = new (CheckIfStripperIsActive);
+        private readonly Lazy<bool> m_Active = new(CheckIfStripperIsActive);
         private bool active => m_Active.Value;
 
         static bool CheckIfStripperIsActive()
@@ -590,7 +590,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 LogShaderVariants(shader, snippet, preStrippingCount, (uint)inputData.Count);
             }
 
-            shaderPreprocessed?.Invoke(shader, snippet, inputData.Count,stripTimeMs);
+            shaderPreprocessed?.Invoke(shader, snippet, inputData.Count, stripTimeMs);
         }
     }
 

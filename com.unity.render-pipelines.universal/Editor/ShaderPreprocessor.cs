@@ -672,7 +672,7 @@ namespace UnityEditor.Rendering.Universal
             Debug.Log(result);
         }
 
-        private readonly Lazy<bool> m_Active = new (CheckIfStripperIsActive);
+        private readonly Lazy<bool> m_Active = new(CheckIfStripperIsActive);
         private bool active => m_Active.Value;
 
         static bool CheckIfStripperIsActive()
