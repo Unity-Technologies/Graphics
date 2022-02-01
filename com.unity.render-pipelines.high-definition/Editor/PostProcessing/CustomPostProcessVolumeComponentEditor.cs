@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// Base class to inherit to create custom post process volume editors.
     /// </summary>
     [CanEditMultipleObjects]
-    [CustomEditor(typeof(CustomPostProcessVolumeComponent))]
+    [CustomEditor(typeof(CustomPostProcessVolumeComponent), true)]
     public class CustomPostProcessVolumeComponentEditor : VolumeComponentEditor
     {
         internal static class Styles
