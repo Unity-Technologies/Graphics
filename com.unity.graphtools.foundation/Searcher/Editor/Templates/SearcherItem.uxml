@@ -1,0 +1,11 @@
+<UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:VisualElement name="itemMainVisualContainer">
+    <ui:VisualElement name="itemIndent"/>
+    <ui:VisualElement name="itemChildExpander">
+      <ui:VisualElement name="expanderIcon"/>
+    </ui:VisualElement>
+    <ui:Toggle name="itemToggle"/>
+    <ui:VisualElement name="itemIconVisualElement"/>
+    <ui:VisualElement name="labelsContainer"/>
+  </ui:VisualElement>
+</UXML>

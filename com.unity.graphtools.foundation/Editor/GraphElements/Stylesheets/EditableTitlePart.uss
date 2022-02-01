@@ -1,0 +1,10 @@
+.ge-editable-title-part {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ge-editable-title-part__title {
+    flex-grow: 1;
+    padding: 0;
+}

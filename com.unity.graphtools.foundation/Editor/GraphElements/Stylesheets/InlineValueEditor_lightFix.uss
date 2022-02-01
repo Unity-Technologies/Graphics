@@ -1,0 +1,4 @@
+/* TODO VladN: fix for light skin, remove when GTF supports light skin */
+.ge-inline-value-editor .unity-base-text-field__label {
+    color: #CCCCCC;
+}

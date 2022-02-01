@@ -1,0 +1,5 @@
+.ge-port__icon {
+    width: 12px;
+    height: 12px;
+    --unity-image: url("Icons/Advanced@x3.png");
+}

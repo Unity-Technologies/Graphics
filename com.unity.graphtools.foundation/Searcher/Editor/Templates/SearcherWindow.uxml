@@ -1,0 +1,31 @@
+<UXML xmlns:ui="UnityEngine.UIElements"  xmlns:ed="UnityEditor.Experimental.UIElements" xmlns:lv="UnityEditor.EditorCommon.UIElements.ListView">
+  <ui:VisualElement name="windowContainer">
+    <ui:VisualElement name="windowMainVisualContainer">
+      <ed:VisualSplitter name="splitter">
+      <ui:VisualElement name="searcherVisualContainer">
+        <ui:VisualElement name="windowHeaderContainer">
+          <ui:VisualElement name="windowTitleContainer">
+            <ui:Label name="windowTitleLabel" focusable="false"/>
+            <ui:Toggle name="detailsPanelToggle" />
+          </ui:VisualElement>
+          <ui:VisualElement name="windowSearchBoxVisualContainer">
+            <ui:VisualElement name="searchIcon"/>
+            <ui:Label name="autoCompleteLabel"/>
+            <ui:Label name="searchPlaceholderLabel" text="Start typing to search..."/>
+            <ui:TextField name="searchBox"/>
+          </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="windowSelectionVisualContainer">
+          <ui:ListView class="focusableScrollView" item-height="25" name="windowResultsScrollView"/>
+          <ui:Button text="Confirm" class="searcherMultiSelectConfirmButton" name="confirmButton"/>
+        </ui:VisualElement>
+      </ui:VisualElement>
+      <ui:VisualElement name="windowDetailsVisualContainer"/>
+      </ed:VisualSplitter>
+    </ui:VisualElement>
+    <ui:VisualElement name="windowBottom" focusable="false">
+      <ui:Label name="statusLabel" text="'Double-click' or hit 'Enter' to add a node." />
+      <ui:VisualElement name="windowResizer" focusable="false" />
+    </ui:VisualElement>
+  </ui:VisualElement>
+</UXML>

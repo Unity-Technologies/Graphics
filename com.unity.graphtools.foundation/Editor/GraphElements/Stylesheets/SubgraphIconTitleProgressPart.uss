@@ -1,0 +1,31 @@
+.ge-icon-title-progress__title-container {
+    width: 100%;
+}
+
+.ge-icon-title-progress__left-container {
+    flex-direction: row;
+}
+
+.ge-icon-title-progress__graph-type-label {
+    font-size: 8px;
+}
+
+.ge-icon-title-progress__title #label {
+    padding-left: 0;
+}
+
+.ge-icon-title-progress__graph-type-icon {
+    width: 12px;
+    height: 12px;
+    align-self: center;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.ge-icon-title-progress__asset-graph-icon {
+    background-image: url("Icons/AssetGraph.png");
+}
+
+.ge-icon-title-progress .ge-collapse-button {
+    margin-left: 5px;
+}

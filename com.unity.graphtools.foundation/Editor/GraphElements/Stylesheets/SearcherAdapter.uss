@@ -1,0 +1,7 @@
+.unity-label__searcher-details-title--description {
+    margin-top: 10px;
+}
+
+.ge-searcher-details--hidden {
+    display: none;
+}

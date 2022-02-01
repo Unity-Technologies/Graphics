@@ -1,0 +1,4 @@
+/* TODO VladN: fix for light skin, remove when GTF supports light skin */
+#errorToolbar #errorCounterLabel {
+    color: #CCCCCC;
+}

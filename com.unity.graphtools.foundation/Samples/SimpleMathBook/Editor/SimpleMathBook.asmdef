@@ -1,0 +1,22 @@
+{
+    "name": "SimpleMathBook",
+    "rootNamespace": "",
+    "references": [
+        "Unity.GraphTools.Foundation.Overdrive",
+        "Unity.GraphTools.Foundation.Overdrive.Model",
+        "Unity.GraphTools.Foundation.Overdrive.Editor",
+        "Unity.GraphTools.Foundation.Overdrive.CommandStateObserver",
+        "Unity.GraphToolsFoundation.Searcher.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

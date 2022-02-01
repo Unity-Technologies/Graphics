@@ -1,0 +1,12 @@
+{
+    "name": "Unity.GraphToolsFoundation.Searcher.EditorSamples",
+    "references": [
+        "Unity.GraphToolsFoundation.Searcher.Editor",
+        "Unity.GraphToolsFoundation.Searcher.ScriptsSamples"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false
+}

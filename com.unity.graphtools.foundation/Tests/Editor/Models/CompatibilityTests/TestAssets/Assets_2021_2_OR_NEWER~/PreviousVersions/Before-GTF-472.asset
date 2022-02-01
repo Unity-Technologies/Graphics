@@ -1,0 +1,2119 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ee16e54d22c4004db1ccdc04b9f97e7, type: 3}
+  m_Name: CurrentVersion
+  m_EditorClassIdentifier: 
+  m_GraphModel:
+    rid: 4302685032285209506
+  m_GraphAssetType: 1
+  references:
+    version: 2
+    RefIds:
+    - rid: 4302685032285209506
+      type: {class: CompatibilityTestGraphModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models, asm: Unity.GraphTools.Foundation.Editor.Tests}
+      data:
+        m_AssetModel: {fileID: 11400000}
+        m_GraphNodeModels:
+        - rid: 4302685032285209507
+        - rid: 4302685032285209508
+        - rid: 4302685032285209509
+        - rid: 4302685032285209510
+        - rid: 4302685032285209511
+        - rid: 4302685032285209512
+        - rid: 4302685032285209513
+        - rid: 4302685032285209514
+        - rid: 4302685032285209515
+        - rid: 4302685032285209516
+        - rid: 4302685032285209517
+        - rid: 4302685032285209518
+        - rid: 4302685032285209519
+        - rid: 4302685032285209520
+        - rid: 4302685032285209521
+        - rid: 4302685032285209522
+        - rid: 4302685032285209523
+        - rid: 4302685032285209524
+        - rid: 4302685032285209525
+        - rid: 4302685032285209526
+        - rid: 4302685032285209527
+        - rid: 4302685032285209528
+        - rid: 4302685032285209529
+        - rid: 4302685032285209530
+        - rid: 4302685032285209531
+        - rid: 4302685032285209532
+        - rid: 4302685032285209533
+        - rid: 4302685032285209534
+        - rid: 4302685032285209535
+        - rid: 4302685032285209536
+        - rid: 4302685032285209537
+        - rid: 4302685032285209538
+        - rid: 4302685032285209539
+        - rid: 4302685032285209540
+        - rid: 4302685032285209541
+        - rid: 4302685032285209542
+        - rid: 4302685032285209543
+        - rid: 4302685032285209544
+        - rid: 4302685032285209545
+        - rid: 4302685032285209546
+        - rid: 4302685032285209547
+        - rid: 4302685032285209548
+        - rid: 4302685032285209549
+        - rid: 4302685032285209550
+        - rid: 4302685032285209551
+        - rid: 4302685032285209552
+        - rid: 4302685032285209553
+        - rid: 4302685032285209554
+        - rid: 4302685032285209555
+        - rid: 4302685032285209556
+        - rid: 4302685032285209557
+        - rid: 4302685032285209558
+        - rid: 4302685032285209559
+        - rid: 4302685032285209560
+        - rid: 4302685032285209561
+        - rid: 4302685032285209562
+        - rid: 4302685032285209563
+        - rid: 4302685032285209564
+        - rid: 4302685032285209565
+        - rid: 4302685032285209566
+        - rid: 4302685032285209567
+        - rid: 4302685032285209568
+        m_EdgeModels: []
+        m_BadgeModels: []
+        m_GraphEdgeModels:
+        - rid: 4302685032285209569
+        - rid: 4302685032285209570
+        - rid: 4302685032285209571
+        m_PolymorphicEdgeModels: []
+        m_StickyNoteModels: []
+        m_GraphStickyNoteModels:
+        - rid: 4302685032285209572
+        m_PlacematModels: []
+        m_GraphPlacematModels:
+        - rid: 4302685032285209573
+        - rid: 4302685032285209574
+        m_GraphVariableModels:
+        - rid: 4302685032285209575
+        - rid: 4302685032285209576
+        - rid: 4302685032285209577
+        - rid: 4302685032285209578
+        - rid: 4302685032285209579
+        - rid: 4302685032285209580
+        - rid: 4302685032285209581
+        - rid: 4302685032285209582
+        - rid: 4302685032285209583
+        - rid: 4302685032285209584
+        - rid: 4302685032285209585
+        - rid: 4302685032285209586
+        - rid: 4302685032285209587
+        - rid: 4302685032285209588
+        - rid: 4302685032285209589
+        - rid: 4302685032285209590
+        - rid: 4302685032285209591
+        - rid: 4302685032285209592
+        m_GraphPortalModels:
+        - rid: 4302685032285209593
+        - rid: 4302685032285209594
+        - rid: 4302685032285209595
+        - rid: 4302685032285209596
+        m_Name: 
+        m_StencilTypeName: UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models.CompatibilityTestStencil,
+          Unity.GraphTools.Foundation.Editor.Tests, Version=0.0.0.0, Culture=neutral,
+          PublicKeyToken=null
+    - rid: 4302685032285209507
+      type: {class: CompatibilityTestNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models, asm: Unity.GraphTools.Foundation.Editor.Tests}
+      data:
+        m_Guid:
+          m_Value0: 3
+          m_Value1: 0
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: 20, y: 20}
+        m_Title: Node 1
+        m_InputConstantsById:
+          m_KeyList:
+          - dataIn0
+          - dataIn1
+          m_ValueList:
+          - rid: 4302685032285209597
+          - rid: 4302685032285209598
+        m_State: 0
+        m_Collapsed: 0
+        m_ExecIn: 0
+        m_ExecOut: 1
+        m_DataIn: 2
+        m_DataOut: 2
+    - rid: 4302685032285209508
+      type: {class: CompatibilityTestNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models, asm: Unity.GraphTools.Foundation.Editor.Tests}
+      data:
+        m_Guid:
+          m_Value0: 3
+          m_Value1: 1
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -220, y: 20}
+        m_Title: Node 2
+        m_InputConstantsById:
+          m_KeyList:
+          - dataIn0
+          - dataIn1
+          m_ValueList:
+          - rid: 4302685032285209599
+          - rid: 4302685032395571200
+        m_State: 1
+        m_Collapsed: 0
+        m_ExecIn: 1
+        m_ExecOut: 1
+        m_DataIn: 2
+        m_DataOut: 2
+    - rid: 4302685032285209509
+      type: {class: CompatibilityTestNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.Tests.Models, asm: Unity.GraphTools.Foundation.Editor.Tests}
+      data:
+        m_Guid:
+          m_Value0: 3
+          m_Value1: 2
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 1, g: 0, b: 1, a: 1}
+        m_HasUserColor: 1
+        m_Version: 1
+        m_Position: {x: -250, y: 20}
+        m_Title: Node 3
+        m_InputConstantsById:
+          m_KeyList:
+          - dataIn0
+          - dataIn1
+          m_ValueList:
+          - rid: 4302685032395571201
+          - rid: 4302685032395571202
+        m_State: 0
+        m_Collapsed: 1
+        m_ExecIn: 1
+        m_ExecOut: 0
+        m_DataIn: 2
+        m_DataOut: 0
+    - rid: 4302685032285209510
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 0
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 1, b: 0, a: 1}
+        m_HasUserColor: 1
+        m_Version: 1
+        m_Position: {x: 20, y: -200}
+        m_Title: Constant 1
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571203
+    - rid: 4302685032285209511
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 1
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 1, g: 0, b: 1, a: 1}
+        m_HasUserColor: 1
+        m_Version: 1
+        m_Position: {x: 20, y: -250}
+        m_Title: Constant 2
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 1
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571204
+    - rid: 4302685032285209512
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 2
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: 20, y: -300}
+        m_Title: Constant 3
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 1
+        m_Value:
+          rid: 4302685032395571205
+    - rid: 4302685032285209513
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 3
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -200, y: -500}
+        m_Title: TypeName:System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571206
+    - rid: 4302685032285209514
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 4
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -200, y: -550}
+        m_Title: TypeName:System.Double, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571207
+    - rid: 4302685032285209515
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 5
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -200, y: -600}
+        m_Title: TypeName:System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571208
+    - rid: 4302685032285209516
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 6
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -200, y: -650}
+        m_Title: TypeName:System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571209
+    - rid: 4302685032285209517
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 7
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -200, y: -700}
+        m_Title: TypeName:UnityEngine.Quaternion, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571210
+    - rid: 4302685032285209518
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 8
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -200, y: -750}
+        m_Title: TypeName:System.String, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571211
+    - rid: 4302685032285209519
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 9
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -200, y: -800}
+        m_Title: TypeName:UnityEngine.Vector2, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571212
+    - rid: 4302685032285209520
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 10
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -200, y: -850}
+        m_Title: TypeName:UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571213
+    - rid: 4302685032285209521
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 11
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -200, y: -900}
+        m_Title: TypeName:UnityEngine.Vector4, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571214
+    - rid: 4302685032285209522
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 12
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -200, y: -950}
+        m_Title: TypeName:UnityEngine.Color, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571215
+    - rid: 4302685032285209523
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 13
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -200, y: -1000}
+        m_Title: TypeName:UnityEngine.AnimationClip, UnityEngine.AnimationModule,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571216
+    - rid: 4302685032285209524
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 14
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -200, y: -1050}
+        m_Title: TypeName:UnityEngine.Mesh, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571217
+    - rid: 4302685032285209525
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 15
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -200, y: -1100}
+        m_Title: TypeName:UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571218
+    - rid: 4302685032285209526
+      type: {class: ConstantNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 4
+          m_Value1: 16
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -200, y: -1150}
+        m_Title: TypeName:UnityEngine.Texture3D, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_IsLocked: 0
+        m_Value:
+          rid: 4302685032395571219
+    - rid: 4302685032285209527
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 0
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -500}
+        m_Title: Variable Decl 1
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209575
+    - rid: 4302685032285209528
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 1
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -550}
+        m_Title: Variable Decl 1
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209575
+    - rid: 4302685032285209529
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 2
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -600}
+        m_Title: Variable Decl 2
+        m_InputConstantsById:
+          m_KeyList:
+          - MainPortName
+          m_ValueList:
+          - rid: 4302685032395571220
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209576
+    - rid: 4302685032285209530
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 3
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -650}
+        m_Title: Variable Decl 2
+        m_InputConstantsById:
+          m_KeyList:
+          - MainPortName
+          m_ValueList:
+          - rid: 4302685032395571221
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209576
+    - rid: 4302685032285209531
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 4
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -700}
+        m_Title: Variable Decl 3
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209577
+    - rid: 4302685032285209532
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 5
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -750}
+        m_Title: Variable Decl 3
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209577
+    - rid: 4302685032285209533
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 6
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -800}
+        m_Title: Variable Decl 4
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209578
+    - rid: 4302685032285209534
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 7
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -850}
+        m_Title: Variable Decl 4
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209578
+    - rid: 4302685032285209535
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 8
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -900}
+        m_Title: Type Name:System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral,
+          Public Key Token=b 77a 5c 561934e 089
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209579
+    - rid: 4302685032285209536
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 9
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -950}
+        m_Title: Type Name:System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral,
+          Public Key Token=b 77a 5c 561934e 089
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209579
+    - rid: 4302685032285209537
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 10
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1000}
+        m_Title: Type Name:System.Double, mscorlib, Version=4.0.0.0, Culture=neutral,
+          Public Key Token=b 77a 5c 561934e 089
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209580
+    - rid: 4302685032285209538
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 11
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1050}
+        m_Title: Type Name:System.Double, mscorlib, Version=4.0.0.0, Culture=neutral,
+          Public Key Token=b 77a 5c 561934e 089
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209580
+    - rid: 4302685032285209539
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 12
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1100}
+        m_Title: Type Name:System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+          Public Key Token=b 77a 5c 561934e 089
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209581
+    - rid: 4302685032285209540
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 13
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1150}
+        m_Title: Type Name:System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+          Public Key Token=b 77a 5c 561934e 089
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209581
+    - rid: 4302685032285209541
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 14
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1200}
+        m_Title: Type Name:System.Int 32, mscorlib, Version=4.0.0.0, Culture=neutral,
+          Public Key Token=b 77a 5c 561934e 089
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209582
+    - rid: 4302685032285209542
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 15
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1250}
+        m_Title: Type Name:System.Int 32, mscorlib, Version=4.0.0.0, Culture=neutral,
+          Public Key Token=b 77a 5c 561934e 089
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209582
+    - rid: 4302685032285209543
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 16
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1300}
+        m_Title: Type Name:Unity Engine.Quaternion, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209583
+    - rid: 4302685032285209544
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 17
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1350}
+        m_Title: Type Name:Unity Engine.Quaternion, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209583
+    - rid: 4302685032285209545
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 18
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1400}
+        m_Title: Type Name:System.String, mscorlib, Version=4.0.0.0, Culture=neutral,
+          Public Key Token=b 77a 5c 561934e 089
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209584
+    - rid: 4302685032285209546
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 19
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1450}
+        m_Title: Type Name:System.String, mscorlib, Version=4.0.0.0, Culture=neutral,
+          Public Key Token=b 77a 5c 561934e 089
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209584
+    - rid: 4302685032285209547
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 20
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1500}
+        m_Title: Type Name:Unity Engine.Vector 2, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209585
+    - rid: 4302685032285209548
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 21
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1550}
+        m_Title: Type Name:Unity Engine.Vector 2, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209585
+    - rid: 4302685032285209549
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 22
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1600}
+        m_Title: Type Name:Unity Engine.Vector 3, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209586
+    - rid: 4302685032285209550
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 23
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1650}
+        m_Title: Type Name:Unity Engine.Vector 3, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209586
+    - rid: 4302685032285209551
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 24
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1700}
+        m_Title: Type Name:Unity Engine.Vector 4, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209587
+    - rid: 4302685032285209552
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 25
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1750}
+        m_Title: Type Name:Unity Engine.Vector 4, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209587
+    - rid: 4302685032285209553
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 26
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1800}
+        m_Title: Type Name:Unity Engine.Color, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209588
+    - rid: 4302685032285209554
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 27
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1850}
+        m_Title: Type Name:Unity Engine.Color, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209588
+    - rid: 4302685032285209555
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 28
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1900}
+        m_Title: Type Name:Unity Engine.Animation Clip, Unity Engine.Animation Module,
+          Version=0.0.0.0, Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209589
+    - rid: 4302685032285209556
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 29
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -1950}
+        m_Title: Type Name:Unity Engine.Animation Clip, Unity Engine.Animation Module,
+          Version=0.0.0.0, Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209589
+    - rid: 4302685032285209557
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 30
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -2000}
+        m_Title: Type Name:Unity Engine.Mesh, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209590
+    - rid: 4302685032285209558
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 31
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -2050}
+        m_Title: Type Name:Unity Engine.Mesh, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209590
+    - rid: 4302685032285209559
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 32
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -2100}
+        m_Title: Type Name:Unity Engine.Texture 2D, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209591
+    - rid: 4302685032285209560
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 33
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -2150}
+        m_Title: Type Name:Unity Engine.Texture 2D, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209591
+    - rid: 4302685032285209561
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 34
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -2200}
+        m_Title: Type Name:Unity Engine.Texture 3D, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209592
+    - rid: 4302685032285209562
+      type: {class: VariableNodeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 6
+          m_Value1: 35
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -1200, y: -2250}
+        m_Title: Type Name:Unity Engine.Texture 3D, Unity Engine.Core Module, Version=0.0.0.0,
+          Culture=neutral, Public Key Token=null
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_DeclarationModel:
+          rid: 4302685032285209592
+    - rid: 4302685032285209563
+      type: {class: ExecutionEdgePortalEntryModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 8
+          m_Value1: 0
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -750, y: 300}
+        m_Title: Execution Entry Portal
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_EvaluationOrder: 0
+        m_DeclarationModel:
+          rid: 4302685032285209593
+    - rid: 4302685032285209564
+      type: {class: ExecutionEdgePortalExitModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 8
+          m_Value1: 1
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -750, y: 350}
+        m_Title: Execution Exit Portal
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_EvaluationOrder: 0
+        m_DeclarationModel:
+          rid: 4302685032285209593
+    - rid: 4302685032285209565
+      type: {class: DataEdgePortalEntryModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 8
+          m_Value1: 2
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -750, y: 400}
+        m_Title: Data Entry Portal
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_EvaluationOrder: 0
+        m_DeclarationModel:
+          rid: 4302685032285209594
+    - rid: 4302685032285209566
+      type: {class: DataEdgePortalExitModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 8
+          m_Value1: 3
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -750, y: 450}
+        m_Title: Data Exit Portal
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_EvaluationOrder: 0
+        m_DeclarationModel:
+          rid: 4302685032285209594
+    - rid: 4302685032285209567
+      type: {class: DataEdgePortalEntryModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 8
+          m_Value1: 4
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -750, y: 500}
+        m_Title: Friendless Data Entry Portal
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_EvaluationOrder: 0
+        m_DeclarationModel:
+          rid: 4302685032285209595
+    - rid: 4302685032285209568
+      type: {class: DataEdgePortalExitModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 8
+          m_Value1: 5
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Position: {x: -750, y: 550}
+        m_Title: Friendless Data Exit Portal
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_State: 0
+        m_Collapsed: 0
+        m_EvaluationOrder: 0
+        m_DeclarationModel:
+          rid: 4302685032285209596
+    - rid: 4302685032285209569
+      type: {class: EdgeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 7
+          m_Value1: 0
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_FromPortReference:
+          m_NodeModelGuid:
+            m_Value0: 3
+            m_Value1: 1
+          m_GraphAssetModel: {fileID: 11400000}
+          m_UniqueId: execIn0
+        m_ToPortReference:
+          m_NodeModelGuid:
+            m_Value0: 3
+            m_Value1: 0
+          m_GraphAssetModel: {fileID: 11400000}
+          m_UniqueId: execOut0
+        m_EdgeControlPoints: []
+        m_EditMode: 0
+        m_EdgeLabel: 
+    - rid: 4302685032285209570
+      type: {class: EdgeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 7
+          m_Value1: 1
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_FromPortReference:
+          m_NodeModelGuid:
+            m_Value0: 3
+            m_Value1: 1
+          m_GraphAssetModel: {fileID: 11400000}
+          m_UniqueId: dataIn1
+        m_ToPortReference:
+          m_NodeModelGuid:
+            m_Value0: 3
+            m_Value1: 0
+          m_GraphAssetModel: {fileID: 11400000}
+          m_UniqueId: dataOut0
+        m_EdgeControlPoints: []
+        m_EditMode: 0
+        m_EdgeLabel: 
+    - rid: 4302685032285209571
+      type: {class: EdgeModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 7
+          m_Value1: 2
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_FromPortReference:
+          m_NodeModelGuid:
+            m_Value0: 3
+            m_Value1: 2
+          m_GraphAssetModel: {fileID: 11400000}
+          m_UniqueId: dataIn0
+        m_ToPortReference:
+          m_NodeModelGuid:
+            m_Value0: 3
+            m_Value1: 1
+          m_GraphAssetModel: {fileID: 11400000}
+          m_UniqueId: dataOut0
+        m_EdgeControlPoints: []
+        m_EditMode: 0
+        m_EdgeLabel: 
+    - rid: 4302685032285209572
+      type: {class: StickyNoteModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 2
+          m_Value1: 0
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Title: StickyNote 1
+        m_Contents: text
+        m_ThemeName: Red
+        m_TextSizeName: Large
+        m_Position:
+          serializedVersion: 2
+          x: 15
+          y: 15
+          width: 500
+          height: 400
+    - rid: 4302685032285209573
+      type: {class: PlacematModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 1
+          m_Value1: 0
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+        m_HasUserColor: 1
+        m_Version: 1
+        m_Title: Placemat 1
+        m_Position:
+          serializedVersion: 2
+          x: 15
+          y: 15
+          width: 500
+          height: 400
+        m_Collapsed: 0
+        m_ZOrder: 0
+        m_HiddenElements: []
+    - rid: 4302685032285209574
+      type: {class: PlacematModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 1
+          m_Value1: 1
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Title: Placemat 2
+        m_Position:
+          serializedVersion: 2
+          x: 515
+          y: 415
+          width: 500
+          height: 400
+        m_Collapsed: 0
+        m_ZOrder: 0
+        m_HiddenElements: []
+    - rid: 4302685032285209575
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 0
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: Variable Decl 1
+        m_DataType:
+          Identification: System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571222
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209576
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 1
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: Variable Decl 2
+        m_DataType:
+          Identification: System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571223
+        m_Modifiers: 2
+        variableFlags: 0
+    - rid: 4302685032285209577
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 2
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: Variable Decl 3
+        m_DataType:
+          Identification: System.Double, mscorlib, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 1
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571224
+        m_Modifiers: 4
+        variableFlags: 0
+    - rid: 4302685032285209578
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 3
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: Variable Decl 4
+        m_DataType:
+          Identification: System.Double, mscorlib, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 1
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571225
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209579
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 4
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: TypeName:System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+        m_DataType:
+          Identification: System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571226
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209580
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 5
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: TypeName:System.Double, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+        m_DataType:
+          Identification: System.Double, mscorlib, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571227
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209581
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 6
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: TypeName:System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+        m_DataType:
+          Identification: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571228
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209582
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 7
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: TypeName:System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+        m_DataType:
+          Identification: System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571229
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209583
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 8
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: TypeName:UnityEngine.Quaternion, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_DataType:
+          Identification: UnityEngine.Quaternion, UnityEngine.CoreModule, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571230
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209584
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 9
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: TypeName:System.String, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+        m_DataType:
+          Identification: System.String, mscorlib, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571231
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209585
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 10
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: TypeName:UnityEngine.Vector2, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_DataType:
+          Identification: UnityEngine.Vector2, UnityEngine.CoreModule, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571232
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209586
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 11
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: TypeName:UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_DataType:
+          Identification: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571233
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209587
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 12
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: TypeName:UnityEngine.Vector4, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_DataType:
+          Identification: UnityEngine.Vector4, UnityEngine.CoreModule, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571234
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209588
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 13
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: TypeName:UnityEngine.Color, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_DataType:
+          Identification: UnityEngine.Color, UnityEngine.CoreModule, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571235
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209589
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 14
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: TypeName:UnityEngine.AnimationClip, UnityEngine.AnimationModule,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_DataType:
+          Identification: UnityEngine.AnimationClip, UnityEngine.AnimationModule,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571236
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209590
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 15
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: TypeName:UnityEngine.Mesh, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_DataType:
+          Identification: UnityEngine.Mesh, UnityEngine.CoreModule, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571237
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209591
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 16
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: TypeName:UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_DataType:
+          Identification: UnityEngine.Texture2D, UnityEngine.CoreModule, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571238
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209592
+      type: {class: VariableDeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 5
+          m_Value1: 17
+        m_AssetModel: {fileID: 11400000}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: TypeName:UnityEngine.Texture3D, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+        m_DataType:
+          Identification: UnityEngine.Texture3D, UnityEngine.CoreModule, Version=0.0.0.0,
+            Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 4302685032395571239
+        m_Modifiers: 1
+        variableFlags: 0
+    - rid: 4302685032285209593
+      type: {class: DeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 9
+          m_Value1: 0
+        m_AssetModel: {fileID: 0}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: Execution Entry Portal
+    - rid: 4302685032285209594
+      type: {class: DeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 9
+          m_Value1: 1
+        m_AssetModel: {fileID: 0}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: Data Entry Portal
+    - rid: 4302685032285209595
+      type: {class: DeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 9
+          m_Value1: 2
+        m_AssetModel: {fileID: 0}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: Friendless Data Entry Portal
+    - rid: 4302685032285209596
+      type: {class: DeclarationModel, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Guid:
+          m_Value0: 9
+          m_Value1: 3
+        m_AssetModel: {fileID: 0}
+        m_Color: {r: 0, g: 0, b: 0, a: 0}
+        m_HasUserColor: 0
+        m_Version: 1
+        m_Name: Friendless Data Exit Portal
+    - rid: 4302685032285209597
+      type: {class: IntConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032285209598
+      type: {class: IntConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032285209599
+      type: {class: IntConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571200
+      type: {class: IntConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571201
+      type: {class: IntConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571202
+      type: {class: IntConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571203
+      type: {class: BooleanConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 1
+    - rid: 4302685032395571204
+      type: {class: IntConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 42
+    - rid: 4302685032395571205
+      type: {class: DoubleConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 42
+    - rid: 4302685032395571206
+      type: {class: BooleanConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571207
+      type: {class: DoubleConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571208
+      type: {class: FloatConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571209
+      type: {class: IntConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571210
+      type: {class: QuaternionConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {x: 0, y: 0, z: 0, w: 1}
+    - rid: 4302685032395571211
+      type: {class: StringConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 
+    - rid: 4302685032395571212
+      type: {class: Vector2Constant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {x: 0, y: 0}
+    - rid: 4302685032395571213
+      type: {class: Vector3Constant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {x: 0, y: 0, z: 0}
+    - rid: 4302685032395571214
+      type: {class: Vector4Constant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {x: 0, y: 0, z: 0, w: 0}
+    - rid: 4302685032395571215
+      type: {class: ColorConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {r: 0, g: 0, b: 0, a: 0}
+    - rid: 4302685032395571216
+      type: {class: AnimationClipConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {fileID: 0}
+    - rid: 4302685032395571217
+      type: {class: MeshConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {fileID: 0}
+    - rid: 4302685032395571218
+      type: {class: Texture2DConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {fileID: 0}
+    - rid: 4302685032395571219
+      type: {class: Texture3DConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {fileID: 0}
+    - rid: 4302685032395571220
+      type: {class: IntConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571221
+      type: {class: IntConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571222
+      type: {class: BooleanConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571223
+      type: {class: IntConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571224
+      type: {class: DoubleConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571225
+      type: {class: DoubleConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 42
+    - rid: 4302685032395571226
+      type: {class: BooleanConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571227
+      type: {class: DoubleConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571228
+      type: {class: FloatConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571229
+      type: {class: IntConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 0
+    - rid: 4302685032395571230
+      type: {class: QuaternionConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {x: 0, y: 0, z: 0, w: 1}
+    - rid: 4302685032395571231
+      type: {class: StringConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: 
+    - rid: 4302685032395571232
+      type: {class: Vector2Constant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {x: 0, y: 0}
+    - rid: 4302685032395571233
+      type: {class: Vector3Constant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {x: 0, y: 0, z: 0}
+    - rid: 4302685032395571234
+      type: {class: Vector4Constant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {x: 0, y: 0, z: 0, w: 0}
+    - rid: 4302685032395571235
+      type: {class: ColorConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {r: 0, g: 0, b: 0, a: 0}
+    - rid: 4302685032395571236
+      type: {class: AnimationClipConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {fileID: 0}
+    - rid: 4302685032395571237
+      type: {class: MeshConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {fileID: 0}
+    - rid: 4302685032395571238
+      type: {class: Texture2DConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {fileID: 0}
+    - rid: 4302685032395571239
+      type: {class: Texture3DConstant, ns: UnityEditor.GraphToolsFoundation.Overdrive.BasicModel, asm: Unity.GraphTools.Foundation.Overdrive.Model}
+      data:
+        m_Value: {fileID: 0}

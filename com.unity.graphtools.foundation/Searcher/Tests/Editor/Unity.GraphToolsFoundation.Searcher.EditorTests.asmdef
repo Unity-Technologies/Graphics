@@ -1,0 +1,18 @@
+{
+    "name": "Unity.GraphToolsFoundation.Searcher.EditorTests",
+    "references": [
+        "Unity.GraphToolsFoundation.Searcher.Editor",
+        "Unity.GraphToolsFoundation.Searcher.EditorSamples"
+    ],
+    "precompiledReferences": [],
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

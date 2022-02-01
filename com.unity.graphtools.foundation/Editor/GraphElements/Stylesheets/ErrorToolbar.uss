@@ -1,0 +1,38 @@
+#errorToolbar {
+    flex-direction: row;
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    background-color: #3c3c3c;
+    height: 20px;
+}
+
+#errorToolbar #errorIconLabel {
+    width: 20px;
+}
+
+#errorToolbar #errorIconLabel .icon {
+    background-image: url("Icons/ErrorToolbar/ErrorIcon.png");
+    width: 12px;
+    height: 12px;
+}
+
+#errorToolbar #previousErrorButton .icon {
+    background-image: url("Icons/ErrorToolbar/PreviousError.png");
+    width: 7px;
+    height: 12px;
+}
+
+#errorToolbar #nextErrorButton .icon {
+    background-image: url("Icons/ErrorToolbar/NextError.png");
+    width: 7px;
+    height: 12px;
+}
+
+#errorToolbar #errorCounterLabel {
+    width: 150px;
+    padding-left: 3px;
+    padding-right: 3px;
+    -unity-text-align: middle-left;
+    opacity: 1;
+}

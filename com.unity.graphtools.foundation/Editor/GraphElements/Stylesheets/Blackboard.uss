@@ -1,0 +1,293 @@
+.ge-blackboard {
+    position:absolute;
+    border-radius: 5px;
+    flex-direction: column;
+    border-width: 1px;
+    min-width: 100px;
+    min-height: 100px;
+    width: 200px;
+    height: 400px;
+    background-color: #1F1F1F;
+    font-size: 12px;
+}
+
+.ge-blackboard .unity-scroll-view
+{
+    flex-grow: 1;
+}
+
+.ge-blackboard--windowed {
+    position: relative;
+    flex: 1;
+    border-width: 0;
+    border-radius: 0;
+    width: auto;
+    height: auto;
+}
+
+.ge-blackboard__header {
+    flex-direction: column;
+    background-color: #393939;
+    border-bottom-width: 1px;
+    border-color: #212121;
+    border-radius: 6px;
+    margin: 4px 4px 2px;
+    padding: 4px;
+}
+
+.ge-blackboard--windowed .ge-blackboard__header {
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+}
+
+.ge-blackboard-header-part__title {
+    font-size : 14px;
+    color: #c1c1c1;
+}
+
+.ge-blackboard-header-part__subtitle {
+    font-size: 11px;
+    color: #606060;
+}
+
+.ge-blackboard-section__header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #393939;
+    padding: 2px;
+    margin: 5px 0;
+}
+
+.ge-blackboard-variable-group__title-part {
+    color: #606060;
+    font-size: 11px;
+}
+
+.ge-blackboard-section__title-part {
+    color: #D2D2D2;
+    font-size: 12px;
+}
+
+.ge-blackboard-variable-group__drag-indicator {
+    display: flex;
+    background-color: #44C0FF;
+    position: absolute;
+    min-height: 2px;
+    margin-left: 24px;
+}
+
+.ge-blackboard-row {
+    padding: 0 2px 0 10px;
+    margin-bottom: 5px;
+}
+
+.ge-blackboard-row__header {
+    flex-direction: row;
+}
+
+.ge-blackboard-row__collapse-button {
+    margin-left: -5px;
+    margin-right: 5px;
+}
+
+.ge-blackboard-row__header-container {
+    flex: 1 0 0;
+    align-items: stretch;
+}
+
+.ge-blackboard-row__property-view-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.ge-blackboard-row--collapsed .ge-blackboard-row__property-view-container {
+    display: none;
+}
+
+.ge-blackboard-field {
+    flex: 1 0 0;
+    flex-direction: row;
+    align-items: center;
+    margin: 2px 0;
+
+    --border-radius: 4px;
+    --selection-border-radius: 6px;
+}
+
+.ge-blackboard-field__capsule {
+    flex-direction: row;
+    align-items: center;
+    margin: 1px;
+    border-radius: var(--border-radius);
+    border-width: 1px;
+    background-color: #545454;
+    padding: 1px 4px;
+}
+
+.ge-blackboard-field .ge-selection-border {
+    flex-grow: 0;
+}
+
+.ge-blackboard-field--read-only .ge-selection-border {
+    border-radius: 0 var(--selection-border-radius) var(--selection-border-radius) 0;
+}
+
+.ge-blackboard-field--write-only .ge-selection-border {
+    border-radius: var(--selection-border-radius) 0 0 var(--selection-border-radius);
+}
+
+.ge-blackboard-field--highlighted .ge-selection-border {
+    border-color: #FF8000;
+}
+
+.ge-blackboard-row:hover .ge-blackboard-field--highlighted .ge-selection-border {
+    border-color: #FF8000;
+    border-width: 2px;
+    padding: 0;
+}
+
+.ge-blackboard-field--read-only .ge-blackboard-field__capsule {
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+}
+
+.ge-blackboard-field--write-only .ge-blackboard-field__capsule {
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+}
+
+.ge-blackboard-field__icon {
+    width: 10px;
+    height: 10px;
+}
+
+.ge-blackboard-field__icon--exposed {
+    background-image: url("Icons/BlackboardFieldExposed.png");
+}
+
+.ge-blackboard-field__name-label {
+    font-size: 11px;
+}
+
+.ge-blackboard-field__type-label {
+    flex: 1 0 0;
+    -unity-text-align:middle-right;
+    color: #808080;
+    font-size: 11px;
+}
+
+.ge-blackboard-variable-property-view__row {
+    flex-direction: row;
+    align-items: center;
+    padding: 0 2px 0 10px;
+}
+
+.ge-blackboard-variable-property-view__row-label {
+    min-width: 75px;
+    font-size: 10px;
+}
+
+.ge-blackboard-variable-property-view__row-control {
+    flex: 1;
+    margin: 2px 4px;
+}
+
+.ge-blackboard-variable-property-view__row-control.ge-inline-value-editor {
+    flex-direction: column;
+}
+
+.ge-blackboard-variable-property-view__row-control.ge-inline-value-editor .unity-base-text-field__input {
+    width: 35px;
+}
+
+.ge-blackboard-variable-property-view__row .unity-button {
+    min-width: 75px;
+    max-width: 225px;
+    font-size: 10px;
+    height: 18px;
+    flex-grow: 0;
+    padding-top: 0;
+    margin-left: 6px;
+    margin-right: 6px;
+    -unity-text-align: middle-center;
+}
+
+.ge-blackboard-variable-group {
+    background-color: #1a1a1a;
+    margin-bottom: 3px;
+    margin-top: 3px;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.ge-blackboard-variable-group__bottom-line {
+    border-color: black;
+    border-bottom-width: 1px;
+}
+
+.ge-blackboard-variable-group__items {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 16px;
+}
+
+.ge-blackboard-section {
+    background-color: rgba(0,0,0,0);
+    margin-left: 4px;
+    margin-right: 0px;
+}
+
+.ge-blackboard-variable-group > .ge-selection-border {
+    margin: 0;
+    position: absolute;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+}
+
+.ge-blackboard-variable-group--even
+{
+    background-color: rgba(10,10,10,1);
+}
+
+.ge-blackboard-section.ge-graph-element:hover > .ge-selection-border {
+    border-color: rgba(0,0,0,0);
+}
+
+.ge-blackboard-variable-group__title-container {
+    flex-direction: row;
+}
+
+.ge-blackboard-variable-group__title-part {
+    flex: 1 1 auto;
+}
+
+.ge-blackboard-variable-group__foldout > * > #unity-checkmark {
+    background-image: resource("Builtin Skins/DarkSkin/Images/IN foldout@2x.png");
+    width: 13px;
+    height:13px;
+}
+
+.ge-blackboard-variable-group__foldout:hover:active > * > #unity-checkmark {
+    background-image: resource("Builtin Skins/DarkSkin/Images/IN foldout act on@2x.png");
+}
+
+.ge-blackboard-variable-group__foldout:hover:active:checked > * > #unity-checkmark {
+    background-image: resource("Builtin Skins/DarkSkin/Images/IN foldout act@2x.png");
+}
+
+.ge-blackboard-variable-group__foldout:hover > * > #unity-checkmark {
+    background-image: resource("Builtin Skins/DarkSkin/Images/IN foldout focus@2x.png");
+}
+
+.ge-blackboard-variable-group__foldout:hover:checked > * > #unity-checkmark {
+    background-image: resource("Builtin Skins/DarkSkin/Images/IN foldout focus on@2x.png");
+}
+
+.ge-blackboard-variable-group__foldout:checked > * > #unity-checkmark {
+    background-image: resource("Builtin Skins/DarkSkin/Images/IN foldout on@2x.png");
+}
+
+.ge-blackboard-variable-group--collapsed .ge-blackboard-variable-group__items {
+    display: none;
+}

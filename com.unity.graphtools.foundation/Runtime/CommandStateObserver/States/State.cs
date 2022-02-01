@@ -1,0 +1,72 @@
+using System;
+using System.Collections.Generic;
+
+namespace UnityEngine.GraphToolsFoundation.CommandStateObserver
+{
+    /// <summary>
+    /// The state holds all data that can be displayed in the UI and modified by the user.
+    /// </summary>
+    public class State : IState, IDisposable
+    {
+        bool m_Disposed;
+
+        List<IStateComponent> m_StateComponents;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="State" /> class.
+        /// </summary>
+        public State()
+        {
+            m_StateComponents = new List<IStateComponent>();
+        }
+
+        ~State()
+        {
+            Dispose(false);
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Disposes of resources used by the state.
+        /// </summary>
+        /// <param name="disposing">When true, this method is called from IDisposable.Dispose.
+        /// Otherwise it is called from the finalizer.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (m_Disposed)
+                return;
+
+            if (disposing)
+            {
+                foreach (var stateComponent in AllStateComponents)
+                {
+                    if (stateComponent is IDisposable disposable)
+                        disposable.Dispose();
+                }
+            }
+
+            m_Disposed = true;
+        }
+
+        /// <inheritdoc />
+        public void AddStateComponent(IStateComponent stateComponent)
+        {
+            m_StateComponents.Add(stateComponent);
+        }
+
+        /// <inheritdoc />
+        public void RemoveStateComponent(IStateComponent stateComponent)
+        {
+            m_StateComponents.RemoveAll(c => c == stateComponent);
+        }
+
+        /// <inheritdoc />
+        public virtual IEnumerable<IStateComponent> AllStateComponents => m_StateComponents;
+    }
+}

@@ -1,0 +1,29 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:vsui="UnityEditor.UIElements">
+    <vsui:ToolbarButton name="firstFrameTracingButton">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+    <vsui:ToolbarButton name="previousFrameTracingButton">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+    <vsui:ToolbarButton name="previousStepTracingButton">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+    <ui:VisualElement name="frameCounterContainer" class="menuItem">
+        <vsui:IntegerField name="currentFrameTextField"/>
+        <ui:Label name="totalFrameLabel"/>
+    </ui:VisualElement>
+    <vsui:ToolbarButton name="nextStepTracingButton">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+    <vsui:ToolbarButton name="nextFrameTracingButton">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+    <vsui:ToolbarButton name="lastFrameTracingButton">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+
+    <vsui:ToolbarButton name="pickTargetButton">
+        <ui:VisualElement class="icon"/>
+        <ui:Label name="pickTargetLabel"/>
+    </vsui:ToolbarButton>
+</UXML>

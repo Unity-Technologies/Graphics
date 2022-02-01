@@ -1,0 +1,22 @@
+{
+    "name": "ContextSample",
+    "rootNamespace": "",
+    "references": [
+        "Unity.GraphTools.Foundation.Overdrive",
+        "Unity.GraphTools.Foundation.Overdrive.Model",
+        "Unity.GraphTools.Foundation.Overdrive.Editor",
+        "Unity.GraphToolsFoundation.Searcher.Editor",
+        "Unity.GraphTools.Foundation.Overdrive.CommandStateObserver"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,34 @@
+.ge-toolbar .unity-toolbar-toggle, .ge-toolbar .unity-toolbar-button, .ge-toolbar .menuItem, .ge-toolbar #breadcrumbButton {
+    width: 36px;
+    justify-content: center;
+    align-items: center;
+}
+
+.ge-toolbar .unity-toolbar-button {
+    padding-top: 2px;
+    border-left-width: 0;
+    min-width: 20px;
+}
+
+ToolbarBreadcrumbs {
+    min-width: 36px;
+}
+
+BreadcrumbItem {
+    -unity-text-align: middle-left;
+    overflow: hidden;
+    -unity-overflow-clip-box: content-box;
+}
+
+.ge-toolbar .unity-toolbar-button .icon {
+    width: 16px;
+    height: 16px;
+}
+
+.ge-toolbar .unity-toolbar-toggle .icon {
+    position: absolute; /* otherwise icon hides the toggle */
+}
+
+.ge-toolbar .unity-toolbar-toggle .unity-base-field__input {
+    height: 18px; /* since icon is absolute, force inner toggle height */
+}

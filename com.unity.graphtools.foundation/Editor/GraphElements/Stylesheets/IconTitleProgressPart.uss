@@ -1,0 +1,20 @@
+.ge-icon-title-progress {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ge-icon-title-progress__title-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ge-icon-title-progress__icon {
+    width: 12px;
+    height: 12px;
+    align-self: center;
+    margin: 0 4px 0 2px;
+    flex-grow: 0;
+    flex-shrink: 0;
+}

@@ -1,0 +1,12 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:vsui="UnityEditor.UIElements">
+    <vsui:ToolbarButton name="errorIconLabel">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+    <ui:Label name="errorCounterLabel"/>
+    <vsui:ToolbarButton name="previousErrorButton">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+    <vsui:ToolbarButton name="nextErrorButton">
+        <ui:VisualElement class="icon"/>
+    </vsui:ToolbarButton>
+</UXML>

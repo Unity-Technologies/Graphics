@@ -1,0 +1,69 @@
+.ge-main-toolbar #errorIconLabel, .ge-main-toolbar #previousErrorButton {
+    border-left-width: 1px;
+}
+
+.ge-main-toolbar #saveAllButton .icon {
+    background-image: resource("SaveActive");
+}
+
+.ge-main-toolbar #buildAllButton .icon {
+    background-image: url("Icons/MainToolbar/BuildAll.png");
+    width: 14px;
+    height: 12px;
+}
+
+.ge-main-toolbar #refreshButton .icon {
+    background-image: url("Icons/MainToolbar/Refresh.png");
+}
+
+.ge-main-toolbar #enableTracingButton {
+    width: 100px;
+}
+.ge-main-toolbar #enableTracingButton .icon {
+    background-image: resource("Animation.Record");
+    width: 16px;
+    height: 16px;
+    left:4px;
+}
+
+.ge-main-toolbar #enableTracingButton > .icon > .unity-label {
+    flex: 1;
+    margin-left: 16px;
+}
+
+.ge-main-toolbar #optionsButton .icon {
+    width: 15px;
+    height: 14px;
+}
+
+.ge-main-toolbar #showMiniMapButton .icon {
+    width: 14px;
+    height: 12px;
+}
+
+.ge-main-toolbar #showBlackboardButton .icon {
+    width: 14px;
+    height: 12px;
+}
+
+/* breadcrumb */
+
+.ge-main-toolbar #breadcrumbButton .popupIcon {
+    background-image: resource("IN pulldown");
+    width: 8px;
+    height: 13px;
+}
+
+.ge-main-toolbar #breadcrumbButton .icon {
+    background-image: url("Icons/MainToolbar/ScriptSelector.png");
+    width: 14px;
+    height: 12px;
+}
+
+.ge-main-toolbar #breadcrumbButton {
+    flex-direction: row;
+    -unity-slice-left: 1;
+    -unity-slice-right: 1;
+    -unity-slice-top: 1;
+    -unity-slice-bottom: 1;
+}

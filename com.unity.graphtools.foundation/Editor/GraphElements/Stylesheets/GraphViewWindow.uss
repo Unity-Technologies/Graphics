@@ -1,0 +1,159 @@
+#graphContainer {
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+#gtfRoot {
+    overflow: hidden;
+    flex-direction: column;
+}
+
+#gtfRoot > IMGUIContainer {
+    height: 30px;
+}
+
+#gtfRoot > #graphContainer > Label {
+    position:absolute;
+    top: 0;
+    height: 20px;
+    width: 100%;
+}
+
+#gtfRoot > .ge-main-toolbar {
+    height: 20px;
+}
+
+#gtfRoot > #graph-processing-pending-label {
+    display: none;
+    position: absolute;
+    bottom: 5px;
+    align-self: center;
+    background-color: black;
+    padding: 5px;
+    -unity-text-align: middle-center;
+}
+
+
+#gtfRoot > #graph-processing-pending-label.graph-processing-pending {
+    display: flex;
+}
+
+.ge-blank-page {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+}
+
+.onboarding-block {
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    padding: 0 10px;
+    width: 100%;
+}
+
+.onboarding-block > * {
+    margin: 4px 0;
+}
+
+.onboarding-block .unity-label {
+    white-space: normal;
+    -unity-text-align: upper-center;
+}
+
+.onboarding-block .unity-button {
+    white-space: normal;
+    padding: 6px;
+    width: 100%;
+    max-width: 200px;
+}
+
+.ge-node--token.trace-highlight .ge-node__selection-border {
+    border-color: #b4ff69;
+}
+
+.ge-node.trace-highlight .ge-node__selection-border,
+.ge-node.trace-highlight .ge-node__selection-border {
+    border-color: #b4ff69;
+    /*border-radius: 8px; this causes a uielements freeze, no idea why */
+    border-width: 2px;
+    margin: -1px;
+}
+
+.ge-node--token.trace-secondary-highlight .ge-node__selection-border {
+    border-color: #a4ffff;
+}
+
+.ge-node.trace-secondary-highlight .ge-node__selection-border {
+    border-color: #a4ffff;
+}
+
+.ge-node--token.exception-highlight .ge-node__selection-border {
+    border-color: #ff0000;
+}
+
+.ge-node.exception-highlight .ge-node__selection-border {
+    border-color: #ff0000;
+}
+
+.ge-node__selection-border .port #type {
+    overflow: visible;
+}
+
+.ge-value-badge {
+    position: absolute;
+    height: 19px;
+    background-color : #000;
+    border-color: #F0F0F0;
+    border-left-width: 2px;
+    border-top-width: 2px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    border-radius: 0;
+}
+
+.ge-value-badge > Label#desc {
+    font-size: 11px;
+    white-space: normal;
+    color : #F0F0F0;
+    background-color : #303030;
+    border-radius: 0;
+    width: 120px;
+    max-width : 350px;
+    min-width : 24px;
+    min-height : 16px;
+    padding: 2px 4px;
+    margin: 0;
+}
+
+.ge-value-badge > Image {
+    position: absolute;
+    --unity-image: url("Icons/ErrorBadge/CommentMark.png");
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 1px;
+    border-left-width: 0;
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+}
+
+.ge-value-badge > #tip {
+    width: 7px;
+    height: 4px;
+    margin: 0;
+    padding: 0;
+    border-left-width: 0;
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    top: -4px;
+    left: 2px;
+    background-image: url("Icons/ErrorBadge/CommentTip.png");
+}

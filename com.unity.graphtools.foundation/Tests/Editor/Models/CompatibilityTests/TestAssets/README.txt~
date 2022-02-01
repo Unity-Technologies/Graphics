@@ -1,0 +1,6 @@
+This directory contains directories of assets for the CompatibilityTests.
+
+CurrentVersion.asset : The asset saved by the current development branch.
+PreviousVersions/ : Directory containing assets saved by previous releases. Only keep supported versions.
+
+Make sure you maintain versions compatible with all the supported editor versions.

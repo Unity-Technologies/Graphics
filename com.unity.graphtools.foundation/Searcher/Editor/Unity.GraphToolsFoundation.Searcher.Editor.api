@@ -1,0 +1,170 @@
+// This file is generated. Do not modify by hand.
+// XML documentation file not found. To check if public methods have XML comments,
+// make sure the XML doc file is present and located next to the scraped dll
+namespace UnityEditor.GraphToolsFoundation.Searcher
+{
+    [JetBrains.Annotations.PublicAPI] public interface ISearcherAdapter
+    {
+        public abstract bool AddAllChildResults { get; }
+        public abstract bool HasDetailsPanel { get; }
+        public abstract float InitialSplitterDetailRatio { get; }
+        public abstract bool MultiSelectEnabled { get; }
+        public abstract string Title { get; }
+        public abstract UnityEngine.UIElements.VisualElement Bind(UnityEngine.UIElements.VisualElement target, UnityEditor.GraphToolsFoundation.Searcher.SearcherItem item, UnityEditor.GraphToolsFoundation.Searcher.ItemExpanderState expanderState, string text);
+        public abstract void InitDetailsPanel(UnityEngine.UIElements.VisualElement detailsPanel);
+        public abstract UnityEngine.UIElements.VisualElement MakeItem();
+        public abstract void OnSelectionChanged(System.Collections.Generic.IEnumerable<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> items);
+    }
+
+    public enum ItemExpanderState
+    {
+        public const UnityEditor.GraphToolsFoundation.Searcher.ItemExpanderState Collapsed = 1;
+        public const UnityEditor.GraphToolsFoundation.Searcher.ItemExpanderState Expanded = 2;
+        public const UnityEditor.GraphToolsFoundation.Searcher.ItemExpanderState Hidden = 0;
+        public int value__;
+    }
+
+    [JetBrains.Annotations.PublicAPI] public class Searcher
+    {
+        public UnityEditor.GraphToolsFoundation.Searcher.ISearcherAdapter Adapter { get; }
+        public System.Comparison<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> SortComparison { get; set; }
+        public Searcher(UnityEditor.GraphToolsFoundation.Searcher.SearcherDatabaseBase database, string title) {}
+        public Searcher(System.Collections.Generic.IEnumerable<UnityEditor.GraphToolsFoundation.Searcher.SearcherDatabaseBase> databases, string title, UnityEditor.GraphToolsFoundation.Searcher.SearcherFilter filter = default(UnityEditor.GraphToolsFoundation.Searcher.SearcherFilter)) {}
+        public Searcher(System.Collections.Generic.IEnumerable<UnityEditor.GraphToolsFoundation.Searcher.SearcherDatabaseBase> databases, UnityEditor.GraphToolsFoundation.Searcher.ISearcherAdapter adapter = default(UnityEditor.GraphToolsFoundation.Searcher.ISearcherAdapter), UnityEditor.GraphToolsFoundation.Searcher.SearcherFilter filter = default(UnityEditor.GraphToolsFoundation.Searcher.SearcherFilter)) {}
+        public Searcher(UnityEditor.GraphToolsFoundation.Searcher.SearcherDatabaseBase database, UnityEditor.GraphToolsFoundation.Searcher.ISearcherAdapter adapter = default(UnityEditor.GraphToolsFoundation.Searcher.ISearcherAdapter), UnityEditor.GraphToolsFoundation.Searcher.SearcherFilter filter = default(UnityEditor.GraphToolsFoundation.Searcher.SearcherFilter)) {}
+        public System.Collections.Generic.IEnumerable<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> Search(string query);
+        [JetBrains.Annotations.PublicAPI] public class AnalyticsEvent
+        {
+            public readonly string currentSearchFieldText;
+            public readonly UnityEditor.GraphToolsFoundation.Searcher.Searcher.AnalyticsEvent.EventType eventType;
+            public AnalyticsEvent(UnityEditor.GraphToolsFoundation.Searcher.Searcher.AnalyticsEvent.EventType eventType, string currentSearchFieldText) {}
+            [JetBrains.Annotations.PublicAPI] public enum EventType
+            {
+                public const UnityEditor.GraphToolsFoundation.Searcher.Searcher.AnalyticsEvent.EventType Cancelled = 2;
+                public const UnityEditor.GraphToolsFoundation.Searcher.Searcher.AnalyticsEvent.EventType Pending = 0;
+                public const UnityEditor.GraphToolsFoundation.Searcher.Searcher.AnalyticsEvent.EventType Picked = 1;
+                public int value__;
+            }
+        }
+    }
+
+    [JetBrains.Annotations.PublicAPI] public class SearcherAdapter : UnityEditor.GraphToolsFoundation.Searcher.ISearcherAdapter
+    {
+        public virtual bool AddAllChildResults { get; }
+        public virtual bool HasDetailsPanel { get; }
+        public virtual float InitialSplitterDetailRatio { get; }
+        public virtual bool MultiSelectEnabled { get; }
+        public virtual string Title { get; }
+        public SearcherAdapter(string title) {}
+        public virtual UnityEngine.UIElements.VisualElement Bind(UnityEngine.UIElements.VisualElement element, UnityEditor.GraphToolsFoundation.Searcher.SearcherItem item, UnityEditor.GraphToolsFoundation.Searcher.ItemExpanderState expanderState, string query);
+        public virtual void InitDetailsPanel(UnityEngine.UIElements.VisualElement detailsPanel);
+        public virtual UnityEngine.UIElements.VisualElement MakeItem();
+        public virtual void OnSelectionChanged(System.Collections.Generic.IEnumerable<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> items);
+    }
+
+    public class SearcherDatabase : UnityEditor.GraphToolsFoundation.Searcher.SearcherDatabaseBase
+    {
+        public SearcherDatabase() {}
+        public SearcherDatabase(System.Collections.Generic.List<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> items) {}
+        public static UnityEditor.GraphToolsFoundation.Searcher.SearcherDatabase FromFile(string directory);
+        public virtual System.Collections.Generic.IEnumerable<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> PerformSearch(string query, System.Collections.Generic.IReadOnlyList<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> filteredItems);
+    }
+
+    [JetBrains.Annotations.PublicAPI] public abstract class SearcherDatabaseBase
+    {
+        protected const int k_MaxNumFilterCache = 5;
+        protected const string k_SerializedJsonFile = /SerializedDatabase.json;
+        protected const bool k_UseParallelTasks = True;
+        public UnityEditor.GraphToolsFoundation.Searcher.SearcherFilter CurrentFilter { get; }
+        public System.Collections.Generic.IReadOnlyList<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> IndexedItems { get; }
+        protected SearcherDatabaseBase() {}
+        protected SearcherDatabaseBase(System.Collections.Generic.List<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> unindexedItems) {}
+        protected SearcherDatabaseBase(System.Collections.Generic.IEnumerable<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> unindexedItems, int estimateIndexSize) {}
+        protected void AddItemToIndex(UnityEditor.GraphToolsFoundation.Searcher.SearcherItem item, System.Collections.Generic.List<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> indexedItems);
+        public void IndexIfNeeded();
+        public void LoadFromFile(string directory);
+        public virtual System.Collections.Generic.List<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> PerformFilter(UnityEditor.GraphToolsFoundation.Searcher.SearcherFilter filter, System.Collections.Generic.IReadOnlyList<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> items);
+        public virtual System.Collections.Generic.List<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> PerformIndex(System.Collections.Generic.IEnumerable<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> itemsToIndex, int estimateIndexSize = -1);
+        public abstract System.Collections.Generic.IEnumerable<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> PerformSearch(string query, System.Collections.Generic.IReadOnlyList<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> filteredItems);
+        public System.Collections.Generic.List<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> Search(string query);
+        [System.Obsolete(@"localMaxScore isn't used anymore, use Search(string query) instead")] public System.Collections.Generic.List<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> Search(string query, out float localMaxScore);
+        public System.Collections.Generic.IEnumerable<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> SearchAsEnumerable(string query);
+        public void SerializeToDirectory(string databaseDirectory);
+        public void SetCurrentFilter(UnityEditor.GraphToolsFoundation.Searcher.SearcherFilter filter);
+    }
+
+    public abstract class SearcherFilter
+    {
+        protected SearcherFilter() {}
+        public abstract bool Match(UnityEditor.GraphToolsFoundation.Searcher.SearcherItem item);
+    }
+
+    public class SearcherFuncFilter : UnityEditor.GraphToolsFoundation.Searcher.SearcherFilter
+    {
+        protected System.Collections.Generic.List<System.Func<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem, bool>> m_FilterFunctions;
+        public static UnityEditor.GraphToolsFoundation.Searcher.SearcherFuncFilter Empty { get; }
+        public SearcherFuncFilter(params System.Func<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem, bool>[] functions) {}
+        public virtual bool Match(UnityEditor.GraphToolsFoundation.Searcher.SearcherItem item);
+        public UnityEditor.GraphToolsFoundation.Searcher.SearcherFuncFilter WithFilter(System.Func<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem, bool> func);
+    }
+
+    [JetBrains.Annotations.PublicAPI] public class SearcherItem
+    {
+        public System.Collections.Generic.List<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> Children { get; }
+        public int ChildrenCapacity { get; set; }
+        public bool CollapseEmptyIcon { get; set; }
+        public UnityEditor.GraphToolsFoundation.Searcher.SearcherDatabaseBase Database { get; }
+        public int Depth { get; }
+        public bool HasChildren { get; }
+        public string Help { get; set; }
+        public UnityEngine.Texture2D Icon { get; set; }
+        public int Id { get; }
+        public virtual string Name { get; }
+        public UnityEditor.GraphToolsFoundation.Searcher.SearcherItem Parent { get; }
+        public string Path { get; }
+        [System.Runtime.CompilerServices.TupleElementNames(Mono.Cecil.CustomAttributeArgument[])] public System.Collections.Generic.IEnumerable<System.ValueTuple<System.Collections.Generic.IEnumerable<string>, float>> SearchKeys { get; }
+        public string[] Synonyms { get; set; }
+        public object UserData { get; set; }
+        public SearcherItem(string name, string help = , System.Collections.Generic.List<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> children = default(System.Collections.Generic.List<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem>), object userData = default(object), UnityEngine.Texture2D icon = default(UnityEngine.Texture2D), bool collapseEmptyIcon = True) {}
+        public void AddChild(UnityEditor.GraphToolsFoundation.Searcher.SearcherItem child);
+        public virtual void Build();
+        public virtual string ToString();
+    }
+
+    [JetBrains.Annotations.PublicAPI] public static class SearcherTreeUtility
+    {
+        public static System.Collections.Generic.List<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> CreateFromFlatList(System.Collections.Generic.List<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> items);
+    }
+
+    [JetBrains.Annotations.PublicAPI] public class SearcherWindow : UnityEditor.EditorWindow
+    {
+        public SearcherWindow() {}
+        public static UnityEngine.Vector2 GetPositionWithAlignment(UnityEngine.Vector2 pos, UnityEngine.Vector2 size, UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment align);
+        public static void Show(UnityEditor.EditorWindow host, UnityEditor.GraphToolsFoundation.Searcher.Searcher searcher, System.Func<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem, bool> itemSelectedDelegate, System.Action<UnityEditor.GraphToolsFoundation.Searcher.Searcher.AnalyticsEvent> analyticsDataDelegate, UnityEngine.Rect rect);
+        public static void Show(UnityEditor.EditorWindow host, System.Collections.Generic.IList<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> items, string title, System.Func<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem, bool> itemSelectedDelegate, UnityEngine.Vector2 displayPosition, UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment align = default(UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment));
+        public static void Show(UnityEditor.EditorWindow host, UnityEditor.GraphToolsFoundation.Searcher.Searcher searcher, System.Func<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem, bool> itemSelectedDelegate, UnityEngine.Vector2 displayPosition, System.Action<UnityEditor.GraphToolsFoundation.Searcher.Searcher.AnalyticsEvent> analyticsDataDelegate, UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment align = default(UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment));
+        public static void Show(UnityEditor.EditorWindow host, System.Collections.Generic.IList<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> items, string title, string directoryPath, System.Func<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem, bool> itemSelectedDelegate, UnityEngine.Vector2 displayPosition, UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment align = default(UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment));
+        public static void Show(UnityEditor.EditorWindow host, System.Collections.Generic.IList<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> items, UnityEditor.GraphToolsFoundation.Searcher.ISearcherAdapter adapter, System.Func<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem, bool> itemSelectedDelegate, UnityEngine.Vector2 displayPosition, System.Action<UnityEditor.GraphToolsFoundation.Searcher.Searcher.AnalyticsEvent> analyticsDataDelegate, UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment align = default(UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment));
+        public static void Show(UnityEditor.EditorWindow host, System.Collections.Generic.IEnumerable<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem> items, UnityEditor.GraphToolsFoundation.Searcher.ISearcherAdapter adapter, string directoryPath, System.Func<UnityEditor.GraphToolsFoundation.Searcher.SearcherItem, bool> itemSelectedDelegate, UnityEngine.Vector2 displayPosition, System.Action<UnityEditor.GraphToolsFoundation.Searcher.Searcher.AnalyticsEvent> analyticsDataDelegate, UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment align = default(UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment));
+        [JetBrains.Annotations.PublicAPI] public struct Alignment
+        {
+            public readonly UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment.Horizontal horizontal;
+            public readonly UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment.Vertical vertical;
+            public Alignment(UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment.Vertical v, UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment.Horizontal h) {}
+            [JetBrains.Annotations.PublicAPI] public enum Horizontal
+            {
+                public const UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment.Horizontal Center = 1;
+                public const UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment.Horizontal Left = 0;
+                public const UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment.Horizontal Right = 2;
+                public int value__;
+            }
+            [JetBrains.Annotations.PublicAPI] public enum Vertical
+            {
+                public const UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment.Vertical Bottom = 2;
+                public const UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment.Vertical Center = 1;
+                public const UnityEditor.GraphToolsFoundation.Searcher.SearcherWindow.Alignment.Vertical Top = 0;
+                public int value__;
+            }
+        }
+    }
+}

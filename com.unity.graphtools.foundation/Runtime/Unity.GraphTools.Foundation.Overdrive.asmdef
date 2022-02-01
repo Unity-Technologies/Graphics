@@ -1,0 +1,15 @@
+{
+    "name": "Unity.GraphTools.Foundation.Overdrive",
+    "references": [
+        "Unity.InternalAPIEngineBridge.015"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
