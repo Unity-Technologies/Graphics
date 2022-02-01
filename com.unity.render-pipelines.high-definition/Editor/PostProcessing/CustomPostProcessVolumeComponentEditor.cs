@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal static class Styles
         {
-            public static readonly string customPostProcessNotInGlobalSettingsText = "The custom post process is not registered in the Global Settings.";
+            public static readonly string customPostProcessNotInGlobalSettingsText = "This Custom Postprocess is not registered in the Global Settings.";
         }
 
         /// <summary>
