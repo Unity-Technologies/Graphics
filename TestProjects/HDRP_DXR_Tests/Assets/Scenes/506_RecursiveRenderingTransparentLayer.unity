@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.10516715, g: 0.11057758, b: 0.09978673, a: 1}
+  m_IndirectSpecularColor: {r: 0.10522641, g: 0.110719934, b: 0.100003794, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -98,7 +98,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: e0c93a721dfc26c4281cdf68f91e6977,
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 23f828be21c65fa4ab4f50d91591e4ba,
     type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -129,6 +129,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 2
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 6117102520564098274, guid: 0c9fcf2263b163643b5bc77eddcf9135,
@@ -202,6 +203,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_AddedGameObjects: []
   m_SourcePrefab: {fileID: 100100000, guid: 0c9fcf2263b163643b5bc77eddcf9135, type: 3}
 --- !u!1 &198290123
 GameObject:
@@ -295,6 +297,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 3.468, z: 0}
   m_LocalScale: {x: 5, y: 5, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
@@ -304,6 +307,7 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 2
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 2096698042741976049, guid: 6f709ee34ef3654408ec4e18f30ad560,
@@ -377,12 +381,14 @@ PrefabInstance:
       value: 11
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_AddedGameObjects: []
   m_SourcePrefab: {fileID: 100100000, guid: 6f709ee34ef3654408ec4e18f30ad560, type: 3}
 --- !u!1001 &6540916525312135199
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 2
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1734518174987435543, guid: 331e07d695ca55a4081f1b96408bb7a0,
@@ -483,7 +489,7 @@ PrefabInstance:
     - target: {fileID: 1840581321238557961, guid: 331e07d695ca55a4081f1b96408bb7a0,
         type: 3}
       propertyPath: m_Version
-      value: 7
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 1840581321238557961, guid: 331e07d695ca55a4081f1b96408bb7a0,
         type: 3}
@@ -491,4 +497,5 @@ PrefabInstance:
       value: 70005818916701
       objectReference: {fileID: 0}
     m_RemovedComponents: []
+    m_AddedGameObjects: []
   m_SourcePrefab: {fileID: 100100000, guid: 331e07d695ca55a4081f1b96408bb7a0, type: 3}
