@@ -251,7 +251,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
             // Override EditorGUI
             if (!string.IsNullOrEmpty(m_CustomEditorGUI))
-                context.AddCustomEditorForRenderPipeline(m_CustomEditorGUI, "");
+            {
+                context.SetDefaultShaderGUI(m_CustomEditorGUI);
+            }
         }
 
         public override void OnAfterMultiDeserialize(string json)
