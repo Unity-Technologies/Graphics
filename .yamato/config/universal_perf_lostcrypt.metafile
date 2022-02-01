@@ -67,9 +67,7 @@ test_platforms:
     name: performance_playmode_runtime
     allow_cache: False
     commands:
-      #- [OSX_Metal]: <shared.platform.commands.setup_remote_ssh_keys_for_github_cds>
-      - [OSX_Metal]: <reuse_blocks.unity_config>
-      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken>
+      - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.connect_bokken_hikey>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
@@ -79,19 +77,7 @@ test_platforms:
           - [all]: --performance-project-id=LostCrypt
           - [iPhone_Metal]: --timeout=2400
           - [iPhone_Metal,  Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersLow
-          - [OSX_Metal]: --testfilter=Low
-          - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
-        env_vars:
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
-          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
-          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
-          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
-          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
-          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
-          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
-          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=LostCrypt
@@ -102,19 +88,7 @@ test_platforms:
           - [all]: --performance-project-id=LostCrypt
           - [iPhone_Metal]: --timeout=2400
           - [iPhone_Metal, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersMedium
-          - [OSX_Metal]: --testfilter=Medium
-          - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
-        env_vars:
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
-          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
-          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
-          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
-          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
-          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
-          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
-          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=LostCrypt
@@ -124,18 +98,6 @@ test_platforms:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=LostCrypt
           - [Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersHigh
-          - [OSX_Metal]: --testfilter=High
-          - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
-        env_vars:
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
-          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
-          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
-          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
-          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
-          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
-          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
-          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
 
     commands_build:
@@ -158,7 +120,7 @@ test_platforms:
           - []: --extra-editor-arg="-stereoRenderingMode=MultiPass"
           - [all]: --testfilter=Low
           - [all]: --player-save-path=playersLow
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
@@ -172,7 +134,7 @@ test_platforms:
           - []: --extra-editor-arg="-stereoRenderingMode=MultiPass"
           - [all]: --testfilter=Medium
           - [all]: --player-save-path=playersMedium
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
@@ -190,7 +152,6 @@ test_platforms:
     name: performance_playmode_editor
     allow_cache: False
     commands:
-      #- [OSX_Metal]: <shared.platform.commands.setup_remote_ssh_keys_for_github_cds>
       - <reuse_blocks.unity_config>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
@@ -201,17 +162,7 @@ test_platforms:
           - [all]: --performance-project-id=LostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
-        env_vars:
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
-          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
-          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
-          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
-          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
-          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
-          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
-          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=LostCrypt
@@ -223,17 +174,7 @@ test_platforms:
           - [all]: --performance-project-id=LostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
-        env_vars:
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
-          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
-          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
-          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
-          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
-          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
-          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
-          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=LostCrypt
@@ -249,7 +190,6 @@ test_platforms:
     name: performance_build_editmode
     allow_cache: False
     commands:
-      #- [OSX_Metal]: <shared.platform.commands.setup_remote_ssh_keys_for_github_cds>
       - <reuse_blocks.unity_config>
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
@@ -261,17 +201,7 @@ test_platforms:
           - [all]: --performance-project-id=LostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Low
-        env_vars:
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
-          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
-          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
-          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
-          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
-          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
-          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
-          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - [all]: --testfilter=Build
           - [all]: --report-performance-data
@@ -285,17 +215,7 @@ test_platforms:
           - [all]: --performance-project-id=LostCrypt
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
-        env_vars:
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_FRIENDLY_NAME='$YAMATO_JOBDEFINITION_FRIENDLY_NAME'
-          - [OSX_Metal]: YAMATO_JOBDEFINITION_NAME='$YAMATO_JOBDEFINITION_NAME'
-          - [OSX_Metal]: YAMATO_JOB_ID='$YAMATO_JOB_ID'
-          - [OSX_Metal]: YAMATO_PROJECT_NAME='$YAMATO_PROJECT_NAME'
-          - [OSX_Metal]: YAMATO_PROJECT_ID='$YAMATO_PROJECT_ID'
-          - [OSX_Metal]: GIT_REPOSITORY_URL='$GIT_REPOSITORY_URL'
-          - [OSX_Metal]: GIT_BRANCH='$GIT_BRANCH'
-          - [OSX_Metal]: GIT_REVISION='$GIT_REVISION'
-          - [OSX_Metal]: GIT_COMMIT_TIME='$GIT_COMMIT_TIME'
-      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr>
+      - [Android_Vulkan, Android_OpenGLES3]: <shared.platform.commands.call_utr_hikey>
         flags:
           - [all]: --testfilter=Build
           - [all]: --report-performance-data
