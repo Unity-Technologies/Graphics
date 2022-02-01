@@ -27,7 +27,7 @@ Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature,
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, select **Add Override** > **Ray Tracing** > **Path Tracing**.
 3. In the Inspector for the Path Tracing Volume Override, check the Enable option. If you don't see the Enable option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md). This switches HDRP to path-traced rendering and you should initially see a noisy image that converges towards a clean result.
-4. If the image doesn't converge over time, select the drop-down next to the effect toggle and enable Always Refresh.
+4. If the image doesn't converge over time, in the Scene view toolbar, select the drop-down next to the effect toggle and enable Always Refresh.
 
 ![](Images/RayTracingPathTracing3.png)
 
