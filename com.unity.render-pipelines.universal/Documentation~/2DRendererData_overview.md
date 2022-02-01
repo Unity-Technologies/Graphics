@@ -24,7 +24,7 @@ This option is enabled by default. Clear this option to disable the Depth/[Stenc
 
 ## Camera Sorting Layer Texture
 
-The __2D Renderer Data__ specifies how Unity supplies the shader variable `CameraSortingLayerTexture` for use in custom shaders. You should use this data in the same frame, and on the following layers.
+The __2D Renderer Data__ specifies how Unity supplies the shader variable `CameraSortingLayerTexture` for use in custom shaders. It is recommended that you use this data in the same frame and on the following layers, as using `CameraSortingLayerTexture` before it has been captured may result in unexpected results.
 
 ### Foremost Sorting Layer
 All Layers captured for use in the supplied Texture will be drawn from the very back Layer up to and including the Layer specified by __Foremost Sorting Layer__.
