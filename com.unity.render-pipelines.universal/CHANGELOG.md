@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for FidelityFX Super Resolution 1.0 upscaling filter.
 - Added Downscale and Max Iterations options for Bloom
 - Added default DOTS compatible loading shader (FallbackLoading.shader)
-- Add #pragma editor_sync_compilation directive to MaterialError.shader
+- Add #pragma editor_sync_compilation directive to FallbackError.shader
 
 ### Changed
 - Re-added the menu button to be able to convert selected materials.
