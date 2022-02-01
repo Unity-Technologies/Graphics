@@ -960,6 +960,14 @@ namespace UnityEditor.VFX.Test
             }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
+        [Test]
+        public void Check_Null_Or_Empty_Path_Not_Imported()
+        {
+            Assert.False(VisualEffectAssetModicationProcessor.HasVFXExtension(null));
+            Assert.False(VisualEffectAssetModicationProcessor.HasVFXExtension(string.Empty));
+        }
+
+
         //Cover regression test : 1315191
         [UnityTest]
         public IEnumerator Save_Then_Modify_Something_Check_The_Content_Isnt_Reverted()
