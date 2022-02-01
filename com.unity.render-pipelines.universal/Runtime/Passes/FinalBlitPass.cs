@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         RTHandle m_Source;
         Material m_BlitMaterial;
+        RTHandle m_CameraTargetHandle;
 
         /// <summary>
         /// Creates a new <c>FinalBlitPass</c> instance.
@@ -27,6 +28,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_BlitMaterial = blitMaterial;
             renderPassEvent = evt;
+        }
+
+        public void Dispose()
+        {
+            m_CameraTargetHandle?.Release();
         }
 
         /// <summary>
@@ -63,7 +69,21 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Note: We need to get the cameraData.targetTexture as this will get the targetTexture of the camera stack.
             // Overlay cameras need to output to the target described in the base camera while doing camera stack.
             ref CameraData cameraData = ref renderingData.cameraData;
+
             RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                int depthSlice = cameraData.xr.singlePassEnabled ? -1 : cameraData.xr.GetTextureArraySlice();
+                cameraTarget = new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, depthSlice);
+            }
+#endif
+            // Create RTHandle alias to use RTHandle apis
+            if (m_CameraTargetHandle != cameraTarget)
+            {
+                m_CameraTargetHandle?.Release();
+                m_CameraTargetHandle = RTHandles.Alloc(cameraTarget);
+            }
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             var cmd = renderingData.commandBuffer;
@@ -85,13 +105,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
                 {
-                    int depthSlice = cameraData.xr.singlePassEnabled ? -1 : cameraData.xr.GetTextureArraySlice();
-                    cameraTarget =
-                        new RenderTargetIdentifier(cameraData.xr.renderTarget, 0, CubemapFace.Unknown, depthSlice);
-
                     CoreUtils.SetRenderTarget(
                         cmd,
-                        cameraTarget,
+                        m_CameraTargetHandle,
                         RenderBufferLoadAction.Load,
                         RenderBufferStoreAction.Store,
                         ClearFlag.None,
@@ -116,7 +132,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
-                    cmd.Blit(m_Source.nameID, cameraTarget, m_BlitMaterial);
+                    cmd.Blit(m_Source.nameID, m_CameraTargetHandle.nameID, m_BlitMaterial);
                 }
                 else
                 {
@@ -125,7 +141,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // meanwhile we set to load so split screen case works.
                     CoreUtils.SetRenderTarget(
                         cmd,
-                        cameraTarget,
+                        m_CameraTargetHandle,
                         RenderBufferLoadAction.Load,
                         RenderBufferStoreAction.Store,
                         ClearFlag.Depth,
@@ -137,9 +153,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                     cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
                 }
-#pragma warning disable 0618 // Obsolete usage: RenderTargetIdentifiers required here because of use of RenderTexture cameraData.targetTexture which is not managed by RTHandles
-                cameraData.renderer.ConfigureCameraTarget(cameraTarget, cameraTarget);
-#pragma warning restore 0618
+                cameraData.renderer.ConfigureCameraTarget(m_CameraTargetHandle, m_CameraTargetHandle);
             }
         }
     }

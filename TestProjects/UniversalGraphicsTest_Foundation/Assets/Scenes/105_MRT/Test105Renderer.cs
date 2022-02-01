@@ -105,6 +105,7 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_ColorToMrtMaterial);
             CoreUtils.Destroy(m_CopyToViewportMaterial);
             CoreUtils.Destroy(m_BlitMaterial);
+            m_FinalBlitPass.Dispose();
         }
     }
 }
