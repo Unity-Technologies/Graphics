@@ -19,28 +19,11 @@
         },
         {
             "m_Id": "ec7e25b5d6344b1cbff7ebf39f9cf715"
-        },
-        {
-            "m_Id": "27a0c061e2f64edc9f190f63a29e2d7c"
         }
     ],
     "m_GroupDatas": [],
     "m_StickyNoteDatas": [],
     "m_Edges": [
-        {
-            "m_OutputSlot": {
-                "m_Node": {
-                    "m_Id": "ec7e25b5d6344b1cbff7ebf39f9cf715"
-                },
-                "m_SlotId": 0
-            },
-            "m_InputSlot": {
-                "m_Node": {
-                    "m_Id": "27a0c061e2f64edc9f190f63a29e2d7c"
-                },
-                "m_SlotId": 0
-            }
-        },
         {
             "m_OutputSlot": {
                 "m_Node": {
@@ -74,9 +57,6 @@
             },
             {
                 "m_Id": "766e7ec131324300b800a271f8a5ed2d"
-            },
-            {
-                "m_Id": "27a0c061e2f64edc9f190f63a29e2d7c"
             }
         ]
     },
@@ -131,21 +111,6 @@
 }
 
 {
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
-    "m_ObjectId": "15e57ac8f8d549ac955781de0b470a63",
-    "m_Id": 0,
-    "m_DisplayName": "Depth",
-    "m_SlotType": 0,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "FullscreenDepth",
-    "m_StageCapability": 2,
-    "m_Value": 0.0,
-    "m_DefaultValue": 0.0,
-    "m_Labels": []
-}
-
-{
     "m_SGVersion": 1,
     "m_Type": "UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget",
     "m_ObjectId": "22f53713eb17485f8cf0e5aaa5906406",
@@ -168,40 +133,6 @@
     "m_ReceiveShadows": true,
     "m_CustomEditorGUI": "",
     "m_SupportVFX": false
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
-    "m_ObjectId": "27a0c061e2f64edc9f190f63a29e2d7c",
-    "m_Group": {
-        "m_Id": ""
-    },
-    "m_Name": "SurfaceDescription.FullscreenDepth",
-    "m_DrawState": {
-        "m_Expanded": true,
-        "m_Position": {
-            "serializedVersion": "2",
-            "x": 0.0,
-            "y": 0.0,
-            "width": 0.0,
-            "height": 0.0
-        }
-    },
-    "m_Slots": [
-        {
-            "m_Id": "15e57ac8f8d549ac955781de0b470a63"
-        }
-    ],
-    "synonyms": [],
-    "m_Precision": 0,
-    "m_PreviewExpanded": true,
-    "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
-    "m_CustomColors": {
-        "m_SerializableColors": []
-    },
-    "m_SerializedDescriptor": "SurfaceDescription.FullscreenDepth"
 }
 
 {
@@ -301,9 +232,10 @@
     "m_StencilPassOperation": 0,
     "m_StencilFailOperation": 0,
     "m_StencilDepthFailOperation": 0,
-    "m_DepthWrite": true,
+    "m_DepthWrite": false,
+    "m_depthWriteMode": 0,
     "m_AllowMaterialOverride": false,
-    "m_DepthTestMode": 8
+    "m_DepthTestMode": 0
 }
 
 {

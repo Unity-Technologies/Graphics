@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12731749, g: 0.13414757, b: 0.1210787, a: 1}
+  m_IndirectSpecularColor: {r: 0.12731713, g: 0.13414736, b: 0.121078536, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -241,17 +241,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2eab774764b045445b005fe774b06cc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uv: {fileID: 2100000, guid: fbacff351499a1e488ba7f3de58ab149, type: 2}
+  uv: {fileID: -876546973899608171, guid: c465be304d0c4614da3c1e53e503dd19, type: 3}
   uvRT1: {fileID: 8400000, guid: d8a0bc84cb05ecf4d98c26eaf44014e1, type: 2}
   uvRT2: {fileID: 8400000, guid: 6d34677b3ea8c564fb1003dbbc77c5ae, type: 2}
-  viewDir: {fileID: 2100000, guid: 88e97b177ad297d4fabd641f0791ae05, type: 2}
+  viewDir: {fileID: -876546973899608171, guid: e2f2acfc02800be4e9d158379da26dcb, type: 3}
   viewDirRT1: {fileID: 8400000, guid: f1e9e309129785c47b9e3e3e987aab39, type: 2}
   viewDirRT2: {fileID: 8400000, guid: 5e17aea4de9413448b83907916faeb01, type: 2}
-  alphaBlend: {fileID: 2100000, guid: b2719833af97256459e8e8f792c107e2, type: 2}
+  alphaBlend: {fileID: -876546973899608171, guid: e67bcfc9844b56b4581011ebe9c74d49,
+    type: 3}
   alphaBlendRT1: {fileID: 8400000, guid: 7b2abc9285711f147b44c1c60d87fddd, type: 2}
   alphaBlendRT2: {fileID: 8400000, guid: 679f03fd27b4ea84daee6912c06cf0e6, type: 2}
-  stencilWrite: {fileID: 2100000, guid: 6a54bfdd467d98848b7282a9f5ace22c, type: 2}
-  stencilTest: {fileID: 2100000, guid: 1dd7d11c220392b4e9125411b966d253, type: 2}
+  stencilWrite: {fileID: -876546973899608171, guid: 77c10b40993da9d4493793a1b28d8dd6,
+    type: 3}
+  stencilTest: {fileID: -876546973899608171, guid: f555b855075efeb4eb2d97fe34fe00c5,
+    type: 3}
   stencilRT1: {fileID: 8400000, guid: 61857689904ba2e4db2e75a985f617ab, type: 2}
   stencilRT2: {fileID: 8400000, guid: a564de6f1e0272b469ba5fd704880e5e, type: 2}
 --- !u!1 &161488924

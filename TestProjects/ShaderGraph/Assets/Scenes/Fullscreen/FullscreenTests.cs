@@ -55,7 +55,7 @@ public class FullscreenTests : MonoBehaviour
         CoreUtils.DrawFullScreen(cmd, testStencil, shaderPassId: 0);
 
         CoreUtils.SetRenderTarget(cmd, rt2, ClearFlag.All, Color.white);
-        Blitter.BlitTexture(cmd, Texture2D.whiteTexture, rt1, writeStencil, 1);
-        Blitter.BlitTexture(cmd, Texture2D.whiteTexture, rt1, testStencil, 1);
+        cmd.Blit(Texture2D.whiteTexture, rt2, writeStencil, pass: 1);
+        cmd.Blit(Texture2D.whiteTexture, rt2, testStencil, pass: 1);
     }
 }

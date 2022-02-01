@@ -3,7 +3,7 @@
 
 #define SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv) shadergraph_LWSampleSceneDepth(uv)
 #define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv) shadergraph_LWSampleSceneColor(uv)
-#define SHADERGRAPH_SAMPLE_SCENE_NORMAL(uv) shadergraph_LWSampleSceneNormal(uv)
+#define SHADERGRAPH_SAMPLE_SCENE_NORMAL(uv) shadergraph_LWSampleSceneNormals(uv)
 #define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_LWBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
 #define SHADERGRAPH_REFLECTION_PROBE(viewDir, normalOS, lod) shadergraph_LWReflectionProbe(viewDir, normalOS, lod)
 #define SHADERGRAPH_FOG(position, color, density) shadergraph_LWFog(position, color, density)
@@ -43,10 +43,10 @@ float3 shadergraph_LWSampleSceneColor(float2 uv)
 #endif
 }
 
-float3 shadergraph_LWSampleSceneNormal(float2 uv)
+float3 shadergraph_LWSampleSceneNormals(float2 uv)
 {
 #if defined(REQUIRE_NORMAL_TEXTURE)
-    return SampleSceneNormal(uv);
+    return SampleSceneNormals(uv);
 #else
     return 0;
 #endif
