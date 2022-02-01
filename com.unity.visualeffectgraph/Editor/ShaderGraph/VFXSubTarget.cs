@@ -274,6 +274,16 @@ namespace UnityEditor.VFX
             return pragmas;
         }
 
+        //TODOPAUL: Statify
+        static IEnumerable<PragmaDescriptor> kInvalidPragma
+        {
+            get
+            {
+                yield return Pragma.Target(ShaderModel.Target20);
+            }
+        }
+
+
         internal static SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor, VFXContext context, VFXContextCompiledData data)
         {
             var srp = VFXLibrary.currentSRPBinder;
@@ -316,6 +326,9 @@ namespace UnityEditor.VFX
 
             if (!outputContext.hasShadowCasting)
                 filteredPasses = filteredPasses.Where(o => o.descriptor.lightMode != "ShadowCaster");
+
+            // Omit kInvalidPragma (target 2.0 passes)
+            filteredPasses = filteredPasses.Where(o => !o.descriptor.pragmas.Select(p => p.descriptor).Intersect(kInvalidPragma).Any());
 
             var passes = filteredPasses.ToArray();
 
