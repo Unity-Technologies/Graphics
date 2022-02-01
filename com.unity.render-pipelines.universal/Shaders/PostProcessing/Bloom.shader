@@ -9,6 +9,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
 
         TEXTURE2D_X(_SourceTex);
         float4 _SourceTex_TexelSize;
@@ -105,6 +106,10 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             float texelSize = _SourceTex_TexelSize.x * 2.0;
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
+#if defined(PLATFORM_SUPPORT_FOVEATED_RENDERING) && defined(_USE_FOVEATED_RENDERING)
+            texelSize *= ApplyFoveatedRenderingDensity(uv).x;
+#endif
+
             // 9-tap gaussian blur on the downsampled source
             half3 c0 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - float2(texelSize * 4.0, 0.0)));
             half3 c1 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - float2(texelSize * 3.0, 0.0)));
@@ -128,6 +133,10 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float texelSize = _SourceTex_TexelSize.y;
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
+
+#if defined(PLATFORM_SUPPORT_FOVEATED_RENDERING) && defined(_USE_FOVEATED_RENDERING)
+            texelSize *= ApplyFoveatedRenderingDensity(uv).y;
+#endif
 
             // Optimized bilinear 5-tap gaussian on the same-sized source (9-tap equivalent)
             half3 c0 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - float2(0.0, texelSize * 3.23076923)));
@@ -189,6 +198,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             HLSLPROGRAM
                 #pragma vertex FullscreenVert
                 #pragma fragment FragBlurH
+                #pragma multi_compile_fragment _ _USE_FOVEATED_RENDERING
             ENDHLSL
         }
 
@@ -199,6 +209,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             HLSLPROGRAM
                 #pragma vertex FullscreenVert
                 #pragma fragment FragBlurV
+                #pragma multi_compile_fragment _ _USE_FOVEATED_RENDERING
             ENDHLSL
         }
 
