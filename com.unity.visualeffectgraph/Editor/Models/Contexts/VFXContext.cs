@@ -234,7 +234,7 @@ namespace UnityEditor.VFX
         protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             base.GenerateErrors(manager);
-            if (m_CompilationErrors != null && m_CompilationErrors.Any())
+            if (m_CompilationErrors != null)
             {
                 foreach (var (error, type, description) in m_CompilationErrors)
                 {
