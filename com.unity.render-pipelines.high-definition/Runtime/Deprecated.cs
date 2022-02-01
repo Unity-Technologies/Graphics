@@ -3,13 +3,13 @@ using System;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>Deprecated DensityVolume</summary>
-    [Obsolete("DensityVolume has been deprecated (UnityUpgradable) -> LocalVolumetricFog", false)]
+    [Obsolete("DensityVolume has been deprecated, use LocalVolumetricFog", true)]
     public class DensityVolume : LocalVolumetricFog
     {
     }
 
     /// <summary>Deprecated DensityVolumeArtistParameters</summary>
-    [Obsolete("DensityVolumeArtistParameters has been deprecated (UnityUpgradable) -> LocalVolumetricFogArtistParameters", false)]
+    [Obsolete("DensityVolumeArtistParameters has been deprecated, use LocalVolumetricFogArtistParameters", true)]
     public struct DensityVolumeArtistParameters
     {
     }
@@ -27,5 +27,21 @@ namespace UnityEngine.Rendering.HighDefinition
     [Obsolete("VolumeDebugSettings has been deprecated. Use HDVolumeDebugSettings instead (UnityUpgradable) -> HDVolumeDebugSettings")]
     public class VolumeDebugSettings : HDVolumeDebugSettings
     {
+    }
+
+    /// <summary>
+    /// Class managing debug display in HDRP.
+    /// </summary>
+    public partial class DebugDisplaySettings
+    {
+        /// <summary>
+        /// Debug data.
+        /// </summary>
+        public partial class DebugData
+        {
+            /// <summary>Current volume debug settings.</summary>
+            [Obsolete("Moved to HDDebugDisplaySettings.Instance. Will be removed soon.")]
+            public IVolumeDebugSettings volumeDebugSettings = new HDVolumeDebugSettings();
+        }
     }
 }

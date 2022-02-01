@@ -57,6 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent UVEmissiveMappingText = new GUIContent("Emission UV mapping", "");
             public static GUIContent texWorldScaleText = new GUIContent("World Scale", "Sets the tiling factor HDRP applies to Planar/Trilinear mapping.");
+            public static GUIContent uvMappingSpace = new GUIContent("UV Mapping Space", "Sets the space for the input position used for Planar/Trilinear mapping.");
         }
 
         MaterialProperty emissiveColorLDR = null;
@@ -73,6 +74,8 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kUVMappingMaskEmissive = "_UVMappingMaskEmissive";
         MaterialProperty albedoAffectEmissive = null;
         const string kAlbedoAffectEmissive = "_AlbedoAffectEmissive";
+        MaterialProperty ObjectSpaceUVMappingEmissive = null;
+        const string kObjectSpaceUVMappingEmissive = "_ObjectSpaceUVMappingEmissive";
 
         Features m_Features;
 
@@ -103,6 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UVEmissive = FindProperty(kUVEmissive);
             TexWorldScaleEmissive = FindProperty(kTexWorldScaleEmissive);
             UVMappingMaskEmissive = FindProperty(kUVMappingMaskEmissive);
+            ObjectSpaceUVMappingEmissive = FindProperty(kObjectSpaceUVMappingEmissive);
         }
 
         internal static void UpdateEmissiveColorLDRAndIntensityFromEmissiveColor(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
@@ -140,6 +144,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static void DoEmissiveIntensityGUI(MaterialEditor materialEditor, MaterialProperty emissiveIntensity, MaterialProperty emissiveIntensityUnit)
         {
+            MaterialEditor.BeginProperty(emissiveIntensity);
+            MaterialEditor.BeginProperty(emissiveIntensityUnit);
+
             bool unitIsMixed = emissiveIntensityUnit.hasMixedValue;
             bool intensityIsMixed = unitIsMixed || emissiveIntensity.hasMixedValue;
 
@@ -186,6 +193,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     emissiveIntensityUnit.floatValue = (float)newUnit;
             }
             EditorGUI.showMixedValue = false;
+
+            MaterialEditor.EndProperty();
+            MaterialEditor.EndProperty();
         }
 
         /// <summary>
@@ -252,6 +262,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     if ((uvEmissiveMapping == UVEmissiveMapping.Planar) || (uvEmissiveMapping == UVEmissiveMapping.Triplanar))
                     {
+                        materialEditor.ShaderProperty(ObjectSpaceUVMappingEmissive, Styles.uvMappingSpace);
                         materialEditor.ShaderProperty(TexWorldScaleEmissive, Styles.texWorldScaleText);
                     }
                 }
