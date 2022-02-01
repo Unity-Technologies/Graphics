@@ -10,13 +10,33 @@ using System.Linq;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Options for setting MSAA Quality.
+    /// This defines how many samples URP computes per pixel for evaluating the effect.
+    /// </summary>
     public enum MsaaQuality
     {
+        /// <summary>
+        /// Disables MSAA.
+        /// </summary>
         Disabled = 1,
+
+        /// <summary>
+        /// Use this for 2 samples per pixel.
+        /// </summary>
         _2x = 2,
+
+        /// <summary>
+        /// Use this for 4 samples per pixel.
+        /// </summary>
         _4x = 4,
+
+        /// <summary>
+        /// Use this for 8 samples per pixel.
+        /// </summary>
         _8x = 8
     }
+
 
     internal enum DefaultMaterialType
     {
@@ -36,18 +56,43 @@ namespace UnityEngine.Rendering.Universal
         Profiling,
     }
 
+    /// <summary>
+    /// Options to select the type of Renderer to use.
+    /// </summary>
     public enum RendererType
     {
+        /// <summary>
+        /// Use this for Custom Renderer.
+        /// </summary>
         Custom,
+
+        /// <summary>
+        /// Use this for Universal Renderer.
+        /// </summary>
         UniversalRenderer,
+
+        /// <summary>
+        /// Use this for 2D Renderer.
+        /// </summary>
         _2DRenderer,
+
         [Obsolete("ForwardRenderer has been renamed (UnityUpgradable) -> UniversalRenderer", true)]
         ForwardRenderer = UniversalRenderer,
     }
 
+    /// <summary>
+    /// Options for selecting Color Grading modes, Low Dynamic Range (LDR) or High Dynamic Range (HDR)
+    /// </summary>
     public enum ColorGradingMode
     {
+        /// <summary>
+        /// This mode follows a more classic workflow. Unity applies a limited range of color grading after tonemapping.
+        /// </summary>
         LowDynamicRange,
+
+        /// <summary>
+        /// This mode works best for high precision grading similar to movie production workflows. Unity applies color grading before tonemapping.
+        /// </summary>
         HighDynamicRange
     }
 
@@ -56,22 +101,34 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public enum VolumeFrameworkUpdateMode
     {
+        /// <summary>
+        /// Use this to have the Volume Framework update every frame.
+        /// </summary>
         [InspectorName("Every Frame")]
         EveryFrame = 0,
+
+        /// <summary>
+        /// Use this to disable Volume Framework updates or to update it manually via scripting.
+        /// </summary>
         [InspectorName("Via Scripting")]
         ViaScripting = 1,
+
+        /// <summary>
+        /// Use this to choose the setting set on the pipeline asset.
+        /// </summary>
         [InspectorName("Use Pipeline Settings")]
         UsePipelineSettings = 2,
     }
 
+    [URPHelpURL("universalrp-asset")]
     public partial class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
         internal ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 9;
-        [SerializeField] int k_AssetPreviousVersion = 9;
+        [SerializeField] int k_AssetVersion = 10;
+        [SerializeField] int k_AssetPreviousVersion = 10;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
@@ -85,6 +142,9 @@ namespace UnityEngine.Rendering.Universal
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
+
+
+
         // TODO: Shader Quality Tiers
 
         // Advanced settings
@@ -226,8 +286,10 @@ namespace UnityEngine.Rendering.Universal
                 return null;
             }
 
+            DestroyRenderers();
+            var pipeline = new UniversalRenderPipeline(this);
             CreateRenderers();
-            return new UniversalRenderPipeline(this);
+            return pipeline;
         }
 
         void DestroyRenderers()
@@ -253,6 +315,8 @@ namespace UnityEngine.Rendering.Universal
             foreach (var renderer in m_RendererDataList)
                 renderer.Awake();
         }
+
+        /// <inheritdoc/>
         protected override void OnValidate()
         {
             foreach (var renderer in m_RendererDataList)
@@ -270,6 +334,7 @@ namespace UnityEngine.Rendering.Universal
                 renderer.OnEnable();
         }
 
+        /// <inheritdoc/>
         protected override void OnDisable()
         {
             foreach (var renderer in m_RendererDataList)
@@ -283,7 +348,14 @@ namespace UnityEngine.Rendering.Universal
 
         void CreateRenderers()
         {
-            DestroyRenderers();
+            if (m_Renderers != null)
+            {
+                for (int i = 0; i < m_Renderers.Length; ++i)
+                {
+                    if (m_Renderers[i] != null)
+                        Debug.LogError($"Creating renderers but previous instance wasn't properly destroyed: m_Renderers[{i}]");
+                }
+            }
 
             if (m_Renderers == null || m_Renderers.Length != m_RendererDataList.Length)
                 m_Renderers = new ScriptableRenderer[m_RendererDataList.Length];
@@ -371,7 +443,10 @@ namespace UnityEngine.Rendering.Universal
 
             // RendererData list differs from RendererList. Create RendererList.
             if (m_Renderers == null || m_Renderers.Length < m_RendererDataList.Length)
+            {
+                DestroyRenderers();
                 CreateRenderers();
+            }
 
             // This renderer data is outdated or invalid, we recreate the renderer
             // so we construct all render passes with the updated data
@@ -452,7 +527,6 @@ namespace UnityEngine.Rendering.Universal
             set { m_SupportsDynamicBatching = value; }
         }
 
-
         [Obsolete("PipelineDebugLevel is deprecated. Calling debugLevel is not necessary.", false)]
         public PipelineDebugLevel debugLevel
         {
@@ -464,8 +538,6 @@ namespace UnityEngine.Rendering.Universal
             get { return m_UseSRPBatcher; }
             set { m_UseSRPBatcher = value; }
         }
-
-
 
         /// <summary>
         /// Set to true to allow Adaptive performance to modify graphics quality settings during runtime.
@@ -707,6 +779,12 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetVersion = 9;
             }
 
+            if (k_AssetVersion < 10)
+            {
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 10;
+            }
+
 #if UNITY_EDITOR
             //if (k_AssetPreviousVersion != k_AssetVersion)
             //{
@@ -744,6 +822,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 // The added feature was reverted, we keep this version to avoid breakage in case somebody already has version 7
                 asset.k_AssetPreviousVersion = 9;
+            }
+
+            if (asset.k_AssetPreviousVersion < 10)
+            {
+                UniversalRenderPipelineGlobalSettings.Ensure().shaderVariantLogLevel = (Rendering.ShaderVariantLogLevel) asset.m_ShaderVariantLogLevel;
+                asset.k_AssetPreviousVersion = 10;
             }
 
             EditorUtility.SetDirty(asset);

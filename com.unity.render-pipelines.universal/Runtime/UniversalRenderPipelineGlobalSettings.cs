@@ -4,14 +4,6 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public enum ShaderVariantLogLevel
-    {
-        Disabled,
-        [InspectorName("Only URP Shaders")]
-        OnlyUniversalRPShaders,
-        [InspectorName("All Shaders")]
-        AllShaders
-    }
     /// <summary>
     /// Defines if Unity discards or stores the render targets of the DrawObjects Passes. Selecting the Store option significantly increases the memory bandwidth on mobile and tile-based GPUs.
     /// </summary>
@@ -30,7 +22,7 @@ namespace UnityEngine.Rendering.Universal
     /// Global settings are unique per Render Pipeline type. In URP, Global Settings contain:
     /// - light layer names
     /// </summary>
-    [URPHelpURL("URP-Global-Settings")]
+    [URPHelpURL("urp-global-settings")]
     partial class UniversalRenderPipelineGlobalSettings : RenderPipelineGlobalSettings, ISerializationCallbackReceiver
     {
         #region Version system
@@ -213,15 +205,6 @@ namespace UnityEngine.Rendering.Universal
             get { return m_SupportsTerrainHoles; }
         }
 
-
-        [SerializeField] [Obsolete] PipelineDebugLevel m_DebugLevel;
-        [SerializeField] ShaderVariantLogLevel m_ShaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
-        public ShaderVariantLogLevel shaderVariantLogLevel
-        {
-            get { return m_ShaderVariantLogLevel; }
-            set { m_ShaderVariantLogLevel = value; }
-        }
-
         [SerializeField] StoreActionsOptimization m_StoreActionsOptimization = StoreActionsOptimization.Auto;
         /// <summary>
         /// Returns the active store action optimization value.
@@ -244,13 +227,23 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_UseFastSRGBLinearConversion = false;
         [SerializeField] VolumeFrameworkUpdateMode m_VolumeFrameworkUpdateMode = VolumeFrameworkUpdateMode.EveryFrame;
 
+        /// <summary>
+        /// Resources needed for Post Processing.
+        /// </summary>
         public PostProcessData postProcessData = null;
+
+        /// <summary>
+        /// Returns the selected ColorGradingMode in the URP Asset.
+        /// </summary>
         public ColorGradingMode colorGradingMode
         {
             get { return m_ColorGradingMode; }
             set { m_ColorGradingMode = value; }
         }
 
+        /// <summary>
+        /// Returns the selected LUT size for Color Grading in the URP Asset.
+        /// </summary>
         public int colorGradingLutSize
         {
             get { return m_ColorGradingLutSize; }

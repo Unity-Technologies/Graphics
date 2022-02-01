@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
 {
     public sealed partial class UniversalRenderPipeline : RenderPipeline
     {
-        public const string k_ShaderTagName = "UniversalPipeline";
+        internal const string k_ShaderTagName = "UniversalPipeline";
 
         private static class Profiling
         {
@@ -88,22 +88,33 @@ namespace UnityEngine.Rendering.Universal
             get => 10.0f;
         }
 
+        /// <summary>
+        /// The minimum value allowed for render scale.
+        /// </summary>
         public static float minRenderScale
         {
             get => 0.1f;
         }
 
+        /// <summary>
+        /// The maximum value allowed for render scale.
+        /// </summary>
         public static float maxRenderScale
         {
             get => 2.0f;
         }
 
+        /// <summary>
+        /// The max number of iterations allowed calculating enclosing sphere.
+        /// </summary>
         public static int maxNumIterationsEnclosingSphere
         {
             get => 1000;
         }
 
-        // Amount of Lights that can be shaded per object (in the for loop in the shader)
+        /// <summary>
+        /// The max number of lights that can be shaded per object (in the for loop in the shader).
+        /// </summary>
         public static int maxPerObjectLights
         {
             // No support to bitfield mask and int[] in gles2. Can't index fast more than 4 lights.
@@ -115,6 +126,10 @@ namespace UnityEngine.Rendering.Universal
         internal const int k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45 = 16;
         internal const int k_MaxVisibleAdditionalLightsMobile = 32;
         internal const int k_MaxVisibleAdditionalLightsNonMobile = 256;
+
+        /// <summary>
+        /// The max number of additional lights that can can affect each GameObject.
+        /// </summary>
         public static int maxVisibleAdditionalLights
         {
             get
@@ -140,6 +155,14 @@ namespace UnityEngine.Rendering.Universal
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 
+        // flag to keep track of depth buffer requirements by any of the cameras in the stack
+        internal static bool cameraStackRequiresDepthForPostprocessing = false;
+
+        /// <summary>
+        /// Creates a new <c>UniversalRenderPipeline</c> instance.
+        /// </summary>
+        /// <param name="asset">The <c>UniversalRenderPipelineAsset</c> asset to initialize the pipeline.</param>
+        /// <seealso cref="RenderPassEvent"/>
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
 #if UNITY_EDITOR
@@ -148,6 +171,12 @@ namespace UnityEngine.Rendering.Universal
             m_GlobalSettings = UniversalRenderPipelineGlobalSettings.instance;
 #endif
             SetSupportedRenderingFeatures();
+
+            // Initial state of the RTHandle system.
+            // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
+            RTHandles.Initialize(Screen.width, Screen.height);
+
+            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
 
             // In QualitySettings.antiAliasing disabled state uses value 0, where in URP 1
             int qualitySettingsMsaaSampleCount = QualitySettings.antiAliasing > 0 ? QualitySettings.antiAliasing : 1;
@@ -176,6 +205,7 @@ namespace UnityEngine.Rendering.Universal
             m_DebugDisplaySettingsUI.RegisterDebug(UniversalRenderPipelineDebugDisplaySettings.Instance);
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             m_DebugDisplaySettingsUI.UnregisterDebug();
@@ -198,6 +228,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_2021_1_OR_NEWER
+        /// <inheritdoc/>
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             Render(renderContext, new List<Camera>(cameras));
@@ -206,8 +237,10 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
 #if UNITY_2021_1_OR_NEWER
+        /// <inheritdoc/>
         protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
 #else
+        /// <inheritdoc/>
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
 #endif
         {
@@ -229,7 +262,6 @@ namespace UnityEngine.Rendering.Universal
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.lightsUseColorTemperature = true;
-            GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             GraphicsSettings.defaultRenderingLayerMask = k_DefaultRenderingLayerMask;
             SetupPerFrameShaderConstants();
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -245,6 +277,11 @@ namespace UnityEngine.Rendering.Universal
                 m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
                 if(m_GlobalSettings == null) return;
             }
+#endif
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (DebugManager.instance.isAnyDebugUIActive)
+                UniversalRenderPipelineDebugDisplaySettings.Instance.UpdateFrameTiming();
 #endif
 
             SortCameras(cameras);
@@ -289,6 +326,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 EndFrameRendering(renderContext, cameras);
             }
+#endif
+
+#if ENABLE_SHADER_DEBUG_PRINT
+            ShaderDebugPrintManager.instance.EndFrame();
 #endif
         }
 
@@ -388,10 +429,11 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
                 // Emit scene view UI
                 if (isSceneViewCamera)
-                {
                     ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
-                }
+                else
 #endif
+                if (cameraData.camera.targetTexture != null && cameraData.cameraType != CameraType.Preview)
+                    ScriptableRenderContext.EmitGeometryForCamera(camera);
 
                 var cullResults = context.Cull(ref cullingParameters);
                 renderer.InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, out var renderingData);
@@ -401,10 +443,12 @@ namespace UnityEngine.Rendering.Universal
                     ApplyAdaptivePerformance(ref renderingData);
 #endif
 
+                RTHandles.SetReferenceSize(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
+
+                renderer.AddRenderPasses(ref renderingData);
+
                 using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setup))
-                {
                     renderer.Setup(context, ref renderingData);
-                }
 
                 // Timing scope inside
                 renderer.Execute(context, ref renderingData);
@@ -461,6 +505,8 @@ namespace UnityEngine.Rendering.Universal
                 var baseCameraRendererType = baseCameraAdditionalData?.scriptableRenderer.GetType();
                 bool shouldUpdateCameraStack = false;
 
+                cameraStackRequiresDepthForPostprocessing = false;
+
                 for (int i = 0; i < cameraStack.Count; ++i)
                 {
                     Camera currCamera = cameraStack[i];
@@ -479,6 +525,8 @@ namespace UnityEngine.Rendering.Universal
                             Debug.LogWarning(string.Format("Stack can only contain Overlay cameras. {0} will skip rendering.", currCamera.name));
                             continue;
                         }
+
+                        cameraStackRequiresDepthForPostprocessing |= CheckPostProcessForDepth();
 
                         var currCameraRendererType = data?.scriptableRenderer.GetType();
                         if (currCameraRendererType != baseCameraRendererType)
@@ -555,6 +603,9 @@ namespace UnityEngine.Rendering.Universal
             if (asset.useAdaptivePerformance)
                 ApplyAdaptivePerformance(ref baseCameraData);
 #endif
+            // update the base camera flag so that the scene depth is stored if needed by overlay cameras later in the frame
+            baseCameraData.postProcessingRequiresDepthTexture |= cameraStackRequiresDepthForPostprocessing;
+
             RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
             using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
             {
@@ -595,6 +646,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
                         UpdateVolumeFramework(currCamera, currCameraData);
                         InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
+                        overlayCameraData.baseCamera = baseCamera;
 #if ENABLE_VR && ENABLE_XR_MODULE
                         if (baseCameraData.xr.enabled)
                             m_XRSystem.UpdateFromCamera(ref overlayCameraData.xr, overlayCameraData);
@@ -680,9 +732,14 @@ namespace UnityEngine.Rendering.Universal
             if (!cameraData.postProcessEnabled)
                 return false;
 
-            if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing)
+            if (cameraData.antialiasing == AntialiasingMode.SubpixelMorphologicalAntiAliasing && cameraData.renderType == CameraRenderType.Base)
                 return true;
 
+            return CheckPostProcessForDepth();
+        }
+
+        static bool CheckPostProcessForDepth()
+        {
             var stack = VolumeManager.instance.stack;
 
             if (stack.GetComponent<DepthOfField>().IsActive())
@@ -741,7 +798,12 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
             bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
-            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData.renderScale,
+
+            // Render scale is not intended to affect the scene view so override the scale to 1.0 when it's rendered.
+            bool isSceneViewCamera = (camera.cameraType == CameraType.SceneView);
+            float renderScale = isSceneViewCamera ? 1.0f : cameraData.renderScale;
+
+            cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, renderScale,
                 cameraData.isHdrEnabled, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
         }
 
@@ -819,6 +881,28 @@ namespace UnityEngine.Rendering.Universal
             // Scale is only enabled for gameview.
             const float kRenderScaleThreshold = 0.05f;
             cameraData.renderScale = (Mathf.Abs(1.0f - asset.scriptableRenderer.renderScale) < kRenderScaleThreshold) ? 1.0f : asset.scriptableRenderer.renderScale;
+
+            // Convert the upscaling filter selection from the pipeline asset into an image upscaling filter
+            cameraData.upscalingFilter = ResolveUpscalingFilterSelection(new Vector2(cameraData.pixelWidth, cameraData.pixelHeight), cameraData.renderScale, settings.scriptableRenderer.upscalingFilter);
+
+            if (cameraData.renderScale > 1.0f)
+            {
+                cameraData.imageScalingMode = ImageScalingMode.Downscaling;
+            }
+            else if ((cameraData.renderScale < 1.0f) || (cameraData.upscalingFilter == ImageUpscalingFilter.FSR))
+            {
+                // When FSR is enabled, we still consider 100% render scale an upscaling operation.
+                // This allows us to run the FSR shader passes all the time since they improve visual quality even at 100% scale.
+
+                cameraData.imageScalingMode = ImageScalingMode.Upscaling;
+            }
+            else
+            {
+                cameraData.imageScalingMode = ImageScalingMode.None;
+            }
+
+            cameraData.fsrOverrideSharpness = settings.scriptableRenderer.fsrOverrideSharpness;
+            cameraData.fsrSharpness = settings.scriptableRenderer.fsrSharpness;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             cameraData.xr = m_XRSystem.emptyPass;
@@ -904,7 +988,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             cameraData.requiresDepthTexture |= isSceneViewCamera;
-            cameraData.postProcessingRequiresDepthTexture |= CheckPostProcessForDepth(cameraData);
+            cameraData.postProcessingRequiresDepthTexture = CheckPostProcessForDepth(cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
 
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
@@ -913,7 +997,6 @@ namespace UnityEngine.Rendering.Universal
             if (isOverlayCamera)
             {
                 cameraData.requiresOpaqueTexture = false;
-                cameraData.postProcessingRequiresDepthTexture = false;
             }
 
             Matrix4x4 projectionMatrix = camera.projectionMatrix;
@@ -946,7 +1029,6 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.backgroundColor = CoreUtils.ConvertSRGBToActiveColorSpace(backgroundColorSRGB);
         }
-
 
 
         static void CleanupLightData(ref LightData lightData)
@@ -1000,6 +1082,76 @@ namespace UnityEngine.Rendering.Universal
 
             // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
             Shader.SetGlobalColor(ShaderPropertyId.rendererColor, Color.white);
+        }
+
+        /// <summary>
+        /// Returns the best supported image upscaling filter based on the provided upscaling filter selection
+        /// </summary>
+        /// <param name="imageSize">Size of the final image</param>
+        /// <param name="renderScale">Scale being applied to the final image size</param>
+        /// <param name="selection">Upscaling filter selected by the user</param>
+        /// <returns>Either the original filter provided, or the best replacement available</returns>
+        static ImageUpscalingFilter ResolveUpscalingFilterSelection(Vector2 imageSize, float renderScale, UpscalingFilterSelection selection)
+        {
+            // By default we just use linear filtering since it's the most compatible choice
+            ImageUpscalingFilter filter = ImageUpscalingFilter.Linear;
+
+            // Fall back to the automatic filter if FSR was selected, but isn't supported on the current platform
+            if ((selection == UpscalingFilterSelection.FSR) && !FSRUtils.IsSupported())
+            {
+                selection = UpscalingFilterSelection.Auto;
+            }
+
+            switch (selection)
+            {
+                case UpscalingFilterSelection.Auto:
+                {
+                    // The user selected "auto" for their upscaling filter so we should attempt to choose the best filter
+                    // for the current situation. When the current resolution and render scale are compatible with integer
+                    // scaling we use the point sampling filter. Otherwise we just use the default filter (linear).
+                    float pixelScale = (1.0f / renderScale);
+                    bool isIntegerScale = Mathf.Approximately((pixelScale - Mathf.Floor(pixelScale)), 0.0f);
+
+                    if (isIntegerScale)
+                    {
+                        float widthScale = (imageSize.x / pixelScale);
+                        float heightScale = (imageSize.y / pixelScale);
+
+                        bool isImageCompatible = (Mathf.Approximately((widthScale - Mathf.Floor(widthScale)), 0.0f) &&
+                                                  Mathf.Approximately((heightScale - Mathf.Floor(heightScale)), 0.0f));
+
+                        if (isImageCompatible)
+                        {
+                            filter = ImageUpscalingFilter.Point;
+                        }
+                    }
+
+                    break;
+                }
+
+                case UpscalingFilterSelection.Linear:
+                {
+                    // Do nothing since linear is already the default
+
+                    break;
+                }
+
+                case UpscalingFilterSelection.Point:
+                {
+                    filter = ImageUpscalingFilter.Point;
+
+                    break;
+                }
+
+                case UpscalingFilterSelection.FSR:
+                {
+                    filter = ImageUpscalingFilter.FSR;
+
+                    break;
+                }
+            }
+
+            return filter;
         }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER

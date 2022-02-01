@@ -341,7 +341,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Compute buffers
             deferredParameters.rayBinResult = m_RayBinResult;
             deferredParameters.rayBinSizeResult = m_RayBinSizeResult;
-            deferredParameters.accelerationStructure = RequestAccelerationStructure();
+            deferredParameters.accelerationStructure = RequestAccelerationStructure(hdCamera);
             deferredParameters.lightCluster = RequestLightCluster();
             deferredParameters.mipChainBuffer = hdCamera.depthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
@@ -464,7 +464,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.lastBouncefallbackHierarchy = (int)settings.lastBounceFallbackHierarchy.value;
 
                 // Other parameters
-                passData.accelerationStructure = RequestAccelerationStructure();
+                passData.accelerationStructure = RequestAccelerationStructure(hdCamera);
                 passData.lightCluster = RequestLightCluster();
                 passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet8SPP();
                 passData.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;

@@ -16,6 +16,11 @@ namespace UnityEngine.Rendering
         /// Widgets used by this panel.
         /// </summary>
         DebugUI.Widget[] Widgets { get; }
+
+        /// <summary>
+        /// Flags to be applied to the top-level panel.
+        /// </summary>
+        DebugUI.Flags Flags { get; }
     }
 
     /// <summary>

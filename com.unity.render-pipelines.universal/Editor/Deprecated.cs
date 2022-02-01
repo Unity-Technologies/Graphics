@@ -3,8 +3,11 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.Universal
 {
+    /// <summary>
+    /// Editor script for a <c>ForwardRendererData</c> class.
+    /// </summary>
     [Obsolete("ForwardRendererDataEditor has been deprecated. Use UniversalRendererDataEditor instead (UnityUpgradable) -> UniversalRendererDataEditor", true)]
-    public class ForwardRendererDataEditor : ScriptableRendererDataEditor
+    internal class ForwardRendererDataEditor : ScriptableRendererDataEditor
     {
         protected override CachedScriptableRendererDataEditor Init(SerializedProperty property)
         {

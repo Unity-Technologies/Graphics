@@ -17,6 +17,11 @@ namespace UnityEditor.Rendering.Universal
 
     class CachedUniversalRendererDataEditor : CachedScriptableRendererDataEditor
     {
+        public SerializedProperty renderScale;
+        public SerializedProperty upscalingFilter;
+        public SerializedProperty fsrOverrideSharpness;
+        public SerializedProperty fsrSharpness;
+
         public SerializedProperty opaqueLayerMask;
         public SerializedProperty transparentLayerMask;
         public SerializedProperty renderingMode;
@@ -58,6 +63,8 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty mixedLightingSupportedProp { get; }
         public SerializedProperty supportsLightLayers { get; }
 
+        public SerializedProperty m_Shaders;
+        public SerializedProperty m_ShadowTransparentReceiveProp;
 
 #if URP_ENABLE_CLUSTERED_UI
             public static bool s_EnableClusteredUI => true;
@@ -71,6 +78,11 @@ namespace UnityEditor.Rendering.Universal
         public CachedUniversalRendererDataEditor(SerializedProperty serializedProperty)
             : base(serializedProperty)
         {
+            renderScale = serializedProperty.FindPropertyRelative("m_RenderScale");
+            upscalingFilter = serializedProperty.FindPropertyRelative("m_UpscalingFilter");
+            fsrOverrideSharpness = serializedProperty.FindPropertyRelative("m_FsrOverrideSharpness");
+            fsrSharpness = serializedProperty.FindPropertyRelative("m_FsrSharpness");
+
             opaqueLayerMask = serializedProperty.FindPropertyRelative("m_OpaqueLayerMask");
             transparentLayerMask = serializedProperty.FindPropertyRelative("m_TransparentLayerMask");
             renderingMode = serializedProperty.FindPropertyRelative("m_RenderingMode");
@@ -119,6 +131,9 @@ namespace UnityEditor.Rendering.Universal
             mixedLightingSupportedProp = serializedProperty.FindPropertyRelative("m_MixedLightingSupported");
             supportsLightLayers = serializedProperty.FindPropertyRelative("m_SupportsLightLayers");
 
+            m_Shaders = serializedProperty.FindPropertyRelative("shaders");
+            m_ShadowTransparentReceiveProp = serializedProperty.FindPropertyRelative("m_ShadowTransparentReceive");
+
             string Key = "Universal_Shadow_Setting_Unit:UI_State";
             state = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
         }
@@ -133,6 +148,11 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent lightingSettingsText = EditorGUIUtility.TrTextContent("Lighting", "Settings that affect the lighting in the Scene");
             public static GUIContent shadowSettingsText = EditorGUIUtility.TrTextContent("Shadows", "Settings that configure how shadows look and behave, and can be used to balance between the visual quality and performance of shadows.");
             public static GUIContent rendererFeatureSettingsText = EditorGUIUtility.TrTextContent("Renderer Features", "Settings that configure the renderer features used by the renderer.");
+
+            public static readonly GUIContent renderScaleText = EditorGUIUtility.TrTextContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
+            public static readonly GUIContent upscalingFilterText = EditorGUIUtility.TrTextContent("Upscaling Filter", "Controls the type of filter used for upscaling when render scale is lower than 1.0.");
+            public static readonly GUIContent fsrOverrideSharpness = EditorGUIUtility.TrTextContent("Override FSR Sharpness", "Overrides the FSR sharpness value for the render pipeline asset.");
+            public static readonly GUIContent fsrSharpnessText = EditorGUIUtility.TrTextContent("FSR Sharpness", "Controls the intensity of the sharpening filter used by FidelityFX Super Resolution.");
 
 
             public static readonly GUIContent RendererTitle = EditorGUIUtility.TrTextContent("Universal Renderer", "Custom Universal Renderer for Universal RP.");
@@ -241,6 +261,23 @@ namespace UnityEditor.Rendering.Universal
         static void DrawRendererAdditional(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor) { }
         static void DrawGeneral(CachedUniversalRendererDataEditor cachedEditorData, Editor ownerEditor)
         {
+            cachedEditorData.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, cachedEditorData.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
+            EditorGUILayout.PropertyField(cachedEditorData.upscalingFilter, Styles.upscalingFilterText);
+            if (cachedEditorData.upscalingFilter.intValue == (int)UpscalingFilterSelection.FSR)
+            {
+                ++EditorGUI.indentLevel;
+
+                EditorGUILayout.PropertyField(cachedEditorData.fsrOverrideSharpness, Styles.fsrOverrideSharpness);
+
+                // We put the FSR sharpness override value behind an override checkbox so we can tell when the user intends to use a custom value rather than the default.
+                if (cachedEditorData.fsrOverrideSharpness.boolValue)
+                {
+                    cachedEditorData.fsrSharpness.floatValue = EditorGUILayout.Slider(Styles.fsrSharpnessText, cachedEditorData.fsrSharpness.floatValue, 0.0f, 1.0f);
+                }
+
+                --EditorGUI.indentLevel;
+            }
+
             EditorGUILayout.LabelField(Styles.FilteringSectionLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(cachedEditorData.opaqueLayerMask, Styles.OpaqueMask);

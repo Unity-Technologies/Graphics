@@ -14,14 +14,10 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>A bool to set if duplicate of the same type is disallowed.</summary>
         public bool DisallowMultipleRendererFeatures { get; }
 
-        /// <summary>A string to set the documentation path. Null if documentation isn't used.</summary>
-        public string Documentation { get; }
-
-        public RendererFeatureInfoAttribute(string Path, bool DisallowMultipleRendererFeatures = false, string Documentation = null)
+        public RendererFeatureInfoAttribute(string Path, bool DisallowMultipleRendererFeatures = false)
         {
             this.Path = Path.Split('/');
             this.DisallowMultipleRendererFeatures = DisallowMultipleRendererFeatures;
-            this.Documentation = Documentation;
         }
     }
 }

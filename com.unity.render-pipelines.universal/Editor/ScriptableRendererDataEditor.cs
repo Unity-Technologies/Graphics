@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -56,6 +58,7 @@ namespace UnityEditor.Rendering.Universal
 
         protected abstract CachedScriptableRendererDataEditor Init(SerializedProperty property);
 
+        /// <inheritdoc/>
         public override sealed void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             int index = property.FindPropertyRelative(nameof(ScriptableRendererData.index)).intValue;
@@ -70,6 +73,17 @@ namespace UnityEditor.Rendering.Universal
             if (s_CachedRendererEditors[index] == null || s_CachedRendererEditors[index].serializedProperty != property)
             {
                 s_CachedRendererEditors[index] = Init(property);
+                // EditorGUILayout.Space();
+                //
+                // //Add renderer
+                // using (var hscope = new EditorGUILayout.HorizontalScope())
+                // {
+                //     if (GUILayout.Button("Add Renderer Feature", EditorStyles.miniButton))
+                //     {
+                //         var r = hscope.rect;
+                //         var pos = new Vector2(r.x + r.width / 2f, r.yMax + 18f);
+                //         FilterWindow.Show(pos, new ScriptableRendererFeatureProvider(this));
+                //     }
             }
 
             EditorGUI.BeginProperty(position, label, property);
@@ -180,6 +194,7 @@ namespace UnityEditor.Rendering.Universal
                 return false;
             return true;
         }
+
         static void ParseRenderer(SerializedProperty property)
         {
             string text = EditorGUIUtility.systemCopyBuffer;

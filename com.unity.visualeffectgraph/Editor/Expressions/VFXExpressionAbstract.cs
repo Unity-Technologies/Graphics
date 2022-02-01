@@ -584,6 +584,16 @@ namespace UnityEditor.VFX
             }
         }
 
+        internal static void CollectParentExpressionRecursively(VFXExpression entry, HashSet<VFXExpression> processed)
+        {
+            if (processed.Contains(entry))
+                return;
+
+            foreach (var parent in entry.parents) CollectParentExpressionRecursively(parent, processed);
+
+            processed.Add(entry);
+        }
+
         public static VFXExpression operator *(VFXExpression a, VFXExpression b) { return new VFXExpressionMul(a, b); }
         public static VFXExpression operator /(VFXExpression a, VFXExpression b) { return new VFXExpressionDivide(a, b); }
         public static VFXExpression operator +(VFXExpression a, VFXExpression b) { return new VFXExpressionAdd(a, b); }

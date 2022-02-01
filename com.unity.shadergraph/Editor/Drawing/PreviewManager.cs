@@ -43,6 +43,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         HashSet<BlockNode> m_MasterNodeTempBlocks = new HashSet<BlockNode>();                               // temp blocks used by the most recent master node preview generation.
 
+        // used to detect when texture assets have been modified
+        HashSet<string> m_PreviewTextureGUIDs = new HashSet<string>();
         PreviewSceneResources m_SceneResources;
         Texture2D m_ErrorTexture;
         Vector2? m_NewMasterPreviewSize;
@@ -312,6 +314,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        public void ReloadChangedFiles(string ChangedFileDependencyGUIDs)
+        {
+            if (m_PreviewTextureGUIDs.Contains(ChangedFileDependencyGUIDs))
+            {
+                // have to setup the textures on the MaterialPropertyBlock again
+                // easiest is to just mark everything as needing property update
+                m_NodesPropertyChanged.UnionWith(m_RenderDatas.Keys);
+            }
+        }
+
         public void HandleGraphChanges()
         {
             foreach (var node in m_Graph.addedNodes)
@@ -395,6 +407,30 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     previewProperty.SetValueOnMaterialPropertyBlock(m_SharedPreviewPropertyBlock);
 
+                    // record guids for any texture properties
+                    if ((previewProperty.propType >= PropertyType.Texture2D) && (previewProperty.propType <= PropertyType.Cubemap))
+                    {
+
+                        if (previewProperty.propType != PropertyType.Cubemap)
+                        {
+                            if (previewProperty.textureValue != null)
+                                if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(previewProperty.textureValue, out string guid, out long localID))
+                                {
+                                    // Note, this never gets cleared, so we accumulate texture GUIDs over time, if the user keeps changing textures
+                                    m_PreviewTextureGUIDs.Add(guid);
+                                }
+                        }
+                        else
+                        {
+                            if (previewProperty.cubemapValue != null)
+                                if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(previewProperty.cubemapValue, out string guid, out long localID))
+                                {
+                                    // Note, this never gets cleared, so we accumulate texture GUIDs over time, if the user keeps changing textures
+                                    m_PreviewTextureGUIDs.Add(guid);
+                                }
+                        }
+
+                    }
                     // virtual texture assignments must be pushed to the materials themselves (MaterialPropertyBlocks not supported)
                     if ((previewProperty.propType == PropertyType.VirtualTexture) &&
                         (previewProperty.vtProperty?.value?.layers != null))
@@ -797,7 +833,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             Assert.IsNotNull(node); // master preview is handled above
 
                             // Get shader code and compile
-                            var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}", null);
+                            var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}");
                             BeginCompile(preview, generator.generatedShader);
                         }
 
@@ -1212,7 +1248,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Skip generation for VFXTarget
             if (!m_Graph.isOnlyVFXTarget)
             {
-                var generator = new Generator(m_Graph, m_Graph.outputNode, GenerationMode.Preview, "Master", null);
+                var generator = new Generator(m_Graph, m_Graph.outputNode, GenerationMode.Preview, "Master");
                 shaderData.shaderString = generator.generatedShader;
 
                 // record the blocks temporarily created for missing stack blocks

@@ -43,7 +43,9 @@ namespace UnityEditor.VFX
     class VFXGraphCompiledData
     {
         // 3: Serialize material
-        public const uint compiledVersion = 3;
+        // 4: Bounds helper change
+        // 5: HasAttributeBuffer flag
+        public const uint compiledVersion = 5;
 
         public VFXGraphCompiledData(VFXGraph graph)
         {
@@ -439,17 +441,6 @@ namespace UnityEditor.VFX
             return result;
         }
 
-        private static void CollectParentExpressionRecursively(VFXExpression entry, HashSet<VFXExpression> processed)
-        {
-            if (processed.Contains(entry))
-                return;
-
-            foreach (var parent in entry.parents)
-                CollectParentExpressionRecursively(parent, processed);
-
-            processed.Add(entry);
-        }
-
         private class ProcessChunk
         {
             public int startIndex;
@@ -460,7 +451,7 @@ namespace UnityEditor.VFX
         {
             var allExpressions = new HashSet<VFXExpression>();
             foreach (var expression in expressionPerSpawnToProcess)
-                CollectParentExpressionRecursively(expression, allExpressions);
+                VFXExpression.CollectParentExpressionRecursively(expression, allExpressions);
 
             var expressionIndexes = allExpressions.
                 Where(o => o.Is(VFXExpression.Flags.PerSpawn)) //Filter only per spawn part of graph
@@ -910,7 +901,7 @@ namespace UnityEditor.VFX
                     boundsBufferIndex = bufferDescs.Count;
                     bufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Default, size = 6, stride = 4 });
                 }
-                buffers.boundsBuffers.Add(data, boundsBufferIndex); // TODO Ludovic : Fill the data index and stuff
+                buffers.boundsBuffers.Add(data, boundsBufferIndex);
             }
 
             //Prepare GPU event buffer

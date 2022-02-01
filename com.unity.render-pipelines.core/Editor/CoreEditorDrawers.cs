@@ -54,6 +54,7 @@ namespace UnityEditor.Rendering
             /// Expands all children that use a given mask
             /// </summary>
             /// <param name="mask">The mask to expand</param>
+            /// <returns>If the drawer is expanded</returns>
             bool Expand(int mask);
         }
 

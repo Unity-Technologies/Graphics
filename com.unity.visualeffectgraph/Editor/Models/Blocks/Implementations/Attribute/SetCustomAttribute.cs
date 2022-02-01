@@ -36,8 +36,25 @@ namespace UnityEditor.VFX.Block
         }
     }
 
+    class AttributeCustomProvider : VariantProvider
+    {
+        public override IEnumerable<Variant> ComputeVariants()
+        {
+            var compositions = new[] { AttributeCompositionMode.Add, AttributeCompositionMode.Overwrite, AttributeCompositionMode.Multiply, AttributeCompositionMode.Blend };
+            foreach (var composition in compositions)
+            {
+                yield return new Variant(
+                    new[]
+                    {
+                        new KeyValuePair<string, object>("attribute", "CustomAttribute"),
+                        new KeyValuePair<string, object>("Composition", composition),
+                    },
+                    new[] { "custom" });
+            }
+        }
+    }
 
-    [VFXInfo(category = "Attribute/Set", experimental = true)]
+    [VFXInfo(category = "Attribute/{0}", variantProvider = typeof(AttributeCustomProvider), experimental = true)]
     class SetCustomAttribute : VFXBlock
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Delayed]
@@ -52,7 +69,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public CustomAttributeUtility.Signature AttributeType = CustomAttributeUtility.Signature.Float;
 
-        override public string libraryName { get { return "Set Custom Attribute"; } }
+        public override string libraryName => $"{VFXBlockUtility.GetNameString(Composition)} {ObjectNames.NicifyVariableName(attribute)}";
 
         public override string name
         {

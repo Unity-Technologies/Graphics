@@ -127,7 +127,6 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
             }
             EditorGUILayout.PropertyField(serialized.msaa, Styles.msaaText);
-            //serialized.renderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, serialized.renderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
         }
         static void DrawQualityAdditional(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {

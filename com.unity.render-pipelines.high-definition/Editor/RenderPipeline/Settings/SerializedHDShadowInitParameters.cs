@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedScalableSetting shadowResolutionPunctual;
         public SerializedScalableSetting shadowResolutionArea;
 
+        public SerializedProperty allowDirectionalMixedCachedShadows;
         public SerializedProperty maxDirectionalShadowMapResolution;
         public SerializedProperty maxPunctualShadowMapResolution;
         public SerializedProperty maxAreaShadowMapResolution;
@@ -67,6 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
             maxDirectionalShadowMapResolution = root.Find((HDShadowInitParameters s) => s.maxDirectionalShadowMapResolution);
             maxPunctualShadowMapResolution = root.Find((HDShadowInitParameters s) => s.maxPunctualShadowMapResolution);
             maxAreaShadowMapResolution = root.Find((HDShadowInitParameters s) => s.maxAreaShadowMapResolution);
+            allowDirectionalMixedCachedShadows = root.Find((HDShadowInitParameters s) => s.allowDirectionalMixedCachedShadows);
 
             shadowFilteringQuality = root.Find((HDShadowInitParameters s) => s.shadowFilteringQuality);
             supportScreenSpaceShadows = root.Find((HDShadowInitParameters s) => s.supportScreenSpaceShadows);

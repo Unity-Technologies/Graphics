@@ -116,6 +116,7 @@ void EvaluateAnisoGGX(MaterialData mtlData,
     {
         value = 0.0;
         pdf = 0.0;
+        fresnel = 0.0;
         return;
     }
 
@@ -404,7 +405,7 @@ bool SampleGGX(MaterialData mtlData,
     pdf = D * NdotH * jacobian;
     value = abs(4.0 * (1.0 - F) * D * Vg * NdotL * VdotH * jacobian);
 
-    return (pdf > 0.001);
+    return pdf > 0.001;
 }
 
 bool SampleAnisoGGX(MaterialData mtlData,
@@ -449,7 +450,7 @@ bool SampleAnisoGGX(MaterialData mtlData,
     pdf = pdfNoGV / lambdaVPlusOne;
     value = abs((1.0 - F) * pdfNoGV / (lambdaVPlusOne + lambdaL));
 
-    return (pdf > 0.001);
+    return pdf > 0.001;
 }
 
 bool SampleDelta(MaterialData mtlData,

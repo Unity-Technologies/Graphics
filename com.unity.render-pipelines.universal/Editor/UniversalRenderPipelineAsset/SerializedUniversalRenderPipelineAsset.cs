@@ -15,9 +15,6 @@ namespace UnityEditor.Rendering.Universal
 
         public SerializedProperty hdr { get; }
         public SerializedProperty msaa { get; }
-        public SerializedProperty renderScale { get; }
-
-
 
         public SerializedProperty srpBatcher { get; }
         public SerializedProperty supportsDynamicBatching { get; }

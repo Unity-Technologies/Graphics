@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -46,11 +47,13 @@ namespace UnityEditor.Rendering.Universal
                 int nameId = attribute.Path.Length - 1;
                 rendererFeatureName = attribute.Path[nameId];
             }
+            string helpURL;
+            DocumentationUtils.TryGetHelpURL(type, out helpURL);
 
             if (DrawHeaderToggleRect(position, new GUIContent(
                 name.stringValue == rendererFeatureName ? name.stringValue : $"{name.stringValue} ({rendererFeatureName})",
                 type.GetCustomAttribute<TooltipAttribute>()?.tooltip),
-                property, isActiveState, attribute?.Documentation))
+                property, isActiveState, helpURL))
             {
                 using (new EditorGUI.DisabledScope(!isActiveState.boolValue))
                 {

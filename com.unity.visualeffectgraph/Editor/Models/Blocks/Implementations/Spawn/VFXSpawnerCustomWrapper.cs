@@ -8,16 +8,15 @@ namespace UnityEditor.VFX
 {
     class CustomSpawnerVariant : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
         {
-            get
             {
-                return new Dictionary<string, object[]>
-                {
-                    { "m_customType", VFXLibrary.FindConcreteSubclasses(typeof(VFXSpawnerCallbacks)).Select(o => new SerializableType(o) as object).ToArray() }
-                };
+                "m_customType",
+                VFXLibrary.FindConcreteSubclasses(typeof(VFXSpawnerCallbacks))
+                    .Select(o => new SerializableType(o) as object)
+                    .ToArray()
             }
-        }
+        };
     }
 
     [VFXInfo(category = "Custom", variantProvider = typeof(CustomSpawnerVariant))]

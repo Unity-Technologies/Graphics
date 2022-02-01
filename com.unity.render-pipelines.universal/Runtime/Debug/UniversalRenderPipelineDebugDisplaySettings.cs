@@ -9,40 +9,29 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Material-related Rendering Debugger settings.
         /// </summary>
-        internal DebugDisplaySettingsMaterial MaterialSettings { get; private set; }
+        public DebugDisplaySettingsMaterial materialSettings { get; private set; }
 
         /// <summary>
         /// Rendering-related Rendering Debugger settings.
         /// </summary>
-        internal DebugDisplaySettingsRendering RenderingSettings { get; private set; }
+        public DebugDisplaySettingsRendering renderingSettings { get; private set; }
 
         /// <summary>
         /// Lighting-related Rendering Debugger settings.
         /// </summary>
-        internal DebugDisplaySettingsLighting LightingSettings { get; private set; }
+        public DebugDisplaySettingsLighting lightingSettings { get; private set; }
+
+        /// <summary>
+        /// Volume-related Rendering Debugger settings.
+        /// </summary>
+        public DebugDisplaySettingsVolume volumeSettings { get; private set; }
+
+        /// <summary>
+        /// Display stats.
+        /// </summary>
+        internal DebugDisplayStats DisplayStats { get; private set; }
 
         #region IDebugDisplaySettingsQuery
-
-        /// <summary>
-        /// Returns true if any of the debug settings are currently active.
-        /// </summary>
-        public override bool AreAnySettingsActive => MaterialSettings.AreAnySettingsActive ||
-        LightingSettings.AreAnySettingsActive ||
-        RenderingSettings.AreAnySettingsActive;
-
-        public override bool TryGetScreenClearColor(ref Color color)
-        {
-            return MaterialSettings.TryGetScreenClearColor(ref color) ||
-                RenderingSettings.TryGetScreenClearColor(ref color) ||
-                LightingSettings.TryGetScreenClearColor(ref color);
-        }
-
-        /// <summary>
-        /// Returns true if lighting is active for current state of debug settings.
-        /// </summary>
-        public override bool IsLightingActive => MaterialSettings.IsLightingActive &&
-        RenderingSettings.IsLightingActive &&
-        LightingSettings.IsLightingActive;
 
         /// <summary>
         /// Returns true if the current state of debug settings allows post-processing.
@@ -51,7 +40,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                DebugPostProcessingMode debugPostProcessingMode = RenderingSettings.debugPostProcessingMode;
+                DebugPostProcessingMode debugPostProcessingMode = renderingSettings.postProcessingDebugMode;
 
                 switch (debugPostProcessingMode)
                 {
@@ -62,10 +51,11 @@ namespace UnityEngine.Rendering.Universal
 
                     case DebugPostProcessingMode.Auto:
                     {
-                        // Only enable post-processing if we aren't using certain debug-views...
-                        return MaterialSettings.IsPostProcessingAllowed &&
-                            RenderingSettings.IsPostProcessingAllowed &&
-                            LightingSettings.IsPostProcessingAllowed;
+                        // Only enable post-processing if we aren't using certain debug-views.
+                        bool postProcessingAllowed = true;
+                        foreach (IDebugDisplaySettingsData setting in m_Settings)
+                            postProcessingAllowed &= setting.IsPostProcessingAllowed;
+                        return postProcessingAllowed;
                     }
 
                     case DebugPostProcessingMode.Enabled:
@@ -82,18 +72,31 @@ namespace UnityEngine.Rendering.Universal
         }
         #endregion
 
+        /// <summary>
+        /// Creates a new <c>UniversalRenderPipelineDebugDisplaySettings</c> instance.
+        /// </summary>
         public UniversalRenderPipelineDebugDisplaySettings()
         {
+            Reset();
         }
 
+        /// <inheritdoc/>
         public override void Reset()
         {
             m_Settings.Clear();
 
+            DisplayStats = Add(new DebugDisplayStats());
             CommonSettings = Add(new DebugDisplaySettingsCommon());
-            MaterialSettings = Add(new DebugDisplaySettingsMaterial());
-            LightingSettings = Add(new DebugDisplaySettingsLighting());
-            RenderingSettings = Add(new DebugDisplaySettingsRendering());
+            materialSettings = Add(new DebugDisplaySettingsMaterial());
+            lightingSettings = Add(new DebugDisplaySettingsLighting());
+            renderingSettings = Add(new DebugDisplaySettingsRendering());
+            volumeSettings = Add(new DebugDisplaySettingsVolume(new UniversalRenderPipelineVolumeDebugSettings()));
+        }
+
+        internal void UpdateFrameTiming()
+        {
+            if (DisplayStats != null)
+                DisplayStats.UpdateFrameTiming();
         }
     }
 }

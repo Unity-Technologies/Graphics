@@ -21,30 +21,58 @@ namespace UnityEngine.Rendering.Universal
         AfterTransparents
     }
 
+    /// <summary>
+    /// Class containing resources needed for the <c>UniversalRenderer</c>.
+    /// </summary>
     [Serializable, ReloadGroup, ExcludeFromPreset]
+    [URPHelpURL("urp-universal-renderer")]
     public class UniversalRendererData : ScriptableRendererData, ISerializationCallbackReceiver
     {
+        /// <summary>
+        /// Class containing shader resources used in URP.
+        /// </summary>
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
         {
+            /// <summary>
+            /// Blit shader.
+            /// </summary>
             [Reload("Shaders/Utils/Blit.shader")]
             public Shader blitPS;
 
+            /// <summary>
+            /// Copy Depth shader.
+            /// </summary>
             [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
+            /// <summary>
+            /// Screen Space Shadows shader.
+            /// </summary>
             [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature")]
             public Shader screenSpaceShadowPS;
 
+            /// <summary>
+            /// Sampling shader.
+            /// </summary>
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
 
+            /// <summary>
+            /// Stencil Deferred shader.
+            /// </summary>
             [Reload("Shaders/Utils/StencilDeferred.shader")]
             public Shader stencilDeferredPS;
 
+            /// <summary>
+            /// Fallback error shader.
+            /// </summary>
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
 
+            /// <summary>
+            /// Material Error shader.
+            /// </summary>
             [Reload("Shaders/Utils/MaterialError.shader")]
             public Shader materialErrorPS;
 
@@ -55,19 +83,30 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/CoreBlitColorAndDepth.shader"), SerializeField]
             internal Shader coreBlitColorAndDepthPS;
 
-
+            /// <summary>
+            /// Camera Motion Vectors shader.
+            /// </summary>
             [Reload("Shaders/CameraMotionVectors.shader")]
             public Shader cameraMotionVector;
 
+            /// <summary>
+            /// Object Motion Vectors shader.
+            /// </summary>
             [Reload("Shaders/ObjectMotionVectors.shader")]
             public Shader objectMotionVector;
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
+        /// <summary>
+        /// Shader resources needed in URP for XR.
+        /// </summary>
         [Reload("Runtime/Data/XRSystemData.asset")]
         public XRSystemData xrSystemData = null;
 #endif
 
+        /// <summary>
+        /// Shader resources used in URP.
+        /// </summary>
         public ShaderResources shaders = null;
 
         const int k_LatestAssetVersion = 2;
@@ -78,12 +117,11 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ShadowTransparentReceive = true;
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Disabled; // Default disabled because there are some outstanding issues with Text Mesh rendering.
-        [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterOpaques;  // TODO: the new default should be CopyDepthMode.AfterTransparents.
+        [SerializeField] CopyDepthMode m_CopyDepthMode = CopyDepthMode.AfterTransparents;
         [SerializeField] bool m_AccurateGbufferNormals = false;
         [SerializeField] bool m_ClusteredRendering = false;
         const TileSize k_DefaultTileSize = TileSize._32;
         [SerializeField] TileSize m_TileSize = k_DefaultTileSize;
-        [SerializeField] IntermediateTextureMode m_IntermediateTextureMode = IntermediateTextureMode.Auto;
 
 
         public static readonly int AdditionalLightsDefaultShadowResolutionTierLow = 256;
@@ -534,19 +572,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        /// <summary>
-        /// Controls when URP renders via an intermediate texture.
-        /// </summary>
-        public IntermediateTextureMode intermediateTextureMode
-        {
-            get => m_IntermediateTextureMode;
-            set
-            {
-                SetDirty();
-                m_IntermediateTextureMode = value;
-            }
-        }
-
+        /// <inheritdoc/>
         public override void OnValidate()
         {
             base.OnValidate();
@@ -556,6 +582,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        /// <inheritdoc/>
         public override void OnEnable()
         {
             base.OnEnable();
@@ -574,6 +601,10 @@ namespace UnityEngine.Rendering.Universal
         {
 #if UNITY_EDITOR
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
+
+            if (UniversalRenderPipelineGlobalSettings.instance.postProcessData != null)
+                ResourceReloader.TryReloadAllNullIn(UniversalRenderPipelineGlobalSettings.instance.postProcessData, UniversalRenderPipelineAsset.packagePath);
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
 #endif
@@ -587,34 +618,6 @@ namespace UnityEngine.Rendering.Universal
 
         public override void OnAfterDeserialize()
         {
-            //TODO: fix the upgrade.
-            if (m_AssetVersion <= 0)
-            {
-                var anyNonUrpRendererFeatures = false;
-
-                foreach (var feature in m_RendererFeatures)
-                {
-                    try
-                    {
-                        if (feature.GetType().Assembly == typeof(UniversalRendererData).Assembly)
-                        {
-                            continue;
-                        }
-                    }
-                    catch
-                    {
-                        // If we hit any exceptions while poking around assemblies,
-                        // conservatively assume there was a non URP renderer feature.
-                    }
-
-                    anyNonUrpRendererFeatures = true;
-                }
-
-                // Replicate old intermediate texture behaviour in case of any non-URP renderer features,
-                // where we cannot know if they properly declare needed inputs.
-                m_IntermediateTextureMode = anyNonUrpRendererFeatures ? IntermediateTextureMode.Always : IntermediateTextureMode.Auto;
-            }
-
             if (m_AssetVersion <= 1)
             {
                 // To avoid breaking existing projects, keep the old AfterOpaques behaviour. The new AfterTransparents default will only apply to new projects.

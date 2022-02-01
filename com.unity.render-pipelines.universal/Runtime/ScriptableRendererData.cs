@@ -89,9 +89,6 @@ namespace UnityEngine.Rendering.Universal
 
         public virtual void OnDisable() { }
 
-        public virtual void OnEnableInEditor() { }
-        public virtual void OnDisableInEditor() { }
-
         public virtual void OnBeforeSerialize() { }
 
         public virtual void OnAfterDeserialize() { }

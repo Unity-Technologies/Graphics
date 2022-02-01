@@ -5,22 +5,62 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    struct HDEffectsParameters
+    /// <summary>
+    /// Structure that keeps track of the ray tracing and path tracing effects that are enabled for a given camera.
+    /// </summary>
+    public struct HDEffectsParameters
     {
+        /// <summary>
+        /// Specified if ray traced shadows are active.
+        /// </summary>
         public bool shadows;
+        /// <summary>
+        /// Specified if ray traced ambient occlusion is active.
+        /// </summary>
         public bool ambientOcclusion;
+        /// <summary>
+        /// Specified the layer mask that will be used to evaluate ray traced ambient occlusion.
+        /// </summary>
         public int aoLayerMask;
+        /// <summary>
+        /// Specified if ray traced reflections are active.
+        /// </summary>
         public bool reflections;
+        /// <summary>
+        /// Specified the layer mask that will be used to evaluate ray traced reflections.
+        /// </summary>
         public int reflLayerMask;
+        /// <summary>
+        /// Specified if ray traced global illumination is active.
+        /// </summary>
         public bool globalIllumination;
+        /// <summary>
+        /// Specified the layer mask that will be used to evaluate ray traced global illumination.
+        /// </summary>
         public int giLayerMask;
+        /// <summary>
+        /// Specified if recursive rendering is active.
+        /// </summary>
         public bool recursiveRendering;
+        /// <summary>
+        /// Specified the layer mask that will be used to evaluate recursive rendering.
+        /// </summary>
         public int recursiveLayerMask;
+        /// <summary>
+        /// Specified if ray traced sub-surface scattering is active.
+        /// </summary>
         public bool subSurface;
+        /// <summary>
+        /// Specified if path tracing is active.
+        /// </summary>
         public bool pathTracing;
+        /// <summary>
+        /// Specified the layer mask that will be used to evaluate path tracing.
+        /// </summary>
         public int ptLayerMask;
-
-        // Flag that tracks if at least one effect is enabled
+        /// <summary>
+        /// Specified if at least one ray tracing effect is enabled.
+        /// </summary>
         public bool rayTracingRequired;
     };
 
@@ -29,6 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public RayTracingAccelerationStructure rtas = null;
         public RayTracingInstanceCullingConfig cullingConfig = new RayTracingInstanceCullingConfig();
         public List<RayTracingInstanceCullingTest> instanceTestArray = new List<RayTracingInstanceCullingTest>();
+        internal Plane[] rtCullingPlaneArray = new Plane[6];
 
         // Culling tests
         RayTracingInstanceCullingTest ShT_CT = new RayTracingInstanceCullingTest();
@@ -41,7 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RayTracingInstanceCullingTest PT_CT = new RayTracingInstanceCullingTest();
 
         // Path tracing dirtiness parameters
-        public bool transformDirty;
+        public bool transformsDirty;
         public bool materialsDirty;
 
         public void Initialize()
@@ -156,20 +197,100 @@ namespace UnityEngine.Rendering.HighDefinition
             PT_CT.instanceMask = (uint)RayTracingRendererFlag.PathTracing;
         }
 
+        void SetupCullingData(HDCamera hdCamera, bool pathTracingEnabled)
+        {
+            // Grab the ray tracing settings parameter
+            RayTracingSettings rtSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
+            switch (rtSettings.cullingMode.value)
+            {
+                case RTASCullingMode.ExtendedFrustum:
+                {
+                    // We'll be using an extension
+                    cullingConfig.flags = RayTracingInstanceCullingFlags.EnablePlaneCulling;
+
+                    // Build the culling plane data
+                    Vector3 camerPosWS = hdCamera.camera.transform.position;
+                    Vector3 forward = hdCamera.camera.transform.forward;
+                    Vector3 right = hdCamera.camera.transform.right;
+                    Vector3 up = hdCamera.camera.transform.up;
+
+                    float far, height, width;
+                    far = hdCamera.camera.farClipPlane;
+                    height = Mathf.Tan(Mathf.Deg2Rad * hdCamera.camera.fieldOfView * 0.5f) * far;
+                    float horizontalFov = Camera.VerticalToHorizontalFieldOfView(hdCamera.camera.fieldOfView, hdCamera.camera.aspect);
+                    width = Mathf.Tan(Mathf.Deg2Rad * horizontalFov * 0.5f) * far;
+
+                    // Front plane
+                    rtCullingPlaneArray[0].normal = -forward;
+                    rtCullingPlaneArray[0].distance = -Vector3.Dot(camerPosWS + forward * far, -forward);
+
+                    // Back plane
+                    rtCullingPlaneArray[1].normal = forward;
+                    rtCullingPlaneArray[1].distance = -Vector3.Dot(camerPosWS - forward * far, forward);
+
+                    // Right plane
+                    rtCullingPlaneArray[2].normal = -right;
+                    rtCullingPlaneArray[2].distance = -Vector3.Dot(camerPosWS + right * width, -right);
+
+                    // Left plane
+                    rtCullingPlaneArray[3].normal = right;
+                    rtCullingPlaneArray[3].distance = -Vector3.Dot(camerPosWS - right * width, right);
+
+                    // Top plane
+                    rtCullingPlaneArray[4].normal = -up;
+                    rtCullingPlaneArray[4].distance = -Vector3.Dot(camerPosWS + up * height, -up);
+
+                    // Bottom plane
+                    rtCullingPlaneArray[5].normal = up;
+                    rtCullingPlaneArray[5].distance = -Vector3.Dot(camerPosWS - up * height, up);
+
+                    // Set the planes
+                    cullingConfig.planes = rtCullingPlaneArray;
+                }
+                break;
+                case RTASCullingMode.Sphere:
+                {
+                    // We use a sphere
+                    cullingConfig.flags = RayTracingInstanceCullingFlags.EnableSphereCulling;
+                    cullingConfig.sphereRadius = rtSettings.cullingDistance.value;
+                    cullingConfig.sphereCenter = hdCamera.camera.transform.position;
+                }
+                break;
+                default:
+                {
+                    // We explicitly want no culling.
+                    cullingConfig.flags = RayTracingInstanceCullingFlags.None;
+                }
+                break;
+            }
+
+            // We want the LODs to match the rasterization and we want to exclude reflection probes
+            cullingConfig.flags |= RayTracingInstanceCullingFlags.EnableLODCulling | RayTracingInstanceCullingFlags.IgnoreReflectionProbes;
+
+            // Dirtiness need to be kept track of for the path tracing (when enabled)
+            if (pathTracingEnabled)
+                cullingConfig.flags |= RayTracingInstanceCullingFlags.ComputeMaterialsCRC;
+        }
+
         public RayTracingInstanceCullingResults Cull(HDCamera hdCamera, in HDEffectsParameters parameters)
         {
             // The list of instanceTestArray needs to be cleared every frame as the list depends on the active effects and their parameters.
             instanceTestArray.Clear();
 
-            // Set up the culling flags
-            cullingConfig.flags = RayTracingInstanceCullingFlags.EnableLODCulling | RayTracingInstanceCullingFlags.IgnoreReflectionProbes;
-            if (parameters.pathTracing)
-                cullingConfig.flags |= RayTracingInstanceCullingFlags.ComputeMaterialsCRC;
+            // Set up the culling data
+            SetupCullingData(hdCamera, parameters.pathTracing);
 
             // Set up the LOD flags
             cullingConfig.lodParameters.fieldOfView = hdCamera.camera.fieldOfView;
             cullingConfig.lodParameters.cameraPosition = hdCamera.camera.transform.position;
             cullingConfig.lodParameters.cameraPixelHeight = hdCamera.camera.pixelHeight;
+
+            // If we have path tracing, the shadow inclusion constraints must be aggregated with the layer masks of the path tracing.
+            if (parameters.pathTracing)
+            {
+                ShO_CT.layerMask = parameters.ptLayerMask;
+                ShT_CT.layerMask = parameters.ptLayerMask;
+            }
 
             if (parameters.shadows || parameters.pathTracing)
             {

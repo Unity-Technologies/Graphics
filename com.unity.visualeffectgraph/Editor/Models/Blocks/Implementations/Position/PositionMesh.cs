@@ -9,19 +9,13 @@ namespace UnityEditor.VFX.Block
 {
     class PositionMeshProvider : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        protected sealed override Dictionary<string, object[]> variants { get; } = new Dictionary<string, object[]>
         {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "sourceMesh", Enum.GetValues(typeof(SampleMesh.SourceType)).Cast<object>().ToArray() },
-                };
-            }
-        }
+            {"sourceMesh", Enum.GetValues(typeof(SampleMesh.SourceType)).Cast<object>().ToArray()},
+        };
     }
 
-    [VFXInfo(category = "Position", variantProvider = typeof(PositionMeshProvider), experimental = true)]
+    [VFXInfo(category = "Attribute/position/Composition/Set", variantProvider = typeof(PositionMeshProvider), experimental = true)]
     class PositionMesh : PositionBase
     {
         [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the custom vertex index is out the out of bounds of the vertex array.")]
