@@ -238,12 +238,15 @@ namespace UnityEditor.VFX
                 var properties = ShaderUtil.GetMaterialProperties(new[] { material });
                 foreach (var property in shaderGraph.properties)
                 {
-                    var orderedProperty = properties.Single(x => x.name == property.referenceName);
-                    var order = Array.IndexOf(properties, orderedProperty);
-                    if (order != property.order)
+                    var orderedProperty = properties.SingleOrDefault(x => x.name == property.referenceName);
+                    if (orderedProperty != null)
                     {
-                        property.order = order;
-                        GetGraph().SetExpressionGraphDirty();
+                        var order = Array.IndexOf(properties, orderedProperty);
+                        if (order != property.order)
+                        {
+                            property.order = order;
+                            GetGraph().SetExpressionGraphDirty();
+                        }
                     }
                 }
 
