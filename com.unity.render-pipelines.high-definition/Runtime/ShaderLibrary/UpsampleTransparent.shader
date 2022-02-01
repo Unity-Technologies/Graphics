@@ -57,9 +57,9 @@ Shader "Hidden/HDRP/UpsampleTransparent"
             // Gather UVs
             float2 topLeftUV = uv - 0.5f * halfResTexelSize;
             float2 UVs[NEIGHBOUR_SEARCH] = {
-              topLeftUV + float2(0.0f,             halfResTexelSize.y),
-              topLeftUV + float2(halfResTexelSize.x, halfResTexelSize.y),
-              topLeftUV + float2(halfResTexelSize.x, 0.0f),
+              topLeftUV + 0.5 * float2(0.0f,             halfResTexelSize.y),
+              topLeftUV + 0.5 * float2(halfResTexelSize.x, halfResTexelSize.y),
+              topLeftUV + 0.5 * float2(halfResTexelSize.x, 0.0f),
               topLeftUV,
             };
 
