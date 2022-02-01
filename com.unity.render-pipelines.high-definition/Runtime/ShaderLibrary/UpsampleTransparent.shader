@@ -55,11 +55,11 @@ Shader "Hidden/HDRP/UpsampleTransparent"
             float4 lowResDepths = GATHER_RED_TEXTURE2D_X(_LowResDepthTexture, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv, halfResTexelSize));
 
             // Gather UVs
-            float2 topLeftUV = uv - 0.5f * halfResTexelSize;
+            float2 topLeftUV = uv - halfResTexelSize;
             float2 UVs[NEIGHBOUR_SEARCH] = {
-              topLeftUV + 0.5 * float2(0.0f,             halfResTexelSize.y),
-              topLeftUV + 0.5 * float2(halfResTexelSize.x, halfResTexelSize.y),
-              topLeftUV + 0.5 * float2(halfResTexelSize.x, 0.0f),
+              topLeftUV + float2(0.0f,             halfResTexelSize.y),
+              topLeftUV + float2(halfResTexelSize.x, halfResTexelSize.y),
+              topLeftUV + float2(halfResTexelSize.x, 0.0f),
               topLeftUV,
             };
 
