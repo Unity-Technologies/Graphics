@@ -239,8 +239,14 @@ namespace UnityEditor.VFX
                 foreach (var property in shaderGraph.properties)
                 {
                     var orderedProperty = properties.Single(x => x.name == property.referenceName);
-                    property.order = Array.IndexOf(properties, orderedProperty);
+                    var order = Array.IndexOf(properties, orderedProperty);
+                    if (order != property.order)
+                    {
+                        property.order = order;
+                        GetGraph().SetExpressionGraphDirty();
+                    }
                 }
+
 
                 // In certain scenarios the context might not be configured with any serialized material information
                 // when assigned a shader graph for the first time. In this case we sync the settings to the incoming material,
