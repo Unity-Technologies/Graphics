@@ -49,8 +49,6 @@ Extra_ShaderGraph_trunk:
          rerun: on_new_revision
       -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_playmode_mono_Linear_trunk
          rerun: on_new_revision
-      -  path: .yamato/shadergraph-android-vulkan.yml#ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_trunk
-         rerun: on_new_revision
 ShaderGraph_trunk:
     name: ShaderGraph on trunk
     variables:
@@ -120,8 +118,6 @@ Extra_ShaderGraph_CUSTOM-REVISION:
       -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION
          rerun: on_new_revision
       -  path: .yamato/shadergraph-linux-vulkan.yml#ShaderGraph_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: on_new_revision
-      -  path: .yamato/shadergraph-android-vulkan.yml#ShaderGraph_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: on_new_revision
 ShaderGraph_CUSTOM-REVISION:
     name: ShaderGraph on CUSTOM-REVISION
