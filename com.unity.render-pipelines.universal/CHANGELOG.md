@@ -6,16 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.1.5] - 2022-01-14
 
-### Added
-- Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
-- Added support for FidelityFX Super Resolution 1.0 upscaling filter.
-
 ### Fixed
 - Fixed FXAA quality issues when render scale is not 1.0.
 - Fixed an issue in where the _ScreenParams is not setup correctly.
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+- Added support for user-selected upscaling filters. Current options are automatic, bilinear, and nearest-neighbor.
+- Added support for FidelityFX Super Resolution 1.0 upscaling filter.
+
+### Changed
+- Re-added the menu button to be able to convert selected materials.
+
 
 ## [12.1.4] - 2021-12-07
 
@@ -25,10 +26,12 @@ The version number for this package has increased due to a version update of a r
 ### Fixed
 - Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]
 - Fixed incorrect light indexing on Windows Editor with Android target. [case 1378103](https://issuetracker.unity3d.com/product/unity/issues/guid/1378103/)
+- Fixed Lens Flare not accounting Render Scale setting. [case 1376820](https://issuetracker.unity3d.com/issues/urp-lens-flare-do-not-account-for-render-scale-setting)
 - Fixed a performance regression in the 2D renderer regarding the PostProcessPass [case 1347893]
 - Fixed a regression where filtering the scene view yielded incorrect visual results [case 1360233] (https://issuetracker.unity3d.com/product/unity/issues/guid/1360233)
 - VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
 - Fixed decal compilation issue on mac.
+- Fixed incorrect lighting attenuation on Editor when build target is a mobile platform [case 1387142]
 
 ## [12.1.3] - 2021-11-17
 
