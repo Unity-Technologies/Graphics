@@ -149,4 +149,11 @@ namespace UnityEngine.Rendering.Universal
             get => m_CameraDepthTarget.nameID;
         }
     }
+
+    public sealed partial class Bloom : VolumeComponent, IPostProcessComponent
+    {
+        // Deprecated in 13.x.x
+        [Obsolete("This is obsolete, please use maxIterations instead.", false)]
+        public ClampedIntParameter skipIterations = new ClampedIntParameter(1, 0, 16);
+    }
 }
