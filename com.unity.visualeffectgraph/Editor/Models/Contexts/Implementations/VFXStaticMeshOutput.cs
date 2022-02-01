@@ -64,7 +64,7 @@ namespace UnityEditor.VFX
 
         public override bool SetupCompilation()
         {
-            if (base.SetupCompilation())
+            if (!base.SetupCompilation())
                 return false;
 
             shader = ((VFXDataMesh)GetData()).shader;
