@@ -650,8 +650,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ScriptableRenderer"/>
         public void Blit(CommandBuffer cmd, RTHandle source, RTHandle destination, Material material = null, int passIndex = 0)
         {
-            ScriptableRenderer.SetRenderTarget(cmd, destination, k_CameraTarget, clearFlag, clearColor);
-            cmd.Blit(source.nameID, destination.nameID, material, passIndex);
+            RenderingUtils.Blit(cmd, source, destination, material, passIndex, false);
         }
 
         /// <summary>
