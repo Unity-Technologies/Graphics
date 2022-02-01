@@ -4,8 +4,7 @@ using FsCheck;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Rendering;
-using UnityEngine.Tests;
-using Assert = UnityEngine.Assertions.Assert;
+using UnityEngine.TestTools.FsCheckExtensions;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -56,7 +55,7 @@ namespace UnityEngine.Rendering.Tests
                 }
             }
 
-            Prop.ForAll<VolumeComponentType[], VolumeComponentArchetype>(Property).ContextualQuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType[], VolumeComponentArchetype>(Property).UnityQuickCheck();
         }
     }
 }

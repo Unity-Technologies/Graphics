@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using FsCheck;
 using NUnit.Framework;
-using UnityEngine.Tests;
+using UnityEngine.TestTools.FsCheckExtensions;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.Tests
                 return filter.IsAccepted(type);
             }
 
-            Prop.ForAll<VolumeComponentType>(Property).ContextualQuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType>(Property).UnityQuickCheck();
         }
 
         [Test]
@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.Tests
                 return isAccepted == expected;
             }
 
-            Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).ContextualQuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).UnityQuickCheck();
         }
 
         [Test]
@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.Tests
                 return isAccepted == expected;
             }
 
-            Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).ContextualQuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType, VolumeComponentType>(Property).UnityQuickCheck();
         }
 
         [Test]
@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Tests
                 return isAccepted == expected;
             }
 
-            Prop.ForAll<VolumeComponentType, bool>(Property).ContextualQuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType, bool>(Property).UnityQuickCheck();
         }
 
         [Test]
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.Tests
                 return isVisible == expected;
             }
 
-            Prop.ForAll<VolumeComponentType>(Property).ContextualQuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType>(Property).UnityQuickCheck();
         }
     }
 }

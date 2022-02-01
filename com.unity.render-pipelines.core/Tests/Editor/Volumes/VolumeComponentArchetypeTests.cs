@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using FsCheck;
 using NUnit.Framework;
-using UnityEngine.Tests;
+using UnityEngine.TestTools.FsCheckExtensions;
 using Assert = UnityEngine.Assertions.Assert;
 
 namespace UnityEngine.Rendering.Tests
@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering.Tests
             }
 
             Prop.ForAll<VolumeComponentType[]>(Property)
-                .ContextualQuickCheckThrowOnFailure();
+                .UnityQuickCheck();
         }
 
         [Test]
@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.Tests
                     && ReferenceEquals(extension, extension2);
             }
 
-            Prop.ForAll<VolumeComponentType[]>(Property).ContextualQuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType[]>(Property).UnityQuickCheck();
         }
 
         [Test]
@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.Tests
                 }
             }
 
-            Prop.ForAll<VolumeComponentType[]>(Property).ContextualQuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType[]>(Property).UnityQuickCheck();
         }
 
         [Test]
@@ -162,7 +162,7 @@ namespace UnityEngine.Rendering.Tests
                 }
             }
 
-            Prop.ForAll<VolumeComponentType, VolumeComponentType[]>(Property).ContextualQuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType, VolumeComponentType[]>(Property).UnityQuickCheck();
         }
 
         [Test]
@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering.Tests
                 }
             }
 
-            Prop.ForAll<VolumeComponentType[][], VolumeComponentType[][]>(Property).ContextualQuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType[][], VolumeComponentType[][]>(Property).UnityQuickCheck();
         }
 
         [Test]
@@ -205,7 +205,7 @@ namespace UnityEngine.Rendering.Tests
                 }
             }
 
-            Prop.ForAll<VolumeComponentType[], VolumeComponentType>(Property).ContextualQuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType[], VolumeComponentType>(Property).UnityQuickCheck();
         }
 
 
@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.Tests
                 return actions.All(action => action.Check(archetype));
             }
 
-            Prop.ForAll<VolumeComponentType[], GetAndAddExtensionsTestAction[]>(Property).ContextualQuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType[], GetAndAddExtensionsTestAction[]>(Property).UnityQuickCheck();
         }
 
 

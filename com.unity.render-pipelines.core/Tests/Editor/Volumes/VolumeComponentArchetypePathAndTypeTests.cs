@@ -1,11 +1,9 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using FsCheck;
 using NUnit.Framework;
-using UnityEngine.Tests;
-using Assert = UnityEngine.Assertions.Assert;
+using UnityEngine.TestTools.FsCheckExtensions;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -36,7 +34,7 @@ namespace UnityEngine.Rendering.Tests
                 return true;
             }
 
-            Prop.ForAll<VolumeComponentType[]>(Property).ContextualQuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType[]>(Property).UnityQuickCheck();
         }
 
         [Test]
@@ -62,7 +60,7 @@ namespace UnityEngine.Rendering.Tests
                 return true;
             }
 
-            Prop.ForAll<VolumeComponentType[]>(Property).ContextualQuickCheckThrowOnFailure();
+            Prop.ForAll<VolumeComponentType[]>(Property).UnityQuickCheck();
         }
 
     }
