@@ -104,18 +104,17 @@ This table provides an overview of the current features supported in the Univers
 | Order In Layer                                               | Not supported                                                | Yes                                                          |
 | ***Render Pipeline Hooks***                                  |                                                              |                                                              |
 | Camera.RenderWithShader                                      | Yes                                                          | Not supported                                                |
-| Camera.AddCommandBuffer*<br/>(Camera.Remove[All]CommandBuffer*) | Yes                                                       | Not supported                                                |
+| Camera.AddCommandBuffer*<br/>(Camera.Remove[All]CommandBuffer*) | Yes                                                       | Replaced by ScriptableRenderPass                                                |
 | Camera.Render                                                | Yes                                                          | Not supported                                                |
 | Light.AddCommandBuffer*<br/>(LightRemove[All]CommandBuffer*) | Yes                                                          | Not supported                                                |
-| OnPreCull                                                    | Yes                                                          | Not supported                                                |
-| OnPreRender                                                  | Yes                                                          | Not supported                                                |
-| OnPostRender                                                 | Yes                                                          | Not supported                                                |
+| OnPreCull                                                    | Yes                                                          | Replaced by RenderPipelineManager.BeginCameraRendering                                                |
+| OnPreRender                                                  | Yes                                                          | Replaced by RenderPipelineManager.BeginCameraRendering                                                |
+| OnPostRender                                                 | Yes                                                          | Replaced By ScriptableRenderPass                                                |
 | OnRenderImage                                                | Yes                                                          | Not supported                                                |
 | OnRenderObject                                               | Yes                                                          | Yes                                                          |
 | OnWillRenderObject                                           | Yes                                                          | Yes                                                          |
 | OnBecameVisible                                              | Yes                                                          | Yes                                                          |
 | OnBecameInvisible                                            | Yes                                                          | Yes                                                          |
-| Camera Replacement Material                                  | Not supported                                                | Yes, with a custom Pass                                      |
 | RenderPipeline.BeginFrameRendering                           | Not supported                                                | Yes                                                          |
 | RenderPipeline.EndFrameRendering                             | Not supported                                                | Yes                                                          |
 | RenderPipeline.BeginCameraRendering                          | Not supported                                                | Yes                                                          |

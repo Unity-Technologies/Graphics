@@ -2,9 +2,10 @@
 
 To configure and use the Universal Render Pipeline (URP), you must first:
 
-- create the Universal Render Pipeline Asset
-- add the Asset to the Graphics settings for your Project
-- ensure that no other Scriptable Render Pipeline Asset is assigned in any of the quality levels
+- Create the Universal Render Pipeline Asset
+- Add the Asset to the Graphics settings for your Project
+
+**Note:** If a scriptable render pipeline is assigned in any of the projets quality levels, they will override the Graphics settings. If this is the case, you will not see any changes when updating the pipeline asset in Graphics settings.
 
 To read more about each step, see below.
 
