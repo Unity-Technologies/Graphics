@@ -2,11 +2,7 @@
     "m_SGVersion": 3,
     "m_Type": "UnityEditor.ShaderGraph.GraphData",
     "m_ObjectId": "d90f842bb50940d0898cc0b1672e40c7",
-    "m_Properties": [
-        {
-            "m_Id": "95faf0c60d83409e9a14d804800e2ef5"
-        }
-    ],
+    "m_Properties": [],
     "m_Keywords": [],
     "m_Dropdowns": [],
     "m_CategoryData": [
@@ -197,36 +193,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Internal.Texture2DShaderProperty",
-    "m_ObjectId": "95faf0c60d83409e9a14d804800e2ef5",
-    "m_Guid": {
-        "m_GuidSerialized": "2891762a-caff-46b8-886a-a60f9076d254"
-    },
-    "m_Name": "_CameraDepthNormalsTexture",
-    "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "_CameraDepthNormalsTexture",
-    "m_DefaultReferenceName": "_CameraDepthNormalsTexture",
-    "m_OverrideReferenceName": "",
-    "m_GeneratePropertyBlock": true,
-    "m_UseCustomSlotLabel": false,
-    "m_CustomSlotLabel": "",
-    "m_DismissedVersion": 0,
-    "m_Precision": 0,
-    "overrideHLSLDeclaration": false,
-    "hlslDeclarationOverride": 0,
-    "m_Hidden": false,
-    "m_Value": {
-        "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
-        "m_Guid": ""
-    },
-    "isMainTexture": false,
-    "useTilingAndOffset": false,
-    "m_Modifiable": true,
-    "m_DefaultType": 0
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "9cef1273d9bd4433a743baec7d388179",
     "m_Id": 0,
@@ -360,11 +326,7 @@
     "m_Type": "UnityEditor.ShaderGraph.CategoryData",
     "m_ObjectId": "bf9c98344459461d9b16983355e7bff6",
     "m_Name": "",
-    "m_ChildObjectList": [
-        {
-            "m_Id": "95faf0c60d83409e9a14d804800e2ef5"
-        }
-    ]
+    "m_ChildObjectList": []
 }
 
 {

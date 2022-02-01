@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18385503, g: 0.22906253, b: 0.30347347, a: 1}
+  m_IndirectSpecularColor: {r: 0.18385479, g: 0.22906224, b: 0.30347276, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -573,7 +573,6 @@ GameObject:
   m_Component:
   - component: {fileID: 423064486}
   - component: {fileID: 423064485}
-  - component: {fileID: 423064484}
   - component: {fileID: 423064483}
   m_Layer: 0
   m_Name: Position
@@ -596,14 +595,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   material: {fileID: -876546973899608171, guid: 29291f02465ceda4fad2fa7d2422698e,
     type: 3}
---- !u!81 &423064484
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 423064482}
-  m_Enabled: 1
 --- !u!20 &423064485
 Camera:
   m_ObjectHideFlags: 0
@@ -745,7 +736,6 @@ GameObject:
   m_Component:
   - component: {fileID: 584638288}
   - component: {fileID: 584638287}
-  - component: {fileID: 584638286}
   - component: {fileID: 584638285}
   m_Layer: 0
   m_Name: ViewDir
@@ -768,14 +758,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   material: {fileID: -876546973899608171, guid: b5f611447d8b5f14a80b6d53bf04d1ba,
     type: 3}
---- !u!81 &584638286
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 584638284}
-  m_Enabled: 1
 --- !u!20 &584638287
 Camera:
   m_ObjectHideFlags: 0
@@ -844,7 +826,6 @@ GameObject:
   m_Component:
   - component: {fileID: 656724711}
   - component: {fileID: 656724710}
-  - component: {fileID: 656724709}
   - component: {fileID: 656724708}
   m_Layer: 0
   m_Name: BlueTintCamera
@@ -867,14 +848,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   material: {fileID: -876546973899608171, guid: 3ef4ebc2ab231ca4da3433365dfee29a,
     type: 3}
---- !u!81 &656724709
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 656724707}
-  m_Enabled: 1
 --- !u!20 &656724710
 Camera:
   m_ObjectHideFlags: 0
@@ -1138,7 +1111,6 @@ GameObject:
   - component: {fileID: 971756575}
   - component: {fileID: 971756574}
   - component: {fileID: 971756572}
-  - component: {fileID: 971756571}
   - component: {fileID: 971756570}
   m_Layer: 0
   m_Name: Main Camera
@@ -1174,14 +1146,6 @@ MonoBehaviour:
     ActivePixelTests: 7
   WaitFrames: 0
   XRCompatible: 1
---- !u!81 &971756571
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 971756569}
-  m_Enabled: 1
 --- !u!124 &971756572
 Behaviour:
   m_ObjectHideFlags: 0
@@ -1226,8 +1190,8 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 0
-  m_AllowMSAA: 0
+  m_HDR: 1
+  m_AllowMSAA: 1
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
@@ -1929,7 +1893,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1823639357}
   - component: {fileID: 1823639356}
-  - component: {fileID: 1823639355}
   - component: {fileID: 1823639354}
   m_Layer: 0
   m_Name: DepthCamera
@@ -1952,14 +1915,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   material: {fileID: -876546973899608171, guid: 0a4dbcc78ae8c684aa9954ed82a13c9f,
     type: 3}
---- !u!81 &1823639355
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1823639353}
-  m_Enabled: 1
 --- !u!20 &1823639356
 Camera:
   m_ObjectHideFlags: 0
