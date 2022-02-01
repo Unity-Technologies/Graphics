@@ -32,7 +32,7 @@ ShaderGraph_ref_OSX_Metal_Standalone_ref_images_mono_Linear_trunk:
          retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP brew install python
+      -  brew install python
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
       -  mkdir -p TestProjects/ShaderGraph/test-results/
       -  command: |5-
@@ -41,8 +41,8 @@ ShaderGraph_ref_OSX_Metal_Standalone_ref_images_mono_Linear_trunk:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph
                 exit $UTR_RESULT
     after:
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; pip3 install -U --user unityparser && python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
-      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
+      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/ TestProjects/ShaderGraph/
+      -  pip install -U --user unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     artifacts:
         logs:
             paths:
@@ -75,6 +75,7 @@ ShaderGraph_ref_OSX_Metal_playmode_ref_images_mono_Linear_trunk:
          retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
+      -  brew install python
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
       -  mkdir -p TestProjects/ShaderGraph/test-results/
       -  command: |5-
@@ -117,6 +118,7 @@ ShaderGraph_ref_OSX_Metal_Standalone_cache_ref_images_mono_Linear_trunk:
          retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
+      -  brew install python
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
       -  |5-
                   mkdir -p TestProjects/ShaderGraph/test-results/
@@ -165,7 +167,7 @@ ShaderGraph_ref_OSX_Metal_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP brew install python
+      -  brew install python
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
       -  mkdir -p TestProjects/ShaderGraph/test-results/
       -  command: |5-
@@ -174,8 +176,8 @@ ShaderGraph_ref_OSX_Metal_Standalone_ref_images_mono_Linear_CUSTOM-REVISION:
                 scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph
                 exit $UTR_RESULT
     after:
-      -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/; pip3 install -U --user unityparser && python3 .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/"
-      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
+      -  scp -i ~/.ssh/id_rsa_macmini -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/ TestProjects/ShaderGraph/
+      -  pip install -U --user unityparser && python .yamato/tooling/zip_to_artifact.py --artifacts TestProjects/ShaderGraph/test-results/ --root TestProjects/ShaderGraph/ --logs
     artifacts:
         logs:
             paths:
@@ -208,6 +210,7 @@ ShaderGraph_ref_OSX_Metal_playmode_ref_images_mono_Linear_CUSTOM-REVISION:
          retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
+      -  brew install python
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
       -  mkdir -p TestProjects/ShaderGraph/test-results/
       -  command: |5-
@@ -250,6 +253,7 @@ ShaderGraph_ref_OSX_Metal_Standalone_cache_ref_images_mono_Linear_CUSTOM-REVISIO
          retries: 2
       -  command: ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP '$(python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
          retries: 2
+      -  brew install python
       -  ssh -i ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP mv .Editor ~/Graphics/
       -  |5-
                   mkdir -p TestProjects/ShaderGraph/test-results/
