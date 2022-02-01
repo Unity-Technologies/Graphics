@@ -235,6 +235,13 @@ namespace UnityEditor.VFX
             var shaderGraph = GetOrRefreshShaderGraphObject();
             if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
             {
+                var properties = ShaderUtil.GetMaterialProperties(new[] { material });
+                foreach (var property in shaderGraph.properties)
+                {
+                    var orderedProperty = properties.Single(x => x.name == property.referenceName);
+                    property.order = Array.IndexOf(properties, orderedProperty);
+                }
+
                 // In certain scenarios the context might not be configured with any serialized material information
                 // when assigned a shader graph for the first time. In this case we sync the settings to the incoming material,
                 // which will be pre-configured by shader graph with the render state & other properties (i.e. a SG with Transparent surface).
@@ -250,13 +257,6 @@ namespace UnityEditor.VFX
 
                 transientMaterial = material;
                 OnMaterialChange?.Invoke();
-
-                var properties = ShaderUtil.GetMaterialProperties(new[] { material });
-                foreach (var property in shaderGraph.properties)
-                {
-                    var orderedProperty = properties.Single(x => x.name == property.referenceName);
-                    property.order = Array.IndexOf(properties, orderedProperty);
-                }
             }
         }
 
