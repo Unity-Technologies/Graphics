@@ -4,8 +4,7 @@ The UVCombine node lets you select which UV channel you want to use for mapping 
 
 ![An image showing the UVCombine node in the Shader Graph window](images/sg-uvcombine-node.png)
 
-> [!NOTE]
-> The UVCombine node is a Subgraph node: it represents a Subgraph instead of directly representing shader code. Double-click the node in any Shader Graph to view the Subgraph.
+[!include[nodes-subgraph-node](./snippets/nodes-subgraph-node.md)]
 
 ## Create Node menu category
 
@@ -33,7 +32,7 @@ The UVCombine node is under the **Utility** &gt; **High Definition Render Pipeli
 </thead>
 <tbody>
 <tr>
-<td>UV Channel Mask</td>
+<td><strong>UV Channel Mask</strong></td>
 <td>Vector 4</td>
 <td>Select which UV channel you want to use for your UV coordinates by entering a <code>1</code> in the corresponding default input on the port:
 <ul>
@@ -42,10 +41,10 @@ The UVCombine node is under the **Utility** &gt; **High Definition Render Pipeli
 <li><strong>Z</strong>: UV channel 2</li>
 <li><strong>W</strong>: UV channel 3</li>
 </ul>
-Set all other default inputs to <code>0</code>.</td>
+Set all other default inputs to <code>0</code>. You can also connect a node that outputs a Vector 4.</td>
 </tr>
 <tr>
-<td>UV Tile and Offset</td>
+<td><strong>UV Tile and Offset</strong></td>
 <td>Vector 4</td>
 <td>Use the port's default input to specify the amount of offset or tiling that you want to apply to your shader's UV coordinates:
 <ul>
@@ -73,7 +72,7 @@ You can also connect a node that outputs a Vector 4.</td>
 </thead>
 <tbody>
 <tr>
-<td>UV</td>
+<td><strong>UV</strong></td>
 <td>Vector 2</td>
 <td>UV</td>
 <td>The final UV output, after selecting a UV channel and, if specified, any tiling or offset.</td>
@@ -91,4 +90,4 @@ To view these Shader Graphs:
 
 2. Next to the **Shader** dropdown, select **Edit**.
 
-    Your chosen Fabric's Shader Graph opens. You can view the UVCombine node, its Subgraph, and the other nodes that create HDRP's Fabric shaders.
+Your chosen Fabric's Shader Graph opens. You can view the UVCombine node, its Subgraph, and the other nodes that create HDRP's Fabric shaders.

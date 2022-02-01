@@ -4,12 +4,11 @@ The ThreadMapDetail node adds tileable thread map detail information to a fabric
 
 ![An image showing the ThreadMapDetail node in the Shader Graph window](images/sg-threadmapdetail-node.png)
 
+[!include[nodes-subgraph-node](./snippets/nodes-subgraph-node.md)]
+
 A thread map is a Texture with 4 channels. Like a detail map, a thread map contains information about ambient occlusion, the normal x-axis and normal y-axis, and smoothness.
 
 For more information on Detail maps, see [Secondary Maps (Detail Maps) & Detail Mask](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterDetail.html) in the Unity User Manual.
-
-> [!NOTE]
-> The ThreadMapDetail node is a Subgraph node: it represents a Subgraph instead of directly representing shader code. Double-click the node in any Shader Graph to view the Subgraph.
 
 ## Create Node menu category
 
@@ -38,13 +37,13 @@ The ThreadMapDetail node is under the **Utility** &gt; **High Definition Render 
     </thead>
     <tbody>
         <tr>
-            <td>Use Thread Map</td>
+            <td><strong>Use Thread Map</strong></td>
             <td>Boolean</td>
             <td>None</td>
             <td>Use the port's default input to enable or disable the ThreadMapDetail node. You can also connect a node that outputs a Boolean to choose when to enable or disable the thread map.</td>
         </tr>
         <tr>
-            <td>ThreadMap</td>
+            <td><strong>ThreadMap</strong></td>
             <td>Texture 2D</td>
             <td>None</td>
             <td>The texture that contains the detailed information of a fabric's thread pattern. The texture should contain 4 channels:
@@ -57,37 +56,37 @@ The ThreadMapDetail node is under the **Utility** &gt; **High Definition Render 
             </td>
         </tr>
         <tr>
-            <td>UV</td>
+            <td><strong>UV</strong></td>
             <td>Vector 2</td>
             <td>UV</td>
             <td>The UV coordinates the ThreadMapDetail node should use to map the ThreadMap texture on the geometry.</td>
         </tr>
         <tr>
-            <td>Normals</td>
+            <td><strong>Normals</strong></td>
             <td>Vector 3</td>
             <td>None</td>
             <td>The base normal map that you want your Shader Graph to apply to the geometry before it applies the thread map.</td>
     </tr>
     <tr>
-        <td>Smoothness</td>
+        <td><strong>Smoothness</strong></td>
         <td>Float</td>
         <td>None</td>
         <td>The base smoothness value that you want your Shader Graph to apply to the geometry before it applies the thread map.</td>
     </tr>
     <tr>
-<td>Alpha</td>
+<td><strong>Alpha</strong></td>
 <td>Float</td>
 <td>None</td>
 <td>The base alpha value that you want your Shader Graph to apply to the geometry before it applies the thread map.</td>
 </tr>
 <tr>
-<td>Ambient Occlusion</td>
+<td><strong>Ambient Occlusion</strong></td>
 <td>Float</td>
 <td>None</td>
 <td>The base ambient occlusion value that you want your Shader Graph to apply to the geometry before it applies the thread map.</td>
 </tr>
 <tr>
-<td>Thread AO Strength</td>
+<td><strong>Thread AO Strength</strong></td>
 <td>Float</td>
 <td>None</td>
 <td>Specify a value of <code>0</code> or <code>1</code> to determine how the <strong>ThreadMap</strong>'s ambient occlusion should impact the final shader result:
@@ -96,7 +95,7 @@ The ThreadMapDetail node is under the **Utility** &gt; **High Definition Render 
 <li>If you provide a value of <code>1</code>, Shader Graph multiplies your base <strong>Ambient Occlusion</strong> value by the ambient occlusion value specified in your <strong>ThreadMap</strong> to determine the final output of the shader.</li></ul></td>
 </tr>
 <tr>
-<td>Thread Normal Strength</td>
+<td><strong>Thread Normal Strength</strong></td>
 <td>Float</td>
 <td>None</td>
 <td>Specify a value of <code>0</code> or <code>1</code> to determine how the <strong>ThreadMap</strong>'s normal should impact the final shader result:
@@ -105,7 +104,7 @@ The ThreadMapDetail node is under the **Utility** &gt; **High Definition Render 
 <li>If you provide a value of <code>1</code>, Shader Graph blends the values from your base <strong>Normals</strong> with the normal specified in your <strong>ThreadMap</strong> to determine the final output of the shader.</li></ul></td>
 </tr>
 <tr>
-<td>Thread Smoothness Strength</td>
+<td><strong>Thread Smoothness Strength</strong></td>
 <td>Float</td>
 <td>None</td>
 <td>Specify a value of <code>0</code> or <code>1</code> to determine how the <strong>ThreadMap</strong>'s smoothness should impact the final shader result:
@@ -130,26 +129,22 @@ The ThreadMapDetail node is under the **Utility** &gt; **High Definition Render 
 </thead>
 <tbody>
 <tr>
-<td>Normal</td>
-<td>Output</td>
+<td><strong>Normal</strong></td>
 <td>Vector 3</td>
 <td>The final normal output of the thread map.</td>
 </tr>
 <tr>
-<td>Smoothness</td>
-<td>Output</td>
+<td><strong>Smoothness</strong></td>
 <td>Float</td>
 <td>The final smoothness output of the thread map.</td>
 </tr>
 <tr>
-<td>Ambient Occlusion</td>
-<td>Output</td>
+<td><strong>Ambient Occlusion</strong></td>
 <td>Float</td>
 <td>The final ambient occlusion output of the thread map.</td>
 </tr>
 <tr>
-<td>Alpha</td>
-<td>Output</td>
+<td><strong>Alpha</strong></td>
 <td>Float</td>
 <td>The final alpha output of the thread map. Shader Graph calculates this alpha value by multiplying the input <strong>Alpha</strong> value by the <strong>Thread AO Strength</strong> value.</td>
 </tr>
@@ -167,4 +162,4 @@ To view these Shader Graphs:
 
 2. Next to the **Shader** dropdown, select **Edit**.
 
-    Your chosen Fabric's Shader Graph opens. You can view the ThreadMapDetail node, its Subgraph, and the other nodes that create HDRP's Fabric shaders.
+Your chosen Fabric's Shader Graph opens. You can view the ThreadMapDetail node, its Subgraph, and the other nodes that create HDRP's Fabric shaders.
