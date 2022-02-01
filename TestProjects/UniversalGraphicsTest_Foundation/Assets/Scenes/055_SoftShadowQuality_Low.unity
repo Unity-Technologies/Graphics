@@ -700,7 +700,7 @@ Light:
   m_Type: 0
   m_Shape: 0
   m_Color: {r: 0.8784314, g: 0.8784314, b: 1, a: 1}
-  m_Intensity: 50
+  m_Intensity: 75
   m_Range: 10
   m_SpotAngle: 50
   m_InnerSpotAngle: 48
@@ -874,7 +874,6 @@ GameObject:
   - component: {fileID: 961739753}
   - component: {fileID: 961739752}
   - component: {fileID: 961739750}
-  - component: {fileID: 961739755}
   - component: {fileID: 961739754}
   m_Layer: 0
   m_Name: Main Camera
@@ -1002,20 +1001,6 @@ MonoBehaviour:
   WaitFrames: 0
   XRCompatible: 1
   CheckMemoryAllocation: 1
---- !u!114 &961739755
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 961739749}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2383b56288cd7514d91dcd5567c45ccf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  defaultPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
-  thisTestPipeline: {fileID: 11400000, guid: 590c6c15380fb4b96b3ba321bbb10982, type: 2}
 --- !u!1 &990036847
 GameObject:
   m_ObjectHideFlags: 0
@@ -1301,7 +1286,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1167016239}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0.19080894, z: 0, w: 0.9816273}
   m_LocalPosition: {x: 3, y: 0, z: 0}
   m_LocalScale: {x: 2, y: 5, z: 2}
   m_ConstrainProportionsScale: 0
@@ -1309,7 +1294,7 @@ Transform:
   - {fileID: 333257791}
   m_Father: {fileID: 0}
   m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 22, z: 0}
 --- !u!1 &1495399613
 GameObject:
   m_ObjectHideFlags: 0
