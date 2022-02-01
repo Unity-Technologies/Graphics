@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("PPv2URPConverters")]
 [assembly: InternalsVisibleTo("Unity.2D.PixelPerfect.Editor")]
-namespace UnityEditor.Rendering.Universal.Converters
+namespace UnityEditor.Rendering.Universal
 {
     // Might need to change this name before making it public
     internal abstract class RenderPipelineConverter

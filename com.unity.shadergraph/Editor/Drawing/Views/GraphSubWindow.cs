@@ -45,6 +45,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         protected VisualElement m_HeaderItem;
         protected VisualElement m_ParentView;
 
+        // Added for test assembly access
+        internal ScrollView scrollView => m_ScrollView;
+
         // These are used as default values for styling and layout purposes
         // They can be overriden if a child class wants to roll its own style and layout behavior
         public virtual string layoutKey => "UnityEditor.ShaderGraph.SubWindow";
