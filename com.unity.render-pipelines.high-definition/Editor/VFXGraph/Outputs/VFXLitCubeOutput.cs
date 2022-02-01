@@ -8,10 +8,10 @@ namespace UnityEditor.VFX.HDRP
     [VFXInfo(experimental = true)]
     class VFXLitCubeOutput : VFXAbstractParticleHDRPLitOutput
     {
-        public override string name { get { return "Output Particle HDRP Lit Cube"; } }
-        public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitCube"); } }
-        public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
-        public override bool implementsMotionVector { get { return true; } }
+        public override string name => "Output Particle HDRP Lit Cube";
+        public override string codeGeneratorTemplate => RenderPipeTemplate("VFXParticleLitCube");
+        public override VFXTaskType taskType => VFXTaskType.ParticleHexahedronOutput;
+        public override bool implementsMotionVector => true;
 
 
         public override void OnEnable()
@@ -52,8 +52,20 @@ namespace UnityEditor.VFX.HDRP
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
-                yield return "blendMode";
-                yield return "shaderGraph";
+                yield return nameof(blendMode);
+                yield return nameof(shaderGraph);
+            }
+        }
+
+        protected override IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                foreach (var setting in base.untransferableSettings)
+                {
+                    yield return setting;
+                }
+                yield return nameof(shaderGraph);
             }
         }
     }

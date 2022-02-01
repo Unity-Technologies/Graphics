@@ -8,11 +8,11 @@ namespace UnityEditor.VFX.HDRP
     [VFXInfo(experimental = true)]
     class VFXLitSphereOutput : VFXAbstractParticleHDRPLitOutput
     {
-        public override string name { get { return "Output Particle HDRP Lit Sphere"; } }
-        public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleSphere"); } }
-        public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
+        public override string name => "Output Particle HDRP Lit Sphere";
+        public override string codeGeneratorTemplate => RenderPipeTemplate("VFXParticleSphere");
+        public override VFXTaskType taskType => VFXTaskType.ParticleQuadOutput;
 
-        protected override bool allowTextures { get { return false; } }
+        protected override bool allowTextures => false;
 
         public override void OnEnable()
         {
@@ -57,11 +57,23 @@ namespace UnityEditor.VFX.HDRP
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
-                yield return "cullMode";
-                yield return "blendMode";
-                yield return "useAlphaClipping";
-                yield return "doubleSided";
-                yield return "shaderGraph";
+                yield return nameof(cullMode);
+                yield return nameof(blendMode);
+                yield return nameof(useAlphaClipping);
+                yield return nameof(doubleSided);
+                yield return nameof(shaderGraph);
+            }
+        }
+
+        protected override IEnumerable<string> untransferableSettings
+        {
+            get
+            {
+                foreach (var setting in base.untransferableSettings)
+                {
+                    yield return setting;
+                }
+                yield return nameof(shaderGraph);
             }
         }
     }
