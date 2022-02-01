@@ -25,7 +25,8 @@ RW_TEXTURE2D_X(float4, _OutputTexture);
 
 AF3 CasLoad(ASU2 p)
 {
-	return _InputTexture[COORD_TEXTURE2D_X(p)].xyz;
+    ASU2 clampedP = clamp(p, int2(0,0), _ScreenSize.xy - 1);
+	return _InputTexture[COORD_TEXTURE2D_X(clampedP)].xyz;
 }
 
 void CasInput(inout AF1 r, inout AF1 g, inout AF1 b) 
