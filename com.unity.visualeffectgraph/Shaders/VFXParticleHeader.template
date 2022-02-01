@@ -37,8 +37,8 @@ ByteAddressBuffer elementToVFXBufferPrevious;
 #define VFX_DECLARE_MOTION_VECTORS_STORAGE(coordA, coordB)\
 noperspective float4 cPosPreviousAndNonJiterred : TEXCOORD##coordA;
 
-#define VFX_DECLARE_MOTION_VECTORS_VAYRING_PREVIOUS cPosPreviousAndNonJiterred.xy
-#define VFX_DECLARE_MOTION_VECTORS_VAYRING_NONJITER cPosPreviousAndNonJiterred.zw
+#define VFX_DECLARE_MOTION_VECTORS_VARYING_PREVIOUS cPosPreviousAndNonJiterred.xy
+#define VFX_DECLARE_MOTION_VECTORS_VARYING_NONJITTER cPosPreviousAndNonJiterred.zw
 
 #else
 
@@ -46,8 +46,8 @@ noperspective float4 cPosPreviousAndNonJiterred : TEXCOORD##coordA;
 float4 cPosPrevious : TEXCOORD##coordA;\
 float4 cPosNonJiterred : TEXCOORD##coordB;
 
-#define VFX_DECLARE_MOTION_VECTORS_VAYRING_PREVIOUS cPosPrevious
-#define VFX_DECLARE_MOTION_VECTORS_VAYRING_NONJITER cPosNonJiterred
+#define VFX_DECLARE_MOTION_VECTORS_VARYING_PREVIOUS cPosPrevious
+#define VFX_DECLARE_MOTION_VECTORS_VARYING_NONJITTER cPosNonJiterred
 
 #endif
 #endif
