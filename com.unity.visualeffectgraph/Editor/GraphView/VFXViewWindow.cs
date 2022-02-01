@@ -15,6 +15,16 @@ namespace UnityEditor.VFX.UI
     [Serializable]
     class VFXViewWindow : EditorWindow
     {
+        private static Dictionary<Tuple<Type, bool>, string> vfxIconMap = new()
+        {
+            { new Tuple<Type, bool>(typeof(VisualEffectSubgraphOperator), true), "d_subgraph-operator.png" },
+            { new Tuple<Type, bool>(typeof(VisualEffectSubgraphBlock), true), "d_subgraph-block.png" },
+            { new Tuple<Type, bool>(typeof(VFXGraph), true), "vfx_graph_icon_gray_dark.png" },
+            { new Tuple<Type, bool>(typeof(VisualEffectSubgraphOperator), false), "subgraph-operator.png" },
+            { new Tuple<Type, bool>(typeof(VisualEffectSubgraphBlock), false), "subgraph-block.png" },
+            { new Tuple<Type, bool>(typeof(VFXGraph), false), "vfx_graph_icon_gray_light.png" },
+        };
+
         static List<VFXViewWindow> s_VFXWindows = new();
 
         ShortcutHandler m_ShortcutHandler;
@@ -52,18 +62,18 @@ namespace UnityEditor.VFX.UI
         {
             VFXLibrary.LogUnsupportedSRP();
 
-            GetWindow((VisualEffectAsset)null, true);
+            GetWindow((VisualEffectResource)null, true);
         }
 
         public static VFXViewWindow GetWindow(VisualEffectAsset vfxAsset, bool createIfNeeded = false)
         {
-            return GetWindowLambda(x => x.graphView?.controller?.graph.visualEffectResource.asset == vfxAsset, createIfNeeded, true);
+            return GetWindowLambda(x => x.displayedResource?.asset == vfxAsset, createIfNeeded, true);
         }
 
         public static VFXViewWindow GetWindow(VFXGraph vfxGraph, bool createIfNeeded = false, bool show = true)
         {
             return GetWindowLambda(
-                x => x.graphView?.controller?.graph.visualEffectResource == vfxGraph?.visualEffectResource,
+                x => x.displayedResource == vfxGraph?.visualEffectResource,
                 createIfNeeded,
                 show);
         }
@@ -109,7 +119,21 @@ namespace UnityEditor.VFX.UI
         public static VFXViewWindow GetWindow(VFXView vfxView) => GetWindow(vfxView.controller?.graph);
         public static ReadOnlyCollection<VFXViewWindow> GetAllWindows() => s_VFXWindows.AsReadOnly();
 
+        public static bool CloseIfNotLast(VFXView vfxView)
+        {
+            var noAssetWindows = s_VFXWindows.Where(x => x.graphView.controller?.graph == null).ToArray();
+            if (noAssetWindows.Length > 1)
+            {
+                var window = noAssetWindows.Single(x => x.graphView == vfxView);
+                window.Close();
+                return true;
+            }
+
+            return false;
+        }
+
         public VFXView graphView { get; private set; }
+        public VisualEffectResource displayedResource => m_DisplayedResource;
 
         public void LoadAsset(VisualEffectAsset asset, VisualEffect effectToAttach)
         {
@@ -135,13 +159,14 @@ namespace UnityEditor.VFX.UI
             if (graphView?.controller == null || graphView.controller.model != resource)
             {
                 InternalLoadResource(resource);
-
             }
 
             var asset = effectToAttach == null ? m_pendingAttachment : effectToAttach;
             graphView?.TryAttachTo(asset, true);
 
             titleContent.text = resource.name;
+
+            UpdateIcon(resource);
         }
 
         VisualEffect GetVisualEffectFromID(int id) => EditorUtility.InstanceIDToObject(id) as VisualEffect;
@@ -191,6 +216,14 @@ namespace UnityEditor.VFX.UI
             graphView.UpdateGlobalSelection();
             graphView.FrameNewController();
             graphView.UpdateIsSubgraph();
+            UpdateIcon(resource);
+        }
+
+        void UpdateIcon(VisualEffectResource resource)
+        {
+            var iconFilePath = vfxIconMap[new Tuple<Type, bool>(resource.isSubgraph ? resource.subgraph.GetType() : resource.graph.GetType(), EditorGUIUtility.isProSkin)];
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>($"{VisualEffectAssetEditorUtility.editorResourcesPath}/VFX/{iconFilePath}");
+            titleContent.image = icon;
         }
 
         public bool CanPopResource()
@@ -237,9 +270,12 @@ namespace UnityEditor.VFX.UI
                 LoadResource(m_DisplayedResource);
             }
 
-            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + "/VFX/"
-                + (EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark.png" : "vfx_graph_icon_gray_light.png"));
-            titleContent.image = icon;
+            if (titleContent.image == null)
+            {
+                var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + "/VFX/"
+                    + (EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark.png" : "vfx_graph_icon_gray_light.png"));
+                titleContent.image = icon;
+            }
         }
 
 #if USE_EXIT_WORKAROUND_FOGBUGZ_1062258
@@ -263,7 +299,6 @@ namespace UnityEditor.VFX.UI
             {
                 graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
                 graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
-                graphView.controller = null;
                 graphView.Dispose();
                 graphView = null;
             }
@@ -372,6 +407,10 @@ namespace UnityEditor.VFX.UI
                             graph.SetExpressionGraphDirty(false);
                         }
                     }
+                }
+                else
+                {
+                    m_DisplayedResource = null;
                 }
             }
 

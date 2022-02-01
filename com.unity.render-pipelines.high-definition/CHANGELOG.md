@@ -4,6 +4,28 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [13.1.6] - 2022-01-14
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [13.1.5] - 2021-12-17
+
+### Fixed
+- Fixed Correlated Color Temperature not being applied in Player builds for Enlighten realtime GI lights (case 1370438);
+- Fixed Normal Map assiignation when importing FBX Materials.
+- Fixed rendering in the editor when an incompatible API is added (case 1384634).
+- Fixed the fade in mode of the clouds not impacting the volumetric clouds shadows (case 1381652).
+- Fixed issue with typed loads on RGBA16F in Volumetric Lighting Filtering.
+- Fixed potential asymmetrical resource release in the volumetric clouds (case 1388218).
+- Fixed the intensity of the sky being reduced signficantly even if there is no clouds (case 1388279).
+- Fixed the rt screen space shadows not using the correct asset for allocating the history buffers.
+- Fixed a crash with render graph viewer when render graph is not provided with an execution name.
+- Fixed Tile/Cluster Debug in the Rendering Debugger for Decal and Local Volumetric Fog
+- Fixed the behavior the max ray length for recursive rendering to match RTR and rasterization.
+- Fixed issue with automatic RendererList culling option getting ignored (case 1388854).
+- Fixed NeedMotionVectorForTransparent checking the wrong flag.
+
 ## [13.1.4] - 2021-12-04
 
 ### Fixed
@@ -70,6 +92,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed atmospheric scattering being incorrectly enabled when scene lighting is disabled.
 - Fixed for changes of color curves not being applied immediately.
 - Fixed the rendering order of decals that have a similar draw order value.
+- Fixed timeline not updating PBR HDAdditionalLightData parameters properly.
 - Fixed HDRP build issues with DOTS_INSTANCING_ON shader variant.
 
 ## [13.1.2] - 2021-11-05

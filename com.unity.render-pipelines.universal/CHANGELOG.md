@@ -4,12 +4,25 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [13.1.4] - 2021-12-04
+## [13.1.6] - 2022-01-14
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [13.1.5] - 2021-12-17
+
 ### Fixed
+- Fixed a depth non-clear in XR due to wrong depth slice being checked.
+
+## Fixed
+- Fixed decal compilation issue on mac.
+- Fixed incorrect lighting attenuation on Editor when build target is a mobile platform [case 1387142]
+
+## [13.1.4] - 2021-12-04
+
+### Fixed
+- Fixed a performance regression in the 2D renderer regarding the PostProcessPass [case 1385385]
+- Fixed a regression where filtering the scene view yielded incorrect visual results [case 1388171] (https://issuetracker.unity3d.com/product/unity/issues/guid/1360233)
 - Fixed incorrect light indexing on Windows Editor with Android target. [case 1378103](https://issuetracker.unity3d.com/product/unity/issues/guid/1378103/)
 
 ## [13.1.3] - 2021-11-17
@@ -17,7 +30,11 @@ The version number for this package has increased due to a version update of a r
 ### Changed
 - Removed the name input for the SSAO and Screen Space Shadows renderer features.
 
+### Changed
+- Re-added the menu button to be able to convert selected materials.
+
 ### Fixed
+- Fix mismatch on some platforms between Editor-side and Runtime-side implementations of UnityEngine.Rendering.Universal.DecalRendererFeature.IsAutomaticDBuffer() [case 1364134]
 - Fix shadow rendering correctly to work with shader stripping in WebGl. [case 1381881](https://issuetracker.unity3d.com/issues/webgl-urp-mesh-is-not-rendered-in-the-scene-on-webgl-build)
 - VFX: Incorrect Decal rendering when rendescale is different than one [case 1343674](https://issuetracker.unity3d.com/product/unity/issues/guid/1343674/)
 - Fixed inspector documentation URLs for the URP asset and Universal Renderer asset.
