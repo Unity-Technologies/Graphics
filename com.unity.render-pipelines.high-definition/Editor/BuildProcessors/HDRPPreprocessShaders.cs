@@ -769,14 +769,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            /*
-            Debug.Log(string.Format("{0} HDRP assets in build:{1}",
+
+            Debug.Log(string.Format("{0} HDRP assets included in build:{1}",
                 _hdrpAssets.Count,
                 _hdrpAssets
                     .Select(a => a.name)
-                    .Aggregate("", (current, next) => $"{current}{System.Environment.NewLine}- {next}" )
+                    .Aggregate("", (current, next) => $"{current}{System.Environment.NewLine}- {next}")
                 ));
-            // */
+
         }
 
         public int callbackOrder { get { return 0; } }
