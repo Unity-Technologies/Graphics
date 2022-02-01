@@ -28,7 +28,7 @@
 }
 
 
-#TextureIcon
+#ValueIcon
 {
     margin-left: 2px;
     position: absolute;
