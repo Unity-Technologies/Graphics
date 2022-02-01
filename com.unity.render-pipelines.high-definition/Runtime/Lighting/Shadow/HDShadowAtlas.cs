@@ -186,6 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_UseSharedTexture)
             {
                 Debug.Assert(m_Output.IsValid());
+
                 return m_Output; // Should always be valid.
             }
             else
