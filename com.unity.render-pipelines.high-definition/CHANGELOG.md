@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Refract Node, Fresnel Equation Node and Scene-Difference-Node (https://jira.unity3d.com/browse/HDRP-1599)
 - Added Remap alpha channel of baseColorMap for Lit and LayeredLit
 - Added an option for culling objects out of the ray tracing acceleration structure.
+- Added more explicit error messages when trying to use HDSceneColor, NormalFromHeight, DDX, DDY or DDXY shader graph nodes in ray tracing.
 
 ### Changed
 - Render Graph object pools are now cleared with render graph cleanup
@@ -31,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
 - Renamed the Exposure field to Exposure Compensation in sky volume overrides (case 1392530).
 - Disabled the volumetric clouds for the indoor template scenes (normal and DXR) (case 1381761).
+- Post Process can now be edited in the default frame settings.
 
 ### Fixed
 - Fixed build warnings due to the exception in burst code (case 1382827).
@@ -80,6 +82,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed one frame flicker on hardware DRS - (case 1398085)
 - Fixed using the wrong coordinate to compute the sampling direction for the screen space global illumination.
 - Fixed an issue where forced sky update (like PBR sky amortized updated) would not update ambient probe.
+- Fixed static lighting sky update when using an HDRI sky with a render texture in parameter.
+- Fixed sky jittering when TAA is enabled.
+- Fixed Normal Map assiignation when importing FBX Materials.
+- Fixed issue with HDRI Sky and shadow filtering quality set to high.
+- Fixed the default custom pass buffer format from R8G8B8A8_SNorm to R8G8B8A8_UNorm. Additionally, an option in the custom pass buffer format settings is available to use the old format.
+- Fixed cached directional light shadows disappearing without reappearing when the going outside of the range of shadow validity.
+- Fixed an issue where sometimes full screen debug would cause render graph errors.
+- Fixed a nullref exception when creating a new scene while LightExplorer is open.
+- Fixed issue that caused the uber post process to run even if nothing is to be done, leading to different results when disabling every post process manually vs disabling the whole post-processing pipeline.
+- Fixed issue that placed an OnDemand shadow in the atlas before it was ever rendered.
+- Fixed issue at edge of screen on some platforms when SSAO is on.
+- Fixed reflection probe rendering order when visible in multiple cameras.
 
 ## [14.0.0] - 2021-11-17
 

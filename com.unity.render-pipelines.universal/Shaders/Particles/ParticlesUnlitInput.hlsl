@@ -41,7 +41,6 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
 
     AlphaDiscard(albedo.a, _Cutoff);
 
-
     albedo.rgb = AlphaModulateAndPremultiply(albedo.rgb, albedo.a);
 
 #if defined(_SOFTPARTICLES_ON)

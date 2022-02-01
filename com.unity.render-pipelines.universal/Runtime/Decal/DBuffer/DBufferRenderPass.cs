@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (isDeferred)
                 {
-                    cmd.SetGlobalTexture("_CameraNormalsTexture", deferredLights.GbufferAttachmentIdentifiers[deferredLights.GBufferNormalSmoothnessIndex]);
+                    cmd.SetGlobalTexture("_CameraNormalsTexture", deferredLights.GbufferAttachments[deferredLights.GBufferNormalSmoothnessIndex].nameID);
                 }
                 else
                 {
