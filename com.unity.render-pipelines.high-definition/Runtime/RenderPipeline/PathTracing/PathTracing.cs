@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Defines the maximum, post-exposed luminance computed for indirect path segments.
         /// </summary>
-        [Tooltip("Defines the maximum, post-exposed luminance computed for indirect path segments. Lower values help against noise and fireflies (very bright pixels), but introduce bias by darkening the overall result. Increase this value if your image looks too dark.")]
+        [Tooltip("Defines the maximum, post-exposed luminance computed for indirect path segments. Lower values help prevent noise and fireflies (very bright pixels), but introduce bias by darkening the overall result. Increase this value if your image looks too dark.")]
         public MinFloatParameter maximumIntensity = new MinFloatParameter(10f, 0f);
 
 #if ENABLE_UNITY_DENOISING_PLUGIN
@@ -125,14 +125,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Improves the detail retention after denoising by using albedo and normal AOVs.
         /// </summary>
-        [Tooltip("Improves detail of the denoised image by using albedo and normal AOVs")]
+        [Tooltip("Improves the detail of the denoised image with its albedo and normal AOVs")]
         [InspectorName("Use AOVs")]
         public BoolParameter useAOVs = new BoolParameter(true);
 
         /// <summary>
         /// Enables temporally stable denoising (not all denosing backends support this option)
         /// </summary>
-        [Tooltip("Enables temporally stable denoising")]
+        [Tooltip("Enables temporally-stable denoising")]
         public BoolParameter temporal = new BoolParameter(false);
 
         /// <summary>

@@ -85,7 +85,7 @@ namespace UnityEditor.Experimental.Rendering.HighDefinition
                                 }
                                 else
                                 {
-                                    EditorGUILayout.HelpBox($"The selected denoiser is not supported by this hardware configuration.", MessageType.Error, wide: true);
+                                    EditorGUILayout.HelpBox($"The denoiser selected is not supported by this hardware configuration.", MessageType.Error, wide: true);
                                 }
                             }
                         }
