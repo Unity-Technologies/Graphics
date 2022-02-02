@@ -75,13 +75,41 @@ float ApproximateCapsuleOcclusion(
     return ApproximateSphereOcclusion(coneAxis, coneCosTheta, maxDistance, sphereCenter, capsuleRadius);
 }
 
-#define CAPSULE_SHADOW_FEATURE_ELLIPSOID            0x1
-#define CAPSULE_SHADOW_FEATURE_FLATTEN              0x2
-#define CAPSULE_SHADOW_FEATURE_CLIP_TO_PLANE        0x4
-#define CAPSULE_SHADOW_FEATURE_FADE_SELF_SHADOW     0x8
+/*
+    Description of flag bits for capsule direct shadows.  These bits
+    control how the capsule-vs-light-cone occlusion problem is transformed
+    into a cone-vs-cone overlap test, which is then approximated used
+    ApproximateSphericalCapIntersectionCosTheta() above.
+
+    The main flag is ELLIPSOID.
+    * If specified, then the capsule is replaced with an interior
+    ellipsoid, and space is then scaled along the long axis to transform
+    this into sphere.
+    * If not specified, then the closest interior sphere to the light
+    axis is chosen as the occluder.
+
+    Other flags are:
+    * FLATTEN: only applies if ELLIPSOID is *not* used.  Before choosing
+    an interior sphere, scale (down) space along the light z axis as the
+    capsule axis and light axis become aligned.  This avoids the closest
+    sphere from moving quickly in between the two ends of the capsule.
+
+    * CLIP_TO_PLANE: only applies if ELLIPSOID is *not* used.  Clips the
+    capsule to the plane above the surface as a first step.  Can help to
+    avoid missing shadowing in some cases.
+
+    * FADE_SELF_SHADOW: fades out the occlusion effect if the surface
+    is likely to be approximated by *this* capsule.  Uses a heuristic
+    based on how close the surface is to the capsule surface and
+    capsule surface normal.
+*/
+#define CAPSULE_SHADOW_FLAG_ELLIPSOID           0x1
+#define CAPSULE_SHADOW_FLAG_FLATTEN             0x2
+#define CAPSULE_SHADOW_FLAG_CLIP_TO_PLANE       0x4
+#define CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW    0x8
 
 float EvaluateCapsuleOcclusion(
-    uint featureBits,
+    uint flags,
     float3 surfaceToLightVec,
     bool lightIsPunctual,
     float lightCosTheta,
@@ -104,7 +132,7 @@ float EvaluateCapsuleOcclusion(
 
         // apply falloff to avoid self-shadowing
         // (adjusts where in the interior to fade in the shadow based on the local normal)
-        if (featureBits & CAPSULE_SHADOW_FEATURE_FADE_SELF_SHADOW) {
+        if (flags & CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW) {
             float interiorTerm = sphereDistance/capsuleRadius;                      // 0 in interior, 1 on surface
             float facingTerm = dot(normalWS, surfaceToSphereVec)/sphereDistance;    // -1 facing out of capsule, +1 facing into capsule
             occlusion *= smoothstep(0.6f, 0.8f, interiorTerm + 0.5f*facingTerm);
@@ -115,7 +143,7 @@ float EvaluateCapsuleOcclusion(
         return 0.f;
 
     // test the occluder shape vs the light
-    if (featureBits & CAPSULE_SHADOW_FEATURE_ELLIPSOID) {
+    if (flags & CAPSULE_SHADOW_FLAG_ELLIPSOID) {
         // scale down along the capsule axis to approximate the capsule with a sphere
         float3 zAxisDir = capsuleAxisDirWS;
         float zOffsetFactor = capsuleOffset/(capsuleRadius + capsuleOffset);
@@ -160,7 +188,7 @@ float EvaluateCapsuleOcclusion(
         float lightDotAxis = dot(capsuleAxisDirWS, surfaceToLightDir);
 
         float clippedOffset = capsuleOffset;
-        if (featureBits & CAPSULE_SHADOW_FEATURE_CLIP_TO_PLANE) {
+        if (flags & CAPSULE_SHADOW_FLAG_CLIP_TO_PLANE) {
             // clip capsule to be towards the light from the surface point
             float clipMaxT = capsuleOffset;
             float clipMinT = -clipMaxT;
@@ -177,7 +205,7 @@ float EvaluateCapsuleOcclusion(
         float3 capOffsetVec = capsuleAxisDirWS * clippedOffset;
 
         float shearCosTheta = lightCosTheta;
-        if (featureBits & CAPSULE_SHADOW_FEATURE_FLATTEN) {
+        if (flags & CAPSULE_SHADOW_FLAG_FLATTEN) {
             // shear the capsule along the light direction, to flatten when shadowing along length
             float3 zAxisDir = surfaceToLightDir;
             float capsuleOffsetZ = lightDotAxis*clippedOffset;
@@ -264,6 +292,59 @@ float LineDiffuseOcclusion(float3 p0, float3 wt, float t1, float t2, float3 n)
 
     // account for the projection in the output
     return I*s/PI;
+}
+
+#define CAPSULE_AMBIENT_OCCLUSION_FLAG_WITH_LINE_AO     0x1
+
+float EvaluateCapsuleAmbientOcclusion(
+    uint flags,
+    float3 surfaceToCapsuleVec,
+    float3 capsuleAxisDirWS,
+    float capsuleOffset,
+    float capsuleRadius,
+    float shadowRange,
+    float3 normalWS)
+{
+    // get the closest position on the (infinite) capsule axis
+    float closestT = RayClosestPoint(surfaceToCapsuleVec, capsuleAxisDirWS, float3(0.f, 0.f, 0.f));
+
+    // get the closest interior sphere to the surface
+    float clampedClosestT = clamp(closestT, -capsuleOffset, capsuleOffset);
+    float3 surfaceToSphereVec = surfaceToCapsuleVec + clampedClosestT*capsuleAxisDirWS;
+    float sphereDistance = length(surfaceToSphereVec);
+    float capsuleBoundaryDistance = sphereDistance - capsuleRadius;
+
+    // apply range-based falloff
+    float occlusion = smoothstep(1.0f, 0.75f, capsuleBoundaryDistance/shadowRange);
+    if (occlusion > 0.f)
+    {
+        // compute AO from this closest interior sphere
+        // ref: https://iquilezles.org/www/articles/sphereao/sphereao.htm
+        float3 surfaceToSphereDir = surfaceToSphereVec/sphereDistance;
+        float cosAlpha = dot(normalWS, surfaceToSphereDir);
+        float sphereAO = saturate(cosAlpha*Sq(capsuleRadius/sphereDistance));
+
+        if (flags & CAPSULE_AMBIENT_OCCLUSION_FLAG_WITH_LINE_AO)
+        {
+            // cosine-weighted occlusion from a thick line along the capsule axis
+            float lineIntegral = LineDiffuseOcclusion(
+                surfaceToCapsuleVec + closestT*capsuleAxisDirWS,
+                capsuleAxisDirWS,
+                -capsuleOffset - closestT,
+                capsuleOffset - closestT,
+                normalWS);
+            float thickLineAO = capsuleRadius*lineIntegral;
+
+            // assume that 50% of the sphere occlusion is independent of the line (for long capsules with hemispherical caps)
+            // but ensure that the result is always at least at much as only using the sphere (for short capsules)
+            occlusion *= clamp(thickLineAO + 0.5f*sphereAO, sphereAO, 1.f);
+        }
+        else
+        {
+            occlusion *= sphereAO;
+        }
+    }
+    return occlusion;
 }
 
 #endif

@@ -3,24 +3,41 @@ using System.Diagnostics;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    public enum CapsuleIndirectShadowMethod
+    {
+        AmbientOcclusion,
+        //Directional,
+    }
+
     [Serializable]
     public sealed class CapsuleAmbientOcclusionMethodParameter : VolumeParameter<CapsuleAmbientOcclusionMethod>
     {
         public CapsuleAmbientOcclusionMethodParameter(CapsuleAmbientOcclusionMethod value, bool overrideState = false) : base(value, overrideState) { }
     }
 
+    [Serializable]
+    public sealed class CapsuleIndirectShadowMethodParameter : VolumeParameter<CapsuleIndirectShadowMethod>
+    {
+        public CapsuleIndirectShadowMethodParameter(CapsuleIndirectShadowMethod value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
     [Serializable, VolumeComponentMenuForRenderPipeline("Shadowing/Capsule Shadows", typeof(HDRenderPipeline))]
     public class CapsuleShadowsVolumeComponent : VolumeComponent
     {
         /// <summary>
-        /// When enabled, HDRP processes Capsule Shadows for this Volume.
+        /// When enabled, capsules cast shadows for supported lights.
         /// </summary>
-        public BoolParameter enable = new BoolParameter(true);
+        public BoolParameter enableDirectShadows = new BoolParameter(true);
 
         /// <summary>
-        /// When enabled, HDRP processes Capsule Ambient Occlusion for this Volume.
+        /// When enabled, capsules cast shadows for supported lights.
         /// </summary>
-        public BoolParameter enableAmbientOcclusion = new BoolParameter(true);
+        public BoolParameter enableIndirectShadows = new BoolParameter(false);
+
+        /// <summary>
+        /// The method to use for indirect shadowing from capsules.
+        /// </summary>
+        public CapsuleIndirectShadowMethodParameter indirectShadowMethod = new CapsuleIndirectShadowMethodParameter(CapsuleIndirectShadowMethod.AmbientOcclusion);
 
         /// <summary>
         /// Controls the range of ambient occlusion from capsules, in multiples of the capsule radius.

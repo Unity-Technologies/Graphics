@@ -7,24 +7,24 @@
 
 StructuredBuffer<CapsuleOccluderData> _CapsuleOccluderDatas;
 
-uint GetDefaultCapsuleShadowFeatureBits()
+uint GetDefaultCapsuleShadowFlags()
 {
 #ifdef DEBUG_DISPLAY
-    uint featureBits = 0;
+    uint flags = 0;
     switch (_DebugCapsuleShadowMethod) {
     case CAPSULESHADOWMETHOD_ELLIPSOID:
-        featureBits |= CAPSULE_SHADOW_FEATURE_ELLIPSOID;
+        flags |= CAPSULE_SHADOW_FLAG_ELLIPSOID;
         break;
     case CAPSULESHADOWMETHOD_FLATTEN_THEN_CLOSEST_SPHERE:
-        featureBits |= CAPSULE_SHADOW_FEATURE_FLATTEN;
+        flags |= CAPSULE_SHADOW_FLAG_FLATTEN;
         break;
     }
     if (_DebugCapsuleFadeSelfShadow) {
-        featureBits |= CAPSULE_SHADOW_FEATURE_FADE_SELF_SHADOW;
+        flags |= CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW;
     }
-    return featureBits;
+    return flags;
 #else
-    return CAPSULE_SHADOW_FEATURE_FLATTEN | CAPSULE_SHADOW_FEATURE_FADE_SELF_SHADOW;
+    return CAPSULE_SHADOW_FLAG_FLATTEN | CAPSULE_SHADOW_FLAG_FADE_SELF_SHADOW;
 #endif
 }
 
@@ -41,7 +41,7 @@ float EvaluateCapsuleShadow(
     if (lightIsPunctual)
         surfaceToLightVec -= posInput.positionWS;
 
-    uint featureBits = GetDefaultCapsuleShadowFeatureBits();
+    uint flags = GetDefaultCapsuleShadowFlags();
 
     uint capsuleCount, capsuleStart;
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
@@ -92,7 +92,7 @@ float EvaluateCapsuleShadow(
             {
                 float3 surfaceToCapsuleVec = s_capsuleData.centerRWS - posInput.positionWS;
                 float occlusion = EvaluateCapsuleOcclusion(
-                    featureBits,
+                    flags,
                     surfaceToLightVec,
                     lightIsPunctual,
                     lightCosTheta,
@@ -117,6 +117,10 @@ float EvaluateCapsuleAmbientOcclusion(PositionInputs posInput, float3 normalWS)
     uint aoMethod = _CapsuleIndirectShadowCountAndFlags >> 24;
     if (capsuleShadowCount == 0)
         return 1.f;
+
+    uint flags = 0;
+    if (aoMethod == CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_INTEGRAL)
+        flags |= CAPSULE_AMBIENT_OCCLUSION_FLAG_WITH_LINE_AO;
 
     uint capsuleCount, capsuleStart;
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
@@ -163,49 +167,14 @@ float EvaluateCapsuleAmbientOcclusion(PositionInputs posInput, float3 normalWS)
         {
             v_capsuleListOffset++;
 
-            // get the closest position on the (infinite) capsule axis
-            float3 surfaceToCapsuleVec = s_capsuleData.centerRWS - posInput.positionWS;
-            float closestT = RayClosestPoint(surfaceToCapsuleVec, s_capsuleData.axisDirWS, float3(0.f, 0.f, 0.f));
-
-            // get the closest interior sphere to the surface
-            float clampedClosestT = clamp(closestT, -s_capsuleData.offset, s_capsuleData.offset);
-            float3 surfaceToSphereVec = surfaceToCapsuleVec + clampedClosestT*s_capsuleData.axisDirWS;
-            float sphereDistance = length(surfaceToSphereVec);
-            float capsuleBoundaryDistance = sphereDistance - s_capsuleData.radius;
-
-            // apply range-based falloff
-            float occlusion = smoothstep(1.0f, 0.75f, capsuleBoundaryDistance/(s_capsuleData.radius*_CapsuleAmbientOcclusionRangeFactor));
-            if (occlusion > 0.f)
-            {
-                // compute AO from this closest interior sphere
-                // ref: https://iquilezles.org/www/articles/sphereao/sphereao.htm
-                float3 surfaceToSphereDir = surfaceToSphereVec/sphereDistance;
-                float cosAlpha = dot(normalWS, surfaceToSphereDir);
-                float sphereAO = saturate(cosAlpha*Sq(s_capsuleData.radius/sphereDistance));
-
-                if (aoMethod == CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_INTEGRAL)
-                {
-                    // cosine-weighted occlusion from a thick line along the capsule axis
-                    float t1 = -s_capsuleData.offset - closestT;
-                    float t2 = s_capsuleData.offset - closestT;
-                    float capDistance = max(min(-t1, t2), 0.f);
-                    float lineIntegral = LineDiffuseOcclusion(
-                        surfaceToCapsuleVec + closestT*s_capsuleData.axisDirWS,
-                        s_capsuleData.axisDirWS,
-                        -s_capsuleData.offset - closestT,
-                        s_capsuleData.offset - closestT,
-                        normalWS);
-                    float thickLineAO = s_capsuleData.radius*lineIntegral;
-
-                    // assume that 50% of the sphere occlusion is independent of the line (for long capsules with hemispherical caps)
-                    // but ensure that the result is always at least at much as only using the sphere (for short capsules)
-                    occlusion *= clamp(thickLineAO + 0.5f*sphereAO, sphereAO, 1.f);
-                }
-                else
-                {
-                    occlusion *= sphereAO;
-                }
-            }
+            float occlusion = EvaluateCapsuleAmbientOcclusion(
+                flags,
+                s_capsuleData.centerRWS - posInput.positionWS,
+                s_capsuleData.axisDirWS,
+                s_capsuleData.offset,
+                s_capsuleData.radius,
+                s_capsuleData.radius*_CapsuleAmbientOcclusionRangeFactor,
+                normalWS);
 
             // combine visibility by multiplying term from each capsule
             visibility *= max(1.f - occlusion, 0.f);

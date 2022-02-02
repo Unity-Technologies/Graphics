@@ -107,9 +107,10 @@ namespace UnityEngine.Rendering.HighDefinition
             using (ListPool<CapsuleOccluderData>.Get(out List<CapsuleOccluderData> indirectOccluders))
             {
                 CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
-                bool enableDirectShadows = capsuleShadows.enable.value;
+                bool enableDirectShadows = capsuleShadows.enableDirectShadows.value;
                 float ambientOcclusionRangeFactor = capsuleShadows.ambientOcclusionRangeFactor.value;
-                bool enableIndirectShadows = capsuleShadows.enableAmbientOcclusion.value && ambientOcclusionRangeFactor > 0.0f;
+                bool enableIndirectShadows = capsuleShadows.enableIndirectShadows.value && 
+                    (capsuleShadows.indirectShadowMethod.value == CapsuleIndirectShadowMethod.AmbientOcclusion && ambientOcclusionRangeFactor > 0.0f);
                 if (enableDirectShadows || enableIndirectShadows)
                 {
                     bool scalePenumbraAlongX = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleShadowMethod == CapsuleShadowMethod.Ellipsoid;
