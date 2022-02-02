@@ -13,13 +13,15 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma vertex FullscreenVert
+            #pragma vertex Vert
             #pragma fragment Fragment
             #pragma multi_compile_fragment _ _LINEAR_TO_SRGB_CONVERSION
             #pragma multi_compile _ _USE_DRAW_PROCEDURAL
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
+            // Core.hlsl for XR dependencies
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
@@ -29,7 +31,7 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             half4 Fragment(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                float2 uv = input.uv;
+                float2 uv = input.texcoord;
 
                 half4 col = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_SourceTex, uv);
 
