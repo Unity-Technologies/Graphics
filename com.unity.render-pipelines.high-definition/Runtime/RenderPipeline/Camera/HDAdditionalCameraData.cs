@@ -38,6 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Note: focalLength is already defined in the regular camera component
         [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture;
         [SerializeField] [Min(0.1f)] float m_FocusDistance;
+        [SerializeField] Camera.GateFitMode m_GateFit; // This is private with no public access because it is mainly just used to drive UX, the code should still access the main camera version.
 
         // Aperture shape
         [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount;
@@ -146,6 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
             val.curvature = new Vector2(2f, 11f);
             val.barrelClipping = 0.25f;
             val.anamorphism = 0;
+            val.m_GateFit = Camera.GateFitMode.Vertical;
 
             return val;
         }
@@ -668,7 +670,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Camera.cameraType != CameraType.Preview && m_Camera.cameraType != CameraType.Reflection)
                 {
                     DebugDisplaySettings.RegisterCamera(this);
-                    HDVolumeDebugSettings.RegisterCamera(this);
                 }
                 m_IsDebugRegistered = true;
             }
@@ -682,7 +683,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Do not attempt to not register them till this issue persist.
                 if (m_Camera.cameraType != CameraType.Preview && m_Camera?.cameraType != CameraType.Reflection)
                 {
-                    HDVolumeDebugSettings.UnRegisterCamera(this);
                     DebugDisplaySettings.UnRegisterCamera(this);
                 }
                 m_IsDebugRegistered = false;
