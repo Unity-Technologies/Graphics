@@ -5,7 +5,7 @@ using System.Reflection;
 using System;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.Rendering.Universal.Converters
+namespace UnityEditor.Rendering.Universal
 {
     internal static class MaterialReferenceBuilder
     {

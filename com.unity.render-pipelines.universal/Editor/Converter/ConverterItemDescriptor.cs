@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEditor.Rendering.Universal.Converters
+namespace UnityEditor.Rendering.Universal
 {
     /// <summary>
     /// A structure holding the information for each Item that needs to be Converted.
