@@ -15,8 +15,8 @@ namespace com.unity.shadergraph.defs {
     {
         public Primitive Primitive { get; }
         public Precision Precision { get; }
-        public Width Precision { get; }
-        public Height Precision { get; }
+        public Width Width { get; }
+        public Height Height { get; }
     }
 
     // ----------
