@@ -981,8 +981,12 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void EnsureVolumeBuffers()
         {
             bool changed = false;
+
             changed |= EnsureBuffer<float>(ref m_VolumeBuffers.SHL01Buffer, probeVolumeAsset.payload.dataSHL01.Length);
-            changed |= EnsureBuffer<float>(ref m_VolumeBuffers.SHL2Buffer, probeVolumeAsset.payload.dataSHL2.Length);
+
+            if (ShaderConfig.s_ProbeVolumesEncodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
+                changed |= EnsureBuffer<float>(ref m_VolumeBuffers.SHL2Buffer, probeVolumeAsset.payload.dataSHL2.Length);
+
             changed |= EnsureBuffer<float>(ref m_VolumeBuffers.ValidityBuffer, probeVolumeAsset.payload.dataValidity.Length);
 
             if (changed)
@@ -994,7 +998,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void SetVolumeBuffers()
         {
             SetBuffer(m_VolumeBuffers.SHL01Buffer, probeVolumeAsset.payload.dataSHL01);
-            SetBuffer(m_VolumeBuffers.SHL2Buffer, probeVolumeAsset.payload.dataSHL2);
+
+            if (ShaderConfig.s_ProbeVolumesEncodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
+                SetBuffer(m_VolumeBuffers.SHL2Buffer, probeVolumeAsset.payload.dataSHL2);
+            
             SetBuffer(m_VolumeBuffers.ValidityBuffer, probeVolumeAsset.payload.dataValidity);
         }
 

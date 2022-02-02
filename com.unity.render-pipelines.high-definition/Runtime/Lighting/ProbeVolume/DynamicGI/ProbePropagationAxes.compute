@@ -165,14 +165,14 @@ SHIncomingIrradiance ProbeVolumeEvaluateIncomingIrradiance(float3 positionWS, ui
     float weightHierarchy = 0.0;
 
 #if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-    #error "Need to define implementation of ProbeVolumeEvaluateIncomingRadiance for PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0"
+    // #error "Need to define implementation of ProbeVolumeEvaluateIncomingRadiance for PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0"
     // TODO:
     // ProbeVolumeSphericalHarmonicsL0 coefficients;
     // ProbeVolumeAccumulateSphericalHarmonicsL0(posInput, normalWS, normalWS, renderingLayers, coefficients, weightHierarchy);
     // bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(normalWS, coefficients);
 
 #elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-    #error "Need to define implementation of ProbeVolumeEvaluateIncomingRadiance for PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1"
+    // #error "Need to define implementation of ProbeVolumeEvaluateIncomingRadiance for PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1"
     // TODO:
     // ProbeVolumeSphericalHarmonicsL1 coefficients;
     // ProbeVolumeAccumulateDynamicGINeighborsSphericalHarmonicsL1(posInput, normalWSForBias, viewDirectionWSForBias, renderingLayers, coefficients, weightHierarchy);
