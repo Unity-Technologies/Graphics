@@ -538,7 +538,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, depthMinMaxAvgMSAA, prepassOutput.stencilBuffer);
 
-                if (m_DepthOfField.IsActive() && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
+                if (m_DepthOfField.IsActive() && m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1 && !m_PathTracing.enable.value)
                 {
                     RenderAccumulation(m_RenderGraph, hdCamera, source, source, false);
                 }
