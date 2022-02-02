@@ -93,9 +93,11 @@ void ApplyWetnessToBRDF(WetnessData wetnessData, inout BRDFData brdfData)
 {
     if (dot(brdfData.diffuse, brdfData.diffuse) > 0)
     {
-        float3 lum = (brdfData.diffuse.r + brdfData.diffuse.g + brdfData.diffuse.b) / 3.0;
+        float3 luma = dot(brdfData.diffuse, float3(0.2126729, 0.7151522, 0.0721750));
+        float3 saturation = luma + (wetnessData.waterSaturation * 4.0 + 1.0) * (brdfData.diffuse - luma);
+
         // Saturation
-        brdfData.diffuse = lerp(brdfData.diffuse, brdfData.diffuse + normalize(brdfData.diffuse - lum) * wetnessData.waterSaturation * 0.15, wetnessData.porosity);
+        brdfData.diffuse = lerp(brdfData.diffuse, saturation, wetnessData.porosity);
         // Darkening
         brdfData.diffuse = lerp(brdfData.diffuse, lerp(brdfData.diffuse, pow(brdfData.diffuse, 3), sqrt(wetnessData.waterSaturation)), sqrt(wetnessData.porosity));
     }
