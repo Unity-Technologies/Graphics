@@ -1224,14 +1224,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     // only select the current instance for this camera. We dont pass the settings set to prevent an update.
                     // This will set a new instance in DynamicResolutionHandler.instance that is specific to this camera.
                     DynamicResolutionHandler.UpdateAndUseCamera(camera);
-                    var dynResHandler = DynamicResolutionHandler.instance;
 
+                    //Warning!! do not read anything off the dynResHandler, until we have called Update(). Otherwise, the handler is in the process of getting constructed.
+                    var dynResHandler = DynamicResolutionHandler.instance;
+                    
                     if (hdCam != null)
                     {
                         // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
                         // TODO: Expose the graphics caps info on whether the platform supports hw dynamic resolution or not.
                         // Temporarily disable HW Dynamic resolution on metal until the problems we have with it are fixed
-                        if (dynResHandler.RequestsHardwareDynamicResolution() && cameraRequestedDynamicRes && !camera.allowDynamicResolution)
+                        if (drsSettings.dynResType == DynamicResolutionType.Hardware && cameraRequestedDynamicRes && !camera.allowDynamicResolution)
                         {
                             dynResHandler.ForceSoftwareFallback();
                         }
