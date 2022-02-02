@@ -107,15 +107,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 shaderInput.SetReferenceNameAndSanitizeForGraph(m_Graph, modifiedReferenceName);
 
                 Assert.IsTrue(shaderInput.referenceName != originalReferenceName);
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown);
-
-                // Needed so that the inspector gets triggered and the callbacks and triggers are initialized
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown);
-
-                // Wait a frame for the inspector updates to trigger
-                yield return null;
-
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp);
+                m_GraphEditorView.graphView.ClearSelection();
+                m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
 
                 // Wait a frame for the inspector updates to trigger
                 yield return null;
@@ -169,8 +162,9 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard property.");
                 var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
                 Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
+                m_GraphEditorView.graphView.ClearSelection();
+                m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
+                Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select property!");
                 yield return null;
 
                 ShaderGraphUITestHelpers.SendDeleteCommand(m_Window, m_GraphEditorView.graphView);
@@ -184,15 +178,17 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard keyword.");
                 var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
                 Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
-                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
+                m_GraphEditorView.graphView.ClearSelection();
+                m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
+                Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select keyword!");
                 yield return null;
 
                 ShaderGraphUITestHelpers.SendDeleteCommand(m_Window, m_GraphEditorView.graphView);
                 yield return null;
             }
 
-
+            // Should be no properties, keywords, dropdowns
+            Assert.IsTrue(m_Window.graphObject.graph.properties.Count() == 0 && m_Window.graphObject.graph.properties.Count() == 0 && m_Window.graphObject.graph.dropdowns.Count() == 0);
             yield return null;
         }
 
@@ -235,6 +231,56 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 // Check that the default display and reference names match what's expected
                 Assert.IsTrue(property.shaderInput.displayName == property.displayName, "Expected display name '{0}' but was '{1}'", property.displayName, property.shaderInput.displayName);
                 Assert.IsTrue(property.shaderInput.referenceName == property.referenceName, "Expected reference name '{0}' but was '{1}'", property.referenceName, property.shaderInput.referenceName);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator DuplicateInputTest()
+        {
+            Assert.IsNotNull(m_BlackboardTestController.addBlackboardItemsMenu, "Blackboard Add Items menu reference owned by BlackboardTestController is null.");
+
+            var menuItems = m_BlackboardTestController.addBlackboardItemsMenu.GetPrivateProperty<IList>("menuItems");
+            Assert.IsNotNull(menuItems, "Could not retrieve reference to the menu items of the Blackboard Add Items menu");
+
+            // invoke all menu items on the "add Blackboard Items Menu" to add all property types
+            foreach (var item in menuItems)
+            {
+                var menuFunction = item.GetNonPrivateField<GenericMenu.MenuFunction>("func");
+                menuFunction?.Invoke();
+                yield return null;
+            }
+
+            var cachedPropertyList = m_Window.graphObject.graph.properties.ToList();
+            foreach (var property in cachedPropertyList)
+            {
+                var blackboardRow = m_BlackboardTestController.GetBlackboardRow(property);
+                Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard property.");
+                var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
+                Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
+                m_GraphEditorView.graphView.ClearSelection();
+                m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
+                Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select property!");
+                yield return null;
+
+                ShaderGraphUITestHelpers.SendDuplicateCommand(m_Window);
+                yield return null;
+            }
+
+            var cachedKeywordList = m_Window.graphObject.graph.keywords.ToList();
+            foreach (var keyword in cachedKeywordList)
+            {
+                var blackboardRow = m_BlackboardTestController.GetBlackboardRow(keyword);
+                Assert.IsNotNull(blackboardRow, "No blackboard row found associated with blackboard keyword.");
+                var blackboardPropertyView = blackboardRow.Q<SGBlackboardField>();
+                Assert.IsNotNull(blackboardPropertyView, "No blackboard property view found in the blackboard row.");
+                m_GraphEditorView.graphView.ClearSelection();
+                m_GraphEditorView.graphView.AddToSelection(blackboardPropertyView);
+                Assert.AreEqual(1, m_Window.graphEditorView.graphView.selection.Count(), "Could not select keyword!");
+                yield return null;
+
+                ShaderGraphUITestHelpers.SendDuplicateCommand(m_Window);
+                yield return null;
+
             }
         }
 
