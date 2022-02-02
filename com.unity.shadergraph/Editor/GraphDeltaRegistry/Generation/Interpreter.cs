@@ -36,8 +36,8 @@ namespace UnityEditor.ShaderGraph.Generation
             const string BlockName = "ShaderGraphBlock";
             var blockBuilder = new Block.Builder(container, BlockName);
 
-            var inputVariables = new List<BlockVariable>();
-            var outputVariables = new List<BlockVariable>();
+            var inputVariables = new List<StructField>();
+            var outputVariables = new List<StructField>();
 
             bool isContext = rootNode.GetField("_contextDescriptor", out RegistryKey contextKey);
 
@@ -48,9 +48,8 @@ namespace UnityEditor.ShaderGraph.Generation
                     if (port.IsHorizontal() && port.IsInput())
                     {
                         port.GetField(ShaderGraph.Registry.Types.GraphType.kEntry, out Registry.Defs.IContextDescriptor.ContextEntry entry);
-                        var varOutBuilder = new BlockVariable.Builder(container);
-                        varOutBuilder.ReferenceName = entry.fieldName;
-                        varOutBuilder.Type = EvaluateShaderType(entry, container);
+                        var varType = EvaluateShaderType(entry, container);
+                        var varOutBuilder = new StructField.Builder(container, entry.fieldName, varType);
                         var varOut = varOutBuilder.Build();
                         outputVariables.Add(varOut);
                     }
@@ -59,46 +58,50 @@ namespace UnityEditor.ShaderGraph.Generation
             }
             else
             {
-                var colorOutBuilder = new BlockVariable.Builder(container);
-                colorOutBuilder.ReferenceName = "BaseColor";
-                colorOutBuilder.Type = container._float3;
+                var colorOutBuilder = new StructField.Builder(container, "BaseColor", container._float3);
                 var colorOut = colorOutBuilder.Build();
                 outputVariables.Add(colorOut);
             }
 
 
-            var outputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Output", outputVariables);
+            var outputTypeBuilder = new ShaderType.StructBuilder(container, $"{BlockName}Output");
+            foreach (var variable in outputVariables)
+                outputTypeBuilder.AddField(variable);
+            var outputType = outputTypeBuilder.Build();
+            
             var mainBodyFunctionBuilder = new ShaderFunction.Builder(container, $"SYNTAX_{rootNode.GetName()}Main", outputType);
 
             var shaderFunctions = new List<ShaderFunction>();
-            foreach(var node in GatherTreeLeafFirst(rootNode))
+            foreach (var node in GatherTreeLeafFirst(rootNode))
             {
                 ProcessNode(node, ref container, ref inputVariables, ref outputVariables, ref blockBuilder, ref mainBodyFunctionBuilder, ref shaderFunctions, registry);
             }
 
-            foreach(var func in shaderFunctions)
+            foreach (var func in shaderFunctions)
             {
                 blockBuilder.AddFunction(func);
             }
 
 
-            var inputType = SimpleSampleBuilder.BuildStructFromVariables(container, $"{BlockName}Input", inputVariables);
-
+            var inputTypeBuilder = new ShaderType.StructBuilder(container, $"{BlockName}Input");
+            foreach (var variable in inputVariables)
+                inputTypeBuilder.AddField(variable);
+            var inputType = inputTypeBuilder.Build();
 
             mainBodyFunctionBuilder.AddLine($"{outputType.Name} output;");
-            if(isContext)
+            if (isContext)
             {
                 int varIndex = 0;
-                foreach(IPortReader port in rootNode.GetPorts())
+                foreach (IPortReader port in rootNode.GetPorts())
                 {
-                    if(port.IsHorizontal() && port.IsInput())
+                    if (port.IsHorizontal() && port.IsInput())
                     {
                         port.GetField(ShaderGraph.Registry.Types.GraphType.kEntry, out Registry.Defs.IContextDescriptor.ContextEntry entry);
                         var connectedPort = port.GetConnectedPorts().FirstOrDefault();
                         if (connectedPort != null) // connected input port-
                         {
                             var connectedNode = connectedPort.GetNode();
-                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].ReferenceName} = SYNTAX_{connectedNode.GetName()}_{connectedPort.GetName()}");
+                            mainBodyFunctionBuilder.AddLine($"output.{outputVariables[varIndex++].Name} = SYNTAX_{connectedNode.GetName()}_{connectedPort.GetName()}");
                         }
                         else // not connected.
                         {
@@ -111,15 +114,11 @@ namespace UnityEditor.ShaderGraph.Generation
             }
             else
             {
-                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[0].ReferenceName} = SYNTAX_{rootNode.GetName()}_{rootNode.GetOutputPorts().First().GetName()};");
+                mainBodyFunctionBuilder.AddLine($"output.{outputVariables[0].Name} = SYNTAX_{rootNode.GetName()}_{rootNode.GetOutputPorts().First().GetName()};");
             }
             mainBodyFunctionBuilder.AddLine("return output;");
 
             // Setup the block from the inputs, outputs, types, functions
-            foreach (var variable in inputVariables)
-                blockBuilder.AddInput(variable);
-            foreach (var variable in outputVariables)
-                blockBuilder.AddOutput(variable);
             blockBuilder.AddType(inputType);
             blockBuilder.AddType(outputType);
             mainBodyFunctionBuilder.AddInput(inputType, "In");
@@ -131,11 +130,11 @@ namespace UnityEditor.ShaderGraph.Generation
         {
             //length by height
             string lxh = "";
-            if(entry.length > 1 || entry.height > 1)
+            if (entry.length > 1 || entry.height > 1)
             {
                 lxh += entry.length;
             }
-            if(entry.height > 1)
+            if (entry.height > 1)
             {
                 lxh += "x" + entry.height;
             }
@@ -161,7 +160,7 @@ namespace UnityEditor.ShaderGraph.Generation
 
         private static bool FunctionsAreEqual(ShaderFunction a, ShaderFunction b)
         {
-            if(a.Name.CompareTo(b.Name) != 0)
+            if (a.Name.CompareTo(b.Name) != 0)
             {
                 return false;
             }
@@ -169,15 +168,15 @@ namespace UnityEditor.ShaderGraph.Generation
             var aParams = a.Parameters.ToList();
             var bParams = b.Parameters.ToList();
 
-            if(aParams.Count != bParams.Count)
+            if (aParams.Count != bParams.Count)
             {
                 return false;
             }
 
-            for(int i = 0; i < aParams.Count(); ++i)
+            for (int i = 0; i < aParams.Count(); ++i)
             {
-                if(aParams[i].IsInput != bParams[i].IsInput
-                || aParams[i].Type    != bParams[i].Type
+                if (aParams[i].IsInput != bParams[i].IsInput
+                || aParams[i].Type != bParams[i].Type
                 || aParams[i].IsValid != bParams[i].IsValid)//does this one need to be checked?
                 {
                     return false;
@@ -186,18 +185,18 @@ namespace UnityEditor.ShaderGraph.Generation
             return true;
         }
 
-        private static void ProcessNode(INodeReader node, ref ShaderContainer container, ref List<BlockVariable> inputVariables, ref List<BlockVariable> outputVariables, ref Block.Builder blockBuilder, ref ShaderFunction.Builder mainBodyFunctionBuilder, ref List<ShaderFunction> shaderFuncitons, Registry.Registry registry)
+        private static void ProcessNode(INodeReader node, ref ShaderContainer container, ref List<StructField> inputVariables, ref List<StructField> outputVariables, ref Block.Builder blockBuilder, ref ShaderFunction.Builder mainBodyFunctionBuilder, ref List<ShaderFunction> shaderFuncitons, Registry.Registry registry)
         {
             var func = registry.GetNodeBuilder(node.GetRegistryKey()).GetShaderFunction(node, container, registry);
             bool shouldAdd = true;
-            foreach(var existing in shaderFuncitons)
+            foreach (var existing in shaderFuncitons)
             {
-                if(FunctionsAreEqual(existing, func))
+                if (FunctionsAreEqual(existing, func))
                 {
                     shouldAdd = false;
                 }
             }
-            if(shouldAdd)
+            if (shouldAdd)
             {
                 shaderFuncitons.Add(func);
             }
@@ -244,15 +243,15 @@ namespace UnityEditor.ShaderGraph.Generation
             Stack<INodeReader> stack = new Stack<INodeReader>();
             HashSet<INodeReader> visited = new HashSet<INodeReader>();
             stack.Push(rootNode);
-            while(stack.Count > 0)
+            while (stack.Count > 0)
             {
                 INodeReader check = stack.Peek();
                 bool isLeaf = true;
-                foreach(IPortReader port in check.GetInputPorts())
+                foreach (IPortReader port in check.GetInputPorts())
                 {
-                    if(port.IsHorizontal())
+                    if (port.IsHorizontal())
                     {
-                        foreach(INodeReader connected in GetConnectedNodes(port))
+                        foreach (INodeReader connected in GetConnectedNodes(port))
                         {
                             if (!visited.Contains(connected))
                             {
@@ -263,7 +262,7 @@ namespace UnityEditor.ShaderGraph.Generation
                         }
                     }
                 }
-                if(isLeaf)
+                if (isLeaf)
                 {
                     yield return stack.Pop();
                 }
@@ -272,7 +271,7 @@ namespace UnityEditor.ShaderGraph.Generation
 
         private static IEnumerable<INodeReader> GetConnectedNodes(IPortReader port)
         {
-            foreach(var connected in port.GetConnectedPorts())
+            foreach (var connected in port.GetConnectedPorts())
             {
                 yield return connected.GetNode();
             }
