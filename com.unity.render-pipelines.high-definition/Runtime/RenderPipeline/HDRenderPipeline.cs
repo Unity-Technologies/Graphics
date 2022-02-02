@@ -1738,7 +1738,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDAdditionalCameraData additionalCameraData = null;
                 camera.TryGetComponent(out additionalCameraData);
 
-                var projMatrix = Matrix4x4.Perspective(Mathf.PI * 0.5f, 1.0f, camera.nearClipPlane, camera.farClipPlane);
+                var projMatrix = Matrix4x4.Perspective(90.0f, 1.0f, camera.nearClipPlane, camera.farClipPlane);
+
+                Matrix4x4 inverseTransform = Matrix4x4.identity;
+                inverseTransform.SetTRS(-camera.transform.position, Quaternion.identity, Vector3.one);
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -1762,7 +1765,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (additionalCameraData != null)
                         additionalCameraData.CopyTo(faceAdditionalData);
 
-                    faceCamera.worldToCameraMatrix = m_CubemapFaceMatrices[i];
+                    faceAdditionalData.flipYMode = HDAdditionalCameraData.FlipYMode.ForceFlipY;
+
+                    faceCamera.transform.position = camera.transform.position;
+                    faceCamera.transform.rotation = Quaternion.LookRotation(CoreUtils.lookAtList[i], CoreUtils.upVectorList[i]);
+
+                    //faceCamera.worldToCameraMatrix = m_CubemapFaceMatrices[i] * inverseTransform;
                     faceCamera.projectionMatrix = projMatrix;
 
                     if (PrepareAndCullCamera(faceCamera, XRSystem.emptyPass, false, renderRequests, rootRenderRequestIndices, renderContext, out var request, cubemapFaces[i]))
@@ -1926,6 +1934,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 #endif
 
+                GenerateRenderToCubemapRequests(renderRequests, rootRenderRequestIndices, renderRequestIndicesWhereTheProbeIsVisible, renderContext);
+
                 // Culling loop
                 foreach ((Camera camera, XRPass xrPass) in multipassCameras)
                 {
@@ -1987,8 +1997,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         DetermineVisibleProbesForRequest(request, renderRequestIndicesWhereTheProbeIsVisible);
                     }
                 }
-
-                GenerateRenderToCubemapRequests(renderRequests, rootRenderRequestIndices, renderRequestIndicesWhereTheProbeIsVisible, renderContext);
 
                 // Generate RenderRequests for all visible probes
                 GenerateProbeRenderRequests(renderRequestIndicesWhereTheProbeIsVisible, renderRequests, cameraSettings, cameraPositionSettings, renderContext);
@@ -2286,7 +2294,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (GL.wireframe)
                 {
-                    //RenderWireFrame(cullingResults, hdCamera, target.id, renderContext, cmd);
+                    RenderWireFrame(cullingResults, hdCamera, target.id, renderContext, cmd);
                     return;
                 }
 
