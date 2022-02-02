@@ -1,11 +1,11 @@
 {
   "name": "com.unity.render-pipelines.high-definition-config",
   "description": "Modified for SensorSDK package. Configuration files for the High Definition Render Pipeline.",
-  "version": "11.0.0-exp.1",
+  "version": "11.0.0-exp.2",
   "unity": "2021.1",
   "unityRelease": "9f1",
   "displayName": "High Definition RP Config",
   "dependencies": {
-    "com.unity.render-pipelines.core": "11.0.0-exp.1"
+    "com.unity.render-pipelines.core": "11.0.0-exp.2"
   }
 }

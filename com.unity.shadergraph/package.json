@@ -1,12 +1,12 @@
 {
   "name": "com.unity.shadergraph",
   "description": "Modified for SensorSDK package. The Shader Graph package adds a visual Shader editing tool to Unity. You can use this tool to create Shaders in a visual way instead of writing code. Specific render pipelines can implement specific graph features. Currently, both the High Definition Rendering Pipeline and the Universal Rendering Pipeline support Shader Graph.",
-  "version": "11.0.0-exp.1",
+  "version": "11.0.0-exp.2",
   "unity": "2021.1",
   "unityRelease": "9f1",
   "displayName": "Shader Graph",
   "dependencies": {
-    "com.unity.render-pipelines.core": "11.0.0-exp.1",
+    "com.unity.render-pipelines.core": "11.0.0-exp.2",
     "com.unity.searcher": "4.3.1"
   },
   "samples": [
