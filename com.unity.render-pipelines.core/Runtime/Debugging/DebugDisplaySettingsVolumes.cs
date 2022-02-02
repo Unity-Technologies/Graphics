@@ -362,7 +362,13 @@ namespace UnityEngine.Rendering
         }
 
         #region IDebugDisplaySettingsData
+        /// <summary>
+        /// Checks whether ANY of the debug settings are currently active.
+        /// </summary>
         public bool AreAnySettingsActive => volumeDebugSettings.selectedCamera != null || volumeComponentEnumIndex > 0;
+        /// <summary>
+        /// Checks whether the current state of these settings allows post-processing.
+        /// </summary>
         public bool IsPostProcessingAllowed => true;
         /// <summary>
         /// Checks whether lighting is active for these settings.
