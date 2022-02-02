@@ -335,6 +335,43 @@ MonoBehaviour:
   lastBounce:
     m_OverrideState: 0
     m_Value: 3
+--- !u!114 &-789572435174002555
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d877a03bef431a847adca8ab343db3e1, type: 3}
+  m_Name: RayTracingSettings
+  m_EditorClassIdentifier: 
+  active: 1
+  rayBias:
+    m_OverrideState: 0
+    m_Value: 0.001
+  extendShadowCulling:
+    m_OverrideState: 0
+    m_Value: 0
+  extendCameraCulling:
+    m_OverrideState: 0
+    m_Value: 0
+  directionalShadowRayLength:
+    m_OverrideState: 0
+    m_Value: 1000
+  directionalShadowFallbackIntensity:
+    m_OverrideState: 0
+    m_Value: 1
+  buildMode:
+    m_OverrideState: 0
+    m_Value: 0
+  cullingMode:
+    m_OverrideState: 1
+    m_Value: 2
+  cullingDistance:
+    m_OverrideState: 0
+    m_Value: 1000
 --- !u!114 &-196050169322963185
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -380,6 +417,7 @@ MonoBehaviour:
   - {fileID: -3970499765940129728}
   - {fileID: 7905071202429065127}
   - {fileID: -1311249983721323693}
+  - {fileID: -789572435174002555}
 --- !u!114 &1567678360825074408
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -484,6 +522,9 @@ MonoBehaviour:
   enabled:
     m_OverrideState: 1
     m_Value: 1
+  enabledTransparent:
+    m_OverrideState: 0
+    m_Value: 1
   tracing:
     m_OverrideState: 1
     m_Value: 2
@@ -508,6 +549,27 @@ MonoBehaviour:
   accumulationFactor:
     m_OverrideState: 0
     m_Value: 0.75
+  biasFactor:
+    m_OverrideState: 0
+    m_Value: 0.5
+  speedRejectionParam:
+    m_OverrideState: 0
+    m_Value: 0.5
+  speedRejectionScalerFactor:
+    m_OverrideState: 0
+    m_Value: 0.2
+  speedSmoothReject:
+    m_OverrideState: 0
+    m_Value: 0
+  speedSurfaceOnly:
+    m_OverrideState: 0
+    m_Value: 1
+  speedTargetOnly:
+    m_OverrideState: 0
+    m_Value: 1
+  enableWorldSpeedRejection:
+    m_OverrideState: 0
+    m_Value: 0
   m_RayMaxIterations:
     m_OverrideState: 0
     m_Value: 32

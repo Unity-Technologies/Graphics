@@ -46,8 +46,6 @@ namespace UnityEditor.Rendering.HighDefinition
             ReceiveDecal = 1 << 9,
             /// <summary>Displays the show after post process field.</summary>
             ShowAfterPostProcessPass = 1 << 10,
-            /// <summary>Displays the alpha to mask field.</summary>
-            AlphaToMask = 1 << 11,
             /// <summary>Displays the show pre pass and post pass fields.</summary>
             ShowPrePassAndPostPass = 1 << 12,
             /// <summary>Displays the depth offset field.</summary>
@@ -55,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
             /// <summary>Displays the preserve specular lighting field.</summary>
             PreserveSpecularLighting = 1 << 14,
             /// <summary>Displays all the Unlit Surface Option fields.</summary>
-            Unlit = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold | AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
+            Unlit = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
             /// <summary>Displays all the Lit Surface Option fields field.</summary>
             Lit = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
             /// <summary>Displays all the fields.</summary>
@@ -87,7 +85,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent alphaCutoffShadowText = new GUIContent("Shadow Threshold", "Controls the threshold for shadow pass alpha clipping.");
             public static GUIContent alphaCutoffPrepassText = new GUIContent("Prepass Threshold", "Controls the threshold for transparent depth prepass alpha clipping.");
             public static GUIContent alphaCutoffPostpassText = new GUIContent("Postpass Threshold", "Controls the threshold for transparent depth postpass alpha clipping.");
-            public static GUIContent alphaToMaskText = new GUIContent("Alpha To Mask", "When enabled and using MSAA, HDRP enables alpha to coverage during the depth prepass.");
             public static GUIContent transparentDepthPostpassEnableText = new GUIContent("Transparent Depth Postpass", "When enabled, HDRP renders a depth postpass for transparent objects. This improves post-processing effects like depth of field.");
             public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Transparent Depth Prepass", "When enabled, HDRP renders a depth prepass for transparent GameObjects. This improves sorting.");
             public static GUIContent transparentBackfaceEnableText = new GUIContent("Back Then Front Rendering", "When enabled, HDRP renders the back face and then the front face, in two separate draw calls, to better sort transparent meshes.");
@@ -161,8 +158,6 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty alphaCutoffShadow = null;
         MaterialProperty alphaCutoffPrepass = null;
         MaterialProperty alphaCutoffPostpass = null;
-        MaterialProperty alphaToMask = null;
-        const string kAlphaToMask = kAlphaToMaskInspector;
         MaterialProperty transparentDepthPrepassEnable = null;
         MaterialProperty transparentDepthPostpassEnable = null;
         MaterialProperty transparentBackfaceEnable = null;
@@ -293,7 +288,6 @@ namespace UnityEditor.Rendering.HighDefinition
             alphaCutoffShadow = FindProperty(kAlphaCutoffShadow);
             alphaCutoffPrepass = FindProperty(kAlphaCutoffPrepass);
             alphaCutoffPostpass = FindProperty(kAlphaCutoffPostpass);
-            alphaToMask = FindProperty(kAlphaToMask);
             transparentDepthPrepassEnable = FindProperty(kTransparentDepthPrepassEnable);
             transparentDepthPostpassEnable = FindProperty(kTransparentDepthPostpassEnable);
 
@@ -438,12 +432,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         materialEditor.ShaderProperty(alphaCutoffShadow, Styles.alphaCutoffShadowText);
                         EditorGUI.indentLevel--;
                     }
-                }
-
-                if (showAlphaClipThreshold && (m_Features & Features.AlphaToMask) != 0)
-                {
-                    if (alphaToMask != null)
-                        materialEditor.ShaderProperty(alphaToMask, Styles.alphaToMaskText);
                 }
 
                 // With transparent object and few specific materials like Hair, we need more control on the cutoff to apply
