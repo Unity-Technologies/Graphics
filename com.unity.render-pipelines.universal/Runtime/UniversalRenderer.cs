@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.Universal
         public UniversalRenderer(UniversalRendererData data) : base(data)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            UniversalRenderPipeline.m_XRSystem.InitializeXRSystemData(data.xrSystemData);
+            Experimental.Rendering.XRSystem.Initialize(XRPassUniversal.Create, data.xrSystemData.shaders.xrOcclusionMeshPS, data.xrSystemData.shaders.xrMirrorViewPS);
 #endif
             // TODO: should merge shaders with HDRP into core, XR dependency for now.
             // TODO: replace/merge URP blit into core blitter.
@@ -770,6 +770,11 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderOpaqueForwardPass.ConfigureColorStoreAction(opaquePassColorStoreAction);
                 m_RenderOpaqueForwardPass.ConfigureDepthStoreAction(opaquePassDepthStoreAction);
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+                // workaround for DX11 and DX12 XR test failures.
+                // XRTODO: investigate DX XR clear issues.
+                if (SystemInfo.usesLoadStoreActions)
+#endif
                 m_RenderOpaqueForwardPass.ConfigureClear((cameraData.renderType == CameraRenderType.Base) ? ClearFlag.Color : ClearFlag.None, Color.black);
 
                 EnqueuePass(m_RenderOpaqueForwardPass);
@@ -887,7 +892,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // if resolving to screen we need to be able to perform sRGBConversion in post-processing if necessary
                     bool doSRGBConversion = resolvePostProcessingToCameraTarget;
-                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConversion);
+                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, resolvePostProcessingToCameraTarget, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConversion, hasPassesAfterPostProcessing);
                     EnqueuePass(postProcessPass);
                 }
 
@@ -896,7 +901,7 @@ namespace UnityEngine.Rendering.Universal
                 // Do FXAA or any other final post-processing effect that might need to run after AA.
                 if (applyFinalPostProcessing)
                 {
-                    finalPostProcessPass.SetupFinalPass(sourceForFinalPass, true);
+                    finalPostProcessPass.SetupFinalPass(sourceForFinalPass, true, hasPassesAfterPostProcessing);
                     EnqueuePass(finalPostProcessPass);
                 }
 
@@ -941,7 +946,7 @@ namespace UnityEngine.Rendering.Universal
             // stay in RT so we resume rendering on stack after post-processing
             else if (applyPostProcessing)
             {
-                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, false, m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
+                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, false, m_ActiveCameraDepthAttachment, colorGradingLut, false, false, true);
                 EnqueuePass(postProcessPass);
             }
 
