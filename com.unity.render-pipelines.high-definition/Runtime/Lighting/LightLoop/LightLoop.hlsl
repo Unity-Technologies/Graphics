@@ -457,7 +457,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             BuiltinData tempBuiltinData;
             ZERO_INITIALIZE(BuiltinData, tempBuiltinData);
 
-#if !defined(_SURFACE_TYPE_TRANSPARENT)
+#if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(SCREEN_SPACE_INDIRECT_DIFFUSE_DISABLED)
             if (_IndirectDiffuseMode != INDIRECTDIFFUSEMODE_OFF)
             {
                 tempBuiltinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz * GetInverseCurrentExposureMultiplier();

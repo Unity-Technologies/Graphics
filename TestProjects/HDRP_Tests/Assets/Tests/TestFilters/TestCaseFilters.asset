@@ -60,60 +60,6 @@ MonoBehaviour:
     Reason: With rendergraph - unstable on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 7deb5e53e3101c74ba65ea4ef9579f9a, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: Vulkan hardware DRS broken on render backend
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: eb89f789e3ce3db4d91641ad06d27151, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Vulkan hardware DRS broken on render backend
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Vulkan hardware DRS broken on render backend
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 6293ce393e2851d4e9827ff3dadd2673, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Vulkan hardware DRS broken on render backend
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 4dee1c4da3598c24f9fdd58a675d6547, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Vulkan hardware DRS broken on render backend
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: a50807faa70f2a441aba00a405914c6b, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: Vulkan hardware DRS broken on render backend
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 602816355ed2fb94383bb6396823e77e, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -166,3 +112,12 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: unstable with cache server
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: fa0d54c5ccbc8b143a8db100374e0f5e, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: API Bug
