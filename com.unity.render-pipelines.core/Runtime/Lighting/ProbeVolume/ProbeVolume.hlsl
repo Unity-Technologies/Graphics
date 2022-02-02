@@ -134,7 +134,7 @@ float GetNormalWeight(int3 offset, float3 posWS, float3 sample0Pos, float3 norma
     float3 samplePos = sample0Pos + offset * ProbeDistance(subdiv);
     float3 vecToProbe = normalize((samplePos)-posWS);
     float weight = saturate(dot(vecToProbe, normalWS) - _LeakReductionParams.z);
-    return 1;// weight; // TODO_FCC: SUPER SUPER SUPER IMPORTANT: RE-ENABLE.! RE-ENABLE!!!!!!! PLZ REVIEWER NOTICE IF I FORGET.
+    return weight;
 
 }
 
