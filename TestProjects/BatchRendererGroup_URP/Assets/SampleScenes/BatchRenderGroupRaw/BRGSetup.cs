@@ -152,7 +152,8 @@ public unsafe class BRGSetup : MonoBehaviour
         m_BatchRendererGroup = new BatchRendererGroup(this.OnPerformCulling, IntPtr.Zero);
 
         // TODO: Replace that 
-        const uint kUBOMaxWindowSize = 64 * 1024;
+        const bool kUseUBO = true;
+        const uint kUBOMaxWindowSize = kUseUBO ? 64 * 1024 : 128 * 1024 * 1024;
         const uint kUBOAlignment = 256;
         const int kFloat4Size = 16;
 
@@ -203,11 +204,11 @@ public unsafe class BRGSetup : MonoBehaviour
 
         // Generate a grid of objects...
 
-#if false
-        m_GPUPersistentInstanceData = new ComputeBuffer(1, bigDataBufferVector4Count * 16, ComputeBufferType.Constant);
-#else
-        m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Constant, (int)totalRawBufferSizeInBytes, kFloat4Size);
-#endif
+        if ( !kUseUBO )
+            m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Raw, (int)totalRawBufferSizeInBytes / 4, 4);
+        else
+            m_GPUPersistentInstanceData = new GraphicsBuffer(GraphicsBuffer.Target.Constant, (int)totalRawBufferSizeInBytes, kFloat4Size);
+
         // Matrices
         UpdatePositions(m_center);
 
