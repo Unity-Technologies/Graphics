@@ -1,14 +1,9 @@
 using System;
 using System.Diagnostics;
+using UnityEngine;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public enum CapsuleIndirectShadowMethod
-    {
-        AmbientOcclusion,
-        //Directional,
-    }
-
     [Serializable]
     public sealed class CapsuleAmbientOcclusionMethodParameter : VolumeParameter<CapsuleAmbientOcclusionMethod>
     {
@@ -35,19 +30,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter enableIndirectShadows = new BoolParameter(false);
 
         /// <summary>
+        /// The range of indirect shadows from capsules, in multiples of the capsule radius.
+        /// </summary>
+        public FloatParameter indirectRangeFactor = new MinFloatParameter(4.0f, 0.0f);
+
+        /// <summary>
         /// The method to use for indirect shadowing from capsules.
         /// </summary>
         public CapsuleIndirectShadowMethodParameter indirectShadowMethod = new CapsuleIndirectShadowMethodParameter(CapsuleIndirectShadowMethod.AmbientOcclusion);
 
         /// <summary>
-        /// Controls the range of ambient occlusion from capsules, in multiples of the capsule radius.
-        /// </summary>
-        public FloatParameter ambientOcclusionRangeFactor = new MinFloatParameter(4.0f, 0.0f);
-
-        /// <summary>
-        /// Controls the method used to apply ambient occlusion from capsules.
+        /// The method used for ambient occlusion, if selected as the indirect shadowing method.
         /// </summary>
         public CapsuleAmbientOcclusionMethodParameter ambientOcclusionMethod = new CapsuleAmbientOcclusionMethodParameter(CapsuleAmbientOcclusionMethod.LineIntegral);
+
 
         CapsuleShadowsVolumeComponent()
         {

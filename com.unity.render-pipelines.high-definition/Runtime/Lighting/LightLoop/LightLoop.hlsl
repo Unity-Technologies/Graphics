@@ -670,7 +670,28 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
-    aggregateLighting.indirect.shadow = 1.f - EvaluateCapsuleAmbientOcclusion(posInput, bsdfData.normalWS);
+    if ((_CapsuleIndirectShadowCountAndFlags & 0x00ffffffU) != 0)
+    {
+        uint method = (_CapsuleIndirectShadowCountAndFlags >> 24) & 0xfU;
+        if (method == CAPSULEINDIRECTSHADOWMETHOD_AMBIENT_OCCLUSION)
+        {
+            uint aoMethod = _CapsuleIndirectShadowCountAndFlags >> 28;
+
+            uint flags = 0;
+            if (aoMethod == CAPSULEAMBIENTOCCLUSIONMETHOD_LINE_INTEGRAL)
+                flags |= CAPSULE_AMBIENT_OCCLUSION_FLAG_WITH_LINE_AO;
+
+            aggregateLighting.indirect.shadow = 1.f - EvaluateCapsuleAmbientOcclusion(flags, posInput, bsdfData.normalWS);
+        }
+        else
+        {
+            aggregateLighting.indirect.shadow = 1.f - EvaluateCapsuleIndirectShadow(
+                _CapsuleIndirectDirection,
+                _CapsuleIndirectCosAngle,
+                posInput,
+                bsdfData.normalWS);
+        }
+    }
 
     ApplyDebugToLighting(context, builtinData, aggregateLighting);
 

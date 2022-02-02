@@ -12,6 +12,13 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL]
+    public enum CapsuleIndirectShadowMethod
+    {
+        AmbientOcclusion,
+        Directional,
+    }
+
+    [GenerateHLSL]
     public enum CapsuleAmbientOcclusionMethod
     {
         ClosestSphere,

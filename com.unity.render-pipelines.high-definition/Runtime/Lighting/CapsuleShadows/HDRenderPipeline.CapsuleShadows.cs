@@ -108,9 +108,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
                 bool enableDirectShadows = capsuleShadows.enableDirectShadows.value;
-                float ambientOcclusionRangeFactor = capsuleShadows.ambientOcclusionRangeFactor.value;
-                bool enableIndirectShadows = capsuleShadows.enableIndirectShadows.value && 
-                    (capsuleShadows.indirectShadowMethod.value == CapsuleIndirectShadowMethod.AmbientOcclusion && ambientOcclusionRangeFactor > 0.0f);
+                float indirectRangeFactor = capsuleShadows.indirectRangeFactor.value;
+                bool enableIndirectShadows = capsuleShadows.enableIndirectShadows.value &&  indirectRangeFactor > 0.0f;
                 if (enableDirectShadows || enableIndirectShadows)
                 {
                     bool scalePenumbraAlongX = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.capsuleShadowMethod == CapsuleShadowMethod.Ellipsoid;
@@ -171,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         if (enableIndirectShadows && m_CapsuleOccluders.TotalCount() < k_MaxVisibleCapsuleOccluders)
                         {
-                            float length = 2.0f * (data.offset + data.radius*(1.0f + ambientOcclusionRangeFactor));
+                            float length = 2.0f * (data.offset + data.radius*(1.0f + indirectRangeFactor));
                             OrientedBBox bounds = new OrientedBBox(
                                  Matrix4x4.TRS(data.centerRWS, Quaternion.identity, new Vector3(length, length, length)));
                             if (GeometryUtils.Overlap(bounds, hdCamera.frustum, 6, 8))
@@ -196,9 +195,22 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void UpdateShaderVariablesGlobalCapsuleShadows(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
             CapsuleShadowsVolumeComponent capsuleShadows = hdCamera.volumeStack.GetComponent<CapsuleShadowsVolumeComponent>();
+
+            uint indirectCountAndFlags = (uint)m_CapsuleOccluders.indirectCount | ((uint)capsuleShadows.indirectShadowMethod.value << 24);
+            switch (capsuleShadows.indirectShadowMethod.value)
+            {
+                case CapsuleIndirectShadowMethod.AmbientOcclusion:
+                    indirectCountAndFlags |= (uint)capsuleShadows.ambientOcclusionMethod.value << 28;
+                    break;
+                case CapsuleIndirectShadowMethod.Directional:
+                    break;
+            }
+
             cb._CapsuleDirectShadowCount = (uint)m_CapsuleOccluders.directCount;
-            cb._CapsuleIndirectShadowCountAndFlags = (uint)m_CapsuleOccluders.indirectCount | ((uint)capsuleShadows.ambientOcclusionMethod.value << 24);
-            cb._CapsuleAmbientOcclusionRangeFactor = capsuleShadows.ambientOcclusionRangeFactor.value;
+            cb._CapsuleIndirectShadowCountAndFlags = indirectCountAndFlags;
+            cb._CapsuleIndirectRangeFactor = capsuleShadows.indirectRangeFactor.value;
+            cb._CapsuleIndirectDirection = Vector3.up;
+            cb._CapsuleIndirectCosAngle = Mathf.Cos(45.0f * Mathf.Deg2Rad);
         }
 
         internal void BindGlobalCapsuleShadowBuffers(CommandBuffer cmd)

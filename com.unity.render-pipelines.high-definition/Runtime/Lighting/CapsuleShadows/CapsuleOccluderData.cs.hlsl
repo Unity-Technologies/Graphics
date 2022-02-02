@@ -12,6 +12,12 @@
 #define CAPSULESHADOWMETHOD_ELLIPSOID (2)
 
 //
+// UnityEngine.Rendering.HighDefinition.CapsuleIndirectShadowMethod:  static fields
+//
+#define CAPSULEINDIRECTSHADOWMETHOD_AMBIENT_OCCLUSION (0)
+#define CAPSULEINDIRECTSHADOWMETHOD_DIRECTIONAL (1)
+
+//
 // UnityEngine.Rendering.HighDefinition.CapsuleAmbientOcclusionMethod:  static fields
 //
 #define CAPSULEAMBIENTOCCLUSIONMETHOD_CLOSEST_SPHERE (0)
