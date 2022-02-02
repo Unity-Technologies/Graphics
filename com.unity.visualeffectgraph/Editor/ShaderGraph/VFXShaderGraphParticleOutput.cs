@@ -235,6 +235,7 @@ namespace UnityEditor.VFX
             var shaderGraph = GetOrRefreshShaderGraphObject();
             if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
             {
+                var needsSync = false;
                 var properties = ShaderUtil.GetMaterialProperties(new[] { material });
                 foreach (var property in shaderGraph.properties)
                 {
@@ -245,7 +246,7 @@ namespace UnityEditor.VFX
                         if (order != property.order)
                         {
                             property.order = order;
-                            GetGraph().SetExpressionGraphDirty();
+                            needsSync = true;
                         }
                     }
                 }
@@ -254,7 +255,7 @@ namespace UnityEditor.VFX
                 // In certain scenarios the context might not be configured with any serialized material information
                 // when assigned a shader graph for the first time. In this case we sync the settings to the incoming material,
                 // which will be pre-configured by shader graph with the render state & other properties (i.e. a SG with Transparent surface).
-                if (materialSettings.NeedsSync())
+                if (needsSync || materialSettings.NeedsSync())
                 {
                     materialSettings.SyncFromMaterial(material);
                     Invalidate(InvalidationCause.kSettingChanged);
