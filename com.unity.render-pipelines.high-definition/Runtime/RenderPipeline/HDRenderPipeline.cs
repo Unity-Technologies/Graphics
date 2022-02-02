@@ -2988,7 +2988,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 PushFullScreenDebugTexture(hdCamera, cmd, m_CameraColorBuffer, FullScreenDebugMode.NanTracker);
                 PushFullScreenLightingDebugTexture(hdCamera, cmd, m_CameraColorBuffer);
 
-                if (m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
+                if (m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1 && && !m_PathTracing.enable.value)
                 {
                     RenderAccumulation(hdCamera, m_CameraColorBuffer, m_CameraColorBuffer, false, cmd);
                 }
@@ -4807,7 +4807,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ColorPyramidUvScaleAndLimitPrevFrame = HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize);
             cb._SsrColorPyramidMaxMip = hdCamera.colorPyramidHistoryMipCount - 1;
             cb._SsrDepthPyramidMaxMip = depthPyramid.mipLevelCount - 1;
-            if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 2)
+            if (hdCamera.isFirstFrame || hdCamera.cameraFrameCount <= 3)
                 cb._SsrAccumulationAmount = 1.0f;
             else
                 cb._SsrAccumulationAmount = Mathf.Pow(2, Mathf.Lerp(0.0f, -7.0f, volumeSettings.accumulationFactor.value));

@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that placed an OnDemand shadow in the atlas before it was ever rendered.
 - Fixed issue at edge of screen on some platforms when SSAO is on.
 - Fixed vertex color mode Add name whicgh was misleading, renamed to AddSubstract.
+- Fixed screen space shadow when multiple lights cast shadows.
+- Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
 
 ## [10.8.0] - 2021-09-20
 
