@@ -119,6 +119,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the behavior the max ray length for recursive rendering to match RTR and rasterization.
 - Moved more internals of the sky manager to proper Render Graph passes.
 - Disabled the "Reflect Sky" feature in the case of transparent screen space reflections for the water system.
+- In Layered Lit shaders, option Add for the vertex color mode was renamed to AddSubstract, keeping the same behavior.
 
 ## [13.1.2] - 2021-11-05
 
