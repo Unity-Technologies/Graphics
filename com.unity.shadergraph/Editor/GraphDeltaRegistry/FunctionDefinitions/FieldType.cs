@@ -1,14 +1,14 @@
 namespace com.unity.shadergraph.defs {
 
-    enum Primitive { Bool, Float, }
+    enum Primitive { Bool, Float, Int, }
 
-    enum Precision { Dynamic, Fixed, Half, }
+    enum Precision { Fixed, Half, Full, }
 
-    enum Width { One, Two, Three, Four, Any, }
+    enum Width { One, Two, Three, Four, }
 
-    enum Height { One, Two, Three, Four, Any, }
+    enum Height { One, Two, Three, Four, }
 
-    enum Use { In, Out, Static, }
+    enum Use { In, Out, Static, } // required to be statically known
 
     public readonly struct Parameter
     {
@@ -45,11 +45,23 @@ namespace com.unity.shadergraph.defs {
     // EXAMPLE Function
     var pow = {
         Key = "GTF_POW",
+        Name = "pow",
         Parameters = new List<Parameter> {
             {
                 Key = "IN",
-                Name = "in",
+                Name = "In",
                 Use = Use.In,
+
+                Precision = Precision.Dynamic,
+                Height = Height.Four,
+                Width = Width.Four,
+                Primitive = Primitive.Bool
+            },
+            {
+                Key = "EXP",
+                Name = "Exp",
+                Use = Use.In,
+
                 Precision = Precision.Dynamic,
                 Height = Height.Four,
                 Width = Width.Four,
@@ -57,14 +69,15 @@ namespace com.unity.shadergraph.defs {
             },
             {
                 Key = "OUT",
-                Name = "out",
+                Name = "Out",
                 Use = Use.Out,
+
                 Precision = Precision.Dynamic,
                 Height = Height.Four,
                 Width = Width.Four,
                 Primitive = Primitive.Bool
             }
         },
-        
+        Body = "Out = pow(In, Exp);",
     };
 }
