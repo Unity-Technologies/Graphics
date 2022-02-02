@@ -1719,6 +1719,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ScriptableRenderContext renderContext)
         {
             CubemapFace[] cubemapFaces = { CubemapFace.PositiveX, CubemapFace.NegativeX, CubemapFace.PositiveY, CubemapFace.NegativeY, CubemapFace.PositiveZ, CubemapFace.NegativeZ };
+            string[] cubemapFaceNames = { "CubemapPosX", "CubemapNegX", "CubemapPosY", "CubemapNegY", "CubemapPosZ", "CubemapNegZ" };
 
             if (m_CubemapFaceMatrices == null)
             {
@@ -1741,7 +1742,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for (int i = 0; i < 6; i++)
                 {
-                    var faceCamera = m_RenderToCubemapCameraPool.GetOrCreate((camera, cubemapFaces[i]), m_FrameCount);
+                    var faceCamera = m_RenderToCubemapCameraPool.GetOrCreate((camera, cubemapFaces[i]), m_FrameCount, CameraType.Game, cubemapFaceNames[i]);
 
                     // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
                     faceCamera.targetTexture = output;
@@ -2285,7 +2286,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (GL.wireframe)
                 {
-                    RenderWireFrame(cullingResults, hdCamera, target.id, renderContext, cmd);
+                    //RenderWireFrame(cullingResults, hdCamera, target.id, renderContext, cmd);
                     return;
                 }
 

@@ -325,7 +325,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                     {
-                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, uiBuffer, afterPostProcessBuffer, viewIndex, HDROutputIsActive());
+                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, uiBuffer, afterPostProcessBuffer, viewIndex, HDROutputIsActive(), target.face);
                     }
 
                     if (aovRequest.isValid)
@@ -338,7 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (target.targetDepth != null)
                     {
-                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, m_RenderGraph.ImportTexture(target.targetDepth), uiBuffer, afterPostProcessBuffer, viewIndex, outputsToHDR: false);
+                        BlitFinalCameraTexture(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, m_RenderGraph.ImportTexture(target.targetDepth), uiBuffer, afterPostProcessBuffer, viewIndex, outputsToHDR: false, cubemapFace: target.face);
                     }
                 }
 
@@ -347,7 +347,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 SendColorGraphicsBuffer(m_RenderGraph, hdCamera);
 
-                SetFinalTarget(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, backBuffer);
+                SetFinalTarget(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, backBuffer, target.face);
 
                 RenderWireOverlay(m_RenderGraph, hdCamera, backBuffer);
 
@@ -398,6 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material blitMaterial;
             public Vector4 hdrOutputParmeters;
             public bool applyAfterPP;
+            public CubemapFace cubemapFace;
 
             public TextureHandle uiTexture;
             public TextureHandle afterPostProcessTexture;
@@ -405,7 +406,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle destination;
         }
 
-        void BlitFinalCameraTexture(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle destination, TextureHandle uiTexture, TextureHandle afterPostProcessTexture, int viewIndex, bool outputsToHDR)
+        void BlitFinalCameraTexture(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle destination, TextureHandle uiTexture, TextureHandle afterPostProcessTexture, int viewIndex, bool outputsToHDR, CubemapFace cubemapFace)
         {
             using (var builder = renderGraph.AddRenderPass<FinalBlitPassData>("Final Blit (Dev Build Only)", out var passData))
             {
@@ -427,6 +428,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.afterPostProcessTexture = builder.ReadTexture(afterPostProcessTexture);
                 passData.destination = builder.WriteTexture(destination);
                 passData.applyAfterPP = false;
+                passData.cubemapFace = cubemapFace;
 
                 if (outputsToHDR)
                 {
@@ -490,7 +492,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             propertyBlock.SetInt(HDShaderIDs._BlitTexArraySlice, data.srcTexArraySlice);
 
                         }
-                        HDUtils.DrawFullScreen(context.cmd, data.viewport, data.blitMaterial, data.destination, propertyBlock, 0, data.dstTexArraySlice);
+                        HDUtils.DrawFullScreen(context.cmd, data.viewport, data.blitMaterial, data.destination, propertyBlock, 0, data.dstTexArraySlice, cubemapFace: data.cubemapFace);
                     });
             }
         }
@@ -580,12 +582,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool copyDepth;
             public Material copyDepthMaterial;
             public TextureHandle finalTarget;
+            public CubemapFace finalTargetFace;
             public Rect finalViewport;
             public TextureHandle depthBuffer;
             public bool flipY;
         }
 
-        void SetFinalTarget(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle finalTarget)
+        void SetFinalTarget(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle finalTarget, CubemapFace finalTargetFace)
         {
             using (var builder = renderGraph.AddRenderPass<SetFinalTargetPassData>("Set Final Target", out var passData))
             {
@@ -602,6 +605,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 passData.copyDepth = passData.copyDepth && !hdCamera.xr.enabled;
                 passData.finalTarget = builder.WriteTexture(finalTarget);
+                passData.finalTargetFace = finalTargetFace;
                 passData.finalViewport = hdCamera.finalViewport;
 
                 if (passData.copyDepth)
@@ -615,7 +619,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     (SetFinalTargetPassData data, RenderGraphContext ctx) =>
                     {
                         // We need to make sure the viewport is correctly set for the editor rendering. It might have been changed by debug overlay rendering just before.
-                        ctx.cmd.SetRenderTarget(data.finalTarget);
+                        ctx.cmd.SetRenderTarget(data.finalTarget, 0, data.finalTargetFace);
                         ctx.cmd.SetViewport(data.finalViewport);
 
                         if (data.copyDepth)
