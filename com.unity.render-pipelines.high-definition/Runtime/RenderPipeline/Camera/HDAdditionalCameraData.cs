@@ -38,7 +38,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // Note: focalLength is already defined in the regular camera component
         [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture;
         [SerializeField] [Min(0.1f)] float m_FocusDistance;
+#pragma warning disable 0414
         [SerializeField] Camera.GateFitMode m_GateFit; // This is private with no public access because it is mainly just used to drive UX, the code should still access the main camera version.
+#pragma warning restore 0414
 
         // Aperture shape
         [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount;
