@@ -727,7 +727,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Action<AsyncGPUReadbackRequest> callback;
         }
 
-        internal void UpdateAmbientProbe(RenderGraph renderGraph, TextureHandle skyCubemap, bool outputForClouds, ComputeBuffer ambientProbeResult, ComputeBuffer diffuseAmbientProbeResult, ComputeBuffer volumetricAmbientProbeResult, Fog fog, Action<AsyncGPUReadbackRequest> callback)
+        internal void UpdateAmbientProbe(RenderGraph renderGraph, TextureHandle skyCubemap, bool outputForClouds, ComputeBuffer ambientProbeResult, ComputeBuffer diffuseAmbientProbeResult, ComputeBuffer volumetricAmbientProbeResult, Vector4 fogParameters, Action<AsyncGPUReadbackRequest> callback)
         {
             using (var builder = renderGraph.AddRenderPass<UpdateAmbientProbePassData>("UpdateAmbientProbe", out var passData, ProfilingSampler.Get(HDProfileId.UpdateSkyAmbientProbe)))
             {
@@ -742,13 +742,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.diffuseAmbientProbeResult = diffuseAmbientProbeResult;
                 passData.scratchBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(27, sizeof(uint))); // L2 = 9 channel per component
                 passData.volumetricAmbientProbeResult = volumetricAmbientProbeResult;
-                passData.fogParameters = fog != null ? new Vector4(fog.globalLightProbeDimmer.value, fog.anisotropy.value, 0.0f, 0.0f) : Vector4.zero;
+                passData.fogParameters = fogParameters;
                 passData.callback = callback;
 
                 builder.SetRenderFunc(
                 (UpdateAmbientProbePassData data, RenderGraphContext ctx) =>
                 {
-                    ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_AmbientProbeOutputBufferParam, data.ambientProbeResult);
+                    if (data.ambientProbeResult != null)
+                        ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_AmbientProbeOutputBufferParam, data.ambientProbeResult);
                     ctx.cmd.SetComputeBufferParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_ScratchBufferParam, data.scratchBuffer);
                     ctx.cmd.SetComputeTextureParam(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, s_AmbientProbeInputCubemap, data.skyCubemap);
                     if (data.diffuseAmbientProbeResult != null)
@@ -759,7 +760,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeVectorParam(data.computeAmbientProbeCS, s_FogParameters, data.fogParameters);
                     }
                     ctx.cmd.DispatchCompute(data.computeAmbientProbeCS, data.computeAmbientProbeKernel, 1, 1, 1);
-                    ctx.cmd.RequestAsyncReadback(data.ambientProbeResult, data.callback);
+                    if (data.ambientProbeResult != null)
+                        ctx.cmd.RequestAsyncReadback(data.ambientProbeResult, data.callback);
                 });
             }
         }
@@ -1066,12 +1068,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var skyCubemap = GenerateSkyCubemap(renderGraph, hdCamera, skyContext);
 
-                        if (updateAmbientProbe && !renderingContext.computeAmbientProbeRequested)
+                        if (updateAmbientProbe)
                         {
+                            Fog fog = hdCamera.volumeStack.GetComponent<Fog>();
                             UpdateAmbientProbe(renderGraph, skyCubemap, outputForClouds: false,
                                 renderingContext.ambientProbeResult, renderingContext.diffuseAmbientProbeBuffer, renderingContext.volumetricAmbientProbeBuffer,
-                                hdCamera.volumeStack.GetComponent<Fog>(), renderingContext.OnComputeAmbientProbeDone);
-                            renderingContext.computeAmbientProbeRequested = true;
+                                new Vector4(fog.globalLightProbeDimmer.value, fog.anisotropy.value, 0.0f, 0.0f), renderingContext.OnComputeAmbientProbeDone);
                         }
 
                         if (renderingContext.supportsConvolution)

@@ -17,6 +17,11 @@ Starting from HDRP 14.x, Motion Blur is turned off by default when in XR. This b
 Starting from HDRP 14.x, Alpha to Mask option have been removed. Alpha to Mask is always enabled now when MSAA is enabled.
 
 
+## Camera
+
+Starting from HDRP 14.x, the default for the Gate Fit parameter on the Physical camera settings is Vertical as opposed to the old Horizontal default.
+
+
 ## Refraction
 
 Objects with Transparent Materials and with a Refraction Model enabled will now fall back to a higher quality default refraction behavior. 
