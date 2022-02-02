@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Disallow "Gradient Diffusion" parameter to be negative for the "Gradient Sky".
 - Disabled volumetric clouds in lens flares sample indoor scene.
 - Make Vertical gate fit the default for physical camera.
+- Changed how the ambient probe is sent to the volumetric clouds trace pass (case 1381761).
 
 ### Fixed
 - Fixed build warnings due to the exception in burst code (case 1382827).
