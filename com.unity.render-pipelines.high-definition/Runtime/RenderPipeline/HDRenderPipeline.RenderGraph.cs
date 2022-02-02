@@ -611,7 +611,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (passData.copyDepth)
                 {
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
-                    passData.flipY = hdCamera.isMainGameView;
+                    passData.flipY = hdCamera.isMainGameView || hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY;
                     passData.copyDepthMaterial = m_CopyDepth;
                 }
 
