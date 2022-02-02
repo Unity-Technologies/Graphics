@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 scrollSpeed = Unpack(p.Find(x => x.scrollSpeed)),
                 flowmap = Unpack(p.Find(x => x.flowmap)),
 
-                raymarching = Unpack(p.Find(x => x.raymarching)),
+                raymarching = Unpack(p.Find(x => x.lighting)),
                 steps = Unpack(p.Find(x => x.steps)),
                 thickness = Unpack(p.Find(x => x.thickness)),
                 castShadows = Unpack(p.Find(x => x.castShadows)),

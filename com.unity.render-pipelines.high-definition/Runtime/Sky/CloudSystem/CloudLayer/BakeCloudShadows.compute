@@ -27,7 +27,7 @@ float _Resolution;
 float ComputeCloudShadow(float2 uv)
 {
     const float width = 0.2;
-    float3 dir = -_SunDirection + uv.x * width * _SunRight - uv.y * width * _SunUp;
+    float3 dir = _SunDirection + uv.x * width * _SunRight - uv.y * width * _SunUp;
 
     return RenderClouds(normalize(dir)).a;
 }

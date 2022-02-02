@@ -25,6 +25,7 @@ float4 _Params2[2];
 #define _Coverage           _FlowmapParam[1].w
 
 #define _SunDirection       _Params1[0].xyz
+#define _Thickness(l)       _Params1[l].w
 #define _SunLightColor(l)   _Params2[l].xyz
 #define _Altitude(l)        _Params2[l].w
 
@@ -38,10 +39,10 @@ struct CloudLayerData
     SAMPLER(flowmapSampler);
 };
 
-float GetCloudVolumeIntersection(int index, float3 dir)
+float3 GetCloudVolumeIntersection(int index, float3 dir)
 {
     const float _EarthRadius = 6378100.0f;
-    return -IntersectSphere(_Altitude(index) + _EarthRadius, -dir.y, _EarthRadius).x;
+    return dir * -IntersectSphere(_Altitude(index) + _EarthRadius, -dir.y, _EarthRadius).x;
 }
 
 float2 SampleCloudMap(float3 dir, int layer, float coverage)
@@ -115,15 +116,14 @@ float4 GetCloudLayerColor(float3 dir, int index)
 {
     float2 cloud;
 
+    float3 position = GetCloudVolumeIntersection(index, dir);
     float3 lightColor = _SunLightColor(index);
-    EvaluateSunColorAttenuation(dir * _Altitude(index), _SunDirection, lightColor);
+    EvaluateSunColorAttenuation(position, _SunDirection, lightColor);
 
     CloudLayerData layer = GetCloudLayer(index);
     if (layer.distort)
     {
-        float rangeStart, range;
         float scrollDist = 2 * _Altitude(index); // max horizontal distance clouds can travel, arbitrary but looks good
-        float3 position = dir * GetCloudVolumeIntersection(index, dir);
 
         float2 alpha = frac(_ScrollFactor(index) / scrollDist + float2(0.0, 0.5)) - 0.5;
         float3 delta;

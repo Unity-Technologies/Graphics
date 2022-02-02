@@ -21,6 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static ComputeShader s_BakeCloudTextureCS, s_BakeCloudShadowsCS;
         static int s_BakeCloudTextureKernel, s_BakeCloudShadowsKernel;
         static readonly Vector4[] s_VectorArray = new Vector4[2];
+        static readonly float[] s_FloatArray = new float[2];
 
 
         public CloudLayerRenderer()
@@ -115,8 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (builtinParams.sunLight != null)
             {
                 s_VectorArray[0] = -builtinParams.sunLight.transform.forward;
-                s_VectorArray[0].w = cloudLayer.layerA.thickness.value;
-                s_VectorArray[1].w = cloudLayer.layerB.thickness.value;
+                s_VectorArray[0].w = cloudLayer.layerA.thickness.value; s_VectorArray[1].w = cloudLayer.layerB.thickness.value;
                 m_CloudLayerMaterial.SetVectorArray(HDShaderIDs._Params1, s_VectorArray);
 
                 var lightComponent = builtinParams.sunLight.GetComponent<Light>();
@@ -289,7 +289,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetComputeTextureParam(s_BakeCloudTextureCS, s_BakeCloudTextureKernel, _CloudMapA, cloudLayer.layerA.cloudMap.value);
                 var paramsA = cloudLayer.layerA.GetBakingParameters();
-                paramsA.Item2.w = 1.0f / cloudTextureWidth;
 
                 if (cloudLayer.NumLayers == 1)
                 {
@@ -309,6 +308,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeVectorArrayParam(s_BakeCloudTextureCS, HDShaderIDs._Params2, s_VectorArray);
                 }
 
+                cmd.SetComputeFloatParam(s_BakeCloudTextureCS, HDShaderIDs._Resolution, 1.0f / cloudTextureWidth);
+
                 const int groupSizeX = 8;
                 const int groupSizeY = 8;
                 int threadGroupX = (cloudTextureWidth + (groupSizeX - 1)) / groupSizeX;
@@ -320,34 +321,36 @@ namespace UnityEngine.Rendering.HighDefinition
                 return true;
             }
 
-            public void BakeCloudShadows(CloudLayer cloudLayer, Light sunLight, HDCamera camera, CommandBuffer cmd)
+            public void BakeCloudShadows(CloudLayer cloudLayer, Light sunLight, HDCamera hdCamera, CommandBuffer cmd)
             {
                 InitIfNeeded(cloudLayer, sunLight, cmd);
-                Vector4 _Params = sunLight.transform.forward;
-                Vector4 _Params1 = sunLight.transform.right;
-                Vector4 _Params2 = sunLight.transform.up;
-                Vector4 _Params3 = cloudLayer.shadowTint.value;
-                _Params.w = 1.0f / cloudShadowsResolution;
-                _Params3.w = cloudLayer.shadowMultiplier.value * 8.0f;
+                Vector4 _Params = cloudLayer.shadowTint.value;
+                _Params.w = cloudLayer.shadowMultiplier.value * 8.0f;
 
+                // Parameters
+                cmd.SetComputeFloatParam(s_BakeCloudShadowsCS, HDShaderIDs._Resolution, 1.0f / cloudShadowsResolution);
                 cmd.SetComputeVectorParam(s_BakeCloudShadowsCS, HDShaderIDs._Params, _Params);
-                cmd.SetComputeVectorParam(s_BakeCloudShadowsCS, HDShaderIDs._Params1, _Params1);
-                cmd.SetComputeVectorParam(s_BakeCloudShadowsCS, HDShaderIDs._Params2, _Params2);
-                cmd.SetComputeVectorParam(s_BakeCloudShadowsCS, HDShaderIDs._Params3, _Params3);
 
                 cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _CloudTexture, cloudTextureRT);
                 cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _CloudShadows, cloudShadowsRT);
 
-                var paramA = cloudLayer.layerA.GetRenderingParameters(camera);
-                var paramB = cloudLayer.layerB.GetRenderingParameters(camera);
-                paramA.z *= 0.2f;
-                paramB.z *= 0.2f;
-                paramA.w = cloudLayer.upperHemisphereOnly.value ? 1 : 0;
-                paramB.w = cloudLayer.coverage.value; // TODO
+                var _FlowmapParamA = cloudLayer.layerA.GetRenderingParameters(hdCamera);
+                var _FlowmapParamB = cloudLayer.layerB.GetRenderingParameters(hdCamera);
+                _FlowmapParamA.w = cloudLayer.upperHemisphereOnly.value ? 1 : 0;
+                _FlowmapParamB.w = cloudLayer.coverage.value;
 
-                s_VectorArray[0] = paramA; s_VectorArray[1] = paramB;
+                s_VectorArray[0] = _FlowmapParamA; s_VectorArray[1] = _FlowmapParamB;
                 cmd.SetComputeVectorArrayParam(s_BakeCloudShadowsCS, HDShaderIDs._FlowmapParam, s_VectorArray);
 
+                s_VectorArray[0] = -sunLight.transform.forward;
+                s_VectorArray[0].w = cloudLayer.layerA.thickness.value; s_VectorArray[1].w = cloudLayer.layerB.thickness.value;
+                cmd.SetComputeVectorArrayParam(s_BakeCloudShadowsCS, HDShaderIDs._Params1, s_VectorArray);
+
+                s_VectorArray[0] = sunLight.transform.right; s_VectorArray[1] = sunLight.transform.up;
+                s_VectorArray[0].w = cloudLayer.layerA.altitude.value; s_VectorArray[1].w = cloudLayer.layerB.altitude.value;
+                cmd.SetComputeVectorArrayParam(s_BakeCloudShadowsCS, HDShaderIDs._Params2, s_VectorArray);
+
+                // Keywords
                 bool useSecond = (cloudLayer.layers.value == CloudMapMode.Double) && cloudLayer.layerB.castShadows.value;
                 CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "DISABLE_MAIN_LAYER", !cloudLayer.layerA.castShadows.value);
                 CoreUtils.SetKeyword(s_BakeCloudShadowsCS, "USE_SECOND_CLOUD_LAYER", useSecond);

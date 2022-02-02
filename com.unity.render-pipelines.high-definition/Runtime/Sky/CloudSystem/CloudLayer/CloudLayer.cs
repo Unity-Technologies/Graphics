@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [VolumeComponentMenuForRenderPipeline("Sky/Cloud Layer", typeof(HDRenderPipeline))]
     [CloudUniqueID((int)CloudType.CloudLayer)]
     [HDRPHelpURLAttribute("Override-Cloud-Layer")]
-    public class CloudLayer : CloudSettings
+    public partial class CloudLayer : CloudSettings
     {
         /// <summary>Controls the global opacity of the cloud layer.</summary>
         [Tooltip("Controls the global coverage of the cloud layer.")]
@@ -171,14 +171,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture2DParameter flowmap = new Texture2DParameter(null);
 
             /// <summary>Simulates cloud self-shadowing using raymarching.</summary>
+            [InspectorName("Raymarching")]
             [Tooltip("Simulates cloud self-shadowing using raymarching.")]
-            public BoolParameter raymarching = new BoolParameter(false);
+            public BoolParameter lighting = new BoolParameter(false);
             /// <summary>Number of raymarching steps.</summary>
             [Tooltip("Number of raymarching steps.")]
-            /// <summary>Thickness of the clouds.</summary>
             public ClampedIntParameter steps = new ClampedIntParameter(10, 2, 32);
-            [Tooltip("Controls the thickness of the clouds.")]
-            public ClampedFloatParameter thickness = new ClampedFloatParameter(0.5f, 0, 1);
+            /// <summary>Thickness of the cloud layer in meters.</summary>
+            [Tooltip("Thickness of the cloud layer in meters.")]
+            public MinFloatParameter thickness = new MinFloatParameter(8000.0f, 100);
 
             /// <summary>Enable to cast shadows.</summary>
             [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows. This will override the cookie of your directional light.")]
@@ -186,7 +187,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
             internal float scrollFactor = 0.0f;
-            internal int NumSteps => raymarching.value ? steps.value : 0;
+            internal int NumSteps => lighting.value ? steps.value : 0;
             internal Vector4 Opacities => new Vector4(opacityR.value, opacityG.value, opacityB.value, opacityA.value);
 
             internal Vector4 GetRenderingParameters(HDCamera camera)
@@ -201,14 +202,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     -rotation.value / 360.0f,
                     NumSteps,
                     thickness.value,
-                    0
+                    altitude.value
                 );
                 return (Opacities, params2);
             }
 
             internal int GetBakingHashCode()
             {
-                int hash = 0;
+                int hash = 17;
 
                 unchecked
                 {
@@ -221,19 +222,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     hash = hash * 23 + rotation.GetHashCode();
                     hash = hash * 23 + castShadows.GetHashCode();
 
-                    if (raymarching.value)
+                    if (lighting.value)
                     {
-                        hash = hash * 23 + raymarching.GetHashCode();
+                        hash = hash * 23 + lighting.GetHashCode();
                         hash = hash * 23 + steps.GetHashCode();
                         hash = hash * 23 + altitude.GetHashCode();
                         hash = hash * 23 + thickness.GetHashCode();
                     }
-
-#if UNITY_EDITOR
-                    // In the editor, we want to rebake the texture if the texture content is modified
-                    if (cloudMap.value != null)
-                        hash = hash * 23 + cloudMap.value.imageContentsHash.GetHashCode();
-#endif
                 }
 
                 return hash;
@@ -245,10 +240,18 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <returns>The hash code of the CloudMap parameters.</returns>
             public override int GetHashCode()
             {
-                int hash = GetBakingHashCode();
+                int hash = 17;
 
                 unchecked
                 {
+                    hash = hash * 23 + cloudMap.GetHashCode();
+                    hash = hash * 23 + opacityR.GetHashCode();
+                    hash = hash * 23 + opacityG.GetHashCode();
+                    hash = hash * 23 + opacityB.GetHashCode();
+                    hash = hash * 23 + opacityA.GetHashCode();
+
+                    hash = hash * 23 + altitude.GetHashCode();
+                    hash = hash * 23 + rotation.GetHashCode();
                     hash = hash * 23 + tint.GetHashCode();
 
                     hash = hash * 23 + distortionMode.GetHashCode();
@@ -256,13 +259,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     hash = hash * 23 + scrollSpeed.GetHashCode();
                     hash = hash * 23 + flowmap.GetHashCode();
 
-                    hash = hash * 23 + distortionMode.GetHashCode();
+                    hash = hash * 23 + lighting.GetHashCode();
+                    hash = hash * 23 + steps.GetHashCode();
+                    hash = hash * 23 + thickness.GetHashCode();
 
-#if UNITY_EDITOR
-                    // In the editor, we want to rebake the texture if the texture content is modified
-                    if (flowmap.value != null)
-                        hash = hash * 23 + flowmap.value.imageContentsHash.GetHashCode();
-#endif
+                    hash = hash * 23 + castShadows.GetHashCode();
                 }
 
                 return hash;
@@ -277,12 +278,12 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int NumLayers => (layers == CloudMapMode.Single) ? 1 : 2;
         internal bool CastShadows => layerA.castShadows.value || (layers == CloudMapMode.Double && layerB.castShadows.value);
 
-        Vector3Int CastForAngleDiff(Vector3 vec, float factor) => new Vector3Int((int)(vec.x * factor), (int)(vec.y * factor), (int)(vec.z * factor));
+        Vector3Int CastToInt3(Vector3 vec) => new Vector3Int((int)vec.x, (int)vec.y, (int)vec.z);
 
         internal int GetBakingHashCode(Light sunLight)
         {
             int hash = 17;
-            bool lighting = layerA.raymarching.value;
+            bool lighting = layerA.lighting.value;
             bool shadows = sunLight != null && layerA.castShadows.value;
 
             unchecked
@@ -294,12 +295,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (layers.value == CloudMapMode.Double)
                 {
                     hash = hash * 23 + layerB.GetBakingHashCode();
-                    lighting |= layerB.raymarching.value;
+                    lighting |= layerB.lighting.value;
                     shadows |= layerB.castShadows.value;
                 }
 
                 if (lighting && sunLight != null)
-                    hash = hash * 23 + CastForAngleDiff(sunLight.transform.rotation.eulerAngles, 1.0f).GetHashCode();
+                    hash = hash * 23 + CastToInt3(sunLight.transform.rotation.eulerAngles).GetHashCode();
                 if (shadows)
                     hash = hash * 23 + shadowResolution.GetHashCode();
             }
