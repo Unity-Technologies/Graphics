@@ -313,7 +313,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private void OnSceneEdit()
         {
             bool doPathTracingReset = true;
-            
+
             // If we just change the sample count, we don't necessarily want to reset iteration
             if (m_PathTracingSettings && m_CacheMaxIteration != m_PathTracingSettings.maximumSamples.value)
             {
@@ -327,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 doPathTracingReset = false;
             }
-            
+
 #if ENABLE_UNITY_DENOISING_PLUGIN
             // If we just change the denoiser type, we don't necessarily want to reset iteration
             if (m_PathTracingSettings && m_CachedDenoiserType != m_PathTracingSettings.denoising.value)
@@ -656,7 +656,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
 #endif
-                m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
+            m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
             // Check the validity of the state before moving on with the computation
             if (!m_GlobalSettings.renderPipelineRayTracingResources.pathTracingRT || !m_PathTracingSettings.enable.value)
