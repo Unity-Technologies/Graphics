@@ -106,6 +106,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed debug data for probes to not longer be cleared every time a cell is added/removed. This helps performance with streaming.
 - Fixed APV loading data outside of the relevant area containing probes.
 - Fixed the roughness value used for screen space reflections and ray traced reflections to match environment lighting (case 1390916).
+- Fixed editor issue with the LiftGammaGain and ShadowsMidtonesHighlights volume components.
 
 ## [14.0.0] - 2021-11-17
 
