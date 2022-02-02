@@ -101,6 +101,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed errors about incorrect color spaces in the console when using the Wizzard to fix the project setup (case 1388222).
 - Fixed custom pass name being cut when too long in the inspector.
 - Fixed vertex color mode Add name whicgh was misleading, renamed to AddSubstract.
+- Fixed screen space shadow when multiple lights cast shadows.
 
 ## [14.0.0] - 2021-11-17
 
