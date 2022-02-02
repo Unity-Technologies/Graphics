@@ -280,7 +280,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_CoreBlitMaterial);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
 #if UNITY_EDITOR
             m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
