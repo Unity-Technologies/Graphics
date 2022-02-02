@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.UI
         /// <summary>
         /// Update the label of the widget.
         /// </summary>
-        protected override void UpdateValueLabel()
+        public override void UpdateValueLabel()
         {
             int index = m_Field.currentIndex;
 

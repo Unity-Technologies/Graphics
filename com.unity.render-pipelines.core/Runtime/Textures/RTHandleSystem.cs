@@ -181,10 +181,11 @@ namespace UnityEngine.Rendering
                 }
                 m_FramesSinceLastReset++;
             }
-
-            // If some cameras is requesting the same res as the max res, we don't want to reset
-            if (m_MaxWidths == width && m_MaxHeights == height)
+            else
+            {
+                // If some cameras is a reasonable resolution size, we dont reset.
                 m_FramesSinceLastReset = 0;
+            }
 #endif
 
             bool sizeChanged = width > GetMaxWidth() || height > GetMaxHeight() || reset;

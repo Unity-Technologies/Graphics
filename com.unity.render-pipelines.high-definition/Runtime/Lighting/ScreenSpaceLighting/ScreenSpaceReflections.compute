@@ -308,7 +308,7 @@ void GetNormalAndPerceptualRoughness(uint2 positionSS, out float3 normalWS, out 
     DecodeFromNormalBuffer(positionSS, normalData);
     normalWS = normalData.normalWS;
     float4 packedCoatMask = _SsrClearCoatMaskTexture[COORD_TEXTURE2D_X(positionSS)];
-    perceptualRoughness = HasClearCoatMask(packedCoatMask) ? CLEAR_COAT_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
+    perceptualRoughness = HasClearCoatMask(packedCoatMask) ? CLEAR_COAT_SSR_PERCEPTUAL_ROUGHNESS : normalData.perceptualRoughness;
 }
 
 void WriteDebugInfo(uint2 positionSS, float4 value)
