@@ -1302,6 +1302,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 #endif
 
+                // We avoid ticking this per camera. Every time the resolution type changes from hardware to software, this will reinvalidate all the internal resources
+                // of the RTHandle system. So we just obey directly what the render pipeline quality asset says. Cameras that have DRS disabled should still pass a res percentage of %100
+                // so will present rendering at native resolution. This will only pay a small cost of memory on the texture aliasing that the runtime has to keep track of.
+                RTHandles.SetHardwareDynamicResolutionState(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.dynResType == DynamicResolutionType.Hardware);
+
                 // Culling loop
                 foreach ((Camera camera, XRPass xrPass) in xrLayout.GetActivePasses())
                 {
@@ -1368,9 +1373,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Finally, our configuration is prepared. Push it to the drs handler
                     dynResHandler.Update(drsSettings);
-
-                    RTHandles.SetHardwareDynamicResolutionState(dynResHandler.HardwareDynamicResIsEnabled());
-
                     #endregion
                     // Reset pooled variables
                     cameraSettings.Clear();
