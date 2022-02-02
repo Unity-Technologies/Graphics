@@ -45,7 +45,7 @@ MonoBehaviour:
   m_OpaqueDownsampling: 1
   m_SupportsTerrainHoles: 1
   m_SupportsHDR: 1
-  m_HDRColorBufferFormat: 48
+  m_HDRColorBufferPrecision: 1
   m_MSAA: 4
   m_RenderScale: 1
   m_UpscalingFilter: 0

@@ -253,7 +253,7 @@ namespace UnityEngine.Rendering.Universal
                 var asset = UniversalRenderPipeline.asset;
                 var postProcessParams = PostProcessParams.Create();
                 postProcessParams.blitMaterial = m_BlitMaterial;
-                postProcessParams.requestHDRFormat = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(asset.supportsHDR, asset.hdrColorBufferFormat, false);
+                postProcessParams.requestHDRFormat = UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(asset.supportsHDR, asset.hdrColorBufferPrecision, false);
                 m_PostProcessPasses = new PostProcessPasses(data.postProcessData, ref postProcessParams);
             }
 

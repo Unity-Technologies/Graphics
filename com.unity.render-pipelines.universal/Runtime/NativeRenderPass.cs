@@ -229,7 +229,7 @@ namespace UnityEngine.Rendering.Universal
                     for (int i = 0; i < validColorBuffersCount; ++i)
                     {
                         AttachmentDescriptor currentAttachmentDescriptor =
-                            new AttachmentDescriptor(pass.renderTargetFormat[i] != GraphicsFormat.None ? pass.renderTargetFormat[i] : UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferFormat, Graphics.preserveFramebufferAlpha));
+                            new AttachmentDescriptor(pass.renderTargetFormat[i] != GraphicsFormat.None ? pass.renderTargetFormat[i] : UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, Graphics.preserveFramebufferAlpha));
 
                         RenderTargetIdentifier colorTarget;
                         if (m_CameraColorTarget.useRTHandle)
@@ -360,7 +360,7 @@ namespace UnityEngine.Rendering.Universal
                     if (pass.overrideCameraTarget)
                         currentAttachmentDescriptor = new AttachmentDescriptor(pass.renderTargetFormat[0] != GraphicsFormat.None
                             ? pass.renderTargetFormat[0]
-                            : UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferFormat, Graphics.preserveFramebufferAlpha)); // TODO: maybe this our of UniversalRenderPipeline
+                            : UniversalRenderPipeline.MakeRenderTextureGraphicsFormat(cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, Graphics.preserveFramebufferAlpha)); // TODO: maybe this our of UniversalRenderPipeline
 
 
                     var samples = pass.renderTargetSampleCount != -1

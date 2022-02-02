@@ -49,12 +49,13 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// Color Buffer format in HDR (only).
     /// </summary>
-    public enum HDRColorBufferFormat
+    public enum HDRColorBufferPrecision
     {
-        /// <summary>R11G11B10f for faster rendering. Recommend for mobile.</summary>
-        Default = GraphicsFormat.B10G11R11_UFloatPack32,
-        /// <summary>R16G16B16A16f for better quality. Can alleviate banding at the cost of memory and performance.</summary>
-        High = GraphicsFormat.R16G16B16A16_SFloat,
+        /// <summary>Typically R11G11B10f for faster rendering. Recommend for mobile.
+        /// R11G11B10f can cause a subtle blue/yellow banding in some rare cases due to lower precision of blue component.</summary>
+        _32Bits,
+        /// <summary>Typically R16G16B16A16f for better quality. Can reduce banding at the cost of memory and performance.</summary>
+        _64Bits,
     }
 
     public enum MsaaQuality
@@ -180,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Quality settings
         [SerializeField] bool m_SupportsHDR = true;
-        [SerializeField] HDRColorBufferFormat m_HDRColorBufferFormat = HDRColorBufferFormat.Default;
+        [SerializeField] HDRColorBufferPrecision m_HDRColorBufferPrecision = HDRColorBufferPrecision._32Bits;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
         [SerializeField] UpscalingFilterSelection m_UpscalingFilter = UpscalingFilterSelection.Auto;
@@ -680,10 +681,10 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Graphics format requested for HDR color buffers.
         /// </summary>
-        public HDRColorBufferFormat hdrColorBufferFormat
+        public HDRColorBufferPrecision hdrColorBufferPrecision
         {
-            get { return m_HDRColorBufferFormat; }
-            set { m_HDRColorBufferFormat = value; }
+            get { return m_HDRColorBufferPrecision; }
+            set { m_HDRColorBufferPrecision = value; }
         }
 
         public int msaaSampleCount
