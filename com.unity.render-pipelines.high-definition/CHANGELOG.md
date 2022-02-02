@@ -103,6 +103,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed vertex color mode Add name whicgh was misleading, renamed to AddSubstract.
 - Fixed screen space shadow when multiple lights cast shadows.
 - Fixed issue with accumulation motion blur and depth of field when path tracing is enabled.
+- Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
 
 ## [14.0.0] - 2021-11-17
 
