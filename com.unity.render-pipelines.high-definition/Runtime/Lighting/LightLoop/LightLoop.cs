@@ -1229,9 +1229,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
                     break;
                 }
-                case HDAdditionalReflectionData _:
+                case HDAdditionalReflectionData reflectionData:
                 {
-                    envIndex = m_TextureCaches.reflectionProbeCache.FetchSlice(cmd, probe.texture);
+                    uint textureHash = reflectionData.GetTextureHash();
+                    envIndex = m_TextureCaches.reflectionProbeCache.FetchSlice(cmd, probe.texture, textureHash);
                     // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
                     envIndex = envIndex == -1 ? int.MinValue : (envIndex + 1);
 
