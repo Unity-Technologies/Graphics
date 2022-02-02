@@ -102,6 +102,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed custom pass name being cut when too long in the inspector.
 - Fixed vertex color mode Add name whicgh was misleading, renamed to AddSubstract.
 - Fixed screen space shadow when multiple lights cast shadows.
+- Fixed issue with dynamic resolution and low res transparency sampling garbage outside of the render target.
 
 ## [14.0.0] - 2021-11-17
 
