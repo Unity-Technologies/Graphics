@@ -234,44 +234,44 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     int2 catPixelCoord = (int2)((catPixelCoordUnscaled - 0.5) / catMenuScale);
                     int2 catOffsetInTile = catPixelCoord - catTileCoord * GetTileSize();
 
-                    // Print light lists for selected tile at the bottom of the screen
-                    int maxAreaWidth = SHADEROPTIONS_FPTLMAX_LIGHT_COUNT + 4;
+                // Print light lists for selected tile at the bottom of the screen
+                int maxAreaWidth = SHADEROPTIONS_FPTLMAX_LIGHT_COUNT + 4;
                     if (catTileCoord.y < LIGHTCATEGORY_COUNT && catTileCoord.x < maxAreaWidth)
-                    {
-                        float depthMouse = GetTileDepth(_MousePixelCoord.xy);
+                {
+                    float depthMouse = GetTileDepth(_MousePixelCoord.xy);
 
                         PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord.xy, _ClusterDebugLightViewportSize.zw, depthMouse, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, mouseTileCoord);
 
                         uint category = (LIGHTCATEGORY_COUNT - 1) - catTileCoord.y;
-                        uint start;
-                        uint count;
+                    uint start;
+                    uint count;
 
-                        GetCountAndStart(mousePosInput, category, start, count);
+                    GetCountAndStart(mousePosInput, category, start, count);
 
-                        float4 result2 = float4(.1,.1,.1,.9);
+                    float4 result2 = float4(.1,.1,.1,.9);
                         int2 fontCoord = int2(catPixelCoord.x, catOffsetInTile.y);
                         int lightListIndex = catTileCoord.x - 2;
 
-                        int n = -1;
+                    int n = -1;
                         if(catTileCoord.x == 0)
-                        {
-                            n = (int)count;
-                        }
-                        else if(lightListIndex >= 0 && lightListIndex < (int)count)
-                        {
-                            n = FetchIndex(start, lightListIndex);
-                        }
-
-                        if (n >= 0)
-                        {
-                            if (SampleDebugFontNumber(catOffsetInTile, n))
-                                result2 = float4(0.0, 0.0, 0.0, 1.0);
-                            if (SampleDebugFontNumber(catOffsetInTile + 1, n))
-                                result2 = float4(1.0, 1.0, 1.0, 1.0);
-                        }
-
-                        result = AlphaBlend(result, result2);
+                    {
+                        n = (int)count;
                     }
+                    else if(lightListIndex >= 0 && lightListIndex < (int)count)
+                    {
+                        n = FetchIndex(start, lightListIndex);
+                    }
+
+                    if (n >= 0)
+                    {
+                        if (SampleDebugFontNumber2Digits(catOffsetInTile, n))
+                            result2 = float4(0.0, 0.0, 0.0, 1.0);
+                        if (SampleDebugFontNumber2Digits(catOffsetInTile + 1, n))
+                            result2 = float4(1.0, 1.0, 1.0, 1.0);
+                    }
+
+                    result = AlphaBlend(result, result2);
+                }
                 }
 #endif
 #endif
