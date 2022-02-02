@@ -1,12 +1,34 @@
 namespace com.unity.shadergraph.defs {
 
-    enum Primitive { Bool, Float, Int, }
+    // ----------
+    // Type
 
-    enum Precision { Fixed, Half, Full, }
+    enum Primitive { Bool, Float, Int, Dynamic, }
 
-    enum Width { One, Two, Three, Four, }
+    enum Precision { Fixed, Half, Full, Dynamic, }
 
-    enum Height { One, Two, Three, Four, }
+    enum Width { One, Two, Three, Four, Any, }
+
+    enum Height { One, Two, Three, Four, Any, }
+
+    public readonly struct Type
+    {
+        public Primitive Primitive { get; }
+        public Precision Precision { get; }
+        public Width Precision { get; }
+        public Height Precision { get; }
+    }
+
+    // ----------
+    // Predefined Types
+
+    Type Vector = { Primitive.Float, Precision.Dynamic, Width.Any, Height.One}; // A completely dynamic vector
+    Type Vec2 = { Primitive.Float, Precision.Dynamic, Width.Two, Height.One };
+    Type Vec3 = { Primitive.Float, Precision.Dynamic, Width.Three, Height.One };
+    Type Vec4 = { Primitive.Float, Precision.Dynamic, Width.Four, Height.One };
+
+    // ----------
+    // Parameter
 
     enum Use { In, Out, Static, } // required to be statically known
 
@@ -14,16 +36,17 @@ namespace com.unity.shadergraph.defs {
     {
         public string Key { get; }
         public string Name { get; }  // Must be a valid reference name
-        public Precision Precision { get; }
-        public Height Height { get; }
-        public Width Width { get; }
-        public Primitive Primitive { get; }
+        public Type Type { get; }
+
         public override string ToString()
         {
             // TODO Make this not a stub.
-            return $"({Key}, {Height}, {Width}, {Precision}, {Primitive})";
+            return $"({Key}, {Name}, {Type})";
         }
     }
+
+    // ----------
+    // Function
 
     public readonly struct Function
     {
@@ -34,12 +57,16 @@ namespace com.unity.shadergraph.defs {
     }
 
     // EXAMPLE Parameter
-    var myParameter = {
+    Parameter myParameter = {
         Key = "EXP",  // Must be a valid reference name
-        Precision = Precision.Dynamic,
-        Height = Height.Four,
-        Width = Width.Four,
-        Primitive = Primitive.Bool
+        Name = "Exp",
+        Type = Vec2,  // Can use a predefined Type here or specify one
+        // {
+        //     Precision = Precision.Fixed,
+        //     Height = Height.Four,
+        //     Width = Width.Four,
+        //     Primitive = Primitive.Float,
+        // },
     };
 
     // EXAMPLE Function
@@ -51,31 +78,19 @@ namespace com.unity.shadergraph.defs {
                 Key = "IN",
                 Name = "In",
                 Use = Use.In,
-
-                Precision = Precision.Dynamic,
-                Height = Height.Four,
-                Width = Width.Four,
-                Primitive = Primitive.Bool
+                Type= Vec4
             },
             {
                 Key = "EXP",
                 Name = "Exp",
                 Use = Use.In,
-
-                Precision = Precision.Dynamic,
-                Height = Height.Four,
-                Width = Width.Four,
-                Primitive = Primitive.Bool
+                Type = Vec4
             },
             {
                 Key = "OUT",
                 Name = "Out",
                 Use = Use.Out,
-
-                Precision = Precision.Dynamic,
-                Height = Height.Four,
-                Width = Width.Four,
-                Primitive = Primitive.Bool
+                Type = Vec4
             }
         },
         Body = "Out = pow(In, Exp);",
