@@ -204,7 +204,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUI.BeginProperty(headerRect, GUIContent.none, m_PassFoldout);
             {
+                EditorGUIUtility.labelWidth = headerRect.width;
                 m_PassFoldout.boolValue = EditorGUI.Foldout(headerRect, m_PassFoldout.boolValue, $"{m_Name.stringValue} ({m_PassType.Name})", true, EditorStyles.boldLabel);
+                EditorGUIUtility.labelWidth = 0;
             }
             EditorGUI.EndProperty();
             EditorGUI.BeginProperty(enabledRect, Styles.enabled, m_Enabled);
