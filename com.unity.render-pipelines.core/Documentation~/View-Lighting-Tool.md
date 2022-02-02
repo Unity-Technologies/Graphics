@@ -4,14 +4,38 @@ The Light Anchor can help to place light sources around subjects, in relation to
 
 ## Using the Light Anchor Component
 
-To use the Light Anchor, you must set the Tag of at least one Camera to "MainCamera". By default, the Anchor's position will be the same as the position of the GameObject the Light Anchor Component is attached to.
+To add a Light Anchor component to a GameObject in your Scene:
+
+Select a Light GameObject in the hierarchy to open its Inspector window.
+Go to **Add Component** > **Rendering** > **Light Anchor**
+
+By default, the Anchor's position will be the same as the position of the GameObject the Light Anchor Component is attached to.
+
+**Note**: To use the Light Anchor, you must set the Tag of at least one Camera to "MainCamera".
 
 Use the **Orbit** and **Elevation** to control the orientation of the light, in degrees, relative to the main Camera's and Anchor's positions. If the Light has a Cookie or an IES Profile, use the **Roll** to change their orientation. Use the **Distance** to control how far from the anchor, in meters, you want to place the Light.
 
-Using the **Anchor Position Override**, you can provide a custom GameObject as an anchor point for the light. This is useful if you want the light to follow a specific GameObject in the Scene.
+Using the **Anchor Position Override**, you can provide a GameObject’s [Transform](https://docs.unity3d.com/ScriptReference/Transform.html) as an anchor point for the light. This is useful if you want the light to follow a specific GameObject in the Scene.
+
+![](Images/LightAnchorAnimation.gif)
+
+**Note**: The reference Camera that adjusts the light rotation in the above example is the Main Camera. This means that the Common presets can create a different result in the Scene View if your view isn't aligned with the Main Camera.
 
 You can set a **Position Offset** for this custom Anchor. This is useful if the Transform position of the custom Anchor isn't centered appropriately for the light to orbit correctly around the custom Anchor.
 
-![](Images/view-lighting-tool-light-anchor0.png)
+![](Images/LightAnchor0.png)
+
 
 The Light Anchor component also includes a list of **Presets** that you can use to set the Light's orientation relative to the main Camera.
+
+## Properties
+
+| **Property**    | **Description**                                              |
+| --------------- | ------------------------------------------------------------ |
+| **Orbit** | Use the left icon to control the Orbit of the light. This tool becomes green when you move the icon. |
+| **Elevation** | Use the middle icon to control the Elevation of the light. This tool becomes blue when you move the icon. |
+| **Roll** | Use the right icon to control the Roll of the light. This tool becomes gray when you move the icon. This is useful if the light has an IES or a Cookie. |
+| **Distance** | Controls the distance between the light and its anchor in world space. |
+| **Up Direction** | Defines the space of the up direction of the anchor. When you set this value to Local, the Up Direction is relative to the camera. |
+| **Anchor Position Override** | Allows you to use a GameObject's [Transform](https://docs.unity3d.com/ScriptReference/Transform.html) as anchor position instead of the LightAnchor's Transform. When the Transform of the GameObject you assigned to this property changes, the Light Anchor's Transform also changes. |
+| **Common** | Assigns a preset to the light component based on the behavior of studio lights. |
